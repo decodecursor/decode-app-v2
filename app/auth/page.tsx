@@ -43,74 +43,80 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-      <div className="bg-gray-800 p-8 rounded-lg w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="text-2xl font-bold hover:text-blue-400 transition-colors">
-            DECODE
-          </Link>
-          <p className="text-gray-400 mt-2">Beauty Payment Platform</p>
-        </div>
-        
-        <div className="flex mb-6">
-          <button
-            onClick={() => setIsLogin(true)}
-            className={`flex-1 py-2 px-4 rounded-l-lg ${
-              isLogin ? 'bg-blue-600' : 'bg-gray-700'
-            }`}
-          >
-            Login
-          </button>
-          <button
-            onClick={() => setIsLogin(false)}
-            className={`flex-1 py-2 px-4 rounded-r-lg ${
-              !isLogin ? 'bg-blue-600' : 'bg-gray-700'
-            }`}
-          >
-            Sign Up
-          </button>
-        </div>
+    <div className="cosmic-bg">
+      <div className="min-h-screen flex items-center justify-center px-4 py-8">
+        <div className="cosmic-card">
+          <div className="text-center mb-8">
+            <Link href="/" className="cosmic-logo hover:opacity-80 transition-opacity">
+              DECODE
+            </Link>
+            <p className="cosmic-body mt-2 opacity-80">Beauty Payment Platform</p>
+          </div>
+          
+          <div className="flex mb-6">
+            <button
+              onClick={() => setIsLogin(true)}
+              className={`flex-1 py-3 px-4 font-medium transition-all duration-200 ${
+                isLogin 
+                  ? 'bg-gradient-to-r from-orange-400 to-pink-400 text-white rounded-l-lg' 
+                  : 'bg-white/10 text-white/70 hover:bg-white/20 rounded-l-lg'
+              }`}
+            >
+              Login
+            </button>
+            <button
+              onClick={() => setIsLogin(false)}
+              className={`flex-1 py-3 px-4 font-medium transition-all duration-200 ${
+                !isLogin 
+                  ? 'bg-gradient-to-r from-orange-400 to-pink-400 text-white rounded-r-lg' 
+                  : 'bg-white/10 text-white/70 hover:bg-white/20 rounded-r-lg'
+              }`}
+            >
+              Sign Up
+            </button>
+          </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 rounded bg-gray-700 text-white placeholder-gray-400"
-              required
-              disabled={loading}
-            />
-          </div>
-          <div>
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 rounded bg-gray-700 text-white placeholder-gray-400"
-              required
-              disabled={loading}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white p-3 rounded"
-          >
-            {loading ? 'Loading...' : (isLogin ? 'Login' : 'Sign Up')}
-          </button>
-          {message && (
-            <div className={`text-center p-3 rounded ${
-              message.includes('error') || message.includes('Error') 
-                ? 'bg-red-900 text-red-200' 
-                : 'bg-green-900 text-green-200'
-            }`}>
-              {message}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="cosmic-input"
+                required
+                disabled={loading}
+              />
             </div>
-          )}
-        </form>
+            <div>
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="cosmic-input"
+                required
+                disabled={loading}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="cosmic-button-primary"
+            >
+              {loading ? 'Loading...' : (isLogin ? 'Login' : 'Sign Up')}
+            </button>
+            {message && (
+              <div className={`text-center p-3 rounded-lg border ${
+                message.includes('error') || message.includes('Error') 
+                  ? 'bg-red-900/20 border-red-500/30 text-red-200' 
+                  : 'bg-green-900/20 border-green-500/30 text-green-200'
+              }`}>
+                {message}
+              </div>
+            )}
+          </form>
+        </div>
       </div>
     </div>
   )
