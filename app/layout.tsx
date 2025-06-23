@@ -15,6 +15,10 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         {children}
+        <div className="shooting-star"></div>
+        <div className="shooting-star"></div>
+        <div className="shooting-star"></div>
+        <div className="shooting-star"></div>
       </body>
     </html>
   );
