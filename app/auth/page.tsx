@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import Link from 'next/link'
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -44,7 +45,12 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
       <div className="bg-gray-800 p-8 rounded-lg w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center mb-8">DECODE</h1>
+        <div className="text-center mb-8">
+          <Link href="/" className="text-2xl font-bold hover:text-blue-400 transition-colors">
+            DECODE
+          </Link>
+          <p className="text-gray-400 mt-2">Beauty Payment Platform</p>
+        </div>
         
         <div className="flex mb-6">
           <button
