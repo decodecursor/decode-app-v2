@@ -2,12 +2,12 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import Link from 'next/link'
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [role, setRole] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
 
@@ -16,6 +16,13 @@ export default function AuthPage() {
     setLoading(true)
     setMessage('')
     
+    // Validate role selection for signup
+    if (!isLogin && !role) {
+      setMessage('Please select your role')
+      setLoading(false)
+      return
+    }
+    
     try {
       if (isLogin) {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -23,8 +30,9 @@ export default function AuthPage() {
           password
         })
         if (error) throw error
-        setMessage('Login successful!')
         console.log('User logged in:', data.user)
+        window.location.href = '/dashboard'
+        return // Don't set loading to false for login - let redirect happen
       } else {
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -47,40 +55,15 @@ export default function AuthPage() {
       <div className="min-h-screen flex items-center justify-center px-4 py-8">
         <div className="cosmic-card">
           <div className="text-center mb-8">
-            <Link href="/" className="cosmic-logo hover:opacity-80 transition-opacity">
-              DECODE
-            </Link>
-            <p className="cosmic-body mt-2 opacity-80">Beauty Payment Platform</p>
-          </div>
-          
-          <div className="flex mb-6">
-            <button
-              onClick={() => setIsLogin(true)}
-              className={`flex-1 py-3 px-4 font-medium transition-all duration-200 ${
-                isLogin 
-                  ? 'bg-gradient-to-r from-orange-400 to-pink-400 text-white rounded-l-lg' 
-                  : 'bg-white/10 text-white/70 hover:bg-white/20 rounded-l-lg'
-              }`}
-            >
-              Login
-            </button>
-            <button
-              onClick={() => setIsLogin(false)}
-              className={`flex-1 py-3 px-4 font-medium transition-all duration-200 ${
-                !isLogin 
-                  ? 'bg-gradient-to-r from-orange-400 to-pink-400 text-white rounded-r-lg' 
-                  : 'bg-white/10 text-white/70 hover:bg-white/20 rounded-r-lg'
-              }`}
-            >
-              Sign Up
-            </button>
+            <h1 className="cosmic-logo mb-2">DECODE</h1>
+            <p className="cosmic-body opacity-70">Beauty payment platform</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <input
                 type="email"
-                placeholder="Email"
+                placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="cosmic-input"
@@ -91,7 +74,7 @@ export default function AuthPage() {
             <div>
               <input
                 type="password"
-                placeholder="Password"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="cosmic-input"
@@ -99,22 +82,74 @@ export default function AuthPage() {
                 disabled={loading}
               />
             </div>
+            
+            {!isLogin && (
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-300">
+                  Select your role
+                </label>
+                <div className="space-y-3">
+                  <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border border-gray-700 hover:border-purple-500 transition-colors">
+                    <input
+                      type="radio"
+                      name="role"
+                      value="Beauty Professional"
+                      checked={role === 'Beauty Professional'}
+                      onChange={(e) => setRole(e.target.value)}
+                      className="w-4 h-4 text-purple-500 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2"
+                      disabled={loading}
+                    />
+                    <div className="flex-1">
+                      <div className="text-white font-medium">Beauty Professional</div>
+                      <div className="text-gray-400 text-xs">Create payment links for your services</div>
+                    </div>
+                  </label>
+                  
+                  <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border border-gray-700 hover:border-purple-500 transition-colors">
+                    <input
+                      type="radio"
+                      name="role"
+                      value="Beauty Model"
+                      checked={role === 'Beauty Model'}
+                      onChange={(e) => setRole(e.target.value)}
+                      className="w-4 h-4 text-purple-500 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2"
+                      disabled={loading}
+                    />
+                    <div className="flex-1">
+                      <div className="text-white font-medium">Beauty Model</div>
+                      <div className="text-gray-400 text-xs">Receive payments through linked accounts</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            )}
             <button
               type="submit"
               disabled={loading}
-              className="cosmic-button-primary"
+              className="cosmic-button-primary w-full"
             >
-              {loading ? 'Loading...' : (isLogin ? 'Login' : 'Sign Up')}
+              {loading ? 'Loading...' : (isLogin ? 'Sign in' : 'Sign up')}
             </button>
+            
             {message && (
-              <div className={`text-center p-3 rounded-lg border ${
+              <div className={`text-center p-3 rounded-lg text-sm ${
                 message.includes('error') || message.includes('Error') 
-                  ? 'bg-red-900/20 border-red-500/30 text-red-200' 
-                  : 'bg-green-900/20 border-green-500/30 text-green-200'
+                  ? 'text-red-300 bg-red-900/20' 
+                  : 'text-green-300 bg-green-900/20'
               }`}>
                 {message}
               </div>
             )}
+            
+            <div className="text-center pt-4">
+              <button
+                type="button"
+                onClick={() => setIsLogin(!isLogin)}
+                className="cosmic-button-secondary"
+              >
+                {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              </button>
+            </div>
           </form>
         </div>
       </div>
