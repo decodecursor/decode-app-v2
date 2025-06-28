@@ -331,6 +331,10 @@ export async function saveSplitTemplate(template: SplitTemplate): Promise<string
       }
     }
     
+    if (!templateId) {
+      throw new Error('Failed to create or update template - no template ID available')
+    }
+    
     return templateId
   } catch (error) {
     console.error('Error saving split template:', error)
