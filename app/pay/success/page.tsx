@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
@@ -14,7 +14,7 @@ interface PaymentDetails {
   transactionId?: string
 }
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const searchParams = useSearchParams()
@@ -201,5 +201,26 @@ export default function PaymentSuccessPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+function LoadingFallback() {
+  return (
+    <div className="cosmic-bg">
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="cosmic-card">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white/30 mx-auto mb-4"></div>
+          <p className="cosmic-body text-center">Loading payment details...</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <PaymentSuccessContent />
+    </Suspense>
   )
 }
