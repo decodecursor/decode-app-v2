@@ -113,7 +113,7 @@ class MonitoringService {
 
     // Add metadata if present
     if (alert.metadata && Object.keys(alert.metadata).length > 0) {
-      slackPayload.attachments[0].fields.push({
+      slackPayload.attachments[0]?.fields?.push({
         title: 'Metadata',
         value: '```' + JSON.stringify(alert.metadata, null, 2) + '```',
         short: false
