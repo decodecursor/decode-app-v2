@@ -436,10 +436,12 @@ async function notifyCreatorOfFailedPayment(
       const creator = Array.isArray(paymentLink.creator) ? paymentLink.creator[0] : paymentLink.creator
       
       // Send failure notification to creator (optional - you may not want to notify creators of every failed payment)
-      console.log(`📧 Notifying creator ${creator.email} of failed payment for: ${paymentLink.title}`)
-      
-      // For now, just log this. In the future, you could send an email to the creator
-      // if they have opted in to failure notifications
+      if (creator && creator.email) {
+        console.log(`📧 Notifying creator ${creator.email} of failed payment for: ${paymentLink.title}`)
+        
+        // For now, just log this. In the future, you could send an email to the creator
+        // if they have opted in to failure notifications
+      }
     }
   } catch (error) {
     console.error('Error notifying creator of failed payment:', error)
