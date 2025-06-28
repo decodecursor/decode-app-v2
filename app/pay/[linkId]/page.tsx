@@ -613,7 +613,7 @@ export default function PaymentPage() {
           onFailure={handlePaymentFailure}
           onPending={handlePaymentPending}
           serviceTitle={paymentData.title}
-          creatorName={paymentData.creator.full_name || paymentData.creator.email.split('@')[0]}
+          creatorName={paymentData.creator.full_name || paymentData.creator.email.split('@')[0] || 'Unknown'}
           disabled={!!emailError || !isPaymentValid}
         />
       )}
