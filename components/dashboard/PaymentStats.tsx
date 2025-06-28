@@ -130,7 +130,7 @@ export default function PaymentStats({ transactions, paymentLinks }: PaymentStat
         })
         
         revenueByDay.push({
-          date: date.toISOString().split('T')[0],
+          date: date.toISOString().split('T')[0]!,
           revenue: dayTransactions.reduce((sum, t) => sum + t.amount_usd, 0),
           transactions: dayTransactions.length
         })
