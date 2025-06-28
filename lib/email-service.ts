@@ -941,4 +941,4 @@ Manage your payment settings in your dashboard.
 export const emailService = new EmailService()
 
 // Export types and interfaces
-export type { EmailConfig, EmailResult }
+export type { EmailConfig }
