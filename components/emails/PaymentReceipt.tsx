@@ -378,7 +378,7 @@ export default function PaymentReceipt({
                 )}
 
                 <tr>
-                  <td colSpan="2" style={{ padding: '15px 0' }}>
+                  <td colSpan={2} style={{ padding: '15px 0' }}>
                     <hr style={{
                       border: 'none',
                       borderTop: '2px solid #e9ecef',
