@@ -70,7 +70,7 @@ export default function PaymentPendingPage() {
 
   // Payment status checking
   useEffect(() => {
-    if (!pendingDetails || paymentStatus !== 'pending') return
+    if (!pendingDetails || paymentStatus !== 'pending') return () => {}
 
     const checkPaymentStatus = async () => {
       try {
@@ -132,6 +132,7 @@ export default function PaymentPendingPage() {
     } else {
       // Max attempts reached, consider it timeout
       setPaymentStatus('timeout')
+      return () => {}
     }
   }, [pendingDetails, paymentStatus, checkAttempts, maxCheckAttempts, router])
 
