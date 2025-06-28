@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get request headers
-    const headersList = headers()
+    const headersList = await headers()
     const signature = headersList.get('x-crossmint-signature') || headersList.get('signature')
     const contentType = headersList.get('content-type')
 
