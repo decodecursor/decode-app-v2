@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
@@ -17,7 +17,7 @@ interface PaymentPendingDetails {
 
 type PaymentStatus = 'pending' | 'success' | 'failed' | 'timeout'
 
-export default function PaymentPendingPage() {
+function PaymentPendingContent() {
   const [pendingDetails, setPendingDetails] = useState<PaymentPendingDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('pending')
@@ -358,5 +358,26 @@ export default function PaymentPendingPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+function LoadingFallback() {
+  return (
+    <div className="cosmic-bg">
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="cosmic-card">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white/30 mx-auto mb-4"></div>
+          <p className="cosmic-body text-center">Loading payment status...</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function PaymentPendingPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <PaymentPendingContent />
+    </Suspense>
   )
 }
