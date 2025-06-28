@@ -53,15 +53,16 @@ export function MobilePaymentSheet({
   }
 
   const handleSwipeDown = (e: React.TouchEvent) => {
-    if (!e.touches.length) return
-    
     const touch = e.touches[0]
+    if (!touch) return
+    
     const startY = touch.clientY
     
     const handleTouchMove = (moveEvent: TouchEvent) => {
-      if (!moveEvent.touches.length) return
+      const currentTouch = moveEvent.touches[0]
+      if (!currentTouch) return
       
-      const currentY = moveEvent.touches[0].clientY
+      const currentY = currentTouch.clientY
       const deltaY = currentY - startY
       
       // If user swipes down more than 100px, close the sheet
