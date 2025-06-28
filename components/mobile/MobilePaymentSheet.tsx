@@ -53,10 +53,14 @@ export function MobilePaymentSheet({
   }
 
   const handleSwipeDown = (e: React.TouchEvent) => {
+    if (!e.touches.length) return
+    
     const touch = e.touches[0]
     const startY = touch.clientY
     
     const handleTouchMove = (moveEvent: TouchEvent) => {
+      if (!moveEvent.touches.length) return
+      
       const currentY = moveEvent.touches[0].clientY
       const deltaY = currentY - startY
       
