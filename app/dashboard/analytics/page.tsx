@@ -45,6 +45,8 @@ export default function AnalyticsPage() {
       
       return unsubscribe
     }
+    
+    return () => {}
   }, [realtimeEnabled, user])
 
   const fetchAnalyticsData = async () => {
