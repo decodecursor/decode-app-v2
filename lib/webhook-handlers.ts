@@ -472,24 +472,27 @@ async function sendCreatorPaymentNotification(
 
     if (paymentLink && paymentLink.creator) {
       const creator = Array.isArray(paymentLink.creator) ? paymentLink.creator[0] : paymentLink.creator
-      const buyerEmail = data.customer?.email || data.metadata?.buyerEmail
+      
+      if (creator && creator.email) {
+        const buyerEmail = data.customer?.email || data.metadata?.buyerEmail
 
-      // Send creator notification
-      const result = await emailService.sendCreatorPaymentNotification({
-        creatorEmail: creator.email,
-        creatorName: creator.full_name || creator.email,
-        transactionId: data.id,
-        amount: data.amount,
-        currency: data.currency,
-        serviceTitle: paymentLink.title,
-        buyerEmail,
-        transactionDate: new Date().toISOString()
-      })
+        // Send creator notification
+        const result = await emailService.sendCreatorPaymentNotification({
+          creatorEmail: creator.email,
+          creatorName: creator.full_name || creator.email,
+          transactionId: data.id,
+          amount: data.amount,
+          currency: data.currency,
+          serviceTitle: paymentLink.title,
+          buyerEmail,
+          transactionDate: new Date().toISOString()
+        })
 
-      if (result.success) {
-        console.log(`✅ Creator notification sent to ${creator.email}`)
-      } else {
-        console.error(`❌ Failed to send creator notification: ${result.error}`)
+        if (result.success) {
+          console.log(`✅ Creator notification sent to ${creator.email}`)
+        } else {
+          console.error(`❌ Failed to send creator notification: ${result.error}`)
+        }
       }
     }
   } catch (error) {
