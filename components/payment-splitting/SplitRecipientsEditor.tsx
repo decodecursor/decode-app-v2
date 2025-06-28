@@ -52,7 +52,7 @@ export function SplitRecipientsEditor({
 
   const updateRecipient = (index: number, updates: Partial<SplitRecipient>) => {
     const newRecipients = [...recipients]
-    newRecipients[index] = { ...newRecipients[index], ...updates }
+    newRecipients[index] = { ...newRecipients[index], ...updates } as SplitRecipient
     
     // If setting as primary, unset others
     if (updates.isPrimaryRecipient) {
