@@ -303,7 +303,7 @@ export default function PaymentPage() {
         // Transform the data to match our interface
         const transformedData: PaymentLinkData = {
           ...data,
-          creator: Array.isArray(data.creator) ? data.creator[0] : data.creator
+          creator: Array.isArray(data.creator) ? (data.creator[0] || { full_name: null, email: '' }) : (data.creator || { full_name: null, email: '' })
         }
 
         setPaymentData(transformedData)
