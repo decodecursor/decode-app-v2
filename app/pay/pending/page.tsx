@@ -64,6 +64,8 @@ export default function PaymentPendingPage() {
     } else if (timeoutSeconds === 0 && paymentStatus === 'pending') {
       setPaymentStatus('timeout')
     }
+    
+    return () => {}
   }, [timeoutSeconds, paymentStatus])
 
   // Payment status checking
