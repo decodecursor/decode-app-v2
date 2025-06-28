@@ -503,7 +503,7 @@ export default function PaymentPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-gray-900 text-sm sm:text-base truncate">
-                  {paymentData.creator.full_name || paymentData.creator.email.split('@')[0]}
+                  {paymentData.creator.full_name || paymentData.creator.email?.split('@')[0] || 'Unknown'}
                 </p>
                 <p className="text-gray-600 text-xs sm:text-sm truncate">{paymentData.creator.email}</p>
               </div>
@@ -613,7 +613,7 @@ export default function PaymentPage() {
           onFailure={handlePaymentFailure}
           onPending={handlePaymentPending}
           serviceTitle={paymentData.title}
-          creatorName={paymentData.creator.full_name || paymentData.creator.email.split('@')[0] || 'Unknown'}
+          creatorName={paymentData.creator.full_name || paymentData.creator.email?.split('@')[0] || 'Unknown'}
           disabled={!!emailError || !isPaymentValid}
         />
       )}
