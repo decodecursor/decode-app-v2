@@ -203,8 +203,17 @@ export default function PaymentPage() {
 
   useEffect(() => {
     const fetchPaymentLink = async () => {
+      // Debug logging for production troubleshooting
+      console.log('🔍 DEBUG: Payment Link Lookup Started', {
+        linkId,
+        environment: process.env.NODE_ENV,
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        timestamp: new Date().toISOString()
+      })
+
       // Validate linkId exists and is a valid UUID
       if (!linkId) {
+        console.error('❌ DEBUG: No linkId provided')
         setError('Invalid payment link URL')
         setErrorType('invalid')
         setLoading(false)
@@ -212,6 +221,7 @@ export default function PaymentPage() {
       }
 
       if (!isValidUUID(linkId)) {
+        console.error('❌ DEBUG: Invalid UUID format:', linkId)
         setError('Invalid payment link format')
         setErrorType('invalid')
         setLoading(false)
@@ -219,6 +229,8 @@ export default function PaymentPage() {
       }
 
       try {
+        console.log('🔍 DEBUG: Executing Supabase query for linkId:', linkId)
+        
         // Fetch payment link with creator information
         const { data, error: fetchError } = await supabase
           .from('payment_links')
@@ -237,13 +249,23 @@ export default function PaymentPage() {
           .eq('id', linkId)
           .single()
 
+        console.log('🔍 DEBUG: Supabase query response:', {
+          data,
+          error: fetchError,
+          errorCode: fetchError?.code,
+          errorMessage: fetchError?.message
+        })
+
         if (fetchError) {
+          console.error('❌ DEBUG: Supabase fetch error:', fetchError)
           // Handle specific Supabase errors
           if (fetchError.code === 'PGRST116') {
             // No rows returned
+            console.log('🔍 DEBUG: No rows found for linkId:', linkId)
             setError('Payment link not found')
             setErrorType('not-found')
           } else {
+            console.error('❌ DEBUG: Database error:', fetchError)
             throw fetchError
           }
           setLoading(false)
@@ -251,11 +273,14 @@ export default function PaymentPage() {
         }
 
         if (!data) {
+          console.error('❌ DEBUG: No data returned from query')
           setError('Payment link not found')
           setErrorType('not-found')
           setLoading(false)
           return
         }
+
+        console.log('✅ DEBUG: Payment link data found:', data)
 
         // Check if creator data exists
         if (!data.creator || (Array.isArray(data.creator) && data.creator.length === 0)) {
@@ -306,9 +331,16 @@ export default function PaymentPage() {
           creator: Array.isArray(data.creator) ? (data.creator[0] || { full_name: null, email: '' }) : (data.creator || { full_name: null, email: '' })
         }
 
+        console.log('✅ DEBUG: Payment data successfully loaded and transformed:', transformedData)
         setPaymentData(transformedData)
       } catch (error) {
-        console.error('Error fetching payment link:', error)
+        console.error('❌ DEBUG: Unexpected error during payment link fetch:', error)
+        console.error('❌ DEBUG: Error details:', {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : 'No stack trace',
+          linkId,
+          timestamp: new Date().toISOString()
+        })
         setError('Unable to load payment information. Please try again later.')
         setErrorType('network')
       } finally {
