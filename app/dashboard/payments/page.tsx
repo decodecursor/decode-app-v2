@@ -111,7 +111,7 @@ export default function PaymentHistoryPage() {
         
         return {
           ...link,
-          creator: Array.isArray(link.creator) ? link.creator[0] : link.creator || { full_name: null, email: '' },
+          creator: Array.isArray(link.creator) ? (link.creator[0] || { full_name: null, email: '' }) : (link.creator || { full_name: null, email: '' }),
           transaction_count: completedTransactions.length,
           total_revenue: completedTransactions.reduce((sum, t) => sum + (t.amount_usd || 0), 0)
         }
