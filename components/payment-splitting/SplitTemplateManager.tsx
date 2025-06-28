@@ -112,7 +112,7 @@ export function SplitTemplateManager({
       name = recipient.recipientName
       contact = recipient.recipientEmail || recipient.recipientUserId || ''
     } else if (recipient.recipientEmail) {
-      name = recipient.recipientEmail.split('@')[0]
+      name = recipient.recipientEmail?.split('@')[0] || 'Unknown'
       contact = recipient.recipientEmail
     } else if (recipient.recipientUserId) {
       name = 'Platform User'
