@@ -139,7 +139,7 @@ export default function PaymentHistoryPage() {
         .filter(t => t.payment_link)
         .map(t => ({
           ...t,
-          payment_link: Array.isArray(t.payment_link) ? t.payment_link[0] : t.payment_link
+          payment_link: Array.isArray(t.payment_link) ? (t.payment_link[0] || { title: '', amount_usd: 0 }) : (t.payment_link || { title: '', amount_usd: 0 })
         }))
 
       setTransactions(processedTransactions)
