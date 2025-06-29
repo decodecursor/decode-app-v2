@@ -1,0 +1,19 @@
+{
+  "env": {
+    "NEXT_PUBLIC_CROSSMINT_PROJECT_ID": "Decode Cursor",
+    "NEXT_PUBLIC_CROSSMINT_API_KEY": "sk_staging_5TCFHsqJfGwTy2idiqnon6CCkigQ2vobViwoZiCY4J3pEz4Vmkodz2n1KBwHxwRjSACdsvPEkDRzJYHYWwv575mhd58Dhpkpw7qDe5VmwK8YS6Kp3FHxFbprpxTv14kqVPHWMYRgbecF6BJdjYTR3fHrSH2VPQ1iVE1QonX4tC8N3T98R5KXYPzeKmh3khXMA3hXfj8bseXQWWJJVbYCh5zZ",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://vdgjzaaxvstbouklgsft.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkZ2p6YWF4dnN0Ym91a2xnc2Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NzE3MzQsImV4cCI6MjA2NjI0NzczNH0.98TuBpnqy3rHMRQtVJxuC466ymjCBAikik7KgGX5QDM",
+    "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkZ2p6YWF4dnN0Ym91a2xnc2Z0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MDY3MTczNCwiZXhwIjoyMDY2MjQ3NzM0fQ.K0X8v4TNfQ8BjOrpuSkE3EhQLMOb0ZkQZwCAM6_6Z5Y",
+    "CROSSMINT_CLIENT_ID": "cm_staging_client_123",
+    "CROSSMINT_CLIENT_SECRET": "cm_staging_secret_456", 
+    "CROSSMINT_WEBHOOK_SECRET": "cm_staging_webhook_789",
+    "CROSSMINT_ENVIRONMENT": "staging",
+    "NEXT_PUBLIC_APP_URL": "https://decode-app-v2.vercel.app",
+    "EMAIL_PROVIDER": "resend",
+    "RESEND_API_KEY": "re_3yxEgGkq_KgFdwuqCrNVbjJ54mxazBvVs",
+    "EMAIL_FROM": "DECODE Beauty <noreply@decode.beauty>",
+    "SUPPORT_EMAIL": "support@decode.beauty",
+    "DEBUG_EMAIL": "false"
+  }
+}
