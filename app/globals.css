@@ -40,6 +40,12 @@
   margin: 0 auto;
 }
 
+/* Smaller Stats Cards */
+.stats-card {
+  width: 30% !important;
+  max-width: 300px;
+}
+
 /* Cosmic Input Fields */
 .cosmic-input {
   background: transparent;
