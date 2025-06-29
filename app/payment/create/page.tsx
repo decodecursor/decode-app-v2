@@ -206,13 +206,15 @@ export default function CreatePayment() {
     <div className="cosmic-bg">
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Link */}
-        <div className="max-w-2xl mx-auto mb-8">
+        <div className="flex justify-center mb-8">
+          <div className="w-full" style={{maxWidth: '70vw'}}>
           <Link href="/dashboard" className="inline-flex items-center text-gray-300 hover:text-white transition-colors">
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back to Dashboard
           </Link>
+          </div>
         </div>
 
         {/* Main Content */}
@@ -274,20 +276,17 @@ export default function CreatePayment() {
 
                     <div>
                       <label className="cosmic-label block mb-2">Amount in USD *</label>
-                      <div className="relative">
-                        <span className="absolute left-5 top-1/2 transform -translate-y-1/2 cosmic-body text-xl text-gray-300 z-10 pointer-events-none">$</span>
-                        <input
-                          type="number"
-                          name="amount"
-                          value={formData.amount}
-                          onChange={handleInputChange}
-                          placeholder="0.00"
-                          step="0.01"
-                          min="0"
-                          className={`cosmic-input pl-16 text-xl ${errors.amount ? 'border-red-500' : ''}`}
-                          disabled={creating}
-                        />
-                      </div>
+                      <input
+                        type="number"
+                        name="amount"
+                        value={formData.amount}
+                        onChange={handleInputChange}
+                        placeholder="0.00"
+                        step="0.01"
+                        min="0"
+                        className={`cosmic-input text-xl ${errors.amount ? 'border-red-500' : ''}`}
+                        disabled={creating}
+                      />
                       {errors.amount && (
                         <p className="mt-2 text-sm text-red-400">{errors.amount}</p>
                       )}
