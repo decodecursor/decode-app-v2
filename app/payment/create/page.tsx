@@ -5,9 +5,6 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
-import { SplitRecipientsEditor, SplitTemplateManager } from '@/components/payment-splitting'
-import type { SplitRecipient } from '@/lib/payment-splitting'
-import { addSplitRecipients, validateSplitRecipients } from '@/lib/payment-splitting'
 
 export default function CreatePayment() {
   const [user, setUser] = useState<User | null>(null)
@@ -21,13 +18,8 @@ export default function CreatePayment() {
   })
   const [errors, setErrors] = useState({
     title: '',
-    amount: '',
-    splits: ''
+    amount: ''
   })
-  const [splitRecipients, setSplitRecipients] = useState<SplitRecipient[]>([])
-  const [showSplitSection, setShowSplitSection] = useState(false)
-  const [showTemplateManager, setShowTemplateManager] = useState(false)
-  const [currentStep, setCurrentStep] = useState(1) // 1: Basic Info, 2: Splits, 3: Review
   const router = useRouter()
 
   useEffect(() => {
@@ -54,35 +46,22 @@ export default function CreatePayment() {
     }
   }
 
-  const validateForm = (step: number = currentStep) => {
-    const newErrors = { title: '', amount: '', splits: '' }
+  const validateForm = () => {
+    const newErrors = { title: '', amount: '' }
     let isValid = true
 
-    // Step 1: Basic Info Validation
-    if (step >= 1) {
-      if (!formData.title.trim()) {
-        newErrors.title = 'Service title is required'
-        isValid = false
-      }
-
-      if (!formData.amount.trim()) {
-        newErrors.amount = 'Amount is required'
-        isValid = false
-      } else {
-        const amount = parseFloat(formData.amount)
-        if (isNaN(amount) || amount <= 0) {
-          newErrors.amount = 'Please enter a valid amount greater than $0'
-          isValid = false
-        }
-      }
+    if (!formData.title.trim()) {
+      newErrors.title = 'Service title is required'
+      isValid = false
     }
 
-    // Step 2: Split Validation
-    if (step >= 2 && splitRecipients.length > 0) {
-      try {
-        validateSplitRecipients(splitRecipients)
-      } catch (error) {
-        newErrors.splits = error instanceof Error ? error.message : 'Invalid split configuration'
+    if (!formData.amount.trim()) {
+      newErrors.amount = 'Amount is required'
+      isValid = false
+    } else {
+      const amount = parseFloat(formData.amount)
+      if (isNaN(amount) || amount <= 0) {
+        newErrors.amount = 'Please enter a valid amount greater than $0'
         isValid = false
       }
     }
@@ -91,20 +70,10 @@ export default function CreatePayment() {
     return isValid
   }
 
-  const nextStep = () => {
-    if (validateForm(currentStep)) {
-      setCurrentStep(currentStep + 1)
-    }
-  }
-
-  const prevStep = () => {
-    setCurrentStep(currentStep - 1)
-  }
-
   const generatePaymentLink = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!validateForm(3)) {
+    if (!validateForm()) {
       return
     }
 
@@ -139,11 +108,6 @@ export default function CreatePayment() {
         throw saveError
       }
 
-      // Add split recipients if any are configured
-      if (splitRecipients.length > 0) {
-        await addSplitRecipients(data.id, splitRecipients)
-      }
-
       console.log('Payment link created successfully:', data)
       setSuccess(true)
       
@@ -162,32 +126,9 @@ export default function CreatePayment() {
 
   const resetForm = () => {
     setFormData({ title: '', amount: '' })
-    setErrors({ title: '', amount: '', splits: '' })
-    setSplitRecipients([])
-    setCurrentStep(1)
-    setShowSplitSection(false)
-    setShowTemplateManager(false)
+    setErrors({ title: '', amount: '' })
     setSuccess(false)
     setError('')
-  }
-
-  const handleTemplateApplied = (recipients: SplitRecipient[]) => {
-    setSplitRecipients(recipients)
-    setShowSplitSection(true)
-    setShowTemplateManager(false)
-  }
-
-  const getStepTitle = () => {
-    switch (currentStep) {
-      case 1:
-        return 'Basic Information'
-      case 2:
-        return 'Payment Splitting (Optional)'
-      case 3:
-        return 'Review & Create'
-      default:
-        return 'Create Payment Link'
-    }
   }
 
   if (loading) {
@@ -222,221 +163,58 @@ export default function CreatePayment() {
           {!success ? (
             /* Payment Form */
             <div className="cosmic-card">
-              {/* Progress Indicator */}
-              <div className="mb-8">
-                <div className="flex items-center justify-between mb-4">
-                  {[1, 2, 3].map((step) => (
-                    <div key={step} className="flex items-center">
-                      <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
-                        step === currentStep 
-                          ? 'bg-purple-600 text-white' 
-                          : step < currentStep 
-                            ? 'bg-green-600 text-white' 
-                            : 'bg-gray-300 text-gray-600'
-                      }`}>
-                        {step < currentStep ? (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        ) : (
-                          step
-                        )}
-                      </div>
-                      {step < 3 && (
-                        <div className={`w-16 h-1 mx-2 ${
-                          step < currentStep ? 'bg-green-600' : 'bg-gray-300'
-                        }`} />
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <h1 className="cosmic-heading text-center">{getStepTitle()}</h1>
-              </div>
+              <h1 className="cosmic-heading text-center mb-8">Create Payment Link</h1>
 
               <form onSubmit={generatePaymentLink} className="space-y-6">
-                {/* Step 1: Basic Information */}
-                {currentStep === 1 && (
-                  <div className="space-y-6">
-                    <div>
-                      <label className="cosmic-label block mb-2">Service *</label>
-                      <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleInputChange}
-                        placeholder="e.g., Hair Styling, Makeup Session, Manicure"
-                        className={`cosmic-input ${errors.title ? 'border-red-500' : ''}`}
-                        disabled={creating}
-                      />
-                      {errors.title && (
-                        <p className="mt-2 text-sm text-red-400">{errors.title}</p>
-                      )}
-                    </div>
+                <div>
+                  <label className="cosmic-label block mb-2">Service *</label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    placeholder="e.g., Hair Styling, Makeup Session, Manicure"
+                    className={`cosmic-input ${errors.title ? 'border-red-500' : ''}`}
+                    disabled={creating}
+                  />
+                  {errors.title && (
+                    <p className="mt-2 text-sm text-red-400">{errors.title}</p>
+                  )}
+                </div>
 
+                <div>
+                  <label className="cosmic-label block mb-2">Amount in USD *</label>
+                  <input
+                    type="number"
+                    name="amount"
+                    value={formData.amount}
+                    onChange={handleInputChange}
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                    className={`cosmic-input text-xl ${errors.amount ? 'border-red-500' : ''}`}
+                    disabled={creating}
+                  />
+                  {errors.amount && (
+                    <p className="mt-2 text-sm text-red-400">{errors.amount}</p>
+                  )}
+                </div>
 
-                    <div>
-                      <label className="cosmic-label block mb-2">Amount in USD *</label>
-                      <input
-                        type="number"
-                        name="amount"
-                        value={formData.amount}
-                        onChange={handleInputChange}
-                        placeholder="0.00"
-                        step="0.01"
-                        min="0"
-                        className={`cosmic-input text-xl ${errors.amount ? 'border-red-500' : ''}`}
-                        disabled={creating}
-                      />
-                      {errors.amount && (
-                        <p className="mt-2 text-sm text-red-400">{errors.amount}</p>
-                      )}
-                    </div>
-
-                    <div className="flex justify-end">
-                      <button
-                        type="button"
-                        onClick={nextStep}
-                        className="cosmic-button-primary px-8 py-3"
-                      >
-                        Next
-                      </button>
-                    </div>
+                {error && (
+                  <div className="text-center p-3 rounded-lg text-sm text-red-300 bg-red-900/20">
+                    {error}
                   </div>
                 )}
 
-                {/* Step 2: Payment Splitting */}
-                {currentStep === 2 && (
-                  <div className="space-y-6">
-                    {/* Template Manager */}
-                    <div className="mb-6">
-                      <button
-                        type="button"
-                        onClick={() => setShowTemplateManager(!showTemplateManager)}
-                        className="mb-4 inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-transparent hover:bg-white/10"
-                      >
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        {showTemplateManager ? 'Hide Templates' : 'Use Split Template'}
-                      </button>
-
-                      {showTemplateManager && user && (
-                        <SplitTemplateManager
-                          userId={user.id}
-                          onTemplateApplied={handleTemplateApplied}
-                          showApplyButton={false}
-                        />
-                      )}
-                    </div>
-
-                    {/* Split Recipients Editor */}
-                    <SplitRecipientsEditor
-                      paymentAmount={parseFloat(formData.amount) || 0}
-                      recipients={splitRecipients}
-                      onChange={setSplitRecipients}
-                      disabled={creating}
-                    />
-
-                    {errors.splits && (
-                      <div className="text-center p-3 rounded-lg text-sm text-red-300 bg-red-900/20">
-                        {errors.splits}
-                      </div>
-                    )}
-
-                    <div className="flex justify-between">
-                      <button
-                        type="button"
-                        onClick={prevStep}
-                        className="cosmic-button-secondary px-8 py-3"
-                      >
-                        Back
-                      </button>
-                      <button
-                        type="button"
-                        onClick={nextStep}
-                        className="cosmic-button-primary px-8 py-3"
-                      >
-                        Next: Review
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 3: Review & Create */}
-                {currentStep === 3 && (
-                  <div className="space-y-6">
-                    {/* Payment Link Summary */}
-                    <div className="bg-black/20 rounded-lg p-6">
-                      <h3 className="cosmic-heading mb-4">Payment Link Summary</h3>
-                      <div className="space-y-3">
-                        <div className="flex justify-between">
-                          <span className="cosmic-label">Service:</span>
-                          <span className="cosmic-body font-medium">{formData.title}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="cosmic-label">Amount:</span>
-                          <span className="cosmic-body text-2xl font-bold">${formData.amount}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="cosmic-label">Recipients:</span>
-                          <span className="cosmic-body font-medium">
-                            {splitRecipients.length === 0 ? 'You (100%)' : `${splitRecipients.length + 1} recipients`}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Split Recipients Summary */}
-                    {splitRecipients.length > 0 && (
-                      <div className="bg-black/20 rounded-lg p-6">
-                        <h3 className="cosmic-heading mb-4">Split Recipients</h3>
-                        <div className="space-y-3">
-                          {splitRecipients.map((recipient, index) => (
-                            <div key={index} className="flex justify-between items-center">
-                              <div>
-                                <span className="cosmic-body font-medium">
-                                  {recipient.recipientName || recipient.recipientEmail || 'Platform User'}
-                                </span>
-                                {recipient.isPrimaryRecipient && (
-                                  <span className="ml-2 px-2 py-1 text-xs bg-blue-600 text-white rounded">Primary</span>
-                                )}
-                              </div>
-                              <span className="cosmic-body">
-                                {recipient.splitType === 'percentage' 
-                                  ? `${recipient.splitPercentage}%`
-                                  : `$${recipient.splitAmountFixed}`
-                                }
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {error && (
-                      <div className="text-center p-3 rounded-lg text-sm text-red-300 bg-red-900/20">
-                        {error}
-                      </div>
-                    )}
-
-                    <div className="flex justify-between">
-                      <button
-                        type="button"
-                        onClick={prevStep}
-                        className="cosmic-button-secondary px-8 py-3"
-                      >
-                        Back
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={creating}
-                        className="cosmic-button-primary px-8 py-4 text-lg font-medium"
-                      >
-                        {creating ? 'Creating Payment Link...' : 'Create Payment Link'}
-                      </button>
-                    </div>
-                  </div>
-                )}
+                <div className="flex justify-center">
+                  <button
+                    type="submit"
+                    disabled={creating}
+                    className="cosmic-button-primary px-8 py-4 text-lg font-medium"
+                  >
+                    {creating ? 'Creating Payment Link...' : 'Create Payment Link'}
+                  </button>
+                </div>
               </form>
             </div>
           ) : (
