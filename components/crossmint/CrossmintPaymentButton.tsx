@@ -64,10 +64,17 @@ export function CrossmintPaymentButton({
   }
 
   // Get Crossmint project ID from environment
-  const projectId = process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID
+  const projectId = process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || '0d2984c6-36e4-45ab-8fd4-accef1d62799'
   
-  if (!projectId) {
-    console.error('NEXT_PUBLIC_CROSSMINT_PROJECT_ID not configured')
+  // Debug logging for production troubleshooting
+  console.log('🔧 DEBUG: Crossmint project ID check:', {
+    envVar: process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID,
+    projectId: projectId,
+    isProduction: process.env.NODE_ENV === 'production'
+  })
+  
+  if (!projectId || projectId === 'demo-project-staging') {
+    console.error('NEXT_PUBLIC_CROSSMINT_PROJECT_ID not configured properly')
     return (
       <div className="text-red-500 text-sm p-3 border border-red-300 rounded">
         Crossmint project ID not configured. Please check environment variables.
