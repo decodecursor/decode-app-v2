@@ -106,7 +106,7 @@ export default function Dashboard() {
     <div className="cosmic-bg">
       <div className="min-h-screen px-4 py-8">
         {/* Header */}
-        <div className="max-w-7xl mx-auto mb-8">
+        <div className="mx-auto mb-8" style={{maxWidth: '3000px'}}>
           <div className="cosmic-card">
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-4">
@@ -137,7 +137,7 @@ export default function Dashboard() {
         </div>
 
         {/* Navigation Menu */}
-        <div className="max-w-7xl mx-auto mb-8">
+        <div className="mx-auto mb-8" style={{maxWidth: '3000px'}}>
           <div className="cosmic-card">
             {/* Desktop Navigation */}
             <nav className="hidden md:flex gap-6 items-center">
@@ -247,7 +247,7 @@ export default function Dashboard() {
         </div>
 
         {/* Main Dashboard Content */}
-        <div className="max-w-7xl mx-auto space-y-8">
+        <div className="mx-auto space-y-8" style={{maxWidth: '3000px'}}>
           
           {/* Welcome Card */}
           <div className="cosmic-card p-8">
