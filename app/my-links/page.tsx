@@ -221,17 +221,20 @@ export default function MyLinks() {
     <div className="cosmic-bg">
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Link */}
-        <div className="max-w-4xl mx-auto mb-8">
+        <div className="flex justify-center mb-8">
+          <div className="w-full" style={{maxWidth: '70vw'}}>
           <Link href="/dashboard" className="inline-flex items-center text-gray-300 hover:text-white transition-colors">
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back to Dashboard
           </Link>
+          </div>
         </div>
 
         {/* Header */}
-        <div className="max-w-4xl mx-auto mb-8">
+        <div className="flex justify-center mb-8">
+          <div className="cosmic-card" style={{width: '70vw'}}>
           <div className="cosmic-card">
             <div className="flex justify-between items-center">
               <div>
@@ -251,7 +254,8 @@ export default function MyLinks() {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-4xl mx-auto">
+        <div className="flex justify-center">
+          <div style={{width: '70vw'}}>
           {/* Success/Error Messages */}
           {(error || copyMessage) && (
             <div className="cosmic-card mb-8">
@@ -303,90 +307,64 @@ export default function MyLinks() {
                   
                   return (
                     <div key={link.id} className="border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors">
-                      <div className="flex flex-col gap-4">
-                        {/* Top Row: Title, Amount, Status */}
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                          <div className="flex-1">
-                            <h3 className="text-white font-medium text-lg mb-1">
-                              {link.title}
-                            </h3>
-                            <p className="text-gray-400 text-sm">
-                              Created {formatDate(link.created_at)}
-                            </p>
-                          </div>
-                          
-                          <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
-                            <div className="text-right">
-                              <div className="text-white font-medium text-xl">
-                                ${link.amount_usd.toFixed(2)}
-                              </div>
-                            </div>
-                            
-                            <div className="text-right">
-                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor} bg-gray-800`}>
-                                {status}
-                              </span>
-                            </div>
+                      <div className="flex items-center justify-between gap-4">
+                        {/* Left: Title and Date */}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-white font-medium text-lg truncate">
+                            {link.title}
+                          </h3>
+                          <p className="text-gray-400 text-sm">
+                            Created {formatDate(link.created_at)}
+                          </p>
+                        </div>
+                        
+                        {/* Center: Amount */}
+                        <div className="text-center">
+                          <div className="text-white font-medium text-xl">
+                            ${link.amount_usd.toFixed(2)}
                           </div>
                         </div>
-
-                        {/* Bottom Row: Payment URL and Action Buttons */}
-                        <div className="pt-3 border-t border-gray-700">
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-gray-400 text-xs mb-1">Payment Link:</p>
-                              <p className="text-gray-300 text-sm font-mono truncate">
-                                {generatePaymentUrl(link.id)}
-                              </p>
-                            </div>
-                          </div>
+                        
+                        {/* Right: Status and Actions */}
+                        <div className="flex items-center gap-4">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor} bg-gray-800`}>
+                            {status}
+                          </span>
                           
                           <div className="flex gap-2">
                             <button
                               onClick={() => copyToClipboard(link.id)}
                               disabled={copyingId === link.id || deactivatingId === link.id}
-                              className="cosmic-button-secondary px-4 py-2 text-sm border border-white/30 rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50"
+                              className="cosmic-button-secondary px-3 py-2 text-sm border border-white/30 rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50"
+                              title={generatePaymentUrl(link.id)}
                             >
                               {copyingId === link.id ? (
-                                <span className="flex items-center gap-2">
-                                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                  </svg>
-                                  Copying...
-                                </span>
+                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
                               ) : (
-                                <span className="flex items-center gap-2">
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                  </svg>
-                                  Copy Link
-                                </span>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
                               )}
                             </button>
 
-                            {/* Only show deactivate button for active links */}
                             {status === 'Active' && (
                               <button
                                 onClick={() => handleDeactivateClick(link)}
                                 disabled={deactivatingId === link.id || copyingId === link.id}
-                                className="px-4 py-2 text-sm border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 rounded-lg transition-colors disabled:opacity-50"
+                                className="px-3 py-2 text-sm border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 rounded-lg transition-colors disabled:opacity-50"
                               >
                                 {deactivatingId === link.id ? (
-                                  <span className="flex items-center gap-2">
-                                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Deactivating...
-                                  </span>
+                                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
                                 ) : (
-                                  <span className="flex items-center gap-2">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
-                                    </svg>
-                                    Deactivate
-                                  </span>
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
+                                  </svg>
                                 )}
                               </button>
                             )}
@@ -399,6 +377,7 @@ export default function MyLinks() {
               </div>
             </div>
           )}
+          </div>
         </div>
 
         {/* Confirmation Dialog */}
