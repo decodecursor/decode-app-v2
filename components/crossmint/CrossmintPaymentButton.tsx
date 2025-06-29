@@ -35,6 +35,9 @@ export function CrossmintPaymentButton({
   variant = 'primary'
 }: CrossmintPaymentButtonProps) {
   
+  // IMMEDIATE DEBUG - this should ALWAYS show in console
+  console.log('🚨 CROSSMINT COMPONENT LOADED - NEW VERSION');
+  
   const handlePaymentSuccess = (payment: any) => {
     console.log('✅ Payment successful:', payment)
     onSuccess?.(payment)
@@ -72,6 +75,11 @@ export function CrossmintPaymentButton({
     projectId: projectId,
     isProduction: process.env.NODE_ENV === 'production'
   })
+  
+  // SIMPLE DEBUG LOGS
+  console.log('ENV VAR:', process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID)
+  console.log('PROJECT ID BEING USED:', projectId)
+  console.log('ABOUT TO RENDER CrossmintPayButton with projectId:', projectId)
   
   if (!projectId || projectId === 'demo-project-staging') {
     console.error('NEXT_PUBLIC_CROSSMINT_PROJECT_ID not configured properly')
