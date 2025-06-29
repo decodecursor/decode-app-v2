@@ -17,13 +17,11 @@ export default function CreatePayment() {
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
     title: '',
-    amount: '',
-    description: ''
+    amount: ''
   })
   const [errors, setErrors] = useState({
     title: '',
     amount: '',
-    description: '',
     splits: ''
   })
   const [splitRecipients, setSplitRecipients] = useState<SplitRecipient[]>([])
@@ -57,7 +55,7 @@ export default function CreatePayment() {
   }
 
   const validateForm = (step: number = currentStep) => {
-    const newErrors = { title: '', amount: '', description: '', splits: '' }
+    const newErrors = { title: '', amount: '', splits: '' }
     let isValid = true
 
     // Step 1: Basic Info Validation
@@ -128,7 +126,7 @@ export default function CreatePayment() {
         .from('payment_links')
         .insert({
           title: formData.title.trim(),
-          description: formData.description.trim() || null,
+          description: null,
           amount_usd: parseFloat(formData.amount),
           expiration_date: expirationDate.toISOString(),
           creator_id: user.id,
@@ -163,8 +161,8 @@ export default function CreatePayment() {
   }
 
   const resetForm = () => {
-    setFormData({ title: '', amount: '', description: '' })
-    setErrors({ title: '', amount: '', description: '', splits: '' })
+    setFormData({ title: '', amount: '' })
+    setErrors({ title: '', amount: '', splits: '' })
     setSplitRecipients([])
     setCurrentStep(1)
     setShowSplitSection(false)
@@ -218,7 +216,7 @@ export default function CreatePayment() {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-4xl mx-auto">
+        <div className="flex justify-center">
           {!success ? (
             /* Payment Form */
             <div className="cosmic-card">
@@ -273,23 +271,11 @@ export default function CreatePayment() {
                       )}
                     </div>
 
-                    <div>
-                      <label className="cosmic-label block mb-2">Description (Optional)</label>
-                      <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        placeholder="Describe your service in detail..."
-                        rows={3}
-                        className="cosmic-input"
-                        disabled={creating}
-                      />
-                    </div>
 
                     <div>
                       <label className="cosmic-label block mb-2">Amount in USD *</label>
                       <div className="relative">
-                        <span className="absolute left-4 top-1/2 transform -translate-y-1/2 cosmic-body text-xl text-gray-300">$</span>
+                        <span className="absolute left-4 top-1/2 transform -translate-y-1/2 cosmic-body text-xl text-gray-300 z-10">$</span>
                         <input
                           type="number"
                           name="amount"
@@ -298,7 +284,7 @@ export default function CreatePayment() {
                           placeholder="0.00"
                           step="0.01"
                           min="0"
-                          className={`cosmic-input pl-8 text-xl ${errors.amount ? 'border-red-500' : ''}`}
+                          className={`cosmic-input pl-12 text-xl ${errors.amount ? 'border-red-500' : ''}`}
                           disabled={creating}
                         />
                       </div>
@@ -388,12 +374,6 @@ export default function CreatePayment() {
                           <span className="cosmic-label">Service:</span>
                           <span className="cosmic-body font-medium">{formData.title}</span>
                         </div>
-                        {formData.description && (
-                          <div className="flex justify-between">
-                            <span className="cosmic-label">Description:</span>
-                            <span className="cosmic-body text-right max-w-md">{formData.description}</span>
-                          </div>
-                        )}
                         <div className="flex justify-between">
                           <span className="cosmic-label">Amount:</span>
                           <span className="cosmic-body text-2xl font-bold">${formData.amount}</span>
