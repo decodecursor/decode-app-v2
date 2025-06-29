@@ -66,20 +66,25 @@ export function CrossmintPaymentButton({
     secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-900'
   }
 
-  // Get Crossmint project ID from environment
+  // Get Crossmint project ID and API key from environment
   const projectId = process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || '0d2984c6-36e4-45ab-8fd4-accef1d62799'
+  const apiKey = process.env.NEXT_PUBLIC_CROSSMINT_API_KEY || 'ck_staging_5TCFHsqJfGwTy2idiqnon6CCkigQ2vobViwoZiCY4J3pEz4VmkoB51iUwxB5FyjhLLjJFHKWFDTXHGsQUSph3bhojmkbUX7dSZQnSFXRfmYW461RzVy3tbtcmLssR6u8QbWs8ZKpcR3vC9RyasnUozexg5LU4uHMzY3Xc1QNgzTd3vyN3KsMBuGidhTwcKJivZ7gcQtjbTiBEyhzM5whR12Q'
   
   // Debug logging for production troubleshooting
-  console.log('🔧 DEBUG: Crossmint project ID check:', {
-    envVar: process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID,
+  console.log('🔧 DEBUG: Crossmint configuration check:', {
+    projectIdEnv: process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID,
+    apiKeyEnv: process.env.NEXT_PUBLIC_CROSSMINT_API_KEY,
     projectId: projectId,
+    apiKey: apiKey ? `${apiKey.substring(0, 20)}...` : 'MISSING',
     isProduction: process.env.NODE_ENV === 'production'
   })
   
   // SIMPLE DEBUG LOGS
-  console.log('ENV VAR:', process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID)
+  console.log('PROJECT ID ENV VAR:', process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID)
+  console.log('API KEY ENV VAR:', process.env.NEXT_PUBLIC_CROSSMINT_API_KEY ? `${process.env.NEXT_PUBLIC_CROSSMINT_API_KEY.substring(0, 20)}...` : 'MISSING')
   console.log('PROJECT ID BEING USED:', projectId)
-  console.log('ABOUT TO RENDER CrossmintPayButton with projectId:', projectId)
+  console.log('API KEY BEING USED:', apiKey ? `${apiKey.substring(0, 20)}...` : 'MISSING')
+  console.log('ABOUT TO RENDER CrossmintPayButton with projectId and apiKey')
   
   if (!projectId || projectId === 'demo-project-staging') {
     console.error('NEXT_PUBLIC_CROSSMINT_PROJECT_ID not configured properly')
@@ -89,10 +94,21 @@ export function CrossmintPaymentButton({
       </div>
     )
   }
+  
+  if (!apiKey || apiKey.length < 10) {
+    console.error('NEXT_PUBLIC_CROSSMINT_API_KEY not configured properly')
+    return (
+      <div className="text-red-500 text-sm p-3 border border-red-300 rounded">
+        Crossmint API key not configured. Please check environment variables.
+      </div>
+    )
+  }
 
   return (
     <CrossmintPayButton
       projectId={projectId}
+      clientId={apiKey}
+      environment={process.env.CROSSMINT_ENVIRONMENT || 'staging'}
       mintConfig={{
         type: 'erc-20',
         totalPrice: paymentData.amount.toString(),
