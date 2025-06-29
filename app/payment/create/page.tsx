@@ -256,7 +256,7 @@ export default function CreatePayment() {
                 {currentStep === 1 && (
                   <div className="space-y-6">
                     <div>
-                      <label className="cosmic-label block mb-2">Service Title *</label>
+                      <label className="cosmic-label block mb-2">Service *</label>
                       <input
                         type="text"
                         name="title"
@@ -275,7 +275,7 @@ export default function CreatePayment() {
                     <div>
                       <label className="cosmic-label block mb-2">Amount in USD *</label>
                       <div className="relative">
-                        <span className="absolute left-4 top-1/2 transform -translate-y-1/2 cosmic-body text-xl text-gray-300 z-10">$</span>
+                        <span className="absolute left-5 top-1/2 transform -translate-y-1/2 cosmic-body text-xl text-gray-300 z-10 pointer-events-none">$</span>
                         <input
                           type="number"
                           name="amount"
@@ -284,7 +284,7 @@ export default function CreatePayment() {
                           placeholder="0.00"
                           step="0.01"
                           min="0"
-                          className={`cosmic-input pl-12 text-xl ${errors.amount ? 'border-red-500' : ''}`}
+                          className={`cosmic-input pl-16 text-xl ${errors.amount ? 'border-red-500' : ''}`}
                           disabled={creating}
                         />
                       </div>
@@ -299,7 +299,7 @@ export default function CreatePayment() {
                         onClick={nextStep}
                         className="cosmic-button-primary px-8 py-3"
                       >
-                        Next: Configure Splits
+                        Next
                       </button>
                     </div>
                   </div>
