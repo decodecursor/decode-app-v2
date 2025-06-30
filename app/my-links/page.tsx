@@ -23,6 +23,10 @@ export default function MyLinks() {
   const [deactivatingId, setDeactivatingId] = useState<string | null>(null)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [linkToDeactivate, setLinkToDeactivate] = useState<PaymentLink | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false)
+  const [linkToDelete, setLinkToDelete] = useState<PaymentLink | null>(null)
+  const [showDeactivateFirstDialog, setShowDeactivateFirstDialog] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -204,6 +208,107 @@ export default function MyLinks() {
     setLinkToDeactivate(null)
   }
 
+  const handleDeleteClick = (link: PaymentLink) => {
+    const status = getStatus(link)
+    if (status === 'Active') {
+      setLinkToDelete(link)
+      setShowDeactivateFirstDialog(true)
+    } else {
+      setLinkToDelete(link)
+      setShowDeleteConfirmDialog(true)
+    }
+  }
+
+  const confirmDeletion = async () => {
+    if (!linkToDelete) return
+
+    try {
+      setDeletingId(linkToDelete.id)
+      setShowDeleteConfirmDialog(false)
+
+      const { error: deleteError } = await supabase
+        .from('payment_links')
+        .delete()
+        .eq('id', linkToDelete.id)
+
+      if (deleteError) {
+        throw deleteError
+      }
+
+      // Remove from local state
+      setPaymentLinks(prev => prev.filter(link => link.id !== linkToDelete.id))
+
+      setCopyMessage('Payment link deleted successfully!')
+      
+      setTimeout(() => {
+        setCopyMessage('')
+      }, 3000)
+
+    } catch (error) {
+      console.error('Error deleting payment link:', error)
+      setCopyMessage('Failed to delete payment link. Please try again.')
+      
+      setTimeout(() => {
+        setCopyMessage('')
+      }, 3000)
+    } finally {
+      setDeletingId(null)
+      setLinkToDelete(null)
+    }
+  }
+
+  const cancelDeletion = () => {
+    setShowDeleteConfirmDialog(false)
+    setLinkToDelete(null)
+  }
+
+  const handleDeactivateFirst = async () => {
+    if (!linkToDelete) return
+
+    try {
+      setDeactivatingId(linkToDelete.id)
+      setShowDeactivateFirstDialog(false)
+
+      const { error: updateError } = await supabase
+        .from('payment_links')
+        .update({ is_active: false })
+        .eq('id', linkToDelete.id)
+
+      if (updateError) {
+        throw updateError
+      }
+
+      // Update the local state
+      setPaymentLinks(prev => 
+        prev.map(link => 
+          link.id === linkToDelete.id 
+            ? { ...link, is_active: false }
+            : link
+        )
+      )
+
+      // Now show delete confirmation
+      setShowDeleteConfirmDialog(true)
+
+    } catch (error) {
+      console.error('Error deactivating payment link:', error)
+      setCopyMessage('Failed to deactivate payment link. Please try again.')
+      
+      setTimeout(() => {
+        setCopyMessage('')
+      }, 3000)
+      
+      setLinkToDelete(null)
+    } finally {
+      setDeactivatingId(null)
+    }
+  }
+
+  const cancelDeactivateFirst = () => {
+    setShowDeactivateFirstDialog(false)
+    setLinkToDelete(null)
+  }
+
   if (loading) {
     return (
       <div className="cosmic-bg">
@@ -334,19 +439,17 @@ export default function MyLinks() {
 
                         {/* Bottom Row: Payment URL and Action Buttons */}
                         <div className="pt-3 border-t border-gray-700">
-                          <div className="flex items-center gap-3 mb-3">
+                          <div className="flex items-center gap-3">
                             <div className="flex-1 min-w-0">
                               <p className="text-gray-400 text-xs mb-1">Payment Link:</p>
                               <p className="text-gray-300 text-sm font-mono truncate">
                                 {generatePaymentUrl(link.id)}
                               </p>
                             </div>
-                          </div>
-                          
-                          <div className="flex gap-2">
+                            <div className="flex gap-2 ml-4">
                             <button
                               onClick={() => copyToClipboard(link.id)}
-                              disabled={copyingId === link.id || deactivatingId === link.id}
+                              disabled={copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
                               className="cosmic-button-secondary px-4 py-2 text-sm border border-white/30 rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50"
                             >
                               {copyingId === link.id ? (
@@ -371,7 +474,7 @@ export default function MyLinks() {
                             {status === 'Active' && (
                               <button
                                 onClick={() => handleDeactivateClick(link)}
-                                disabled={deactivatingId === link.id || copyingId === link.id}
+                                disabled={deactivatingId === link.id || copyingId === link.id || deletingId === link.id}
                                 className="px-4 py-2 text-sm border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 rounded-lg transition-colors disabled:opacity-50"
                               >
                                 {deactivatingId === link.id ? (
@@ -392,6 +495,26 @@ export default function MyLinks() {
                                 )}
                               </button>
                             )}
+
+                            {/* Delete button - compact size (20% width of other buttons) */}
+                            <button
+                              onClick={() => handleDeleteClick(link)}
+                              disabled={deletingId === link.id || copyingId === link.id || deactivatingId === link.id}
+                              className="px-2 py-2 text-sm border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors disabled:opacity-50"
+                              title="Delete payment link"
+                            >
+                              {deletingId === link.id ? (
+                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                              ) : (
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              )}
+                            </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -428,6 +551,67 @@ export default function MyLinks() {
                   className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
                 >
                   Deactivate Link
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Dialog */}
+        {showDeleteConfirmDialog && linkToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="cosmic-card max-w-md w-full">
+              <h3 className="cosmic-heading mb-4 text-white">Delete Payment Link</h3>
+              <p className="cosmic-body text-gray-300 mb-4">
+                Are you sure you want to permanently delete the payment link for &ldquo;{linkToDelete.title}&rdquo;? 
+                This action cannot be undone.
+              </p>
+              <p className="cosmic-body text-gray-400 text-sm mb-6">
+                Amount: ${linkToDelete.amount_usd.toFixed(2)}
+              </p>
+              <div className="flex space-x-4">
+                <button
+                  onClick={cancelDeletion}
+                  className="cosmic-button-secondary flex-1 py-3 border border-white/30 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeletion}
+                  className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  Delete Permanently
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Deactivate First Dialog */}
+        {showDeactivateFirstDialog && linkToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="cosmic-card max-w-md w-full">
+              <h3 className="cosmic-heading mb-4 text-white">Link is Active</h3>
+              <p className="cosmic-body text-gray-300 mb-4">
+                The payment link &ldquo;{linkToDelete.title}&rdquo; is currently active. 
+                You need to deactivate it first before you can delete it.
+              </p>
+              <p className="cosmic-body text-gray-400 text-sm mb-6">
+                Would you like to deactivate it now and proceed with deletion?
+              </p>
+              <div className="flex space-x-4">
+                <button
+                  onClick={cancelDeactivateFirst}
+                  className="cosmic-button-secondary flex-1 py-3 border border-white/30 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeactivateFirst}
+                  className="flex-1 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-medium transition-colors"
+                  disabled={deactivatingId === linkToDelete.id}
+                >
+                  {deactivatingId === linkToDelete.id ? 'Deactivating...' : 'Deactivate & Delete'}
                 </button>
               </div>
             </div>
