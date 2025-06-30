@@ -165,7 +165,7 @@ export default function PaymentPage() {
       id: payment.id || 'dev_' + Date.now(),
       payment_link_id: linkId,
       buyer_email: buyerEmail.trim() || null,
-      amount_usd: paymentData.amount_usd,
+      amount_aed: paymentData.amount_aed,
       status: 'completed',
       payment_processor: 'crossmint',
       processor_transaction_id: payment.id || null,
@@ -318,7 +318,7 @@ export default function PaymentPage() {
         }
 
         // Additional validation for amount
-        if (!data.amount_usd || data.amount_usd <= 0) {
+        if (!data.amount_aed || data.amount_aed <= 0) {
           setError('Payment link has invalid amount')
           setErrorType('invalid')
           setLoading(false)
@@ -608,7 +608,7 @@ export default function PaymentPage() {
                   disabled={!!emailError || !isPaymentValid}
                   className="w-full min-h-[50px] sm:min-h-[56px] text-base sm:text-lg font-semibold bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-xl transition-colors"
                 >
-                  Pay ${paymentData?.amount_usd.toFixed(2)} USD
+                  Pay AED {paymentData?.amount_aed.toFixed(2)}
                 </button>
                 <p className="text-center text-gray-500 text-xs sm:text-sm mt-3 px-2">
                   Secure payment processing with Crossmint • Your information is protected
@@ -622,7 +622,7 @@ export default function PaymentPage() {
                   onFailure={handlePaymentFailure}
                   onPending={handlePaymentPending}
                   disabled={!!emailError || !isPaymentValid}
-                  buttonText={`Pay $${paymentData?.amount_usd.toFixed(2)} USD`}
+                  buttonText={`Pay AED ${paymentData?.amount_aed.toFixed(2)}`}
                   size="lg"
                   className="w-full min-h-[50px] sm:min-h-[56px] text-base sm:text-lg font-semibold"
                 />
