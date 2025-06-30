@@ -7,6 +7,7 @@ import Link from 'next/link'
 
 interface PaymentLink {
   id: string
+  client_name?: string
   title: string
   amount_aed: number
   expiration_date: string
@@ -49,7 +50,7 @@ export default function MyLinks() {
 
       const { data, error: fetchError } = await supabase
         .from('payment_links')
-        .select('id, title, amount_aed, expiration_date, is_active, created_at')
+        .select('id, client_name, title, amount_aed, expiration_date, is_active, created_at')
         .eq('creator_id', userId)
         .order('created_at', { ascending: false })
 
@@ -449,6 +450,11 @@ export default function MyLinks() {
                         {/* Top Row: Title, Amount, Status */}
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                           <div className="flex-1">
+                            {link.client_name && (
+                              <p className="text-gray-400 text-sm mb-1">
+                                {link.client_name}
+                              </p>
+                            )}
                             <h3 className="text-white font-medium text-lg mb-1">
                               {link.title}
                             </h3>
