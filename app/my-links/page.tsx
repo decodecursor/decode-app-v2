@@ -222,7 +222,7 @@ export default function MyLinks() {
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Link */}
         <div className="flex justify-center mb-8">
-          <div className="w-full" style={{maxWidth: '70vw'}}>
+          <div style={{width: '70vw'}}>
           <Link href="/dashboard" className="inline-flex items-center text-gray-300 hover:text-white transition-colors">
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -234,7 +234,7 @@ export default function MyLinks() {
 
         {/* Header */}
         <div className="flex justify-center mb-8">
-          <div className="cosmic-card" style={{width: '70vw'}}>
+          <div style={{width: '70vw'}}>
           <div className="cosmic-card">
             <div className="flex justify-between items-center">
               <div>
@@ -250,6 +250,7 @@ export default function MyLinks() {
                 Create New Link
               </Link>
             </div>
+          </div>
           </div>
         </div>
 
