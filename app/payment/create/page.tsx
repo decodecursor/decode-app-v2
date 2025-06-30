@@ -156,7 +156,7 @@ export default function CreatePayment() {
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Link */}
         <div className="flex justify-center mb-8">
-          <div className="w-full" style={{maxWidth: '70vw'}}>
+          <div className="w-full" style={{maxWidth: '30vw'}}>
           <Link href="/dashboard" className="inline-flex items-center text-gray-300 hover:text-white transition-colors">
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -170,8 +170,8 @@ export default function CreatePayment() {
         <div className="flex justify-center">
           {!success ? (
             /* Payment Form */
-            <div className="cosmic-card" style={{width: '35vw'}}>
-              <h1 className="cosmic-heading text-center mb-8">Create Payment Link</h1>
+            <div className="cosmic-card" style={{width: '30vw'}}>
+              <h1 className="cosmic-heading text-center mb-8">Create PayLink</h1>
 
               <form onSubmit={generatePaymentLink} className="space-y-6">
                 <div>
@@ -236,14 +236,14 @@ export default function CreatePayment() {
                     disabled={creating}
                     className="cosmic-button-primary px-8 py-4 text-lg font-medium"
                   >
-                    {creating ? 'Creating Payment Link...' : 'Create Payment Link'}
+                    {creating ? 'Creating PayLink...' : 'Create PayLink'}
                   </button>
                 </div>
               </form>
             </div>
           ) : (
             /* Success State */
-            <div className="cosmic-card text-center" style={{width: '35vw'}}>
+            <div className="cosmic-card text-center" style={{width: '30vw'}}>
               <div className="mb-6">
                 <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
