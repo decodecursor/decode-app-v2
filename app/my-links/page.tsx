@@ -67,7 +67,7 @@ export default function MyLinks() {
   }
 
   const getStatus = (link: PaymentLink) => {
-    if (!link.is_active) return 'Inactive'
+    if (!link.is_active) return 'Deactivated'
     
     const now = new Date()
     const expirationDate = new Date(link.expiration_date)
@@ -81,7 +81,7 @@ export default function MyLinks() {
         return 'text-green-400'
       case 'Expired':
         return 'text-yellow-400'
-      case 'Inactive':
+      case 'Deactivated':
         return 'text-gray-400'
       default:
         return 'text-gray-400'
@@ -94,6 +94,41 @@ export default function MyLinks() {
       month: 'short',
       day: 'numeric'
     })
+  }
+
+  const getTimeUntilExpiry = (expirationDateString: string) => {
+    const now = new Date()
+    const expirationDate = new Date(expirationDateString)
+    const diffInMs = expirationDate.getTime() - now.getTime()
+    const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24))
+
+    if (diffInDays < 0) {
+      const pastDays = Math.abs(diffInDays)
+      return pastDays === 1 ? 'expired 1 day ago' : `expired ${pastDays} days ago`
+    } else if (diffInDays === 0) {
+      return 'expires today'
+    } else if (diffInDays === 1) {
+      return 'in 1 day'
+    } else {
+      return `in ${diffInDays} days`
+    }
+  }
+
+  const getExpiryColor = (expirationDateString: string) => {
+    const now = new Date()
+    const expirationDate = new Date(expirationDateString)
+    const diffInMs = expirationDate.getTime() - now.getTime()
+    const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24))
+
+    if (diffInDays < 0) {
+      return 'text-red-400' // Expired
+    } else if (diffInDays <= 1) {
+      return 'text-red-400' // Less than 1 day
+    } else if (diffInDays <= 2) {
+      return 'text-yellow-400' // 1-2 days
+    } else {
+      return 'text-green-400' // More than 2 days
+    }
   }
 
   const generatePaymentUrl = (linkId: string) => {
@@ -419,6 +454,9 @@ export default function MyLinks() {
                             </h3>
                             <p className="text-gray-400 text-sm">
                               Created {formatDate(link.created_at)}
+                            </p>
+                            <p className={`text-sm ${getExpiryColor(link.expiration_date)}`}>
+                              Expires {formatDate(link.expiration_date)} ({getTimeUntilExpiry(link.expiration_date)})
                             </p>
                           </div>
                           
