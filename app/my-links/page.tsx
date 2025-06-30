@@ -451,21 +451,13 @@ export default function MyLinks() {
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                           <div className="flex-1">
                             {link.client_name && (
-                              <p className="text-blue-300 text-base font-semibold mb-1">
+                              <p className="text-purple-400 text-base font-semibold mb-1">
                                 {link.client_name}
                               </p>
                             )}
                             <h3 className="text-white font-medium text-lg mb-3">
                               {link.title}
                             </h3>
-                            <div className="w-full flex justify-between items-center">
-                              <p className="text-gray-400 text-sm">
-                                Created {formatDate(link.created_at)}
-                              </p>
-                              <p className={`text-sm text-right ${getExpiryColor(link.expiration_date)}`}>
-                                Expires {formatDate(link.expiration_date)} ({getTimeUntilExpiry(link.expiration_date)})
-                              </p>
-                            </div>
                           </div>
                           
                           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
@@ -481,6 +473,16 @@ export default function MyLinks() {
                               </span>
                             </div>
                           </div>
+                        </div>
+
+                        {/* Date Row - Full Width */}
+                        <div className="w-full flex justify-between items-center">
+                          <p className="text-gray-400 text-sm">
+                            Created {formatDate(link.created_at)}
+                          </p>
+                          <p className={`text-sm ${getExpiryColor(link.expiration_date)}`}>
+                            Expires {formatDate(link.expiration_date)} ({getTimeUntilExpiry(link.expiration_date)})
+                          </p>
                         </div>
 
                         {/* Bottom Row: Payment URL and Action Buttons */}
