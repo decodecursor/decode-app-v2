@@ -379,13 +379,13 @@ export default function MyLinks() {
           <div className="cosmic-card">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="cosmic-heading mb-2">My Payment Links</h1>
+                <h1 className="cosmic-heading mb-2">My PayLinks</h1>
               </div>
               <Link 
                 href="/payment/create" 
                 className="cosmic-button-primary px-4 py-2 !w-fit"
               >
-                Create New Link
+                Create PayLink
               </Link>
             </div>
           </div>
@@ -445,7 +445,7 @@ export default function MyLinks() {
                   const statusColor = getStatusColor(status)
                   
                   return (
-                    <div key={link.id} className="bg-blue-900/40 border border-gray-600 border-l-4 border-l-purple-500/50 rounded-lg shadow-lg p-5 hover:border-purple-400 hover:bg-blue-800/50 hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-300">
+                    <div key={link.id} className="bg-blue-950/70 border border-gray-600 border-l-4 border-l-purple-500/50 rounded-lg shadow-lg p-5 hover:border-blue-400 hover:bg-blue-900/80 hover:shadow-2xl hover:shadow-blue-400/60 hover:scale-[1.02] transition-all duration-300">
                       <div className="flex flex-col gap-4">
                         {/* Top Row: Title, Amount, Status */}
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
