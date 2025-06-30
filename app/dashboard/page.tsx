@@ -143,9 +143,13 @@ export default function Dashboard() {
             <nav className="hidden md:flex gap-6 items-center">
               <Link 
                 href="/dashboard" 
-                className="px-6 py-3 text-white bg-purple-600 rounded-lg font-semibold shadow-lg hover:bg-purple-700 transition-colors"
+                className="px-3 py-3 hover:bg-white/10 rounded-lg transition-colors"
               >
-                Dashboard
+                <img 
+                  src="/logo.png" 
+                  alt="DECODE Logo" 
+                  className="h-8 w-auto filter brightness-0 invert"
+                />
               </Link>
               
               {userRole === 'Beauty Professional' && (
@@ -201,10 +205,14 @@ export default function Dashboard() {
                   <nav className="space-y-2">
                     <Link 
                       href="/dashboard" 
-                      className="block px-4 py-3 text-white bg-purple-600 rounded-lg font-medium"
+                      className="block px-4 py-3 hover:bg-white/10 rounded-lg font-medium"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      Dashboard
+                      <img 
+                        src="/logo.png" 
+                        alt="DECODE Logo" 
+                        className="h-6 w-auto filter brightness-0 invert"
+                      />
                     </Link>
                     
                     {userRole === 'Beauty Professional' && (
@@ -249,31 +257,6 @@ export default function Dashboard() {
         {/* Main Dashboard Content */}
         <div className="mx-auto space-y-8" style={{maxWidth: '3000px'}}>
           
-          {/* Welcome Card */}
-          <div className="cosmic-card p-8">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-              <div className="lg:flex-1 lg:pr-8 mb-6 lg:mb-0">
-                <h2 className="text-3xl font-bold mb-4 text-white">
-                  Welcome back, {user?.email?.split('@')[0] || 'User'}!
-                </h2>
-                <p className="text-lg text-gray-300 mb-6 lg:mb-0">
-                  Create payment links, manage transactions, and grow your beauty business with ease.
-                </p>
-              </div>
-              
-              <div className="lg:flex-shrink-0">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:min-w-[400px]">
-                  <Link href="/payment/create" className="cosmic-button-primary text-center py-4 px-6 rounded-lg font-semibold text-lg hover:scale-105 transition-transform">
-                    Create Payment Link
-                  </Link>
-                  <Link href="/dashboard/payments" className="cosmic-button-secondary border-2 border-white/40 rounded-lg py-4 px-6 font-semibold text-lg text-center block hover:scale-105 transition-transform">
-                    View Payment History
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Quick Stats */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="cosmic-card stats-card text-center p-8">
