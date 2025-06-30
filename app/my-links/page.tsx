@@ -256,15 +256,15 @@ export default function MyLinks() {
         {/* Main Content */}
         <div className="flex justify-center">
           <div style={{width: '70vw'}}>
-          {/* Success/Error Messages */}
-          {(error || copyMessage) && (
-            <div className="cosmic-card mb-8">
-              {error && (
+            {/* Success/Error Messages */}
+            {(error || copyMessage) && (
+              <div className="cosmic-card mb-8">
+                {error && (
                 <div className="text-center p-4 text-red-300 bg-red-900/20 rounded-lg mb-4">
                   {error}
                 </div>
-              )}
-              {copyMessage && (
+                )}
+                {copyMessage && (
                 <div className={`text-center p-4 rounded-lg ${
                   copyMessage.includes('Failed') 
                     ? 'text-red-300 bg-red-900/20' 
@@ -272,13 +272,13 @@ export default function MyLinks() {
                 }`}>
                   {copyMessage}
                 </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
 
-          {paymentLinks.length === 0 ? (
-            /* Empty State */
-            <div className="cosmic-card text-center">
+            {paymentLinks.length === 0 ? (
+              /* Empty State */
+              <div className="cosmic-card text-center">
               <div className="mb-6">
                 <div className="w-16 h-16 bg-gray-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -296,37 +296,37 @@ export default function MyLinks() {
                   Create Your First Link
                 </Link>
               </div>
-            </div>
-          ) : (
-            /* Payment Links List */
-            <div className="cosmic-card">
-              <div className="space-y-4">
-                {paymentLinks.map((link) => {
+              </div>
+            ) : (
+              /* Payment Links List */
+              <div className="cosmic-card">
+                <div className="space-y-4">
+                  {paymentLinks.map((link) => {
                   const status = getStatus(link)
                   const statusColor = getStatusColor(status)
                   
-                  return (
-                    <div key={link.id} className="border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors">
-                      <div className="flex items-center justify-between gap-4">
-                        {/* Left: Title and Date */}
-                        <div className="flex-1 min-w-0">
+                    return (
+                      <div key={link.id} className="border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors">
+                        <div className="flex items-center justify-between gap-4">
+                          {/* Left: Title and Date */}
+                          <div className="flex-1 min-w-0">
                           <h3 className="text-white font-medium text-lg truncate">
                             {link.title}
                           </h3>
                           <p className="text-gray-400 text-sm">
                             Created {formatDate(link.created_at)}
                           </p>
-                        </div>
-                        
-                        {/* Center: Amount */}
-                        <div className="text-center">
+                          </div>
+                          
+                          {/* Center: Amount */}
+                          <div className="text-center">
                           <div className="text-white font-medium text-xl">
                             ${link.amount_usd.toFixed(2)}
                           </div>
-                        </div>
-                        
-                        {/* Right: Status and Actions */}
-                        <div className="flex items-center gap-4">
+                          </div>
+                          
+                          {/* Right: Status and Actions */}
+                          <div className="flex items-center gap-4">
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor} bg-gray-800`}>
                             {status}
                           </span>
@@ -372,11 +372,11 @@ export default function MyLinks() {
                         </div>
                       </div>
                     </div>
-                  )
-                })}
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            )}
           </div>
         </div>
 
