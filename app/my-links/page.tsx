@@ -451,19 +451,21 @@ export default function MyLinks() {
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                           <div className="flex-1">
                             {link.client_name && (
-                              <p className="text-gray-400 text-sm mb-1">
+                              <p className="text-gray-300 text-base font-medium mb-1 uppercase">
                                 {link.client_name}
                               </p>
                             )}
-                            <h3 className="text-white font-medium text-lg mb-1">
+                            <h3 className="text-white font-medium text-lg mb-3">
                               {link.title}
                             </h3>
-                            <p className="text-gray-400 text-sm">
-                              Created {formatDate(link.created_at)}
-                            </p>
-                            <p className={`text-sm ${getExpiryColor(link.expiration_date)}`}>
-                              Expires {formatDate(link.expiration_date)} ({getTimeUntilExpiry(link.expiration_date)})
-                            </p>
+                            <div className="flex justify-between items-center">
+                              <p className="text-gray-400 text-sm">
+                                Created {formatDate(link.created_at)}
+                              </p>
+                              <p className={`text-sm ${getExpiryColor(link.expiration_date)}`}>
+                                Expires {formatDate(link.expiration_date)} ({getTimeUntilExpiry(link.expiration_date)})
+                              </p>
+                            </div>
                           </div>
                           
                           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
