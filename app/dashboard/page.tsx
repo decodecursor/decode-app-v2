@@ -126,7 +126,7 @@ export default function Dashboard() {
         <div className="mx-auto mb-8" style={{maxWidth: '3000px'}}>
           <div className="cosmic-card">
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex justify-between items-center">
+            <nav className="hidden md:flex items-center">
               <Link 
                 href="/dashboard" 
                 className="px-3 py-3 hover:bg-white/10 rounded-lg transition-colors"
@@ -137,6 +137,8 @@ export default function Dashboard() {
                   className="h-8 w-auto filter brightness-0 invert"
                 />
               </Link>
+              
+              <div className="flex-1"></div>
               
               {userRole === 'Beauty Professional' && (
                 <div className="flex gap-6 items-center">
@@ -161,8 +163,10 @@ export default function Dashboard() {
                 </div>
               )}
               
+              <div className="flex-1"></div>
+              
               {/* Profile Dropdown */}
-              <div className="relative ml-auto" ref={dropdownRef}>
+              <div className="relative" ref={dropdownRef}>
                 <button 
                   onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                   className="p-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
@@ -314,8 +318,8 @@ export default function Dashboard() {
         <div className="mx-auto space-y-8" style={{maxWidth: '3000px'}}>
           
           {/* Quick Stats */}
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="cosmic-card stats-card text-center p-8 flex-1">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="cosmic-card stats-card text-center p-8">
               <div className="bg-green-500/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
@@ -328,7 +332,7 @@ export default function Dashboard() {
               <p className="text-sm text-gray-400 mt-2">All time earnings</p>
             </div>
             
-            <div className="cosmic-card stats-card text-center p-8 flex-1">
+            <div className="cosmic-card stats-card text-center p-8">
               <div className="bg-blue-500/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -341,7 +345,7 @@ export default function Dashboard() {
               <p className="text-sm text-gray-400 mt-2">Currently accepting payments</p>
             </div>
             
-            <div className="cosmic-card stats-card text-center p-8 flex-1">
+            <div className="cosmic-card stats-card text-center p-8">
               <div className="bg-purple-500/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
