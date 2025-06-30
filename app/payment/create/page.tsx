@@ -13,10 +13,12 @@ export default function CreatePayment() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
+    client: '',
     title: '',
     amount: ''
   })
   const [errors, setErrors] = useState({
+    client: '',
     title: '',
     amount: ''
   })
@@ -47,8 +49,13 @@ export default function CreatePayment() {
   }
 
   const validateForm = () => {
-    const newErrors = { title: '', amount: '' }
+    const newErrors = { client: '', title: '', amount: '' }
     let isValid = true
+
+    if (!formData.client.trim()) {
+      newErrors.client = 'Client name is required'
+      isValid = false
+    }
 
     if (!formData.title.trim()) {
       newErrors.title = 'Service title is required'
@@ -61,7 +68,7 @@ export default function CreatePayment() {
     } else {
       const amount = parseFloat(formData.amount)
       if (isNaN(amount) || amount <= 0) {
-        newErrors.amount = 'Please enter a valid amount greater than $0'
+        newErrors.amount = 'Please enter a valid amount greater than AED 0'
         isValid = false
       }
     }
@@ -94,9 +101,10 @@ export default function CreatePayment() {
       const { data, error: saveError } = await supabase
         .from('payment_links')
         .insert({
+          client_name: formData.client.trim(),
           title: formData.title.trim(),
           description: null,
-          amount_usd: parseFloat(formData.amount),
+          amount_aed: parseFloat(formData.amount),
           expiration_date: expirationDate.toISOString(),
           creator_id: user.id,
           is_active: true
@@ -125,8 +133,8 @@ export default function CreatePayment() {
   }
 
   const resetForm = () => {
-    setFormData({ title: '', amount: '' })
-    setErrors({ title: '', amount: '' })
+    setFormData({ client: '', title: '', amount: '' })
+    setErrors({ client: '', title: '', amount: '' })
     setSuccess(false)
     setError('')
   }
@@ -162,10 +170,26 @@ export default function CreatePayment() {
         <div className="flex justify-center">
           {!success ? (
             /* Payment Form */
-            <div className="cosmic-card">
+            <div className="cosmic-card" style={{width: '35vw'}}>
               <h1 className="cosmic-heading text-center mb-8">Create Payment Link</h1>
 
               <form onSubmit={generatePaymentLink} className="space-y-6">
+                <div>
+                  <label className="cosmic-label block mb-2">Client *</label>
+                  <input
+                    type="text"
+                    name="client"
+                    value={formData.client}
+                    onChange={handleInputChange}
+                    placeholder="e.g., Sarah Johnson, Alex Smith"
+                    className={`cosmic-input ${errors.client ? 'border-red-500' : ''}`}
+                    disabled={creating}
+                  />
+                  {errors.client && (
+                    <p className="mt-2 text-sm text-red-400">{errors.client}</p>
+                  )}
+                </div>
+
                 <div>
                   <label className="cosmic-label block mb-2">Service *</label>
                   <input
@@ -183,7 +207,7 @@ export default function CreatePayment() {
                 </div>
 
                 <div>
-                  <label className="cosmic-label block mb-2">Amount in USD *</label>
+                  <label className="cosmic-label block mb-2">Amount in AED *</label>
                   <input
                     type="number"
                     name="amount"
@@ -219,7 +243,7 @@ export default function CreatePayment() {
             </div>
           ) : (
             /* Success State */
-            <div className="cosmic-card text-center">
+            <div className="cosmic-card text-center" style={{width: '35vw'}}>
               <div className="mb-6">
                 <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -237,8 +261,9 @@ export default function CreatePayment() {
 
               <div className="bg-black/20 rounded-lg p-4 mb-6">
                 <div className="cosmic-label mb-2">Payment Details</div>
+                <div className="cosmic-body mb-1">Client: <span className="font-medium">{formData.client}</span></div>
                 <div className="cosmic-body mb-1">Service: <span className="font-medium">{formData.title}</span></div>
-                <div className="cosmic-body">Amount: <span className="text-2xl font-medium">${formData.amount}</span></div>
+                <div className="cosmic-body">Amount: <span className="text-2xl font-medium">AED {formData.amount}</span></div>
                 <div className="cosmic-body text-sm text-gray-400 mt-2">
                   Expires: {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}
                 </div>
