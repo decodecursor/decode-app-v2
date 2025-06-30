@@ -239,13 +239,10 @@ export default function MyLinks() {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="cosmic-heading mb-2">My Payment Links</h1>
-                <p className="cosmic-body text-gray-300">
-                  Manage your payment links and track their status
-                </p>
               </div>
               <Link 
                 href="/payment/create" 
-                className="cosmic-button-primary px-6 py-3"
+                className="cosmic-button-primary px-4 py-2 w-auto"
               >
                 Create New Link
               </Link>
