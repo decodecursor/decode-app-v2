@@ -256,15 +256,15 @@ export default function MyLinks() {
         {/* Main Content */}
         <div className="flex justify-center">
           <div style={{width: '70vw'}}>
-            {/* Success/Error Messages */}
-            {(error || copyMessage) && (
-              <div className="cosmic-card mb-8">
-                {error && (
+          {/* Success/Error Messages */}
+          {(error || copyMessage) && (
+            <div className="cosmic-card mb-8">
+              {error && (
                 <div className="text-center p-4 text-red-300 bg-red-900/20 rounded-lg mb-4">
                   {error}
                 </div>
-                )}
-                {copyMessage && (
+              )}
+              {copyMessage && (
                 <div className={`text-center p-4 rounded-lg ${
                   copyMessage.includes('Failed') 
                     ? 'text-red-300 bg-red-900/20' 
@@ -272,13 +272,13 @@ export default function MyLinks() {
                 }`}>
                   {copyMessage}
                 </div>
-                )}
-              </div>
-            )}
+              )}
+            </div>
+          )}
 
-            {paymentLinks.length === 0 ? (
-              /* Empty State */
-              <div className="cosmic-card text-center">
+          {paymentLinks.length === 0 ? (
+            /* Empty State */
+            <div className="cosmic-card text-center">
               <div className="mb-6">
                 <div className="w-16 h-16 bg-gray-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -296,75 +296,101 @@ export default function MyLinks() {
                   Create Your First Link
                 </Link>
               </div>
-              </div>
-            ) : (
-              /* Payment Links List */
-              <div className="cosmic-card">
-                <div className="space-y-4">
-                  {paymentLinks.map((link) => {
+            </div>
+          ) : (
+            /* Payment Links List */
+            <div className="cosmic-card">
+              <div className="space-y-4">
+                {paymentLinks.map((link) => {
                   const status = getStatus(link)
                   const statusColor = getStatusColor(status)
                   
-                    return (
-                      <div key={link.id} className="border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors">
-                        <div className="flex items-center justify-between gap-4">
-                          {/* Left: Title and Date */}
-                          <div className="flex-1 min-w-0">
-                          <h3 className="text-white font-medium text-lg truncate">
-                            {link.title}
-                          </h3>
-                          <p className="text-gray-400 text-sm">
-                            Created {formatDate(link.created_at)}
-                          </p>
+                  return (
+                    <div key={link.id} className="border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition-colors">
+                      <div className="flex flex-col gap-4">
+                        {/* Top Row: Title, Amount, Status */}
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                          <div className="flex-1">
+                            <h3 className="text-white font-medium text-lg mb-1">
+                              {link.title}
+                            </h3>
+                            <p className="text-gray-400 text-sm">
+                              Created {formatDate(link.created_at)}
+                            </p>
                           </div>
                           
-                          {/* Center: Amount */}
-                          <div className="text-center">
-                          <div className="text-white font-medium text-xl">
-                            ${link.amount_usd.toFixed(2)}
+                          <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
+                            <div className="text-right">
+                              <div className="text-white font-medium text-xl">
+                                ${link.amount_usd.toFixed(2)}
+                              </div>
+                            </div>
+                            
+                            <div className="text-right">
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor} bg-gray-800`}>
+                                {status}
+                              </span>
+                            </div>
                           </div>
+                        </div>
+
+                        {/* Bottom Row: Payment URL and Action Buttons */}
+                        <div className="pt-3 border-t border-gray-700">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-gray-400 text-xs mb-1">Payment Link:</p>
+                              <p className="text-gray-300 text-sm font-mono truncate">
+                                {generatePaymentUrl(link.id)}
+                              </p>
+                            </div>
                           </div>
-                          
-                          {/* Right: Status and Actions */}
-                          <div className="flex items-center gap-4">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor} bg-gray-800`}>
-                            {status}
-                          </span>
                           
                           <div className="flex gap-2">
                             <button
                               onClick={() => copyToClipboard(link.id)}
                               disabled={copyingId === link.id || deactivatingId === link.id}
-                              className="cosmic-button-secondary px-3 py-2 text-sm border border-white/30 rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50"
-                              title={generatePaymentUrl(link.id)}
+                              className="cosmic-button-secondary px-4 py-2 text-sm border border-white/30 rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50"
                             >
                               {copyingId === link.id ? (
-                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                              ) : (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                </svg>
-                              )}
-                            </button>
-
-                            {status === 'Active' && (
-                              <button
-                                onClick={() => handleDeactivateClick(link)}
-                                disabled={deactivatingId === link.id || copyingId === link.id}
-                                className="px-3 py-2 text-sm border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 rounded-lg transition-colors disabled:opacity-50"
-                              >
-                                {deactivatingId === link.id ? (
+                                <span className="flex items-center gap-2">
                                   <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                   </svg>
-                                ) : (
+                                  Copying...
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-2">
                                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                   </svg>
+                                  Copy Link
+                                </span>
+                              )}
+                            </button>
+
+                            {/* Only show deactivate button for active links */}
+                            {status === 'Active' && (
+                              <button
+                                onClick={() => handleDeactivateClick(link)}
+                                disabled={deactivatingId === link.id || copyingId === link.id}
+                                className="px-4 py-2 text-sm border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 rounded-lg transition-colors disabled:opacity-50"
+                              >
+                                {deactivatingId === link.id ? (
+                                  <span className="flex items-center gap-2">
+                                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Deactivating...
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
+                                    </svg>
+                                    Deactivate
+                                  </span>
                                 )}
                               </button>
                             )}
@@ -372,11 +398,11 @@ export default function MyLinks() {
                         </div>
                       </div>
                     </div>
-                    )
-                  })}
-                </div>
+                  )
+                })}
               </div>
-            )}
+            </div>
+          )}
           </div>
         </div>
 
@@ -412,4 +438,4 @@ export default function MyLinks() {
       </div>
     </div>
   )
-}// Fixed syntax error
+}
