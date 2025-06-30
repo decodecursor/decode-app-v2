@@ -480,9 +480,11 @@ export default function MyLinks() {
                           <p className="text-gray-400 text-sm">
                             Created {formatDate(link.created_at)}
                           </p>
-                          <p className={`text-sm ${getExpiryColor(link.expiration_date)}`}>
-                            Expires {formatDate(link.expiration_date)} ({getTimeUntilExpiry(link.expiration_date)})
-                          </p>
+                          {link.is_active && (
+                            <p className={`text-sm ${getExpiryColor(link.expiration_date)}`}>
+                              Expires {formatDate(link.expiration_date)} ({getTimeUntilExpiry(link.expiration_date)})
+                            </p>
+                          )}
                         </div>
 
                         {/* Bottom Row: Payment URL and Action Buttons */}
