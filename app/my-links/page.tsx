@@ -8,7 +8,7 @@ import Link from 'next/link'
 interface PaymentLink {
   id: string
   title: string
-  amount_usd: number
+  amount_aed: number
   expiration_date: string
   is_active: boolean
   created_at: string
@@ -49,7 +49,7 @@ export default function MyLinks() {
 
       const { data, error: fetchError } = await supabase
         .from('payment_links')
-        .select('id, title, amount_usd, expiration_date, is_active, created_at')
+        .select('id, title, amount_aed, expiration_date, is_active, created_at')
         .eq('creator_id', userId)
         .order('created_at', { ascending: false })
 
@@ -463,7 +463,7 @@ export default function MyLinks() {
                           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
                             <div className="text-right">
                               <div className="text-white font-medium text-xl">
-                                ${link.amount_usd.toFixed(2)}
+                                AED {link.amount_aed.toFixed(2)}
                               </div>
                             </div>
                             
@@ -575,7 +575,7 @@ export default function MyLinks() {
                 This will prevent customers from making payments through this link.
               </p>
               <p className="cosmic-body text-gray-400 text-sm mb-6">
-                Amount: ${linkToDeactivate.amount_usd.toFixed(2)}
+                Amount: AED {linkToDeactivate.amount_aed.toFixed(2)}
               </p>
               <div className="flex space-x-4">
                 <button
@@ -605,7 +605,7 @@ export default function MyLinks() {
                 This action cannot be undone.
               </p>
               <p className="cosmic-body text-gray-400 text-sm mb-6">
-                Amount: ${linkToDelete.amount_usd.toFixed(2)}
+                Amount: AED {linkToDelete.amount_aed.toFixed(2)}
               </p>
               <div className="flex space-x-4">
                 <button

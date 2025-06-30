@@ -10,7 +10,7 @@ import { MobilePaymentSheet } from '@/components/mobile'
 interface PaymentLinkData {
   id: string
   title: string
-  amount_usd: number
+  amount_aed: number
   expiration_date: string
   is_active: boolean
   created_at: string
@@ -65,8 +65,8 @@ export default function PaymentPage() {
 
   // Prepare payment data for Crossmint
   const crossmintPaymentData: PaymentData = {
-    amount: paymentData?.amount_usd || 0,
-    currency: 'USD',
+    amount: paymentData?.amount_aed || 0,
+    currency: 'AED',
     description: paymentData?.title || 'Beauty Service Payment',
     buyerEmail: buyerEmail.trim() || undefined,
     metadata: {
@@ -131,8 +131,8 @@ export default function PaymentPage() {
       error: error?.message || 'Payment processing failed. Please try again.',
       linkId: linkId,
       ...(paymentData && {
-        amount: paymentData.amount_usd.toString(),
-        currency: 'USD',
+        amount: paymentData.amount_aed.toString(),
+        currency: 'AED',
         description: paymentData.title
       }),
       timestamp: new Date().toISOString()
@@ -237,7 +237,7 @@ export default function PaymentPage() {
           .select(`
             id,
             title,
-            amount_usd,
+            amount_aed,
             expiration_date,
             is_active,
             created_at,
@@ -519,8 +519,8 @@ export default function PaymentPage() {
           <div className="bg-gray-50 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
             <div className="text-center">
               <p className="text-gray-600 text-sm font-medium mb-2">Total Amount</p>
-              <p className="text-3xl sm:text-4xl font-bold text-gray-900">${paymentData.amount_usd.toFixed(2)}</p>
-              <p className="text-gray-500 text-sm mt-2">USD</p>
+              <p className="text-3xl sm:text-4xl font-bold text-gray-900">AED {paymentData.amount_aed.toFixed(2)}</p>
+              <p className="text-gray-500 text-sm mt-2">AED</p>
             </div>
           </div>
 

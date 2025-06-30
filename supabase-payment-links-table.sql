@@ -1,9 +1,10 @@
 -- Create Payment Links table for DECODE app
 CREATE TABLE payment_links (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_name TEXT,
     title TEXT NOT NULL,
     description TEXT,
-    amount_usd DECIMAL(10,2) NOT NULL,
+    amount_aed DECIMAL(10,2) NOT NULL,
     expiration_date TIMESTAMPTZ NOT NULL,
     creator_id UUID NOT NULL REFERENCES users(id),
     linked_user_id UUID REFERENCES users(id),
