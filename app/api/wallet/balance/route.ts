@@ -274,7 +274,7 @@ async function getRecentTransactionSummary(userId: string) {
         type: tx.transaction_type,
         status: tx.status,
         amount: tx.amount_usdc ? `${tx.amount_usdc.toFixed(2)} USDC` : '0.00 USDC',
-        description: tx.payment_links?.title || tx.transaction_type,
+        description: tx.payment_links?.[0]?.title || tx.transaction_type,
         date: tx.created_at
       })) || []
     };
