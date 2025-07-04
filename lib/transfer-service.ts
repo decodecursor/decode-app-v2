@@ -156,7 +156,7 @@ export class TransferService {
       await crossmintDB.updateTransactionStatus(transactionId, 'pending');
 
       // Record retry attempt in metadata
-      await crossmintDB.supabase
+      await supabase
         .from('wallet_transactions')
         .update({
           crossmint_transaction_id: transferResult.id,
@@ -191,7 +191,7 @@ export class TransferService {
    */
   async getPendingTransfers(): Promise<any[]> {
     try {
-      const { data: pendingTransfers, error } = await crossmintDB.supabase
+      const { data: pendingTransfers, error } = await supabase
         .from('wallet_transactions')
         .select(`
           *,
@@ -219,7 +219,7 @@ export class TransferService {
    */
   async getFailedTransfers(): Promise<any[]> {
     try {
-      const { data: failedTransfers, error } = await crossmintDB.supabase
+      const { data: failedTransfers, error } = await supabase
         .from('wallet_transactions')
         .select(`
           *,
@@ -256,7 +256,7 @@ export class TransferService {
       await crossmintDB.updateTransactionStatus(transactionId, 'completed', new Date());
 
       // Add admin completion metadata
-      await crossmintDB.supabase
+      await supabase
         .from('wallet_transactions')
         .update({
           crossmint_transaction_id: crossmintTransactionId,
@@ -286,7 +286,7 @@ export class TransferService {
     pendingCount: number;
   }> {
     try {
-      const { data: pendingTransfers, error } = await crossmintDB.supabase
+      const { data: pendingTransfers, error } = await supabase
         .from('wallet_transactions')
         .select('amount_usdc, amount_aed')
         .eq('transaction_type', 'transfer_out')
