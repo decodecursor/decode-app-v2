@@ -126,7 +126,7 @@ class CrossmintService {
     try {
       // Crossmint API to list wallets for a user
       const response = await this.makeRequest<{ wallets: CrossmintWalletResponse[] }>('GET', `/wallets?linkedUser=email:${userEmail}`);
-      return response.wallets.length > 0 ? response.wallets[0] : null;
+      return response.wallets.length > 0 ? (response.wallets[0] || null) : null;
     } catch (error) {
       if (error instanceof CrossmintAPIError && error.code === 'NOT_FOUND') {
         return null;
