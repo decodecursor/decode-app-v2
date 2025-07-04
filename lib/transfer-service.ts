@@ -3,6 +3,7 @@
 
 import { crossmintService } from '@/lib/crossmint';
 import { crossmintDB } from '@/lib/crossmint-db';
+import { supabase } from '@/lib/supabase';
 
 interface TransferRequest {
   paymentLinkId: string;
@@ -121,7 +122,7 @@ export class TransferService {
       console.log(`🔄 Retrying failed transfer: ${transactionId}`);
 
       // Get the failed transaction
-      const { data: transaction, error } = await crossmintDB.supabase
+      const { data: transaction, error } = await supabase
         .from('wallet_transactions')
         .select(`
           *,
