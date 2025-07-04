@@ -176,7 +176,7 @@ async function calculatePendingAmounts(userId: string) {
 
     let paymentsPending = 0;
     let transfersPending = 0;
-    let oldestPendingDate = null;
+    let oldestPendingDate: Date | null = null;
 
     pendingPayments?.forEach(tx => {
       const amountUsdc = tx.amount_usdc || 0;
