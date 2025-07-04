@@ -4,6 +4,7 @@
  * Export all Crossmint payment components for easy importing
  */
 
+export { CrossmintHeadlessCheckout } from './CrossmintHeadlessCheckout'
 export { CrossmintPaymentButton, usePaymentValidation } from './CrossmintPaymentButton'
 export type { PaymentData, CrossmintPaymentButtonProps } from './CrossmintPaymentButton'
 

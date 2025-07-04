@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
+import { calculateMarketplaceFee } from '@/types/crossmint'
 
 export default function CreatePayment() {
   const [user, setUser] = useState<User | null>(null)
@@ -23,6 +24,52 @@ export default function CreatePayment() {
     amount: ''
   })
   const router = useRouter()
+
+  const ensureUserHasWallet = async (user: User) => {
+    try {
+      // Check if user already has a wallet
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('wallet_address, crossmint_wallet_id')
+        .eq('id', user.id)
+        .single()
+
+      if (userError) {
+        console.error('Error checking user wallet:', userError)
+        return // Don't fail payment link creation if wallet check fails
+      }
+
+      // If user already has a wallet, return early
+      if (userData?.wallet_address) {
+        console.log('✅ User already has wallet:', userData.wallet_address)
+        return
+      }
+
+      // Create wallet for user
+      console.log('🔄 Creating wallet for user automatically...')
+      const response = await fetch('/api/wallet/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          userEmail: user.email
+        })
+      })
+
+      const walletData = await response.json()
+
+      if (response.ok && walletData.success) {
+        console.log('✅ Wallet created automatically for payment link creation')
+      } else {
+        console.warn('⚠️ Failed to create wallet automatically, continuing with payment link creation')
+      }
+    } catch (error) {
+      console.error('❌ Error ensuring user has wallet:', error)
+      // Don't fail payment link creation if wallet creation fails
+    }
+  }
 
   useEffect(() => {
     const getUser = async () => {
@@ -97,14 +144,21 @@ export default function CreatePayment() {
       const expirationDate = new Date()
       expirationDate.setDate(expirationDate.getDate() + 7)
 
-      // Save payment link to Supabase
+      // Calculate marketplace fees
+      const originalAmount = parseFloat(formData.amount)
+      const feeCalculation = calculateMarketplaceFee(originalAmount)
+
+      // Ensure wallet exists before creating payment link
+      await ensureUserHasWallet(user)
+
+      // Save payment link to Supabase (compatible with current schema)
       const { data, error: saveError } = await supabase
         .from('payment_links')
         .insert({
           client_name: formData.client.trim(),
           title: formData.title.trim(),
-          description: null,
-          amount_aed: parseFloat(formData.amount),
+          description: `Service: ${formData.title.trim()} | Original: AED ${feeCalculation.originalAmount} | Fee: AED ${feeCalculation.feeAmount} | Total: AED ${feeCalculation.totalAmount}`,
+          amount_aed: feeCalculation.totalAmount, // Store total amount (what customer pays)
           expiration_date: expirationDate.toISOString(),
           creator_id: user.id,
           is_active: true
@@ -119,10 +173,10 @@ export default function CreatePayment() {
       console.log('Payment link created successfully:', data)
       setSuccess(true)
       
-      // Redirect to My Links page after 2 seconds
+      // Redirect to My Links page after 5 seconds
       setTimeout(() => {
         router.push('/my-links')
-      }, 2000)
+      }, 5000)
 
     } catch (error) {
       console.error('Error creating payment link:', error)
@@ -222,6 +276,38 @@ export default function CreatePayment() {
                   {errors.amount && (
                     <p className="mt-2 text-sm text-red-400">{errors.amount}</p>
                   )}
+                  
+                  {/* Fee Calculation Display */}
+                  {formData.amount && !isNaN(parseFloat(formData.amount)) && parseFloat(formData.amount) > 0 && (
+                    <div className="mt-4 p-4 bg-gray-800/50 rounded-lg space-y-2">
+                      <h4 className="text-sm font-medium text-gray-300">Payment Breakdown</h4>
+                      {(() => {
+                        const amount = parseFloat(formData.amount)
+                        const feeCalc = calculateMarketplaceFee(amount)
+                        return (
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-400">Service Amount:</span>
+                              <span className="text-white">AED {feeCalc.originalAmount.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-400">Marketplace Fee (11%):</span>
+                              <span className="text-yellow-400">AED {feeCalc.feeAmount.toFixed(2)}</span>
+                            </div>
+                            <div className="border-t border-gray-600 pt-2">
+                              <div className="flex justify-between text-base font-semibold">
+                                <span className="text-white">Customer Pays:</span>
+                                <span className="text-green-400">AED {feeCalc.totalAmount.toFixed(2)}</span>
+                              </div>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-2">
+                              * You receive AED {feeCalc.originalAmount.toFixed(2)} after the 11% marketplace fee
+                            </div>
+                          </div>
+                        )
+                      })()}
+                    </div>
+                  )}
                 </div>
 
                 {error && (
@@ -263,8 +349,26 @@ export default function CreatePayment() {
                 <div className="cosmic-label mb-2">Payment Details</div>
                 <div className="cosmic-body mb-1">Client: <span className="font-medium">{formData.client}</span></div>
                 <div className="cosmic-body mb-1">Service: <span className="font-medium">{formData.title}</span></div>
-                <div className="cosmic-body">Amount: <span className="text-2xl font-medium">AED {formData.amount}</span></div>
-                <div className="cosmic-body text-sm text-gray-400 mt-2">
+                <div className="cosmic-body">Your Amount: <span className="text-xl font-medium">AED {formData.amount}</span></div>
+                {(() => {
+                  const amount = parseFloat(formData.amount)
+                  const feeCalc = calculateMarketplaceFee(amount)
+                  return (
+                    <div className="mt-3 pt-3 border-t border-gray-600">
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Marketplace Fee (11%):</span>
+                          <span className="text-yellow-400">AED {feeCalc.feeAmount.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between font-semibold">
+                          <span className="text-white">Customer Pays:</span>
+                          <span className="text-green-400">AED {feeCalc.totalAmount.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })()}
+                <div className="cosmic-body text-sm text-gray-400 mt-3">
                   Expires: {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}
                 </div>
               </div>

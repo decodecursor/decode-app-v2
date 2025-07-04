@@ -1,30 +1,33 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { CrossmintPaymentButton } from '@/components/crossmint'
-import type { PaymentData } from '@/components/crossmint'
+import { CrossmintHeadlessCheckout } from '@/components/crossmint'
 
 export interface MobilePaymentSheetProps {
   isOpen: boolean
   onClose: () => void
-  paymentData: PaymentData
-  onSuccess: (payment: any) => void
-  onFailure: (error: any) => void
-  onPending: () => void
+  paymentLinkId: string
+  originalAmount: number
+  currency: string
+  onSuccess: (sessionId: string) => void
+  onFailure: (error: string) => void
   serviceTitle: string
   creatorName: string
+  clientEmail?: string
   disabled?: boolean
 }
 
 export function MobilePaymentSheet({
   isOpen,
   onClose,
-  paymentData,
+  paymentLinkId,
+  originalAmount,
+  currency,
   onSuccess,
   onFailure,
-  onPending,
   serviceTitle,
   creatorName,
+  clientEmail,
   disabled = false
 }: MobilePaymentSheetProps) {
   const [isVisible, setIsVisible] = useState(false)
@@ -125,71 +128,18 @@ export function MobilePaymentSheet({
             </button>
           </div>
 
-          {/* Payment Summary */}
-          <div className="bg-gray-50 rounded-xl p-4 mb-6">
-            <h3 className="font-medium text-gray-900 mb-3">Payment Summary</h3>
-            
-            <div className="space-y-3">
-              <div className="flex justify-between items-start">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{serviceTitle}</p>
-                  <p className="text-xs text-gray-600">by {creatorName}</p>
-                </div>
-                <p className="text-lg font-bold text-gray-900 ml-3">
-                  ${paymentData.amount.toFixed(2)}
-                </p>
-              </div>
-              
-              <div className="border-t border-gray-200 pt-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-900">Total</span>
-                  <span className="text-xl font-bold text-purple-600">
-                    ${paymentData.amount.toFixed(2)} {paymentData.currency}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Payment Methods Section */}
-          <div className="mb-6">
-            <h3 className="font-medium text-gray-900 mb-3">Payment Method</h3>
-            <div className="border border-gray-200 rounded-xl p-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Crossmint</p>
-                  <p className="text-xs text-gray-600">Card • Bank • Crypto</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Payment Button */}
-          <div className="space-y-4">
-            <CrossmintPaymentButton
-              paymentData={paymentData}
-              onSuccess={onSuccess}
-              onFailure={onFailure}
-              onPending={onPending}
-              disabled={disabled}
-              buttonText={`Pay $${paymentData.amount.toFixed(2)}`}
-              size="lg"
-              className="w-full min-h-[56px] text-lg font-semibold"
-            />
-            
-            {/* Security Notice */}
-            <div className="flex items-center justify-center space-x-2 text-gray-500 text-xs">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              <span>Secured by 256-bit SSL encryption</span>
-            </div>
-          </div>
+          {/* Headless Checkout */}
+          <CrossmintHeadlessCheckout
+            paymentLinkId={paymentLinkId}
+            originalAmount={originalAmount}
+            currency={currency}
+            title={serviceTitle}
+            clientEmail={clientEmail}
+            onSuccess={onSuccess}
+            onFailure={onFailure}
+            disabled={disabled}
+            className="space-y-4"
+          />
 
           {/* Terms */}
           <div className="mt-6 pt-4 border-t border-gray-200">

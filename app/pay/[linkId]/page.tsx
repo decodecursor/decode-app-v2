@@ -3,9 +3,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useParams, useRouter } from 'next/navigation'
-import { CrossmintPaymentButton, usePaymentValidation } from '@/components/crossmint'
+import { CrossmintHeadlessCheckout, CrossmintPaymentButton, usePaymentValidation } from '@/components/crossmint'
 import type { PaymentData } from '@/components/crossmint'
-import { MobilePaymentSheet } from '@/components/mobile'
 
 interface PaymentLinkData {
   id: string
@@ -27,8 +26,6 @@ export default function PaymentPage() {
   const [errorType, setErrorType] = useState<'not-found' | 'inactive' | 'expired' | 'invalid' | 'network' | 'creator-missing'>('not-found')
   const [buyerEmail, setBuyerEmail] = useState('')
   const [emailError, setEmailError] = useState('')
-  const [showMobilePaymentSheet, setShowMobilePaymentSheet] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
   const params = useParams()
   const router = useRouter()
   const linkId = params.linkId as string
@@ -189,17 +186,6 @@ export default function PaymentPage() {
     console.log('✅ Transaction record created successfully')
   }
 
-  // Mobile detection effect
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
 
   useEffect(() => {
     const fetchPaymentLink = async () => {
@@ -554,38 +540,6 @@ export default function PaymentPage() {
             </div>
           </div>
 
-          {/* Buyer Information Form */}
-          <div className="border-t border-gray-200 pt-6 sm:pt-8 mt-6 sm:mt-8">
-            <h4 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Contact Information</h4>
-            <p className="text-gray-600 text-sm mb-4">
-              Email address is optional but recommended for payment confirmation and receipt.
-            </p>
-            
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="buyerEmail" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address (Optional)
-                </label>
-                <input
-                  type="email"
-                  id="buyerEmail"
-                  value={buyerEmail}
-                  onChange={handleEmailChange}
-                  onBlur={validateEmail}
-                  placeholder="your@email.com"
-                  className={`w-full px-4 py-3 sm:py-3 border rounded-xl font-medium transition-colors text-base ${
-                    emailError 
-                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                      : 'border-gray-300 focus:border-purple-500 focus:ring-purple-200'
-                  } focus:outline-none focus:ring-2`}
-                  style={{ fontSize: '16px' }} // Prevent zoom on iOS
-                />
-                {emailError && (
-                  <p className="mt-2 text-sm text-red-600">{emailError}</p>
-                )}
-              </div>
-            </div>
-          </div>
 
           {/* Payment Validation Errors */}
           {!isPaymentValid && paymentErrors.length > 0 && (
@@ -599,56 +553,28 @@ export default function PaymentPage() {
             </div>
           )}
 
-          {/* Payment Button */}
+          {/* Headless Checkout */}
           <div className="mt-6 sm:mt-8">
-            {isMobile ? (
-              <>
-                <button
-                  onClick={() => setShowMobilePaymentSheet(true)}
-                  disabled={!!emailError || !isPaymentValid}
-                  className="w-full min-h-[50px] sm:min-h-[56px] text-base sm:text-lg font-semibold bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-xl transition-colors"
-                >
-                  Pay AED {paymentData?.amount_aed.toFixed(2)}
-                </button>
-                <p className="text-center text-gray-500 text-xs sm:text-sm mt-3 px-2">
-                  Secure payment processing with Crossmint • Your information is protected
-                </p>
-              </>
-            ) : (
-              <>
-                <CrossmintPaymentButton
-                  paymentData={crossmintPaymentData}
-                  onSuccess={handlePaymentSuccess}
-                  onFailure={handlePaymentFailure}
-                  onPending={handlePaymentPending}
-                  disabled={!!emailError || !isPaymentValid}
-                  buttonText={`Pay AED ${paymentData?.amount_aed.toFixed(2)}`}
-                  size="lg"
-                  className="w-full min-h-[50px] sm:min-h-[56px] text-base sm:text-lg font-semibold"
-                />
-                <p className="text-center text-gray-500 text-xs sm:text-sm mt-3 px-2">
-                  Secure payment processing with Crossmint • Your information is protected
-                </p>
-              </>
-            )}
+            <CrossmintHeadlessCheckout
+              paymentLinkId={linkId}
+              originalAmount={paymentData?.amount_aed || 0}
+              currency="AED"
+              title={paymentData?.title || 'Beauty Service Payment'}
+              clientEmail={buyerEmail}
+              onSuccess={(sessionId) => {
+                console.log('✅ Checkout session created:', sessionId)
+                // The component handles the redirect to Crossmint
+              }}
+              onFailure={(error) => {
+                console.error('❌ Checkout failed:', error)
+                handlePaymentFailure({ message: error })
+              }}
+              disabled={!!emailError || !isPaymentValid}
+            />
           </div>
         </div>
       </div>
       
-      {/* Mobile Payment Sheet */}
-      {paymentData && (
-        <MobilePaymentSheet
-          isOpen={showMobilePaymentSheet}
-          onClose={() => setShowMobilePaymentSheet(false)}
-          paymentData={crossmintPaymentData}
-          onSuccess={handlePaymentSuccess}
-          onFailure={handlePaymentFailure}
-          onPending={handlePaymentPending}
-          serviceTitle={paymentData.title}
-          creatorName={paymentData.creator.full_name || paymentData.creator.email?.split('@')[0] || 'Unknown'}
-          disabled={!!emailError || !isPaymentValid}
-        />
-      )}
     </div>
   )
 }

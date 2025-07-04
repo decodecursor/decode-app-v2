@@ -10,6 +10,9 @@ interface PaymentLink {
   client_name?: string
   title: string
   amount_aed: number
+  original_amount_aed?: number
+  fee_amount_aed?: number
+  total_amount_aed?: number
   expiration_date: string
   is_active: boolean
   created_at: string
@@ -50,7 +53,7 @@ export default function MyLinks() {
 
       const { data, error: fetchError } = await supabase
         .from('payment_links')
-        .select('id, client_name, title, amount_aed, expiration_date, is_active, created_at')
+        .select('id, client_name, title, amount_aed, original_amount_aed, fee_amount_aed, total_amount_aed, expiration_date, is_active, created_at')
         .eq('creator_id', userId)
         .order('created_at', { ascending: false })
 
@@ -465,6 +468,13 @@ export default function MyLinks() {
                               <div className="text-white font-medium text-xl">
                                 AED {link.amount_aed.toFixed(2)}
                               </div>
+                              {/* Fee Information */}
+                              {link.original_amount_aed && link.fee_amount_aed && link.total_amount_aed && (
+                                <div className="text-xs text-gray-400 mt-1 space-y-1">
+                                  <div>Fee: AED {link.fee_amount_aed.toFixed(2)} (11%)</div>
+                                  <div>Customer pays: <span className="text-green-400">AED {link.total_amount_aed.toFixed(2)}</span></div>
+                                </div>
+                              )}
                             </div>
                             
                             <div className="text-right">

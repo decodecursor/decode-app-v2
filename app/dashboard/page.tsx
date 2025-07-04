@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
+import { WalletDashboard } from '@/components/dashboard/WalletDashboard'
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null)
@@ -189,12 +190,12 @@ export default function Dashboard() {
                     </button>
 
                     {/* Wallet */}
-                    <button className="w-full flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                    <Link href="/dashboard/wallet" className="w-full flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
                       <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                       <span className="font-medium">Wallet</span>
-                    </button>
+                    </Link>
 
                     {/* Logout */}
                     <button 
@@ -283,7 +284,8 @@ export default function Dashboard() {
                     </button>
 
                     {/* Wallet */}
-                    <button 
+                    <Link
+                      href="/dashboard/wallet"
                       className="block w-full text-left px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg font-medium transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
@@ -293,7 +295,7 @@ export default function Dashboard() {
                         </svg>
                         Wallet
                       </div>
-                    </button>
+                    </Link>
 
                     {/* Logout */}
                     <button 
@@ -316,6 +318,14 @@ export default function Dashboard() {
 
         {/* Main Dashboard Content */}
         <div className="mx-auto space-y-8" style={{maxWidth: '3000px'}}>
+          
+          {/* Wallet Dashboard - Only for Beauty Professionals */}
+          {userRole === 'Beauty Professional' && user && (
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-6">Your Crypto Wallet</h2>
+              <WalletDashboard user={user} />
+            </div>
+          )}
           
           {/* Quick Stats */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
