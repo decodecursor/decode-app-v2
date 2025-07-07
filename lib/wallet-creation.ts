@@ -3,6 +3,7 @@
 
 import { crossmintService } from '@/lib/crossmint';
 import { crossmintDB } from '@/lib/crossmint-db';
+import { supabase } from '@/lib/supabase';
 
 export interface WalletCreationResult {
   success: boolean;
@@ -172,7 +173,7 @@ export class WalletCreationService {
   }> {
     try {
       // Get users without wallets
-      const { data: users, error } = await crossmintDB.supabase
+      const { data: users, error } = await supabase
         .from('users')
         .select('id, email')
         .is('wallet_address', null);
