@@ -158,10 +158,12 @@ class CrossmintService {
       },
       lineItems: [
         {
-          amount: totalAmount.toFixed(2),
+          price: totalAmount.toFixed(2),
           quantity: 1,
           name: 'Beauty Service Payment',
-          description: `Payment for beauty service (Original: $${originalAmount.toFixed(2)} + Marketplace Fee: $${feeCalculation.feeAmount.toFixed(2)})`
+          description: `Payment for beauty service (Original: $${originalAmount.toFixed(2)} + Marketplace Fee: $${feeCalculation.feeAmount.toFixed(2)})`,
+          sku: `service-${paymentLinkId.substring(0, 8)}`,
+          category: 'beauty-service'
         }
       ],
       successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success/${paymentLinkId}`,

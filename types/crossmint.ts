@@ -93,10 +93,12 @@ export interface CrossmintCheckoutRequest {
     };
   };
   lineItems: Array<{
-    amount: string;
+    price: string;
     quantity: number;
     name: string;
     description?: string;
+    sku?: string;
+    category?: string;
   }>;
   successUrl?: string;
   cancelUrl?: string;
