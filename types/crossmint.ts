@@ -93,7 +93,7 @@ export interface CrossmintCheckoutRequest {
     };
   };
   lineItems: Array<{
-    price: string;
+    amount: string;
     quantity: number;
     name: string;
     description?: string;
