@@ -158,7 +158,7 @@ class CrossmintService {
       },
       lineItems: [
         {
-          price: totalAmount.toFixed(2),
+          amount: totalAmount.toFixed(2),
           quantity: 1,
           name: 'Beauty Service Payment',
           description: `Payment for beauty service (Original: $${originalAmount.toFixed(2)} + Marketplace Fee: $${feeCalculation.feeAmount.toFixed(2)})`
