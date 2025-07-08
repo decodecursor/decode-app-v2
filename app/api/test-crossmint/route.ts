@@ -39,14 +39,13 @@ export async function GET(request: NextRequest) {
             method: 'polygon-amoy',
             currency: 'usdc'
           },
-          lineItems: {
-            collectionLocator: 'crossmint:decode-beauty-services-test',
-            callData: {
-              totalPrice: '10.00'
-            }
-          },
           recipient: {
             email: 'test@decode-beauty.com'
+          },
+          metadata: {
+            service: 'beauty',
+            amount: '10.00',
+            description: 'Test beauty service payment'
           }
         })
       });

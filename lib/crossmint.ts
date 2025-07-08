@@ -150,29 +150,21 @@ class CrossmintService {
     
     const request: CrossmintCheckoutRequest = {
       payment: {
-        method: 'polygon-amoy', // Using Polygon Amoy testnet
-        currency: 'usdc', // Payment in USDC
-      },
-      lineItems: {
-        collectionLocator: 'crossmint:decode-beauty-services-test',
-        callData: {
-          totalPrice: totalAmount.toFixed(2),
-          originalAmount: originalAmount.toFixed(2),
-          feeAmount: feeCalculation.feeAmount.toFixed(2),
-          paymentLinkId: paymentLinkId,
-          beautyProfessionalId: beautyProfessionalId
-        }
+        method: 'polygon-amoy',
+        currency: 'usdc'
       },
       recipient: {
-        email: 'payments@decode-beauty.com' // DECODE platform email
+        email: 'payments@decode-beauty.com'
       },
       metadata: {
+        service: 'beauty',
+        amount: totalAmount.toFixed(2),
         original_amount: originalAmount.toFixed(2),
         fee_amount: feeCalculation.feeAmount.toFixed(2),
         beauty_professional_id: beautyProfessionalId,
         payment_link_id: paymentLinkId,
         platform: 'DECODE_Beauty',
-        marketplace_fee_percentage: '11'
+        description: 'Beauty service payment'
       }
     };
 
