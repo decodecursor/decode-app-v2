@@ -90,18 +90,23 @@ export interface CrossmintCheckoutRequest {
     currency: 'usdc' | 'eth' | 'matic' | 'sol'; // Crypto currencies
     payerAddress?: string; // Optional wallet address
   };
+  lineItems: Array<{
+    name: string;
+    description?: string;
+    price: string;
+    quantity: number;
+  }>;
   recipient: {
     email?: string;
     walletAddress?: string;
   };
   metadata?: {
     service?: string;
-    amount?: string;
     original_amount?: string;
     fee_amount?: string;
     beauty_professional_id?: string;
     payment_link_id?: string;
-    description?: string;
+    platform?: string;
     [key: string]: any;
   };
 }

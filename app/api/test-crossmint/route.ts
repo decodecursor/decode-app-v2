@@ -39,13 +39,20 @@ export async function GET(request: NextRequest) {
             method: 'polygon-amoy',
             currency: 'usdc'
           },
+          lineItems: [
+            {
+              name: 'Test Beauty Service',
+              description: 'Test beauty service payment',
+              price: '10.00',
+              quantity: 1
+            }
+          ],
           recipient: {
             email: 'test@decode-beauty.com'
           },
           metadata: {
             service: 'beauty',
-            amount: '10.00',
-            description: 'Test beauty service payment'
+            platform: 'DECODE_Beauty_Test'
           }
         })
       });

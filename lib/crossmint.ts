@@ -153,18 +153,24 @@ class CrossmintService {
         method: 'polygon-amoy',
         currency: 'usdc'
       },
+      lineItems: [
+        {
+          name: 'Beauty Service',
+          description: `Beauty service payment (Original: AED ${originalAmount.toFixed(2)} + Fee: AED ${feeCalculation.feeAmount.toFixed(2)})`,
+          price: totalAmount.toFixed(2),
+          quantity: 1
+        }
+      ],
       recipient: {
         email: 'payments@decode-beauty.com'
       },
       metadata: {
         service: 'beauty',
-        amount: totalAmount.toFixed(2),
         original_amount: originalAmount.toFixed(2),
         fee_amount: feeCalculation.feeAmount.toFixed(2),
         beauty_professional_id: beautyProfessionalId,
         payment_link_id: paymentLinkId,
-        platform: 'DECODE_Beauty',
-        description: 'Beauty service payment'
+        platform: 'DECODE_Beauty'
       }
     };
 
