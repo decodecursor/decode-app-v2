@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useParams, useRouter } from 'next/navigation'
-import { CrossmintProvider, CrossmintEmbeddedCheckout } from '@crossmint/client-sdk-react-ui'
+import { CrossmintPaymentElement } from '@crossmint/client-sdk-react-ui'
 
 interface PaymentLinkData {
   id: string
@@ -129,7 +129,7 @@ export default function PaymentPage() {
 
         const transformedData: PaymentLinkData = {
           ...data,
-          creator: Array.isArray(data.creator) ? data.creator[0] : data.creator
+          creator: Array.isArray(data.creator) ? data.creator[0] : data.creator || { full_name: null, email: '' }
         }
 
         setPaymentData(transformedData)
@@ -222,37 +222,24 @@ export default function PaymentPage() {
           {/* EMBEDDED CROSSMINT CHECKOUT */}
           <div className="mt-8 border-t border-gray-200 pt-8">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Payment Options</h4>
-            <CrossmintProvider apiKey={process.env.NEXT_PUBLIC_CROSSMINT_API_KEY || ''}>
-              <CrossmintEmbeddedCheckout
-                lineItems={{
-                  collectionLocator: `crossmint:${process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID}:beauty-services`,
-                  callData: {
-                    totalPrice: paymentData.amount_aed.toFixed(2),
-                    quantity: 1,
-                    paymentLinkId: linkId,
-                    beautyProfessionalId: paymentData.creator.email,
-                    service: 'beauty',
-                    title: paymentData.title
-                  }
-                }}
-                payment={{
-                  fiat: {
-                    enabled: true,
-                    allowedMethods: {
-                      card: true,
-                      applePay: true,
-                      googlePay: true
-                    },
-                    defaultCurrency: 'AED'
-                  },
-                  defaultMethod: 'fiat'
-                }}
-                onEvent={{
-                  'payment:process.succeeded': handlePaymentSuccess,
-                  'payment:process.failed': handlePaymentFailure
-                }}
-              />
-            </CrossmintProvider>
+            <CrossmintPaymentElement
+              clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || ''}
+              mintConfig={{
+                totalPrice: paymentData.amount_aed.toFixed(2),
+                currency: 'AED',
+                type: 'erc-20',
+                metadata: {
+                  paymentLinkId: linkId,
+                  beautyProfessionalId: paymentData.creator.email,
+                  service: 'beauty',
+                  title: paymentData.title
+                }
+              }}
+              onEvent={{
+                'payment:process.succeeded': handlePaymentSuccess,
+                'payment:process.failed': handlePaymentFailure
+              }}
+            />
           </div>
         </div>
       </div>
