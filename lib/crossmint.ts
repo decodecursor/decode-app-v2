@@ -150,11 +150,11 @@ class CrossmintService {
     
     const request: CrossmintCheckoutRequest = {
       payment: {
-        method: 'base-sepolia', // Using Base Sepolia for staging  
+        method: 'polygon-amoy', // Using Polygon Amoy testnet
         currency: 'usdc', // Payment in USDC
       },
       lineItems: {
-        collectionLocator: 'base-sepolia:0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        collectionLocator: 'polygon-amoy:0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582',
         callData: {
           totalPrice: totalAmount.toFixed(2),
           originalAmount: originalAmount.toFixed(2),
