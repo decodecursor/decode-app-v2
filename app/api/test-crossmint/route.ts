@@ -41,10 +41,12 @@ export async function GET(request: NextRequest) {
           },
           lineItems: [
             {
-              name: 'Test Beauty Service',
-              description: 'Test beauty service payment',
-              price: '10.00',
-              quantity: 1
+              collectionLocator: 'crossmint:decode-beauty-test',
+              callData: {
+                totalPrice: '10.00',
+                service: 'beauty',
+                description: 'Test beauty service payment'
+              }
             }
           ],
           recipient: {

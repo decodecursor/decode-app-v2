@@ -155,10 +155,15 @@ class CrossmintService {
       },
       lineItems: [
         {
-          name: 'Beauty Service',
-          description: `Beauty service payment (Original: AED ${originalAmount.toFixed(2)} + Fee: AED ${feeCalculation.feeAmount.toFixed(2)})`,
-          price: totalAmount.toFixed(2),
-          quantity: 1
+          collectionLocator: 'crossmint:decode-beauty-services',
+          callData: {
+            totalPrice: totalAmount.toFixed(2),
+            originalAmount: originalAmount.toFixed(2),
+            feeAmount: feeCalculation.feeAmount.toFixed(2),
+            paymentLinkId: paymentLinkId,
+            beautyProfessionalId: beautyProfessionalId,
+            service: 'beauty'
+          }
         }
       ],
       recipient: {

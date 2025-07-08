@@ -91,10 +91,17 @@ export interface CrossmintCheckoutRequest {
     payerAddress?: string; // Optional wallet address
   };
   lineItems: Array<{
-    name: string;
-    description?: string;
-    price: string;
-    quantity: number;
+    collectionLocator: string;
+    callData: {
+      totalPrice?: string;
+      originalAmount?: string;
+      feeAmount?: string;
+      paymentLinkId?: string;
+      beautyProfessionalId?: string;
+      service?: string;
+      description?: string;
+      [key: string]: any;
+    };
   }>;
   recipient: {
     email?: string;
