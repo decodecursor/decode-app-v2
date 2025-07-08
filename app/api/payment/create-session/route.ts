@@ -92,6 +92,13 @@ export async function POST(request: NextRequest) {
     const environment = process.env.CROSSMINT_ENVIRONMENT || 'production';
     const projectId = process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID;
     
+    // DEBUG: Log environment variables
+    console.log('🔧 DEBUG Environment Variables:');
+    console.log('CROSSMINT_ENVIRONMENT:', process.env.CROSSMINT_ENVIRONMENT);
+    console.log('NEXT_PUBLIC_CROSSMINT_PROJECT_ID:', process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID);
+    console.log('Environment being used:', environment);
+    console.log('Project ID being used:', projectId);
+    
     if (!projectId) {
       return NextResponse.json({
         success: false,
