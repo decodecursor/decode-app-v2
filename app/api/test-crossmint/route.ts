@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
             currency: 'usdc'
           },
           lineItems: {
-            collectionLocator: 'polygon-amoy:0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582',
+            collectionLocator: 'crossmint:decode-beauty-services-test',
             callData: {
               totalPrice: '10.00'
             }
