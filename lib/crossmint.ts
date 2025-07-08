@@ -148,16 +148,26 @@ class CrossmintService {
   ): Promise<CrossmintCheckoutResponse> {
     const feeCalculation = calculateMarketplaceFee(originalAmount);
     
-    // For production, we need to use a direct payment approach
-    // without requiring specific product collections
+    // Note: This API call is not used in production since we use widget approach
+    // But keeping it for type compliance
     const request: CrossmintCheckoutRequest = {
-      type: 'donation',
-      amount: totalAmount.toFixed(2),
-      currency: 'usd',
       payment: {
         method: 'polygon',
         currency: 'usdc'
       },
+      lineItems: [
+        {
+          callData: {
+            totalPrice: totalAmount.toFixed(2),
+            originalAmount: originalAmount.toFixed(2),
+            feeAmount: feeCalculation.feeAmount.toFixed(2),
+            paymentLinkId: paymentLinkId,
+            beautyProfessionalId: beautyProfessionalId,
+            service: 'beauty',
+            description: 'Beauty service payment'
+          }
+        }
+      ],
       recipient: {
         email: 'payments@decode-beauty.com'
       },
@@ -167,8 +177,7 @@ class CrossmintService {
         fee_amount: feeCalculation.feeAmount.toFixed(2),
         beauty_professional_id: beautyProfessionalId,
         payment_link_id: paymentLinkId,
-        platform: 'DECODE_Beauty',
-        description: 'Beauty service payment'
+        platform: 'DECODE_Beauty'
       }
     };
 
