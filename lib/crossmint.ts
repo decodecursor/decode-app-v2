@@ -25,10 +25,10 @@ class CrossmintService {
       decodeWalletAddress: process.env.DECODE_WALLET_ADDRESS || ''
     };
 
-    // Set base URL based on environment (using 2022-06-09 API version for headless checkout)
+    // Set base URL based on environment (using current API version)
     this.baseUrl = this.config.environment === 'production'
-      ? 'https://api.crossmint.com/2022-06-09'
-      : 'https://staging.crossmint.com/api/2022-06-09';
+      ? 'https://api.crossmint.io/v1-alpha2'
+      : 'https://staging.crossmint.io/api/v1-alpha2';
 
     // Validate required configuration
     this.validateConfig();
