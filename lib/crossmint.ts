@@ -154,7 +154,7 @@ class CrossmintService {
         currency: 'usdc', // Payment in USDC
       },
       lineItems: {
-        collectionLocator: 'crossmint:decode-beauty-services',
+        collectionLocator: 'base-sepolia:0x036CbD53842c5426634e7929541eC2318f3dCF7e',
         callData: {
           totalPrice: totalAmount.toFixed(2),
           originalAmount: originalAmount.toFixed(2),

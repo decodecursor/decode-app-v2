@@ -35,10 +35,19 @@ export async function GET(request: NextRequest) {
           'User-Agent': 'DECODE-Beauty-Platform/1.0'
         },
         body: JSON.stringify({
-          lineItems: [{
-            collectionLocator: 'test-collection',
-            quantity: 1
-          }]
+          payment: {
+            method: 'base-sepolia',
+            currency: 'usdc'
+          },
+          lineItems: {
+            collectionLocator: 'base-sepolia:0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+            callData: {
+              totalPrice: '10.00'
+            }
+          },
+          recipient: {
+            email: 'test@decode-beauty.com'
+          }
         })
       });
 
