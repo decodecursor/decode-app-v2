@@ -25,10 +25,10 @@ class CrossmintService {
       decodeWalletAddress: process.env.DECODE_WALLET_ADDRESS || ''
     };
 
-    // Set base URL based on environment (using current API version)
+    // Set base URL based on environment (using verified API version)
     this.baseUrl = this.config.environment === 'production'
-      ? 'https://api.crossmint.io/v1-alpha2'
-      : 'https://staging.crossmint.io/api/v1-alpha2';
+      ? 'https://api.crossmint.com/v1'
+      : 'https://staging.crossmint.com/api/v1';
 
     // Validate required configuration
     this.validateConfig();
