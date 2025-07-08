@@ -25,8 +25,10 @@ class CrossmintService {
       decodeWalletAddress: process.env.DECODE_WALLET_ADDRESS || ''
     };
 
-    // Set base URL - FORCE PRODUCTION for working payments
-    this.baseUrl = 'https://www.crossmint.com/api/2022-06-09';
+    // Set base URL based on environment
+    this.baseUrl = this.config.environment === 'production' 
+      ? 'https://www.crossmint.com/api/2022-06-09'
+      : 'https://staging.crossmint.com/api/2022-06-09';
 
     // Validate required configuration
     this.validateConfig();
@@ -146,25 +148,16 @@ class CrossmintService {
   ): Promise<CrossmintCheckoutResponse> {
     const feeCalculation = calculateMarketplaceFee(originalAmount);
     
+    // For production, we need to use a direct payment approach
+    // without requiring specific product collections
     const request: CrossmintCheckoutRequest = {
+      type: 'donation',
+      amount: totalAmount.toFixed(2),
+      currency: 'usd',
       payment: {
         method: 'polygon',
         currency: 'usdc'
       },
-      lineItems: [
-        {
-          productLocator: `service:beauty-${paymentLinkId.substring(0, 8)}`,
-          callData: {
-            totalPrice: totalAmount.toFixed(2),
-            originalAmount: originalAmount.toFixed(2),
-            feeAmount: feeCalculation.feeAmount.toFixed(2),
-            paymentLinkId: paymentLinkId,
-            beautyProfessionalId: beautyProfessionalId,
-            service: 'beauty',
-            description: 'Beauty service payment'
-          }
-        }
-      ],
       recipient: {
         email: 'payments@decode-beauty.com'
       },
@@ -174,7 +167,8 @@ class CrossmintService {
         fee_amount: feeCalculation.feeAmount.toFixed(2),
         beauty_professional_id: beautyProfessionalId,
         payment_link_id: paymentLinkId,
-        platform: 'DECODE_Beauty'
+        platform: 'DECODE_Beauty',
+        description: 'Beauty service payment'
       }
     };
 

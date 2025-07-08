@@ -88,35 +88,52 @@ export async function POST(request: NextRequest) {
       feeAmount = totalAmount - originalAmount;
     }
 
-    // Create checkout session with Crossmint (with error handling)
-    let checkoutSession;
-    try {
-      checkoutSession = await crossmintService.createCheckoutSession(
-        paymentLinkId,
-        totalAmount,
-        originalAmount,
-        creator.id
-      );
-    } catch (error) {
-      console.log('⚠️ Crossmint API error, using mock session for testing:', error instanceof Error ? error.message : 'Unknown error');
-      
-      // Create mock checkout session for testing
-      checkoutSession = {
-        id: `mock_session_${Date.now()}`,
-        url: `https://staging.crossmint.com/checkout/mock_session_${Date.now()}`,
-        status: 'pending',
-        amount: totalAmount.toFixed(2),
-        currency: 'USD',
-        metadata: {
-          payment_link_id: paymentLinkId,
-          beauty_professional_id: creator.id,
-          original_amount: originalAmount.toFixed(2),
-          fee_amount: feeAmount.toFixed(2),
-          platform: 'DECODE_Beauty',
-          test_mode: true
-        }
-      };
+    // Generate Crossmint widget checkout URL (no API call needed)
+    const environment = process.env.CROSSMINT_ENVIRONMENT || 'production';
+    const projectId = process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID;
+    
+    if (!projectId) {
+      return NextResponse.json({
+        success: false,
+        error: 'Crossmint project ID not configured'
+      }, { status: 500 });
     }
+
+    // Create checkout session using widget approach
+    const sessionId = `decode_${paymentLinkId.substring(0, 8)}_${Date.now()}`;
+    const baseUrl = environment === 'production' 
+      ? 'https://crossmint.com' 
+      : 'https://staging.crossmint.com';
+
+    const mintConfig = {
+      type: 'credit-card',
+      totalPrice: totalAmount.toFixed(2),
+      currency: 'USD',
+      metadata: {
+        paymentLinkId: paymentLinkId,
+        beautyProfessionalId: creator.id,
+        originalAmount: originalAmount.toFixed(2),
+        feeAmount: feeAmount.toFixed(2),
+        service: 'beauty',
+        platform: 'DECODE_Beauty',
+        creatorEmail: creator.email,
+        timestamp: new Date().toISOString()
+      }
+    };
+
+    const widgetParams = new URLSearchParams({
+      clientId: projectId,
+      mintConfig: JSON.stringify(mintConfig)
+    });
+
+    const checkoutSession = {
+      id: sessionId,
+      url: `${baseUrl}/checkout?${widgetParams.toString()}`,
+      status: 'pending',
+      amount: totalAmount.toFixed(2),
+      currency: 'USD',
+      metadata: mintConfig.metadata
+    };
 
     console.log(`✅ Checkout session created: ${checkoutSession.id}`);
 

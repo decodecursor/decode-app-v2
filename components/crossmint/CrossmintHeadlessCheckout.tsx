@@ -88,13 +88,20 @@ export function CrossmintHeadlessCheckout({
 
       console.log('✅ Checkout session created:', data.sessionId)
       
-      // Check if it's a mock session and handle appropriately
-      if (data.sessionId.startsWith('mock_session_')) {
-        alert('⚠️ Demo Mode: Crossmint API integration is being configured. This would normally redirect to a real payment page.')
+      // Check if we have a real checkout URL
+      if (data.checkoutUrl) {
+        console.log('🔄 Redirecting to Crossmint checkout:', data.checkoutUrl)
+        // Redirect to the generated Crossmint checkout URL
+        window.location.href = data.checkoutUrl
+        onSuccess?.(data.sessionId)
+      } else if (data.sessionId.startsWith('mock_session_') || data.sessionId.startsWith('decode_')) {
+        alert('⚠️ Demo Mode: Checkout URL not provided. Check server logs for details.')
         onSuccess?.(data.sessionId)
       } else {
-        // Redirect to real Crossmint checkout
-        const checkoutUrl = `https://staging.crossmint.com/checkout/${data.sessionId}`
+        // Fallback for older format
+        const environment = process.env.CROSSMINT_ENVIRONMENT || 'production'
+        const baseUrl = environment === 'staging' ? 'https://staging.crossmint.com' : 'https://crossmint.com'
+        const checkoutUrl = `${baseUrl}/checkout/${data.sessionId}`
         window.location.href = checkoutUrl
         onSuccess?.(data.sessionId)
       }

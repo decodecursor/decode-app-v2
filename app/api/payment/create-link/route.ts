@@ -60,12 +60,48 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if creator has a wallet (required for payments)
+    // Check if creator has a wallet, create one if needed
     if (!creator.wallet_address) {
-      return NextResponse.json(
-        { error: 'Creator must have a crypto wallet set up before creating payment links. Please contact support.' },
-        { status: 400 }
-      );
+      console.log(`🔄 Creator ${creator.email} doesn't have a wallet. Creating one...`);
+      
+      try {
+        // Create wallet for the beauty professional
+        const walletResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/wallet/create`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userId: creator.id,
+            email: creator.email
+          })
+        });
+
+        if (!walletResponse.ok) {
+          const walletError = await walletResponse.json();
+          console.error('❌ Failed to create wallet:', walletError);
+          return NextResponse.json(
+            { 
+              error: 'Failed to set up crypto wallet for creator. Please try again or contact support.',
+              details: walletError.error 
+            },
+            { status: 500 }
+          );
+        }
+
+        const walletData = await walletResponse.json();
+        console.log(`✅ Wallet created for ${creator.email}: ${walletData.walletAddress}`);
+        
+        // Update creator object with new wallet address
+        creator.wallet_address = walletData.walletAddress;
+        
+      } catch (error) {
+        console.error('❌ Wallet creation error:', error);
+        return NextResponse.json(
+          { error: 'Failed to set up crypto wallet. Please try again later.' },
+          { status: 500 }
+        );
+      }
     }
 
     console.log(`🔄 Creating payment link for ${creator.full_name} (${creator.email})`);
