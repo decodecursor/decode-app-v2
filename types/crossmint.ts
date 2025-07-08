@@ -91,6 +91,7 @@ export interface CrossmintCheckoutRequest {
     payerAddress?: string; // Optional wallet address
   };
   lineItems: Array<{
+    productLocator?: string;
     callData: {
       totalPrice?: string;
       originalAmount?: string;
