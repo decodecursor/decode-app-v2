@@ -25,10 +25,8 @@ class CrossmintService {
       decodeWalletAddress: process.env.DECODE_WALLET_ADDRESS || ''
     };
 
-    // Set base URL based on environment (using correct API version from docs)
-    this.baseUrl = this.config.environment === 'production'
-      ? 'https://www.crossmint.com/api/2022-06-09'
-      : 'https://staging.crossmint.com/api/2022-06-09';
+    // Set base URL - FORCE PRODUCTION for working payments
+    this.baseUrl = 'https://www.crossmint.com/api/2022-06-09';
 
     // Validate required configuration
     this.validateConfig();
@@ -155,14 +153,14 @@ class CrossmintService {
       },
       lineItems: [
         {
-          collectionLocator: 'crossmint:decode-beauty-services',
           callData: {
             totalPrice: totalAmount.toFixed(2),
             originalAmount: originalAmount.toFixed(2),
             feeAmount: feeCalculation.feeAmount.toFixed(2),
             paymentLinkId: paymentLinkId,
             beautyProfessionalId: beautyProfessionalId,
-            service: 'beauty'
+            service: 'beauty',
+            description: 'Beauty service payment'
           }
         }
       ],

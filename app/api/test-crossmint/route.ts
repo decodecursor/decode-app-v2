@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Test correct Crossmint API endpoint (from documentation)
-    const testUrl = 'https://staging.crossmint.com/api/2022-06-09/orders';
+    // Test PRODUCTION Crossmint API endpoint
+    const testUrl = 'https://www.crossmint.com/api/2022-06-09/orders';
 
     console.log(`🔄 Testing Crossmint API: ${testUrl}`);
     
@@ -41,7 +41,6 @@ export async function GET(request: NextRequest) {
           },
           lineItems: [
             {
-              collectionLocator: 'crossmint:decode-beauty-test',
               callData: {
                 totalPrice: '10.00',
                 service: 'beauty',
