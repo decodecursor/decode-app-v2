@@ -25,10 +25,10 @@ class CrossmintService {
       decodeWalletAddress: process.env.DECODE_WALLET_ADDRESS || ''
     };
 
-    // Set base URL based on environment (using verified API version)
+    // Set base URL based on environment (using correct API version from docs)
     this.baseUrl = this.config.environment === 'production'
-      ? 'https://api.crossmint.com/v1'
-      : 'https://staging.crossmint.com/api/v1';
+      ? 'https://www.crossmint.com/api/2022-06-09'
+      : 'https://staging.crossmint.com/api/2022-06-09';
 
     // Validate required configuration
     this.validateConfig();
@@ -150,24 +150,22 @@ class CrossmintService {
     
     const request: CrossmintCheckoutRequest = {
       payment: {
-        method: 'solana', // Using Solana for staging (wallet address is Solana format)
+        method: 'base-sepolia', // Using Base Sepolia for staging  
         currency: 'usdc', // Payment in USDC
-        recipient: {
-          walletAddress: this.config.decodeWalletAddress
+      },
+      lineItems: {
+        collectionLocator: 'crossmint:decode-beauty-services',
+        callData: {
+          totalPrice: totalAmount.toFixed(2),
+          originalAmount: originalAmount.toFixed(2),
+          feeAmount: feeCalculation.feeAmount.toFixed(2),
+          paymentLinkId: paymentLinkId,
+          beautyProfessionalId: beautyProfessionalId
         }
       },
-      lineItems: [
-        {
-          price: totalAmount.toFixed(2),
-          quantity: 1,
-          name: 'Beauty Service Payment',
-          description: `Payment for beauty service (Original: $${originalAmount.toFixed(2)} + Marketplace Fee: $${feeCalculation.feeAmount.toFixed(2)})`,
-          sku: `service-${paymentLinkId.substring(0, 8)}`,
-          category: 'beauty-service'
-        }
-      ],
-      successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success/${paymentLinkId}`,
-      cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/payment/cancel/${paymentLinkId}`,
+      recipient: {
+        email: 'payments@decode-beauty.com' // DECODE platform email
+      },
       metadata: {
         original_amount: originalAmount.toFixed(2),
         fee_amount: feeCalculation.feeAmount.toFixed(2),
@@ -178,7 +176,7 @@ class CrossmintService {
       }
     };
 
-    return this.makeRequest<CrossmintCheckoutResponse>('POST', '/sessions', request);
+    return this.makeRequest<CrossmintCheckoutResponse>('POST', '/orders', request);
   }
 
   /**

@@ -86,22 +86,25 @@ export interface CrossmintWalletResponse {
 
 export interface CrossmintCheckoutRequest {
   payment: {
-    method: string; // blockchain method or payment processor
-    currency: 'usdc' | 'eth' | 'matic'; // Crypto currencies
-    recipient: {
-      walletAddress: string;
+    method: string; // blockchain network e.g., 'base-sepolia', 'polygon-amoy', 'solana'
+    currency: 'usdc' | 'eth' | 'matic' | 'sol'; // Crypto currencies
+    payerAddress?: string; // Optional wallet address
+  };
+  lineItems: {
+    collectionLocator: string; // e.g., 'crossmint:collection-id'
+    callData: {
+      totalPrice: string;
+      originalAmount?: string;
+      feeAmount?: string;
+      paymentLinkId?: string;
+      beautyProfessionalId?: string;
+      [key: string]: any;
     };
   };
-  lineItems: Array<{
-    price: string;
-    quantity: number;
-    name: string;
-    description?: string;
-    sku?: string;
-    category?: string;
-  }>;
-  successUrl?: string;
-  cancelUrl?: string;
+  recipient: {
+    email?: string;
+    walletAddress?: string;
+  };
   metadata?: {
     original_amount: string;
     fee_amount: string;
