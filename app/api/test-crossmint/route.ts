@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
         },
         body: JSON.stringify({
           payment: {
-            method: 'polygon-amoy',
+            method: 'polygon',
             currency: 'usdc'
           },
           lineItems: [

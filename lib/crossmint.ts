@@ -148,7 +148,7 @@ class CrossmintService {
     
     const request: CrossmintCheckoutRequest = {
       payment: {
-        method: 'polygon-amoy',
+        method: 'polygon',
         currency: 'usdc'
       },
       lineItems: [
