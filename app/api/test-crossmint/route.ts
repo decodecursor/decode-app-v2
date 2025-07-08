@@ -1,4 +1,4 @@
-// Simple Crossmint API authentication test
+// Crossmint API authentication test - UPDATED VERSION
 // GET /api/test-crossmint
 
 import { NextRequest, NextResponse } from 'next/server';
