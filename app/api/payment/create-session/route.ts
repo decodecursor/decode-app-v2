@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
       status: 'pending',
       amount: totalAmount.toFixed(2),
       currency: 'AED',
-      metadata: mintConfig.lineItems[0].callData
+      metadata: mintConfig.lineItems[0]?.callData || {}
     };
 
     console.log(`✅ Checkout session created: ${checkoutSession.id}`);
