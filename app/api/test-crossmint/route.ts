@@ -1,39 +1,95 @@
-// Test Crossmint API Connection via API Route
-// Access this endpoint to test the Crossmint integration
+// Simple Crossmint API authentication test
+// GET /api/test-crossmint
 
 import { NextRequest, NextResponse } from 'next/server';
-import { crossmintService } from '@/lib/crossmint';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔧 Testing Crossmint API Connection...');
-
-    // Test 1: Environment Configuration
-    const envInfo = crossmintService.getEnvironmentInfo();
-    console.log('Environment Info:', envInfo);
+    const apiKey = process.env.CROSSMINT_API_KEY;
+    const environment = process.env.CROSSMINT_ENVIRONMENT || 'staging';
     
-    // Test 2: API Health Check
-    const healthCheck = await crossmintService.healthCheck();
-    console.log('Health Check:', healthCheck);
+    if (!apiKey) {
+      return NextResponse.json({
+        success: false,
+        error: 'CROSSMINT_API_KEY not configured',
+        config: {
+          hasApiKey: false,
+          environment,
+          timestamp: new Date().toISOString()
+        }
+      }, { status: 400 });
+    }
 
-    // Return test results
+    // Test both possible base URLs
+    const baseUrls = [
+      'https://staging.crossmint.com/api/v1',
+      'https://api.crossmint.com/v1'
+    ];
+
+    const results = [];
+
+    for (const baseUrl of baseUrls) {
+      console.log(`🔄 Testing Crossmint API: ${baseUrl}`);
+      
+      try {
+        // Try a simple endpoint that should exist
+        const response = await fetch(`${baseUrl}/ping`, {
+          method: 'GET',
+          headers: {
+            'X-API-Key': apiKey,
+            'Content-Type': 'application/json',
+            'User-Agent': 'DECODE-Beauty-Platform/1.0'
+          }
+        });
+
+        const responseText = await response.text();
+        let responseData;
+        try {
+          responseData = JSON.parse(responseText);
+        } catch {
+          responseData = { raw: responseText };
+        }
+
+        results.push({
+          baseUrl,
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries()),
+          data: responseData,
+          success: response.ok
+        });
+
+        console.log(`📊 ${baseUrl} - Status: ${response.status}, Data:`, responseData);
+
+      } catch (error) {
+        results.push({
+          baseUrl,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          success: false
+        });
+        console.error(`❌ ${baseUrl} failed:`, error);
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Crossmint connection test completed',
-      results: {
-        environment: envInfo,
-        healthCheck: healthCheck,
+      message: 'Crossmint API connectivity test completed',
+      config: {
+        hasApiKey: true,
+        apiKeyLength: apiKey.length,
+        apiKeyPrefix: apiKey.substring(0, 10) + '...',
+        environment,
         timestamp: new Date().toISOString()
-      }
+      },
+      tests: results
     });
 
   } catch (error) {
-    console.error('❌ Crossmint connection test failed:', error);
+    console.error('❌ Crossmint test error:', error);
     
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-      details: error instanceof Error ? error.stack : undefined,
+      error: error instanceof Error ? error.message : 'Test failed',
       timestamp: new Date().toISOString()
     }, { status: 500 });
   }
