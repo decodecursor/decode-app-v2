@@ -19,7 +19,7 @@ export const crossmintConfig = {
   webhookSecret: process.env.CROSSMINT_WEBHOOK_SECRET || '',
   
   // Environment setting (staging/production)
-  environment: (process.env.CROSSMINT_ENVIRONMENT || 'staging') as 'staging' | 'production',
+  environment: (process.env.CROSSMINT_ENVIRONMENT || 'production') as 'staging' | 'production',
   
   // Base URLs for different environments
   baseUrls: {
@@ -66,7 +66,7 @@ export function validateCrossmintApiKey(): boolean {
  * @returns Object with environment settings
  */
 export function getCrossmintEnvironment() {
-  const env = process.env.CROSSMINT_ENVIRONMENT || 'staging'
+  const env = process.env.CROSSMINT_ENVIRONMENT || 'production'
   return {
     environment: crossmintConfig.environment,
     apiKey: crossmintConfig.apiKey,

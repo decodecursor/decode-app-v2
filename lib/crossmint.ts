@@ -20,7 +20,7 @@ class CrossmintService {
   constructor() {
     this.config = {
       apiKey: process.env.CROSSMINT_API_KEY || '',
-      environment: (process.env.CROSSMINT_ENVIRONMENT as 'staging' | 'production') || 'staging',
+      environment: (process.env.CROSSMINT_ENVIRONMENT as 'staging' | 'production') || 'production',
       webhookSecret: process.env.CROSSMINT_WEBHOOK_SECRET || '',
       decodeWalletAddress: process.env.DECODE_WALLET_ADDRESS || ''
     };
