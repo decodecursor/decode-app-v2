@@ -237,10 +237,8 @@ export default function PaymentPage() {
                   title: paymentData.title
                 }
               }}
-              onEvent={{
-                'payment:process.succeeded': handlePaymentSuccess,
-                'payment:process.failed': handlePaymentFailure
-              }}
+              onSuccess={handlePaymentSuccess}
+              onFailure={handlePaymentFailure}
             />
           </div>
         </div>
