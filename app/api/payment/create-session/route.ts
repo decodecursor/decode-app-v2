@@ -113,24 +113,28 @@ export async function POST(request: NextRequest) {
       : 'https://staging.crossmint.com';
 
     const mintConfig = {
-      lineItems: [{
-        collectionLocator: `crossmint:${projectId}:beauty-services`,
-        callData: {
-          totalPrice: totalAmount.toFixed(2),
-          currency: 'AED',
-          paymentLinkId: paymentLinkId,
-          beautyProfessionalId: creator.id,
-          originalAmount: originalAmount.toFixed(2),
-          feeAmount: feeAmount.toFixed(2),
-          service: 'beauty',
-          platform: 'DECODE_Beauty',
-          creatorEmail: creator.email,
-          timestamp: new Date().toISOString()
-        }
-      }],
+      totalPrice: totalAmount.toFixed(2),
+      currency: 'AED',
       payment: {
-        method: 'fiat',
-        currency: 'AED'
+        fiat: {
+          enabled: true,
+          allowedMethods: {
+            card: true,
+            applePay: true,
+            googlePay: true
+          },
+          defaultCurrency: 'AED'
+        }
+      },
+      metadata: {
+        paymentLinkId: paymentLinkId,
+        beautyProfessionalId: creator.id,
+        originalAmount: originalAmount.toFixed(2),
+        feeAmount: feeAmount.toFixed(2),
+        service: 'beauty',
+        platform: 'DECODE_Beauty',
+        creatorEmail: creator.email,
+        timestamp: new Date().toISOString()
       }
     };
 
@@ -145,7 +149,7 @@ export async function POST(request: NextRequest) {
       status: 'pending',
       amount: totalAmount.toFixed(2),
       currency: 'AED',
-      metadata: mintConfig.lineItems[0]?.callData || {}
+      metadata: mintConfig.metadata
     };
 
     console.log(`✅ Checkout session created: ${checkoutSession.id}`);
