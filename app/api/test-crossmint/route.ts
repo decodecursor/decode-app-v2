@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
           },
           lineItems: [
             {
+              productLocator: 'service:beauty-service-test',
               callData: {
                 totalPrice: '10.00',
                 service: 'beauty',

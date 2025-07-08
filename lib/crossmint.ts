@@ -153,6 +153,7 @@ class CrossmintService {
       },
       lineItems: [
         {
+          productLocator: `service:beauty-${paymentLinkId.substring(0, 8)}`,
           callData: {
             totalPrice: totalAmount.toFixed(2),
             originalAmount: originalAmount.toFixed(2),
