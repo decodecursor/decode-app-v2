@@ -178,7 +178,7 @@ class CrossmintService {
       }
     };
 
-    return this.makeRequest<CrossmintCheckoutResponse>('POST', '/checkout/sessions', request);
+    return this.makeRequest<CrossmintCheckoutResponse>('POST', '/sessions', request);
   }
 
   /**
