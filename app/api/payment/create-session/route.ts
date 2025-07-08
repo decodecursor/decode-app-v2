@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
         collectionLocator: `crossmint:${projectId}:beauty-services`,
         callData: {
           totalPrice: totalAmount.toFixed(2),
-          currency: 'USD',
+          currency: 'AED',
           paymentLinkId: paymentLinkId,
           beautyProfessionalId: creator.id,
           originalAmount: originalAmount.toFixed(2),
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
       }],
       payment: {
         method: 'fiat',
-        currency: 'USD'
+        currency: 'AED'
       }
     };
 
@@ -144,8 +144,8 @@ export async function POST(request: NextRequest) {
       url: `${baseUrl}/checkout?${widgetParams.toString()}`,
       status: 'pending',
       amount: totalAmount.toFixed(2),
-      currency: 'USD',
-      metadata: mintConfig.metadata
+      currency: 'AED',
+      metadata: mintConfig.lineItems[0].callData
     };
 
     console.log(`✅ Checkout session created: ${checkoutSession.id}`);
