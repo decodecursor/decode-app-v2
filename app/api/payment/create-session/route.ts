@@ -113,18 +113,24 @@ export async function POST(request: NextRequest) {
       : 'https://staging.crossmint.com';
 
     const mintConfig = {
-      type: 'credit-card',
-      totalPrice: totalAmount.toFixed(2),
-      currency: 'USD',
-      metadata: {
-        paymentLinkId: paymentLinkId,
-        beautyProfessionalId: creator.id,
-        originalAmount: originalAmount.toFixed(2),
-        feeAmount: feeAmount.toFixed(2),
-        service: 'beauty',
-        platform: 'DECODE_Beauty',
-        creatorEmail: creator.email,
-        timestamp: new Date().toISOString()
+      lineItems: [{
+        collectionLocator: `crossmint:${projectId}:beauty-services`,
+        callData: {
+          totalPrice: totalAmount.toFixed(2),
+          currency: 'USD',
+          paymentLinkId: paymentLinkId,
+          beautyProfessionalId: creator.id,
+          originalAmount: originalAmount.toFixed(2),
+          feeAmount: feeAmount.toFixed(2),
+          service: 'beauty',
+          platform: 'DECODE_Beauty',
+          creatorEmail: creator.email,
+          timestamp: new Date().toISOString()
+        }
+      }],
+      payment: {
+        method: 'fiat',
+        currency: 'USD'
       }
     };
 
