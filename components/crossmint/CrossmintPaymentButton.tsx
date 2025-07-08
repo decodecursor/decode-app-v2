@@ -67,8 +67,8 @@ export function CrossmintPaymentButton({
   }
 
   // Get Crossmint project ID and API key from environment
-  const projectId = process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || '0d2984c6-36e4-45ab-8fd4-accef1d62799'
-  const apiKey = process.env.NEXT_PUBLIC_CROSSMINT_API_KEY || 'ck_staging_5TCFHsqJfGwTy2idiqnon6CCkigQ2vobViwoZiCY4J3pEz4VmkoB51iUwxB5FyjhLLjJFHKWFDTXHGsQUSph3bhojmkbUX7dSZQnSFXRfmYW461RzVy3tbtcmLssR6u8QbWs8ZKpcR3vC9RyasnUozexg5LU4uHMzY3Xc1QNgzTd3vyN3KsMBuGidhTwcKJivZ7gcQtjbTiBEyhzM5whR12Q'
+  const projectId = process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || '10630979-cdbd-453e-8b49-cdca01318624'
+  const apiKey = process.env.NEXT_PUBLIC_CROSSMINT_API_KEY || 'ck_production_5P1d43U3e6VM5NVhDXBNj5j9HTXF1fuETZQHH7bRJ1nAYS54vjCQ4id2d4e7zuSkM9mG7tw72wbJDWet6nRtz6VH5tsT4xNPBjvwBnDGcbbynJu8NagXHfShpBuXGALteaCB1v4M2x5hi2kYG27BYHoeCeNWRwgKGQXYsvMDN9GU947jq2uzU77cAS3GDs7YioPPwTWgvTo2PVorf1gSYu6g'
   
   // Debug logging for production troubleshooting
   console.log('🔧 DEBUG: Crossmint configuration check:', {
@@ -108,7 +108,7 @@ export function CrossmintPaymentButton({
     <CrossmintPayButton
       projectId={projectId}
       clientId={apiKey}
-      environment={process.env.CROSSMINT_ENVIRONMENT || 'staging'}
+      environment={process.env.CROSSMINT_ENVIRONMENT || 'production'}
       mintConfig={{
         type: 'erc-20',
         totalPrice: paymentData.amount.toString(),
