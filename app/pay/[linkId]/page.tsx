@@ -293,8 +293,6 @@ export default function PaymentPage() {
               currency="USD"
               locale="en-US"
               paymentMethod="fiat"
-              onSuccess={handlePaymentSuccess}
-              onFailure={handlePaymentFailure}
               uiConfig={{
                 colors: {
                   accent: '#7C3AED',

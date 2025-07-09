@@ -136,8 +136,6 @@ export function MobilePaymentSheet({
               currency="USD"
               locale="en-US"
               paymentMethod="fiat"
-              onSuccess={(payment) => onSuccess(payment.id)}
-              onFailure={(error) => onFailure(error?.message || 'Payment failed')}
               uiConfig={{
                 colors: {
                   accent: '#7C3AED',
