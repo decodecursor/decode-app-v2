@@ -1,24 +1,4 @@
 {
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/pay/(.*)",
-      "dest": "/pay/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ],
   "env": {
     "NEXT_PUBLIC_APP_URL": "https://decode-app-v2.vercel.app",
     "EMAIL_FROM": "DECODE Beauty <noreply@decode.beauty>",
