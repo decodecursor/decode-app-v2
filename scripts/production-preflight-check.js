@@ -72,9 +72,11 @@ class ProductionPreflightCheck {
       'NEXT_PUBLIC_SUPABASE_ANON_KEY',
       'SUPABASE_SERVICE_ROLE_KEY',
       'NEXT_PUBLIC_CROSSMINT_PROJECT_ID',
+      'NEXT_PUBLIC_CROSSMINT_API_KEY',
       'CROSSMINT_CLIENT_ID',
       'CROSSMINT_CLIENT_SECRET',
       'CROSSMINT_WEBHOOK_SECRET',
+      'CROSSMINT_ENVIRONMENT',
       'NEXT_PUBLIC_APP_URL',
       'RESEND_API_KEY'
     ];
@@ -235,9 +237,11 @@ class ProductionPreflightCheck {
     // Basic validation of Crossmint environment variables
     const crossmintVars = [
       'NEXT_PUBLIC_CROSSMINT_PROJECT_ID',
+      'NEXT_PUBLIC_CROSSMINT_API_KEY',
       'CROSSMINT_CLIENT_ID',
       'CROSSMINT_CLIENT_SECRET',
-      'CROSSMINT_WEBHOOK_SECRET'
+      'CROSSMINT_WEBHOOK_SECRET',
+      'CROSSMINT_ENVIRONMENT'
     ];
 
     let configured = true;
@@ -252,6 +256,23 @@ class ProductionPreflightCheck {
 
     if (!configured) {
       this.log('Crossmint payment processing will not work without proper configuration', 'error');
+      return false;
+    }
+
+    // Check environment setting
+    const environment = process.env.CROSSMINT_ENVIRONMENT;
+    if (environment === 'staging') {
+      this.log('CROSSMINT_ENVIRONMENT is set to staging - should be production for live deployment', 'warning');
+    } else if (environment === 'production') {
+      this.log('CROSSMINT_ENVIRONMENT correctly set to production', 'success');
+    } else {
+      this.log(`CROSSMINT_ENVIRONMENT is '${environment}' - should be 'production' or 'staging'`, 'error');
+      return false;
+    }
+
+    // Check for staging keys in production
+    if (process.env.NEXT_PUBLIC_CROSSMINT_API_KEY?.includes('staging')) {
+      this.log('Using staging API key in production environment', 'error');
       return false;
     }
 

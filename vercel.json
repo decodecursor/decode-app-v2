@@ -1,19 +1,36 @@
 {
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/pay/(.*)",
+      "dest": "/pay/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
   "env": {
-    "NEXT_PUBLIC_CROSSMINT_PROJECT_ID": "10630979-cdbd-453e-8b49-cdca01318624",
-    "NEXT_PUBLIC_CROSSMINT_API_KEY": "ck_production_5P1d43U3e6VM5NVhDXBNj5j9HTXF1fuETZQHH7bRJ1nAYS54vjCQ4id2d4e7zuSkM9mG7tw72wbJDWet6nRtz6VH5tsT4xNPBjvwBnDGcbbynJu8NagXHfShpBuXGALteaCB1v4M2x5hi2kYG27BYHoeCeNWRwgKGQXYsvMDN9GU947jq2uzU77cAS3GDs7YioPPwTWgvTo2PVorf1gSYu6g",
-    "NEXT_PUBLIC_SUPABASE_URL": "https://vdgjzaaxvstbouklgsft.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkZ2p6YWF4dnN0Ym91a2xnc2Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NzE3MzQsImV4cCI6MjA2NjI0NzczNH0.98TuBpnqy3rHMRQtVJxuC466ymjCBAikik7KgGX5QDM",
-    "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkZ2p6YWF4dnN0Ym91a2xnc2Z0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MDY3MTczNCwiZXhwIjoyMDY2MjQ3NzM0fQ.K0X8v4TNfQ8BjOrpuSkE3EhQLMOb0ZkQZwCAM6_6Z5Y",
-    "CROSSMINT_API_KEY": "sk_production_5P1d43U3e6VM5NVhDXBNj5j9HTXF1fuETZQHH7bRJ1nAYS54vjBsUX5Av6PbycioyPc4hTjpB4C5wxDf9p4fkrryJWYoC8FT9ikJ1cDXgnLPuuxWgC4LZs35GG32MSjyy12fphubQu3wL1qmunJrz2kSXjfoXQhCZGPChZAUjD9Gyf4UASjuWXndGG37Te6pUi5wypjoywrQ5o6EUiprw69Z",
-    "CROSSMINT_PROJECT_ID": "10630979-cdbd-453e-8b49-cdca01318624",
-    "CROSSMINT_WEBHOOK_SECRET": "whsec_e+YB01ZA2LF+g0YMC2LHvgUwpNt9ENhY",
-    "CROSSMINT_ENVIRONMENT": "production",
     "NEXT_PUBLIC_APP_URL": "https://decode-app-v2.vercel.app",
-    "EMAIL_PROVIDER": "resend",
-    "RESEND_API_KEY": "re_3yxEgGkq_KgFdwuqCrNVbjJ54mxazBvVs",
     "EMAIL_FROM": "DECODE Beauty <noreply@decode.beauty>",
     "SUPPORT_EMAIL": "support@decode.beauty",
     "DEBUG_EMAIL": "false"
+  },
+  "functions": {
+    "app/api/webhooks/crossmint/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/wallet/create/route.ts": {
+      "maxDuration": 30
+    }
   }
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { CrossmintHeadlessCheckout } from '@/components/crossmint'
+import { CrossmintPaymentElement } from '@crossmint/client-sdk-react-ui'
 
 export interface MobilePaymentSheetProps {
   isOpen: boolean
@@ -128,18 +128,33 @@ export function MobilePaymentSheet({
             </button>
           </div>
 
-          {/* Headless Checkout */}
-          <CrossmintHeadlessCheckout
-            paymentLinkId={paymentLinkId}
-            originalAmount={originalAmount}
-            currency={currency}
-            title={serviceTitle}
-            clientEmail={clientEmail}
-            onSuccess={onSuccess}
-            onFailure={onFailure}
-            disabled={disabled}
-            className="space-y-4"
-          />
+          {/* Payment handled by embedded Crossmint component */}
+          <div className="space-y-4">
+            <CrossmintPaymentElement
+              clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || ''}
+              environment="production"
+              currency="USD"
+              locale="en-US"
+              paymentMethod="fiat"
+              onSuccess={(payment) => onSuccess(payment.id)}
+              onFailure={(error) => onFailure(error?.message || 'Payment failed')}
+              uiConfig={{
+                colors: {
+                  accent: '#7C3AED',
+                  background: '#FFFFFF',
+                  textPrimary: '#111827'
+                }
+              }}
+              whPassThroughArgs={{
+                paymentLinkId: paymentLinkId,
+                beautyProfessionalId: creatorName,
+                service: 'beauty',
+                title: serviceTitle,
+                originalAmount: originalAmount,
+                originalCurrency: currency
+              }}
+            />
+          </div>
 
           {/* Terms */}
           <div className="mt-6 pt-4 border-t border-gray-200">

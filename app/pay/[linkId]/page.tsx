@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useParams, useRouter } from 'next/navigation'
 import { CrossmintPaymentElement } from '@crossmint/client-sdk-react-ui'
+import { walletCreationService } from '@/lib/wallet-creation'
 
 interface PaymentLinkData {
   id: string
@@ -54,6 +55,68 @@ export default function PaymentPage() {
       }
 
       await supabase.from('transactions').insert([transactionData])
+      
+      // 🔑 WALLET CREATION FOR BUYER
+      if (payment.buyerEmail) {
+        console.log('🔄 Creating wallet for buyer:', payment.buyerEmail)
+        
+        try {
+          // Check if user exists, create if not
+          let { data: user, error: userError } = await supabase
+            .from('users')
+            .select('id')
+            .eq('email', payment.buyerEmail)
+            .single()
+          
+          if (userError || !user) {
+            console.log('👤 Creating new user for buyer:', payment.buyerEmail)
+            const { data: newUser, error: createError } = await supabase
+              .from('users')
+              .insert([{
+                email: payment.buyerEmail,
+                full_name: payment.buyerEmail.split('@')[0],
+                created_at: new Date().toISOString()
+              }])
+              .select('id')
+              .single()
+            
+            if (createError) {
+              console.error('Failed to create user:', createError)
+            } else {
+              user = newUser
+            }
+          }
+          
+          // Create wallet for the user
+          if (user) {
+            const walletResult = await walletCreationService.createWalletForUser(
+              user.id,
+              payment.buyerEmail
+            )
+            
+            if (walletResult.success) {
+              console.log('✅ Wallet created for buyer:', walletResult.walletAddress)
+              
+              // Update transaction with wallet info
+              await supabase
+                .from('transactions')
+                .update({
+                  metadata: {
+                    ...transactionData.metadata,
+                    buyerWalletAddress: walletResult.walletAddress,
+                    buyerWalletId: walletResult.walletId
+                  }
+                })
+                .eq('id', transactionData.id)
+            } else {
+              console.error('Failed to create wallet for buyer:', walletResult.error)
+            }
+          }
+        } catch (walletError) {
+          console.error('Wallet creation process failed:', walletError)
+          // Don't fail the payment for wallet creation issues
+        }
+      }
       
       // Redirect to success page
       const params = new URLSearchParams({
@@ -226,19 +289,27 @@ export default function PaymentPage() {
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Payment Options</h4>
             <CrossmintPaymentElement
               clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || ''}
-              mintConfig={{
-                totalPrice: paymentData.amount_aed.toFixed(2),
-                currency: 'AED',
-                type: 'erc-20',
-                metadata: {
-                  paymentLinkId: linkId,
-                  beautyProfessionalId: paymentData.creator.email,
-                  service: 'beauty',
-                  title: paymentData.title
-                }
-              }}
+              environment="production"
+              currency="USD"
+              locale="en-US"
+              paymentMethod="fiat"
               onSuccess={handlePaymentSuccess}
               onFailure={handlePaymentFailure}
+              uiConfig={{
+                colors: {
+                  accent: '#7C3AED',
+                  background: '#FFFFFF',
+                  textPrimary: '#111827'
+                }
+              }}
+              whPassThroughArgs={{
+                paymentLinkId: linkId,
+                beautyProfessionalId: paymentData.creator.email,
+                service: 'beauty',
+                title: paymentData.title,
+                originalAmount: paymentData.amount_aed,
+                originalCurrency: 'AED'
+              }}
             />
           </div>
         </div>

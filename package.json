@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run preflight && next build",
     "start": "next start",
     "preflight": "node scripts/production-preflight-check.js"
   },

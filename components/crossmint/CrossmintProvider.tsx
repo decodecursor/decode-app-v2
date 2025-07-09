@@ -2,8 +2,7 @@
 
 import React from 'react'
 import { crossmintConfig, logCrossmintConfigStatus } from '@/lib/crossmint-config'
-// Note: Import will work once @crossmint/client-sdk-react-ui package is properly installed
-// import { CrossmintProvider as CrossmintSDKProvider } from '@crossmint/client-sdk-react-ui'
+// No CrossmintProvider needed - using components directly
 
 interface CrossmintProviderProps {
   children: React.ReactNode
@@ -17,26 +16,8 @@ export function CrossmintProvider({ children }: CrossmintProviderProps) {
     }
   }, [])
 
-  // When package is available, use actual CrossmintProvider
-  // Uncomment this section once the package is properly installed:
-  /*
-  try {
-    return (
-      <CrossmintSDKProvider
-        apiKey={crossmintConfig.apiKey}
-        environment={crossmintConfig.environment}
-      >
-        {children}
-      </CrossmintSDKProvider>
-    )
-  } catch (error) {
-    console.warn('Crossmint SDK not available, using fallback provider')
-    return <FallbackProvider>{children}</FallbackProvider>
-  }
-  */
-
-  // Fallback provider for development
-  return <FallbackProvider>{children}</FallbackProvider>
+  // No provider needed - just pass through children
+  return <>{children}</>
 }
 
 // Fallback provider component for development
