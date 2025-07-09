@@ -73,8 +73,6 @@ class ProductionPreflightCheck {
       'SUPABASE_SERVICE_ROLE_KEY',
       'NEXT_PUBLIC_CROSSMINT_PROJECT_ID',
       'NEXT_PUBLIC_CROSSMINT_API_KEY',
-      'CROSSMINT_CLIENT_ID',
-      'CROSSMINT_CLIENT_SECRET',
       'CROSSMINT_WEBHOOK_SECRET',
       'CROSSMINT_ENVIRONMENT',
       'NEXT_PUBLIC_APP_URL',
@@ -82,6 +80,8 @@ class ProductionPreflightCheck {
     ];
 
     const optionalVars = [
+      'CROSSMINT_CLIENT_ID',
+      'CROSSMINT_CLIENT_SECRET',
       'SENDGRID_API_KEY',
       'EMAIL_PROVIDER',
       'DEBUG_EMAIL',
@@ -235,22 +235,33 @@ class ProductionPreflightCheck {
     this.log('\n🔍 Checking Crossmint Configuration...', 'info');
     
     // Basic validation of Crossmint environment variables
-    const crossmintVars = [
+    const requiredCrossmintVars = [
       'NEXT_PUBLIC_CROSSMINT_PROJECT_ID',
       'NEXT_PUBLIC_CROSSMINT_API_KEY',
-      'CROSSMINT_CLIENT_ID',
-      'CROSSMINT_CLIENT_SECRET',
       'CROSSMINT_WEBHOOK_SECRET',
       'CROSSMINT_ENVIRONMENT'
     ];
 
+    const optionalCrossmintVars = [
+      'CROSSMINT_CLIENT_ID',
+      'CROSSMINT_CLIENT_SECRET'
+    ];
+
     let configured = true;
-    for (const varName of crossmintVars) {
+    for (const varName of requiredCrossmintVars) {
       if (!process.env[varName] || process.env[varName].includes('your_')) {
         this.log(`${varName}: not configured`, 'error');
         configured = false;
       } else {
         this.log(`${varName}: configured`, 'success');
+      }
+    }
+
+    for (const varName of optionalCrossmintVars) {
+      if (process.env[varName] && !process.env[varName].includes('your_')) {
+        this.log(`${varName}: configured (optional)`, 'success');
+      } else {
+        this.log(`${varName}: not set (optional)`, 'warning');
       }
     }
 
