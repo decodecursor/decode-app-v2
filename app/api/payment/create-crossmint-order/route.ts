@@ -100,9 +100,10 @@ export async function POST(request: NextRequest) {
 
     console.log('🔍 DEBUG: Creating Crossmint order with amount:', amountUSD, 'cents USD')
 
-    // Create order with Crossmint API
+    // Create order with Crossmint API - using fiat payment method
     const crossmintPayload = {
       payment: {
+        method: 'stripe-payment-element',
         currency: 'USD',
         amount: amountUSD.toString(),
         successCallbackUrl: `${process.env.NEXT_PUBLIC_APP_URL}/pay/success?paymentLinkId=${paymentLinkId}`,
