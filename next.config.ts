@@ -144,7 +144,7 @@ const nextConfig: NextConfig = {
   // ESLint configuration
   eslint: {
     // ESLint is run separately in CI/CD
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: true,
   },
 
   // Compression for production
