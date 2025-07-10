@@ -136,14 +136,6 @@ export function MobilePaymentSheet({
               currency="USD"
               locale="en-US"
               paymentMethod="fiat"
-              onEvent={(event) => {
-                console.log('Crossmint mobile event:', event);
-                if (event.type === 'payment:process.succeeded') {
-                  onSuccess(event.payload.orderIdentifier || 'mobile_payment');
-                } else if (event.type === 'payment:process.rejected' || event.type === 'payment:preparation.failed') {
-                  onFailure(event.payload?.error?.message || 'Payment failed');
-                }
-              }}
               uiConfig={{
                 colors: {
                   accent: '#7C3AED',

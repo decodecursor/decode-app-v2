@@ -293,14 +293,6 @@ export default function PaymentPage() {
               currency="USD"
               locale="en-US"
               paymentMethod="fiat"
-              onEvent={(event) => {
-                console.log('Crossmint event:', event);
-                if (event.type === 'payment:process.succeeded') {
-                  handlePaymentSuccess(event.payload);
-                } else if (event.type === 'payment:process.rejected' || event.type === 'payment:preparation.failed') {
-                  handlePaymentFailure(event.payload);
-                }
-              }}
               uiConfig={{
                 colors: {
                   accent: '#7C3AED',
