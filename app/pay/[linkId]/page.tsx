@@ -21,7 +21,7 @@ interface PaymentLinkData {
 
 export default function PaymentPage() {
   const [paymentData, setPaymentData] = useState<PaymentLinkData | null>(null)
-  const [crossmintConfig, setCrossmintConfig] = useState<any>(null)
+  const [crossmintOrder, setCrossmintOrder] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [errorType, setErrorType] = useState<'not-found' | 'inactive' | 'expired' | 'invalid' | 'network' | 'creator-missing'>('not-found')
@@ -151,10 +151,10 @@ export default function PaymentPage() {
       }
 
       try {
-        console.log('🔍 DEBUG: Attempting to fetch Crossmint config for linkId:', linkId)
+        console.log('🔍 DEBUG: Attempting to create Crossmint order for linkId:', linkId)
         
-        // Fetch Crossmint configuration from our API
-        const configResponse = await fetch('/api/payment/crossmint-config', {
+        // Create Crossmint order via our API
+        const orderResponse = await fetch('/api/payment/create-crossmint-order', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -162,11 +162,11 @@ export default function PaymentPage() {
           body: JSON.stringify({ paymentLinkId: linkId }),
         })
 
-        console.log('🔍 DEBUG: Config response status:', configResponse.status)
+        console.log('🔍 DEBUG: Order response status:', orderResponse.status)
 
-        if (!configResponse.ok) {
-          const errorData = await configResponse.json()
-          console.log('❌ DEBUG: Config API failed:', errorData)
+        if (!orderResponse.ok) {
+          const errorData = await orderResponse.json()
+          console.log('❌ DEBUG: Order API failed:', errorData)
           
           // FALLBACK: Try direct Supabase query if API fails
           console.log('🔄 DEBUG: Falling back to direct Supabase query')
@@ -174,22 +174,22 @@ export default function PaymentPage() {
           return
         }
 
-        const configData = await configResponse.json()
-        console.log('✅ DEBUG: Config data received:', configData)
+        const orderData = await orderResponse.json()
+        console.log('✅ DEBUG: Order data received:', orderData)
         
-        setCrossmintConfig(configData.config)
+        setCrossmintOrder(orderData.order)
         
         // Transform payment link data for UI
         const transformedData: PaymentLinkData = {
-          ...configData.paymentLink,
-          creator: Array.isArray(configData.paymentLink.creator) 
-            ? (configData.paymentLink.creator[0] || { full_name: null, email: '' })
-            : (configData.paymentLink.creator || { full_name: null, email: '' })
+          ...orderData.paymentLink,
+          creator: Array.isArray(orderData.paymentLink.creator) 
+            ? (orderData.paymentLink.creator[0] || { full_name: null, email: '' })
+            : (orderData.paymentLink.creator || { full_name: null, email: '' })
         }
 
         setPaymentData(transformedData)
       } catch (error) {
-        console.error('❌ DEBUG: Error fetching payment data from API:', error)
+        console.error('❌ DEBUG: Error creating Crossmint order:', error)
         
         // FALLBACK: Try direct Supabase query if API throws error
         console.log('🔄 DEBUG: Falling back to direct Supabase query due to error')
@@ -252,24 +252,7 @@ export default function PaymentPage() {
 
         setPaymentData(transformedData)
         
-        // Set basic Crossmint config for fallback
-        setCrossmintConfig({
-          projectId: process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || '0d2984c6-36e4-45ab-8fd4-accef1d62799',
-          environment: 'production',
-          currency: 'USD',
-          locale: 'en-US',
-          paymentMethod: 'fiat',
-          metadata: {
-            paymentLinkId: linkId,
-            beautyProfessionalId: transformedData.creator.email,
-            service: 'beauty',
-            title: transformedData.title,
-            originalAmount: transformedData.amount_aed,
-            originalCurrency: 'AED'
-          }
-        })
-        
-        console.log('✅ DEBUG: Fallback successful - using direct Supabase data')
+        console.log('✅ DEBUG: Fallback successful - using direct Supabase data (no Crossmint order created)')
       } catch (fallbackError) {
         console.error('❌ DEBUG: Fallback also failed:', fallbackError)
         setError('Unable to load payment information')
@@ -357,22 +340,47 @@ export default function PaymentPage() {
           {/* EMBEDDED CROSSMINT CHECKOUT */}
           <div className="mt-8 border-t border-gray-200 pt-8">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Payment Options</h4>
-            {crossmintConfig ? (
-              <CrossmintPaymentElement
-                clientId={crossmintConfig.projectId}
-                environment={crossmintConfig.environment}
-                currency={crossmintConfig.currency}
-                locale={crossmintConfig.locale}
-                paymentMethod={crossmintConfig.paymentMethod}
-                uiConfig={{
-                  colors: {
-                    accent: '#7C3AED',
-                    background: '#FFFFFF',
-                    textPrimary: '#111827'
-                  }
-                }}
-                whPassThroughArgs={crossmintConfig.metadata}
-              />
+            {crossmintOrder ? (
+              <div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Secure payment powered by Crossmint • Order ID: {crossmintOrder.id}
+                </p>
+                <CrossmintPaymentElement
+                  clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || '0d2984c6-36e4-45ab-8fd4-accef1d62799'}
+                  environment="production"
+                  mintConfig={{
+                    type: 'erc-20',
+                    totalPrice: crossmintOrder.payment.price,
+                    quantity: 1,
+                    _orderid: crossmintOrder.id
+                  }}
+                  uiConfig={{
+                    colors: {
+                      accent: '#7C3AED',
+                      background: '#FFFFFF',
+                      textPrimary: '#111827'
+                    }
+                  }}
+                />
+              </div>
+            ) : paymentData ? (
+              <div className="text-center py-8 bg-yellow-50 rounded-lg border border-yellow-200">
+                <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <p className="text-yellow-800 font-medium mb-2">Payment System Initializing</p>
+                <p className="text-yellow-700 text-sm">We're setting up your secure payment. This may take a moment...</p>
+                <div className="mt-4">
+                  <button 
+                    onClick={() => window.location.reload()} 
+                    className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors"
+                  >
+                    Refresh Page
+                  </button>
+                </div>
+              </div>
             ) : (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
