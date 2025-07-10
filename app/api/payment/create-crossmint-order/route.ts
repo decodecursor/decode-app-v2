@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
         }
       ],
       payment: {
-        method: 'stripe-payment-element',
+        method: 'fiat',
         currency: 'USD'
       },
       successCallbackUrl: `${process.env.NEXT_PUBLIC_APP_URL}/pay/success?paymentLinkId=${paymentLinkId}`,
