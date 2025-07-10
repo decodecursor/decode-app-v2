@@ -289,7 +289,7 @@ export default function PaymentPage() {
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Payment Options</h4>
             <CrossmintPaymentElement
               clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || ''}
-              environment="staging"
+              environment="production"
               currency="USD"
               locale="en-US"
               paymentMethod="fiat"

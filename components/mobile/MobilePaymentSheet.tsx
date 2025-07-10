@@ -132,7 +132,7 @@ export function MobilePaymentSheet({
           <div className="space-y-4">
             <CrossmintPaymentElement
               clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || ''}
-              environment="staging"
+              environment="production"
               currency="USD"
               locale="en-US"
               paymentMethod="fiat"
