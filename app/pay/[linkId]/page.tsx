@@ -364,22 +364,33 @@ export default function PaymentPage() {
                 />
               </div>
             ) : paymentData ? (
-              <div className="text-center py-8 bg-yellow-50 rounded-lg border border-yellow-200">
-                <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
+              <div>
+                <div className="text-center py-4 bg-blue-50 rounded-lg border border-blue-200 mb-6">
+                  <p className="text-blue-800 font-medium mb-1">Using Basic Payment Mode</p>
+                  <p className="text-blue-700 text-sm">Server-side order creation is being configured. You can still test payments.</p>
                 </div>
-                <p className="text-yellow-800 font-medium mb-2">Payment System Initializing</p>
-                <p className="text-yellow-700 text-sm">We're setting up your secure payment. This may take a moment...</p>
-                <div className="mt-4">
-                  <button 
-                    onClick={() => window.location.reload()} 
-                    className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors"
-                  >
-                    Refresh Page
-                  </button>
-                </div>
+                <CrossmintPaymentElement
+                  clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || '0d2984c6-36e4-45ab-8fd4-accef1d62799'}
+                  environment="production"
+                  currency="USD"
+                  locale="en-US"
+                  paymentMethod="fiat"
+                  uiConfig={{
+                    colors: {
+                      accent: '#7C3AED',
+                      background: '#FFFFFF',
+                      textPrimary: '#111827'
+                    }
+                  }}
+                  whPassThroughArgs={{
+                    paymentLinkId: linkId,
+                    beautyProfessionalId: paymentData.creator.email,
+                    service: 'beauty',
+                    title: paymentData.title,
+                    originalAmount: paymentData.amount_aed,
+                    originalCurrency: 'AED'
+                  }}
+                />
               </div>
             ) : (
               <div className="text-center py-8">

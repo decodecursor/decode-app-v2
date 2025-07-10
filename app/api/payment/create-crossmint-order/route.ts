@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
     const crossmintResponse = await fetch('https://www.crossmint.com/api/2022-06-09/orders', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.CROSSMINT_API_KEY}`,
+        'X-API-KEY': process.env.CROSSMINT_API_KEY || '',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(crossmintPayload)
