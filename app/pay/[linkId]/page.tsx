@@ -300,7 +300,7 @@ export default function PaymentPage() {
             {paymentData ? (
               <div>
                 <CrossmintPaymentElement
-                  projectId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID!}
+                  clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID!}
                   environment="production"
                   currency="USD"
                   locale="en-US"
