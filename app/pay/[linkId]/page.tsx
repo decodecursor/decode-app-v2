@@ -287,8 +287,15 @@ export default function PaymentPage() {
           {/* EMBEDDED CROSSMINT CHECKOUT */}
           <div className="mt-8 border-t border-gray-200 pt-8">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Payment Options</h4>
+            {/* Debug: Log Project ID */}
+            {(() => {
+              const projectId = process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || '';
+              console.log('🔍 DEBUG: Project ID loaded:', projectId);
+              console.log('🔍 DEBUG: Project ID length:', projectId.length);
+              return null;
+            })()}
             <CrossmintPaymentElement
-              clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || ''}
+              clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || '0d2984c6-36e4-45ab-8fd4-accef1d62799'}
               environment="production"
               currency="USD"
               locale="en-US"
