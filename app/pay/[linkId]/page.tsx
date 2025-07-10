@@ -212,6 +212,8 @@ export default function PaymentPage() {
         console.error('❌ DEBUG: Fallback also failed:', fallbackError)
         setError('Unable to load payment information')
         setErrorType('network')
+      } finally {
+        setLoading(false)
       }
     }
 
