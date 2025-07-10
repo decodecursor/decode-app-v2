@@ -288,11 +288,19 @@ export default function PaymentPage() {
           <div className="mt-8 border-t border-gray-200 pt-8">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Payment Options</h4>
             <CrossmintPaymentElement
-              projectId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || ''}
-              environment="production"
+              clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || ''}
+              environment="staging"
               currency="USD"
               locale="en-US"
               paymentMethod="fiat"
+              onEvent={(event) => {
+                console.log('Crossmint event:', event);
+                if (event.type === 'payment:process.succeeded') {
+                  handlePaymentSuccess(event.payload);
+                } else if (event.type === 'payment:process.rejected' || event.type === 'payment:preparation.failed') {
+                  handlePaymentFailure(event.payload);
+                }
+              }}
               uiConfig={{
                 colors: {
                   accent: '#7C3AED',

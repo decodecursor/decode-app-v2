@@ -131,11 +131,19 @@ export function MobilePaymentSheet({
           {/* Payment handled by embedded Crossmint component */}
           <div className="space-y-4">
             <CrossmintPaymentElement
-              projectId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || ''}
-              environment="production"
+              clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || ''}
+              environment="staging"
               currency="USD"
               locale="en-US"
               paymentMethod="fiat"
+              onEvent={(event) => {
+                console.log('Crossmint mobile event:', event);
+                if (event.type === 'payment:process.succeeded') {
+                  onSuccess(event.payload.orderIdentifier || 'mobile_payment');
+                } else if (event.type === 'payment:process.rejected' || event.type === 'payment:preparation.failed') {
+                  onFailure(event.payload?.error?.message || 'Payment failed');
+                }
+              }}
               uiConfig={{
                 colors: {
                   accent: '#7C3AED',
