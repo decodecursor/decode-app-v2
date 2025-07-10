@@ -22,7 +22,7 @@ class CrossmintService {
       apiKey: process.env.NEXT_PUBLIC_CROSSMINT_API_KEY || '',
       environment: (process.env.CROSSMINT_ENVIRONMENT as 'staging' | 'production') || 'production',
       webhookSecret: process.env.CROSSMINT_WEBHOOK_SECRET || '',
-      decodeWalletAddress: process.env.NEXT_PUBLIC_DECODE_WALLET_ADDRESS || ''
+      decodeWalletAddress: 'H5Kh4fqNaHNaCVdDQT83XtKvpKgRhALrUzUG8Rm5ERv5'
     };
 
     // Set base URL based on environment - Updated to 2023-06-09 API version
@@ -40,9 +40,8 @@ class CrossmintService {
       console.warn('Missing Crossmint API key. Ensure NEXT_PUBLIC_CROSSMINT_API_KEY is set.');
     }
     
-    if (!this.config.decodeWalletAddress) {
-      console.warn('Missing DECODE wallet address. Ensure NEXT_PUBLIC_DECODE_WALLET_ADDRESS is set.');
-    }
+    // DECODE wallet address is now hardcoded, so no need to check
+    console.log('✅ DECODE wallet address configured:', this.config.decodeWalletAddress);
     
     // Webhook secret is only needed server-side, so don't warn about it here
   }
