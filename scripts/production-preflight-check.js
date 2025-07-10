@@ -271,7 +271,7 @@ class ProductionPreflightCheck {
     }
 
     // Check environment setting
-    const environment = process.env.CROSSMINT_ENVIRONMENT;
+    const environment = process.env.CROSSMINT_ENVIRONMENT?.trim();
     if (environment === 'staging') {
       this.log('CROSSMINT_ENVIRONMENT is set to staging - should be production for live deployment', 'warning');
     } else if (environment === 'production') {

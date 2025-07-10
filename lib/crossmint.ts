@@ -19,29 +19,32 @@ class CrossmintService {
 
   constructor() {
     this.config = {
-      apiKey: process.env.CROSSMINT_API_KEY || '',
+      apiKey: process.env.NEXT_PUBLIC_CROSSMINT_API_KEY || '',
       environment: (process.env.CROSSMINT_ENVIRONMENT as 'staging' | 'production') || 'production',
       webhookSecret: process.env.CROSSMINT_WEBHOOK_SECRET || '',
-      decodeWalletAddress: process.env.DECODE_WALLET_ADDRESS || ''
+      decodeWalletAddress: process.env.NEXT_PUBLIC_DECODE_WALLET_ADDRESS || ''
     };
 
-    // Set base URL based on environment
+    // Set base URL based on environment - Updated to 2023-06-09 API version
     this.baseUrl = this.config.environment === 'production' 
-      ? 'https://www.crossmint.com/api/2022-06-09'
-      : 'https://staging.crossmint.com/api/2022-06-09';
+      ? 'https://www.crossmint.com/api/2023-06-09'
+      : 'https://staging.crossmint.com/api/2023-06-09';
 
     // Validate required configuration
     this.validateConfig();
   }
 
   private validateConfig(): void {
-    const required = ['apiKey', 'webhookSecret', 'decodeWalletAddress'];
-    const missing = required.filter(key => !this.config[key as keyof CrossmintConfig]);
-    
-    if (missing.length > 0) {
-      console.warn(`Missing Crossmint configuration: ${missing.join(', ')}. Using mock responses for testing.`);
-      // Don't throw error, allow service to continue with mock responses
+    // For client-side usage, only check the public API key
+    if (!this.config.apiKey) {
+      console.warn('Missing Crossmint API key. Ensure NEXT_PUBLIC_CROSSMINT_API_KEY is set.');
     }
+    
+    if (!this.config.decodeWalletAddress) {
+      console.warn('Missing DECODE wallet address. Ensure NEXT_PUBLIC_DECODE_WALLET_ADDRESS is set.');
+    }
+    
+    // Webhook secret is only needed server-side, so don't warn about it here
   }
 
   private async makeRequest<T>(
