@@ -150,53 +150,8 @@ export default function PaymentPage() {
         return
       }
 
-      try {
-        console.log('🔍 DEBUG: Attempting to create Crossmint order for linkId:', linkId)
-        
-        // Create Crossmint order via our API
-        const orderResponse = await fetch('/api/payment/create-crossmint-order', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ paymentLinkId: linkId }),
-        })
-
-        console.log('🔍 DEBUG: Order response status:', orderResponse.status)
-
-        if (!orderResponse.ok) {
-          const errorData = await orderResponse.json()
-          console.log('❌ DEBUG: Order API failed:', errorData)
-          
-          // FALLBACK: Try direct Supabase query if API fails
-          console.log('🔄 DEBUG: Falling back to direct Supabase query')
-          await fetchPaymentLinkDirect()
-          return
-        }
-
-        const orderData = await orderResponse.json()
-        console.log('✅ DEBUG: Order data received:', orderData)
-        
-        setCrossmintOrder(orderData.order)
-        
-        // Transform payment link data for UI
-        const transformedData: PaymentLinkData = {
-          ...orderData.paymentLink,
-          creator: Array.isArray(orderData.paymentLink.creator) 
-            ? (orderData.paymentLink.creator[0] || { full_name: null, email: '' })
-            : (orderData.paymentLink.creator || { full_name: null, email: '' })
-        }
-
-        setPaymentData(transformedData)
-      } catch (error) {
-        console.error('❌ DEBUG: Error creating Crossmint order:', error)
-        
-        // FALLBACK: Try direct Supabase query if API throws error
-        console.log('🔄 DEBUG: Falling back to direct Supabase query due to error')
-        await fetchPaymentLinkDirect()
-      } finally {
-        setLoading(false)
-      }
+      // Go directly to payment data loading - skip server-side order creation
+      await fetchPaymentLinkDirect()
     }
 
     // Fallback function for direct Supabase query
@@ -252,7 +207,7 @@ export default function PaymentPage() {
 
         setPaymentData(transformedData)
         
-        console.log('✅ DEBUG: Fallback successful - using direct Supabase data (no Crossmint order created)')
+        console.log('✅ DEBUG: Payment data loaded successfully')
       } catch (fallbackError) {
         console.error('❌ DEBUG: Fallback also failed:', fallbackError)
         setError('Unable to load payment information')
@@ -340,35 +295,8 @@ export default function PaymentPage() {
           {/* EMBEDDED CROSSMINT CHECKOUT */}
           <div className="mt-8 border-t border-gray-200 pt-8">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Payment Options</h4>
-            {crossmintOrder ? (
+            {paymentData ? (
               <div>
-                <p className="text-sm text-gray-600 mb-4">
-                  Secure payment powered by Crossmint • Order ID: {crossmintOrder.id}
-                </p>
-                <CrossmintPaymentElement
-                  clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || '0d2984c6-36e4-45ab-8fd4-accef1d62799'}
-                  environment="production"
-                  mintConfig={{
-                    type: 'erc-20',
-                    totalPrice: crossmintOrder.payment.price,
-                    quantity: 1,
-                    _orderid: crossmintOrder.id
-                  }}
-                  uiConfig={{
-                    colors: {
-                      accent: '#7C3AED',
-                      background: '#FFFFFF',
-                      textPrimary: '#111827'
-                    }
-                  }}
-                />
-              </div>
-            ) : paymentData ? (
-              <div>
-                <div className="text-center py-4 bg-blue-50 rounded-lg border border-blue-200 mb-6">
-                  <p className="text-blue-800 font-medium mb-1">Using Basic Payment Mode</p>
-                  <p className="text-blue-700 text-sm">Server-side order creation is being configured. You can still test payments.</p>
-                </div>
                 <CrossmintPaymentElement
                   clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || '0d2984c6-36e4-45ab-8fd4-accef1d62799'}
                   environment="production"
