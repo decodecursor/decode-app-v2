@@ -7,17 +7,29 @@ const supabaseAdmin = createClient(
 )
 
 export async function POST(request: NextRequest) {
+  console.log('🔍 DEBUG: Starting crossmint-config API call')
+  
   try {
     const { paymentLinkId } = await request.json()
+    console.log('🔍 DEBUG: Received paymentLinkId:', paymentLinkId)
 
     if (!paymentLinkId) {
+      console.log('❌ DEBUG: No paymentLinkId provided')
       return NextResponse.json(
         { error: 'Payment link ID is required' },
         { status: 400 }
       )
     }
 
+    // Debug environment variables
+    console.log('🔍 DEBUG: Environment variables check:')
+    console.log('- NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'MISSING')
+    console.log('- SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'MISSING')
+    console.log('- NEXT_PUBLIC_CROSSMINT_PROJECT_ID:', process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID ? 'SET' : 'MISSING')
+
     // Validate payment link exists and is active
+    console.log('🔍 DEBUG: Querying payment_links table for ID:', paymentLinkId)
+    
     const { data: paymentLink, error: linkError } = await supabaseAdmin
       .from('payment_links')
       .select(`
@@ -34,9 +46,34 @@ export async function POST(request: NextRequest) {
       .eq('id', paymentLinkId)
       .single()
 
-    if (linkError || !paymentLink) {
+    console.log('🔍 DEBUG: Supabase query result:')
+    console.log('- Error:', linkError)
+    console.log('- Data:', paymentLink)
+
+    if (linkError) {
+      console.log('❌ DEBUG: Supabase error details:', JSON.stringify(linkError, null, 2))
       return NextResponse.json(
-        { error: 'Payment link not found' },
+        { 
+          error: 'Payment link not found',
+          debug: {
+            supabaseError: linkError,
+            paymentLinkId: paymentLinkId
+          }
+        },
+        { status: 404 }
+      )
+    }
+
+    if (!paymentLink) {
+      console.log('❌ DEBUG: No payment link data returned')
+      return NextResponse.json(
+        { 
+          error: 'Payment link not found',
+          debug: {
+            message: 'No data returned from query',
+            paymentLinkId: paymentLinkId
+          }
+        },
         { status: 404 }
       )
     }
@@ -93,9 +130,17 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error creating Crossmint config:', error)
+    console.error('❌ DEBUG: Caught error in crossmint-config API:', error)
+    console.error('❌ DEBUG: Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+    
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        debug: {
+          errorMessage: error instanceof Error ? error.message : 'Unknown error',
+          errorType: typeof error
+        }
+      },
       { status: 500 }
     )
   }

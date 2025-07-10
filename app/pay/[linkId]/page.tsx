@@ -151,6 +151,8 @@ export default function PaymentPage() {
       }
 
       try {
+        console.log('🔍 DEBUG: Attempting to fetch Crossmint config for linkId:', linkId)
+        
         // Fetch Crossmint configuration from our API
         const configResponse = await fetch('/api/payment/crossmint-config', {
           method: 'POST',
@@ -160,15 +162,21 @@ export default function PaymentPage() {
           body: JSON.stringify({ paymentLinkId: linkId }),
         })
 
+        console.log('🔍 DEBUG: Config response status:', configResponse.status)
+
         if (!configResponse.ok) {
           const errorData = await configResponse.json()
-          setError(errorData.error || 'Unable to load payment configuration')
-          setErrorType('network')
-          setLoading(false)
+          console.log('❌ DEBUG: Config API failed:', errorData)
+          
+          // FALLBACK: Try direct Supabase query if API fails
+          console.log('🔄 DEBUG: Falling back to direct Supabase query')
+          await fetchPaymentLinkDirect()
           return
         }
 
         const configData = await configResponse.json()
+        console.log('✅ DEBUG: Config data received:', configData)
+        
         setCrossmintConfig(configData.config)
         
         // Transform payment link data for UI
@@ -181,11 +189,91 @@ export default function PaymentPage() {
 
         setPaymentData(transformedData)
       } catch (error) {
-        console.error('Error fetching payment data:', error)
-        setError('Unable to load payment information')
-        setErrorType('network')
+        console.error('❌ DEBUG: Error fetching payment data from API:', error)
+        
+        // FALLBACK: Try direct Supabase query if API throws error
+        console.log('🔄 DEBUG: Falling back to direct Supabase query due to error')
+        await fetchPaymentLinkDirect()
       } finally {
         setLoading(false)
+      }
+    }
+
+    // Fallback function for direct Supabase query
+    const fetchPaymentLinkDirect = async () => {
+      try {
+        console.log('🔍 DEBUG: Direct Supabase query for linkId:', linkId)
+        
+        const { data, error: fetchError } = await supabase
+          .from('payment_links')
+          .select(`
+            id,
+            title,
+            amount_aed,
+            expiration_date,
+            is_active,
+            created_at,
+            creator:creator_id (
+              full_name,
+              email
+            )
+          `)
+          .eq('id', linkId)
+          .single()
+
+        console.log('🔍 DEBUG: Direct query result:', { data, error: fetchError })
+
+        if (fetchError || !data) {
+          setError('Payment link not found')
+          setErrorType('not-found')
+          return
+        }
+
+        if (!data.is_active) {
+          setError('Payment link is deactivated')
+          setErrorType('inactive')
+          return
+        }
+
+        const now = new Date()
+        const expirationDate = new Date(data.expiration_date)
+        if (now > expirationDate) {
+          setError('Payment link expired')
+          setErrorType('expired')
+          return
+        }
+
+        const transformedData: PaymentLinkData = {
+          ...data,
+          creator: Array.isArray(data.creator) 
+            ? (data.creator[0] || { full_name: null, email: '' })
+            : (data.creator || { full_name: null, email: '' })
+        }
+
+        setPaymentData(transformedData)
+        
+        // Set basic Crossmint config for fallback
+        setCrossmintConfig({
+          projectId: process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || '0d2984c6-36e4-45ab-8fd4-accef1d62799',
+          environment: 'production',
+          currency: 'USD',
+          locale: 'en-US',
+          paymentMethod: 'fiat',
+          metadata: {
+            paymentLinkId: linkId,
+            beautyProfessionalId: transformedData.creator.email,
+            service: 'beauty',
+            title: transformedData.title,
+            originalAmount: transformedData.amount_aed,
+            originalCurrency: 'AED'
+          }
+        })
+        
+        console.log('✅ DEBUG: Fallback successful - using direct Supabase data')
+      } catch (fallbackError) {
+        console.error('❌ DEBUG: Fallback also failed:', fallbackError)
+        setError('Unable to load payment information')
+        setErrorType('network')
       }
     }
 
