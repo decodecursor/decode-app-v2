@@ -21,6 +21,7 @@ interface PaymentLinkData {
 
 export default function PaymentPage() {
   const [paymentData, setPaymentData] = useState<PaymentLinkData | null>(null)
+  const [crossmintConfig, setCrossmintConfig] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [errorType, setErrorType] = useState<'not-found' | 'inactive' | 'expired' | 'invalid' | 'network' | 'creator-missing'>('not-found')
@@ -141,7 +142,7 @@ export default function PaymentPage() {
   }
 
   useEffect(() => {
-    const fetchPaymentLink = async () => {
+    const fetchPaymentData = async () => {
       if (!linkId || !isValidUUID(linkId)) {
         setError('Invalid payment link')
         setErrorType('invalid')
@@ -150,56 +151,37 @@ export default function PaymentPage() {
       }
 
       try {
-        const { data, error: fetchError } = await supabase
-          .from('payment_links')
-          .select(`
-            id,
-            title,
-            amount_aed,
-            expiration_date,
-            is_active,
-            created_at,
-            creator:creator_id (
-              full_name,
-              email
-            )
-          `)
-          .eq('id', linkId)
-          .single()
+        // Fetch Crossmint configuration from our API
+        const configResponse = await fetch('/api/payment/crossmint-config', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ paymentLinkId: linkId }),
+        })
 
-        if (fetchError || !data) {
-          setError('Payment link not found')
-          setErrorType('not-found')
+        if (!configResponse.ok) {
+          const errorData = await configResponse.json()
+          setError(errorData.error || 'Unable to load payment configuration')
+          setErrorType('network')
           setLoading(false)
           return
         }
 
-        if (!data.is_active) {
-          setError('Payment link is deactivated')
-          setErrorType('inactive')
-          setLoading(false)
-          return
-        }
-
-        const now = new Date()
-        const expirationDate = new Date(data.expiration_date)
-        if (now > expirationDate) {
-          setError('Payment link expired')
-          setErrorType('expired')
-          setLoading(false)
-          return
-        }
-
+        const configData = await configResponse.json()
+        setCrossmintConfig(configData.config)
+        
+        // Transform payment link data for UI
         const transformedData: PaymentLinkData = {
-          ...data,
-          creator: Array.isArray(data.creator) 
-            ? (data.creator[0] || { full_name: null, email: '' })
-            : (data.creator || { full_name: null, email: '' })
+          ...configData.paymentLink,
+          creator: Array.isArray(configData.paymentLink.creator) 
+            ? (configData.paymentLink.creator[0] || { full_name: null, email: '' })
+            : (configData.paymentLink.creator || { full_name: null, email: '' })
         }
 
         setPaymentData(transformedData)
       } catch (error) {
-        console.error('Error fetching payment link:', error)
+        console.error('Error fetching payment data:', error)
         setError('Unable to load payment information')
         setErrorType('network')
       } finally {
@@ -207,7 +189,7 @@ export default function PaymentPage() {
       }
     }
 
-    fetchPaymentLink()
+    fetchPaymentData()
   }, [linkId])
 
   if (loading) {
@@ -287,35 +269,28 @@ export default function PaymentPage() {
           {/* EMBEDDED CROSSMINT CHECKOUT */}
           <div className="mt-8 border-t border-gray-200 pt-8">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Payment Options</h4>
-            {/* Debug: Log Project ID */}
-            {(() => {
-              const projectId = process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || '';
-              console.log('🔍 DEBUG: Project ID loaded:', projectId);
-              console.log('🔍 DEBUG: Project ID length:', projectId.length);
-              return null;
-            })()}
-            <CrossmintPaymentElement
-              clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || '0d2984c6-36e4-45ab-8fd4-accef1d62799'}
-              environment="production"
-              currency="USD"
-              locale="en-US"
-              paymentMethod="fiat"
-              uiConfig={{
-                colors: {
-                  accent: '#7C3AED',
-                  background: '#FFFFFF',
-                  textPrimary: '#111827'
-                }
-              }}
-              whPassThroughArgs={{
-                paymentLinkId: linkId,
-                beautyProfessionalId: paymentData.creator.email,
-                service: 'beauty',
-                title: paymentData.title,
-                originalAmount: paymentData.amount_aed,
-                originalCurrency: 'AED'
-              }}
-            />
+            {crossmintConfig ? (
+              <CrossmintPaymentElement
+                clientId={crossmintConfig.projectId}
+                environment={crossmintConfig.environment}
+                currency={crossmintConfig.currency}
+                locale={crossmintConfig.locale}
+                paymentMethod={crossmintConfig.paymentMethod}
+                uiConfig={{
+                  colors: {
+                    accent: '#7C3AED',
+                    background: '#FFFFFF',
+                    textPrimary: '#111827'
+                  }
+                }}
+                whPassThroughArgs={crossmintConfig.metadata}
+              />
+            ) : (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading payment options...</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

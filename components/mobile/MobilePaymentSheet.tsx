@@ -31,6 +31,7 @@ export function MobilePaymentSheet({
   disabled = false
 }: MobilePaymentSheetProps) {
   const [isVisible, setIsVisible] = useState(false)
+  const [crossmintConfig, setCrossmintConfig] = useState<any>(null)
 
   useEffect(() => {
     if (isOpen) {
@@ -38,6 +39,9 @@ export function MobilePaymentSheet({
       setTimeout(() => setIsVisible(true), 10)
       // Prevent body scroll when sheet is open
       document.body.style.overflow = 'hidden'
+      
+      // Fetch Crossmint configuration
+      fetchCrossmintConfig()
     } else {
       setIsVisible(false)
       document.body.style.overflow = 'unset'
@@ -47,7 +51,26 @@ export function MobilePaymentSheet({
     return () => {
       document.body.style.overflow = 'unset'
     }
-  }, [isOpen])
+  }, [isOpen, paymentLinkId])
+
+  const fetchCrossmintConfig = async () => {
+    try {
+      const response = await fetch('/api/payment/crossmint-config', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ paymentLinkId }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCrossmintConfig(data.config)
+      }
+    } catch (error) {
+      console.error('Error fetching Crossmint config:', error)
+    }
+  }
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -130,28 +153,28 @@ export function MobilePaymentSheet({
 
           {/* Payment handled by embedded Crossmint component */}
           <div className="space-y-4">
-            <CrossmintPaymentElement
-              clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || ''}
-              environment="production"
-              currency="USD"
-              locale="en-US"
-              paymentMethod="fiat"
-              uiConfig={{
-                colors: {
-                  accent: '#7C3AED',
-                  background: '#FFFFFF',
-                  textPrimary: '#111827'
-                }
-              }}
-              whPassThroughArgs={{
-                paymentLinkId: paymentLinkId,
-                beautyProfessionalId: creatorName,
-                service: 'beauty',
-                title: serviceTitle,
-                originalAmount: originalAmount,
-                originalCurrency: currency
-              }}
-            />
+            {crossmintConfig ? (
+              <CrossmintPaymentElement
+                clientId={crossmintConfig.projectId}
+                environment={crossmintConfig.environment}
+                currency={crossmintConfig.currency}
+                locale={crossmintConfig.locale}
+                paymentMethod={crossmintConfig.paymentMethod}
+                uiConfig={{
+                  colors: {
+                    accent: '#7C3AED',
+                    background: '#FFFFFF',
+                    textPrimary: '#111827'
+                  }
+                }}
+                whPassThroughArgs={crossmintConfig.metadata}
+              />
+            ) : (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                <p className="text-gray-600 text-sm">Loading payment options...</p>
+              </div>
+            )}
           </div>
 
           {/* Terms */}
