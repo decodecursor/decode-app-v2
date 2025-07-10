@@ -100,23 +100,33 @@ export async function POST(request: NextRequest) {
 
     console.log('🔍 DEBUG: Creating Crossmint order with amount:', amountUSD, 'cents USD')
 
-    // Create order with Crossmint API - using fiat payment method
+    // Create order with Crossmint API - simple fiat payment structure
     const crossmintPayload = {
+      lineItems: [
+        {
+          collectionLocator: `crossmint:${process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID}`,
+          callData: {
+            totalPrice: amountUSD.toString(),
+            currency: 'USD',
+            quantity: 1
+          },
+          metadata: {
+            title: paymentLink.title,
+            description: `Beauty service: ${paymentLink.title}`,
+            paymentLinkId: paymentLinkId,
+            beautyProfessionalId: creator.email,
+            service: 'beauty',
+            originalAmount: paymentLink.amount_aed,
+            originalCurrency: 'AED'
+          }
+        }
+      ],
       payment: {
-        method: 'stripe-payment-element',
-        currency: 'USD',
-        amount: amountUSD.toString(),
-        successCallbackUrl: `${process.env.NEXT_PUBLIC_APP_URL}/pay/success?paymentLinkId=${paymentLinkId}`,
-        failureCallbackUrl: `${process.env.NEXT_PUBLIC_APP_URL}/pay/failed?paymentLinkId=${paymentLinkId}`
+        method: 'fiat',
+        currency: 'USD'
       },
-      metadata: {
-        paymentLinkId: paymentLinkId,
-        beautyProfessionalId: creator.email,
-        service: 'beauty',
-        title: paymentLink.title,
-        originalAmount: paymentLink.amount_aed,
-        originalCurrency: 'AED'
-      }
+      successCallbackUrl: `${process.env.NEXT_PUBLIC_APP_URL}/pay/success?paymentLinkId=${paymentLinkId}`,
+      failureCallbackUrl: `${process.env.NEXT_PUBLIC_APP_URL}/pay/failed?paymentLinkId=${paymentLinkId}`
     }
 
     console.log('🔍 DEBUG: Crossmint payload:', JSON.stringify(crossmintPayload, null, 2))
