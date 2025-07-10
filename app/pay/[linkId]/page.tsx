@@ -288,7 +288,7 @@ export default function PaymentPage() {
           <div className="mt-8 border-t border-gray-200 pt-8">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Payment Options</h4>
             <CrossmintPaymentElement
-              clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || ''}
+              projectId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || ''}
               environment="production"
               currency="USD"
               locale="en-US"

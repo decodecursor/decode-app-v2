@@ -131,7 +131,7 @@ export function MobilePaymentSheet({
           {/* Payment handled by embedded Crossmint component */}
           <div className="space-y-4">
             <CrossmintPaymentElement
-              clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || ''}
+              projectId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || ''}
               environment="production"
               currency="USD"
               locale="en-US"
