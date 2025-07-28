@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import QRCode from 'qrcode'
 
 interface PaymentLink {
   id: string
@@ -31,6 +32,10 @@ export default function MyLinks() {
   const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false)
   const [linkToDelete, setLinkToDelete] = useState<PaymentLink | null>(null)
   const [showDeactivateFirstDialog, setShowDeactivateFirstDialog] = useState(false)
+  const [showQRModal, setShowQRModal] = useState(false)
+  const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('')
+  const [currentQRLink, setCurrentQRLink] = useState<PaymentLink | null>(null)
+  const [generatingQR, setGeneratingQR] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -348,6 +353,46 @@ export default function MyLinks() {
     setLinkToDelete(null)
   }
 
+  const generateQRCode = async (link: PaymentLink) => {
+    try {
+      setGeneratingQR(true)
+      setCurrentQRLink(link)
+      
+      // Generate the payment URL
+      const paymentUrl = generatePaymentUrl(link.id)
+      
+      // Create WhatsApp share URL with pre-filled message
+      const whatsappMessage = `Check out this payment link for ${link.title}: ${paymentUrl}`
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`
+      
+      // Generate QR code for the WhatsApp URL
+      const qrDataURL = await QRCode.toDataURL(whatsappUrl, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      })
+      
+      setQrCodeDataURL(qrDataURL)
+      setShowQRModal(true)
+      
+    } catch (error) {
+      console.error('Error generating QR code:', error)
+      setCopyMessage('Failed to generate QR code. Please try again.')
+      setTimeout(() => setCopyMessage(''), 3000)
+    } finally {
+      setGeneratingQR(false)
+    }
+  }
+
+  const closeQRModal = () => {
+    setShowQRModal(false)
+    setQrCodeDataURL('')
+    setCurrentQRLink(null)
+  }
+
   if (loading) {
     return (
       <div className="cosmic-bg">
@@ -530,6 +575,30 @@ export default function MyLinks() {
                               )}
                             </button>
 
+                            {/* QR Code button */}
+                            <button
+                              onClick={() => generateQRCode(link)}
+                              disabled={generatingQR || copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
+                              className="cosmic-button-secondary px-4 py-2 text-sm border border-blue-500/50 text-blue-400 hover:bg-blue-500/10 hover:border-blue-500 rounded-lg transition-colors disabled:opacity-50"
+                            >
+                              {generatingQR && currentQRLink?.id === link.id ? (
+                                <span className="flex items-center gap-2">
+                                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  Generating...
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-2">
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                                  </svg>
+                                  QR Code
+                                </span>
+                              )}
+                            </button>
+
                             {/* Only show deactivate button for active links */}
                             {status === 'Active' && (
                               <button
@@ -674,6 +743,62 @@ export default function MyLinks() {
                   {deactivatingId === linkToDelete.id ? 'Deactivating...' : 'Deactivate & Delete'}
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* QR Code Modal */}
+        {showQRModal && currentQRLink && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="cosmic-card max-w-md w-full text-center">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="cosmic-heading text-white">WhatsApp QR Code</h3>
+                <button
+                  onClick={closeQRModal}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="mb-4">
+                <p className="text-gray-300 text-sm mb-2">
+                  PayLink: <span className="font-medium">{currentQRLink.title}</span>
+                </p>
+                <p className="text-green-400 font-semibold text-lg">
+                  AED {currentQRLink.amount_aed.toFixed(2)}
+                </p>
+              </div>
+
+              {qrCodeDataURL && (
+                <div className="mb-6">
+                  <div className="bg-white p-4 rounded-lg inline-block">
+                    <img 
+                      src={qrCodeDataURL} 
+                      alt="WhatsApp QR Code" 
+                      className="w-64 h-64 mx-auto"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="text-center space-y-2">
+                <p className="text-white font-medium">Scan to Share via WhatsApp</p>
+                <p className="text-gray-400 text-sm">
+                  • Opens WhatsApp app<br/>
+                  • Shows pre-filled message<br/>
+                  • Choose contacts to send to
+                </p>
+              </div>
+
+              <button
+                onClick={closeQRModal}
+                className="cosmic-button-primary w-full mt-6 py-3"
+              >
+                Close
+              </button>
             </div>
           </div>
         )}
