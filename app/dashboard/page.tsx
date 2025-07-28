@@ -270,7 +270,7 @@ export default function Dashboard() {
         </div>
 
         {/* Main Dashboard Content */}
-        <div className="mx-auto space-y-8 mt-16" style={{maxWidth: '3000px'}}>
+        <div className="mx-auto space-y-8 mt-[60vh]" style={{maxWidth: '3000px'}}>
           
 
           {/* Recent Activity */}
