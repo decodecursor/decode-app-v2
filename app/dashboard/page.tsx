@@ -89,7 +89,7 @@ export default function Dashboard() {
         
         const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#fff']
         if (starType === 'star-dot') {
-          star.style.background = colors[Math.floor(Math.random() * colors.length)]
+          star.style.background = colors[Math.floor(Math.random() * colors.length)] || '#ffd700'
         }
         
         document.body.appendChild(star)
