@@ -12,6 +12,91 @@ export default function Dashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  let hoverTimeout: NodeJS.Timeout
+
+  // Magic button functions
+  const createHoverSparkles = (event: React.MouseEvent) => {
+    clearTimeout(hoverTimeout)
+    
+    const button = event.target as HTMLElement
+    const rect = button.getBoundingClientRect()
+    
+    const sparkleCount = 3 + Math.floor(Math.random() * 3)
+    
+    for (let i = 0; i < sparkleCount; i++) {
+      setTimeout(() => {
+        const sparkle = document.createElement('div')
+        sparkle.className = 'hover-sparkle'
+        
+        const x = rect.left + Math.random() * rect.width
+        const y = rect.top + Math.random() * rect.height
+        
+        sparkle.style.left = x + 'px'
+        sparkle.style.top = y + 'px'
+        
+        document.body.appendChild(sparkle)
+        
+        setTimeout(() => {
+          if (sparkle.parentNode) {
+            sparkle.parentNode.removeChild(sparkle)
+          }
+        }, 1000)
+      }, i * 100)
+    }
+    
+    hoverTimeout = setTimeout(() => {
+      if (button.matches(':hover')) {
+        createHoverSparkles(event)
+      }
+    }, 800)
+  }
+
+  const createMagicalStarExplosion = (event: React.MouseEvent) => {
+    const button = event.target as HTMLElement
+    const rect = button.getBoundingClientRect()
+    
+    const totalStars = 25
+    const starTypes = ['star-sparkle', 'star-dot', 'star-diamond', 'star-triangle', 'click-star']
+    const animations = ['magic-fly-1', 'magic-fly-2', 'magic-fly-3', 'magic-fly-4', 'magic-fly-5', 'magic-spiral']
+    
+    for (let i = 0; i < totalStars; i++) {
+      setTimeout(() => {
+        const star = document.createElement('div')
+        
+        const starType = starTypes[Math.floor(Math.random() * starTypes.length)]
+        star.className = `click-star ${starType}`
+        
+        const centerX = rect.left + rect.width / 2
+        const centerY = rect.top + rect.height / 2
+        const x = centerX + (Math.random() - 0.5) * 40
+        const y = centerY + (Math.random() - 0.5) * 40
+        
+        star.style.left = x + 'px'
+        star.style.top = y + 'px'
+        
+        const animation = animations[Math.floor(Math.random() * animations.length)]
+        star.classList.add(animation)
+        
+        const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#fff']
+        if (starType === 'star-dot') {
+          star.style.background = colors[Math.floor(Math.random() * colors.length)]
+        }
+        
+        document.body.appendChild(star)
+        
+        setTimeout(() => {
+          if (star.parentNode) {
+            star.parentNode.removeChild(star)
+          }
+        }, 2500)
+      }, i * 30)
+    }
+    
+    button.style.animation = 'none'
+    setTimeout(() => {
+      button.style.animation = 'buttonShake 0.5s ease-in-out'
+    }, 10)
+  }
 
   useEffect(() => {
     const getUser = async () => {
@@ -74,6 +159,116 @@ export default function Dashboard() {
 
   return (
     <div className="cosmic-bg">
+      <style jsx>{`
+        .magic-button {
+          background: linear-gradient(45deg, #667eea, #764ba2);
+          border: none;
+          padding: 20px 40px;
+          border-radius: 50px;
+          color: white;
+          font-size: 1.3em;
+          cursor: pointer;
+          position: relative;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+          text-decoration: none;
+          display: inline-block;
+        }
+
+        .magic-button:hover {
+          transform: translateY(-3px) scale(1.05);
+          box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+          color: white;
+        }
+
+        .hover-sparkle {
+          position: absolute;
+          width: 3px;
+          height: 3px;
+          background: #ffd700;
+          border-radius: 50%;
+          pointer-events: none;
+          z-index: 1000;
+          animation: hoverSparkle 1s ease-out forwards;
+        }
+
+        @keyframes hoverSparkle {
+          0% { transform: scale(0); opacity: 1; }
+          50% { transform: scale(1); opacity: 1; }
+          100% { transform: scale(0) translateY(-20px); opacity: 0; }
+        }
+
+        .click-star {
+          position: absolute;
+          pointer-events: none;
+          z-index: 1000;
+        }
+
+        .star-sparkle:before {
+          content: '✨';
+          font-size: 12px;
+        }
+
+        .star-dot {
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background: #ffd700;
+        }
+
+        .star-diamond:before {
+          content: '💎';
+          font-size: 8px;
+        }
+
+        .star-triangle:before {
+          content: '🔺';
+          font-size: 8px;
+        }
+
+        @keyframes magic-fly-1 {
+          0% { transform: translate(0, 0) scale(1); opacity: 1; }
+          100% { transform: translate(100px, -100px) scale(0); opacity: 0; }
+        }
+
+        @keyframes magic-fly-2 {
+          0% { transform: translate(0, 0) scale(1); opacity: 1; }
+          100% { transform: translate(-100px, -100px) scale(0); opacity: 0; }
+        }
+
+        @keyframes magic-fly-3 {
+          0% { transform: translate(0, 0) scale(1); opacity: 1; }
+          100% { transform: translate(150px, 50px) scale(0); opacity: 0; }
+        }
+
+        @keyframes magic-fly-4 {
+          0% { transform: translate(0, 0) scale(1); opacity: 1; }
+          100% { transform: translate(-150px, 50px) scale(0); opacity: 0; }
+        }
+
+        @keyframes magic-fly-5 {
+          0% { transform: translate(0, 0) scale(1); opacity: 1; }
+          100% { transform: translate(50px, 150px) scale(0); opacity: 0; }
+        }
+
+        @keyframes magic-spiral {
+          0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+          100% { transform: translate(100px, -100px) rotate(360deg) scale(0); opacity: 0; }
+        }
+
+        @keyframes buttonShake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          75% { transform: translateX(5px); }
+        }
+
+        .magic-fly-1 { animation: magic-fly-1 2s ease-out forwards; }
+        .magic-fly-2 { animation: magic-fly-2 2s ease-out forwards; }
+        .magic-fly-3 { animation: magic-fly-3 2s ease-out forwards; }
+        .magic-fly-4 { animation: magic-fly-4 2s ease-out forwards; }
+        .magic-fly-5 { animation: magic-fly-5 2s ease-out forwards; }
+        .magic-spiral { animation: magic-spiral 2.5s ease-out forwards; }
+      `}</style>
       <div className="min-h-screen px-4 py-8">
 
         {/* Navigation Menu */}
@@ -98,9 +293,11 @@ export default function Dashboard() {
                 <div className="flex gap-6 items-center">
                   <Link 
                     href="/payment/create" 
-                    className="px-6 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg font-medium transition-colors"
+                    className="magic-button"
+                    onMouseOver={createHoverSparkles}
+                    onClick={createMagicalStarExplosion}
                   >
-                    Create PayLink
+                    ✨ Create PayLink ✨
                   </Link>
                   <Link 
                     href="/my-links" 
@@ -201,10 +398,14 @@ export default function Dashboard() {
                       <>
                         <Link 
                           href="/payment/create" 
-                          className="block px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg font-medium transition-colors"
-                          onClick={() => setMobileMenuOpen(false)}
+                          className="magic-button block"
+                          onMouseOver={createHoverSparkles}
+                          onClick={(e) => {
+                            setMobileMenuOpen(false)
+                            createMagicalStarExplosion(e)
+                          }}
                         >
-                          Create PayLink
+                          ✨ Create PayLink ✨
                         </Link>
                         <Link 
                           href="/my-links" 
