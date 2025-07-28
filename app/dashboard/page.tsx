@@ -85,7 +85,7 @@ export default function Dashboard() {
         star.style.top = y + 'px'
         
         const animation = animations[Math.floor(Math.random() * animations.length)]
-        star.classList.add(animation)
+        star.classList.add(animation || 'magic-fly-1')
         
         const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#fff']
         if (starType === 'star-dot') {
