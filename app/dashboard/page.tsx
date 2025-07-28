@@ -12,11 +12,13 @@ export default function Dashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  let hoverTimeout: NodeJS.Timeout
+  const hoverTimeout = useRef<NodeJS.Timeout | null>(null)
 
   // Magic button functions
   const createHoverSparkles = (event: React.MouseEvent) => {
-    clearTimeout(hoverTimeout)
+    if (hoverTimeout.current) {
+      clearTimeout(hoverTimeout.current)
+    }
     
     const button = event.target as HTMLElement
     const rect = button.getBoundingClientRect()
@@ -44,7 +46,7 @@ export default function Dashboard() {
       }, i * 100)
     }
     
-    hoverTimeout = setTimeout(() => {
+    hoverTimeout.current = setTimeout(() => {
       if (button.matches(':hover')) {
         createHoverSparkles(event)
       }
@@ -159,7 +161,7 @@ export default function Dashboard() {
 
   return (
     <div className="cosmic-bg">
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{__html: `
         .magic-button {
           background: linear-gradient(45deg, #667eea, #764ba2);
           border: none;
@@ -268,7 +270,7 @@ export default function Dashboard() {
         .magic-fly-4 { animation: magic-fly-4 2s ease-out forwards; }
         .magic-fly-5 { animation: magic-fly-5 2s ease-out forwards; }
         .magic-spiral { animation: magic-spiral 2.5s ease-out forwards; }
-      `}</style>
+      `}} />
       <div className="min-h-screen px-4 py-8">
 
         {/* Navigation Menu */}
