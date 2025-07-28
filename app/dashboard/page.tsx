@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
-import { WalletDashboard } from '@/components/dashboard/WalletDashboard'
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null)
@@ -13,11 +12,6 @@ export default function Dashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const [dashboardStats, setDashboardStats] = useState({
-    totalRevenue: 0,
-    activeLinks: 0,
-    totalTransactions: 0
-  })
 
   useEffect(() => {
     const getUser = async () => {
@@ -39,8 +33,6 @@ export default function Dashboard() {
         setUserRole(userData.role)
       }
       
-      // Fetch dashboard stats
-      await fetchDashboardStats(user.id)
       
       setLoading(false)
     }
@@ -62,45 +54,6 @@ export default function Dashboard() {
     }
   }, [])
 
-  const fetchDashboardStats = async (userId: string) => {
-    try {
-      // Fetch payment links with transaction data
-      const { data: linksData } = await supabase
-        .from('payment_links')
-        .select(`
-          id,
-          amount_usd,
-          is_active,
-          transactions (
-            id,
-            amount_usd,
-            status
-          )
-        `)
-        .eq('creator_id', userId)
-
-      if (linksData) {
-        const activeLinks = linksData.filter(link => link.is_active).length
-        
-        let totalRevenue = 0
-        let totalTransactions = 0
-        
-        linksData.forEach(link => {
-          const completedTransactions = (link.transactions || []).filter(t => t.status === 'completed')
-          totalTransactions += completedTransactions.length
-          totalRevenue += completedTransactions.reduce((sum, t) => sum + (t.amount_usd || 0), 0)
-        })
-        
-        setDashboardStats({
-          totalRevenue,
-          activeLinks,
-          totalTransactions
-        })
-      }
-    } catch (error) {
-      console.error('Error fetching dashboard stats:', error)
-    }
-  }
 
   const handleSignOut = async () => {
     try {
@@ -319,55 +272,6 @@ export default function Dashboard() {
         {/* Main Dashboard Content */}
         <div className="mx-auto space-y-8" style={{maxWidth: '3000px'}}>
           
-          {/* Wallet Dashboard - Only for Beauty Professionals */}
-          {userRole === 'Beauty Professional' && user && (
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-6">Your Crypto Wallet</h2>
-              <WalletDashboard user={user} />
-            </div>
-          )}
-          
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="cosmic-card stats-card text-center p-8">
-              <div className="bg-green-500/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold mb-2 text-white">Total Revenue</h3>
-              <p className="text-4xl font-bold text-green-400">
-                ${dashboardStats.totalRevenue.toFixed(2)}
-              </p>
-              <p className="text-sm text-gray-400 mt-2">All time earnings</p>
-            </div>
-            
-            <div className="cosmic-card stats-card text-center p-8">
-              <div className="bg-blue-500/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold mb-2 text-white">Active Links</h3>
-              <p className="text-4xl font-bold text-blue-400">
-                {dashboardStats.activeLinks}
-              </p>
-              <p className="text-sm text-gray-400 mt-2">Currently accepting payments</p>
-            </div>
-            
-            <div className="cosmic-card stats-card text-center p-8">
-              <div className="bg-purple-500/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold mb-2 text-white">Transactions</h3>
-              <p className="text-4xl font-bold text-purple-400">
-                {dashboardStats.totalTransactions}
-              </p>
-              <p className="text-sm text-gray-400 mt-2">Completed payments</p>
-            </div>
-          </div>
 
           {/* Recent Activity */}
           <div className="cosmic-card">
