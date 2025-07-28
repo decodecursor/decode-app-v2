@@ -12,6 +12,103 @@ export default function Dashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const hoverTimeout = useRef<NodeJS.Timeout | null>(null)
+
+  // Magic button functions with SSR compatibility
+  const createHoverSparkles = (event: React.MouseEvent) => {
+    if (typeof window === 'undefined') return
+    
+    if (hoverTimeout.current) {
+      clearTimeout(hoverTimeout.current)
+    }
+    
+    const button = event.target as HTMLElement
+    const rect = button.getBoundingClientRect()
+    
+    const sparkleCount = 3 + Math.floor(Math.random() * 3)
+    
+    for (let i = 0; i < sparkleCount; i++) {
+      setTimeout(() => {
+        if (typeof window === 'undefined') return
+        
+        const sparkle = document.createElement('div')
+        sparkle.className = 'hover-sparkle'
+        
+        const x = rect.left + Math.random() * rect.width
+        const y = rect.top + Math.random() * rect.height
+        
+        sparkle.style.left = x + 'px'
+        sparkle.style.top = y + 'px'
+        
+        document.body.appendChild(sparkle)
+        
+        setTimeout(() => {
+          if (sparkle.parentNode) {
+            sparkle.parentNode.removeChild(sparkle)
+          }
+        }, 1000)
+      }, i * 100)
+    }
+    
+    hoverTimeout.current = setTimeout(() => {
+      if (typeof window !== 'undefined' && button.matches(':hover')) {
+        createHoverSparkles(event)
+      }
+    }, 800)
+  }
+
+  const createMagicalStarExplosion = (event: React.MouseEvent) => {
+    if (typeof window === 'undefined') return
+    
+    const button = event.target as HTMLElement
+    const rect = button.getBoundingClientRect()
+    
+    const totalStars = 25
+    const starTypes = ['star-sparkle', 'star-dot', 'star-diamond', 'star-triangle', 'click-star']
+    const animations = ['magic-fly-1', 'magic-fly-2', 'magic-fly-3', 'magic-fly-4', 'magic-fly-5', 'magic-spiral']
+    
+    for (let i = 0; i < totalStars; i++) {
+      setTimeout(() => {
+        if (typeof window === 'undefined') return
+        
+        const star = document.createElement('div')
+        
+        const starType = starTypes[Math.floor(Math.random() * starTypes.length)]
+        star.className = `click-star ${starType}`
+        
+        const centerX = rect.left + rect.width / 2
+        const centerY = rect.top + rect.height / 2
+        const x = centerX + (Math.random() - 0.5) * 40
+        const y = centerY + (Math.random() - 0.5) * 40
+        
+        star.style.left = x + 'px'
+        star.style.top = y + 'px'
+        
+        const animation = animations[Math.floor(Math.random() * animations.length)]
+        star.classList.add(animation)
+        
+        const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#fff']
+        if (starType === 'star-dot') {
+          star.style.background = colors[Math.floor(Math.random() * colors.length)]
+        }
+        
+        document.body.appendChild(star)
+        
+        setTimeout(() => {
+          if (star.parentNode) {
+            star.parentNode.removeChild(star)
+          }
+        }, 2500)
+      }, i * 30)
+    }
+    
+    button.style.animation = 'none'
+    setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        button.style.animation = 'buttonShake 0.5s ease-in-out'
+      }
+    }, 10)
+  }
 
   useEffect(() => {
     const getUser = async () => {
@@ -74,29 +171,6 @@ export default function Dashboard() {
 
   return (
     <div className="cosmic-bg">
-      <style dangerouslySetInnerHTML={{__html: `
-        .magic-button {
-          background: linear-gradient(45deg, #667eea, #764ba2);
-          border: none;
-          padding: 12px 24px;
-          border-radius: 25px;
-          color: white !important;
-          font-size: 1rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-          text-decoration: none !important;
-          display: inline-block;
-        }
-
-        .magic-button:hover {
-          transform: translateY(-2px) scale(1.02);
-          box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-          color: white !important;
-          text-decoration: none !important;
-        }
-      `}} />
       <div className="min-h-screen px-4 py-8">
 
         {/* Navigation Menu */}
@@ -122,6 +196,8 @@ export default function Dashboard() {
                   <Link 
                     href="/payment/create" 
                     className="magic-button"
+                    onMouseOver={createHoverSparkles}
+                    onClick={createMagicalStarExplosion}
                   >
                     ✨ Create PayLink ✨
                   </Link>
@@ -225,7 +301,11 @@ export default function Dashboard() {
                         <Link 
                           href="/payment/create" 
                           className="magic-button block mb-2"
-                          onClick={() => setMobileMenuOpen(false)}
+                          onMouseOver={createHoverSparkles}
+                          onClick={(e) => {
+                            setMobileMenuOpen(false)
+                            createMagicalStarExplosion(e)
+                          }}
                         >
                           ✨ Create PayLink ✨
                         </Link>
