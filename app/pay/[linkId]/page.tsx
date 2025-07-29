@@ -23,6 +23,14 @@ export default function PaymentPage() {
   const [paymentData, setPaymentData] = useState<PaymentLinkData | null>(null)
   const [crossmintOrder, setCrossmintOrder] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+
+  // Format amount with thousands separators
+  const formatAmount = (amount: number): string => {
+    return amount.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
+  }
   const [error, setError] = useState('')
   const [errorType, setErrorType] = useState<'not-found' | 'inactive' | 'expired' | 'invalid' | 'network' | 'creator-missing'>('not-found')
   const params = useParams()
@@ -272,7 +280,7 @@ export default function PaymentPage() {
           <div className="bg-gray-50 rounded-xl p-6 mb-6">
             <div className="text-center">
               <p className="text-gray-600 text-sm font-medium mb-2">Total Amount</p>
-              <p className="text-4xl font-bold text-gray-900">AED {paymentData.amount_aed.toFixed(2)}</p>
+              <p className="text-4xl font-bold text-gray-900">AED {formatAmount(paymentData.amount_aed)}</p>
             </div>
           </div>
 

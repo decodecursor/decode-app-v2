@@ -17,6 +17,14 @@ export default function Dashboard() {
   const hoverTimeout = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
 
+  // Format amount with thousands separators
+  const formatAmount = (amount: number): string => {
+    return amount.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
+  }
+
   // Magic button functions with SSR compatibility
   const createHoverSparkles = (event: React.MouseEvent) => {
     if (typeof window === 'undefined') return
@@ -127,7 +135,7 @@ export default function Dashboard() {
     try {
       const { data: payLinks } = await supabase
         .from('payment_links')
-        .select('id, title, amount_usd, is_active, created_at')
+        .select('id, title, amount_aed, is_active, created_at')
         .eq('creator_id', userId)
         .order('created_at', { ascending: false })
         .limit(5)
@@ -420,7 +428,7 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-green-400 font-semibold">${payLink.amount_usd}</p>
+                      <p className="text-green-400 font-semibold">AED {formatAmount(payLink.amount_aed)}</p>
                       <div className="flex items-center mt-1">
                         <div className={`w-2 h-2 rounded-full mr-2 ${payLink.is_active ? 'bg-green-400' : 'bg-gray-400'}`}></div>
                         <span className={`text-xs ${payLink.is_active ? 'text-green-400' : 'text-gray-400'}`}>

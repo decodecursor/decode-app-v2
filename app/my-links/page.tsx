@@ -23,6 +23,14 @@ interface PaymentLink {
 function MyLinksContent() {
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([])
   const [loading, setLoading] = useState(true)
+
+  // Format amount with thousands separators
+  const formatAmount = (amount: number): string => {
+    return amount.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
+  }
   const [error, setError] = useState('')
   const [copyMessage, setCopyMessage] = useState('')
   const [copyingId, setCopyingId] = useState<string | null>(null)
@@ -610,13 +618,13 @@ function MyLinksContent() {
                           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
                             <div className="text-right">
                               <div className="text-white font-medium text-xl">
-                                AED {link.amount_aed.toFixed(2)}
+                                AED {formatAmount(link.amount_aed)}
                               </div>
                               {/* Fee Information */}
                               {link.original_amount_aed && link.fee_amount_aed && link.total_amount_aed && (
                                 <div className="text-xs text-gray-400 mt-1 space-y-1">
-                                  <div>Fee: AED {link.fee_amount_aed.toFixed(2)} (11%)</div>
-                                  <div>Customer pays: <span className="text-green-400">AED {link.total_amount_aed.toFixed(2)}</span></div>
+                                  <div>Fee: AED {formatAmount(link.fee_amount_aed)} (11%)</div>
+                                  <div>Customer pays: <span className="text-green-400">AED {formatAmount(link.total_amount_aed)}</span></div>
                                 </div>
                               )}
                             </div>
@@ -781,7 +789,7 @@ function MyLinksContent() {
                 This will prevent customers from making payments through this link.
               </p>
               <p className="cosmic-body text-gray-400 text-sm mb-6">
-                Amount: AED {linkToDeactivate.amount_aed.toFixed(2)}
+                Amount: AED {formatAmount(linkToDeactivate.amount_aed)}
               </p>
               <div className="flex space-x-4">
                 <button
@@ -811,7 +819,7 @@ function MyLinksContent() {
                 This action cannot be undone.
               </p>
               <p className="cosmic-body text-gray-400 text-sm mb-6">
-                Amount: AED {linkToDelete.amount_aed.toFixed(2)}
+                Amount: AED {formatAmount(linkToDelete.amount_aed)}
               </p>
               <div className="flex space-x-4">
                 <button
@@ -880,7 +888,7 @@ function MyLinksContent() {
               <div className="mb-6 space-y-2">
                 <p className="text-white text-lg">{currentQRLink.client_name || 'Client'}</p>
                 <p className="text-white text-lg">{currentQRLink.title}</p>
-                <p className="text-white text-xl font-semibold">AED {currentQRLink.amount_aed.toFixed(2)}</p>
+                <p className="text-white text-xl font-semibold">AED {formatAmount(currentQRLink.amount_aed)}</p>
                 <p className="text-white font-medium">Scan to Share via WhatsApp</p>
               </div>
 
