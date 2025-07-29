@@ -146,7 +146,7 @@ function MyLinksContent() {
 
       // Then, check for completed transactions for each payment link
       const paymentLinksWithStatus = await Promise.all(
-        (paymentLinksData || []).map(async (link) => {
+        (paymentLinksData || []).map(async (link, index) => {
           const { data: transactions } = await supabase
             .from('transactions')
             .select('status')
