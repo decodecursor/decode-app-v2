@@ -159,7 +159,7 @@ function MyLinksContent() {
       case 'Expired':
         return 'text-red-400'
       case 'Deactivated':
-        return 'text-gray-400'
+        return 'text-red-400'
       default:
         return 'text-gray-400'
     }
@@ -549,7 +549,7 @@ function MyLinksContent() {
                 {paymentLinks.map((link) => {
                   const status = getStatus(link)
                   const statusColor = getStatusColor(status)
-                  const isExpired = status === 'Expired'
+                  const isInactive = status === 'Expired' || status === 'Deactivated'
                   const isNewPayLink = highlightingId === link.id
                   
                   return (
@@ -563,7 +563,7 @@ function MyLinksContent() {
                       className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out ${
                         isNewPayLink
                           ? 'bg-slate-900/85 border-l-yellow-500/70 border-yellow-400 bg-yellow-900/20 shadow-2xl shadow-yellow-400/60 scale-[1.02] animate-pulse'
-                          : isExpired 
+                          : isInactive 
                             ? 'bg-slate-900/60 border-l-red-500/50 bg-red-900/10 opacity-75 hover:border-red-400 hover:bg-slate-800/60 hover:shadow-2xl hover:shadow-red-400/60 hover:scale-[1.01]'
                             : 'bg-slate-900/85 border-l-purple-500/50 hover:border-purple-400 hover:bg-slate-800/90 hover:shadow-2xl hover:shadow-purple-400/60 hover:scale-[1.01]'
                       }`}>
