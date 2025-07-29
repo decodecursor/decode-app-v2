@@ -269,38 +269,6 @@ export default function CreatePayment() {
                 {errors.amount && (
                   <p className="mt-2 text-sm text-red-400">{errors.amount}</p>
                 )}
-                
-                {/* Fee Calculation Display */}
-                {formData.amount && !isNaN(parseFloat(formData.amount)) && parseFloat(formData.amount) > 0 && (
-                  <div className="mt-4 p-4 bg-gray-800/50 rounded-lg space-y-2">
-                    <h4 className="text-sm font-medium text-gray-300">Payment Breakdown</h4>
-                    {(() => {
-                      const amount = parseFloat(formData.amount)
-                      const feeCalc = calculateMarketplaceFee(amount)
-                      return (
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-400">Service Amount:</span>
-                            <span className="text-white">AED {feeCalc.originalAmount.toFixed(2)}</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-400">Marketplace Fee (11%):</span>
-                            <span className="text-yellow-400">AED {feeCalc.feeAmount.toFixed(2)}</span>
-                          </div>
-                          <div className="border-t border-gray-600 pt-2">
-                            <div className="flex justify-between text-base font-semibold">
-                              <span className="text-white">Customer Pays:</span>
-                              <span className="text-green-400">AED {feeCalc.totalAmount.toFixed(2)}</span>
-                            </div>
-                          </div>
-                          <div className="text-xs text-gray-500 mt-2">
-                            * You receive AED {feeCalc.originalAmount.toFixed(2)} after the 11% marketplace fee
-                          </div>
-                        </div>
-                      )
-                    })()}
-                  </div>
-                )}
               </div>
 
               {error && (
