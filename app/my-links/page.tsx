@@ -63,7 +63,7 @@ function MyLinksContent() {
       // Start highlighting effect after a short delay to ensure the page is loaded
       setTimeout(() => {
         setHighlightingId(newId)
-        // Remove highlight after 3 seconds
+        // Remove highlight after 1.5 seconds
         setTimeout(() => {
           setHighlightingId(null)
           setNewPayLinkId(null)
@@ -71,7 +71,7 @@ function MyLinksContent() {
           const url = new URL(window.location.href)
           url.searchParams.delete('new')
           window.history.replaceState({}, '', url.toString())
-        }, 3000)
+        }, 1500)
       }, 500)
     }
   }, [searchParams])
@@ -81,7 +81,7 @@ function MyLinksContent() {
     if (typeof window === 'undefined') return
     
     const rect = cardElement.getBoundingClientRect()
-    const totalStars = 15
+    const totalStars = 30
     const starTypes = ['star-sparkle', 'star-dot', 'star-diamond', 'star-triangle', 'click-star']
     const animations = ['magic-fly-1', 'magic-fly-2', 'magic-fly-3', 'magic-fly-4', 'magic-fly-5', 'magic-spiral']
     
@@ -115,7 +115,7 @@ function MyLinksContent() {
             star.parentNode.removeChild(star)
           }
         }, 2500)
-      }, i * 50)
+      }, i * 30)
     }
   }
 
@@ -562,7 +562,7 @@ function MyLinksContent() {
                       }}
                       className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out ${
                         isNewPayLink
-                          ? 'bg-slate-900/85 border-l-yellow-500/70 border-yellow-400 bg-yellow-900/20 shadow-2xl shadow-yellow-400/60 scale-[1.02] animate-pulse'
+                          ? 'bg-slate-900/85 border-l-yellow-500/40 border-yellow-400/60 bg-yellow-900/10 shadow-2xl shadow-yellow-400/40 scale-[1.02] animate-pulse'
                           : isInactive 
                             ? 'bg-slate-900/60 border-l-red-500/50 bg-red-900/10 opacity-75 hover:border-red-400 hover:bg-slate-800/60 hover:shadow-2xl hover:shadow-red-400/60 hover:scale-[1.01]'
                             : 'bg-slate-900/85 border-l-purple-500/50 hover:border-purple-400 hover:bg-slate-800/90 hover:shadow-2xl hover:shadow-purple-400/60 hover:scale-[1.01]'
