@@ -900,13 +900,10 @@ function MyLinksContent() {
                 </button>
               </div>
               
-              <div className="mb-6 space-y-2">
-                <p className="text-white text-lg">{currentQRLink.client_name || 'Client'}</p>
-                <p className="text-white text-lg">{currentQRLink.title}</p>
-                <p className="text-white text-xl font-semibold">AED {formatAmount(currentQRLink.amount_aed)}</p>
-                <p className="text-white font-medium">Scan to Share via WhatsApp</p>
-              </div>
+              {/* Header text at top */}
+              <p className="text-white font-medium mb-6">Scan to Share via WhatsApp</p>
 
+              {/* QR Code below header */}
               {qrCodeDataURL && (
                 <div className="mb-6">
                   <div className="bg-white p-4 rounded-lg inline-block">
@@ -919,9 +916,16 @@ function MyLinksContent() {
                 </div>
               )}
 
+              {/* Client, Service, Original Amount between QR and Close button */}
+              <div className="mb-6 space-y-2">
+                <p className="text-white text-lg">{currentQRLink.client_name || 'Client'}</p>
+                <p className="text-white text-lg">{currentQRLink.title}</p>
+                <p className="text-white text-xl font-semibold">AED {formatAmount(currentQRLink.original_amount_aed || currentQRLink.amount_aed)}</p>
+              </div>
+
               <button
                 onClick={closeQRModal}
-                className="cosmic-button-primary w-full mt-6 py-3"
+                className="cosmic-button-primary w-full py-3"
               >
                 Close
               </button>
