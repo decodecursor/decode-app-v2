@@ -513,13 +513,13 @@ body {
 .ribbon {
   position: absolute;
   bottom: 0;
-  left: 0;
-  padding: 4px 12px;
-  font-size: 10px;
+  left: -1px;
+  padding: 3px 10px;
+  font-size: 9px;
   font-weight: bold;
   color: white;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   border-top-right-radius: 8px;
   z-index: 10;
 }
@@ -533,7 +533,7 @@ body {
 }
 
 .ribbon-deactivated {
-  background: #6B7280;
+  background: #EF4444;
 }
 
 /* Landscape orientation adjustments */
