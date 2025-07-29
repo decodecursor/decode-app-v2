@@ -148,7 +148,7 @@ function MyLinksContent() {
           
           return {
             ...link,
-            is_paid: transactions && transactions.length > 0
+            is_paid: !!(transactions && transactions.length > 0)
           }
         })
       )
