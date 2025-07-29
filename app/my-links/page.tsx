@@ -592,7 +592,7 @@ function MyLinksContent() {
                           createNewPayLinkHighlight(el)
                         }
                       }}
-                      className={`ribbon-container relative border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out ${
+                      className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out ${
                         isNewPayLink
                           ? 'bg-slate-900/85 border-l-yellow-500/40 border-yellow-400/60 bg-yellow-900/10 shadow-2xl shadow-yellow-400/40 scale-[1.02] animate-pulse'
                           : isPaid

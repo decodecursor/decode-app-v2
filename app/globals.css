@@ -512,35 +512,28 @@ body {
 /* Status Ribbons for PayLink Cards */
 .ribbon {
   position: absolute;
-  top: 15px;
-  right: -8px;
-  transform: translateX(30%) translateY(-50%) rotate(45deg);
-  padding: 8px 40px;
-  font-size: 11px;
+  bottom: 0;
+  left: 0;
+  padding: 4px 12px;
+  font-size: 10px;
   font-weight: bold;
   color: white;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border-top-right-radius: 8px;
   z-index: 10;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .ribbon-paid {
-  background: linear-gradient(45deg, #10B981, #059669);
+  background: #10B981;
 }
 
 .ribbon-expired {
-  background: linear-gradient(45deg, #EF4444, #DC2626);
+  background: #EF4444;
 }
 
 .ribbon-deactivated {
-  background: linear-gradient(45deg, #6B7280, #4B5563);
-}
-
-/* Ensure ribbons work with card overflow */
-.ribbon-container {
-  position: relative;
-  overflow: visible;
+  background: #6B7280;
 }
 
 /* Landscape orientation adjustments */
