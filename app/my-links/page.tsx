@@ -25,6 +25,8 @@ export default function MyLinks() {
   const [error, setError] = useState('')
   const [copyMessage, setCopyMessage] = useState('')
   const [copyingId, setCopyingId] = useState<string | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [showToast, setShowToast] = useState(false)
   const [deactivatingId, setDeactivatingId] = useState<string | null>(null)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [linkToDeactivate, setLinkToDeactivate] = useState<PaymentLink | null>(null)
@@ -179,11 +181,19 @@ export default function MyLinks() {
         textArea.remove()
       }
       
-      setCopyMessage('Payment link copied to clipboard!')
+      // Show success state on button
+      setCopiedId(linkId)
       
-      // Clear the success message after 3 seconds
+      // Show toast notification
+      setShowToast(true)
+      
+      // Clear states after delays
       setTimeout(() => {
-        setCopyMessage('')
+        setCopiedId(null)
+      }, 2000)
+      
+      setTimeout(() => {
+        setShowToast(false)
       }, 3000)
       
     } catch (error) {
@@ -443,23 +453,12 @@ export default function MyLinks() {
         {/* Main Content */}
         <div className="flex justify-center">
           <div style={{width: '70vw'}}>
-          {/* Success/Error Messages */}
-          {(error || copyMessage) && (
+          {/* Error Messages Only */}
+          {error && (
             <div className="cosmic-card mb-8">
-              {error && (
-                <div className="text-center p-4 text-red-300 bg-red-900/20 rounded-lg mb-4">
-                  {error}
-                </div>
-              )}
-              {copyMessage && (
-                <div className={`text-center p-4 rounded-lg ${
-                  copyMessage.includes('Failed') 
-                    ? 'text-red-300 bg-red-900/20' 
-                    : 'text-green-300 bg-green-900/20'
-                }`}>
-                  {copyMessage}
-                </div>
-              )}
+              <div className="text-center p-4 text-red-300 bg-red-900/20 rounded-lg">
+                {error}
+              </div>
             </div>
           )}
 
@@ -555,7 +554,11 @@ export default function MyLinks() {
                             <button
                               onClick={() => copyToClipboard(link.id)}
                               disabled={copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
-                              className="cosmic-button-secondary px-4 py-2 text-sm border border-white/30 rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50"
+                              className={`cosmic-button-secondary px-4 py-2 text-sm border rounded-lg transition-colors disabled:opacity-50 ${
+                                copiedId === link.id 
+                                  ? 'border-blue-500 text-blue-400 bg-blue-500/10' 
+                                  : 'border-white/30 hover:bg-white/10'
+                              }`}
                             >
                               {copyingId === link.id ? (
                                 <span className="flex items-center gap-2">
@@ -564,6 +567,13 @@ export default function MyLinks() {
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                   </svg>
                                   Copying...
+                                </span>
+                              ) : copiedId === link.id ? (
+                                <span className="flex items-center gap-2">
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  Copied!
                                 </span>
                               ) : (
                                 <span className="flex items-center gap-2">
@@ -799,6 +809,18 @@ export default function MyLinks() {
               >
                 Close
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Small Toast Notification */}
+        {showToast && (
+          <div className="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 ease-in-out transform translate-y-0 opacity-100">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span className="text-sm font-medium">Link copied to clipboard</span>
             </div>
           </div>
         )}
