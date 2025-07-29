@@ -117,10 +117,10 @@ export default function Dashboard() {
     event.preventDefault()
     createMagicalStarExplosion(event)
     
-    // Navigate after 1 second to show the full effect
+    // Navigate after 0.8 seconds to show the full effect
     setTimeout(() => {
       router.push('/payment/create')
-    }, 1000)
+    }, 800)
   }
 
   const fetchRecentPayLinks = async (userId: string) => {
