@@ -24,7 +24,7 @@ function MyLinksContent() {
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Format amount with thousands separators
+  // Format amount with thousands separators 
   const formatAmount = (amount: number): string => {
     return amount.toLocaleString('en-US', {
       minimumFractionDigits: 2,
