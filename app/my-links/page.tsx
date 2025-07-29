@@ -680,7 +680,7 @@ function MyLinksContent() {
                               disabled={copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
                               className={`cosmic-button-secondary px-4 py-2 text-sm border rounded-lg transition-colors disabled:opacity-50 ${
                                 copiedId === link.id 
-                                  ? 'border-blue-500 text-blue-400 bg-blue-500/10' 
+                                  ? 'border-green-500 text-green-400 bg-green-500/10' 
                                   : 'border-white/30 hover:bg-white/10'
                               }`}
                             >
