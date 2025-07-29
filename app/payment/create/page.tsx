@@ -11,7 +11,6 @@ export default function CreatePayment() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
-  const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
     client: '',
@@ -171,12 +170,9 @@ export default function CreatePayment() {
       }
 
       console.log('Payment link created successfully:', data)
-      setSuccess(true)
       
-      // Redirect to My Links page after 5 seconds
-      setTimeout(() => {
-        router.push('/my-links')
-      }, 5000)
+      // Redirect immediately to My Links page
+      router.push('/my-links')
 
     } catch (error) {
       console.error('Error creating payment link:', error)
@@ -189,7 +185,6 @@ export default function CreatePayment() {
   const resetForm = () => {
     setFormData({ client: '', title: '', amount: '' })
     setErrors({ client: '', title: '', amount: '' })
-    setSuccess(false)
     setError('')
   }
 
@@ -222,170 +217,109 @@ export default function CreatePayment() {
 
         {/* Main Content */}
         <div className="flex justify-center">
-          {!success ? (
-            /* Payment Form */
-            <div className="cosmic-card" style={{width: '30vw'}}>
-              <h1 className="cosmic-heading text-center mb-8">Create PayLink</h1>
+          <div className="cosmic-card" style={{width: '30vw'}}>
+            <h1 className="cosmic-heading text-center mb-8">Create PayLink</h1>
 
-              <form onSubmit={generatePaymentLink} className="space-y-6">
-                <div>
-                  <label className="cosmic-label block mb-2">Client *</label>
-                  <input
-                    type="text"
-                    name="client"
-                    value={formData.client}
-                    onChange={handleInputChange}
-                    placeholder="e.g., Sarah Johnson"
-                    className={`cosmic-input ${errors.client ? 'border-red-500' : ''}`}
-                    disabled={creating}
-                  />
-                  {errors.client && (
-                    <p className="mt-2 text-sm text-red-400">{errors.client}</p>
-                  )}
-                </div>
+            <form onSubmit={generatePaymentLink} className="space-y-6">
+              <div>
+                <label className="cosmic-label block mb-2">Client *</label>
+                <input
+                  type="text"
+                  name="client"
+                  value={formData.client}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Sarah Johnson"
+                  className={`cosmic-input ${errors.client ? 'border-red-500' : ''}`}
+                  disabled={creating}
+                />
+                {errors.client && (
+                  <p className="mt-2 text-sm text-red-400">{errors.client}</p>
+                )}
+              </div>
 
-                <div>
-                  <label className="cosmic-label block mb-2">Service *</label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleInputChange}
-                    placeholder="e.g., Haircut"
-                    className={`cosmic-input ${errors.title ? 'border-red-500' : ''}`}
-                    disabled={creating}
-                  />
-                  {errors.title && (
-                    <p className="mt-2 text-sm text-red-400">{errors.title}</p>
-                  )}
-                </div>
+              <div>
+                <label className="cosmic-label block mb-2">Service *</label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Haircut"
+                  className={`cosmic-input ${errors.title ? 'border-red-500' : ''}`}
+                  disabled={creating}
+                />
+                {errors.title && (
+                  <p className="mt-2 text-sm text-red-400">{errors.title}</p>
+                )}
+              </div>
 
-                <div>
-                  <label className="cosmic-label block mb-2">Amount in AED *</label>
-                  <input
-                    type="number"
-                    name="amount"
-                    value={formData.amount}
-                    onChange={handleInputChange}
-                    placeholder="0.00"
-                    step="0.01"
-                    min="0"
-                    className={`cosmic-input text-xl ${errors.amount ? 'border-red-500' : ''}`}
-                    disabled={creating}
-                  />
-                  {errors.amount && (
-                    <p className="mt-2 text-sm text-red-400">{errors.amount}</p>
-                  )}
-                  
-                  {/* Fee Calculation Display */}
-                  {formData.amount && !isNaN(parseFloat(formData.amount)) && parseFloat(formData.amount) > 0 && (
-                    <div className="mt-4 p-4 bg-gray-800/50 rounded-lg space-y-2">
-                      <h4 className="text-sm font-medium text-gray-300">Payment Breakdown</h4>
-                      {(() => {
-                        const amount = parseFloat(formData.amount)
-                        const feeCalc = calculateMarketplaceFee(amount)
-                        return (
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-400">Service Amount:</span>
-                              <span className="text-white">AED {feeCalc.originalAmount.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-400">Marketplace Fee (11%):</span>
-                              <span className="text-yellow-400">AED {feeCalc.feeAmount.toFixed(2)}</span>
-                            </div>
-                            <div className="border-t border-gray-600 pt-2">
-                              <div className="flex justify-between text-base font-semibold">
-                                <span className="text-white">Customer Pays:</span>
-                                <span className="text-green-400">AED {feeCalc.totalAmount.toFixed(2)}</span>
-                              </div>
-                            </div>
-                            <div className="text-xs text-gray-500 mt-2">
-                              * You receive AED {feeCalc.originalAmount.toFixed(2)} after the 11% marketplace fee
+              <div>
+                <label className="cosmic-label block mb-2">Amount in AED *</label>
+                <input
+                  type="number"
+                  name="amount"
+                  value={formData.amount}
+                  onChange={handleInputChange}
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                  className={`cosmic-input text-xl ${errors.amount ? 'border-red-500' : ''}`}
+                  disabled={creating}
+                />
+                {errors.amount && (
+                  <p className="mt-2 text-sm text-red-400">{errors.amount}</p>
+                )}
+                
+                {/* Fee Calculation Display */}
+                {formData.amount && !isNaN(parseFloat(formData.amount)) && parseFloat(formData.amount) > 0 && (
+                  <div className="mt-4 p-4 bg-gray-800/50 rounded-lg space-y-2">
+                    <h4 className="text-sm font-medium text-gray-300">Payment Breakdown</h4>
+                    {(() => {
+                      const amount = parseFloat(formData.amount)
+                      const feeCalc = calculateMarketplaceFee(amount)
+                      return (
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">Service Amount:</span>
+                            <span className="text-white">AED {feeCalc.originalAmount.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">Marketplace Fee (11%):</span>
+                            <span className="text-yellow-400">AED {feeCalc.feeAmount.toFixed(2)}</span>
+                          </div>
+                          <div className="border-t border-gray-600 pt-2">
+                            <div className="flex justify-between text-base font-semibold">
+                              <span className="text-white">Customer Pays:</span>
+                              <span className="text-green-400">AED {feeCalc.totalAmount.toFixed(2)}</span>
                             </div>
                           </div>
-                        )
-                      })()}
-                    </div>
-                  )}
-                </div>
-
-                {error && (
-                  <div className="text-center p-3 rounded-lg text-sm text-red-300 bg-red-900/20">
-                    {error}
+                          <div className="text-xs text-gray-500 mt-2">
+                            * You receive AED {feeCalc.originalAmount.toFixed(2)} after the 11% marketplace fee
+                          </div>
+                        </div>
+                      )
+                    })()}
                   </div>
                 )}
-
-                <div className="flex justify-center">
-                  <button
-                    type="submit"
-                    disabled={creating}
-                    className="cosmic-button-primary px-8 py-4 text-lg font-medium"
-                  >
-                    {creating ? 'Creating PayLink...' : 'Create PayLink'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          ) : (
-            /* Success State */
-            <div className="cosmic-card text-center" style={{width: '30vw'}}>
-              <div className="mb-6">
-                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                </div>
-                <h2 className="cosmic-heading mb-2">Payment Link Created!</h2>
-                <p className="cosmic-body opacity-80 mb-4">
-                  Your payment link has been saved to the database successfully.
-                </p>
-                <p className="cosmic-body text-purple-400">
-                  Redirecting to My Links page...
-                </p>
               </div>
 
-              <div className="bg-black/20 rounded-lg p-4 mb-6">
-                <div className="cosmic-label mb-2">Payment Details</div>
-                <div className="cosmic-body mb-1">Client: <span className="font-medium">{formData.client}</span></div>
-                <div className="cosmic-body mb-1">Service: <span className="font-medium">{formData.title}</span></div>
-                <div className="cosmic-body">Your Amount: <span className="text-xl font-medium">AED {formData.amount}</span></div>
-                {(() => {
-                  const amount = parseFloat(formData.amount)
-                  const feeCalc = calculateMarketplaceFee(amount)
-                  return (
-                    <div className="mt-3 pt-3 border-t border-gray-600">
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Marketplace Fee (11%):</span>
-                          <span className="text-yellow-400">AED {feeCalc.feeAmount.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between font-semibold">
-                          <span className="text-white">Customer Pays:</span>
-                          <span className="text-green-400">AED {feeCalc.totalAmount.toFixed(2)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })()}
-                <div className="cosmic-body text-sm text-gray-400 mt-3">
-                  Expires: {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+              {error && (
+                <div className="text-center p-3 rounded-lg text-sm text-red-300 bg-red-900/20">
+                  {error}
                 </div>
-              </div>
+              )}
 
-              <div className="flex space-x-4">
+              <div className="flex justify-center">
                 <button
-                  onClick={resetForm}
-                  className="cosmic-button-primary flex-1"
+                  type="submit"
+                  disabled={creating}
+                  className="cosmic-button-primary px-8 py-4 text-lg font-medium"
                 >
-                  Create Another Link
+                  {creating ? 'Creating PayLink...' : 'Create PayLink'}
                 </button>
-                <Link href="/my-links" className="cosmic-button-secondary flex-1 text-center py-3 border border-white/30 rounded-lg">
-                  Go to My Links
-                </Link>
               </div>
-            </div>
-          )}
+            </form>
+          </div>
         </div>
       </div>
     </div>
