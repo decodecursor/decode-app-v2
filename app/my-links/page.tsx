@@ -16,6 +16,7 @@ interface PaymentLink {
   total_amount_aed?: number
   expiration_date: string
   is_active: boolean
+  is_paid?: boolean
   created_at: string
 }
 
@@ -124,7 +125,8 @@ function MyLinksContent() {
       setLoading(true)
       setError('')
 
-      const { data, error: fetchError } = await supabase
+      // First, fetch payment links
+      const { data: paymentLinksData, error: fetchError } = await supabase
         .from('payment_links')
         .select('id, client_name, title, amount_aed, original_amount_aed, fee_amount_aed, total_amount_aed, expiration_date, is_active, created_at')
         .eq('creator_id', userId)
@@ -134,7 +136,24 @@ function MyLinksContent() {
         throw fetchError
       }
 
-      setPaymentLinks(data || [])
+      // Then, check for completed transactions for each payment link
+      const paymentLinksWithStatus = await Promise.all(
+        (paymentLinksData || []).map(async (link) => {
+          const { data: transactions } = await supabase
+            .from('transactions')
+            .select('status')
+            .eq('payment_link_id', link.id)
+            .eq('status', 'completed')
+            .limit(1)
+          
+          return {
+            ...link,
+            is_paid: transactions && transactions.length > 0
+          }
+        })
+      )
+      
+      setPaymentLinks(paymentLinksWithStatus)
     } catch (error) {
       console.error('Error fetching payment links:', error)
       setError('Failed to load payment links')
@@ -144,6 +163,8 @@ function MyLinksContent() {
   }
 
   const getStatus = (link: PaymentLink) => {
+    // Priority: Paid > Expired > Deactivated > Active
+    if (link.is_paid) return 'Paid'
     if (!link.is_active) return 'Deactivated'
     
     const now = new Date()
@@ -155,6 +176,8 @@ function MyLinksContent() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active':
+        return 'text-green-400'
+      case 'Paid':
         return 'text-green-400'
       case 'Expired':
         return 'text-red-400'
@@ -550,6 +573,7 @@ function MyLinksContent() {
                   const status = getStatus(link)
                   const statusColor = getStatusColor(status)
                   const isInactive = status === 'Expired' || status === 'Deactivated'
+                  const isPaid = status === 'Paid'
                   const isNewPayLink = highlightingId === link.id
                   
                   return (
@@ -563,9 +587,11 @@ function MyLinksContent() {
                       className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out ${
                         isNewPayLink
                           ? 'bg-slate-900/85 border-l-yellow-500/40 border-yellow-400/60 bg-yellow-900/10 shadow-2xl shadow-yellow-400/40 scale-[1.02] animate-pulse'
-                          : isInactive 
-                            ? 'bg-slate-900/60 border-l-red-500/50 bg-red-900/10 opacity-75 hover:border-red-400 hover:bg-slate-800/60 hover:shadow-2xl hover:shadow-red-400/60 hover:scale-[1.01]'
-                            : 'bg-slate-900/85 border-l-purple-500/50 hover:border-purple-400 hover:bg-slate-800/90 hover:shadow-2xl hover:shadow-purple-400/60 hover:scale-[1.01]'
+                          : isPaid
+                            ? 'bg-slate-900/60 border-l-green-500/50 bg-green-900/10 opacity-60 hover:border-green-400 hover:bg-slate-800/60 hover:shadow-2xl hover:shadow-green-400/60 hover:scale-[1.01]'
+                            : isInactive 
+                              ? 'bg-slate-900/60 border-l-red-500/50 bg-red-900/10 opacity-75 hover:border-red-400 hover:bg-slate-800/60 hover:shadow-2xl hover:shadow-red-400/60 hover:scale-[1.01]'
+                              : 'bg-slate-900/85 border-l-purple-500/50 hover:border-purple-400 hover:bg-slate-800/90 hover:shadow-2xl hover:shadow-purple-400/60 hover:scale-[1.01]'
                       }`}>
                       <div className="flex flex-col gap-4">
                         {/* Top Row: Title, Amount, Status */}
@@ -688,7 +714,7 @@ function MyLinksContent() {
                               )}
                             </button>
 
-                            {/* Only show deactivate button for active links */}
+                            {/* Only show deactivate button for active links (not paid) */}
                             {status === 'Active' && (
                               <button
                                 onClick={() => handleDeactivateClick(link)}
@@ -840,8 +866,7 @@ function MyLinksContent() {
         {showQRModal && currentQRLink && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="cosmic-card max-w-md w-full text-center">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="cosmic-heading text-white">WhatsApp QR Code</h3>
+              <div className="flex justify-end mb-4">
                 <button
                   onClick={closeQRModal}
                   className="text-gray-400 hover:text-white transition-colors"
@@ -852,13 +877,11 @@ function MyLinksContent() {
                 </button>
               </div>
               
-              <div className="mb-4">
-                <p className="text-gray-300 text-sm mb-2">
-                  PayLink: <span className="font-medium">{currentQRLink.title}</span>
-                </p>
-                <p className="text-green-400 font-semibold text-lg">
-                  AED {currentQRLink.amount_aed.toFixed(2)}
-                </p>
+              <div className="mb-6 space-y-2">
+                <p className="text-white text-lg">{currentQRLink.client_name || 'Client'}</p>
+                <p className="text-white text-lg">{currentQRLink.title}</p>
+                <p className="text-white text-xl font-semibold">AED {currentQRLink.amount_aed.toFixed(2)}</p>
+                <p className="text-white font-medium">Scan to Share via WhatsApp</p>
               </div>
 
               {qrCodeDataURL && (
@@ -872,15 +895,6 @@ function MyLinksContent() {
                   </div>
                 </div>
               )}
-
-              <div className="text-center space-y-2">
-                <p className="text-white font-medium">Scan to Share via WhatsApp</p>
-                <p className="text-gray-400 text-sm">
-                  • Opens WhatsApp app<br/>
-                  • Shows pre-filled message<br/>
-                  • Choose contacts to send to
-                </p>
-              </div>
 
               <button
                 onClick={closeQRModal}
