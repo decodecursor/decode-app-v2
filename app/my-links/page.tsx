@@ -26,7 +26,6 @@ export default function MyLinks() {
   const [copyMessage, setCopyMessage] = useState('')
   const [copyingId, setCopyingId] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
-  const [showToast, setShowToast] = useState(false)
   const [deactivatingId, setDeactivatingId] = useState<string | null>(null)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [linkToDeactivate, setLinkToDeactivate] = useState<PaymentLink | null>(null)
@@ -184,17 +183,10 @@ export default function MyLinks() {
       // Show success state on button
       setCopiedId(linkId)
       
-      // Show toast notification
-      setShowToast(true)
-      
-      // Clear states after delays
+      // Clear button state after 2 seconds
       setTimeout(() => {
         setCopiedId(null)
       }, 2000)
-      
-      setTimeout(() => {
-        setShowToast(false)
-      }, 3000)
       
     } catch (error) {
       console.error('Failed to copy:', error)
@@ -813,17 +805,6 @@ export default function MyLinks() {
           </div>
         )}
 
-        {/* Small Toast Notification */}
-        {showToast && (
-          <div className="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 ease-in-out transform translate-y-0 opacity-100">
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <span className="text-sm font-medium">Link copied to clipboard</span>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )
