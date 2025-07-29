@@ -235,7 +235,7 @@ export default function CreatePayment() {
                     name="client"
                     value={formData.client}
                     onChange={handleInputChange}
-                    placeholder="e.g., Sarah Johnson, Alex Smith"
+                    placeholder="e.g., Sarah Johnson"
                     className={`cosmic-input ${errors.client ? 'border-red-500' : ''}`}
                     disabled={creating}
                   />
@@ -251,7 +251,7 @@ export default function CreatePayment() {
                     name="title"
                     value={formData.title}
                     onChange={handleInputChange}
-                    placeholder="e.g., Hair Styling, Makeup Session, Manicure"
+                    placeholder="e.g., Haircut"
                     className={`cosmic-input ${errors.title ? 'border-red-500' : ''}`}
                     disabled={creating}
                   />
