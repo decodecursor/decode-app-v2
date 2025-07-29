@@ -171,8 +171,8 @@ export default function CreatePayment() {
 
       console.log('Payment link created successfully:', data)
       
-      // Redirect immediately to My Links page
-      router.push('/my-links')
+      // Redirect immediately to My Links page with new PayLink ID for highlighting
+      router.push(`/my-links?new=${data.id}`)
 
     } catch (error) {
       console.error('Error creating payment link:', error)

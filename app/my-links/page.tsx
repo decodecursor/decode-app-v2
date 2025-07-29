@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import QRCode from 'qrcode'
 
@@ -37,7 +37,10 @@ export default function MyLinks() {
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('')
   const [currentQRLink, setCurrentQRLink] = useState<PaymentLink | null>(null)
   const [generatingQR, setGeneratingQR] = useState(false)
+  const [newPayLinkId, setNewPayLinkId] = useState<string | null>(null)
+  const [highlightingId, setHighlightingId] = useState<string | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     const getUser = async () => {
@@ -51,6 +54,70 @@ export default function MyLinks() {
     
     getUser()
   }, [router])
+
+  // Detect new PayLink from URL parameter and trigger highlight effect
+  useEffect(() => {
+    const newId = searchParams.get('new')
+    if (newId) {
+      setNewPayLinkId(newId)
+      // Start highlighting effect after a short delay to ensure the page is loaded
+      setTimeout(() => {
+        setHighlightingId(newId)
+        // Remove highlight after 3 seconds
+        setTimeout(() => {
+          setHighlightingId(null)
+          setNewPayLinkId(null)
+          // Clean up URL parameter
+          const url = new URL(window.location.href)
+          url.searchParams.delete('new')
+          window.history.replaceState({}, '', url.toString())
+        }, 3000)
+      }, 500)
+    }
+  }, [searchParams])
+
+  // Create magical highlight effect for new PayLink
+  const createNewPayLinkHighlight = (cardElement: HTMLElement) => {
+    if (typeof window === 'undefined') return
+    
+    const rect = cardElement.getBoundingClientRect()
+    const totalStars = 15
+    const starTypes = ['star-sparkle', 'star-dot', 'star-diamond', 'star-triangle', 'click-star']
+    const animations = ['magic-fly-1', 'magic-fly-2', 'magic-fly-3', 'magic-fly-4', 'magic-fly-5', 'magic-spiral']
+    
+    for (let i = 0; i < totalStars; i++) {
+      setTimeout(() => {
+        if (typeof window === 'undefined') return
+        
+        const star = document.createElement('div')
+        
+        const starType = starTypes[Math.floor(Math.random() * starTypes.length)]
+        star.className = `click-star ${starType}`
+        
+        const x = rect.left + Math.random() * rect.width
+        const y = rect.top + Math.random() * rect.height
+        
+        star.style.left = x + 'px'
+        star.style.top = y + 'px'
+        
+        const animation = animations[Math.floor(Math.random() * animations.length)]
+        star.classList.add(animation || 'magic-fly-1')
+        
+        const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#fff']
+        if (starType === 'star-dot') {
+          star.style.background = colors[Math.floor(Math.random() * colors.length)] || '#ffd700'
+        }
+        
+        document.body.appendChild(star)
+        
+        setTimeout(() => {
+          if (star.parentNode) {
+            star.parentNode.removeChild(star)
+          }
+        }, 2500)
+      }, i * 50)
+    }
+  }
 
   const fetchPaymentLinks = async (userId: string) => {
     try {
@@ -483,13 +550,23 @@ export default function MyLinks() {
                   const status = getStatus(link)
                   const statusColor = getStatusColor(status)
                   const isExpired = status === 'Expired'
+                  const isNewPayLink = highlightingId === link.id
                   
                   return (
-                    <div key={link.id} className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out ${
-                      isExpired 
-                        ? 'bg-slate-900/60 border-l-red-500/50 bg-red-900/10 opacity-75 hover:border-red-400 hover:bg-slate-800/60 hover:shadow-2xl hover:shadow-red-400/60 hover:scale-[1.01]'
-                        : 'bg-slate-900/85 border-l-purple-500/50 hover:border-purple-400 hover:bg-slate-800/90 hover:shadow-2xl hover:shadow-purple-400/60 hover:scale-[1.01]'
-                    }`}>
+                    <div 
+                      key={link.id} 
+                      ref={(el) => {
+                        if (el && isNewPayLink) {
+                          createNewPayLinkHighlight(el)
+                        }
+                      }}
+                      className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out ${
+                        isNewPayLink
+                          ? 'bg-slate-900/85 border-l-yellow-500/70 border-yellow-400 bg-yellow-900/20 shadow-2xl shadow-yellow-400/60 scale-[1.02] animate-pulse'
+                          : isExpired 
+                            ? 'bg-slate-900/60 border-l-red-500/50 bg-red-900/10 opacity-75 hover:border-red-400 hover:bg-slate-800/60 hover:shadow-2xl hover:shadow-red-400/60 hover:scale-[1.01]'
+                            : 'bg-slate-900/85 border-l-purple-500/50 hover:border-purple-400 hover:bg-slate-800/90 hover:shadow-2xl hover:shadow-purple-400/60 hover:scale-[1.01]'
+                      }`}>
                       <div className="flex flex-col gap-4">
                         {/* Top Row: Title, Amount, Status */}
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
