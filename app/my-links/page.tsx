@@ -681,11 +681,12 @@ function MyLinksContent() {
                             <button
                               onClick={() => copyToClipboard(link.id)}
                               disabled={copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
-                              className={`cosmic-button-secondary px-4 py-2 text-sm border rounded-lg transition-colors disabled:opacity-50 ${
+                              className={`px-4 py-2 text-sm border rounded-lg transition-colors disabled:opacity-50 ${
                                 copiedId === link.id 
-                                  ? 'border-green-500 text-green-400 bg-green-500/10' 
-                                  : 'border-white/30 hover:bg-white/10'
+                                  ? 'border-green-500 bg-green-500/10' 
+                                  : 'cosmic-button-secondary border-white/30 hover:bg-white/10'
                               }`}
+                              style={copiedId === link.id ? { color: '#4ade80' } : undefined}
                             >
                               {copyingId === link.id ? (
                                 <span className="flex items-center gap-2">
