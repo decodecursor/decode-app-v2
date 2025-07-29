@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 
@@ -14,6 +15,7 @@ export default function Dashboard() {
   const [recentPayLinks, setRecentPayLinks] = useState<any[]>([])
   const dropdownRef = useRef<HTMLDivElement>(null)
   const hoverTimeout = useRef<NodeJS.Timeout | null>(null)
+  const router = useRouter()
 
   // Magic button functions with SSR compatibility
   const createHoverSparkles = (event: React.MouseEvent) => {
@@ -109,6 +111,16 @@ export default function Dashboard() {
         button.style.animation = 'buttonShake 0.5s ease-in-out'
       }
     }, 10)
+  }
+
+  const handleCreatePayLinkClick = (event: React.MouseEvent) => {
+    event.preventDefault()
+    createMagicalStarExplosion(event)
+    
+    // Navigate after 0.5 seconds to show the full effect
+    setTimeout(() => {
+      router.push('/payment/create')
+    }, 500)
   }
 
   const fetchRecentPayLinks = async (userId: string) => {
@@ -213,14 +225,13 @@ export default function Dashboard() {
               
               {userRole === 'Beauty Professional' && (
                 <div className="flex gap-6 items-center">
-                  <Link 
-                    href="/payment/create" 
-                    className="magic-button"
+                  <button 
+                    className="px-6 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg font-medium transition-colors"
                     onMouseOver={createHoverSparkles}
-                    onClick={createMagicalStarExplosion}
+                    onClick={handleCreatePayLinkClick}
                   >
-                    ✨ Create PayLink ✨
-                  </Link>
+                    Create PayLink
+                  </button>
                   <Link 
                     href="/my-links" 
                     className="px-6 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg font-medium transition-colors"
@@ -318,17 +329,16 @@ export default function Dashboard() {
                     
                     {userRole === 'Beauty Professional' && (
                       <>
-                        <Link 
-                          href="/payment/create" 
-                          className="magic-button block mb-2"
+                        <button 
+                          className="block w-full text-left px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg font-medium transition-colors mb-2"
                           onMouseOver={createHoverSparkles}
                           onClick={(e) => {
                             setMobileMenuOpen(false)
-                            createMagicalStarExplosion(e)
+                            handleCreatePayLinkClick(e)
                           }}
                         >
-                          ✨ Create PayLink ✨
-                        </Link>
+                          Create PayLink
+                        </button>
                         <Link 
                           href="/my-links" 
                           className="block px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg font-medium transition-colors"
