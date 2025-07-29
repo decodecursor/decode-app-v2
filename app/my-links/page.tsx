@@ -656,6 +656,9 @@ function MyLinksContent() {
                           {link.is_active && (
                             <p className={`text-sm ${getExpiryColor(link.expiration_date)}`}>
                               {(() => {
+                                if (isPaid) {
+                                  return `Paid ${formatDate(link.expiration_date)}`
+                                }
                                 const now = new Date()
                                 const expirationDate = new Date(link.expiration_date)
                                 const isExpired = now > expirationDate
