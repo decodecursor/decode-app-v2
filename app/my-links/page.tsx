@@ -156,7 +156,7 @@ function MyLinksContent() {
           
           return {
             ...link,
-            is_paid: index === 0 ? true : !!(transactions && transactions.length > 0) // Temporarily mark first PayLink as paid for design preview
+            is_paid: index === 2 ? true : !!(transactions && transactions.length > 0) // Temporarily mark third PayLink as paid for design preview
           }
         })
       )
