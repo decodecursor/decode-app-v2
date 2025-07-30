@@ -95,7 +95,7 @@ function PaymentForm({
 
   return (
     <div className="cosmic-bg min-h-screen flex items-center justify-center px-4 py-8">
-      <div className="cosmic-card-login max-w-md w-full">
+      <div className="cosmic-card-login max-w-6xl md:max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
           <img 
@@ -104,7 +104,7 @@ function PaymentForm({
             className="mx-auto mb-2" 
             style={{height: '40px', filter: 'brightness(0) invert(1)'}} 
           />
-          <p className="!text-xs cosmic-body opacity-70">Making Girls More Beautiful</p>
+          <p className="!text-sm cosmic-body opacity-70">Making Girls More Beautiful</p>
         </div>
 
         {/* Payment Information */}
@@ -127,9 +127,6 @@ function PaymentForm({
 
         {/* Express Checkout (Apple Pay, Google Pay) */}
         <div className="space-y-4 mb-6">
-          <div className="text-center">
-            <p className="!text-sm cosmic-body text-white opacity-80 mb-4">Quick Payment</p>
-          </div>
           <div className="cosmic-input p-4">
             <ExpressCheckoutElement
               options={{
@@ -140,6 +137,10 @@ function PaymentForm({
                 paymentMethods: {
                   applePay: 'always',
                   googlePay: 'always'
+                },
+                layout: {
+                  maxColumns: 2,
+                  maxRows: 1
                 }
               }}
               onConfirm={async (event) => {
