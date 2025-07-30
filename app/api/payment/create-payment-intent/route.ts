@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       amount: amount,
       currency: currency,
       paymentLinkId: paymentLinkId,
-      beautyProfessionalId: paymentLink.creator?.email || 'unknown',
+      beautyProfessionalId: paymentLink.creator?.[0]?.email || 'unknown',
       customerEmail: customerEmail,
       customerName: customerName,
       description: paymentLink.title || 'Beauty service payment'
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
       .from('transactions')
       .insert({
         payment_link_id: paymentLinkId,
-        beauty_professional_id: paymentLink.creator?.email || 'unknown',
+        beauty_professional_id: paymentLink.creator?.[0]?.email || 'unknown',
         amount: paymentLink.amount_aed,
         original_amount: paymentLink.amount_aed,
         currency: 'AED',
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         convertedAmount: amount / 100,
         convertedCurrency: currency,
         description: paymentLink.title,
-        professionalName: paymentLink.creator?.full_name || paymentLink.creator?.email?.split('@')[0] || 'Beauty Professional'
+        professionalName: paymentLink.creator?.[0]?.full_name || paymentLink.creator?.[0]?.email?.split('@')[0] || 'Beauty Professional'
       }
     });
 
