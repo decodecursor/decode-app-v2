@@ -43,7 +43,7 @@ class StripeService {
 
     // Initialize Stripe with secret key
     this.stripe = new Stripe(this.config.secretKey, {
-      apiVersion: '2024-11-20.acacia',
+      apiVersion: '2025-06-30.basil',
       typescript: true,
     });
 
