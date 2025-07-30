@@ -217,8 +217,8 @@ export default function PaymentPage() {
         const transformedData: PaymentLinkData = {
           ...data,
           creator: Array.isArray(data.creator) 
-            ? (data.creator[0] || { full_name: null, email: '' })
-            : (data.creator || { full_name: null, email: '' })
+            ? (data.creator[0] || { id: '', full_name: null, email: '', company_name: null })
+            : (data.creator || { id: '', full_name: null, email: '', company_name: null })
         }
 
         setPaymentData(transformedData)
