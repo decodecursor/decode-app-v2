@@ -195,25 +195,9 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
     // Create payment intent when component mounts
     const createPaymentIntent = async () => {
       try {
-        const response = await fetch('/api/payment/create-stripe-session', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            paymentLinkId: props.paymentLinkId,
-            customerEmail: props.customerEmail,
-            customerName: props.customerName,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to create payment session');
-        }
-
-        // Create payment intent using the payment link data
+        console.log('🔍 DEBUG: Creating payment intent for:', props.paymentLinkId);
+        
+        // Create payment intent directly (skip the stripe session API)
         const intentResponse = await fetch('/api/payment/create-payment-intent', {
           method: 'POST',
           headers: {
@@ -230,7 +214,10 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
 
         const intentData = await intentResponse.json();
         
+        console.log('🔍 DEBUG: Payment intent response:', intentData);
+        
         if (!intentResponse.ok) {
+          console.error('❌ DEBUG: Payment intent failed:', intentData);
           throw new Error(intentData.error || 'Failed to create payment intent');
         }
 

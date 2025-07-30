@@ -12,16 +12,32 @@ interface CreatePaymentIntentRequest {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔍 DEBUG: Payment Intent API called');
+    
     const body: CreatePaymentIntentRequest = await request.json();
+    console.log('🔍 DEBUG: Request body:', JSON.stringify(body, null, 2));
+    
     const { paymentLinkId, amount, currency, customerEmail, customerName } = body;
 
+    console.log('🔍 DEBUG: Extracted parameters:', {
+      paymentLinkId,
+      amount,
+      currency,
+      customerEmail,
+      customerName
+    });
+
     if (!paymentLinkId || !amount || !currency) {
+      console.log('❌ DEBUG: Missing required parameters');
       return NextResponse.json({
         error: 'Payment link ID, amount, and currency are required'
       }, { status: 400 });
     }
 
     console.log('🔄 Creating Stripe payment intent for payment link:', paymentLinkId);
+    console.log('🔍 DEBUG: Environment check:');
+    console.log('- STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? 'SET' : 'MISSING');
+    console.log('- NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:', process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? 'SET' : 'MISSING');
 
     // Fetch payment link details from Supabase (using correct schema from working Crossmint API)
     const { data: paymentLink, error: fetchError } = await supabase
@@ -45,12 +61,15 @@ export async function POST(request: NextRequest) {
     console.log('- Data:', paymentLink);
 
     if (fetchError) {
-      console.error('❌ Payment link not found:', fetchError);
+      console.error('❌ Payment link database error:', JSON.stringify(fetchError, null, 2));
       return NextResponse.json({
         error: 'Payment link not found',
         debug: {
           supabaseError: fetchError,
-          paymentLinkId: paymentLinkId
+          paymentLinkId: paymentLinkId,
+          errorCode: fetchError.code,
+          errorMessage: fetchError.message,
+          errorDetails: fetchError.details
         }
       }, { status: 404 });
     }
