@@ -247,172 +247,188 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
           {/* Profile Photo Section */}
-          <div className="cosmic-card">
-            <h2 className="text-xl font-semibold text-white mb-6">Profile Photo</h2>
-            
-            <div className="text-center">
-              {/* Current Profile Photo */}
-              <div className="mb-6">
-                <div className="w-32 h-32 mx-auto rounded-full overflow-hidden bg-gray-700">
-                  {profile?.profile_photo_url ? (
-                    <img 
-                      src={profile.profile_photo_url} 
-                      alt="Profile" 
-                      className="w-full h-full object-cover"
+          <div className="xl:col-span-2">
+            <div className="cosmic-card h-fit">
+              <h2 className="text-xl font-semibold text-white mb-8">Profile Photo</h2>
+              
+              <div className="text-center">
+                {/* Current Profile Photo */}
+                <div className="mb-8">
+                  <div className="w-48 h-48 mx-auto rounded-full overflow-hidden bg-gray-700 ring-4 ring-white/10">
+                    {profile?.profile_photo_url ? (
+                      <img 
+                        src={profile.profile_photo_url} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Image Cropper */}
+                {selectedImage && (
+                  <div className="mb-8">
+                    <div className="max-w-sm mx-auto mb-6">
+                      <ReactCrop
+                        crop={crop}
+                        onChange={(c) => setCrop(c)}
+                        onComplete={(c) => setCompletedCrop(c)}
+                        aspect={1}
+                        circularCrop
+                      >
+                        <img
+                          ref={imgRef}
+                          src={selectedImage}
+                          alt="Crop preview"
+                          className="max-w-full max-h-64 mx-auto rounded-lg"
+                        />
+                      </ReactCrop>
+                    </div>
+                    
+                    <div className="flex flex-col sm:flex-row justify-center gap-3">
+                      <button
+                        onClick={uploadProfilePhoto}
+                        disabled={photoUploading || !completedCrop}
+                        className="cosmic-button-primary disabled:opacity-50"
+                      >
+                        {photoUploading ? 'Uploading...' : 'Save Photo'}
+                      </button>
+                      <button
+                        onClick={() => setSelectedImage(null)}
+                        className="cosmic-button-secondary"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Upload Button */}
+                {!selectedImage && (
+                  <div className="space-y-4">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      className="hidden"
                     />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="cosmic-button-primary px-6 py-3"
+                    >
+                      <svg className="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
+                      Choose New Photo
+                    </button>
+                    <p className="text-gray-400 text-sm">Upload a square image for best results</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Profile Information */}
+          <div className="xl:col-span-3">
+            <div className="cosmic-card">
+              <h2 className="text-xl font-semibold text-white mb-8">Profile Information</h2>
+              
+              {/* Company Name */}
+              <div className="mb-8">
+                <label className="block text-gray-300 mb-3 font-medium">Company Name</label>
+                <div className="space-y-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="text"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      placeholder="Enter your company/business name"
+                      className="cosmic-input flex-1 max-w-md"
+                    />
+                    <button
+                      onClick={updateCompanyName}
+                      disabled={saving || !companyName.trim() || companyName === profile?.company_name}
+                      className="cosmic-button-primary disabled:opacity-50 px-6 whitespace-nowrap"
+                    >
+                      {saving ? 'Saving...' : 'Update'}
+                    </button>
+                  </div>
+                  <p className="text-gray-400 text-sm leading-relaxed">
+                    This name will be displayed instead of your email address throughout the system
+                  </p>
+                </div>
+              </div>
+
+              {/* Email Address */}
+              <div className="mb-8">
+                <label className="block text-gray-300 mb-3 font-medium">Email Address</label>
+                <div className="space-y-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      className="cosmic-input flex-1 max-w-lg"
+                    />
+                    <button
+                      onClick={changeEmail}
+                      disabled={saving || !newEmail.trim() || newEmail === profile?.email}
+                      className="cosmic-button-primary disabled:opacity-50 px-6 whitespace-nowrap"
+                    >
+                      {saving ? 'Sending...' : 'Change'}
+                    </button>
+                  </div>
+                  
+                  {/* Email Status */}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div className={`flex items-center space-x-2 ${
+                      profile?.email_verified ? 'text-green-400' : 'text-yellow-400'
+                    }`}>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                          d={profile?.email_verified ? 
+                            "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" : 
+                            "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
+                          } 
+                        />
+                      </svg>
+                      <span className="text-sm font-medium">
+                        {profile?.email_verified ? 'Verified' : 'Not Verified'}
+                      </span>
+                    </div>
+                    
+                    {profile?.pending_email && (
+                      <div className="text-blue-400 text-sm bg-blue-500/10 px-3 py-1 rounded-full">
+                        Pending: {profile.pending_email}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {emailVerificationSent && (
+                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                      <p className="text-blue-400 text-sm leading-relaxed">
+                        Verification email sent! Check your inbox and click the link to confirm your new email.
+                      </p>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Image Cropper */}
-              {selectedImage && (
-                <div className="mb-6">
-                  <div className="max-w-md mx-auto">
-                    <ReactCrop
-                      crop={crop}
-                      onChange={(c) => setCrop(c)}
-                      onComplete={(c) => setCompletedCrop(c)}
-                      aspect={1}
-                      circularCrop
-                    >
-                      <img
-                        ref={imgRef}
-                        src={selectedImage}
-                        alt="Crop preview"
-                        className="max-w-full max-h-80 mx-auto"
-                      />
-                    </ReactCrop>
-                  </div>
-                  
-                  <div className="flex justify-center space-x-4 mt-4">
-                    <button
-                      onClick={uploadProfilePhoto}
-                      disabled={photoUploading || !completedCrop}
-                      className="cosmic-button-primary disabled:opacity-50"
-                    >
-                      {photoUploading ? 'Uploading...' : 'Save Photo'}
-                    </button>
-                    <button
-                      onClick={() => setSelectedImage(null)}
-                      className="cosmic-button-secondary"
-                    >
-                      Cancel
-                    </button>
-                  </div>
+              {/* Current Email Display */}
+              <div className="pt-6 border-t border-gray-600/30">
+                <div className="text-gray-400 text-sm">
+                  <span className="font-medium">Current email:</span> {profile?.email}
                 </div>
-              )}
-
-              {/* Upload Button */}
-              {!selectedImage && (
-                <>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageSelect}
-                    className="hidden"
-                  />
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="cosmic-button-primary"
-                  >
-                    Choose New Photo
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Profile Information */}
-          <div className="cosmic-card">
-            <h2 className="text-xl font-semibold text-white mb-6">Profile Information</h2>
-            
-            {/* Company Name */}
-            <div className="mb-6">
-              <label className="block text-gray-300 mb-2">Company Name</label>
-              <div className="flex space-x-3">
-                <input
-                  type="text"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="Enter your company/business name"
-                  className="cosmic-input flex-1"
-                />
-                <button
-                  onClick={updateCompanyName}
-                  disabled={saving || !companyName.trim() || companyName === profile?.company_name}
-                  className="cosmic-button-primary disabled:opacity-50"
-                >
-                  {saving ? 'Saving...' : 'Update'}
-                </button>
               </div>
-              <p className="text-gray-400 text-sm mt-2">
-                This name will be displayed instead of your email address throughout the system
-              </p>
-            </div>
-
-            {/* Email Address */}
-            <div className="mb-6">
-              <label className="block text-gray-300 mb-2">Email Address</label>
-              <div className="flex space-x-3">
-                <input
-                  type="email"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  className="cosmic-input flex-1"
-                />
-                <button
-                  onClick={changeEmail}
-                  disabled={saving || !newEmail.trim() || newEmail === profile?.email}
-                  className="cosmic-button-primary disabled:opacity-50"
-                >
-                  {saving ? 'Sending...' : 'Change'}
-                </button>
-              </div>
-              
-              {/* Email Status */}
-              <div className="mt-2 flex items-center space-x-4">
-                <div className={`flex items-center space-x-2 ${
-                  profile?.email_verified ? 'text-green-400' : 'text-yellow-400'
-                }`}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                      d={profile?.email_verified ? 
-                        "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" : 
-                        "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
-                      } 
-                    />
-                  </svg>
-                  <span className="text-sm">
-                    {profile?.email_verified ? 'Verified' : 'Not Verified'}
-                  </span>
-                </div>
-                
-                {profile?.pending_email && (
-                  <div className="text-blue-400 text-sm">
-                    Pending: {profile.pending_email}
-                  </div>
-                )}
-              </div>
-              
-              {emailVerificationSent && (
-                <p className="text-blue-400 text-sm mt-2">
-                  Verification email sent! Check your inbox and click the link to confirm your new email.
-                </p>
-              )}
-            </div>
-
-            {/* Current Email Display */}
-            <div className="text-gray-400 text-sm">
-              Current email: {profile?.email}
             </div>
           </div>
         </div>
