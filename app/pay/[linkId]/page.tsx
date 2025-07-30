@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { getUserDisplayName, getBusinessDisplayName } from '@/lib/user-display'
 import { useParams, useRouter } from 'next/navigation'
 import { CrossmintPaymentElement } from '@crossmint/client-sdk-react-ui'
 import { walletCreationService } from '@/lib/wallet-creation'
@@ -183,7 +184,8 @@ export default function PaymentPage() {
             created_at,
             creator:creator_id (
               full_name,
-              email
+              email,
+              company_name
             )
           `)
           .eq('id', linkId)
@@ -268,7 +270,7 @@ export default function PaymentPage() {
         amount={paymentData.amount_aed}
         currency="AED"
         description={paymentData.title}
-        beautyProfessionalName={paymentData.creator.full_name || paymentData.creator.email?.split('@')[0] || 'Beauty Professional'}
+        beautyProfessionalName={getBusinessDisplayName(paymentData.creator)}
         customerName={paymentData.client_name || undefined}
         onSuccess={() => {
           console.log('Payment successful');
@@ -322,9 +324,11 @@ export default function PaymentPage() {
               </div>
               <div>
                 <p className="font-medium text-gray-900">
-                  {paymentData.creator.full_name || paymentData.creator.email?.split('@')[0] || 'Unknown'}
+                  {getBusinessDisplayName(paymentData.creator)}
                 </p>
-                <p className="text-gray-600 text-sm">{paymentData.creator.email}</p>
+                <p className="text-gray-600 text-sm">
+                  {paymentData.creator.company_name ? 'Beauty Professional' : paymentData.creator.email}
+                </p>
               </div>
             </div>
           </div>
