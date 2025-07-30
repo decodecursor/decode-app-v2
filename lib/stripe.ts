@@ -121,7 +121,6 @@ class StripeService {
       const paymentIntent = await this.stripe.paymentIntents.create({
         amount: request.amount,
         currency: request.currency.toLowerCase(),
-        customer_email: request.customerEmail,
         description: request.description,
         metadata: {
           payment_link_id: request.paymentLinkId,
