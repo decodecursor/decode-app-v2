@@ -5,6 +5,7 @@ import { loadStripe, StripeElementsOptions } from '@stripe/stripe-js';
 import {
   Elements,
   PaymentElement,
+  ExpressCheckoutElement,
   useStripe,
   useElements
 } from '@stripe/react-stripe-js';
@@ -124,6 +125,51 @@ function PaymentForm({
           </div>
         </div>
 
+        {/* Express Checkout (Apple Pay, Google Pay) */}
+        <div className="space-y-4 mb-6">
+          <div className="text-center">
+            <p className="!text-sm cosmic-body text-white opacity-80 mb-4">Quick Payment</p>
+          </div>
+          <div className="cosmic-input p-4">
+            <ExpressCheckoutElement
+              options={{
+                buttonType: {
+                  applePay: 'buy',
+                  googlePay: 'buy'
+                },
+                paymentMethods: {
+                  applePay: 'always',
+                  googlePay: 'always'
+                }
+              }}
+              onConfirm={async (event) => {
+                // Use the same payment confirmation logic
+                const { error: confirmError } = await stripe.confirmPayment({
+                  elements,
+                  clientSecret,
+                  confirmParams: {
+                    return_url: `${window.location.origin}/pay/success?paymentLinkId=${paymentLinkId}`,
+                  },
+                });
+
+                if (confirmError) {
+                  setError(confirmError.message);
+                  onError?.(confirmError.message);
+                } else {
+                  onSuccess?.();
+                }
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="flex items-center space-x-4 my-6">
+          <div className="flex-1 h-px bg-white/20"></div>
+          <span className="!text-sm cosmic-body text-white opacity-60">or pay with card</span>
+          <div className="flex-1 h-px bg-white/20"></div>
+        </div>
+
         {/* Client Information Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
@@ -145,10 +191,10 @@ function PaymentForm({
               <PaymentElement 
                 options={{
                   layout: 'tabs',
-                  paymentMethodOrder: ['apple_pay', 'google_pay', 'card'],
+                  paymentMethodOrder: ['card'],
                   wallets: {
-                    applePay: 'always',
-                    googlePay: 'always'
+                    applePay: 'never',
+                    googlePay: 'never'
                   },
                   fields: {
                     billingDetails: {
