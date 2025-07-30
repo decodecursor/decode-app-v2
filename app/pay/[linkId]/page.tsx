@@ -330,7 +330,7 @@ export default function PaymentPage() {
                   {getBusinessDisplayName(paymentData.creator)}
                 </p>
                 <p className="text-gray-600 text-sm">
-                  {paymentData.creator.company_name ? 'Beauty Professional' : paymentData.creator.email}
+                  Beauty Professional
                 </p>
               </div>
             </div>

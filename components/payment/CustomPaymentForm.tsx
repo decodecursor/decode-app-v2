@@ -104,7 +104,7 @@ function PaymentForm({
             className="mx-auto mb-2" 
             style={{height: '40px', filter: 'brightness(0) invert(1)'}} 
           />
-          <p className="!text-sm cosmic-body opacity-70">Making Girls More Beautiful</p>
+          <p className="!text-sm cosmic-body opacity-70">Professional Beauty Services</p>
         </div>
 
         {/* Payment Information */}
