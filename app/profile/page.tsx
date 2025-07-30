@@ -382,105 +382,84 @@ export default function ProfilePage() {
                       </svg>
                       Choose New Photo
                     </button>
-                    <p className="text-gray-400 text-sm">Upload a square image for best results</p>
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Profile Information */}
-          <div style={{ width: '60%', flexShrink: 0 }}>
-            <div className="cosmic-card">
-              <h2 className="text-xl font-semibold text-white mb-8">Profile Information</h2>
+          {/* Company Name Card */}
+          <div className="cosmic-card">
+            <h2 className="text-xl font-semibold text-white mb-6">Company Name</h2>
+            <div className="space-y-4">
+              <input
+                type="text"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="Enter your company/business name"
+                className="cosmic-input w-full"
+              />
+              <button
+                onClick={updateCompanyName}
+                disabled={saving || !companyName.trim() || companyName === profile?.company_name}
+                className="cosmic-button-primary disabled:opacity-50 w-full"
+              >
+                {saving ? 'Saving...' : 'Update'}
+              </button>
+            </div>
+          </div>
+
+          {/* Email Address Card */}
+          <div className="cosmic-card">
+            <h2 className="text-xl font-semibold text-white mb-6">Email Address</h2>
+            <div className="space-y-4">
+              <input
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="Enter your email address"
+                className="cosmic-input w-full"
+              />
+              <button
+                onClick={changeEmail}
+                disabled={saving || !newEmail.trim() || newEmail === profile?.email}
+                className="cosmic-button-primary disabled:opacity-50 w-full"
+              >
+                {saving ? 'Sending...' : 'Change'}
+              </button>
               
-              {/* Company Name */}
-              <div className="mb-8">
-                <label className="block text-gray-300 mb-3 font-medium">Company Name</label>
-                <div className="space-y-3">
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <input
-                      type="text"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      placeholder="Enter your company/business name"
-                      className="cosmic-input flex-1 max-w-md"
+              {/* Email Status */}
+              <div className="flex items-center justify-between pt-2">
+                <div className={`flex items-center space-x-2 ${
+                  profile?.email_verified ? 'text-green-400' : 'text-yellow-400'
+                }`}>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                      d={profile?.email_verified ? 
+                        "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" : 
+                        "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
+                      } 
                     />
-                    <button
-                      onClick={updateCompanyName}
-                      disabled={saving || !companyName.trim() || companyName === profile?.company_name}
-                      className="cosmic-button-primary disabled:opacity-50 px-6 whitespace-nowrap"
-                    >
-                      {saving ? 'Saving...' : 'Update'}
-                    </button>
+                  </svg>
+                  <span className="text-sm font-medium">
+                    {profile?.email_verified ? 'Verified' : 'Not Verified'}
+                  </span>
+                </div>
+                
+                {profile?.pending_email && (
+                  <div className="text-blue-400 text-sm bg-blue-500/10 px-3 py-1 rounded-full">
+                    Pending: {profile.pending_email}
                   </div>
-                  <p className="text-gray-400 text-sm leading-relaxed">
-                    This name will be displayed instead of your email address throughout the system
+                )}
+              </div>
+              
+              {emailVerificationSent && (
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                  <p className="text-blue-400 text-sm">
+                    Verification email sent! Check your inbox and click the link to confirm your new email.
                   </p>
                 </div>
-              </div>
-
-              {/* Email Address */}
-              <div className="mb-8">
-                <label className="block text-gray-300 mb-3 font-medium">Email Address</label>
-                <div className="space-y-3">
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <input
-                      type="email"
-                      value={newEmail}
-                      onChange={(e) => setNewEmail(e.target.value)}
-                      className="cosmic-input flex-1 max-w-lg"
-                    />
-                    <button
-                      onClick={changeEmail}
-                      disabled={saving || !newEmail.trim() || newEmail === profile?.email}
-                      className="cosmic-button-primary disabled:opacity-50 px-6 whitespace-nowrap"
-                    >
-                      {saving ? 'Sending...' : 'Change'}
-                    </button>
-                  </div>
-                  
-                  {/* Email Status */}
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <div className={`flex items-center space-x-2 ${
-                      profile?.email_verified ? 'text-green-400' : 'text-yellow-400'
-                    }`}>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                          d={profile?.email_verified ? 
-                            "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" : 
-                            "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
-                          } 
-                        />
-                      </svg>
-                      <span className="text-sm font-medium">
-                        {profile?.email_verified ? 'Verified' : 'Not Verified'}
-                      </span>
-                    </div>
-                    
-                    {profile?.pending_email && (
-                      <div className="text-blue-400 text-sm bg-blue-500/10 px-3 py-1 rounded-full">
-                        Pending: {profile.pending_email}
-                      </div>
-                    )}
-                  </div>
-                  
-                  {emailVerificationSent && (
-                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                      <p className="text-blue-400 text-sm leading-relaxed">
-                        Verification email sent! Check your inbox and click the link to confirm your new email.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Current Email Display */}
-              <div className="pt-6 border-t border-gray-600/30">
-                <div className="text-gray-400 text-sm">
-                  <span className="font-medium">Current email:</span> {profile?.email}
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
