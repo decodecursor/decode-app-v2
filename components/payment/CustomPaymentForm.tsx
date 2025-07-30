@@ -146,7 +146,6 @@ function PaymentForm({
                 options={{
                   layout: 'tabs',
                   paymentMethodOrder: ['card', 'apple_pay', 'google_pay'],
-                  disableLink: true,
                   wallets: {
                     applePay: 'auto',
                     googlePay: 'auto'
