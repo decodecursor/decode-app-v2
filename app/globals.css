@@ -36,6 +36,19 @@
   border: 1px solid rgba(255, 255, 255, 0.4);
   padding: 24px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  width: 70vw;
+  margin: 0 auto;
+}
+
+/* Login Screen Specific Card */
+.cosmic-card-login {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   width: 24.5vw;
   margin: 0 auto;
 }

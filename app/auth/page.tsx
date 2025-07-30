@@ -53,9 +53,9 @@ export default function AuthPage() {
   return (
     <div className="cosmic-bg">
       <div className="min-h-screen flex items-center justify-center px-4 py-8">
-        <div className="cosmic-card">
+        <div className="cosmic-card-login">
           <div className="text-center mb-8">
-            <img src="/logo.png" alt="DECODE" className="mx-auto mb-2" style={{height: '40px'}} />
+            <img src="/logo.png" alt="DECODE" className="mx-auto mb-2" style={{height: '40px', filter: 'brightness(0) invert(1)'}} />
             <p className="cosmic-body opacity-70">Making Girls More Beautiful</p>
           </div>
 
