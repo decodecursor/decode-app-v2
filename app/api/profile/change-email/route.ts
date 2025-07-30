@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
         new_email: newEmail.toLowerCase().trim(),
         verification_token: verificationToken,
         expires_at: expiresAt.toISOString(),
-        ip_address: req.ip || req.headers.get('x-forwarded-for') || 'unknown',
+        ip_address: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
         user_agent: req.headers.get('user-agent') || 'unknown'
       })
 
