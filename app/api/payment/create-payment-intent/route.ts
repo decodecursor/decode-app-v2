@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
         id,
         title,
         amount_aed,
+        client_name,
         expiration_date,
         is_active,
         creator:creator_id (
@@ -149,7 +150,8 @@ export async function POST(request: NextRequest) {
         convertedAmount: amount / 100,
         convertedCurrency: currency,
         description: paymentLink.title,
-        professionalName: paymentLink.creator?.[0]?.full_name || paymentLink.creator?.[0]?.email?.split('@')[0] || 'Beauty Professional'
+        professionalName: paymentLink.creator?.[0]?.full_name || paymentLink.creator?.[0]?.email?.split('@')[0] || 'Beauty Professional',
+        clientName: paymentLink.client_name || 'Client'
       }
     });
 

@@ -12,6 +12,7 @@ interface PaymentLinkData {
   id: string
   title: string
   amount_aed: number
+  client_name: string | null
   expiration_date: string
   is_active: boolean
   created_at: string
@@ -176,6 +177,7 @@ export default function PaymentPage() {
             id,
             title,
             amount_aed,
+            client_name,
             expiration_date,
             is_active,
             created_at,
@@ -267,6 +269,7 @@ export default function PaymentPage() {
         currency="AED"
         description={paymentData.title}
         beautyProfessionalName={paymentData.creator.full_name || paymentData.creator.email?.split('@')[0] || 'Beauty Professional'}
+        customerName={paymentData.client_name}
         onSuccess={() => {
           console.log('Payment successful');
           window.location.href = `/pay/success?paymentLinkId=${linkId}`;

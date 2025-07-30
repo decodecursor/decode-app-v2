@@ -103,7 +103,7 @@ function PaymentForm({
             className="mx-auto mb-2" 
             style={{height: '40px', filter: 'brightness(0) invert(1)'}} 
           />
-          <p className="text-sm cosmic-body opacity-70">Making Girls More Beautiful</p>
+          <p className="text-xs cosmic-body opacity-70">Making Girls More Beautiful</p>
         </div>
 
         {/* Payment Information */}
@@ -130,7 +130,7 @@ function PaymentForm({
             <div>
               <input
                 type="email"
-                placeholder="Your Email Address"
+                placeholder="Email Address"
                 value={clientInfo.email}
                 onChange={(e) => setClientInfo(prev => ({ ...prev, email: e.target.value }))}
                 className="cosmic-input"
@@ -146,6 +146,11 @@ function PaymentForm({
                 options={{
                   layout: 'tabs',
                   paymentMethodOrder: ['card', 'apple_pay', 'google_pay'],
+                  disableLink: true,
+                  wallets: {
+                    applePay: 'auto',
+                    googlePay: 'auto'
+                  }
                 }} 
               />
             </div>
@@ -164,7 +169,7 @@ function PaymentForm({
             disabled={!stripe || loading}
             className="cosmic-button-primary w-full"
           >
-            {loading ? 'Processing...' : `Complete Payment`}
+            {loading ? 'Processing...' : `Pay ${currency} ${amount.toFixed(2)}`}
           </button>
         </form>
       </div>
@@ -210,9 +215,9 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
 
         setClientSecret(intentData.clientSecret);
         
-        // Extract the real professional name from the payment details
-        if (intentData.paymentDetails?.professionalName) {
-          setRealClientName(intentData.paymentDetails.professionalName);
+        // Extract the real client name from the payment details
+        if (intentData.paymentDetails?.clientName) {
+          setRealClientName(intentData.paymentDetails.clientName);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to initialize payment';
