@@ -55,15 +55,15 @@ export default function AuthPage() {
       <div className="min-h-screen flex items-center justify-center px-4 py-8">
         <div className="cosmic-card">
           <div className="text-center mb-8">
-            <h1 className="cosmic-logo mb-2">DECODE</h1>
-            <p className="cosmic-body opacity-70">Beauty payment platform</p>
+            <img src="/logo.png" alt="DECODE" className="mx-auto mb-2" style={{height: '40px'}} />
+            <p className="cosmic-body opacity-70">Making Girls More Beautiful</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <input
                 type="email"
-                placeholder="Email address"
+                placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="cosmic-input"
@@ -74,7 +74,7 @@ export default function AuthPage() {
             <div>
               <input
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="cosmic-input"
@@ -128,7 +128,7 @@ export default function AuthPage() {
               disabled={loading}
               className="cosmic-button-primary w-full"
             >
-              {loading ? 'Loading...' : (isLogin ? 'Sign in' : 'Sign up')}
+              {loading ? 'Loading...' : (isLogin ? 'Login' : 'Sign up')}
             </button>
             
             {message && (
@@ -147,7 +147,7 @@ export default function AuthPage() {
                 onClick={() => setIsLogin(!isLogin)}
                 className="cosmic-button-secondary"
               >
-                {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+                {isLogin ? "Don't have an account? Register" : "Already have an account? Sign in"}
               </button>
             </div>
           </form>
