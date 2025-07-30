@@ -89,10 +89,12 @@ export default function ProfilePage() {
       } else if (error) {
         console.error('Error fetching profile:', error)
         setMessage({ type: 'error', text: 'Failed to load profile' })
-      } else {
+      } else if (profileData) {
         setProfile(profileData)
         setCompanyName(profileData.company_name || '')
         setNewEmail(profileData.email || user.email || '')
+      } else {
+        setMessage({ type: 'error', text: 'No profile data found' })
       }
     } catch (error) {
       console.error('Auth error:', error)
