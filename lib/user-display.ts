@@ -4,7 +4,7 @@
  */
 
 export interface UserDisplayInfo {
-  id: string
+  id?: string
   email: string
   company_name?: string | null
   full_name?: string | null
