@@ -247,7 +247,7 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '2rem', width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%' }}>
           {/* Profile Photo Section */}  
           <div style={{ width: '40%', flexShrink: 0 }}>
             <div className="cosmic-card h-fit">
