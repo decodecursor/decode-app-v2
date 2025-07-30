@@ -291,11 +291,17 @@ body {
   min-width: 44px;
 }
 
-/* Desktop-specific layout adjustments for profile page */
-@media (min-width: 769px) {
-  .cosmic-card {
-    width: 28vw;
-  }
+/* Profile-specific card styling - narrow width for profile page */
+.cosmic-card-profile {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  width: 28vw;
+  margin: 0 auto;
 }
 
 /* Mobile-specific layout adjustments */

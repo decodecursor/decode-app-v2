@@ -340,9 +340,9 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%' }}>
+        <div className="space-y-8">
           {/* Profile Photo Section */}  
-          <div className="cosmic-card h-fit">
+          <div className="cosmic-card-profile h-fit">
             <h2 className="text-xl font-semibold text-white mb-8">Profile Photo</h2>
             
             <div className="text-center">
@@ -428,7 +428,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Company Name Card */}
-          <div className="cosmic-card">
+          <div className="cosmic-card-profile">
             <h2 className="text-xl font-semibold text-white mb-6">Company Name</h2>
             <div className="space-y-4">
               <input
@@ -449,7 +449,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Email Address Card */}
-          <div className="cosmic-card">
+          <div className="cosmic-card-profile">
             <h2 className="text-xl font-semibold text-white mb-6">Email Address</h2>
             <div className="space-y-4">
               {/* Email Status - Moved Above Input */}
@@ -503,7 +503,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Password Change Card */}
-          <div className="cosmic-card">
+          <div className="cosmic-card-profile">
             <h2 className="text-xl font-semibold text-white mb-6">Password</h2>
             <div className="space-y-4">
               <input
