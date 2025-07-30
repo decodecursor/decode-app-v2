@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { CrossmintPaymentElement } from '@crossmint/client-sdk-react-ui'
 import { walletCreationService } from '@/lib/wallet-creation'
 import StripeCheckoutButton from '@/components/payment/StripeCheckoutButton'
+import CustomPaymentForm from '@/components/payment/CustomPaymentForm'
 
 interface PaymentLinkData {
   id: string
@@ -257,6 +258,27 @@ export default function PaymentPage() {
     )
   }
 
+  // If Stripe payment method is selected, show the custom payment form
+  if (paymentMethod === 'stripe' && paymentData) {
+    return (
+      <CustomPaymentForm
+        paymentLinkId={linkId}
+        amount={paymentData.amount_aed}
+        currency="AED"
+        description={paymentData.title}
+        beautyProfessionalName={paymentData.creator.full_name || paymentData.creator.email?.split('@')[0] || 'Beauty Professional'}
+        onSuccess={() => {
+          console.log('Payment successful');
+          window.location.href = `/pay/success?paymentLinkId=${linkId}`;
+        }}
+        onError={(error) => {
+          console.error('Payment error:', error);
+        }}
+      />
+    );
+  }
+
+  // Original design for Crossmint and selection
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center px-4 py-8">
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full">
@@ -319,7 +341,7 @@ export default function PaymentPage() {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  💳 Credit Card (Stripe)
+                  💳 Payment
                 </button>
                 <button
                   onClick={() => setPaymentMethod('crossmint')}
@@ -329,87 +351,53 @@ export default function PaymentPage() {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  🔗 Crypto & Cards
+                  🔗 Alternative Payment
                 </button>
               </div>
             </div>
 
-            {paymentData ? (
-              <div>
-                {/* Stripe Payment Option */}
-                {paymentMethod === 'stripe' && (
-                  <div className="space-y-4">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <div className="flex items-center mb-2">
-                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2">
-                          <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <h5 className="font-medium text-blue-900">Secure Payment with Stripe</h5>
-                      </div>
-                      <p className="text-sm text-blue-700">
-                        Pay securely with your credit/debit card. Your payment information is encrypted and secure.
-                      </p>
+            {paymentData && paymentMethod === 'crossmint' && (
+              <div className="space-y-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
+                      <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
                     </div>
-                    
-                    <StripeCheckoutButton
-                      paymentLinkId={linkId}
-                      amount={paymentData.amount_aed}
-                      currency="AED"
-                      description={paymentData.title}
-                      customerEmail=""
-                      customerName=""
-                      onSuccess={() => console.log('Stripe payment successful')}
-                      onError={(error) => console.error('Stripe payment error:', error)}
-                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
-                    />
+                    <h5 className="font-medium text-green-900">Alternative Payment Methods</h5>
                   </div>
-                )}
+                  <p className="text-sm text-green-700">
+                    Multiple payment options including cryptocurrency wallets and other methods.
+                  </p>
+                </div>
 
-                {/* Crossmint Payment Option */}
-                {paymentMethod === 'crossmint' && (
-                  <div className="space-y-4">
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <div className="flex items-center mb-2">
-                        <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
-                          <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <h5 className="font-medium text-green-900">Pay with Crypto or Cards</h5>
-                      </div>
-                      <p className="text-sm text-green-700">
-                        Multiple payment options including cryptocurrency wallets, Apple Pay, Google Pay, and credit cards.
-                      </p>
-                    </div>
-
-                    <CrossmintPaymentElement
-                      clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID!}
-                      environment="production"
-                      currency="USD"
-                      locale="en-US"
-                      paymentMethod="fiat"
-                      uiConfig={{
-                        colors: {
-                          accent: '#7C3AED',
-                          background: '#FFFFFF',
-                          textPrimary: '#111827'
-                        }
-                      }}
-                      whPassThroughArgs={{
-                        paymentLinkId: linkId,
-                        beautyProfessionalId: paymentData.creator.email,
-                        service: 'beauty',
-                        title: paymentData.title,
-                        originalAmount: paymentData.amount_aed,
-                        originalCurrency: 'AED'
-                      }}
-                    />
-                  </div>
-                )}
+                <CrossmintPaymentElement
+                  clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID!}
+                  environment="production"
+                  currency="USD"
+                  locale="en-US"
+                  paymentMethod="fiat"
+                  uiConfig={{
+                    colors: {
+                      accent: '#7C3AED',
+                      background: '#FFFFFF',
+                      textPrimary: '#111827'
+                    }
+                  }}
+                  whPassThroughArgs={{
+                    paymentLinkId: linkId,
+                    beautyProfessionalId: paymentData.creator.email,
+                    service: 'beauty',
+                    title: paymentData.title,
+                    originalAmount: paymentData.amount_aed,
+                    originalCurrency: 'AED'
+                  }}
+                />
               </div>
-            ) : (
+            )}
+
+            {!paymentData && (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
                 <p className="text-gray-600">Loading payment options...</p>
