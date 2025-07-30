@@ -128,8 +128,8 @@ export async function POST(request: NextRequest) {
         convertedAmount: amountInCents / 100,
         convertedCurrency: currency,
         description: paymentLink.description,
-        professionalName: paymentLink.users ? 
-          `${paymentLink.users.first_name} ${paymentLink.users.last_name}` : 
+        professionalName: paymentLink.users && paymentLink.users[0] ? 
+          `${paymentLink.users[0].first_name} ${paymentLink.users[0].last_name}` : 
           'Beauty Professional'
       }
     });
