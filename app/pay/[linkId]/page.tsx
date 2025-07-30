@@ -183,6 +183,7 @@ export default function PaymentPage() {
             is_active,
             created_at,
             creator:creator_id (
+              id,
               full_name,
               email,
               company_name
