@@ -130,25 +130,21 @@ function PaymentForm({
           <div className="cosmic-input p-4">
             <ExpressCheckoutElement
               options={{
-                buttonType: {
-                  applePay: 'buy',
-                  googlePay: 'buy'
-                },
                 paymentMethods: {
                   applePay: 'always',
                   googlePay: 'always'
-                },
-                layout: {
-                  maxColumns: 2,
-                  maxRows: 1
                 }
               }}
               onConfirm={async (event) => {
+                console.log('🍎 DEBUG: Express Checkout onConfirm called', event);
+                
                 if (!stripe || !elements) {
+                  console.log('❌ DEBUG: Stripe or elements not available');
                   return;
                 }
 
                 try {
+                  console.log('✅ DEBUG: Confirming Express Checkout payment');
                   // Use the same payment confirmation logic
                   const { error: confirmError } = await stripe.confirmPayment({
                     elements,

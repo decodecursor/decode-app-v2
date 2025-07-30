@@ -11,8 +11,8 @@
   --cosmic-text-secondary: rgba(255, 255, 255, 0.7);
   --cosmic-border: rgba(255, 255, 255, 0.3);
   --cosmic-border-focus: rgba(255, 255, 255, 0.6);
-  --cosmic-button-gradient-start: #ff1744;
-  --cosmic-button-gradient-end: #e91e63;
+  --cosmic-button-gradient-start: #333333;
+  --cosmic-button-gradient-end: #000000;
 }
 
 /* Base Cosmic Background */
@@ -116,7 +116,7 @@ input[type="number"] {
 
 .cosmic-button-primary:hover {
   transform: scale(1.02);
-  background: linear-gradient(135deg, #ff4569 0%, #f06292 100%);
+  background: linear-gradient(135deg, #555555 0%, #333333 100%);
 }
 
 .cosmic-button-primary:disabled {
