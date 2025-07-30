@@ -103,7 +103,7 @@ function PaymentForm({
             className="mx-auto mb-2" 
             style={{height: '40px', filter: 'brightness(0) invert(1)'}} 
           />
-          <p className="text-xs cosmic-body opacity-70">Making Girls More Beautiful</p>
+          <p className="!text-xs cosmic-body opacity-70">Making Girls More Beautiful</p>
         </div>
 
         {/* Payment Information */}
@@ -145,10 +145,15 @@ function PaymentForm({
               <PaymentElement 
                 options={{
                   layout: 'tabs',
-                  paymentMethodOrder: ['card', 'apple_pay', 'google_pay'],
+                  paymentMethodOrder: ['apple_pay', 'google_pay', 'card'],
                   wallets: {
-                    applePay: 'auto',
-                    googlePay: 'auto'
+                    applePay: 'always',
+                    googlePay: 'always'
+                  },
+                  fields: {
+                    billingDetails: {
+                      email: 'auto'
+                    }
                   }
                 }} 
               />
