@@ -18,8 +18,10 @@ interface PaymentLinkData {
   is_active: boolean
   created_at: string
   creator: {
+    id: string
     full_name: string | null
     email: string
+    company_name: string | null
   }
 }
 
