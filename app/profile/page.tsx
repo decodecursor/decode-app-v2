@@ -247,9 +247,9 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <div className="flex flex-col lg:flex-row gap-8 w-full">
-          {/* Profile Photo Section */}
-          <div className="w-full lg:w-[40%] flex-shrink-0">
+        <div style={{ display: 'flex', gap: '2rem', width: '100%' }}>
+          {/* Profile Photo Section */}  
+          <div style={{ width: '40%', flexShrink: 0 }}>
             <div className="cosmic-card h-fit">
               <h2 className="text-xl font-semibold text-white mb-8">Profile Photo</h2>
               
@@ -338,7 +338,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Profile Information */}
-          <div className="w-full lg:w-[60%] flex-shrink-0">
+          <div style={{ width: '60%', flexShrink: 0 }}>
             <div className="cosmic-card">
               <h2 className="text-xl font-semibold text-white mb-8">Profile Information</h2>
               
