@@ -23,31 +23,46 @@ export async function POST(request: NextRequest) {
 
     console.log('🔄 Creating Stripe payment intent for payment link:', paymentLinkId);
 
-    // Fetch payment link details from Supabase
+    // Fetch payment link details from Supabase (using correct schema from working Crossmint API)
     const { data: paymentLink, error: fetchError } = await supabase
       .from('payment_links')
       .select(`
         id,
-        amount,
-        currency,
-        description,
-        beauty_professional_id,
+        title,
+        amount_aed,
+        expiration_date,
         is_active,
-        expires_at,
-        users!beauty_professional_id (
-          id,
-          email,
-          first_name,
-          last_name
+        creator:creator_id (
+          full_name,
+          email
         )
       `)
       .eq('id', paymentLinkId)
       .single();
 
-    if (fetchError || !paymentLink) {
+    console.log('🔍 DEBUG: Supabase query result:');
+    console.log('- Error:', fetchError);
+    console.log('- Data:', paymentLink);
+
+    if (fetchError) {
       console.error('❌ Payment link not found:', fetchError);
       return NextResponse.json({
-        error: 'Payment link not found'
+        error: 'Payment link not found',
+        debug: {
+          supabaseError: fetchError,
+          paymentLinkId: paymentLinkId
+        }
+      }, { status: 404 });
+    }
+
+    if (!paymentLink) {
+      console.error('❌ No payment link data returned');
+      return NextResponse.json({
+        error: 'Payment link not found',
+        debug: {
+          message: 'No data returned from query',
+          paymentLinkId: paymentLinkId
+        }
       }, { status: 404 });
     }
 
@@ -58,7 +73,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    if (paymentLink.expires_at && new Date(paymentLink.expires_at) < new Date()) {
+    if (paymentLink.expiration_date && new Date(paymentLink.expiration_date) < new Date()) {
       return NextResponse.json({
         error: 'Payment link has expired'
       }, { status: 400 });
@@ -72,10 +87,10 @@ export async function POST(request: NextRequest) {
       amount: amount,
       currency: currency,
       paymentLinkId: paymentLinkId,
-      beautyProfessionalId: paymentLink.beauty_professional_id,
+      beautyProfessionalId: paymentLink.creator?.email || 'unknown',
       customerEmail: customerEmail,
       customerName: customerName,
-      description: paymentLink.description || 'Beauty service payment'
+      description: paymentLink.title || 'Beauty service payment'
     });
 
     // Log transaction attempt in database
@@ -83,10 +98,10 @@ export async function POST(request: NextRequest) {
       .from('transactions')
       .insert({
         payment_link_id: paymentLinkId,
-        beauty_professional_id: paymentLink.beauty_professional_id,
-        amount: paymentLink.amount,
-        original_amount: paymentLink.amount,
-        currency: paymentLink.currency,
+        beauty_professional_id: paymentLink.creator?.email || 'unknown',
+        amount: paymentLink.amount_aed,
+        original_amount: paymentLink.amount_aed,
+        currency: 'AED',
         converted_amount_usd: amount / 100,
         fee_amount: feeCalculation.feeAmount / 100,
         net_amount: feeCalculation.netAmount / 100,
@@ -110,14 +125,12 @@ export async function POST(request: NextRequest) {
       clientSecret: paymentIntent.clientSecret,
       paymentIntentId: paymentIntent.paymentIntentId,
       paymentDetails: {
-        amount: paymentLink.amount,
-        currency: paymentLink.currency,
+        amount: paymentLink.amount_aed,
+        currency: 'AED',
         convertedAmount: amount / 100,
         convertedCurrency: currency,
-        description: paymentLink.description,
-        professionalName: paymentLink.users && paymentLink.users[0] ? 
-          `${paymentLink.users[0].first_name} ${paymentLink.users[0].last_name}` : 
-          'Beauty Professional'
+        description: paymentLink.title,
+        professionalName: paymentLink.creator?.full_name || paymentLink.creator?.email?.split('@')[0] || 'Beauty Professional'
       }
     });
 

@@ -213,8 +213,7 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
           throw new Error(data.error || 'Failed to create payment session');
         }
 
-        // For custom payment form, we need to create a payment intent instead
-        // Let's create a new API endpoint for this
+        // Create payment intent using the payment link data
         const intentResponse = await fetch('/api/payment/create-payment-intent', {
           method: 'POST',
           headers: {
@@ -222,8 +221,10 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
           },
           body: JSON.stringify({
             paymentLinkId: props.paymentLinkId,
-            amount: Math.round(props.amount * 100), // Convert to cents
-            currency: props.currency.toLowerCase(),
+            amount: Math.round(props.amount * 100), // Convert AED to cents for Stripe
+            currency: 'usd', // Stripe processes in USD (converted from AED)
+            customerEmail: props.customerEmail,
+            customerName: props.customerName,
           }),
         });
 
