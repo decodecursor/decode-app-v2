@@ -247,9 +247,9 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
+        <div className="flex flex-col lg:flex-row gap-8">
           {/* Profile Photo Section */}
-          <div className="xl:col-span-2">
+          <div className="lg:w-2/5">
             <div className="cosmic-card h-fit">
               <h2 className="text-xl font-semibold text-white mb-8">Profile Photo</h2>
               
@@ -338,7 +338,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Profile Information */}
-          <div className="xl:col-span-3">
+          <div className="lg:w-3/5">
             <div className="cosmic-card">
               <h2 className="text-xl font-semibold text-white mb-8">Profile Information</h2>
               
