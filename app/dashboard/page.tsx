@@ -9,6 +9,7 @@ import type { User } from '@supabase/supabase-js'
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null)
   const [userRole, setUserRole] = useState<string | null>(null)
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
@@ -157,15 +158,16 @@ export default function Dashboard() {
       }
       setUser(user)
       
-      // Fetch user role from users table
+      // Fetch user role and profile photo from users table
       const { data: userData } = await supabase
         .from('users')
-        .select('role')
+        .select('role, profile_photo_url')
         .eq('id', user.id)
         .single()
       
       if (userData) {
         setUserRole(userData.role)
+        setProfilePhoto(userData.profile_photo_url)
       }
       
       // Fetch recent PayLinks
@@ -217,67 +219,36 @@ export default function Dashboard() {
         <div className="mx-auto mb-8" style={{maxWidth: '3000px'}}>
           <div className="cosmic-card">
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center">
-              <Link 
-                href="/dashboard" 
-                className="px-3 py-3 hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <img 
-                  src="/logo.png" 
-                  alt="DECODE Logo" 
-                  className="h-8 w-auto filter brightness-0 invert"
-                />
-              </Link>
-              
-              <div className="flex-1"></div>
-              
-              {userRole === 'Beauty Professional' && (
-                <div className="flex gap-6 items-center">
-                  <button 
-                    className="px-6 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg font-medium transition-colors"
-                    onMouseOver={createHoverSparkles}
-                    onClick={handleCreatePayLinkClick}
-                  >
-                    Create PayLink
-                  </button>
-                  <Link 
-                    href="/my-links" 
-                    className="px-6 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg font-medium transition-colors"
-                  >
-                    My PayLinks
-                  </Link>
-                  <Link 
-                    href="/dashboard/payments" 
-                    className="px-6 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg font-medium transition-colors"
-                  >
-                    Payment History
-                  </Link>
-                </div>
-              )}
-              
-              <div className="flex-1"></div>
-              
-              {/* Profile Dropdown */}
+            <nav className="hidden md:flex items-center justify-between w-full">
+              {/* Left side - Profile Avatar */}
               <div className="relative" ref={dropdownRef}>
-                <button 
+                <div 
                   onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className="p-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  className="instagram-avatar"
                 >
-                  {/* Salon Chair Icon */}
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </button>
+                  {profilePhoto ? (
+                    <img 
+                      src={profilePhoto} 
+                      alt="Profile" 
+                    />
+                  ) : (
+                    <div className="avatar-fallback">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
 
                 {/* Dropdown Menu */}
                 {profileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-gray-800/95 backdrop-blur-lg rounded-xl shadow-lg border border-gray-600/50 py-2 z-50">
+                  <div className="absolute left-0 mt-2 w-56 bg-gray-800/95 backdrop-blur-lg rounded-xl shadow-lg border border-gray-600/50 py-2 z-50">
                     {/* Profile */}
                     <Link href="/profile" className="w-full flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
                       <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
-                      <span className="font-medium">Profile</span>
+                      <span className="nav-button">Profile</span>
                     </Link>
 
                     {/* Bank Account */}
@@ -285,7 +256,7 @@ export default function Dashboard() {
                       <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                       </svg>
-                      <span className="font-medium">Bank Account</span>
+                      <span className="nav-button">Bank Account</span>
                     </Link>
 
                     {/* Logout */}
@@ -296,49 +267,88 @@ export default function Dashboard() {
                       <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                       </svg>
-                      <span className="font-medium">Logout</span>
+                      <span className="nav-button">Logout</span>
                     </button>
                   </div>
                 )}
               </div>
+
+              {/* Right side - Navigation Buttons */}
+              {userRole === 'Beauty Professional' && (
+                <div className="flex gap-4 items-center">
+                  {/* Payment History */}
+                  <Link 
+                    href="/dashboard/payments" 
+                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    Payment History
+                  </Link>
+                  
+                  {/* My PayLinks */}
+                  <Link 
+                    href="/my-links" 
+                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    My PayLinks
+                  </Link>
+                  
+                  {/* Create PayLink - Black Button */}
+                  <button 
+                    className="create-paylink-button"
+                    onMouseOver={createHoverSparkles}
+                    onClick={handleCreatePayLinkClick}
+                  >
+                    Create PayLink
+                  </button>
+                </div>
+              )}
             </nav>
 
             {/* Mobile Navigation */}
             <div className="md:hidden">
-              <button 
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="flex items-center justify-between w-full p-4 text-white"
-              >
-                <span className="font-medium">Menu</span>
-                <svg 
-                  className={`w-5 h-5 transition-transform ${mobileMenuOpen ? 'rotate-180' : ''}`}
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
+              <div className="flex items-center justify-between p-4">
+                {/* Mobile Profile Avatar */}
+                <div 
+                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                  className="instagram-avatar"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
+                  {profilePhoto ? (
+                    <img 
+                      src={profilePhoto} 
+                      alt="Profile" 
+                    />
+                  ) : (
+                    <div className="avatar-fallback">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+
+                <button 
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="text-white"
+                >
+                  <svg 
+                    className={`w-6 h-6 transition-transform ${mobileMenuOpen ? 'rotate-180' : ''}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+              </div>
               
               {mobileMenuOpen && (
                 <div className="border-t border-gray-700 pt-4">
                   <nav className="space-y-2">
-                    <Link 
-                      href="/dashboard" 
-                      className="block px-4 py-3 hover:bg-white/10 rounded-lg font-medium"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <img 
-                        src="/logo.png" 
-                        alt="DECODE Logo" 
-                        className="h-6 w-auto filter brightness-0 invert"
-                      />
-                    </Link>
                     
                     {userRole === 'Beauty Professional' && (
                       <>
                         <button 
-                          className="block w-full text-left px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg font-medium transition-colors mb-2"
+                          className="block w-full text-left create-paylink-button mb-2"
                           onMouseOver={createHoverSparkles}
                           onClick={(e) => {
                             setMobileMenuOpen(false)
@@ -349,14 +359,14 @@ export default function Dashboard() {
                         </button>
                         <Link 
                           href="/my-links" 
-                          className="block px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg font-medium transition-colors"
+                          className="block nav-button px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           My PayLinks
                         </Link>
                         <Link 
                           href="/dashboard/payments" 
-                          className="block px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg font-medium transition-colors"
+                          className="block nav-button px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           Payment History
@@ -367,7 +377,7 @@ export default function Dashboard() {
                     {/* Profile */}
                     <Link
                       href="/profile"
-                      className="block w-full text-left px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg font-medium transition-colors"
+                      className="block w-full text-left nav-button px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <div className="flex items-center">
@@ -381,7 +391,7 @@ export default function Dashboard() {
                     {/* Bank Account */}
                     <Link
                       href="/bank-account"
-                      className="block w-full text-left px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg font-medium transition-colors"
+                      className="block w-full text-left nav-button px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <div className="flex items-center">
@@ -395,7 +405,7 @@ export default function Dashboard() {
                     {/* Logout */}
                     <button 
                       onClick={handleSignOut}
-                      className="block w-full text-left px-4 py-3 text-gray-300 hover:text-red-400 hover:bg-red-500/10 rounded-lg font-medium transition-colors"
+                      className="block w-full text-left nav-button px-4 py-3 text-gray-300 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                     >
                       <div className="flex items-center">
                         <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

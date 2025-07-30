@@ -304,6 +304,69 @@ body {
   margin: 0 auto;
 }
 
+/* Instagram-style Profile Avatar */
+.instagram-avatar {
+  position: relative;
+  display: inline-block;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.instagram-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(240, 148, 51, 0.4);
+}
+
+.instagram-avatar img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid white;
+  object-fit: cover;
+  display: block;
+}
+
+.instagram-avatar .avatar-fallback {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid white;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+/* Navigation button styling with larger font */
+.nav-button {
+  font-size: 17px;
+  font-weight: 500;
+  padding: 12px 24px;
+}
+
+/* Black Create PayLink button */
+.create-paylink-button {
+  background: linear-gradient(135deg, #2d2d2d 0%, #000000 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 17px;
+  font-weight: 500;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.create-paylink-button:hover {
+  transform: scale(1.02);
+  background: linear-gradient(135deg, #404040 0%, #1a1a1a 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
 /* Mobile-specific layout adjustments */
 @media (max-width: 768px) {
   .cosmic-card {
