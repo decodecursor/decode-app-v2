@@ -143,20 +143,30 @@ function PaymentForm({
                 }
               }}
               onConfirm={async (event) => {
-                // Use the same payment confirmation logic
-                const { error: confirmError } = await stripe.confirmPayment({
-                  elements,
-                  clientSecret,
-                  confirmParams: {
-                    return_url: `${window.location.origin}/pay/success?paymentLinkId=${paymentLinkId}`,
-                  },
-                });
+                if (!stripe || !elements) {
+                  return;
+                }
 
-                if (confirmError) {
-                  setError(confirmError.message);
-                  onError?.(confirmError.message);
-                } else {
-                  onSuccess?.();
+                try {
+                  // Use the same payment confirmation logic
+                  const { error: confirmError } = await stripe.confirmPayment({
+                    elements,
+                    clientSecret,
+                    confirmParams: {
+                      return_url: `${window.location.origin}/pay/success?paymentLinkId=${paymentLinkId}`,
+                    },
+                  });
+
+                  if (confirmError) {
+                    setError(confirmError.message);
+                    onError?.(confirmError.message);
+                  } else {
+                    onSuccess?.();
+                  }
+                } catch (err) {
+                  const errorMessage = err instanceof Error ? err.message : 'Payment failed';
+                  setError(errorMessage);
+                  onError?.(errorMessage);
                 }
               }}
             />
