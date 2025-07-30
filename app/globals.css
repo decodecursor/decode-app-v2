@@ -291,6 +291,13 @@ body {
   min-width: 44px;
 }
 
+/* Desktop-specific layout adjustments for profile page */
+@media (min-width: 769px) {
+  .cosmic-card {
+    width: 28vw;
+  }
+}
+
 /* Mobile-specific layout adjustments */
 @media (max-width: 768px) {
   .cosmic-card {

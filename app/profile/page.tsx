@@ -35,6 +35,12 @@ export default function ProfilePage() {
   const imgRef = useRef<HTMLImageElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Password change states
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordChanging, setPasswordChanging] = useState(false)
+
   // Feedback states
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
 
@@ -264,6 +270,41 @@ export default function ProfilePage() {
     }
   }
 
+  const changePassword = async () => {
+    if (!user || !currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) return
+
+    if (newPassword !== confirmPassword) {
+      setMessage({ type: 'error', text: 'New passwords do not match' })
+      return
+    }
+
+    if (newPassword.length < 6) {
+      setMessage({ type: 'error', text: 'New password must be at least 6 characters long' })
+      return
+    }
+
+    setPasswordChanging(true)
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      })
+
+      if (error) {
+        throw error
+      }
+
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+      setMessage({ type: 'success', text: 'Password updated successfully' })
+    } catch (error) {
+      console.error('Error changing password:', error)
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to change password' })
+    } finally {
+      setPasswordChanging(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
@@ -301,13 +342,12 @@ export default function ProfilePage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%' }}>
           {/* Profile Photo Section */}  
-          <div style={{ width: '40%', flexShrink: 0 }}>
-            <div className="cosmic-card h-fit">
-              <h2 className="text-xl font-semibold text-white mb-8">Profile Photo</h2>
-              
-              <div className="text-center">
-                {/* Current Profile Photo */}
-                <div className="mb-8">
+          <div className="cosmic-card h-fit">
+            <h2 className="text-xl font-semibold text-white mb-8">Profile Photo</h2>
+            
+            <div className="text-center">
+              {/* Current Profile Photo */}
+              <div className="mb-8">
                   <div className="w-48 h-48 mx-auto rounded-full overflow-hidden bg-gray-700 ring-4 ring-white/10">
                     {profile?.profile_photo_url ? (
                       <img 
@@ -325,8 +365,8 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Image Cropper */}
-                {selectedImage && (
+              {/* Image Cropper */}
+              {selectedImage && (
                   <div className="mb-8">
                     <div className="max-w-sm mx-auto mb-6">
                       <ReactCrop
@@ -363,8 +403,8 @@ export default function ProfilePage() {
                   </div>
                 )}
 
-                {/* Upload Button */}
-                {!selectedImage && (
+              {/* Upload Button */}
+              {!selectedImage && (
                   <div className="space-y-4">
                     <input
                       ref={fileInputRef}
@@ -383,8 +423,7 @@ export default function ProfilePage() {
                       Choose New Photo
                     </button>
                   </div>
-                )}
-              </div>
+              )}
             </div>
           </div>
 
@@ -404,7 +443,7 @@ export default function ProfilePage() {
                 disabled={saving || !companyName.trim() || companyName === profile?.company_name}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
-                {saving ? 'Saving...' : 'Update'}
+                {saving ? 'Saving...' : 'Change'}
               </button>
             </div>
           </div>
@@ -413,23 +452,8 @@ export default function ProfilePage() {
           <div className="cosmic-card">
             <h2 className="text-xl font-semibold text-white mb-6">Email Address</h2>
             <div className="space-y-4">
-              <input
-                type="email"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                placeholder="Enter your email address"
-                className="cosmic-input w-full"
-              />
-              <button
-                onClick={changeEmail}
-                disabled={saving || !newEmail.trim() || newEmail === profile?.email}
-                className="cosmic-button-primary disabled:opacity-50 w-full"
-              >
-                {saving ? 'Sending...' : 'Change'}
-              </button>
-              
-              {/* Email Status */}
-              <div className="flex items-center justify-between pt-2">
+              {/* Email Status - Moved Above Input */}
+              <div className="flex items-center justify-between">
                 <div className={`flex items-center space-x-2 ${
                   profile?.email_verified ? 'text-green-400' : 'text-yellow-400'
                 }`}>
@@ -452,6 +476,21 @@ export default function ProfilePage() {
                   </div>
                 )}
               </div>
+
+              <input
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="Enter your email address"
+                className="cosmic-input w-full"
+              />
+              <button
+                onClick={changeEmail}
+                disabled={saving || !newEmail.trim() || newEmail === profile?.email}
+                className="cosmic-button-primary disabled:opacity-50 w-full"
+              >
+                {saving ? 'Sending...' : 'Change'}
+              </button>
               
               {emailVerificationSent && (
                 <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
@@ -460,6 +499,41 @@ export default function ProfilePage() {
                   </p>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Password Change Card */}
+          <div className="cosmic-card">
+            <h2 className="text-xl font-semibold text-white mb-6">Password</h2>
+            <div className="space-y-4">
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Current password"
+                className="cosmic-input w-full"
+              />
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="New password"
+                className="cosmic-input w-full"
+              />
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+                className="cosmic-input w-full"
+              />
+              <button
+                onClick={changePassword}
+                disabled={passwordChanging || !currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()}
+                className="cosmic-button-primary disabled:opacity-50 w-full"
+              >
+                {passwordChanging ? 'Changing...' : 'Change'}
+              </button>
             </div>
           </div>
         </div>
