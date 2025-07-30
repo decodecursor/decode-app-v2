@@ -269,7 +269,7 @@ export default function PaymentPage() {
         currency="AED"
         description={paymentData.title}
         beautyProfessionalName={paymentData.creator.full_name || paymentData.creator.email?.split('@')[0] || 'Beauty Professional'}
-        customerName={paymentData.client_name}
+        customerName={paymentData.client_name || undefined}
         onSuccess={() => {
           console.log('Payment successful');
           window.location.href = `/pay/success?paymentLinkId=${linkId}`;
