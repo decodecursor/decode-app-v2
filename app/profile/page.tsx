@@ -52,20 +52,47 @@ export default function ProfilePage() {
 
       setUser(user)
 
-      // Fetch user profile
-      const { data: profileData, error } = await supabase
+      // Fetch user profile - try new schema first, fallback to old schema
+      let { data: profileData, error } = await supabase
         .from('users')
         .select('id, email, company_name, profile_photo_url, email_verified, pending_email')
         .eq('id', user.id)
         .single()
 
-      if (error) {
+      // If new schema fails, try old schema
+      if (error && error.message?.includes('column')) {
+        console.log('New columns not found, using fallback query...')
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('users')
+          .select('id, email, full_name')
+          .eq('id', user.id)
+          .single()
+        
+        if (fallbackError) {
+          console.error('Error fetching profile:', fallbackError)
+          setMessage({ type: 'error', text: 'Failed to load profile. Please run database migration.' })
+        } else {
+          // Create profile object with fallback values
+          profileData = {
+            id: fallbackData.id,
+            email: fallbackData.email,
+            company_name: null,
+            profile_photo_url: null,
+            email_verified: false,
+            pending_email: null
+          }
+          setProfile(profileData)
+          setCompanyName('')
+          setNewEmail(fallbackData.email || user.email || '')
+          setMessage({ type: 'error', text: 'Database migration required. Some features may not work.' })
+        }
+      } else if (error) {
         console.error('Error fetching profile:', error)
         setMessage({ type: 'error', text: 'Failed to load profile' })
       } else {
         setProfile(profileData)
         setCompanyName(profileData.company_name || '')
-        setNewEmail(profileData.email || '')
+        setNewEmail(profileData.email || user.email || '')
       }
     } catch (error) {
       console.error('Auth error:', error)
@@ -85,13 +112,20 @@ export default function ProfilePage() {
         .update({ company_name: companyName.trim() })
         .eq('id', profile.id)
 
-      if (error) throw error
-
-      setProfile({ ...profile, company_name: companyName.trim() })
-      setMessage({ type: 'success', text: 'Company name updated successfully' })
+      if (error) {
+        console.error('Company name update error:', error)
+        if (error.message?.includes('column') || error.message?.includes('company_name')) {
+          setMessage({ type: 'error', text: 'Database migration required. Please run the database migration first.' })
+        } else {
+          throw error
+        }
+      } else {
+        setProfile({ ...profile, company_name: companyName.trim() })
+        setMessage({ type: 'success', text: 'Company name updated successfully' })
+      }
     } catch (error) {
       console.error('Error updating company name:', error)
-      setMessage({ type: 'error', text: 'Failed to update company name' })
+      setMessage({ type: 'error', text: 'Failed to update company name. Check console for details.' })
     } finally {
       setSaving(false)
     }
@@ -161,7 +195,15 @@ export default function ProfilePage() {
           upsert: true
         })
 
-      if (uploadError) throw uploadError
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError)
+        if (uploadError.message?.includes('not found') || uploadError.message?.includes('bucket')) {
+          setMessage({ type: 'error', text: 'Storage bucket not found. Please create "user-uploads" bucket in Supabase Storage.' })
+        } else {
+          throw uploadError
+        }
+        return
+      }
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
@@ -174,14 +216,22 @@ export default function ProfilePage() {
         .update({ profile_photo_url: publicUrl })
         .eq('id', profile.id)
 
-      if (updateError) throw updateError
+      if (updateError) {
+        console.error('Profile update error:', updateError)
+        if (updateError.message?.includes('column') || updateError.message?.includes('profile_photo_url')) {
+          setMessage({ type: 'error', text: 'Database migration required. Please run the database migration first.' })
+        } else {
+          throw updateError
+        }
+        return
+      }
 
       setProfile({ ...profile, profile_photo_url: publicUrl })
       setSelectedImage(null)
       setMessage({ type: 'success', text: 'Profile photo updated successfully' })
     } catch (error) {
       console.error('Error uploading photo:', error)
-      setMessage({ type: 'error', text: 'Failed to upload profile photo' })
+      setMessage({ type: 'error', text: 'Failed to upload profile photo. Check console for details.' })
     } finally {
       setPhotoUploading(false)
     }
