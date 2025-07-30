@@ -72,7 +72,6 @@ function PaymentForm({
           return_url: `${window.location.origin}/pay/success?paymentLinkId=${paymentLinkId}`,
           payment_method_data: {
             billing_details: {
-              name: clientInfo.name,
               email: clientInfo.email,
             },
           },
@@ -104,7 +103,7 @@ function PaymentForm({
             className="mx-auto mb-2" 
             style={{height: '40px', filter: 'brightness(0) invert(1)'}} 
           />
-          <p className="cosmic-body opacity-70">Making Girls More Beautiful</p>
+          <p className="text-sm cosmic-body opacity-70">Making Girls More Beautiful</p>
         </div>
 
         {/* Payment Information */}
@@ -114,16 +113,13 @@ function PaymentForm({
               {beautyProfessionalName}
             </div>
             <div className="cosmic-body text-white opacity-80">
-              {clientInfo.name || 'Client Name'}
+              {customerName || 'Client Name'}
             </div>
             <div className="cosmic-body text-white opacity-80">
               {description}
             </div>
             <div className="cosmic-body text-2xl font-bold text-white mt-4">
               {currency} {amount.toFixed(2)}
-              <span className="text-sm font-normal opacity-70 block">
-                (includes DECODE fees)
-              </span>
             </div>
           </div>
         </div>
@@ -131,16 +127,6 @@ function PaymentForm({
         {/* Client Information Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
-            <div>
-              <input
-                type="text"
-                placeholder="Your Full Name"
-                value={clientInfo.name}
-                onChange={(e) => setClientInfo(prev => ({ ...prev, name: e.target.value }))}
-                className="cosmic-input"
-                required
-              />
-            </div>
             <div>
               <input
                 type="email"
@@ -190,6 +176,7 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [realClientName, setRealClientName] = useState<string | null>(null);
 
   useEffect(() => {
     // Create payment intent when component mounts
@@ -222,6 +209,11 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
         }
 
         setClientSecret(intentData.clientSecret);
+        
+        // Extract the real professional name from the payment details
+        if (intentData.paymentDetails?.professionalName) {
+          setRealClientName(intentData.paymentDetails.professionalName);
+        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to initialize payment';
         setError(errorMessage);
@@ -293,7 +285,7 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
 
   return (
     <Elements stripe={stripePromise} options={stripeOptions}>
-      <PaymentForm {...props} clientSecret={clientSecret} />
+      <PaymentForm {...props} clientSecret={clientSecret} customerName={realClientName || props.customerName} />
     </Elements>
   );
 }
