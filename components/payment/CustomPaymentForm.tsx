@@ -325,7 +325,9 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
         colorText: '#ffffff',
         colorDanger: '#ef4444',
         fontFamily: 'Inter, sans-serif',
+        fontSizeBase: '16px', // Better mobile support
         borderRadius: '8px',
+        spacingUnit: '6px', // Better spacing for icons
       },
       rules: {
         '.Input': {
@@ -341,6 +343,30 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
           color: '#ffffff',
           fontSize: '14px',
         },
+        // Force card icons to display side by side on mobile
+        '.CardNumberInput': {
+          display: 'flex',
+          alignItems: 'center',
+        },
+        '.CardNumberInput .InputContainer': {
+          flex: '1',
+          display: 'flex',
+          alignItems: 'center',
+        },
+        '.CardNumberInput .IconContainer': {
+          display: 'flex !important',
+          flexDirection: 'row !important',
+          alignItems: 'center',
+          gap: '4px',
+          marginLeft: 'auto',
+        },
+        '@media (max-width: 768px)': {
+          '.CardNumberInput .IconContainer': {
+            display: 'flex !important',
+            flexDirection: 'row !important',
+            flexWrap: 'nowrap !important',
+          }
+        }
       },
     },
   };
