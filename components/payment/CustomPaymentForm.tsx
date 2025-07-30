@@ -158,8 +158,8 @@ function PaymentForm({
                   });
 
                   if (confirmError) {
-                    setError(confirmError.message);
-                    onError?.(confirmError.message);
+                    setError(confirmError.message || 'Payment failed');
+                    onError?.(confirmError.message || 'Payment failed');
                   } else {
                     onSuccess?.();
                   }
