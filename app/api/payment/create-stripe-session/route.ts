@@ -26,17 +26,16 @@ export async function POST(request: NextRequest) {
       .from('payment_links')
       .select(`
         id,
-        amount,
-        currency,
+        amount_aed,
+        title,
         description,
-        beauty_professional_id,
+        creator_id,
         is_active,
-        expires_at,
-        users!beauty_professional_id (
+        expiration_date,
+        creator:creator_id (
           id,
           email,
-          first_name,
-          last_name
+          full_name
         )
       `)
       .eq('id', paymentLinkId)
@@ -56,18 +55,15 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    if (paymentLink.expires_at && new Date(paymentLink.expires_at) < new Date()) {
+    if (paymentLink.expiration_date && new Date(paymentLink.expiration_date) < new Date()) {
       return NextResponse.json({
         error: 'Payment link has expired'
       }, { status: 400 });
     }
 
     // Convert AED to USD for Stripe (Stripe doesn't support AED directly)
-    const amountInCents = paymentLink.currency === 'AED' 
-      ? stripeService.convertAedToUsd(paymentLink.amount)
-      : Math.round(paymentLink.amount * 100); // Convert to cents
-
-    const currency = paymentLink.currency === 'AED' ? 'USD' : paymentLink.currency;
+    const amountInCents = stripeService.convertAedToUsd(paymentLink.amount_aed);
+    const currency = 'USD';
 
     // Calculate platform fee
     const feeCalculation = stripeService.calculatePlatformFee(amountInCents);
@@ -82,7 +78,7 @@ export async function POST(request: NextRequest) {
       amount: amountInCents,
       currency: currency,
       paymentLinkId: paymentLinkId,
-      beautyProfessionalId: paymentLink.beauty_professional_id,
+      beautyProfessionalId: paymentLink.creator_id,
       customerEmail: customerEmail,
       customerName: customerName,
       description: paymentLink.description || 'Beauty service payment',
@@ -95,19 +91,20 @@ export async function POST(request: NextRequest) {
       .from('transactions')
       .insert({
         payment_link_id: paymentLinkId,
-        beauty_professional_id: paymentLink.beauty_professional_id,
-        amount: paymentLink.amount,
-        original_amount: paymentLink.amount,
-        currency: paymentLink.currency,
-        converted_amount_usd: amountInCents / 100,
-        fee_amount: feeCalculation.feeAmount / 100,
-        net_amount: feeCalculation.netAmount / 100,
-        processor: 'stripe',
-        processor_session_id: sessionResponse.sessionId,
+        amount_aed: paymentLink.amount_aed,
         status: 'pending',
-        customer_email: customerEmail,
-        customer_name: customerName,
-        created_at: new Date().toISOString()
+        payment_processor: 'stripe',
+        processor_session_id: sessionResponse.sessionId,
+        buyer_email: customerEmail,
+        created_at: new Date().toISOString(),
+        metadata: {
+          customer_name: customerName,
+          original_amount_aed: paymentLink.amount_aed,
+          converted_amount_usd: amountInCents / 100,
+          fee_amount_usd: feeCalculation.feeAmount / 100,
+          net_amount_usd: feeCalculation.netAmount / 100,
+          beauty_professional_id: paymentLink.creator_id
+        }
       });
 
     if (logError) {
@@ -123,13 +120,13 @@ export async function POST(request: NextRequest) {
       url: sessionResponse.url,
       publicKey: sessionResponse.publicKey,
       paymentDetails: {
-        amount: paymentLink.amount,
-        currency: paymentLink.currency,
+        amount: paymentLink.amount_aed,
+        currency: 'AED',
         convertedAmount: amountInCents / 100,
         convertedCurrency: currency,
         description: paymentLink.description,
-        professionalName: paymentLink.users && paymentLink.users[0] ? 
-          `${paymentLink.users[0].first_name} ${paymentLink.users[0].last_name}` : 
+        professionalName: paymentLink.creator && paymentLink.creator.full_name ? 
+          paymentLink.creator.full_name : 
           'Beauty Professional'
       }
     });
