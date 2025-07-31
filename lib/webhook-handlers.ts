@@ -95,7 +95,7 @@ async function handlePaymentSuccess(data: WebhookEventData): Promise<void> {
   // First, verify the payment link exists
   const { data: paymentLink, error: linkError } = await supabase
     .from('payment_links')
-    .select('id, amount_usd, title, creator_id')
+    .select('id, amount_aed, title, creator_id')
     .eq('id', paymentLinkId)
     .single()
 
@@ -108,7 +108,7 @@ async function handlePaymentSuccess(data: WebhookEventData): Promise<void> {
     id: data.id,
     payment_link_id: paymentLinkId,
     buyer_email: data.customer?.email || data.metadata?.buyerEmail || null,
-    amount_usd: data.amount,
+    amount_aed: data.amount,
     status: 'completed',
     payment_processor: 'crossmint',
     processor_transaction_id: data.id,
@@ -174,7 +174,7 @@ async function handlePaymentFailure(data: WebhookEventData): Promise<void> {
     id: data.id,
     payment_link_id: paymentLinkId,
     buyer_email: data.customer?.email || data.metadata?.buyerEmail || null,
-    amount_usd: data.amount,
+    amount_aed: data.amount,
     status: 'failed',
     payment_processor: 'crossmint',
     processor_transaction_id: data.id,
@@ -230,7 +230,7 @@ async function handlePaymentPending(data: WebhookEventData): Promise<void> {
     id: data.id,
     payment_link_id: paymentLinkId,
     buyer_email: data.customer?.email || data.metadata?.buyerEmail || null,
-    amount_usd: data.amount,
+    amount_aed: data.amount,
     status: 'pending',
     payment_processor: 'crossmint',
     processor_transaction_id: data.id,
