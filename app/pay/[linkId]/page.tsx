@@ -231,7 +231,7 @@ export default function PaymentPage() {
           .limit(1)
           .single()
 
-        const isPaid = !transactionError && completedTransaction
+        const isPaid = !transactionError && !!completedTransaction
         console.log('💰 Payment status:', isPaid ? 'ALREADY PAID' : 'UNPAID')
 
         const transformedData: PaymentLinkData = {
