@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import HeartAnimation from '@/components/effects/HeartAnimation'
 
 interface PaymentLinkCardProps {
   id: string
@@ -16,6 +17,7 @@ interface PaymentLinkCardProps {
   onCopyLink?: (linkId: string) => void
   onToggleStatus?: (linkId: string, newStatus: boolean) => void
   showActions?: boolean
+  showHeartAnimation?: boolean
 }
 
 export default function PaymentLinkCard({
@@ -30,7 +32,8 @@ export default function PaymentLinkCard({
   total_revenue,
   onCopyLink,
   onToggleStatus,
-  showActions = true
+  showActions = true,
+  showHeartAnimation = false
 }: PaymentLinkCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [copySuccess, setCopySuccess] = useState(false)
@@ -101,7 +104,9 @@ export default function PaymentLinkCard({
   const successRate = transaction_count > 0 ? 100 : 0 // Assuming all transactions shown are successful
 
   return (
-    <div className="cosmic-card group hover:bg-white/15 transition-all duration-200">
+    <div className="cosmic-card group hover:bg-white/15 transition-all duration-200 relative">
+      {/* Heart Animation Effect */}
+      <HeartAnimation isActive={showHeartAnimation} />
       <div className="flex justify-between items-start">
         <div className="flex-1">
           {/* Header */}

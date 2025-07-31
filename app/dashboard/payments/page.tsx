@@ -58,6 +58,7 @@ export default function PaymentHistoryPage() {
   const [sortBy, setSortBy] = useState<'created_at' | 'amount_usd' | 'total_revenue'>('created_at')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [showStats, setShowStats] = useState(true)
+  const [heartAnimationLinks, setHeartAnimationLinks] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const getUser = async () => {
@@ -178,6 +179,55 @@ export default function PaymentHistoryPage() {
       setLoading(false)
     }
   }
+
+  // Set up real-time subscription for payment completion events
+  useEffect(() => {
+    if (!user) return
+
+    const subscription = supabase
+      .channel('payment-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'transactions',
+          filter: `status=eq.completed`
+        },
+        async (payload) => {
+          console.log('✅ Payment completed in real-time:', payload)
+          
+          const transaction = payload.new as any
+          const paymentLinkId = transaction.payment_link_id
+          
+          if (paymentLinkId) {
+            // Check if this payment link belongs to current user
+            const currentUserLinks = paymentLinks.map(link => link.id)
+            if (currentUserLinks.includes(paymentLinkId)) {
+              // Trigger heart animation for this payment link
+              setHeartAnimationLinks(prev => new Set([...prev, paymentLinkId]))
+              
+              // Remove animation after 3 seconds
+              setTimeout(() => {
+                setHeartAnimationLinks(prev => {
+                  const newSet = new Set(prev)
+                  newSet.delete(paymentLinkId)
+                  return newSet
+                })
+              }, 3000)
+              
+              // Refresh payment data to show updated stats
+              await fetchPaymentData(user.id)
+            }
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [user, paymentLinks])
 
   const filteredAndSortedLinks = paymentLinks
     .filter(link => {
@@ -421,6 +471,7 @@ export default function PaymentHistoryPage() {
                 key={link.id}
                 {...link}
                 onCopyLink={copyPaymentLink}
+                showHeartAnimation={heartAnimationLinks.has(link.id)}
               />
             ))
           )}
