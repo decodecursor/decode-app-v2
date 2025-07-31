@@ -125,9 +125,11 @@ export async function POST(request: NextRequest) {
         convertedAmount: amountInCents / 100,
         convertedCurrency: currency,
         description: paymentLink.description,
-        professionalName: paymentLink.creator && paymentLink.creator.full_name ? 
-          paymentLink.creator.full_name : 
-          'Beauty Professional'
+        professionalName: paymentLink.creator && Array.isArray(paymentLink.creator) && paymentLink.creator[0]?.full_name ? 
+          paymentLink.creator[0].full_name : 
+          (paymentLink.creator && !Array.isArray(paymentLink.creator) && paymentLink.creator.full_name ?
+            paymentLink.creator.full_name :
+            'Beauty Professional')
       }
     });
 
