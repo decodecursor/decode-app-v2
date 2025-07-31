@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { stripeService } from '@/lib/stripe';
+import type { PaymentLinkWithCreator } from '@/types/database';
 
 interface CreateStripeSessionRequest {
   paymentLinkId: string;
@@ -114,10 +115,9 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Stripe payment session created successfully:', sessionResponse.sessionId);
 
-    // Transform creator data
-    const creator = Array.isArray(paymentLink.creator) 
-      ? (paymentLink.creator[0] || { full_name: null, email: '' })
-      : (paymentLink.creator || { full_name: null, email: '' });
+    // Transform creator data - Supabase relations are properly typed now
+    const creator = paymentLink.creator;
+    const creatorName = creator?.full_name || 'Beauty Professional';
 
     return NextResponse.json({
       success: true,
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         convertedAmount: amountInCents / 100,
         convertedCurrency: currency,
         description: paymentLink.description,
-        professionalName: creator?.full_name || 'Beauty Professional'
+        professionalName: creatorName
       }
     });
 
