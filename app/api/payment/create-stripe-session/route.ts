@@ -114,6 +114,11 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Stripe payment session created successfully:', sessionResponse.sessionId);
 
+    // Transform creator data
+    const creator = Array.isArray(paymentLink.creator) 
+      ? (paymentLink.creator[0] || { full_name: null, email: '' })
+      : (paymentLink.creator || { full_name: null, email: '' });
+
     return NextResponse.json({
       success: true,
       sessionId: sessionResponse.sessionId,
@@ -125,11 +130,7 @@ export async function POST(request: NextRequest) {
         convertedAmount: amountInCents / 100,
         convertedCurrency: currency,
         description: paymentLink.description,
-        professionalName: paymentLink.creator && Array.isArray(paymentLink.creator) && paymentLink.creator[0]?.full_name ? 
-          paymentLink.creator[0].full_name : 
-          (paymentLink.creator && !Array.isArray(paymentLink.creator) && paymentLink.creator.full_name ?
-            paymentLink.creator.full_name :
-            'Beauty Professional')
+        professionalName: creator?.full_name || 'Beauty Professional'
       }
     });
 
