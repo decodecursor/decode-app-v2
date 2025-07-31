@@ -311,7 +311,8 @@ export default function BankAccountPage() {
             }
           }
           return null
-        }
+        },
+        fetchClientSecret: () => Promise.resolve(sessionResult.client_secret)
       }
 
       setStripeConnectInstance(connectInstance)
