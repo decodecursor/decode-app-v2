@@ -145,21 +145,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 
     console.log('✅ WEBHOOK DEBUG: Checkout transaction updated successfully:', updatedTransaction);
 
-    // Mark payment link as paid
-    const { error: linkUpdateError } = await supabase
-      .from('payment_links')
-      .update({
-        status: 'paid',
-        paid_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', paymentLinkId);
-
-    if (linkUpdateError) {
-      console.error('❌ WEBHOOK DEBUG: Failed to update payment link status:', linkUpdateError);
-    } else {
-      console.log('✅ WEBHOOK DEBUG: Payment link marked as paid via checkout:', paymentLinkId);
-    }
+    // Note: payment_links table doesn't have status field, so we rely on transaction status for payment detection
 
     console.log('✅ Transaction completed successfully for payment link:', paymentLinkId);
 
@@ -171,7 +157,14 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   try {
     console.log('💳 Payment intent succeeded:', paymentIntent.id);
-    console.log('🔍 WEBHOOK DEBUG: PaymentIntent metadata:', paymentIntent.metadata);
+    console.log('🔍 WEBHOOK DEBUG: Full PaymentIntent object:', JSON.stringify({
+      id: paymentIntent.id,
+      status: paymentIntent.status,
+      amount: paymentIntent.amount,
+      currency: paymentIntent.currency,
+      metadata: paymentIntent.metadata,
+      client_secret: paymentIntent.client_secret
+    }, null, 2));
     
     const paymentLinkId = paymentIntent.metadata?.payment_link_id;
     
@@ -260,21 +253,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
 
     console.log('✅ WEBHOOK DEBUG: Transaction updated successfully:', updatedTransaction);
 
-    // Also mark the payment link as paid
-    const { error: linkUpdateError } = await supabase
-      .from('payment_links')
-      .update({
-        status: 'paid',
-        paid_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', paymentLinkId);
-
-    if (linkUpdateError) {
-      console.error('❌ WEBHOOK DEBUG: Failed to update payment link status:', linkUpdateError);
-    } else {
-      console.log('✅ WEBHOOK DEBUG: Payment link marked as paid:', paymentLinkId);
-    }
+    // Note: payment_links table doesn't have status field, so we rely on transaction status for payment detection
 
     console.log('✅ Payment intent processed successfully with method:', updateMethod);
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 
 interface PaymentDetails {
   id: string
@@ -17,6 +18,54 @@ function PaymentSuccessContent() {
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const searchParams = useSearchParams()
+
+  // Manual transaction status update as fallback for webhook failures
+  const manualTransactionUpdate = async (paymentLinkId: string) => {
+    try {
+      console.log('🔄 SUCCESS PAGE: Attempting manual transaction status update for:', paymentLinkId);
+      
+      // Find transactions for this payment link that need completion
+      const { data: transactions, error: fetchError } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('payment_link_id', paymentLinkId)
+        .in('status', ['pending']);
+
+      if (fetchError) {
+        console.error('❌ SUCCESS PAGE: Error fetching transactions:', fetchError);
+        return;
+      }
+
+      console.log('🔍 SUCCESS PAGE: Found transactions needing completion:', transactions);
+
+      if (!transactions || transactions.length === 0) {
+        console.log('ℹ️ SUCCESS PAGE: No pending transactions found for manual update');
+        return;
+      }
+
+      // Update all pending transactions to completed
+      for (const transaction of transactions) {
+        console.log('🔄 SUCCESS PAGE: Updating transaction:', transaction.id);
+        
+        const { error: updateError } = await supabase
+          .from('transactions')
+          .update({
+            status: 'completed',
+            completed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', transaction.id);
+
+        if (updateError) {
+          console.error('❌ SUCCESS PAGE: Failed to update transaction:', transaction.id, updateError);
+        } else {
+          console.log('✅ SUCCESS PAGE: Successfully updated transaction:', transaction.id);
+        }
+      }
+    } catch (error) {
+      console.error('❌ SUCCESS PAGE: Manual transaction update failed:', error);
+    }
+  };
 
   useEffect(() => {
     // Get payment details from URL params
@@ -41,6 +90,9 @@ function PaymentSuccessContent() {
         clientName: clientName || undefined,
         timestamp
       })
+      
+      // Manual transaction status update as fallback for webhook failures
+      manualTransactionUpdate(id)
     } else {
       console.log('❌ Missing required params:', { 
         hasId: !!id, 
