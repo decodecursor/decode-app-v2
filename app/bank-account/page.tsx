@@ -45,6 +45,7 @@ function ConnectAccountOnboarding({
         accountOnboarding.unmount()
       }
     }
+    return undefined
   }, [stripeConnectInstance, onboardingRef, onComplete])
 
   return (
