@@ -70,7 +70,7 @@ function PaymentForm({
         elements,
         clientSecret,
         confirmParams: {
-          return_url: `${window.location.origin}/pay/success?id=${paymentLinkId}&amount=${amount}&currency=${currency}&description=${encodeURIComponent(description)}&timestamp=${Date.now()}`,
+          return_url: `${window.location.origin}/pay/success?id=${paymentLinkId}&amount=${amount}&currency=${currency}&description=${encodeURIComponent(description)}&clientName=${encodeURIComponent(customerName || '')}&timestamp=${Date.now()}`,
           payment_method_data: {
             billing_details: {
               email: clientInfo.email,
@@ -150,7 +150,7 @@ function PaymentForm({
                     elements,
                     clientSecret,
                     confirmParams: {
-                      return_url: `${window.location.origin}/pay/success?id=${paymentLinkId}&amount=${amount}&currency=${currency}&description=${encodeURIComponent(description)}&timestamp=${Date.now()}`,
+                      return_url: `${window.location.origin}/pay/success?id=${paymentLinkId}&amount=${amount}&currency=${currency}&description=${encodeURIComponent(description)}&clientName=${encodeURIComponent(customerName || '')}&timestamp=${Date.now()}`,
                     },
                   });
 

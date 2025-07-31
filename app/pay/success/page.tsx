@@ -9,9 +9,8 @@ interface PaymentDetails {
   amount: number
   currency: string
   description: string
-  buyerEmail?: string
+  clientName?: string
   timestamp: string
-  transactionId?: string
 }
 
 function PaymentSuccessContent() {
@@ -27,11 +26,10 @@ function PaymentSuccessContent() {
     const amount = searchParams.get('amount')
     const currency = searchParams.get('currency') || 'AED'
     const description = searchParams.get('description')
-    const buyerEmail = searchParams.get('buyerEmail')
+    const clientName = searchParams.get('clientName')
     const timestamp = searchParams.get('timestamp')
-    const transactionId = searchParams.get('transactionId')
     
-    console.log('💰 Parsed params:', { id, amount, currency, description, buyerEmail, timestamp, transactionId })
+    console.log('💰 Parsed params:', { id, amount, currency, description, clientName, timestamp })
 
     if (id && amount && description && timestamp) {
       console.log('✅ All required params present - setting payment details')
@@ -40,9 +38,8 @@ function PaymentSuccessContent() {
         amount: parseFloat(amount),
         currency,
         description,
-        buyerEmail: buyerEmail || undefined,
-        timestamp,
-        transactionId: transactionId || undefined
+        clientName: clientName || undefined,
+        timestamp
       })
     } else {
       console.log('❌ Missing required params:', { 
@@ -56,21 +53,6 @@ function PaymentSuccessContent() {
     setLoading(false)
   }, [searchParams])
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
-  const copyTransactionId = () => {
-    if (paymentDetails?.id) {
-      navigator.clipboard.writeText(paymentDetails.id)
-    }
-  }
 
   if (loading) {
     return (
@@ -111,9 +93,9 @@ function PaymentSuccessContent() {
   return (
     <div className="cosmic-bg">
       <div className="min-h-screen flex items-center justify-center px-4 py-8">
-        <div className="cosmic-card max-w-lg w-full">
+        <div className="cosmic-card max-w-lg w-full text-center">
           {/* Success Animation */}
-          <div className="text-center mb-8">
+          <div className="mb-8">
             <div className="relative w-20 h-20 mx-auto mb-6">
               <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping"></div>
               <div className="relative w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center">
@@ -126,88 +108,10 @@ function PaymentSuccessContent() {
             <p className="cosmic-body opacity-70">Your payment has been processed successfully</p>
           </div>
 
-          {/* Payment Details */}
-          <div className="space-y-6">
-            {/* Service Information */}
-            <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-              <h3 className="cosmic-label text-white/70 mb-2">Service</h3>
-              <p className="cosmic-body font-medium">{paymentDetails.description}</p>
-            </div>
-
-            {/* Amount */}
-            <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-              <h3 className="cosmic-label text-white/70 mb-2">Amount Paid</h3>
-              <p className="text-2xl font-bold text-green-400">
-                ${paymentDetails.amount.toFixed(2)} {paymentDetails.currency}
-              </p>
-            </div>
-
-            {/* Transaction Details */}
-            <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-              <h3 className="cosmic-label text-white/70 mb-3">Transaction Details</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="cosmic-body opacity-70">Date</span>
-                  <span className="cosmic-body">{formatDate(paymentDetails.timestamp)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="cosmic-body opacity-70">Transaction ID</span>
-                  <button 
-                    onClick={copyTransactionId}
-                    className="cosmic-body text-green-400 hover:text-green-300 transition-colors"
-                    title="Click to copy"
-                  >
-                    {paymentDetails.id.slice(0, 12)}...
-                  </button>
-                </div>
-                {paymentDetails.buyerEmail && (
-                  <div className="flex justify-between items-center">
-                    <span className="cosmic-body opacity-70">Email</span>
-                    <span className="cosmic-body">{paymentDetails.buyerEmail}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Confirmation Message */}
-            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <svg className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div>
-                  <p className="cosmic-body text-green-300 font-medium">Payment Confirmed</p>
-                  <p className="cosmic-body opacity-70 text-sm mt-1">
-                    {paymentDetails.buyerEmail 
-                      ? 'A receipt has been sent to your email address.'
-                      : 'Please save this page or screenshot for your records.'
-                    }
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="space-y-3 pt-4">
-              <button 
-                onClick={() => window.print()}
-                className="cosmic-input text-center cosmic-body font-medium hover:bg-white/10 transition-colors cursor-pointer"
-              >
-                Print Receipt
-              </button>
-              <Link 
-                href="/dashboard" 
-                className="cosmic-button-primary block text-center"
-              >
-                Back to Dashboard
-              </Link>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="border-t border-white/20 pt-6 mt-8 text-center">
-            <p className="cosmic-body opacity-50 text-sm">
-              Thank you for using DECODE Beauty Payment Platform
+          {/* Personalized Thank You Message */}
+          <div className="mt-8">
+            <p className="cosmic-body text-white text-lg">
+              Thank you so much, {paymentDetails.clientName || 'Client'}.
             </p>
           </div>
         </div>
