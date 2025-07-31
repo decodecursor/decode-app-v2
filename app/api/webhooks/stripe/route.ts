@@ -108,7 +108,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 
     // Method 3: Find any pending stripe transaction (most likely candidate)
     if (!transactionToUpdate) {
-      transactionToUpdate = allTransactions.find(t => t.processor === 'stripe' && t.status === 'pending');
+      transactionToUpdate = allTransactions.find(t => t.payment_processor === 'stripe' && t.status === 'pending');
       if (transactionToUpdate) {
         updateMethod = 'pending_stripe_transaction';
         console.log('✅ WEBHOOK DEBUG: Found transaction by pending stripe status:', transactionToUpdate.id);
@@ -129,11 +129,14 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       .from('transactions')
       .update({
         status: 'completed',
-        processor_payment_id: session.payment_intent as string,
-        processor_session_id: session.id,
+        processor_transaction_id: session.payment_intent as string,
         completed_at: new Date().toISOString(),
-        customer_email: session.customer_email,
-        updated_at: new Date().toISOString()
+        buyer_email: session.customer_email,
+        updated_at: new Date().toISOString(),
+        metadata: {
+          ...transactionToUpdate.metadata,
+          session_id: session.id
+        }
       })
       .eq('id', transactionToUpdate.id)
       .select();
@@ -201,9 +204,9 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       console.log('✅ WEBHOOK DEBUG: Found transaction by processor_payment_id:', transactionToUpdate.id);
     }
 
-    // Method 2: Find by payment_link_id + processor + status='pending' (most likely candidate)
+    // Method 2: Find by payment_link_id + payment_processor + status='pending' (most likely candidate)
     if (!transactionToUpdate) {
-      transactionToUpdate = allTransactions.find(t => t.processor === 'stripe' && t.status === 'pending');
+      transactionToUpdate = allTransactions.find(t => t.payment_processor === 'stripe' && t.status === 'pending');
       if (transactionToUpdate) {
         updateMethod = 'pending_stripe_transaction';
         console.log('✅ WEBHOOK DEBUG: Found transaction by pending stripe status:', transactionToUpdate.id);
@@ -212,7 +215,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
 
     // Method 3: Find any stripe transaction for this payment link (fallback)
     if (!transactionToUpdate) {
-      transactionToUpdate = allTransactions.find(t => t.processor === 'stripe');
+      transactionToUpdate = allTransactions.find(t => t.payment_processor === 'stripe');
       if (transactionToUpdate) {
         updateMethod = 'any_stripe_transaction';
         console.log('✅ WEBHOOK DEBUG: Found transaction by any stripe match:', transactionToUpdate.id);
@@ -224,8 +227,8 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       console.error('❌ WEBHOOK DEBUG: PaymentIntent ID:', paymentIntent.id);
       console.error('❌ WEBHOOK DEBUG: Available transactions:', allTransactions.map(t => ({
         id: t.id,
-        processor: t.processor,
-        processor_payment_id: t.processor_payment_id,
+        payment_processor: t.payment_processor,
+        processor_transaction_id: t.processor_transaction_id,
         status: t.status
       })));
       return;
@@ -238,7 +241,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       .from('transactions')
       .update({
         status: 'completed',
-        processor_payment_id: paymentIntent.id,
+        processor_transaction_id: paymentIntent.id,
         completed_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })

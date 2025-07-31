@@ -113,24 +113,25 @@ export async function POST(request: NextRequest) {
       description: paymentLink.title || 'Beauty service payment'
     });
 
-    // Log transaction attempt in database
+    // Log transaction attempt in database - using correct field names
     const { error: logError } = await supabase
       .from('transactions')
       .insert({
         payment_link_id: paymentLinkId,
-        beauty_professional_id: paymentLink.creator?.[0]?.email || 'unknown',
-        amount: paymentLink.amount_aed,
-        original_amount: paymentLink.amount_aed,
-        currency: 'AED',
-        converted_amount_usd: amount / 100,
-        fee_amount: feeCalculation.feeAmount / 100,
-        net_amount: feeCalculation.netAmount / 100,
-        processor: 'stripe',
-        processor_payment_id: paymentIntent.paymentIntentId,
+        amount_aed: paymentLink.amount_aed,
+        payment_processor: 'stripe',
+        processor_transaction_id: paymentIntent.paymentIntentId,
         status: 'pending',
-        customer_email: customerEmail,
-        customer_name: customerName,
-        created_at: new Date().toISOString()
+        buyer_email: customerEmail,
+        created_at: new Date().toISOString(),
+        metadata: {
+          customer_name: customerName,
+          original_amount_aed: paymentLink.amount_aed,
+          converted_amount_usd: amount / 100,
+          fee_amount_usd: feeCalculation.feeAmount / 100,
+          net_amount_usd: feeCalculation.netAmount / 100,
+          beauty_professional_email: paymentLink.creator?.[0]?.email || 'unknown'
+        }
       });
 
     if (logError) {

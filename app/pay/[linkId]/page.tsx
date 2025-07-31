@@ -248,19 +248,19 @@ export default function PaymentPage() {
             console.log('✅ Payment detected via status=completed:', completedTransaction.id)
           }
           
-          // Method 2: Check for processor_payment_id (indicates payment was processed)
+          // Method 2: Check for processor_transaction_id (indicates payment was processed)
           if (!isPaid) {
-            const processedTransaction = allTransactions.find(t => t.processor_payment_id && t.processor_payment_id !== null)
+            const processedTransaction = allTransactions.find(t => t.processor_transaction_id && t.processor_transaction_id !== null)
             if (processedTransaction) {
               isPaid = true
-              detectionMethod = 'processor-payment-id'
-              console.log('✅ Payment detected via processor_payment_id:', processedTransaction.processor_payment_id)
+              detectionMethod = 'processor-transaction-id'
+              console.log('✅ Payment detected via processor_transaction_id:', processedTransaction.processor_transaction_id)
             }
           }
           
           // Method 3: Check for any Stripe transaction (fallback)
           if (!isPaid) {
-            const stripeTransaction = allTransactions.find(t => t.processor === 'stripe')
+            const stripeTransaction = allTransactions.find(t => t.payment_processor === 'stripe')
             if (stripeTransaction) {
               isPaid = true
               detectionMethod = 'stripe-transaction-exists'
