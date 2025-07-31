@@ -20,11 +20,7 @@ interface StripeConnectInstance {
   fetchClientSecret: () => Promise<string>
 }
 
-declare global {
-  interface Window {
-    Stripe?: any
-  }
-}
+// Remove duplicate Stripe global declaration - already exists in @stripe/stripe-js
 
 export default function BankAccountPage() {
   const router = useRouter()
