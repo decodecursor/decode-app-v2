@@ -280,8 +280,7 @@ export default function PaymentPage() {
         beautyProfessionalName={getBusinessDisplayName(paymentData.creator)}
         customerName={paymentData.client_name || undefined}
         onSuccess={() => {
-          console.log('Payment successful');
-          window.location.href = `/pay/success?paymentLinkId=${linkId}`;
+          console.log('💳 Stripe payment success callback triggered');
         }}
         onError={(error) => {
           console.error('Payment error:', error);
