@@ -51,6 +51,7 @@ export default function PaymentPage() {
 
   const handlePaymentSuccess = async (payment: any) => {
     console.log('✅ Payment successful:', payment)
+    console.log('💳 Payment data available:', paymentData)
     
     try {
       // Create transaction record
@@ -142,6 +143,9 @@ export default function PaymentPage() {
         description: paymentData?.title || 'Payment',
         timestamp: new Date().toISOString()
       })
+      
+      console.log('🚀 Redirecting to success page with params:', params.toString())
+      console.log('🔗 Full success URL:', `/pay/success?${params.toString()}`)
       
       router.push(`/pay/success?${params.toString()}`)
     } catch (error) {

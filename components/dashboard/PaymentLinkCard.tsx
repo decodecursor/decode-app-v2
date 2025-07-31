@@ -8,7 +8,7 @@ interface PaymentLinkCardProps {
   id: string
   title: string
   description: string | null
-  amount_usd: number
+  amount_aed: number
   expiration_date: string
   is_active: boolean
   created_at: string
@@ -24,7 +24,7 @@ export default function PaymentLinkCard({
   id,
   title,
   description,
-  amount_usd,
+  amount_aed,
   expiration_date,
   is_active,
   created_at,
@@ -134,7 +134,7 @@ export default function PaymentLinkCard({
             <div className="bg-white/5 rounded-lg p-3">
               <span className="cosmic-label text-white/50 block">Amount</span>
               <p className="cosmic-body text-white font-semibold text-lg">
-                {formatCurrency(amount_usd)}
+                {formatCurrency(amount_aed)}
               </p>
             </div>
             <div className="bg-white/5 rounded-lg p-3">
@@ -254,13 +254,13 @@ export default function PaymentLinkCard({
           <div className="flex justify-between items-center mb-2">
             <span className="cosmic-label text-white/50">Revenue Progress</span>
             <span className="cosmic-body text-white text-sm">
-              {formatCurrency(total_revenue)} of {formatCurrency(amount_usd * 10)} goal
+              {formatCurrency(total_revenue)} of {formatCurrency(amount_aed * 10)} goal
             </span>
           </div>
           <div className="w-full bg-white/10 rounded-full h-2">
             <div 
               className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${Math.min((total_revenue / (amount_usd * 10)) * 100, 100)}%` }}
+              style={{ width: `${Math.min((total_revenue / (amount_aed * 10)) * 100, 100)}%` }}
             ></div>
           </div>
         </div>

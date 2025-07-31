@@ -21,15 +21,20 @@ function PaymentSuccessContent() {
 
   useEffect(() => {
     // Get payment details from URL params
+    console.log('🔍 Success page - All URL params:', Object.fromEntries(searchParams.entries()))
+    
     const id = searchParams.get('id')
     const amount = searchParams.get('amount')
-    const currency = searchParams.get('currency') || 'USD'
+    const currency = searchParams.get('currency') || 'AED'
     const description = searchParams.get('description')
     const buyerEmail = searchParams.get('buyerEmail')
     const timestamp = searchParams.get('timestamp')
     const transactionId = searchParams.get('transactionId')
+    
+    console.log('💰 Parsed params:', { id, amount, currency, description, buyerEmail, timestamp, transactionId })
 
     if (id && amount && description && timestamp) {
+      console.log('✅ All required params present - setting payment details')
       setPaymentDetails({
         id,
         amount: parseFloat(amount),
@@ -38,6 +43,13 @@ function PaymentSuccessContent() {
         buyerEmail: buyerEmail || undefined,
         timestamp,
         transactionId: transactionId || undefined
+      })
+    } else {
+      console.log('❌ Missing required params:', { 
+        hasId: !!id, 
+        hasAmount: !!amount, 
+        hasDescription: !!description, 
+        hasTimestamp: !!timestamp 
       })
     }
     

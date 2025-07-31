@@ -4,12 +4,12 @@ import { useState, useEffect, useCallback } from 'react'
 
 interface PaymentTransaction {
   id: string
-  amount_usd: number
+  amount_aed: number
   status: string
   created_at: string
   payment_link: {
     title: string
-    amount_usd: number
+    amount_aed: number
   }
 }
 
@@ -17,7 +17,7 @@ interface PaymentStatsProps {
   transactions: PaymentTransaction[]
   paymentLinks: Array<{
     id: string
-    amount_usd: number
+    amount_aed: number
     created_at: string
     transaction_count: number
     total_revenue: number
@@ -85,13 +85,13 @@ export default function PaymentStats({ transactions, paymentLinks }: PaymentStat
     }) : []
 
     // Calculate current period stats
-    const currentRevenue = currentTransactions.reduce((sum, t) => sum + t.amount_usd, 0)
+    const currentRevenue = currentTransactions.reduce((sum, t) => sum + t.amount_aed, 0)
     const currentCount = currentTransactions.length
     const currentAverage = currentCount > 0 ? currentRevenue / currentCount : 0
     const currentSuccessRate = 100 // Assuming all shown transactions are successful
 
     // Calculate previous period stats
-    const previousRevenue = previousTransactions.reduce((sum, t) => sum + t.amount_usd, 0)
+    const previousRevenue = previousTransactions.reduce((sum, t) => sum + t.amount_aed, 0)
     const previousCount = previousTransactions.length
     const previousAverage = previousCount > 0 ? previousRevenue / previousCount : 0
     const previousSuccessRate = 100
@@ -99,8 +99,8 @@ export default function PaymentStats({ transactions, paymentLinks }: PaymentStat
     // Calculate popular payment amounts
     const amountCounts = new Map<number, number>()
     paymentLinks.forEach(link => {
-      const count = amountCounts.get(link.amount_usd) || 0
-      amountCounts.set(link.amount_usd, count + link.transaction_count)
+      const count = amountCounts.get(link.amount_aed) || 0
+      amountCounts.set(link.amount_aed, count + link.transaction_count)
     })
 
     const totalTransactions = Array.from(amountCounts.values()).reduce((sum, count) => sum + count, 0)
@@ -131,7 +131,7 @@ export default function PaymentStats({ transactions, paymentLinks }: PaymentStat
         
         revenueByDay.push({
           date: date.toISOString().split('T')[0]!,
-          revenue: dayTransactions.reduce((sum, t) => sum + t.amount_usd, 0),
+          revenue: dayTransactions.reduce((sum, t) => sum + t.amount_aed, 0),
           transactions: dayTransactions.length
         })
       }

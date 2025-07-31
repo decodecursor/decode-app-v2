@@ -11,7 +11,7 @@ interface PaymentLink {
   id: string
   title: string
   description: string | null
-  amount_usd: number
+  amount_aed: number
   expiration_date: string
   is_active: boolean
   created_at: string
@@ -25,12 +25,12 @@ interface PaymentLink {
 
 interface PaymentTransaction {
   id: string
-  amount_usd: number
+  amount_aed: number
   status: string
   created_at: string
   payment_link: {
     title: string
-    amount_usd: number
+    amount_aed: number
   }
 }
 
@@ -55,7 +55,7 @@ export default function PaymentHistoryPage() {
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
-  const [sortBy, setSortBy] = useState<'created_at' | 'amount_usd' | 'total_revenue'>('created_at')
+  const [sortBy, setSortBy] = useState<'created_at' | 'amount_aed' | 'total_revenue'>('created_at')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [showStats, setShowStats] = useState(true)
   const [heartAnimationLinks, setHeartAnimationLinks] = useState<Set<string>>(new Set())
@@ -86,7 +86,7 @@ export default function PaymentHistoryPage() {
           id,
           title,
           description,
-          amount_usd,
+          amount_aed,
           expiration_date,
           is_active,
           created_at,
@@ -96,7 +96,7 @@ export default function PaymentHistoryPage() {
           ),
           transactions (
             id,
-            amount_usd,
+            amount_aed,
             status
           )
         `)
@@ -114,7 +114,7 @@ export default function PaymentHistoryPage() {
           ...link,
           creator: Array.isArray(link.creator) ? (link.creator[0] || { full_name: null, email: '' }) : (link.creator || { full_name: null, email: '' }),
           transaction_count: completedTransactions.length,
-          total_revenue: completedTransactions.reduce((sum, t) => sum + (t.amount_usd || 0), 0)
+          total_revenue: completedTransactions.reduce((sum, t) => sum + (t.amount_aed || 0), 0)
         }
       })
 
@@ -125,12 +125,12 @@ export default function PaymentHistoryPage() {
         .from('transactions')
         .select(`
           id,
-          amount_usd,
+          amount_aed,
           status,
           created_at,
           payment_link:payment_link_id (
             title,
-            amount_usd
+            amount_aed
           )
         `)
         .in('payment_link_id', processedLinks.map(link => link.id))
@@ -140,7 +140,7 @@ export default function PaymentHistoryPage() {
         .filter(t => t.payment_link)
         .map(t => ({
           ...t,
-          payment_link: Array.isArray(t.payment_link) ? (t.payment_link[0] || { title: '', amount_usd: 0 }) : (t.payment_link || { title: '', amount_usd: 0 })
+          payment_link: Array.isArray(t.payment_link) ? (t.payment_link[0] || { title: '', amount_aed: 0 }) : (t.payment_link || { title: '', amount_aed: 0 })
         }))
 
       setTransactions(processedTransactions)
@@ -242,9 +242,9 @@ export default function PaymentHistoryPage() {
       let aValue, bValue
       
       switch (sortBy) {
-        case 'amount_usd':
-          aValue = a.amount_usd
-          bValue = b.amount_usd
+        case 'amount_aed':
+          aValue = a.amount_aed
+          bValue = b.amount_aed
           break
         case 'total_revenue':
           aValue = a.total_revenue
@@ -400,11 +400,11 @@ export default function PaymentHistoryPage() {
               <label className="cosmic-label text-white/70 block mb-2">Sort By</label>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'created_at' | 'amount_usd' | 'total_revenue')}
+                onChange={(e) => setSortBy(e.target.value as 'created_at' | 'amount_aed' | 'total_revenue')}
                 className="cosmic-input"
               >
                 <option value="created_at">Date Created</option>
-                <option value="amount_usd">Amount</option>
+                <option value="amount_aed">Amount</option>
                 <option value="total_revenue">Revenue</option>
               </select>
             </div>
