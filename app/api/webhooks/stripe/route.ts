@@ -23,6 +23,9 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`🔔 Stripe webhook received: ${event.type}`);
+    
+    // Log webhook event to database for debugging
+    await logWebhookEvent(event);
 
     // Handle different event types
     switch (event.type) {
@@ -285,7 +288,7 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
         updated_at: new Date().toISOString()
       })
       .eq('payment_link_id', paymentLinkId)
-      .eq('processor', 'stripe');
+      .eq('payment_processor', 'stripe');
 
     if (updateError) {
       console.error('❌ Failed to update failed transaction:', updateError);
@@ -295,6 +298,29 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
 
   } catch (error) {
     console.error('❌ Error handling payment intent failed:', error);
+  }
+}
+
+// Log webhook events for debugging
+async function logWebhookEvent(event: Stripe.Event): Promise<void> {
+  try {
+    const eventData = event.data.object as any;
+    const paymentLinkId = eventData.metadata?.payment_link_id;
+    
+    await supabase.from('webhook_events').insert({
+      event_id: event.id,
+      event_type: event.type,
+      event_data: eventData,
+      payment_link_id: paymentLinkId,
+      status: 'received',
+      processed_at: new Date().toISOString(),
+      created_at: new Date().toISOString()
+    });
+    
+    console.log(`📝 Webhook event logged: ${event.type} for payment link: ${paymentLinkId || 'none'}`);
+  } catch (error) {
+    console.error('❌ Failed to log webhook event:', error);
+    // Don't throw here to avoid breaking webhook processing
   }
 }
 
