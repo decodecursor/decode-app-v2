@@ -223,16 +223,30 @@ export default function PaymentPage() {
 
         // Check if this payment link has already been paid
         console.log('🔍 Checking if payment link is already paid...')
+        
+        // First check for any transactions for this payment link (for debugging)
+        const { data: allTransactions, error: allTransError } = await supabase
+          .from('transactions')
+          .select('id, status, processor, processor_payment_id, created_at, completed_at')
+          .eq('payment_link_id', linkId)
+          
+        console.log('📊 All transactions for payment link:', allTransactions)
+        console.log('📊 Transaction query error:', allTransError)
+        
+        // Check for completed transactions
         const { data: completedTransaction, error: transactionError } = await supabase
           .from('transactions')
-          .select('id')
+          .select('id, status, processor')
           .eq('payment_link_id', linkId)
           .eq('status', 'completed')
           .limit(1)
           .single()
 
         const isPaid = !transactionError && !!completedTransaction
-        console.log('💰 Payment status:', isPaid ? 'ALREADY PAID' : 'UNPAID')
+        console.log('💰 Payment status check results:')
+        console.log('- Completed transaction found:', completedTransaction)
+        console.log('- Transaction error:', transactionError)
+        console.log('- Final isPaid status:', isPaid ? 'ALREADY PAID' : 'UNPAID')
 
         const transformedData: PaymentLinkData = {
           ...data,

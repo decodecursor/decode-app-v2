@@ -104,14 +104,14 @@ function PaymentSuccessContent() {
                 </svg>
               </div>
             </div>
-            <h1 className="cosmic-logo text-green-400 mb-2">Payment Successful!</h1>
+            <h1 className="cosmic-logo text-green-400 mb-2">Payment Successful</h1>
             <p className="cosmic-body opacity-70">Your payment has been processed successfully</p>
           </div>
 
           {/* Personalized Thank You Message */}
           <div className="mt-8">
             <p className="cosmic-body text-white text-lg">
-              Thank you so much, {paymentDetails.clientName || 'Client'}.
+              ❤️ Thank you so much, {paymentDetails.clientName || 'Client'} ❤️
             </p>
           </div>
         </div>
