@@ -30,7 +30,7 @@ export interface PaymentSessionResponse {
 }
 
 class StripeService {
-  private stripe: Stripe;
+  private _stripe: Stripe;
   private config: StripeConfig;
 
   constructor() {
@@ -43,13 +43,13 @@ class StripeService {
 
     // Only initialize Stripe if we have a secret key (not during build time)
     if (this.config.secretKey) {
-      this.stripe = new Stripe(this.config.secretKey, {
+      this._stripe = new Stripe(this.config.secretKey, {
         apiVersion: '2025-06-30.basil',
         typescript: true,
       });
     } else {
       // Create a placeholder during build time
-      this.stripe = {} as Stripe; 
+      this._stripe = {} as Stripe; 
     }
 
     this.validateConfig();
@@ -68,10 +68,15 @@ class StripeService {
     }
   }
 
-  private ensureStripeInitialized(): void {
-    if (!this.config.secretKey || !this.stripe.paymentIntents) {
+  public ensureStripeInitialized(): void {
+    if (!this.config.secretKey || !this._stripe.paymentIntents) {
       throw new Error('Stripe not properly configured. Missing STRIPE_SECRET_KEY environment variable.');
     }
+  }
+
+  // Expose Stripe instance for Connect API calls
+  public get stripe(): Stripe {
+    return this._stripe;
   }
 
   /**
@@ -80,7 +85,7 @@ class StripeService {
   async createCheckoutSession(request: PaymentSessionRequest): Promise<PaymentSessionResponse> {
     this.ensureStripeInitialized();
     try {
-      const session = await this.stripe.checkout.sessions.create({
+      const session = await this._stripe.checkout.sessions.create({
         payment_method_types: ['card', 'link'],
         line_items: [
           {
@@ -133,7 +138,7 @@ class StripeService {
   async createPaymentIntent(request: Omit<PaymentSessionRequest, 'successUrl' | 'cancelUrl'>): Promise<{ clientSecret: string; paymentIntentId: string }> {
     this.ensureStripeInitialized();
     try {
-      const paymentIntent = await this.stripe.paymentIntents.create({
+      const paymentIntent = await this._stripe.paymentIntents.create({
         amount: request.amount,
         currency: request.currency.toLowerCase(),
         description: request.description,
@@ -162,7 +167,7 @@ class StripeService {
   async getCheckoutSession(sessionId: string): Promise<Stripe.Checkout.Session> {
     this.ensureStripeInitialized();
     try {
-      return await this.stripe.checkout.sessions.retrieve(sessionId, {
+      return await this._stripe.checkout.sessions.retrieve(sessionId, {
         expand: ['payment_intent']
       });
     } catch (error) {
@@ -177,7 +182,7 @@ class StripeService {
   async getPaymentIntent(paymentIntentId: string): Promise<Stripe.PaymentIntent> {
     this.ensureStripeInitialized();
     try {
-      return await this.stripe.paymentIntents.retrieve(paymentIntentId);
+      return await this._stripe.paymentIntents.retrieve(paymentIntentId);
     } catch (error) {
       console.error('Failed to retrieve payment intent:', error);
       throw new Error(`Failed to retrieve payment intent: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -189,7 +194,7 @@ class StripeService {
    */
   verifyWebhookSignature(payload: string | Buffer, signature: string): Stripe.Event {
     try {
-      return this.stripe.webhooks.constructEvent(
+      return this._stripe.webhooks.constructEvent(
         payload,
         signature,
         this.config.webhookSecret
@@ -244,7 +249,7 @@ class StripeService {
     try {
       this.ensureStripeInitialized();
       // Test API connectivity by retrieving account info
-      await this.stripe.accounts.retrieve();
+      await this._stripe.accounts.retrieve();
       
       return {
         status: 'ok',

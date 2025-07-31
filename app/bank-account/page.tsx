@@ -1,53 +1,40 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { loadStripe } from '@stripe/stripe-js'
 
-interface BankAccount {
-  id: string
-  bank_name: string
-  account_holder_name: string
-  account_number: string
-  routing_number?: string
-  iban?: string
-  swift_code?: string
-  is_verified: boolean
-  is_primary: boolean
-  status: 'pending' | 'verified' | 'rejected' | 'suspended'
-  verification_method?: string
-  verified_at?: string
-  created_at: string
+interface ConnectComponentsOptions {
+  fonts?: Array<{
+    family?: string
+    src?: string
+    style?: string
+    weight?: string
+    display?: string
+  }>
 }
 
-interface BankAccountForm {
-  bank_name: string
-  account_holder_name: string
-  account_number: string
-  routing_number: string
-  iban: string
-  swift_code: string
-  account_type: 'domestic' | 'international'
+interface StripeConnectInstance {
+  create: (component: string, options?: any) => any
+  fetchClientSecret: () => Promise<string>
+}
+
+declare global {
+  interface Window {
+    Stripe?: any
+  }
 }
 
 export default function BankAccountPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([])
-  const [showForm, setShowForm] = useState(false)
-  const [saving, setSaving] = useState(false)
-
-  // Form state
-  const [formData, setFormData] = useState<BankAccountForm>({
-    bank_name: '',
-    account_holder_name: '',
-    account_number: '',
-    routing_number: '',
-    iban: '',
-    swift_code: '',
-    account_type: 'domestic'
-  })
+  const [stripeAccountId, setStripeAccountId] = useState<string | null>(null)
+  const [stripeConnectInstance, setStripeConnectInstance] = useState<StripeConnectInstance | null>(null)
+  const [accountOnboardingComplete, setAccountOnboardingComplete] = useState(false)
+  const [onboardingLoading, setOnboardingLoading] = useState(false)
+  const accountOnboardingRef = useRef<HTMLDivElement>(null)
 
   // Feedback states
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
@@ -55,6 +42,13 @@ export default function BankAccountPage() {
   useEffect(() => {
     checkUser()
   }, [])
+
+  useEffect(() => {
+    // Initialize Stripe Connect when user and account ID are available
+    if (user && stripeAccountId && !stripeConnectInstance) {
+      initializeStripeConnect()
+    }
+  }, [user, stripeAccountId])
 
   const checkUser = async () => {
     try {
@@ -65,7 +59,7 @@ export default function BankAccountPage() {
       }
 
       setUser(user)
-      await fetchBankAccounts(user.id)
+      await checkStripeAccount(user.id)
     } catch (error) {
       console.error('Auth error:', error)
       router.push('/auth')
@@ -74,156 +68,141 @@ export default function BankAccountPage() {
     }
   }
 
-  const fetchBankAccounts = async (userId: string) => {
+  const checkStripeAccount = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('user_bank_accounts')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
+      // Check if user has existing Stripe Connect account
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('stripe_connect_account_id')
+        .eq('id', userId)
+        .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Error fetching user data:', error)
+        setMessage({ type: 'error', text: 'Failed to load account information' })
+        return
+      }
 
-      setBankAccounts(data || [])
+      if (userData?.stripe_connect_account_id) {
+        setStripeAccountId(userData.stripe_connect_account_id)
+        // Check if onboarding is complete
+        await checkOnboardingStatus(userData.stripe_connect_account_id)
+      } else {
+        // Create new Stripe Connect account
+        await createStripeAccount()
+      }
+    } catch (error) {
+      console.error('Error checking Stripe account:', error)
+      setMessage({ type: 'error', text: 'Failed to initialize bank account setup' })
+    }
+  }
+
+  const createStripeAccount = async () => {
+    try {
+      const response = await fetch('/api/stripe/connect-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) throw new Error(result.error)
+
+      setStripeAccountId(result.accountId)
+      setMessage({ type: 'success', text: 'Bank account setup initialized. Please complete the onboarding process.' })
+    } catch (error) {
+      console.error('Error creating Stripe account:', error)
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to initialize bank account setup' })
+    }
+  }
+
+  const checkOnboardingStatus = async (accountId: string) => {
+    try {
+      // In a real implementation, you would check the account status via Stripe API
+      // For now, we'll assume onboarding is needed
+      setAccountOnboardingComplete(false)
+    } catch (error) {
+      console.error('Error checking onboarding status:', error)
+    }
+  }
+
+  const initializeStripeConnect = async () => {
+    try {
+      setOnboardingLoading(true)
       
-      // Show form if no bank accounts exist
-      if (!data || data.length === 0) {
-        setShowForm(true)
+      // Load Stripe.js
+      const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+      if (!stripe) {
+        throw new Error('Failed to load Stripe')
       }
-    } catch (error) {
-      console.error('Error fetching bank accounts:', error)
-      setMessage({ type: 'error', text: 'Failed to load bank accounts' })
-    }
-  }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-  }
-
-  const validateForm = (): string | null => {
-    if (!formData.bank_name.trim()) return 'Bank name is required'
-    if (!formData.account_holder_name.trim()) return 'Account holder name is required'
-    if (!formData.account_number.trim()) return 'Account number is required'
-    
-    if (formData.account_type === 'domestic') {
-      if (!formData.routing_number.trim()) return 'Routing number is required for domestic accounts'
-    } else {
-      if (!formData.iban.trim() && !formData.swift_code.trim()) {
-        return 'Either IBAN or SWIFT code is required for international accounts'
-      }
-    }
-    
-    return null
-  }
-
-  const submitBankAccount = async () => {
-    const validationError = validateForm()
-    if (validationError) {
-      setMessage({ type: 'error', text: validationError })
-      return
-    }
-
-    setSaving(true)
-    try {
-      const response = await fetch('/api/bank-account/add', {
+      // Create account session
+      const response = await fetch('/api/stripe/account-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          is_primary: bankAccounts.length === 0 // First account is primary
+        body: JSON.stringify({ accountId: stripeAccountId, userId: user.id })
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error)
+
+      // Initialize Stripe Connect
+      const stripeConnectInstance = stripe.connectInstance({
+        appearance: {
+          theme: 'night',
+          variables: {
+            colorPrimary: '#667eea',
+            colorBackground: 'rgba(255, 255, 255, 0.1)',
+            colorText: '#ffffff',
+            colorDanger: '#ef4444',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            borderRadius: '8px'
+          }
+        },
+        fonts: [
+          {
+            family: 'Inter',
+            src: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap'
+          }
+        ]
+      })
+
+      setStripeConnectInstance(stripeConnectInstance)
+
+      // Create and mount the account onboarding component
+      if (accountOnboardingRef.current) {
+        const accountOnboarding = stripeConnectInstance.create('account-onboarding', {
+          clientSecret: result.client_secret
         })
-      })
 
-      const result = await response.json()
+        accountOnboarding.mount('#account-onboarding')
 
-      if (!response.ok) throw new Error(result.error)
+        // Listen for onboarding completion
+        accountOnboarding.on('ready', () => {
+          setOnboardingLoading(false)
+        })
 
-      await fetchBankAccounts(user.id)
-      setShowForm(false)
-      setFormData({
-        bank_name: '',
-        account_holder_name: '',
-        account_number: '',
-        routing_number: '',
-        iban: '',
-        swift_code: '',
-        account_type: 'domestic'
-      })
-      setMessage({ type: 'success', text: 'Bank account added successfully. Verification process initiated.' })
+        accountOnboarding.on('complete', () => {
+          setAccountOnboardingComplete(true)
+          setMessage({ type: 'success', text: 'Bank account onboarding completed successfully!' })
+        })
+
+        accountOnboarding.on('error', (error: any) => {
+          console.error('Stripe Connect error:', error)
+          setMessage({ type: 'error', text: 'An error occurred during onboarding. Please try again.' })
+        })
+      }
     } catch (error) {
-      console.error('Error adding bank account:', error)
-      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to add bank account' })
-    } finally {
-      setSaving(false)
+      console.error('Error initializing Stripe Connect:', error)
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to initialize onboarding' })
+      setOnboardingLoading(false)
     }
   }
 
-  const setPrimaryAccount = async (accountId: string) => {
-    try {
-      const response = await fetch('/api/bank-account/set-primary', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accountId })
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) throw new Error(result.error)
-
-      await fetchBankAccounts(user.id)
-      setMessage({ type: 'success', text: 'Primary account updated successfully' })
-    } catch (error) {
-      console.error('Error setting primary account:', error)
-      setMessage({ type: 'error', text: 'Failed to update primary account' })
-    }
-  }
-
-  const removeAccount = async (accountId: string) => {
-    if (!confirm('Are you sure you want to remove this bank account?')) return
-
-    try {
-      const response = await fetch('/api/bank-account/remove', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accountId })
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) throw new Error(result.error)
-
-      await fetchBankAccounts(user.id)
-      setMessage({ type: 'success', text: 'Bank account removed successfully' })
-    } catch (error) {
-      console.error('Error removing bank account:', error)
-      setMessage({ type: 'error', text: 'Failed to remove bank account' })
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'verified': return 'text-green-400'
-      case 'pending': return 'text-yellow-400'
-      case 'rejected': return 'text-red-400'
-      case 'suspended': return 'text-orange-400'
-      default: return 'text-gray-400'
-    }
-  }
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'verified':
-        return <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      case 'pending':
-        return <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-      case 'rejected':
-        return <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      default:
-        return <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  const refreshOnboardingStatus = async () => {
+    if (stripeAccountId) {
+      await checkOnboardingStatus(stripeAccountId)
     }
   }
 
@@ -262,241 +241,76 @@ export default function BankAccountPage() {
           </div>
         )}
 
-        {/* Existing Bank Accounts */}
-        {bankAccounts.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-white">Your Bank Accounts</h2>
-              <button
-                onClick={() => setShowForm(true)}
-                className="cosmic-button-primary"
-              >
-                Add New Account
-              </button>
-            </div>
-
-            <div className="grid gap-6">
-              {bankAccounts.map((account) => (
-                <div key={account.id} className="cosmic-card">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <h3 className="text-lg font-semibold text-white">{account.bank_name}</h3>
-                        {account.is_primary && (
-                          <span className="px-2 py-1 bg-blue-600/20 text-blue-300 text-xs rounded-full border border-blue-500/30">
-                            Primary
-                          </span>
-                        )}
-                        <div className={`flex items-center space-x-1 ${getStatusColor(account.status)}`}>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            {getStatusIcon(account.status)}
-                          </svg>
-                          <span className="text-sm capitalize">{account.status}</span>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-400">Account Holder:</span>
-                          <span className="ml-2 text-white">{account.account_holder_name}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-400">Account Number:</span>
-                          <span className="ml-2 text-white">****{account.account_number.slice(-4)}</span>
-                        </div>
-                        {account.routing_number && (
-                          <div>
-                            <span className="text-gray-400">Routing Number:</span>
-                            <span className="ml-2 text-white">{account.routing_number}</span>
-                          </div>
-                        )}
-                        {account.iban && (
-                          <div>
-                            <span className="text-gray-400">IBAN:</span>
-                            <span className="ml-2 text-white">{account.iban}</span>
-                          </div>
-                        )}
-                        {account.swift_code && (
-                          <div>
-                            <span className="text-gray-400">SWIFT Code:</span>
-                            <span className="ml-2 text-white">{account.swift_code}</span>
-                          </div>
-                        )}
-                        <div>
-                          <span className="text-gray-400">Added:</span>
-                          <span className="ml-2 text-white">
-                            {new Date(account.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col space-y-2 ml-4">
-                      {!account.is_primary && account.status === 'verified' && (
-                        <button
-                          onClick={() => setPrimaryAccount(account.id)}
-                          className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
-                        >
-                          Make Primary
-                        </button>
-                      )}
-                      <button
-                        onClick={() => removeAccount(account.id)}
-                        className="text-red-400 hover:text-red-300 text-sm transition-colors"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Add Bank Account Form */}
-        {showForm && (
+        {/* Stripe Connect Onboarding */}
+        {stripeAccountId && !accountOnboardingComplete && (
           <div className="cosmic-card">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-white">Add Bank Account</h2>
-              {bankAccounts.length > 0 && (
-                <button
-                  onClick={() => setShowForm(false)}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Cancel
-                </button>
-              )}
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-white mb-2">Bank Account Setup</h2>
+              <p className="text-gray-400">
+                Complete the secure onboarding process to add your bank account for receiving payments.
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Account Type Selection */}
-              <div className="md:col-span-2">
-                <label className="block text-gray-300 mb-2">Account Type</label>
-                <select
-                  name="account_type"
-                  value={formData.account_type}
-                  onChange={handleInputChange}
-                  className="cosmic-input"
+            {onboardingLoading ? (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white mb-4"></div>
+                <p className="text-white">Loading bank account setup...</p>
+              </div>
+            ) : (
+              <>
+                {/* Stripe Connect Component Container */}
+                <div 
+                  id="account-onboarding" 
+                  ref={accountOnboardingRef}
+                  className="min-h-[400px] p-4 bg-gradient-to-br from-gray-900/50 to-gray-800/50 rounded-lg border border-white/10"
                 >
-                  <option value="domestic">Domestic Account</option>
-                  <option value="international">International Account</option>
-                </select>
-              </div>
-
-              {/* Basic Information */}
-              <div>
-                <label className="block text-gray-300 mb-2">Bank Name *</label>
-                <input
-                  type="text"
-                  name="bank_name"
-                  value={formData.bank_name}
-                  onChange={handleInputChange}
-                  placeholder="Enter bank name"
-                  className="cosmic-input"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-300 mb-2">Account Holder Name *</label>
-                <input
-                  type="text"
-                  name="account_holder_name"
-                  value={formData.account_holder_name}
-                  onChange={handleInputChange}
-                  placeholder="Full name as on account"
-                  className="cosmic-input"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-300 mb-2">Account Number *</label>
-                <input
-                  type="text"
-                  name="account_number"
-                  value={formData.account_number}
-                  onChange={handleInputChange}
-                  placeholder="Enter account number"
-                  className="cosmic-input"
-                />
-              </div>
-
-              {/* Conditional Fields */}
-              {formData.account_type === 'domestic' ? (
-                <div>
-                  <label className="block text-gray-300 mb-2">Routing Number *</label>
-                  <input
-                    type="text"
-                    name="routing_number"
-                    value={formData.routing_number}
-                    onChange={handleInputChange}
-                    placeholder="Enter routing number"
-                    className="cosmic-input"
-                  />
+                  {/* Stripe component will be mounted here */}
                 </div>
-              ) : (
-                <>
-                  <div>
-                    <label className="block text-gray-300 mb-2">IBAN</label>
-                    <input
-                      type="text"
-                      name="iban"
-                      value={formData.iban}
-                      onChange={handleInputChange}
-                      placeholder="Enter IBAN"
-                      className="cosmic-input"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-300 mb-2">SWIFT Code</label>
-                    <input
-                      type="text"
-                      name="swift_code"
-                      value={formData.swift_code}
-                      onChange={handleInputChange}
-                      placeholder="Enter SWIFT code"
-                      className="cosmic-input"
-                    />
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="mt-6 flex justify-end space-x-4">
-              {bankAccounts.length > 0 && (
-                <button
-                  onClick={() => setShowForm(false)}
-                  className="cosmic-button-secondary"
-                >
-                  Cancel
-                </button>
-              )}
-              <button
-                onClick={submitBankAccount}
-                disabled={saving}
-                className="cosmic-button-primary disabled:opacity-50"
-              >
-                {saving ? 'Adding Account...' : 'Add Bank Account'}
-              </button>
-            </div>
+                
+                <div className="mt-6 flex justify-between items-center">
+                  <button
+                    onClick={() => router.push('/dashboard')}
+                    className="cosmic-button-secondary"
+                  >
+                    Back to Dashboard
+                  </button>
+                  <button
+                    onClick={refreshOnboardingStatus}
+                    className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                  >
+                    Refresh Status
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
 
-        {/* Empty State */}
-        {bankAccounts.length === 0 && !showForm && (
+        {/* Onboarding Complete State */}
+        {accountOnboardingComplete && (
           <div className="cosmic-card text-center py-12">
-            <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            <svg className="w-16 h-16 mx-auto text-green-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h3 className="text-xl font-semibold text-white mb-2">No Bank Accounts</h3>
-            <p className="text-gray-400 mb-6">Add a bank account to receive payments and transfers</p>
+            <h3 className="text-xl font-semibold text-white mb-2">Bank Account Connected!</h3>
+            <p className="text-gray-400 mb-6">
+              Your bank account has been successfully connected and verified. You can now receive payments.
+            </p>
             <button
-              onClick={() => setShowForm(true)}
+              onClick={() => router.push('/dashboard')}
               className="cosmic-button-primary"
             >
-              Add Your First Bank Account
+              Return to Dashboard
             </button>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {!stripeAccountId && !accountOnboardingComplete && (
+          <div className="cosmic-card text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white mb-4"></div>
+            <h3 className="text-xl font-semibold text-white mb-2">Setting up your account...</h3>
+            <p className="text-gray-400">Please wait while we prepare your bank account onboarding.</p>
           </div>
         )}
       </div>
