@@ -295,8 +295,8 @@ export default function BankAccountPage() {
                   `
                   
                   // Trigger completion callback
-                  if (window.stripeOnboardingComplete) {
-                    window.stripeOnboardingComplete()
+                  if ((window as any).stripeOnboardingComplete) {
+                    (window as any).stripeOnboardingComplete()
                   }
                 }, 3000)
               },
