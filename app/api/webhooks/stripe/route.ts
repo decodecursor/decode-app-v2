@@ -93,21 +93,9 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       throw new Error('Missing payment_link_id in checkout session metadata');
     }
 
-    // Use database transaction for atomicity
-    const { data, error } = await supabase.rpc('complete_stripe_payment', {
-      p_payment_link_id: paymentLinkId,
-      p_session_id: session.id,
-      p_payment_intent_id: session.payment_intent as string,
-      p_customer_email: session.customer_email,
-      p_amount_total: session.amount_total ? session.amount_total / 100 : null
-    });
-
-    if (error) {
-      // Fallback to manual transaction handling if RPC doesn't exist
-      await handleCheckoutSessionManually(session, paymentLinkId);
-    } else {
-      console.log('✅ Payment completed via stored procedure:', data);
-    }
+    // Handle payment completion manually (no RPC functions in current schema)
+    await handleCheckoutSessionManually(session, paymentLinkId);
+    console.log('✅ Payment completed manually');
 
   } catch (error) {
     console.error('❌ Error handling checkout session completed:', error);
@@ -139,7 +127,7 @@ async function handleCheckoutSessionManually(session: Stripe.Checkout.Session, p
       processor_transaction_id: session.payment_intent as string,
       completed_at: new Date().toISOString(),
       buyer_email: session.customer_email,
-      amount_usd: session.amount_total ? session.amount_total / 100 : transaction.amount_usd,
+      amount_aed: session.amount_total ? session.amount_total / 100 : transaction.amount_aed,
       metadata: {
         ...transaction.metadata,
         session_completed_at: new Date().toISOString(),
