@@ -15,6 +15,21 @@ export interface ConversionRate {
   totalPayments: number
 }
 
+export interface TopCustomer {
+  email: string
+  totalSpent: number
+  transactionCount: number
+  lastTransactionDate?: string
+  status?: string
+}
+
+export interface CustomerInsights {
+  totalUniqueCustomers: number
+  returningCustomers: number
+  averageCustomerValue: number
+  topSpendingCustomers?: TopCustomer[]
+}
+
 export interface AnalyticsData {
   totalRevenue: number
   totalTransactions: number
