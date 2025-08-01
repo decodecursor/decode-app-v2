@@ -30,6 +30,13 @@ export interface CustomerInsights {
   topSpendingCustomers?: TopCustomer[]
 }
 
+export interface PaymentMethodBreakdown {
+  method: string
+  count: number
+  percentage: number
+  revenue: number
+}
+
 export interface AnalyticsData {
   totalRevenue: number
   totalTransactions: number
