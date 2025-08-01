@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log webhook event to database for debugging and idempotency
-    await logWebhookEvent(event);
+    await logWebhookEvent(event, signature);
 
     // Handle different event types with proper error handling
     try {
@@ -256,7 +256,7 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
 }
 
 // Log webhook events for debugging and idempotency
-async function logWebhookEvent(event: Stripe.Event): Promise<void> {
+async function logWebhookEvent(event: Stripe.Event, signature: string): Promise<void> {
   try {
     const eventData = event.data.object as any;
     const paymentLinkId = eventData.metadata?.payment_link_id;
