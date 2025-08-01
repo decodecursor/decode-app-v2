@@ -7,6 +7,14 @@ export interface AnalyticsFilter {
   creatorId?: string
 }
 
+export interface ConversionRate {
+  paymentLinksCreated: number
+  paymentLinksUsed: number
+  usageRate: number
+  conversionRate: number
+  totalPayments: number
+}
+
 export interface AnalyticsData {
   totalRevenue: number
   totalTransactions: number
