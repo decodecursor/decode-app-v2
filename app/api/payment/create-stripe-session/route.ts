@@ -87,24 +87,26 @@ export async function POST(request: NextRequest) {
       cancelUrl: cancelUrl
     });
 
-    // Log transaction attempt in database
+    // Create transaction record with proper field mapping for new schema
     const { error: logError } = await supabase
       .from('transactions')
       .insert({
         payment_link_id: paymentLinkId,
+        buyer_email: customerEmail,
+        buyer_name: customerName,
         amount_aed: paymentLink.amount_aed,
-        status: 'pending',
+        amount_usd: amountInCents / 100,
         payment_processor: 'stripe',
         processor_session_id: sessionResponse.sessionId,
-        buyer_email: customerEmail,
-        created_at: new Date().toISOString(),
+        // Note: processor_payment_id will be set when payment intent is created/updated
+        status: 'pending',
         metadata: {
           customer_name: customerName,
           original_amount_aed: paymentLink.amount_aed,
           converted_amount_usd: amountInCents / 100,
-          fee_amount_usd: feeCalculation.feeAmount / 100,
-          net_amount_usd: feeCalculation.netAmount / 100,
-          beauty_professional_id: paymentLink.creator_id
+          fee_calculation: feeCalculation,
+          beauty_professional_id: paymentLink.creator_id,
+          session_created_at: new Date().toISOString()
         }
       });
 

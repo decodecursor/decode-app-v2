@@ -17,6 +17,8 @@ interface PaymentLinkData {
   expiration_date: string
   is_active: boolean
   created_at: string
+  payment_status: 'unpaid' | 'paid' | 'failed' | 'refunded'
+  paid_at: string | null
   isPaid?: boolean
   creator: {
     id: string
@@ -189,6 +191,8 @@ export default function PaymentPage() {
             expiration_date,
             is_active,
             created_at,
+            payment_status,
+            paid_at,
             creator:creator_id (
               id,
               full_name,
@@ -221,65 +225,12 @@ export default function PaymentPage() {
           return
         }
 
-        // Check if this payment link has already been paid
-        console.log('🔍 Checking if payment link is already paid...')
-        
-        // First check for any transactions for this payment link (for debugging)
-        const { data: allTransactions, error: allTransError } = await supabase
-          .from('transactions')
-          .select('*')
-          .eq('payment_link_id', linkId)
-          
-        console.log('📊 ALL TRANSACTIONS DEBUG:')
-        console.log('- Total transactions found:', allTransactions?.length || 0)
-        console.log('- All transactions:', JSON.stringify(allTransactions, null, 2))
-        console.log('- Query error:', allTransError)
-        
-        // Multiple payment detection methods
-        let isPaid = false
-        let detectionMethod = 'none'
-        
-        if (allTransactions && allTransactions.length > 0) {
-          // Method 1: Check for status = 'completed'
-          const completedTransaction = allTransactions.find(t => t.status === 'completed')
-          if (completedTransaction) {
-            isPaid = true
-            detectionMethod = 'status-completed'
-            console.log('✅ Payment detected via status=completed:', completedTransaction.id)
-          }
-          
-          // Method 2: Check for processor_transaction_id (indicates payment was processed)
-          if (!isPaid) {
-            const processedTransaction = allTransactions.find(t => t.processor_transaction_id && t.processor_transaction_id !== null)
-            if (processedTransaction) {
-              isPaid = true
-              detectionMethod = 'processor-transaction-id'
-              console.log('✅ Payment detected via processor_transaction_id:', processedTransaction.processor_transaction_id)
-            }
-          }
-          
-          // Method 3: Check for any Stripe transaction (fallback)
-          if (!isPaid) {
-            const stripeTransaction = allTransactions.find(t => t.payment_processor === 'stripe')
-            if (stripeTransaction) {
-              isPaid = true
-              detectionMethod = 'stripe-transaction-exists'
-              console.log('✅ Payment detected via Stripe transaction existence:', stripeTransaction.id)
-            }
-          }
-          
-          // Method 4: Any transaction exists (ultimate fallback for testing)
-          if (!isPaid && allTransactions.length > 0) {
-            isPaid = true
-            detectionMethod = 'any-transaction-exists'
-            console.log('✅ Payment detected via any transaction existence (fallback)')
-          }
-        }
-        
-        console.log('💰 FINAL PAYMENT STATUS:')
+        // Check payment status using the new payment_status field
+        const isPaid = data.payment_status === 'paid'
+        console.log('💰 Payment status check:')
+        console.log('- payment_status:', data.payment_status)
+        console.log('- paid_at:', data.paid_at)
         console.log('- isPaid:', isPaid)
-        console.log('- Detection method:', detectionMethod)
-        console.log('- Will show:', isPaid ? 'ALREADY PAID MESSAGE' : 'PAYMENT FORM')
 
         const transformedData: PaymentLinkData = {
           ...data,

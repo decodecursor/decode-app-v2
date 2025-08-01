@@ -16,6 +16,8 @@ interface PaymentLink {
   total_amount_aed?: number
   expiration_date: string
   is_active: boolean
+  payment_status: 'unpaid' | 'paid' | 'failed' | 'refunded'
+  paid_at: string | null
   is_paid?: boolean
   created_at: string
 }
@@ -133,10 +135,10 @@ function MyLinksContent() {
       setLoading(true)
       setError('')
 
-      // First, fetch payment links
+      // Fetch payment links with the new payment_status field
       const { data: paymentLinksData, error: fetchError } = await supabase
         .from('payment_links')
-        .select('id, client_name, title, amount_aed, original_amount_aed, fee_amount_aed, total_amount_aed, expiration_date, is_active, created_at')
+        .select('id, client_name, title, amount_aed, original_amount_aed, fee_amount_aed, total_amount_aed, expiration_date, is_active, payment_status, paid_at, created_at')
         .eq('creator_id', userId)
         .order('created_at', { ascending: false })
 
@@ -144,22 +146,11 @@ function MyLinksContent() {
         throw fetchError
       }
 
-      // Then, check for completed transactions for each payment link
-      const paymentLinksWithStatus = await Promise.all(
-        (paymentLinksData || []).map(async (link, index) => {
-          const { data: transactions } = await supabase
-            .from('transactions')
-            .select('status')
-            .eq('payment_link_id', link.id)
-            .eq('status', 'completed')
-            .limit(1)
-          
-          return {
-            ...link,
-            is_paid: index === 2 ? true : !!(transactions && transactions.length > 0) // Temporarily mark third PayLink as paid for design preview
-          }
-        })
-      )
+      // Transform the data to include the old is_paid field for backward compatibility
+      const paymentLinksWithStatus = (paymentLinksData || []).map(link => ({
+        ...link,
+        is_paid: link.payment_status === 'paid'
+      }))
       
       setPaymentLinks(paymentLinksWithStatus)
     } catch (error) {

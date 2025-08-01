@@ -22,31 +22,55 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
-    console.log(`🔔 Stripe webhook received: ${event.type}`);
+    console.log(`🔔 Stripe webhook received: ${event.type} (${event.id})`);
     
-    // Log webhook event to database for debugging
+    // Check for duplicate webhook processing (idempotency)
+    const { data: existingEvent } = await supabase
+      .from('webhook_events')
+      .select('id, status')
+      .eq('event_id', event.id)
+      .single();
+
+    if (existingEvent && existingEvent.status === 'processed') {
+      console.log(`⏭️ Webhook ${event.id} already processed, skipping`);
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+
+    // Log webhook event to database for debugging and idempotency
     await logWebhookEvent(event);
 
-    // Handle different event types
-    switch (event.type) {
-      case 'checkout.session.completed':
-        await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
-        break;
+    // Handle different event types with proper error handling
+    try {
+      switch (event.type) {
+        case 'checkout.session.completed':
+          await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
+          break;
+        
+        case 'payment_intent.succeeded':
+          await handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
+          break;
+        
+        case 'payment_intent.payment_failed':
+          await handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
+          break;
+        
+        case 'invoice.payment_succeeded':
+          console.log('💰 Invoice payment succeeded');
+          break;
+        
+        default:
+          console.log(`⚠️ Unhandled Stripe webhook event type: ${event.type}`);
+          await markWebhookEventStatus(event.id, 'unhandled');
+          return NextResponse.json({ received: true, unhandled: true });
+      }
+
+      // Mark webhook as successfully processed
+      await markWebhookEventStatus(event.id, 'processed');
       
-      case 'payment_intent.succeeded':
-        await handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
-        break;
-      
-      case 'payment_intent.payment_failed':
-        await handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
-        break;
-      
-      case 'invoice.payment_succeeded':
-        console.log('💰 Invoice payment succeeded');
-        break;
-      
-      default:
-        console.log(`⚠️ Unhandled Stripe webhook event type: ${event.type}`);
+    } catch (eventError) {
+      console.error(`❌ Error processing webhook event ${event.type}:`, eventError);
+      await markWebhookEventStatus(event.id, 'failed', eventError instanceof Error ? eventError.message : 'Unknown error');
+      throw eventError;
     }
 
     return NextResponse.json({ received: true });
@@ -63,208 +87,130 @@ export async function POST(request: NextRequest) {
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
   try {
     console.log('✅ Checkout session completed:', session.id);
-    console.log('🔍 WEBHOOK DEBUG: Checkout session metadata:', session.metadata);
     
     const paymentLinkId = session.metadata?.payment_link_id;
-    const beautyProfessionalId = session.metadata?.beauty_professional_id;
-
     if (!paymentLinkId) {
-      console.error('❌ Missing payment_link_id in checkout session metadata');
-      return;
+      throw new Error('Missing payment_link_id in checkout session metadata');
     }
 
-    console.log('🔍 WEBHOOK DEBUG: Looking for transactions to update for checkout session:', paymentLinkId);
+    // Use database transaction for atomicity
+    const { data, error } = await supabase.rpc('complete_stripe_payment', {
+      p_payment_link_id: paymentLinkId,
+      p_session_id: session.id,
+      p_payment_intent_id: session.payment_intent as string,
+      p_customer_email: session.customer_email,
+      p_amount_total: session.amount_total ? session.amount_total / 100 : null
+    });
 
-    // First, find all transactions for this payment link for debugging
-    const { data: allTransactions, error: fetchError } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('payment_link_id', paymentLinkId);
-
-    console.log('🔍 WEBHOOK DEBUG: All transactions found for checkout:', allTransactions?.length || 0);
-    console.log('🔍 WEBHOOK DEBUG: Checkout transaction details:', allTransactions);
-
-    if (!allTransactions || allTransactions.length === 0) {
-      console.error('❌ WEBHOOK DEBUG: No transactions found for checkout session payment link:', paymentLinkId);
-      return;
+    if (error) {
+      // Fallback to manual transaction handling if RPC doesn't exist
+      await handleCheckoutSessionManually(session, paymentLinkId);
+    } else {
+      console.log('✅ Payment completed via stored procedure:', data);
     }
-
-    // Try to find the correct transaction to update
-    let transactionToUpdate = null;
-    let updateMethod = 'none';
-
-    // Method 1: Find by processor_session_id (if we have it)
-    transactionToUpdate = allTransactions.find(t => t.processor_session_id === session.id);
-    if (transactionToUpdate) {
-      updateMethod = 'processor_session_id_match';
-      console.log('✅ WEBHOOK DEBUG: Found transaction by processor_session_id:', transactionToUpdate.id);
-    }
-
-    // Method 2: Find by payment_intent_id match
-    if (!transactionToUpdate && session.payment_intent) {
-      transactionToUpdate = allTransactions.find(t => t.processor_payment_id === session.payment_intent);
-      if (transactionToUpdate) {
-        updateMethod = 'payment_intent_match';
-        console.log('✅ WEBHOOK DEBUG: Found transaction by payment_intent match:', transactionToUpdate.id);
-      }
-    }
-
-    // Method 3: Find any pending stripe transaction (most likely candidate)
-    if (!transactionToUpdate) {
-      transactionToUpdate = allTransactions.find(t => t.payment_processor === 'stripe' && t.status === 'pending');
-      if (transactionToUpdate) {
-        updateMethod = 'pending_stripe_transaction';
-        console.log('✅ WEBHOOK DEBUG: Found transaction by pending stripe status:', transactionToUpdate.id);
-      }
-    }
-
-    if (!transactionToUpdate) {
-      console.error('❌ WEBHOOK DEBUG: No suitable transaction found for checkout session');
-      console.error('❌ WEBHOOK DEBUG: Session ID:', session.id);
-      console.error('❌ WEBHOOK DEBUG: Payment Intent:', session.payment_intent);
-      return;
-    }
-
-    console.log(`🔄 WEBHOOK DEBUG: Updating checkout transaction ${transactionToUpdate.id} using method: ${updateMethod}`);
-
-    // Update transaction status in database
-    const { data: updatedTransaction, error: updateError } = await supabase
-      .from('transactions')
-      .update({
-        status: 'completed',
-        processor_transaction_id: session.payment_intent as string,
-        completed_at: new Date().toISOString(),
-        buyer_email: session.customer_email,
-        updated_at: new Date().toISOString(),
-        metadata: {
-          ...transactionToUpdate.metadata,
-          session_id: session.id
-        }
-      })
-      .eq('id', transactionToUpdate.id)
-      .select();
-
-    if (updateError) {
-      console.error('❌ WEBHOOK DEBUG: Failed to update checkout transaction:', updateError);
-      return;
-    }
-
-    console.log('✅ WEBHOOK DEBUG: Checkout transaction updated successfully:', updatedTransaction);
-
-    // Note: payment_links table doesn't have status field, so we rely on transaction status for payment detection
-
-    console.log('✅ Transaction completed successfully for payment link:', paymentLinkId);
 
   } catch (error) {
     console.error('❌ Error handling checkout session completed:', error);
+    throw error;
   }
+}
+
+// Fallback manual transaction handling
+async function handleCheckoutSessionManually(session: Stripe.Checkout.Session, paymentLinkId: string) {
+  // Find the transaction by session ID (most reliable method)
+  const { data: transaction, error: findError } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('payment_link_id', paymentLinkId)
+    .eq('processor_session_id', session.id)
+    .eq('payment_processor', 'stripe')
+    .single();
+
+  if (findError || !transaction) {
+    throw new Error(`No transaction found for session ${session.id} and payment link ${paymentLinkId}`);
+  }
+
+  // Update transaction to completed status
+  const { error: updateError } = await supabase
+    .from('transactions')
+    .update({
+      status: 'completed',
+      processor_payment_id: session.payment_intent as string,
+      processor_transaction_id: session.payment_intent as string,
+      completed_at: new Date().toISOString(),
+      buyer_email: session.customer_email,
+      amount_usd: session.amount_total ? session.amount_total / 100 : transaction.amount_usd,
+      metadata: {
+        ...transaction.metadata,
+        session_completed_at: new Date().toISOString(),
+        session_data: {
+          id: session.id,
+          payment_status: session.payment_status,
+          customer_email: session.customer_email
+        }
+      }
+    })
+    .eq('id', transaction.id);
+
+  if (updateError) {
+    throw new Error(`Failed to update transaction ${transaction.id}: ${updateError.message}`);
+  }
+
+  console.log('✅ Transaction completed manually:', transaction.id);
 }
 
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   try {
     console.log('💳 Payment intent succeeded:', paymentIntent.id);
-    console.log('🔍 WEBHOOK DEBUG: Full PaymentIntent object:', JSON.stringify({
-      id: paymentIntent.id,
-      status: paymentIntent.status,
-      amount: paymentIntent.amount,
-      currency: paymentIntent.currency,
-      metadata: paymentIntent.metadata,
-      client_secret: paymentIntent.client_secret
-    }, null, 2));
     
     const paymentLinkId = paymentIntent.metadata?.payment_link_id;
-    
     if (!paymentLinkId) {
-      console.error('❌ Missing payment_link_id in payment intent metadata');
-      return;
+      throw new Error('Missing payment_link_id in payment intent metadata');
     }
 
-    console.log('🔍 WEBHOOK DEBUG: Looking for transactions to update for payment link:', paymentLinkId);
-
-    // First, find all transactions for this payment link for debugging
-    const { data: allTransactions, error: fetchError } = await supabase
+    // Find transaction by payment intent ID (most reliable)
+    const { data: transaction, error: findError } = await supabase
       .from('transactions')
       .select('*')
-      .eq('payment_link_id', paymentLinkId);
+      .eq('payment_link_id', paymentLinkId)
+      .eq('processor_payment_id', paymentIntent.id)
+      .eq('payment_processor', 'stripe')
+      .single();
 
-    console.log('🔍 WEBHOOK DEBUG: All transactions found:', allTransactions?.length || 0);
-    console.log('🔍 WEBHOOK DEBUG: Transaction details:', allTransactions);
-    console.log('🔍 WEBHOOK DEBUG: Fetch error:', fetchError);
-
-    if (!allTransactions || allTransactions.length === 0) {
-      console.error('❌ WEBHOOK DEBUG: No transactions found for payment link:', paymentLinkId);
-      return;
+    if (findError || !transaction) {
+      throw new Error(`No transaction found for payment intent ${paymentIntent.id} and payment link ${paymentLinkId}`);
     }
 
-    // Try multiple methods to find the correct transaction to update
-    let transactionToUpdate = null;
-    let updateMethod = 'none';
-
-    // Method 1: Find by processor_payment_id (exact match)
-    transactionToUpdate = allTransactions.find(t => t.processor_payment_id === paymentIntent.id);
-    if (transactionToUpdate) {
-      updateMethod = 'processor_payment_id_match';
-      console.log('✅ WEBHOOK DEBUG: Found transaction by processor_payment_id:', transactionToUpdate.id);
-    }
-
-    // Method 2: Find by payment_link_id + payment_processor + status='pending' (most likely candidate)
-    if (!transactionToUpdate) {
-      transactionToUpdate = allTransactions.find(t => t.payment_processor === 'stripe' && t.status === 'pending');
-      if (transactionToUpdate) {
-        updateMethod = 'pending_stripe_transaction';
-        console.log('✅ WEBHOOK DEBUG: Found transaction by pending stripe status:', transactionToUpdate.id);
-      }
-    }
-
-    // Method 3: Find any stripe transaction for this payment link (fallback)
-    if (!transactionToUpdate) {
-      transactionToUpdate = allTransactions.find(t => t.payment_processor === 'stripe');
-      if (transactionToUpdate) {
-        updateMethod = 'any_stripe_transaction';
-        console.log('✅ WEBHOOK DEBUG: Found transaction by any stripe match:', transactionToUpdate.id);
-      }
-    }
-
-    if (!transactionToUpdate) {
-      console.error('❌ WEBHOOK DEBUG: No suitable transaction found to update');
-      console.error('❌ WEBHOOK DEBUG: PaymentIntent ID:', paymentIntent.id);
-      console.error('❌ WEBHOOK DEBUG: Available transactions:', allTransactions.map(t => ({
-        id: t.id,
-        payment_processor: t.payment_processor,
-        processor_transaction_id: t.processor_transaction_id,
-        status: t.status
-      })));
-      return;
-    }
-
-    console.log(`🔄 WEBHOOK DEBUG: Updating transaction ${transactionToUpdate.id} using method: ${updateMethod}`);
-
-    // Update the specific transaction
-    const { data: updatedTransaction, error: updateError } = await supabase
+    // Update transaction to completed status
+    const { error: updateError } = await supabase
       .from('transactions')
       .update({
         status: 'completed',
         processor_transaction_id: paymentIntent.id,
         completed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        amount_usd: paymentIntent.amount / 100,
+        metadata: {
+          ...transaction.metadata,
+          payment_intent_succeeded_at: new Date().toISOString(),
+          payment_intent_data: {
+            id: paymentIntent.id,
+            status: paymentIntent.status,
+            amount: paymentIntent.amount,
+            currency: paymentIntent.currency
+          }
+        }
       })
-      .eq('id', transactionToUpdate.id)
-      .select();
+      .eq('id', transaction.id);
 
     if (updateError) {
-      console.error('❌ WEBHOOK DEBUG: Failed to update transaction:', updateError);
-      console.error('❌ WEBHOOK DEBUG: Update error details:', JSON.stringify(updateError, null, 2));
-      return;
+      throw new Error(`Failed to update transaction ${transaction.id}: ${updateError.message}`);
     }
 
-    console.log('✅ WEBHOOK DEBUG: Transaction updated successfully:', updatedTransaction);
-
-    // Note: payment_links table doesn't have status field, so we rely on transaction status for payment detection
-
-    console.log('✅ Payment intent processed successfully with method:', updateMethod);
+    console.log('✅ Payment intent processed successfully:', transaction.id);
 
   } catch (error) {
     console.error('❌ Error handling payment intent succeeded:', error);
+    throw error;
   }
 }
 
@@ -273,9 +219,21 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
     console.log('❌ Payment intent failed:', paymentIntent.id);
     
     const paymentLinkId = paymentIntent.metadata?.payment_link_id;
-    
     if (!paymentLinkId) {
-      console.error('❌ Missing payment_link_id in failed payment intent metadata');
+      throw new Error('Missing payment_link_id in failed payment intent metadata');
+    }
+
+    // Find the specific transaction
+    const { data: transaction, error: findError } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('payment_link_id', paymentLinkId)
+      .eq('processor_payment_id', paymentIntent.id)
+      .eq('payment_processor', 'stripe')
+      .single();
+
+    if (findError || !transaction) {
+      console.warn(`No transaction found for failed payment intent ${paymentIntent.id}`);
       return;
     }
 
@@ -284,30 +242,39 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
       .from('transactions')
       .update({
         status: 'failed',
+        failed_at: new Date().toISOString(),
         failure_reason: paymentIntent.last_payment_error?.message || 'Payment failed',
-        updated_at: new Date().toISOString()
+        metadata: {
+          ...transaction.metadata,
+          payment_intent_failed_at: new Date().toISOString(),
+          failure_data: {
+            last_payment_error: paymentIntent.last_payment_error,
+            cancellation_reason: paymentIntent.cancellation_reason
+          }
+        }
       })
-      .eq('payment_link_id', paymentLinkId)
-      .eq('payment_processor', 'stripe');
+      .eq('id', transaction.id);
 
     if (updateError) {
-      console.error('❌ Failed to update failed transaction:', updateError);
+      throw new Error(`Failed to update failed transaction ${transaction.id}: ${updateError.message}`);
     }
 
-    console.log('⚠️ Payment failure recorded for payment link:', paymentLinkId);
+    console.log('⚠️ Payment failure recorded for transaction:', transaction.id);
 
   } catch (error) {
     console.error('❌ Error handling payment intent failed:', error);
+    throw error;
   }
 }
 
-// Log webhook events for debugging
+// Log webhook events for debugging and idempotency
 async function logWebhookEvent(event: Stripe.Event): Promise<void> {
   try {
     const eventData = event.data.object as any;
     const paymentLinkId = eventData.metadata?.payment_link_id;
     
-    await supabase.from('webhook_events').insert({
+    // Use upsert to handle potential duplicates
+    await supabase.from('webhook_events').upsert({
       event_id: event.id,
       event_type: event.type,
       event_data: eventData,
@@ -315,12 +282,33 @@ async function logWebhookEvent(event: Stripe.Event): Promise<void> {
       status: 'received',
       processed_at: new Date().toISOString(),
       created_at: new Date().toISOString()
+    }, {
+      onConflict: 'event_id',
+      ignoreDuplicates: false
     });
     
-    console.log(`📝 Webhook event logged: ${event.type} for payment link: ${paymentLinkId || 'none'}`);
+    console.log(`📝 Webhook event logged: ${event.type} (${event.id}) for payment link: ${paymentLinkId || 'none'}`);
   } catch (error) {
     console.error('❌ Failed to log webhook event:', error);
     // Don't throw here to avoid breaking webhook processing
+  }
+}
+
+// Mark webhook event processing status
+async function markWebhookEventStatus(eventId: string, status: string, errorMessage?: string): Promise<void> {
+  try {
+    await supabase
+      .from('webhook_events')
+      .update({
+        status: status,
+        error_message: errorMessage || null,
+        processed_at: new Date().toISOString()
+      })
+      .eq('event_id', eventId);
+    
+    console.log(`📝 Webhook event ${eventId} marked as ${status}`);
+  } catch (error) {
+    console.error('❌ Failed to update webhook event status:', error);
   }
 }
 
