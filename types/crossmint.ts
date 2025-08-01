@@ -4,12 +4,12 @@ export interface CrossmintUser {
   id: string;
   email: string;
   full_name: string;
-  professional_center_name?: string;
-  instagram_handle?: string;
-  wallet_address?: string;
-  crossmint_wallet_id?: string;
-  wallet_created_at?: string;
-  role: 'Beauty Professional' | 'Beauty Model' | 'Admin';
+  professional_center_name: string | null;
+  instagram_handle: string | null;
+  wallet_address: string | null;
+  crossmint_wallet_id: string | null;
+  wallet_created_at: string | null;
+  role: string;
   created_at: string;
 }
 
