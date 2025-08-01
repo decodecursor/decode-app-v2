@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       amount: amount,
       currency: currency,
       paymentLinkId: paymentLinkId,
-      beautyProfessionalId: paymentLink.creator?.[0]?.email || 'unknown',
+      beautyProfessionalId: paymentLink.creator?.email || 'unknown',
       customerEmail: customerEmail,
       customerName: customerName,
       description: paymentLink.title || 'Beauty service payment'
