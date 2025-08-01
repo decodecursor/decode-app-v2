@@ -135,10 +135,10 @@ function MyLinksContent() {
       setLoading(true)
       setError('')
 
-      // Fetch payment links with the new payment_status field
+      // Fetch payment links with available fields only (many fields don't exist in current schema)
       const { data: paymentLinksData, error: fetchError } = await supabase
         .from('payment_links')
-        .select('id, client_name, title, amount_aed, original_amount_aed, fee_amount_aed, total_amount_aed, expiration_date, is_active, payment_status, paid_at, created_at')
+        .select('id, client_name, title, description, amount_aed, expiration_date, is_active, created_at')
         .eq('creator_id', userId)
         .order('created_at', { ascending: false })
 
@@ -146,10 +146,11 @@ function MyLinksContent() {
         throw fetchError
       }
 
-      // Transform the data to include the old is_paid field for backward compatibility
+      // Transform the data to include the old is_paid field (using is_active as proxy since payment_status doesn't exist)
       const paymentLinksWithStatus = (paymentLinksData || []).map(link => ({
         ...(link && typeof link === 'object' ? link : {}),
-        is_paid: link?.payment_status === 'paid'
+        is_paid: link?.is_active === false, // Assume inactive links were paid/completed
+        payment_status: link?.is_active ? 'active' : 'completed' // Add status field for compatibility
       }))
       
       setPaymentLinks(paymentLinksWithStatus)
