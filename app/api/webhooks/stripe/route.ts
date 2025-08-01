@@ -129,7 +129,7 @@ async function handleCheckoutSessionManually(session: Stripe.Checkout.Session, p
       buyer_email: session.customer_email,
       amount_aed: session.amount_total ? session.amount_total / 100 : transaction.amount_aed,
       metadata: {
-        ...transaction.metadata,
+        ...(transaction.metadata && typeof transaction.metadata === 'object' ? transaction.metadata : {}),
         session_completed_at: new Date().toISOString(),
         session_data: {
           id: session.id,
