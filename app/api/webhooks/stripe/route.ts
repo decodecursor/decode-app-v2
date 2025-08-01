@@ -261,10 +261,23 @@ async function logWebhookEvent(event: Stripe.Event): Promise<void> {
     const eventData = event.data.object as any;
     const paymentLinkId = eventData.metadata?.payment_link_id;
     
-    // Webhook event logging disabled due to database schema mismatch
-    // The webhook_events table is missing required fields like 'timestamp'
-    // TODO: Fix webhook_events table schema or update database types
-    console.log(`📝 Webhook event processed: ${event.type} (${event.id}) for payment link: ${paymentLinkId || 'none'}`);
+    // Log webhook event to database with all required fields
+    await supabase.from('webhook_events').upsert({
+      event_id: event.id,
+      event_type: event.type,
+      event_data: eventData,
+      payment_link_id: paymentLinkId,
+      signature: signature,
+      timestamp: new Date(event.created * 1000).toISOString(), // Convert Unix timestamp to ISO
+      status: 'received',
+      processed_at: new Date().toISOString(),
+      created_at: new Date().toISOString()
+    }, {
+      onConflict: 'event_id',
+      ignoreDuplicates: false
+    });
+    
+    console.log(`📝 Webhook event logged: ${event.type} (${event.id}) for payment link: ${paymentLinkId || 'none'}`);
   } catch (error) {
     console.error('❌ Failed to log webhook event:', error);
     // Don't throw here to avoid breaking webhook processing
