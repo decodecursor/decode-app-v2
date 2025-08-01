@@ -106,7 +106,17 @@ export async function generateAnalytics(filter: AnalyticsFilter): Promise<Analyt
     const basicAnalytics = await generateBasicAnalytics(filter)
 
     return {
-      ...basicAnalytics,
+      // Ensure all required fields have default values
+      totalRevenue: basicAnalytics.totalRevenue || 0,
+      totalTransactions: basicAnalytics.totalTransactions || 0,
+      averageTransactionValue: basicAnalytics.averageTransactionValue || 0,
+      uniqueCustomers: basicAnalytics.uniqueCustomers || 0,
+      totalPaymentLinks: basicAnalytics.totalPaymentLinks || 0,
+      activePaymentLinks: basicAnalytics.activePaymentLinks || 0,
+      conversionRate: basicAnalytics.conversionRate || 0,
+      revenueByPeriod: basicAnalytics.revenueByPeriod || [],
+      topPaymentLinks: basicAnalytics.topPaymentLinks || [],
+      customerRetention: basicAnalytics.customerRetention || 0,
       // Split analytics disabled - return empty values
       totalSplitTransactions: 0,
       totalSplitAmount: 0,
