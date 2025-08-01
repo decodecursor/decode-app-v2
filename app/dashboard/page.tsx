@@ -159,17 +159,17 @@ export default function Dashboard() {
       }
       setUser(user)
       
-      // Fetch user role, profile photo, and company name from users table
+      // Fetch user role and professional center name from users table
       const { data: userData } = await supabase
         .from('users')
-        .select('role, profile_photo_url, company_name')
+        .select('role, professional_center_name')
         .eq('id', user.id)
         .single()
       
       if (userData) {
         setUserRole(userData.role)
-        setProfilePhoto(userData.profile_photo_url)
-        setCompanyName(userData.company_name)
+        setProfilePhoto(null) // profile_photo_url field doesn't exist in schema
+        setCompanyName(userData.professional_center_name) // use available field
       }
       
       // Fetch recent PayLinks
