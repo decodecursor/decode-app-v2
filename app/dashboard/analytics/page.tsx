@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-// Analytics temporarily disabled due to schema mismatch
-// import { getAnalyticsData, getAnalyticsForPeriod, exportAnalyticsToCSV, subscribeToAnalyticsUpdates } from '@/lib/analytics'
-// import type { AnalyticsData } from '@/lib/analytics'
-type AnalyticsData = any
-import { RevenueChart, PaymentMethodBreakdown, ConversionRateTracker, CustomerInsights } from '@/components/analytics'
+import { getAnalyticsData, getAnalyticsForPeriod, exportAnalyticsToCSV, subscribeToAnalyticsUpdates } from '@/lib/analytics'
+import type { AnalyticsData } from '@/lib/analytics'
+// Analytics components temporarily disabled due to schema mismatch
+// import { RevenueChart, PaymentMethodBreakdown, ConversionRateTracker, CustomerInsights } from '@/components/analytics'
 import Navigation from '@/components/Navigation'
 
 type TimePeriod = 'today' | 'week' | 'month' | 'quarter' | 'year' | 'all'
