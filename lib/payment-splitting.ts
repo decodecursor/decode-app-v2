@@ -661,6 +661,7 @@ export async function getUserEarnings(userId: string, startDate?: Date, endDate?
       totalEarnings: 0,
       pendingEarnings: 0,
       processedEarnings: 0,
+      totalSplits: 0,
       recentSplits: []
     }
     
