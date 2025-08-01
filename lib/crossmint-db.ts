@@ -265,13 +265,14 @@ export class CrossmintDatabaseService {
    * Deactivate expired payment links
    */
   async deactivateExpiredLinks(): Promise<number> {
-    const { data, error } = await supabase.rpc('auto_deactivate_expired_links');
-
-    if (error) {
-      throw new Error(`Failed to deactivate expired links: ${error.message}`);
-    }
-
-    return data || 0;
+    // TODO: Uncomment when auto_deactivate_expired_links function is added to database
+    // const { data, error } = await supabase.rpc('auto_deactivate_expired_links');
+    // if (error) {
+    //   throw new Error(`Failed to deactivate expired links: ${error.message}`);
+    // }
+    // return data || 0;
+    
+    return 0; // Temporary: return 0 until database function is implemented
   }
 
   /**
@@ -301,28 +302,37 @@ export class CrossmintDatabaseService {
    * Get user transaction summary
    */
   async getUserTransactionSummary(userId: string) {
-    const { data, error } = await supabase
-      .from('user_transaction_summary')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
+    // TODO: Uncomment when user_transaction_summary view is added to database
+    // const { data, error } = await supabase
+    //   .from('user_transaction_summary')
+    //   .select('*')
+    //   .eq('user_id', userId)
+    //   .single();
+    // if (error) {
+    //   if (error.code === 'PGRST116') {
+    //     // No transactions yet, return empty summary
+    //     return {
+    //       user_id: userId,
+    //       total_transactions: 0,
+    //       total_received_usdc: 0,
+    //       total_transferred_usdc: 0,
+    //       total_fees_usdc: 0,
+    //       last_transaction_at: null
+    //     };
+    //   }
+    //   throw new Error(`Failed to get transaction summary: ${error.message}`);
+    // }
+    // return data;
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // No transactions yet, return empty summary
-        return {
-          user_id: userId,
-          total_transactions: 0,
-          total_received_usdc: 0,
-          total_transferred_usdc: 0,
-          total_fees_usdc: 0,
-          last_transaction_at: null
-        };
-      }
-      throw new Error(`Failed to get transaction summary: ${error.message}`);
-    }
-
-    return data;
+    // Temporary: return empty summary until database view is implemented
+    return {
+      user_id: userId,
+      total_transactions: 0,
+      total_received_usdc: 0,
+      total_transferred_usdc: 0,
+      total_fees_usdc: 0,
+      last_transaction_at: null
+    };
   }
 
   /**
