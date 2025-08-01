@@ -15,9 +15,9 @@ export interface CrossmintUser {
 
 export interface CrossmintPaymentLink {
   id: string;
-  client_name?: string;
+  client_name: string | null;
   title: string;
-  description?: string;
+  description: string | null;
   // Original amount fields
   amount_aed: number; // Legacy field, kept for compatibility
   original_amount_aed?: number; // New: original service amount
@@ -26,7 +26,7 @@ export interface CrossmintPaymentLink {
   amount_usd?: number; // USD equivalent for international payments
   expiration_date: string;
   creator_id: string;
-  linked_user_id?: string;
+  linked_user_id: string | null;
   is_active: boolean;
   created_at: string;
   updated_at?: string;
