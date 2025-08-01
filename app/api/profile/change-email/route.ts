@@ -52,15 +52,9 @@ export async function POST(req: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    // Update user with pending email and verification token
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        pending_email: newEmail.toLowerCase().trim(),
-        email_verification_token: verificationToken,
-        verification_token_expires: expiresAt.toISOString()
-      })
-      .eq('id', user.id)
+    // The verification process is handled through email_verification_logs table
+    // No need to update user table with pending email fields
+    const updateError = null // Removed user table update since verification fields don't exist
 
     if (updateError) {
       console.error('Error updating user:', updateError)
