@@ -132,31 +132,32 @@ export async function GET(request: NextRequest) {
         collector.gauge('decode_revenue_24h_aed', recentRevenue)
       }
 
-      // Split payment metrics
-      const { count: splitTransactionsCount } = await supabase
-        .from('payment_split_transactions')
-        .select('*', { count: 'exact', head: true })
-      
-      if (splitTransactionsCount !== null) {
-        collector.gauge('decode_split_transactions_total', splitTransactionsCount)
-      }
-
-      // Split transactions by distribution status
-      const { data: splitTransactionsByStatus } = await supabase
-        .from('payment_split_transactions')
-        .select('distribution_status')
-        .not('distribution_status', 'is', null)
-
-      if (splitTransactionsByStatus) {
-        const splitStatusCounts = splitTransactionsByStatus.reduce((acc, tx) => {
-          acc[tx.distribution_status] = (acc[tx.distribution_status] || 0) + 1
-          return acc
-        }, {} as Record<string, number>)
-
-        for (const [status, count] of Object.entries(splitStatusCounts)) {
-          collector.gauge('decode_split_distributions', count, { status })
-        }
-      }
+      // Split payment metrics - temporarily disabled until tables are properly set up
+      // TODO: Re-enable when payment_split_transactions table exists in database types
+      // 
+      // const { count: splitTransactionsCount } = await supabase
+      //   .from('payment_split_transactions')
+      //   .select('*', { count: 'exact', head: true })
+      // 
+      // if (splitTransactionsCount !== null) {
+      //   collector.gauge('decode_split_transactions_total', splitTransactionsCount)
+      // }
+      // 
+      // const { data: splitTransactionsByStatus } = await supabase
+      //   .from('payment_split_transactions')
+      //   .select('distribution_status')
+      //   .not('distribution_status', 'is', null)
+      // 
+      // if (splitTransactionsByStatus) {
+      //   const splitStatusCounts = splitTransactionsByStatus.reduce((acc, tx) => {
+      //     acc[tx.distribution_status] = (acc[tx.distribution_status] || 0) + 1
+      //     return acc
+      //   }, {} as Record<string, number>)
+      // 
+      //   for (const [status, count] of Object.entries(splitStatusCounts)) {
+      //     collector.gauge('decode_split_distributions', count, { status })
+      //   }
+      // }
 
       // Database connection health
       collector.gauge('decode_database_connected', 1)
