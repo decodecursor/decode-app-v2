@@ -495,7 +495,7 @@ export async function getTransactionSplitSummary(transactionId: string): Promise
     
     return {
       transactionId: data.transaction_id,
-      amountPaidUsd: data.amount_paid_usd,
+      amountPaidUsd: data.amount_aed, // Note: This is AED but kept as USD for backward compatibility
       splitCount: data.split_count,
       totalSplitAmount: data.total_split_amount,
       remainingAmount: data.remaining_amount,
@@ -576,7 +576,7 @@ export async function getUserEarnings(userId: string, startDate?: Date, endDate?
       .select(`
         *,
         transaction:transactions!transaction_id (
-          amount_paid_usd,
+          amount_aed,
           created_at,
           payment_link:payment_links!payment_link_id (
             title,
@@ -607,14 +607,14 @@ export async function getUserEarnings(userId: string, startDate?: Date, endDate?
     
     const splits = data || []
     
-    const totalEarnings = splits.reduce((sum, split) => sum + split.split_amount_usd, 0)
+    const totalEarnings = splits.reduce((sum, split) => sum + (split.split_amount_usd || 0), 0)
     const totalSplits = splits.length
     const pendingEarnings = splits
       .filter(split => split.distribution_status === 'pending')
-      .reduce((sum, split) => sum + split.split_amount_usd, 0)
+      .reduce((sum, split) => sum + (split.split_amount_usd || 0), 0)
     const processedEarnings = splits
       .filter(split => split.distribution_status === 'processed')
-      .reduce((sum, split) => sum + split.split_amount_usd, 0)
+      .reduce((sum, split) => sum + (split.split_amount_usd || 0), 0)
     
     const recentSplits = splits.slice(0, 10).map(item => ({
       id: item.id,

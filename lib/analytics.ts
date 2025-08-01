@@ -102,10 +102,10 @@ export async function getAnalyticsData(filter: AnalyticsFilter = {}): Promise<An
     const transactions = await getTransactionData(filter)
     const paymentLinks = await getPaymentLinksData(filter)
     
-    // Calculate core metrics
+    // Calculate core metrics (in AED - business currency)
     const totalRevenue = transactions
       .filter(t => t.status === 'completed')
-      .reduce((sum, t) => sum + t.amount_paid_usd, 0)
+      .reduce((sum, t) => sum + (t.amount_aed || 0), 0)
     
     const completedTransactions = transactions.filter(t => t.status === 'completed')
     const totalTransactions = transactions.length
@@ -232,7 +232,7 @@ async function generateRevenueByDay(transactions: any[], startDate?: Date, endDa
     const existing = revenueMap.get(date) || { revenue: 0, transactions: 0, failed: 0 }
     
     if (transaction.status === 'completed') {
-      existing.revenue += transaction.amount_paid_usd
+      existing.revenue += (transaction.amount_aed || 0)
       existing.transactions += 1
     } else {
       existing.failed += 1
@@ -271,7 +271,7 @@ function generatePaymentMethodBreakdown(transactions: any[]): PaymentMethodBreak
     const method = transaction.payment_processor || 'Crossmint'
     const existing = methodMap.get(method) || { count: 0, revenue: 0 }
     existing.count += 1
-    existing.revenue += transaction.amount_paid_usd
+    existing.revenue += (transaction.amount_aed || 0)
     methodMap.set(method, existing)
   })
   
@@ -310,7 +310,7 @@ async function generateGeographicDistribution(transactions: any[]): Promise<Geog
     const countryTransactions = remainingTransactions.slice(0, country.count)
     remainingTransactions = remainingTransactions.slice(country.count)
     
-    const revenue = countryTransactions.reduce((sum, t) => sum + t.amount_paid_usd, 0)
+    const revenue = countryTransactions.reduce((sum, t) => sum + (t.amount_aed || 0), 0)
     
     return {
       country: country.country,
@@ -362,7 +362,7 @@ function generateCustomerInsights(transactions: any[]): CustomerInsights {
   completedTransactions.forEach(transaction => {
     const email = transaction.buyer_email || 'Anonymous'
     const existing = customerMap.get(email) || { total: 0, count: 0, lastTransaction: transaction.created_at }
-    existing.total += transaction.amount_paid_usd
+    existing.total += (transaction.amount_aed || 0)
     existing.count += 1
     existing.lastTransaction = transaction.created_at
     customerMap.set(email, existing)
@@ -371,7 +371,7 @@ function generateCustomerInsights(transactions: any[]): CustomerInsights {
   const customers = Array.from(customerMap.entries())
   const totalUniqueCustomers = customers.length
   const returningCustomers = customers.filter(([_, data]) => data.count > 1).length
-  const totalRevenue = completedTransactions.reduce((sum, t) => sum + t.amount_paid_usd, 0)
+  const totalRevenue = completedTransactions.reduce((sum, t) => sum + (t.amount_aed || 0), 0)
   const averageCustomerValue = totalUniqueCustomers > 0 ? totalRevenue / totalUniqueCustomers : 0
   
   const topSpendingCustomers = customers
@@ -734,7 +734,7 @@ export async function getEnhancedAnalytics(filter: AnalyticsFilter = {}): Promis
       country_code,
       country_name,
       transactions:transaction_id (
-        amount_paid_usd,
+        amount_aed,
         status
       )
     `)
@@ -758,7 +758,7 @@ export async function getEnhancedAnalytics(filter: AnalyticsFilter = {}): Promis
         }
         if (item.transactions?.status === 'completed') {
           acc[item.country_code].transactions++
-          acc[item.country_code].revenue += item.transactions.amount_paid_usd
+          acc[item.country_code].revenue += (item.transactions.amount_aed || 0)
         }
         return acc
       }, {})

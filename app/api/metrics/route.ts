@@ -110,15 +110,15 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Revenue metrics
+      // Revenue metrics (in AED - business currency)
       const { data: completedTransactions } = await supabase
         .from('transactions')
-        .select('amount_paid_usd, created_at')
+        .select('amount_aed, created_at')
         .eq('status', 'completed')
 
       if (completedTransactions) {
-        const totalRevenue = completedTransactions.reduce((sum, tx) => sum + tx.amount_paid_usd, 0)
-        collector.gauge('decode_revenue_total_usd', totalRevenue)
+        const totalRevenue = completedTransactions.reduce((sum, tx) => sum + (tx.amount_aed || 0), 0)
+        collector.gauge('decode_revenue_total_aed', totalRevenue)
 
         // Recent transactions (last 24 hours)
         const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
@@ -128,8 +128,8 @@ export async function GET(request: NextRequest) {
         
         collector.gauge('decode_transactions_24h', recentTransactions.length)
         
-        const recentRevenue = recentTransactions.reduce((sum, tx) => sum + tx.amount_paid_usd, 0)
-        collector.gauge('decode_revenue_24h_usd', recentRevenue)
+        const recentRevenue = recentTransactions.reduce((sum, tx) => sum + (tx.amount_aed || 0), 0)
+        collector.gauge('decode_revenue_24h_aed', recentRevenue)
       }
 
       // Split payment metrics
