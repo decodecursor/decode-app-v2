@@ -63,6 +63,8 @@ export interface Database {
           is_active: boolean
           created_at: string
           client_name: string | null
+          payment_status: 'unpaid' | 'paid' | 'failed' | 'refunded'
+          paid_at: string | null
         }
         Insert: {
           id?: string
@@ -75,6 +77,8 @@ export interface Database {
           is_active?: boolean
           created_at?: string
           client_name?: string | null
+          payment_status?: 'unpaid' | 'paid' | 'failed' | 'refunded'
+          paid_at?: string | null
         }
         Update: {
           id?: string
@@ -87,6 +91,8 @@ export interface Database {
           is_active?: boolean
           created_at?: string
           client_name?: string | null
+          payment_status?: 'unpaid' | 'paid' | 'failed' | 'refunded'
+          paid_at?: string | null
         }
         Relationships: [
           {
@@ -110,7 +116,9 @@ export interface Database {
           id: string
           payment_link_id: string
           buyer_email: string | null
+          buyer_name: string | null
           amount_aed: number
+          amount_usd: number | null
           status: string
           payment_processor: string
           processor_transaction_id: string | null
@@ -131,7 +139,9 @@ export interface Database {
           id?: string
           payment_link_id: string
           buyer_email?: string | null
+          buyer_name?: string | null
           amount_aed: number
+          amount_usd?: number | null
           status?: string
           payment_processor?: string
           processor_transaction_id?: string | null
@@ -152,7 +162,9 @@ export interface Database {
           id?: string
           payment_link_id?: string
           buyer_email?: string | null
+          buyer_name?: string | null
           amount_aed?: number
+          amount_usd?: number | null
           status?: string
           payment_processor?: string
           processor_transaction_id?: string | null
