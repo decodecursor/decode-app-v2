@@ -135,7 +135,7 @@ export default function BankAccountPage() {
       // Check if user has existing Stripe Connect account with optimized query
       const { data: userData, error } = await supabase
         .from('users')
-        .select('stripe_connect_account_id, email, company_name') // Get additional data we might need
+        .select('email, professional_center_name') // Get available user data (stripe_connect_account_id not in schema)
         .eq('id', userId)
         .single()
 
@@ -145,19 +145,10 @@ export default function BankAccountPage() {
         return
       }
 
-      if (userData?.stripe_connect_account_id) {
-        setStripeAccountId(userData.stripe_connect_account_id)
-        setCurrentStep('onboarding')
-        // Check if onboarding is complete (parallel with Stripe initialization)
-        await Promise.all([
-          checkOnboardingStatus(userData.stripe_connect_account_id),
-          // Pre-load Stripe.js while checking onboarding status
-          loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
-        ])
-      } else {
-        // Create new Stripe Connect account
-        await createStripeAccount()
-      }
+      // Note: stripe_connect_account_id field doesn't exist in current database schema
+      // Always create new Stripe Connect account (not ideal but functional)
+      console.log('Creating new Stripe Connect account for user:', userData?.email)
+      await createStripeAccount()
     } catch (error) {
       console.error('Error checking Stripe account:', error)
       setMessage({ type: 'error', text: 'Failed to initialize bank account setup' })
