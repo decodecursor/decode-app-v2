@@ -278,6 +278,69 @@ export interface Database {
           }
         ]
       }
+      wallet_transactions: {
+        Row: {
+          id: string
+          user_id: string
+          payment_link_id: string | null
+          transaction_type: string
+          amount_usdc: number | null
+          amount_aed: number | null
+          status: string
+          crossmint_transaction_id: string | null
+          crossmint_session_id: string | null
+          metadata: Json | null
+          created_at: string
+          completed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          payment_link_id?: string | null
+          transaction_type: string
+          amount_usdc?: number | null
+          amount_aed?: number | null
+          status: string
+          crossmint_transaction_id?: string | null
+          crossmint_session_id?: string | null
+          metadata?: Json | null
+          created_at?: string
+          completed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          payment_link_id?: string | null
+          transaction_type?: string
+          amount_usdc?: number | null
+          amount_aed?: number | null
+          status?: string
+          crossmint_transaction_id?: string | null
+          crossmint_session_id?: string | null
+          metadata?: Json | null
+          created_at?: string
+          completed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_transactions_payment_link_id_fkey"
+            columns: ["payment_link_id"]
+            isOneToOne: false
+            referencedRelation: "payment_links"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -314,6 +377,10 @@ export type WebhookEventUpdate = Database['public']['Tables']['webhook_events'][
 export type UserBankAccountRow = Database['public']['Tables']['user_bank_accounts']['Row']
 export type UserBankAccountInsert = Database['public']['Tables']['user_bank_accounts']['Insert']
 export type UserBankAccountUpdate = Database['public']['Tables']['user_bank_accounts']['Update']
+
+export type WalletTransactionRow = Database['public']['Tables']['wallet_transactions']['Row']
+export type WalletTransactionInsert = Database['public']['Tables']['wallet_transactions']['Insert']
+export type WalletTransactionUpdate = Database['public']['Tables']['wallet_transactions']['Update']
 
 // Extended types for queries with relations
 export type PaymentLinkWithCreator = PaymentLinkRow & {
