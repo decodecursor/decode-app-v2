@@ -280,43 +280,46 @@ export async function saveSplitTemplate(template: SplitTemplate): Promise<string
     
     if (templateId) {
       // Update existing template
-      const { error: templateError } = await supabase
-        .from('payment_split_templates')
-        .update({
-          template_name: template.templateName,
-          description: template.description,
-          is_default: template.isDefault,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', templateId)
-      
-      if (templateError) {
-        throw templateError
-      }
+      // TODO: Uncomment when payment_split_templates table is added
+      // const { error: templateError } = await supabase
+      //   .from('payment_split_templates')
+      //   .update({
+      //     template_name: template.templateName,
+      //     description: template.description,
+      //     is_default: template.isDefault,
+      //     updated_at: new Date().toISOString()
+      //   })
+      //   .eq('id', templateId)
+      // if (templateError) {
+      //   throw templateError
+      // }
       
       // Delete existing template recipients
-      await supabase
-        .from('payment_split_template_recipients')
-        .delete()
-        .eq('template_id', templateId)
+      // TODO: Uncomment when payment_split_template_recipients table is added
+      // await supabase
+      //   .from('payment_split_template_recipients')
+      //   .delete()
+      //   .eq('template_id', templateId)
     } else {
       // Create new template
-      const { data: templateData, error: templateError } = await supabase
-        .from('payment_split_templates')
-        .insert({
-          user_id: template.userId,
-          template_name: template.templateName,
-          description: template.description,
-          is_default: template.isDefault
-        })
-        .select()
-        .single()
+      // TODO: Uncomment when payment_split_templates table is added
+      // const { data: templateData, error: templateError } = await supabase
+      //   .from('payment_split_templates')
+      //   .insert({
+      //     user_id: template.userId,
+      //     template_name: template.templateName,
+      //     description: template.description,
+      //     is_default: template.isDefault
+      //   })
+      //   .select()
+      //   .single()
+      // if (templateError) {
+      //   throw templateError
+      // }
+      // templateId = templateData.id!
       
-      if (templateError) {
-        throw templateError
-      }
-      
-      templateId = templateData.id!
+      // Temporary: Use dummy ID until database is implemented
+      templateId = 'temp-' + Date.now()
     }
     
     // Add template recipients
@@ -334,13 +337,13 @@ export async function saveSplitTemplate(template: SplitTemplate): Promise<string
         notes: recipient.notes || null
       }))
       
-      const { error: recipientsError } = await supabase
-        .from('payment_split_template_recipients')
-        .insert(recipientsData)
-      
-      if (recipientsError) {
-        throw recipientsError
-      }
+      // TODO: Uncomment when payment_split_template_recipients table is added
+      // const { error: recipientsError } = await supabase
+      //   .from('payment_split_template_recipients')
+      //   .insert(recipientsData)
+      // if (recipientsError) {
+      //   throw recipientsError
+      // }
     }
     
     if (!templateId) {
@@ -421,19 +424,26 @@ export async function applySplitTemplate(paymentLinkId: string, templateId: stri
  */
 export async function getPaymentLinkSplitSummary(paymentLinkId: string): Promise<PaymentLinkSplitSummary | null> {
   try {
-    const { data, error } = await supabase
-      .from('payment_link_split_summary')
-      .select('*')
-      .eq('payment_link_id', paymentLinkId)
-      .single()
+    // TODO: Uncomment when payment_link_split_summary table is added
+    // const { data, error } = await supabase
+    //   .from('payment_link_split_summary')
+    //   .select('*')
+    //   .eq('payment_link_id', paymentLinkId)
+    //   .single()
+    // if (error) {
+    //   if (error.code === 'PGRST116') {
+    //     return null // No split summary found
+    //   }
+    //   throw error
+    // }
+    // return {
     
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return null // No split summary found
-      }
-      throw error
-    }
+    // Temporary: Return null until database table is implemented
+    console.log('Get payment link split summary (DB disabled) for:', paymentLinkId)
+    return null
     
+    // TODO: Uncomment return object below when database is ready
+    /*
     return {
       paymentLinkId: data.payment_link_id,
       title: data.title,
@@ -444,6 +454,7 @@ export async function getPaymentLinkSplitSummary(paymentLinkId: string): Promise
       remainingForPercentage: data.remaining_for_percentage,
       hasPrimaryRecipient: data.has_primary_recipient
     }
+    */
   } catch (error) {
     console.error('Error fetching payment link split summary:', error)
     throw error
