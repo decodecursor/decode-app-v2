@@ -362,20 +362,27 @@ export async function saveSplitTemplate(template: SplitTemplate): Promise<string
  */
 export async function getSplitTemplates(userId: string): Promise<SplitTemplate[]> {
   try {
-    const { data: templates, error: templatesError } = await supabase
-      .from('payment_split_templates')
-      .select(`
-        *,
-        recipients:payment_split_template_recipients (*)
-      `)
-      .eq('user_id', userId)
-      .order('is_default', { ascending: false })
-      .order('template_name', { ascending: true })
+    // TODO: Uncomment when payment_split_templates table is added
+    // const { data: templates, error: templatesError } = await supabase
+    //   .from('payment_split_templates')
+    //   .select(`
+    //     *,
+    //     recipients:payment_split_template_recipients (*)
+    //   `)
+    //   .eq('user_id', userId)
+    //   .order('is_default', { ascending: false })
+    //   .order('template_name', { ascending: true })
+    // if (templatesError) {
+    //   throw templatesError
+    // }
+    // return (templates || []).map(template => ({
     
-    if (templatesError) {
-      throw templatesError
-    }
+    // Temporary: Return empty array until database table is implemented
+    console.log('Get user split templates (DB disabled) for user:', userId)
+    return []
     
+    // TODO: Uncomment mapping below when database is ready
+    /*
     return (templates || []).map(template => ({
       id: template.id,
       userId: template.user_id,
@@ -394,6 +401,7 @@ export async function getSplitTemplates(userId: string): Promise<SplitTemplate[]
         notes: recipient.notes
       }))
     }))
+    */
   } catch (error) {
     console.error('Error fetching split templates:', error)
     throw error
@@ -466,16 +474,23 @@ export async function getPaymentLinkSplitSummary(paymentLinkId: string): Promise
  */
 export async function getSplitTransactions(transactionId: string): Promise<SplitTransaction[]> {
   try {
-    const { data, error } = await supabase
-      .from('payment_split_transactions')
-      .select('*')
-      .eq('transaction_id', transactionId)
-      .order('split_amount_usd', { ascending: false })
+    // TODO: Uncomment when payment_split_transactions table is added
+    // const { data, error } = await supabase
+    //   .from('payment_split_transactions')
+    //   .select('*')
+    //   .eq('transaction_id', transactionId)
+    //   .order('split_amount_usd', { ascending: false })
+    // if (error) {
+    //   throw error
+    // }
+    // return (data || []).map(item => ({
     
-    if (error) {
-      throw error
-    }
+    // Temporary: Return empty array until database table is implemented
+    console.log('Get split transactions (DB disabled) for transaction:', transactionId)  
+    return []
     
+    // TODO: Uncomment mapping below when database is ready
+    /*
     return (data || []).map(item => ({
       id: item.id,
       transactionId: item.transaction_id,
@@ -492,6 +507,7 @@ export async function getSplitTransactions(transactionId: string): Promise<Split
       failureReason: item.failure_reason,
       metadata: item.metadata
     }))
+    */
   } catch (error) {
     console.error('Error fetching split transactions:', error)
     throw error
