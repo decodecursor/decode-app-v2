@@ -228,7 +228,7 @@ export function CustomerInsights({
                       <div className="text-sm text-gray-900">{customer.transactionCount}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {format(parseISO(customer.lastTransaction), 'MMM dd, yyyy')}
+                      {customer.lastTransactionDate ? format(parseISO(customer.lastTransactionDate), 'MMM dd, yyyy') : 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
