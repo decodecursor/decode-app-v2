@@ -413,14 +413,17 @@ export async function getSplitTemplates(userId: string): Promise<SplitTemplate[]
  */
 export async function applySplitTemplate(paymentLinkId: string, templateId: string): Promise<void> {
   try {
-    const { error } = await supabase.rpc('apply_split_template_to_payment_link', {
-      payment_link_id_param: paymentLinkId,
-      template_id_param: templateId
-    })
+    // TODO: Uncomment when apply_split_template_to_payment_link function is added
+    // const { error } = await supabase.rpc('apply_split_template_to_payment_link', {
+    //   payment_link_id_param: paymentLinkId,
+    //   template_id_param: templateId
+    // })
+    // if (error) {
+    //   throw error
+    // }
     
-    if (error) {
-      throw error
-    }
+    // Temporary: Skip database function until it's implemented
+    console.log('Apply split template (DB disabled):', templateId, 'to payment link:', paymentLinkId)
   } catch (error) {
     console.error('Error applying split template:', error)
     throw error
@@ -519,19 +522,25 @@ export async function getSplitTransactions(transactionId: string): Promise<Split
  */
 export async function getTransactionSplitSummary(transactionId: string): Promise<TransactionSplitSummary | null> {
   try {
-    const { data, error } = await supabase
-      .from('transaction_split_summary')
-      .select('*')
-      .eq('transaction_id', transactionId)
-      .single()
+    // TODO: Uncomment when transaction_split_summary table is added
+    // const { data, error } = await supabase
+    //   .from('transaction_split_summary')
+    //   .select('*')
+    //   .eq('transaction_id', transactionId)
+    //   .single()
+    // if (error) {
+    //   if (error.code === 'PGRST116') {
+    //     return null // No split summary found
+    //   }
+    //   throw error
+    // }
     
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return null // No split summary found
-      }
-      throw error
-    }
+    // Temporary: Return null until database table is implemented
+    console.log('Get transaction split summary (DB disabled) for transaction:', transactionId)
+    return null
     
+    // TODO: Uncomment return object below when database is ready
+    /*
     return {
       transactionId: data.transaction_id,
       amountPaidUsd: data.amount_aed, // Note: This is AED but kept as USD for backward compatibility
@@ -542,6 +551,7 @@ export async function getTransactionSplitSummary(transactionId: string): Promise
       pendingSplits: data.pending_splits,
       failedSplits: data.failed_splits
     }
+    */
   } catch (error) {
     console.error('Error fetching transaction split summary:', error)
     throw error
@@ -585,14 +595,17 @@ export async function updateSplitTransactionStatus(
       updateData.metadata = metadata
     }
     
-    const { error } = await supabase
-      .from('payment_split_transactions')
-      .update(updateData)
-      .eq('id', splitTransactionId)
+    // TODO: Uncomment when payment_split_transactions table is added
+    // const { error } = await supabase
+    //   .from('payment_split_transactions')
+    //   .update(updateData)
+    //   .eq('id', splitTransactionId)
+    // if (error) {
+    //   throw error
+    // }
     
-    if (error) {
-      throw error
-    }
+    // Temporary: Skip database update until table is implemented
+    console.log('Update split transaction status (DB disabled):', splitTransactionId, status)
   } catch (error) {
     console.error('Error updating split transaction status:', error)
     throw error
@@ -610,40 +623,49 @@ export async function getUserEarnings(userId: string, startDate?: Date, endDate?
   recentSplits: SplitTransaction[]
 }> {
   try {
-    let query = supabase
-      .from('payment_split_transactions')
-      .select(`
-        *,
-        transaction:transactions!transaction_id (
-          amount_aed,
-          created_at,
-          payment_link:payment_links!payment_link_id (
-            title,
-            creator:users!creator_id (
-              full_name,
-              email
-            )
-          )
-        )
-      `)
-      .eq('recipient_user_id', userId)
+    // TODO: Uncomment when payment_split_transactions table is added
+    // let query = supabase
+    //   .from('payment_split_transactions')
+    //   .select(`
+    //     *,
+    //     transaction:transactions!transaction_id (
+    //       amount_aed,
+    //       created_at,
+    //       payment_link:payment_links!payment_link_id (
+    //         title,
+    //         creator:users!creator_id (
+    //           full_name,
+    //           email
+    //         )
+    //       )
+    //     )
+    //   `)
+    //   .eq('recipient_user_id', userId)
+    // if (startDate) {
+    //   query = query.gte('created_at', startDate.toISOString())
+    // }
+    // if (endDate) {
+    //   query = query.lte('created_at', endDate.toISOString())
+    // }
+    // const { data, error } = await query
+    //   .order('created_at', { ascending: false })
+    //   .limit(50)
+    // if (error) {
+    //   throw error
+    // }
+    // const splits = data || []
     
-    if (startDate) {
-      query = query.gte('created_at', startDate.toISOString())
+    // Temporary: Return zero earnings until database table is implemented
+    console.log('Get user split earnings (DB disabled) for user:', userId)
+    return {
+      totalEarnings: 0,
+      pendingEarnings: 0,
+      processedEarnings: 0,
+      recentSplits: []
     }
     
-    if (endDate) {
-      query = query.lte('created_at', endDate.toISOString())
-    }
-    
-    const { data, error } = await query
-      .order('created_at', { ascending: false })
-      .limit(50)
-    
-    if (error) {
-      throw error
-    }
-    
+    // TODO: Uncomment calculation below when database is ready
+    /*
     const splits = data || []
     
     const totalEarnings = splits.reduce((sum, split) => sum + (split.split_amount_usd || 0), 0)
@@ -679,6 +701,7 @@ export async function getUserEarnings(userId: string, startDate?: Date, endDate?
       processedEarnings,
       recentSplits
     }
+    */
   } catch (error) {
     console.error('Error fetching user earnings:', error)
     throw error
