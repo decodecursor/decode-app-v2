@@ -64,19 +64,17 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Log the verification attempt
-    await supabase
-      .from('email_verification_logs')
-      .insert({
-        user_id: user.id,
-        email_type: 'email_change',
-        old_email: userData?.email,
-        new_email: newEmail.toLowerCase().trim(),
-        verification_token: verificationToken,
-        expires_at: expiresAt.toISOString(),
-        ip_address: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
-        user_agent: req.headers.get('user-agent') || 'unknown'
-      })
+    // Log the verification attempt (logging to console since email_verification_logs table doesn't exist)
+    console.log('Email change verification attempt:', {
+      user_id: user.id,
+      email_type: 'email_change',
+      old_email: userData?.email,
+      new_email: newEmail.toLowerCase().trim(),
+      verification_token: verificationToken,
+      expires_at: expiresAt.toISOString(),
+      ip_address: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
+      user_agent: req.headers.get('user-agent') || 'unknown'
+    })
 
     // In a real implementation, you would send an email here
     // For now, we'll just return success

@@ -12,62 +12,15 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Find user with this verification token
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('id, email, pending_email, verification_token_expires')
-      .eq('email_verification_token', token)
-      .single()
+    // Email verification functionality is not implemented yet
+    // The required database fields don't exist in the current schema
+    console.log('Email verification attempted with token:', token)
+    
+    return NextResponse.json(
+      { error: 'Email verification feature is not available yet' },
+      { status: 501 }
+    )
 
-    if (userError || !userData) {
-      return NextResponse.json(
-        { error: 'Invalid verification token' },
-        { status: 400 }
-      )
-    }
-
-    // Check if token has expired
-    if (new Date() > new Date(userData.verification_token_expires)) {
-      return NextResponse.json(
-        { error: 'Verification token has expired' },
-        { status: 400 }
-      )
-    }
-
-    // Update user email and clear verification fields
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        email: userData.pending_email,
-        email_verified: true,
-        pending_email: null,
-        email_verification_token: null,
-        verification_token_expires: null
-      })
-      .eq('id', userData.id)
-
-    if (updateError) {
-      console.error('Error updating user email:', updateError)
-      return NextResponse.json(
-        { error: 'Failed to verify email' },
-        { status: 500 }
-      )
-    }
-
-    // Update verification log
-    await supabase
-      .from('email_verification_logs')
-      .update({
-        status: 'verified',
-        verified_at: new Date().toISOString()
-      })
-      .eq('verification_token', token)
-
-    return NextResponse.json({
-      success: true,
-      message: 'Email verified successfully',
-      newEmail: userData.pending_email
-    })
 
   } catch (error) {
     console.error('Email verification error:', error)
