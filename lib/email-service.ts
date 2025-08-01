@@ -440,16 +440,24 @@ class EmailService {
     errorMessage?: string
   }) {
     try {
-      await supabase.from('email_logs').insert({
-        recipient_email: data.recipientEmail,
-        email_type: data.emailType,
-        transaction_id: data.transactionId || null,
-        payment_link_id: data.paymentLinkId || null,
-        subject: data.subject,
-        status: data.status,
-        email_service_id: data.emailServiceId || null,
-        error_message: data.errorMessage || null,
-        sent_at: data.status === 'sent' ? new Date().toISOString() : null
+      // TODO: Uncomment when email_logs table is added to database
+      // await supabase.from('email_logs').insert({
+      //   recipient_email: data.recipientEmail,
+      //   email_type: data.emailType,
+      //   transaction_id: data.transactionId || null,
+      //   payment_link_id: data.paymentLinkId || null,
+      //   subject: data.subject,
+      //   status: data.status,
+      //   email_service_id: data.emailServiceId || null,
+      //   error_message: data.errorMessage || null,
+      //   sent_at: data.status === 'sent' ? new Date().toISOString() : null
+      // })
+      
+      // Temporary: Skip database logging until email_logs table is implemented
+      console.log('Email log (DB logging disabled):', {
+        recipient: data.recipientEmail,
+        type: data.emailType,
+        status: data.status
       })
     } catch (error) {
       console.error('Error logging email:', error)
