@@ -148,8 +148,8 @@ function MyLinksContent() {
 
       // Transform the data to include the old is_paid field for backward compatibility
       const paymentLinksWithStatus = (paymentLinksData || []).map(link => ({
-        ...link,
-        is_paid: link.payment_status === 'paid'
+        ...(link && typeof link === 'object' ? link : {}),
+        is_paid: link?.payment_status === 'paid'
       }))
       
       setPaymentLinks(paymentLinksWithStatus)
