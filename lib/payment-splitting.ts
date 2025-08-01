@@ -84,13 +84,16 @@ export async function addSplitRecipients(paymentLinkId: string, recipients: Spli
       notes: recipient.notes || null
     }))
     
-    const { error } = await supabase
-      .from('payment_split_recipients')
-      .insert(recipientsData)
+    // TODO: Uncomment when payment_split_recipients table is added to database
+    // const { error } = await supabase
+    //   .from('payment_split_recipients')
+    //   .insert(recipientsData)
+    // if (error) {
+    //   throw error
+    // }
     
-    if (error) {
-      throw error
-    }
+    // Temporary: Skip database insert until payment_split_recipients table is implemented
+    console.log('Payment split recipients (DB insert disabled):', recipientsData.length, 'recipients')
   } catch (error) {
     console.error('Error adding split recipients:', error)
     throw error
@@ -105,11 +108,15 @@ export async function updateSplitRecipients(paymentLinkId: string, recipients: S
     // Validate recipients
     validateSplitRecipients(recipients)
     
+    // TODO: Uncomment when payment_split_recipients table is added to database
     // Delete existing recipients
-    await supabase
-      .from('payment_split_recipients')
-      .delete()
-      .eq('payment_link_id', paymentLinkId)
+    // await supabase
+    //   .from('payment_split_recipients')
+    //   .delete()
+    //   .eq('payment_link_id', paymentLinkId)
+    
+    // Temporary: Skip database delete until payment_split_recipients table is implemented
+    console.log('Delete split recipients (DB disabled) for payment link:', paymentLinkId)
     
     // Add new recipients
     if (recipients.length > 0) {
@@ -126,37 +133,42 @@ export async function updateSplitRecipients(paymentLinkId: string, recipients: S
  */
 export async function getSplitRecipients(paymentLinkId: string): Promise<SplitRecipient[]> {
   try {
-    const { data, error } = await supabase
-      .from('payment_split_recipients')
-      .select(`
-        *,
-        recipient_user:users!recipient_user_id (
-          id,
-          email,
-          full_name
-        )
-      `)
-      .eq('payment_link_id', paymentLinkId)
-      .order('is_primary_recipient', { ascending: false })
-      .order('created_at', { ascending: true })
+    // TODO: Uncomment when payment_split_recipients table is added to database
+    // const { data, error } = await supabase
+    //   .from('payment_split_recipients')
+    //   .select(`
+    //     *,
+    //     recipient_user:users!recipient_user_id (
+    //       id,
+    //       email,
+    //       full_name
+    //     )
+    //   `)
+    //   .eq('payment_link_id', paymentLinkId)
+    //   .order('is_primary_recipient', { ascending: false })
+    //   .order('created_at', { ascending: true })
+    // if (error) {
+    //   throw error
+    // }
+    // return (data || []).map(item => ({
+
+    // Temporary: Return empty array until payment_split_recipients table is implemented
+    console.log('Get split recipients (DB disabled) for payment link:', paymentLinkId)
+    return []
     
-    if (error) {
-      throw error
-    }
-    
-    return (data || []).map(item => ({
-      id: item.id,
-      paymentLinkId: item.payment_link_id,
-      recipientUserId: item.recipient_user_id,
-      recipientEmail: item.recipient_email,
-      recipientName: item.recipient_name,
-      recipientType: item.recipient_type,
-      splitPercentage: item.split_percentage,
-      splitAmountFixed: item.split_amount_fixed,
-      splitType: item.split_type,
-      isPrimaryRecipient: item.is_primary_recipient,
-      notes: item.notes
-    }))
+    // TODO: Uncomment the mapping code below when database is ready
+    //   id: item.id,
+    //   paymentLinkId: item.payment_link_id,
+    //   recipientUserId: item.recipient_user_id,
+    //   recipientEmail: item.recipient_email,
+    //   recipientName: item.recipient_name,
+    //   recipientType: item.recipient_type,
+    //   splitPercentage: item.split_percentage,
+    //   splitAmountFixed: item.split_amount_fixed,
+    //   splitType: item.split_type,
+    //   isPrimaryRecipient: item.is_primary_recipient,
+    //   notes: item.notes
+    // }))
   } catch (error) {
     console.error('Error fetching split recipients:', error)
     throw error
