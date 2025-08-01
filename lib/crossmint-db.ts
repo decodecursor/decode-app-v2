@@ -238,7 +238,7 @@ export class CrossmintDatabaseService {
       throw new Error(`Failed to get user transactions: ${error.message}`);
     }
 
-    return data || [];
+    return (data || []) as WalletTransaction[];
   }
 
   /**
@@ -256,7 +256,7 @@ export class CrossmintDatabaseService {
       throw new Error(`Failed to get transaction by Crossmint ID: ${error.message}`);
     }
 
-    return data;
+    return data as WalletTransaction;
   }
 
   // EXPIRATION MANAGEMENT
