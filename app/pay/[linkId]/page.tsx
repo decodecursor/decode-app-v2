@@ -62,7 +62,7 @@ export default function PaymentPage() {
         id: payment.id || 'embedded_' + Date.now(),
         payment_link_id: linkId,
         buyer_email: payment.buyerEmail || null,
-        amount_aed: paymentData?.amount_aed,
+        amount_aed: paymentData?.amount_aed || 0,
         status: 'completed',
         payment_processor: 'crossmint',
         processor_transaction_id: payment.id || null,
@@ -95,6 +95,7 @@ export default function PaymentPage() {
               .insert([{
                 email: payment.buyerEmail,
                 full_name: payment.buyerEmail.split('@')[0],
+                role: 'Beauty Model', // Default role for buyers
                 created_at: new Date().toISOString()
               }])
               .select('id')
@@ -191,13 +192,12 @@ export default function PaymentPage() {
             expiration_date,
             is_active,
             created_at,
-            payment_status,
-            paid_at,
+            description,
             creator:creator_id (
               id,
               full_name,
               email,
-              company_name
+              professional_center_name
             )
           `)
           .eq('id', linkId)
@@ -225,19 +225,20 @@ export default function PaymentPage() {
           return
         }
 
-        // Check payment status using the new payment_status field
-        const isPaid = data.payment_status === 'paid'
+        // Check payment status using is_active field (payment_status doesn't exist in schema)
+        const isPaid = !data.is_active // Assume inactive links are paid/completed
         console.log('💰 Payment status check:')
-        console.log('- payment_status:', data.payment_status)
-        console.log('- paid_at:', data.paid_at)
-        console.log('- isPaid:', isPaid)
+        console.log('- is_active:', data.is_active)
+        console.log('- isPaid (based on !is_active):', isPaid)
 
         const transformedData: PaymentLinkData = {
           ...data,
           isPaid,
+          payment_status: isPaid ? 'paid' : 'unpaid', // Add missing field
+          paid_at: isPaid ? data.created_at : null, // Add missing field
           creator: Array.isArray(data.creator) 
-            ? (data.creator[0] || { id: '', full_name: null, email: '', company_name: null })
-            : (data.creator || { id: '', full_name: null, email: '', company_name: null })
+            ? (data.creator[0] || { id: '', full_name: null, email: '', professional_center_name: null })
+            : (data.creator || { id: '', full_name: null, email: '', professional_center_name: null })
         }
 
         setPaymentData(transformedData)

@@ -8,12 +8,10 @@ import QRCode from 'qrcode'
 
 interface PaymentLink {
   id: string
-  client_name?: string
+  client_name: string | null
   title: string
   amount_aed: number
-  original_amount_aed?: number
-  fee_amount_aed?: number
-  total_amount_aed?: number
+  description?: string | null
   expiration_date: string
   is_active: boolean
   payment_status: 'unpaid' | 'paid' | 'failed' | 'refunded'
@@ -146,11 +144,19 @@ function MyLinksContent() {
         throw fetchError
       }
 
-      // Transform the data to include the old is_paid field (using is_active as proxy since payment_status doesn't exist)
+      // Transform the data to include fields expected by PaymentLink interface
       const paymentLinksWithStatus = (paymentLinksData || []).map(link => ({
-        ...(link && typeof link === 'object' ? link : {}),
+        id: link?.id || '',
+        client_name: link?.client_name,
+        title: link?.title || '',
+        amount_aed: link?.amount_aed || 0,
+        expiration_date: link?.expiration_date || '',
+        is_active: link?.is_active || false,
+        created_at: link?.created_at || '',
+        description: link?.description,
         is_paid: link?.is_active === false, // Assume inactive links were paid/completed
-        payment_status: link?.is_active ? 'active' : 'completed' // Add status field for compatibility
+        payment_status: (link?.is_active ? 'unpaid' : 'paid') as 'unpaid' | 'paid' | 'failed' | 'refunded',
+        paid_at: link?.is_active === false ? (link?.created_at || null) : null
       }))
       
       setPaymentLinks(paymentLinksWithStatus)
@@ -623,13 +629,7 @@ function MyLinksContent() {
                               <div className="text-white font-medium text-xl">
                                 AED {formatAmount(link.amount_aed)}
                               </div>
-                              {/* Fee Information */}
-                              {link.original_amount_aed && link.fee_amount_aed && link.total_amount_aed && (
-                                <div className="text-xs text-gray-400 mt-1 space-y-1">
-                                  <div>Fee: AED {formatAmount(link.fee_amount_aed)} (11%)</div>
-                                  <div>Customer pays: <span className="text-green-400">AED {formatAmount(link.total_amount_aed)}</span></div>
-                                </div>
-                              )}
+                              {/* Fee information not available with current schema */}
                             </div>
                             
                             <div className="text-right">
@@ -912,7 +912,7 @@ function MyLinksContent() {
               <div className="mb-6 space-y-2">
                 <p className="text-white text-lg">{currentQRLink.client_name || 'Client'}</p>
                 <p className="text-white text-lg">{currentQRLink.title}</p>
-                <p className="text-white text-xl font-semibold">AED {formatAmount(currentQRLink.original_amount_aed || currentQRLink.amount_aed)}</p>
+                <p className="text-white text-xl font-semibold">AED {formatAmount(currentQRLink.amount_aed)}</p>
               </div>
 
               <button
