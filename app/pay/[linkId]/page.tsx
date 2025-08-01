@@ -193,6 +193,8 @@ export default function PaymentPage() {
             is_active,
             created_at,
             description,
+            payment_status,
+            paid_at,
             creator:creator_id (
               id,
               full_name,
@@ -225,17 +227,19 @@ export default function PaymentPage() {
           return
         }
 
-        // Check payment status using is_active field (payment_status doesn't exist in schema)
-        const isPaid = !data.is_active // Assume inactive links are paid/completed
+        // Check payment status using the payment_status field
+        const isPaid = data.payment_status === 'paid'
         console.log('💰 Payment status check:')
+        console.log('- payment_status:', data.payment_status)
         console.log('- is_active:', data.is_active)
-        console.log('- isPaid (based on !is_active):', isPaid)
+        console.log('- isPaid:', isPaid)
+        console.log('- paid_at:', data.paid_at)
 
         const transformedData: PaymentLinkData = {
           ...data,
           isPaid,
-          payment_status: isPaid ? 'paid' : 'unpaid', // Add missing field
-          paid_at: isPaid ? data.created_at : null, // Add missing field
+          payment_status: data.payment_status || 'unpaid',
+          paid_at: data.paid_at,
           creator: Array.isArray(data.creator) 
             ? (data.creator[0] || { id: '', full_name: null, email: '', professional_center_name: null })
             : (data.creator || { id: '', full_name: null, email: '', professional_center_name: null })

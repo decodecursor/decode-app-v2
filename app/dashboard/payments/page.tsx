@@ -195,7 +195,7 @@ export default function PaymentHistoryPage() {
           filter: `status=eq.completed`
         },
         async (payload) => {
-          console.log('✅ Payment completed in real-time:', payload)
+          console.log('✅ Payment completed in real-time (transaction):', payload)
           
           const transaction = payload.new as any
           const paymentLinkId = transaction.payment_link_id
@@ -219,6 +219,39 @@ export default function PaymentHistoryPage() {
               // Refresh payment data to show updated stats
               await fetchPaymentData(user.id)
             }
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'payment_links',
+          filter: `creator_id=eq.${user.id}`
+        },
+        async (payload) => {
+          console.log('✅ Payment link status updated in real-time:', payload)
+          
+          const paymentLink = payload.new as any
+          const oldPaymentLink = payload.old as any
+          
+          // Check if payment_status changed to 'paid'
+          if (paymentLink.payment_status === 'paid' && oldPaymentLink.payment_status !== 'paid') {
+            // Trigger heart animation for this payment link
+            setHeartAnimationLinks(prev => new Set([...prev, paymentLink.id]))
+            
+            // Remove animation after 3 seconds
+            setTimeout(() => {
+              setHeartAnimationLinks(prev => {
+                const newSet = new Set(prev)
+                newSet.delete(paymentLink.id)
+                return newSet
+              })
+            }, 3000)
+            
+            // Refresh payment data to show updated stats
+            await fetchPaymentData(user.id)
           }
         }
       )

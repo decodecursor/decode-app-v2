@@ -62,12 +62,12 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Convert AED to USD for Stripe (Stripe doesn't support AED directly)
-    const amountInCents = stripeService.convertAedToUsd(paymentLink.amount_aed);
-    const currency = 'USD';
+    // Convert AED to fils for Stripe (1 AED = 100 fils)
+    const amountInFils = stripeService.convertAedToFils(paymentLink.amount_aed);
+    const currency = 'AED';
 
     // Calculate platform fee
-    const feeCalculation = stripeService.calculatePlatformFee(amountInCents);
+    const feeCalculation = stripeService.calculatePlatformFee(amountInFils);
 
     // Create success and cancel URLs
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 
     // Create Stripe checkout session
     const sessionResponse = await stripeService.createCheckoutSession({
-      amount: amountInCents,
+      amount: amountInFils,
       currency: currency,
       paymentLinkId: paymentLinkId,
       beautyProfessionalId: paymentLink.creator_id,
@@ -95,15 +95,15 @@ export async function POST(request: NextRequest) {
         buyer_email: customerEmail,
         buyer_name: customerName,
         amount_aed: paymentLink.amount_aed,
-        amount_usd: amountInCents / 100,
+        amount_usd: null, // Not using USD anymore
         payment_processor: 'stripe',
         processor_session_id: sessionResponse.sessionId,
         // Note: processor_payment_id will be set when payment intent is created/updated
         status: 'pending',
         metadata: {
           customer_name: customerName,
-          original_amount_aed: paymentLink.amount_aed,
-          converted_amount_usd: amountInCents / 100,
+          amount_aed: paymentLink.amount_aed,
+          amount_fils: amountInFils,
           fee_calculation: feeCalculation,
           beauty_professional_id: paymentLink.creator_id,
           session_created_at: new Date().toISOString()
@@ -129,8 +129,7 @@ export async function POST(request: NextRequest) {
       paymentDetails: {
         amount: paymentLink.amount_aed,
         currency: 'AED',
-        convertedAmount: amountInCents / 100,
-        convertedCurrency: currency,
+        amountInFils: amountInFils,
         description: paymentLink.description,
         professionalName: creatorName
       }

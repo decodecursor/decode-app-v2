@@ -206,12 +206,11 @@ class StripeService {
   }
 
   /**
-   * Convert AED to USD for Stripe processing
-   * Using approximate conversion rate - in production, use real-time rates
+   * Convert AED amount to fils (smallest currency unit)
+   * 1 AED = 100 fils
    */
-  convertAedToUsd(aedAmount: number): number {
-    const USD_TO_AED_RATE = 3.67; // Approximate rate, use real-time in production
-    return Math.round((aedAmount / USD_TO_AED_RATE) * 100); // Convert to cents
+  convertAedToFils(aedAmount: number): number {
+    return Math.round(aedAmount * 100); // Convert to fils
   }
 
   /**

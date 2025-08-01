@@ -144,6 +144,22 @@ async function handleCheckoutSessionManually(session: Stripe.Checkout.Session, p
     throw new Error(`Failed to update transaction ${transaction.id}: ${updateError.message}`);
   }
 
+  // Also update payment_links status directly (backup for trigger)
+  const { error: linkUpdateError } = await supabase
+    .from('payment_links')
+    .update({
+      payment_status: 'paid',
+      paid_at: new Date().toISOString()
+    })
+    .eq('id', paymentLinkId);
+
+  if (linkUpdateError) {
+    console.error('❌ Failed to update payment link status:', linkUpdateError);
+    // Don't throw - transaction is already updated
+  } else {
+    console.log('✅ Payment link status updated to paid');
+  }
+
   console.log('✅ Transaction completed manually:', transaction.id);
 }
 
@@ -192,6 +208,22 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
 
     if (updateError) {
       throw new Error(`Failed to update transaction ${transaction.id}: ${updateError.message}`);
+    }
+
+    // Also update payment_links status directly (backup for trigger)
+    const { error: linkUpdateError } = await supabase
+      .from('payment_links')
+      .update({
+        payment_status: 'paid',
+        paid_at: new Date().toISOString()
+      })
+      .eq('id', paymentLinkId);
+
+    if (linkUpdateError) {
+      console.error('❌ Failed to update payment link status:', linkUpdateError);
+      // Don't throw - transaction is already updated
+    } else {
+      console.log('✅ Payment link status updated to paid');
     }
 
     console.log('✅ Payment intent processed successfully:', transaction.id);
