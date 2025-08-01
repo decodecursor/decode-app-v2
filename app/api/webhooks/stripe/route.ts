@@ -176,9 +176,9 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
         status: 'completed',
         processor_transaction_id: paymentIntent.id,
         completed_at: new Date().toISOString(),
-        amount_usd: paymentIntent.amount / 100,
+        amount_aed: paymentIntent.amount / 100,
         metadata: {
-          ...transaction.metadata,
+          ...(transaction.metadata && typeof transaction.metadata === 'object' ? transaction.metadata : {}),
           payment_intent_succeeded_at: new Date().toISOString(),
           payment_intent_data: {
             id: paymentIntent.id,
