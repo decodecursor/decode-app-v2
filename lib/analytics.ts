@@ -37,6 +37,13 @@ export interface PaymentMethodBreakdown {
   revenue: number
 }
 
+export interface RevenueByDay {
+  date: string
+  revenue: number
+  transactions: number
+  successRate: number
+}
+
 export interface AnalyticsData {
   totalRevenue: number
   totalTransactions: number
