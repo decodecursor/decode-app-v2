@@ -119,7 +119,7 @@ async function handlePaymentSuccess(data: WebhookEventData): Promise<void> {
       processedAt: new Date().toISOString(),
       paymentMethod: data.paymentMethod,
       customer: data.customer
-    }
+    } as any
   }
 
   // Use upsert to handle duplicate webhook deliveries
@@ -186,7 +186,7 @@ async function handlePaymentFailure(data: WebhookEventData): Promise<void> {
       processedAt: new Date().toISOString(),
       error: data.error,
       paymentMethod: data.paymentMethod
-    }
+    } as any
   }
 
   const { error: transactionError } = await supabase
@@ -239,7 +239,7 @@ async function handlePaymentPending(data: WebhookEventData): Promise<void> {
       webhookData: data,
       processedAt: new Date().toISOString(),
       paymentMethod: data.paymentMethod
-    }
+    } as any
   }
 
   const { error: transactionError } = await supabase
@@ -580,7 +580,7 @@ export async function getWebhookEventStatus(eventId: string): Promise<{
       exists: true,
       status: data.status,
       processedAt: data.processed_at,
-      error: data.error_message
+      error: data.error_message || undefined
     }
   } catch (error) {
     console.error('Error checking webhook event status:', error)
