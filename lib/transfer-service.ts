@@ -149,7 +149,7 @@ export class TransferService {
       const transferResult = await crossmintService.transferToProfessional(
         user.wallet_address,
         transaction.amount_usdc || 0,
-        transaction.metadata?.source_transaction_id || transaction.id
+        (transaction.metadata as any)?.source_transaction_id || transaction.id
       );
 
       // Update transaction status to pending
