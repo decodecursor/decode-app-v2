@@ -93,6 +93,7 @@ export interface Database {
           client_name?: string | null
           payment_status?: 'unpaid' | 'paid' | 'failed' | 'refunded'
           paid_at?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
