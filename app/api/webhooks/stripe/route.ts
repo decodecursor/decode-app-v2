@@ -236,7 +236,7 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
           ...(transaction.metadata && typeof transaction.metadata === 'object' ? transaction.metadata : {}),
           payment_intent_failed_at: new Date().toISOString(),
           failure_data: {
-            last_payment_error: paymentIntent.last_payment_error,
+            last_payment_error: paymentIntent.last_payment_error ? JSON.parse(JSON.stringify(paymentIntent.last_payment_error)) : null,
             cancellation_reason: paymentIntent.cancellation_reason
           }
         }
