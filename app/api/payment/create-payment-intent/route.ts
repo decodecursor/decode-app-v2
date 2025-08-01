@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         client_name,
         expiration_date,
         is_active,
-        creator:creator_id (
+        creator:users!creator_id (
           full_name,
           email
         )
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
           converted_amount_usd: amount / 100,
           fee_amount_usd: feeCalculation.feeAmount / 100,
           net_amount_usd: feeCalculation.netAmount / 100,
-          beauty_professional_email: paymentLink.creator?.[0]?.email || 'unknown'
+          beauty_professional_email: paymentLink.creator?.email || 'unknown'
         }
       });
 
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
         convertedAmount: amount / 100,
         convertedCurrency: currency,
         description: paymentLink.title,
-        professionalName: paymentLink.creator?.[0]?.full_name || paymentLink.creator?.[0]?.email?.split('@')[0] || 'Beauty Professional',
+        professionalName: paymentLink.creator?.full_name || paymentLink.creator?.email?.split('@')[0] || 'Beauty Professional',
         clientName: paymentLink.client_name || 'Client'
       }
     });

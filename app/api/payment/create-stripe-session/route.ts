@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
         creator_id,
         is_active,
         expiration_date,
-        creator:creator_id (
+        creator:users!creator_id (
           id,
           email,
           full_name
