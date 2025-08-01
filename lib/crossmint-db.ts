@@ -193,7 +193,7 @@ export class CrossmintDatabaseService {
       throw new Error(`Failed to record transaction: ${error.message}`);
     }
 
-    return data;
+    return data as WalletTransaction;
   }
 
   /**
