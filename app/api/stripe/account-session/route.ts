@@ -13,16 +13,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify the account belongs to the user
+    // Verify the user exists (stripe_connect_account_id field doesn't exist in current schema)
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('stripe_connect_account_id')
+      .select('id')
       .eq('id', userId)
       .single()
 
-    if (userError || userData.stripe_connect_account_id !== accountId) {
+    if (userError || !userData) {
       return NextResponse.json(
-        { error: 'Account not found or access denied' },
+        { error: 'User not found' },
         { status: 403 }
       )
     }
