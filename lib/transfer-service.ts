@@ -161,10 +161,10 @@ export class TransferService {
         .update({
           crossmint_transaction_id: transferResult.id,
           metadata: {
-            ...transaction.metadata,
+            ...(transaction.metadata as any),
             retry_attempted_at: new Date().toISOString(),
             retry_crossmint_id: transferResult.id,
-            retry_count: (transaction.metadata?.retry_count || 0) + 1
+            retry_count: ((transaction.metadata as any)?.retry_count || 0) + 1
           }
         })
         .eq('id', transactionId);
