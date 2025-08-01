@@ -397,7 +397,17 @@ function generateCustomerInsights(transactions: any[]): CustomerInsights {
  */
 async function generateSplitPaymentAnalytics(filter: AnalyticsFilter): Promise<SplitPaymentAnalytics> {
   try {
-    // Get split transaction data
+    // Split payment functionality disabled - table payment_split_transactions doesn't exist
+    console.log('Split payment analytics disabled - table not available')
+    return {
+      totalSplitTransactions: 0,
+      totalSplitAmount: 0,
+      splitsByStatus: {},
+      topRecipients: [],
+      splitHistory: []
+    }
+    
+    /* DISABLED - table doesn't exist in current schema
     let splitQuery = supabase
       .from('payment_split_transactions')
       .select(`
@@ -548,14 +558,11 @@ async function generateSplitPaymentAnalytics(filter: AnalyticsFilter): Promise<S
   } catch (error) {
     console.error('Error generating split payment analytics:', error)
     return {
-      totalSplitPayments: 0,
-      totalSplitRecipients: 0,
-      averageRecipientsPerPayment: 0,
-      totalDistributedAmount: 0,
-      pendingDistributions: 0,
-      failedDistributions: 0,
+      totalSplitTransactions: 0,
+      totalSplitAmount: 0,
+      splitsByStatus: {},
       topRecipients: [],
-      splitsByType: []
+      splitHistory: []
     }
   }
 }
@@ -880,5 +887,49 @@ export async function getAnalyticsForPeriod(period: 'today' | 'week' | 'month' |
       startDate = subDays(now, 30)
   }
   
-  return getAnalyticsData({ startDate, endDate, creatorId })
+  return generateAnalytics({ startDate, endDate, creatorId })
+}
+
+export async function generateAnalytics(filter: AnalyticsFilter): Promise<AnalyticsData> {
+  try {
+    // Only generate basic analytics, split functionality disabled
+    const basicAnalytics = await generateBasicAnalytics(filter)
+
+    return {
+      ...basicAnalytics,
+      // Split analytics disabled - return empty values
+      totalSplitTransactions: 0,
+      totalSplitAmount: 0,
+      splitsByStatus: {},
+      topRecipients: [],
+      splitHistory: [],
+      generatedAt: new Date()
+    }
+  } catch (error) {
+    console.error('Error generating analytics:', error)
+    
+    // Return fallback empty analytics
+    return {
+      totalRevenue: 0,
+      totalTransactions: 0,
+      averageTransactionValue: 0,
+      uniqueCustomers: 0,
+      totalPaymentLinks: 0,
+      activePaymentLinks: 0,
+      conversionRate: 0,
+      revenueByPeriod: [],
+      topPaymentLinks: [],
+      customerRetention: 0,
+      totalSplitTransactions: 0,
+      totalSplitAmount: 0,
+      splitsByStatus: {},
+      topRecipients: [],
+      splitHistory: [],
+      generatedAt: new Date()
+    }
+  }
+}
+
+export async function getAnalyticsData(filter: AnalyticsFilter): Promise<AnalyticsData> {
+  return generateAnalytics(filter)
 }

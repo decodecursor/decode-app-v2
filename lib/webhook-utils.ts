@@ -266,9 +266,9 @@ export async function getRecentWebhookEvents(limit: number = 10): Promise<{
       id: event.id,
       event_type: event.event_type,
       status: event.status,
-      error_message: event.error_message,
+      error_message: event.error_message || undefined,
       processed_at: event.processed_at,
-      transaction_id: event.event_data?.id
+      transaction_id: (event.event_data as any)?.id || undefined
     })) || []
 
     return { events: processedEvents }
@@ -308,7 +308,7 @@ export async function retryFailedWebhookEvent(eventId: string): Promise<{
     const { processWebhookEvent } = await import('./webhook-handlers')
     await processWebhookEvent({
       type: event.event_type,
-      data: event.event_data,
+      data: event.event_data as any,
       timestamp: new Date().toISOString()
     })
 

@@ -74,7 +74,7 @@ export default function PaymentPage() {
         }
       }
 
-      await supabase.from('transactions').insert([transactionData])
+      await supabase.from('transactions').insert(transactionData)
       
       // 🔑 WALLET CREATION FOR BUYER
       if (payment.buyerEmail) {
@@ -92,12 +92,12 @@ export default function PaymentPage() {
             console.log('👤 Creating new user for buyer:', payment.buyerEmail)
             const { data: newUser, error: createError } = await supabase
               .from('users')
-              .insert([{
+              .insert({
                 email: payment.buyerEmail,
                 full_name: payment.buyerEmail.split('@')[0],
                 role: 'Beauty Model', // Default role for buyers
                 created_at: new Date().toISOString()
-              }])
+              })
               .select('id')
               .single()
             

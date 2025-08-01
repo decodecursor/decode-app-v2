@@ -270,10 +270,10 @@ async function handlePaymentCancellation(data: WebhookEventData): Promise<void> 
       status: data.status === 'refunded' ? 'refunded' : 'cancelled',
       refunded_at: data.status === 'refunded' ? new Date().toISOString() : null,
       cancelled_at: data.status === 'cancelled' ? new Date().toISOString() : null,
-      metadata: {
+      metadata: JSON.parse(JSON.stringify({
         webhookData: data,
         processedAt: new Date().toISOString()
-      }
+      }))
     })
     .eq('processor_transaction_id', data.id)
 
@@ -297,10 +297,10 @@ async function handlePaymentExpiration(data: WebhookEventData): Promise<void> {
     .update({
       status: 'expired',
       expired_at: new Date().toISOString(),
-      metadata: {
+      metadata: JSON.parse(JSON.stringify({
         webhookData: data,
         processedAt: new Date().toISOString()
-      }
+      }))
     })
     .eq('processor_transaction_id', data.id)
 
@@ -526,7 +526,7 @@ async function logUnhandledEvent(event: WebhookEvent): Promise<void> {
   try {
     await supabase.from('webhook_events').insert({
       event_type: event.type,
-      event_data: event.data,
+      event_data: JSON.parse(JSON.stringify(event.data)),
       signature: event.signature,
       timestamp: event.timestamp,
       status: 'unhandled',

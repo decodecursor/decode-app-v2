@@ -9,10 +9,9 @@ import 'react-image-crop/dist/ReactCrop.css'
 interface UserProfile {
   id: string
   email: string
-  company_name: string | null
-  profile_photo_url: string | null
-  email_verified: boolean
-  pending_email: string | null
+  professional_center_name: string | null
+  full_name: string
+  role: string
 }
 
 export default function ProfilePage() {
@@ -23,7 +22,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false)
 
   // Form states
-  const [companyName, setCompanyName] = useState('')
+  const [professionalCenterName, setProfessionalCenterName] = useState('')
   const [newEmail, setNewEmail] = useState('')
   const [emailVerificationSent, setEmailVerificationSent] = useState(false)
 
@@ -58,46 +57,19 @@ export default function ProfilePage() {
 
       setUser(user)
 
-      // Fetch user profile - try new schema first, fallback to old schema
-      let { data: profileData, error } = await supabase
+      // Fetch user profile using available database fields
+      const { data: profileData, error } = await supabase
         .from('users')
-        .select('id, email, company_name, profile_photo_url, email_verified, pending_email')
+        .select('id, email, full_name, professional_center_name, role')
         .eq('id', user.id)
         .single()
 
-      // If new schema fails, try old schema
-      if (error && error.message?.includes('column')) {
-        console.log('New columns not found, using fallback query...')
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from('users')
-          .select('id, email, full_name')
-          .eq('id', user.id)
-          .single()
-        
-        if (fallbackError) {
-          console.error('Error fetching profile:', fallbackError)
-          setMessage({ type: 'error', text: 'Failed to load profile. Please run database migration.' })
-        } else {
-          // Create profile object with fallback values
-          profileData = {
-            id: fallbackData.id,
-            email: fallbackData.email,
-            company_name: null,
-            profile_photo_url: null,
-            email_verified: false,
-            pending_email: null
-          }
-          setProfile(profileData)
-          setCompanyName('')
-          setNewEmail(fallbackData.email || user.email || '')
-          setMessage({ type: 'error', text: 'Database migration required. Some features may not work.' })
-        }
-      } else if (error) {
+      if (error) {
         console.error('Error fetching profile:', error)
         setMessage({ type: 'error', text: 'Failed to load profile' })
       } else if (profileData) {
         setProfile(profileData)
-        setCompanyName(profileData.company_name || '')
+        setProfessionalCenterName(profileData.professional_center_name || '')
         setNewEmail(profileData.email || user.email || '')
       } else {
         setMessage({ type: 'error', text: 'No profile data found' })
@@ -110,30 +82,26 @@ export default function ProfilePage() {
     }
   }
 
-  const updateCompanyName = async () => {
-    if (!profile || !companyName.trim()) return
+  const updateProfessionalCenterName = async () => {
+    if (!profile || !professionalCenterName.trim()) return
 
     setSaving(true)
     try {
       const { error } = await supabase
         .from('users')
-        .update({ company_name: companyName.trim() })
+        .update({ professional_center_name: professionalCenterName.trim() })
         .eq('id', profile.id)
 
       if (error) {
-        console.error('Company name update error:', error)
-        if (error.message?.includes('column') || error.message?.includes('company_name')) {
-          setMessage({ type: 'error', text: 'Database migration required. Please run the database migration first.' })
-        } else {
-          throw error
-        }
+        console.error('Professional center name update error:', error)
+        throw error
       } else {
-        setProfile({ ...profile, company_name: companyName.trim() })
-        setMessage({ type: 'success', text: 'Company name updated successfully' })
+        setProfile({ ...profile, professional_center_name: professionalCenterName.trim() })
+        setMessage({ type: 'success', text: 'Professional center name updated successfully' })
       }
     } catch (error) {
-      console.error('Error updating company name:', error)
-      setMessage({ type: 'error', text: 'Failed to update company name. Check console for details.' })
+      console.error('Error updating professional center name:', error)
+      setMessage({ type: 'error', text: 'Failed to update professional center name. Check console for details.' })
     } finally {
       setSaving(false)
     }
@@ -218,25 +186,9 @@ export default function ProfilePage() {
         .from('user-uploads')
         .getPublicUrl(filePath)
 
-      // Update user profile
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ profile_photo_url: publicUrl })
-        .eq('id', profile.id)
-
-      if (updateError) {
-        console.error('Profile update error:', updateError)
-        if (updateError.message?.includes('column') || updateError.message?.includes('profile_photo_url')) {
-          setMessage({ type: 'error', text: 'Database migration required. Please run the database migration first.' })
-        } else {
-          throw updateError
-        }
-        return
-      }
-
-      setProfile({ ...profile, profile_photo_url: publicUrl })
+      // Profile photo URL field doesn't exist in current schema
+      setMessage({ type: 'error', text: 'Profile photo feature not available. Database migration required.' })
       setSelectedImage(null)
-      setMessage({ type: 'success', text: 'Profile photo updated successfully' })
     } catch (error) {
       console.error('Error uploading photo:', error)
       setMessage({ type: 'error', text: 'Failed to upload profile photo. Check console for details.' })
@@ -349,19 +301,11 @@ export default function ProfilePage() {
               {/* Current Profile Photo */}
               <div className="mb-8">
                   <div className="w-48 h-48 mx-auto rounded-full overflow-hidden bg-gray-700 ring-4 ring-white/10">
-                    {profile?.profile_photo_url ? (
-                      <img 
-                        src={profile.profile_photo_url} 
-                        alt="Profile" 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                      </div>
-                    )}
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
 
@@ -427,20 +371,20 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Company Name Card */}
+          {/* Professional Center Name Card */}
           <div className="cosmic-card-profile">
-            <h2 className="text-xl font-semibold text-white mb-6">Company Name</h2>
+            <h2 className="text-xl font-semibold text-white mb-6">Professional Center Name</h2>
             <div className="space-y-4">
               <input
                 type="text"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="Enter your company/business name"
+                value={professionalCenterName}
+                onChange={(e) => setProfessionalCenterName(e.target.value)}
+                placeholder="Enter your professional center/business name"
                 className="cosmic-input w-full"
               />
               <button
-                onClick={updateCompanyName}
-                disabled={saving || !companyName.trim() || companyName === profile?.company_name}
+                onClick={updateProfessionalCenterName}
+                disabled={saving || !professionalCenterName.trim() || professionalCenterName === profile?.professional_center_name}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
                 {saving ? 'Saving...' : 'Change'}
@@ -452,29 +396,9 @@ export default function ProfilePage() {
           <div className="cosmic-card-profile">
             <h2 className="text-xl font-semibold text-white mb-6">Email Address</h2>
             <div className="space-y-4">
-              {/* Email Status - Moved Above Input */}
-              <div className="flex items-center justify-between">
-                <div className={`flex items-center space-x-2 ${
-                  profile?.email_verified ? 'text-green-400' : 'text-yellow-400'
-                }`}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                      d={profile?.email_verified ? 
-                        "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" : 
-                        "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
-                      } 
-                    />
-                  </svg>
-                  <span className="text-sm font-medium">
-                    {profile?.email_verified ? 'Verified' : 'Not Verified'}
-                  </span>
-                </div>
-                
-                {profile?.pending_email && (
-                  <div className="text-blue-400 text-sm bg-blue-500/10 px-3 py-1 rounded-full">
-                    Pending: {profile.pending_email}
-                  </div>
-                )}
+              {/* Email Info */}
+              <div className="text-gray-400 text-sm mb-4">
+                Current email: {profile?.email}
               </div>
 
               <input
@@ -489,7 +413,7 @@ export default function ProfilePage() {
                 disabled={saving || !newEmail.trim() || newEmail === profile?.email}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
-                {saving ? 'Sending...' : 'Change'}
+                {saving ? 'Sending...' : 'Change Email'}
               </button>
               
               {emailVerificationSent && (
