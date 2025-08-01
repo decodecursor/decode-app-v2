@@ -42,6 +42,25 @@ export interface AnalyticsData {
     status: string
   }>
   generatedAt: Date
+  // Additional properties for analytics page compatibility
+  successRate: number
+  averageOrderValue: number
+  revenueByDay: Array<{
+    date: string
+    revenue: number
+    transactions: number
+    successRate: number
+  }>
+  paymentMethodBreakdown: Array<{
+    method: string
+    count: number
+    percentage: number
+  }>
+  customerInsights: {
+    totalUniqueCustomers: number
+    returningCustomers: number
+    averageCustomerValue: number
+  }
 }
 
 export async function generateAnalytics(filter: AnalyticsFilter): Promise<AnalyticsData> {
@@ -57,7 +76,17 @@ export async function generateAnalytics(filter: AnalyticsFilter): Promise<Analyt
       splitsByStatus: {},
       topRecipients: [],
       splitHistory: [],
-      generatedAt: new Date()
+      generatedAt: new Date(),
+      // Additional properties for analytics page compatibility
+      successRate: basicAnalytics.conversionRate || 0,
+      averageOrderValue: basicAnalytics.averageTransactionValue || 0,
+      revenueByDay: [],
+      paymentMethodBreakdown: [],
+      customerInsights: {
+        totalUniqueCustomers: basicAnalytics.uniqueCustomers || 0,
+        returningCustomers: 0,
+        averageCustomerValue: basicAnalytics.averageTransactionValue || 0
+      }
     }
   } catch (error) {
     console.error('Error generating analytics:', error)
@@ -79,7 +108,17 @@ export async function generateAnalytics(filter: AnalyticsFilter): Promise<Analyt
       splitsByStatus: {},
       topRecipients: [],
       splitHistory: [],
-      generatedAt: new Date()
+      generatedAt: new Date(),
+      // Additional properties for analytics page compatibility
+      successRate: 0,
+      averageOrderValue: 0,
+      revenueByDay: [],
+      paymentMethodBreakdown: [],
+      customerInsights: {
+        totalUniqueCustomers: 0,
+        returningCustomers: 0,
+        averageCustomerValue: 0
+      }
     }
   }
 }

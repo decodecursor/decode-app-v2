@@ -294,11 +294,9 @@ export default function AnalyticsPage() {
                 <button className="text-xs px-2 py-1 bg-gray-100 rounded hover:bg-gray-200">Bar</button>
               </div>
             </div>
-            <RevenueChart 
-              data={analyticsData?.revenueByDay || []} 
-              loading={loading}
-              showTransactions={true}
-            />
+            <div className="text-center py-8 text-gray-500">
+              Revenue chart temporarily disabled - database migration required
+            </div>
           </div>
 
           {/* Payment Method Breakdown */}
@@ -306,42 +304,62 @@ export default function AnalyticsPage() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Payment Methods</h2>
             </div>
-            <PaymentMethodBreakdown 
-              data={analyticsData?.paymentMethodBreakdown || []} 
-              loading={loading}
-              showRevenue={true}
-            />
+            <div className="text-center py-8 text-gray-500">
+              Payment method breakdown temporarily disabled - database migration required
+            </div>
           </div>
         </div>
 
         {/* Conversion Rate Tracker */}
         <div className="bg-white p-6 rounded-lg shadow mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Conversion Tracking</h2>
-          <ConversionRateTracker 
-            data={analyticsData?.conversionRate || {
-              paymentLinksCreated: 0,
-              paymentLinksUsed: 0,
-              totalPayments: 0,
-              conversionRate: 0,
-              usageRate: 0
-            }}
-            loading={loading}
-          />
+          <div className="text-center py-8">
+            <div className="text-3xl font-bold text-gray-900 mb-2">
+              {loading ? (
+                <div className="animate-pulse bg-gray-200 h-8 w-20 rounded mx-auto"></div>
+              ) : (
+                `${analyticsData?.conversionRate.toFixed(2) || 0}%`
+              )}
+            </div>
+            <div className="text-sm text-gray-500">Conversion Rate</div>
+          </div>
         </div>
 
         {/* Customer Insights */}
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Customer Insights</h2>
-          <CustomerInsights 
-            data={analyticsData?.customerInsights || {
-              totalUniqueCustomers: 0,
-              returningCustomers: 0,
-              averageCustomerValue: 0,
-              topSpendingCustomers: []
-            }}
-            loading={loading}
-            showTopCustomers={true}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-900">
+                {loading ? (
+                  <div className="animate-pulse bg-gray-200 h-8 w-16 rounded mx-auto"></div>
+                ) : (
+                  analyticsData?.customerInsights.totalUniqueCustomers || 0
+                )}
+              </div>
+              <div className="text-sm text-gray-500">Total Customers</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-900">
+                {loading ? (
+                  <div className="animate-pulse bg-gray-200 h-8 w-16 rounded mx-auto"></div>
+                ) : (
+                  analyticsData?.customerInsights.returningCustomers || 0
+                )}
+              </div>
+              <div className="text-sm text-gray-500">Returning Customers</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-900">
+                {loading ? (
+                  <div className="animate-pulse bg-gray-200 h-8 w-16 rounded mx-auto"></div>
+                ) : (
+                  `${analyticsData?.customerInsights.averageCustomerValue.toFixed(2) || 0} AED`
+                )}
+              </div>
+              <div className="text-sm text-gray-500">Avg Customer Value</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
