@@ -96,25 +96,8 @@ class StripeService {
   }
 
   public ensureStripeInitialized(): void {
-    if (!this.config.secretKey) {
-      throw new Error('Stripe not configured: Missing STRIPE_SECRET_KEY environment variable. Please add your Stripe secret key to the environment variables.');
-    }
-    
-    if (!this.config.publishableKey) {
-      throw new Error('Stripe not configured: Missing NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY environment variable. Please add your Stripe publishable key to the environment variables.');
-    }
-
-    // Check for placeholder values
-    if (this.config.secretKey.includes('your_stripe') || this.config.secretKey.includes('here')) {
-      throw new Error('Stripe not configured: STRIPE_SECRET_KEY appears to be a placeholder. Please replace with your actual Stripe secret key from https://dashboard.stripe.com/apikeys');
-    }
-
-    if (this.config.publishableKey.includes('your_stripe') || this.config.publishableKey.includes('here')) {
-      throw new Error('Stripe not configured: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY appears to be a placeholder. Please replace with your actual Stripe publishable key from https://dashboard.stripe.com/apikeys');
-    }
-
-    if (!this._stripe.paymentIntents) {
-      throw new Error('Stripe not properly initialized. This may be due to an invalid API key format.');
+    if (!this.config.secretKey || !this._stripe.paymentIntents) {
+      throw new Error('Stripe not properly configured. Missing STRIPE_SECRET_KEY environment variable.');
     }
   }
 
