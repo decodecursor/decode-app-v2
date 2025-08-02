@@ -104,8 +104,8 @@ async function handleHeadlessPaymentCompleted(event: CrossmintHeadlessWebhookEve
       crossmint_transaction_id: data.id,
       completed_at: data.completed_at || new Date().toISOString(),
       metadata: {
-        original_amount_aed: originalAmount,
-        fee_amount_aed: feeAmount,
+        service_amount_aed: originalAmount,
+        decode_amount_aed: feeAmount,
         customer_paid_aed: totalAmount,
         payment_method: 'crossmint_headless',
         service_title: paymentLink.title,
@@ -126,7 +126,7 @@ async function handleHeadlessPaymentCompleted(event: CrossmintHeadlessWebhookEve
       crossmint_transaction_id: data.id,
       completed_at: data.completed_at || new Date().toISOString(),
       metadata: {
-        fee_percentage: 11,
+        fee_percentage: 9,
         original_transaction_id: paymentTransaction.id,
         marketplace_revenue: true,
         decode_commission: feeAmount

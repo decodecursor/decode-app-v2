@@ -192,7 +192,7 @@ function formatTransferForAdmin(transfer: any) {
       id: paymentLink?.id,
       title: paymentLink?.title,
       clientName: paymentLink?.client_name,
-      originalAmount: paymentLink?.original_amount_aed
+      originalAmount: paymentLink?.service_amount_aed
     },
     crossmintTransactionId: transfer.crossmint_transaction_id,
     error: transfer.metadata?.error,

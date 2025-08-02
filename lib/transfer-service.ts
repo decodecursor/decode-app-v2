@@ -195,7 +195,7 @@ export class TransferService {
         .from('wallet_transactions')
         .select(`
           *,
-          payment_links (id, title, client_name, original_amount_aed),
+          payment_links (id, title, client_name, service_amount_aed),
           users (id, full_name, email, wallet_address)
         `)
         .eq('transaction_type', 'transfer_out')
@@ -223,7 +223,7 @@ export class TransferService {
         .from('wallet_transactions')
         .select(`
           *,
-          payment_links (id, title, client_name, original_amount_aed),
+          payment_links (id, title, client_name, service_amount_aed),
           users (id, full_name, email, wallet_address)
         `)
         .eq('transaction_type', 'transfer_out')

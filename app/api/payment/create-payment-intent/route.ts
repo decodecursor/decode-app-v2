@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
         created_at: new Date().toISOString(),
         metadata: {
           customer_name: customerName,
-          original_amount_aed: paymentLink.amount_aed,
+          service_amount_aed: (paymentLink as any).service_amount_aed || paymentLink.amount_aed,
           converted_amount_usd: amountInUSD / 100,
           fee_amount_usd: feeCalculation.feeAmount / 100,
           net_amount_usd: feeCalculation.netAmount / 100,
