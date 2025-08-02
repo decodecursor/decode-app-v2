@@ -125,6 +125,8 @@ export class CrossmintDatabaseService {
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 7);
 
+    const now = new Date().toISOString();
+    
     const paymentLinkData = {
       id: uuid, // UUID primary key for database
       short_id: shortId, // 8-character public ID for URLs
@@ -140,7 +142,10 @@ export class CrossmintDatabaseService {
       expiration_date: expirationDate.toISOString(),
       creator_id: request.creator_id,
       linked_user_id: request.linked_user_id,
-      is_active: true
+      is_active: true,
+      created_at: now,
+      updated_at: now,
+      is_paid: false // Default to false for new payment links
     };
 
     console.log('🔄 Creating payment link - step 4: inserting into database');
