@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import QRCode from 'qrcode'
+import HeartAnimation from '@/components/effects/HeartAnimation'
 
 interface PaymentLink {
   id: string
@@ -48,6 +49,7 @@ function MyLinksContent() {
   const [generatingQR, setGeneratingQR] = useState(false)
   const [newPayLinkId, setNewPayLinkId] = useState<string | null>(null)
   const [highlightingId, setHighlightingId] = useState<string | null>(null)
+  const [heartAnimatingId, setHeartAnimatingId] = useState<string | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -59,6 +61,52 @@ function MyLinksContent() {
         return
       }
       await fetchPaymentLinks(user.id)
+      
+      // Set up real-time subscription for payment status changes
+      const subscription = supabase
+        .channel('payment_links_changes')
+        .on('postgres_changes', 
+          { 
+            event: 'UPDATE', 
+            schema: 'public', 
+            table: 'payment_links',
+            filter: `creator_id=eq.${user.id}`
+          }, 
+          (payload) => {
+            console.log('💖 Real-time payment update:', payload)
+            
+            // Check if is_paid changed to true
+            if (payload.new.is_paid === true && payload.old.is_paid === false) {
+              console.log('🎉 Payment completed! Triggering heart animation for:', payload.new.id)
+              
+              // Trigger heart animation
+              setHeartAnimatingId(payload.new.id)
+              
+              // Auto-hide after 3 seconds
+              setTimeout(() => {
+                setHeartAnimatingId(null)
+              }, 3000)
+            }
+            
+            // Update the payment link in state
+            setPaymentLinks(prev => prev.map(link => 
+              link.id === payload.new.id 
+                ? {
+                    ...link,
+                    is_paid: payload.new.is_paid || false,
+                    is_active: payload.new.is_active || false,
+                    payment_status: payload.new.is_paid ? 'paid' : 'unpaid'
+                  }
+                : link
+            ))
+          }
+        )
+        .subscribe()
+        
+      // Cleanup subscription
+      return () => {
+        subscription.unsubscribe()
+      }
     }
     
     getUser()
@@ -133,31 +181,51 @@ function MyLinksContent() {
       setLoading(true)
       setError('')
 
-      // Fetch payment links with available fields only (many fields don't exist in current schema)
-      const { data: paymentLinksData, error: fetchError } = await supabase
-        .from('payment_links')
-        .select('id, client_name, title, description, amount_aed, expiration_date, is_active, created_at')
-        .eq('creator_id', userId)
-        .order('created_at', { ascending: false })
+      // Fetch payment links with backwards compatible is_paid column
+      let paymentLinksData, fetchError
+      try {
+        // Try to get is_paid column
+        const result = await (supabase as any)
+          .from('payment_links')
+          .select('id, client_name, title, description, amount_aed, expiration_date, is_active, created_at, is_paid')
+          .eq('creator_id', userId)
+          .order('created_at', { ascending: false })
+        
+        paymentLinksData = result.data
+        fetchError = result.error
+      } catch {
+        // Fallback without is_paid column
+        const result = await supabase
+          .from('payment_links')
+          .select('id, client_name, title, description, amount_aed, expiration_date, is_active, created_at')
+          .eq('creator_id', userId)
+          .order('created_at', { ascending: false })
+        
+        paymentLinksData = result.data
+        fetchError = result.error
+      }
 
       if (fetchError) {
         throw fetchError
       }
 
       // Transform the data to include fields expected by PaymentLink interface
-      const paymentLinksWithStatus = (paymentLinksData || []).map(link => ({
-        id: link?.id || '',
-        client_name: link?.client_name,
-        title: link?.title || '',
-        amount_aed: link?.amount_aed || 0,
-        expiration_date: link?.expiration_date || '',
-        is_active: link?.is_active || false,
-        created_at: link?.created_at || '',
-        description: link?.description,
-        is_paid: link?.is_active === false, // Assume inactive links were paid/completed
-        payment_status: (link?.is_active ? 'unpaid' : 'paid') as 'unpaid' | 'paid' | 'failed' | 'refunded',
-        paid_at: link?.is_active === false ? (link?.created_at || null) : null
-      }))
+      const paymentLinksWithStatus = (paymentLinksData || []).map(link => {
+        const isPaid = link?.is_paid || false
+        return {
+          id: link?.id || '',
+          client_name: link?.client_name,
+          title: link?.title || '',
+          amount_aed: link?.amount_aed || 0,
+          expiration_date: link?.expiration_date || '',
+          is_active: link?.is_active || false,
+          created_at: link?.created_at || '',
+          description: link?.description,
+          is_paid: isPaid,
+          payment_status: (isPaid ? 'paid' : 'unpaid') as 'unpaid' | 'paid' | 'failed' | 'refunded',
+          paid_at: isPaid ? (link?.created_at || null) : null
+        }
+      })
       
       setPaymentLinks(paymentLinksWithStatus)
     } catch (error) {
@@ -581,6 +649,7 @@ function MyLinksContent() {
                   const isInactive = status === 'Expired' || status === 'Deactivated'
                   const isPaid = status === 'Paid'
                   const isNewPayLink = highlightingId === link.id
+                  const isHeartAnimating = heartAnimatingId === link.id
                   
                   return (
                     <div 
@@ -599,6 +668,9 @@ function MyLinksContent() {
                               ? 'bg-slate-900/60 border-l-red-500/50 bg-red-900/10 opacity-75 hover:border-red-400 hover:bg-slate-800/60 hover:shadow-2xl hover:shadow-red-400/60 hover:scale-[1.01]'
                               : 'bg-slate-900/85 border-l-purple-500/50 hover:border-purple-400 hover:bg-slate-800/90 hover:shadow-2xl hover:shadow-purple-400/60 hover:scale-[1.01]'
                       }`}>
+                      
+                      {/* Heart Animation Effect */}
+                      <HeartAnimation isActive={isHeartAnimating} />
                       {/* Status Ribbon */}
                       {(isPaid || isInactive) && (
                         <div className={`ribbon ${
