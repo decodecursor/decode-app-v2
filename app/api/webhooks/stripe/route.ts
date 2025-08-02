@@ -167,16 +167,67 @@ async function handleCheckoutSessionManually(session: Stripe.Checkout.Session, p
   console.log('✅ Transaction completed manually:', transaction.id);
 }
 
+// Helper function to update transaction to completed status
+async function updateTransactionToCompleted(transaction: any, paymentIntent: Stripe.PaymentIntent) {
+  const { error: updateError } = await supabase
+    .from('transactions')
+    .update({
+      status: 'completed',
+      processor_transaction_id: paymentIntent.id,
+      completed_at: new Date().toISOString(),
+      amount_aed: paymentIntent.amount / 100,
+      metadata: {
+        ...(transaction.metadata && typeof transaction.metadata === 'object' ? transaction.metadata : {}),
+        payment_intent_succeeded_at: new Date().toISOString(),
+        payment_intent_data: {
+          id: paymentIntent.id,
+          status: paymentIntent.status,
+          amount: paymentIntent.amount,
+          currency: paymentIntent.currency
+        }
+      }
+    })
+    .eq('id', transaction.id);
+
+  if (updateError) {
+    throw new Error(`Failed to update transaction ${transaction.id}: ${updateError.message}`);
+  }
+
+  // NOTE: Can't update payment_status column since it doesn't exist
+  console.log('✅ Payment marked as completed in transactions table');
+  console.log('✅ Payment intent processed successfully:', transaction.id);
+}
+
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   try {
     console.log('💳 Payment intent succeeded:', paymentIntent.id);
+    console.log('💳 Payment intent metadata:', paymentIntent.metadata);
     
     const paymentLinkId = paymentIntent.metadata?.payment_link_id;
     if (!paymentLinkId) {
-      throw new Error('Missing payment_link_id in payment intent metadata');
+      console.warn('⚠️ No payment_link_id in metadata, attempting to find by payment intent ID');
+      
+      // Try to find transaction by payment intent ID alone
+      const { data: transactionByIntent, error: intentError } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('processor_transaction_id', paymentIntent.id)
+        .single();
+        
+      if (transactionByIntent) {
+        console.log('✅ Found transaction by payment intent ID');
+        await updateTransactionToCompleted(transactionByIntent, paymentIntent);
+        return;
+      }
+      
+      throw new Error('Missing payment_link_id in payment intent metadata and no matching transaction found');
     }
 
     // Find transaction by payment intent ID (most reliable)
+    console.log('🔍 Looking for transaction with:');
+    console.log('   - payment_link_id:', paymentLinkId);
+    console.log('   - processor_transaction_id:', paymentIntent.id);
+    
     const { data: transaction, error: findError } = await supabase
       .from('transactions')
       .select('*')
@@ -186,38 +237,25 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       .single();
 
     if (findError || !transaction) {
+      console.error('❌ Transaction not found, checking all transactions for this payment link');
+      
+      // List all transactions for debugging
+      const { data: allTx, error: allError } = await supabase
+        .from('transactions')
+        .select('id, payment_link_id, processor_transaction_id, status')
+        .eq('payment_link_id', paymentLinkId);
+        
+      console.log('📋 All transactions for payment link:', allTx?.length || 0);
+      if (allTx) {
+        allTx.forEach(tx => {
+          console.log(`   - ${tx.id}: intent=${tx.processor_transaction_id}, status=${tx.status}`);
+        });
+      }
+      
       throw new Error(`No transaction found for payment intent ${paymentIntent.id} and payment link ${paymentLinkId}`);
     }
 
-    // Update transaction to completed status
-    const { error: updateError } = await supabase
-      .from('transactions')
-      .update({
-        status: 'completed',
-        processor_transaction_id: paymentIntent.id,
-        completed_at: new Date().toISOString(),
-        amount_aed: paymentIntent.amount / 100,
-        metadata: {
-          ...(transaction.metadata && typeof transaction.metadata === 'object' ? transaction.metadata : {}),
-          payment_intent_succeeded_at: new Date().toISOString(),
-          payment_intent_data: {
-            id: paymentIntent.id,
-            status: paymentIntent.status,
-            amount: paymentIntent.amount,
-            currency: paymentIntent.currency
-          }
-        }
-      })
-      .eq('id', transaction.id);
-
-    if (updateError) {
-      throw new Error(`Failed to update transaction ${transaction.id}: ${updateError.message}`);
-    }
-
-    // NOTE: Can't update payment_status column since it doesn't exist
-    console.log('✅ Payment marked as completed in transactions table');
-
-    console.log('✅ Payment intent processed successfully:', transaction.id);
+    await updateTransactionToCompleted(transaction, paymentIntent);
 
   } catch (error) {
     console.error('❌ Error handling payment intent succeeded:', error);

@@ -250,34 +250,50 @@ export default function PaymentPage() {
         console.log('🔍 Checking transactions table for completed payments...')
         console.log('🔍 Looking for transactions with payment_link_id:', linkId)
         
-        // First, check ALL transactions for this payment link
-        const { data: allTransactions, error: allTxError } = await supabase
-          .from('transactions')
-          .select('id, status, payment_link_id, completed_at, payment_processor, processor_transaction_id')
-          .eq('payment_link_id', linkId)
-        
-        console.log('📊 All transactions for this link:', allTransactions?.length || 0)
-        if (allTransactions && allTransactions.length > 0) {
-          console.log('📋 Transaction details:', JSON.stringify(allTransactions, null, 2))
-        }
-        
-        // Now check for completed transactions
-        const { data: transactions, error: txError } = await supabase
-          .from('transactions')
-          .select('id, status, completed_at')
-          .eq('payment_link_id', linkId)
-          .eq('status', 'completed')
-          .limit(1)
-        
-        if (txError) {
-          console.error('❌ Error checking transactions:', txError)
-        } else if (!transactions || transactions.length === 0) {
-          console.log('ℹ️ No completed transactions found for this payment link')
-        } else {
-          console.log('✅ Found completed transaction - marking as paid')
-          console.log('✅ Transaction ID:', transactions[0].id)
-          console.log('✅ Completed at:', transactions[0].completed_at)
-          isPaid = true
+        try {
+          // First, check ALL transactions for this payment link
+          const { data: allTransactions, error: allTxError } = await supabase
+            .from('transactions')
+            .select('id, status, payment_link_id, completed_at, payment_processor, processor_transaction_id, processor_payment_id')
+            .eq('payment_link_id', linkId)
+          
+          if (allTxError) {
+            console.error('❌ Error fetching all transactions:', allTxError)
+          } else {
+            console.log('📊 Total transactions for this link:', allTransactions?.length || 0)
+            
+            if (allTransactions && allTransactions.length > 0) {
+              // Log each transaction separately to avoid console truncation
+              allTransactions.forEach((tx, index) => {
+                console.log(`📋 Transaction ${index + 1}/${allTransactions.length}:`)
+                console.log(`   - ID: ${tx.id}`)
+                console.log(`   - Status: ${tx.status}`)
+                console.log(`   - Processor: ${tx.payment_processor}`)
+                console.log(`   - Payment Intent: ${tx.processor_transaction_id || 'none'}`)
+                console.log(`   - Completed: ${tx.completed_at || 'not completed'}`)
+              })
+              
+              // Check if any transaction is completed
+              const completedTx = allTransactions.find(tx => tx.status === 'completed')
+              if (completedTx) {
+                console.log('✅ Found completed transaction!')
+                console.log(`✅ Transaction ID: ${completedTx.id}`)
+                console.log(`✅ Completed at: ${completedTx.completed_at}`)
+                isPaid = true
+              } else {
+                console.log('⚠️ Found transactions but none are completed')
+                console.log('⚠️ Transaction statuses:', allTransactions.map(tx => tx.status).join(', '))
+              }
+            } else {
+              console.log('❌ No transactions found for this payment link')
+              console.log('❌ This might mean:')
+              console.log('   1. Payment intent creation failed')
+              console.log('   2. Transaction was not created during payment')
+              console.log('   3. Wrong payment_link_id is being used')
+            }
+          }
+        } catch (error) {
+          console.error('❌ Exception while checking transactions:', error)
         }
 
         const transformedData: PaymentLinkData = {
