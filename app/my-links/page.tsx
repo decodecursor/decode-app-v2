@@ -109,7 +109,7 @@ function MyLinksContent() {
                       ...link,
                       is_paid: payload.new.is_paid || false,
                       is_active: payload.new.is_active || false,
-                      payment_status: payload.new.is_paid ? 'paid' : 'unpaid'
+                      payment_status: (payload.new.is_paid ? 'paid' : 'unpaid') as 'paid' | 'unpaid'
                     }
                   : link
               )
@@ -156,7 +156,7 @@ function MyLinksContent() {
                 // Update state
                 setPaymentLinks(prev => prev.map(link => 
                   link.id === currentLink.id 
-                    ? { ...link, is_paid: true, payment_status: 'paid' }
+                    ? { ...link, is_paid: true, payment_status: 'paid' as 'paid' }
                     : link
                 ));
               }
