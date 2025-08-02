@@ -927,6 +927,18 @@ function MyLinksContent() {
                   )
                 })}
               </div>
+              
+              {/* Load More Button */}
+              {visibleCount < paymentLinks.length && (
+                <div className="flex justify-center pt-6">
+                  <button
+                    onClick={() => setVisibleCount(prev => prev + 6)}
+                    className="cosmic-button-secondary px-6 py-3"
+                  >
+                    Load More ({paymentLinks.length - visibleCount} remaining)
+                  </button>
+                </div>
+              )}
             </div>
           )}
           </div>
