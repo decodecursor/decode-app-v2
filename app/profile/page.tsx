@@ -29,7 +29,7 @@ export default function ProfilePage() {
   // Photo upload states
   const [photoUploading, setPhotoUploading] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
-  const [crop, setCrop] = useState<Crop>({ unit: '%', x: 25, y: 25, width: 50, height: 50, aspect: 1 })
+  const [crop, setCrop] = useState<Crop>({ unit: '%', x: 25, y: 25, width: 50, height: 50 })
   const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
