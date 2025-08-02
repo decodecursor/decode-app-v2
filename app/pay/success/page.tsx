@@ -24,16 +24,20 @@ function PaymentSuccessContent() {
     try {
       console.log('✅ SUCCESS PAGE: Marking payment as paid for link:', paymentLinkId);
       
-      // Simply update is_paid to true
-      const { error } = await supabase
-        .from('payment_links')
-        .update({ is_paid: true })
-        .eq('id', paymentLinkId);
+      // Try to update is_paid to true (backwards compatible)
+      try {
+        const { error } = await supabase
+          .from('payment_links')
+          .update({ is_paid: true })
+          .eq('id', paymentLinkId);
 
-      if (error) {
-        console.error('❌ Failed to mark payment as paid:', error);
-      } else {
-        console.log('✅ Payment link marked as paid successfully');
+        if (error) {
+          console.error('❌ Failed to mark payment as paid (column may not exist yet):', error);
+        } else {
+          console.log('✅ Payment link marked as paid successfully');
+        }
+      } catch (error) {
+        console.log('ℹ️ is_paid column not available yet, payment tracking will work after database migration');
       }
       
     } catch (error) {

@@ -17,7 +17,6 @@ interface PaymentLinkData {
   expiration_date: string
   is_active: boolean
   created_at: string
-  is_paid: boolean
   isPaid?: boolean
   creator: {
     id: string
@@ -204,8 +203,7 @@ export default function PaymentPage() {
             is_active,
             created_at,
             description,
-            creator_id,
-            is_paid
+            creator_id
           `)
           .eq('id', linkId)
           .single()
@@ -240,11 +238,24 @@ export default function PaymentPage() {
           return
         }
 
-        // Simple payment status check using is_paid column
-        const isPaid = data.is_paid || false
-        console.log('💰 Simple payment status check:')
+        // Try to get is_paid column (backwards compatible)
+        let isPaid = false
+        try {
+          const { data: isPaidData } = await supabase
+            .from('payment_links')
+            .select('is_paid')
+            .eq('id', linkId)
+            .single()
+          
+          isPaid = isPaidData?.is_paid || false
+        } catch {
+          // Column doesn't exist yet, default to false
+          isPaid = false
+        }
+        
+        console.log('💰 Payment status check:')
         console.log('- is_active:', data.is_active)
-        console.log('- is_paid:', data.is_paid)
+        console.log('- is_paid:', isPaid)
         console.log('- Payment status:', isPaid ? 'PAID ✅' : 'UNPAID ⚠️')
 
         const transformedData: PaymentLinkData = {
