@@ -177,30 +177,40 @@ export default function PaymentPage() {
       await fetchPaymentLinkDirect()
     }
 
-    // Fetch payment link via API route (bypasses RLS)
+    // Direct Supabase query (RLS is disabled on payment_links table)
     const fetchPaymentLinkDirect = async () => {
       try {
-        console.log('🔍 DEBUG: Fetching payment link via API for linkId:', linkId)
+        console.log('🔍 DEBUG: Direct Supabase query for linkId:', linkId)
         
-        const response = await fetch(`/api/payment/get-link?id=${linkId}`)
-        const result = await response.json()
+        const { data, error: fetchError } = await supabase
+          .from('payment_links')
+          .select(`
+            id,
+            title,
+            amount_aed,
+            client_name,
+            expiration_date,
+            is_active,
+            created_at,
+            description,
+            payment_status,
+            paid_at,
+            creator_id
+          `)
+          .eq('id', linkId)
+          .single()
 
-        console.log('🔍 DEBUG: API response:', result)
+        console.log('🔍 DEBUG: Direct query result:', { data, error: fetchError })
 
-        if (!response.ok || result.error) {
-          console.error('❌ DEBUG: API request failed:', {
-            status: response.status,
-            error: result.error,
-            details: result.details
-          })
-          setError(result.error || 'Payment link not found')
+        if (fetchError) {
+          console.error('❌ DEBUG: Supabase query failed:', fetchError)
+          setError('Payment link not found')
           setErrorType('not-found')
           return
         }
 
-        const data = result.data
         if (!data) {
-          console.error('❌ DEBUG: No data returned from API')
+          console.error('❌ DEBUG: No data returned from query')
           setError('Payment link not found')
           setErrorType('not-found')
           return

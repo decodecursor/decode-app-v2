@@ -1,4 +1,7 @@
-# Fix Payment Links "Not Found" Error
+# Fix Payment Links "Not Found" Error - RESOLVED
+
+## Final Solution
+RLS (Row Level Security) has been disabled on the payment_links table.
 
 ## Problem
 Payment links show "Payment link not found" because Row Level Security (RLS) policies are blocking public access. Buyers can't view payment links because they're not authenticated or not the creator.
