@@ -255,7 +255,7 @@ export default function PaymentPage() {
               .from('payment_links')
               .update({ 
                 payment_status: 'paid',
-                paid_at: transactions[0].completed_at || new Date().toISOString()
+                paid_at: transactions[0]?.completed_at || new Date().toISOString()
               })
               .eq('id', linkId)
           }
