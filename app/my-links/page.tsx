@@ -51,6 +51,7 @@ function MyLinksContent() {
   const [highlightingId, setHighlightingId] = useState<string | null>(null)
   const [heartAnimatingId, setHeartAnimatingId] = useState<string | null>(null)
   const [lastCheckedTimestamp, setLastCheckedTimestamp] = useState<number>(Date.now())
+  const [visibleCount, setVisibleCount] = useState(6)
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -716,7 +717,7 @@ function MyLinksContent() {
             /* Payment Links List */
             <div className="cosmic-card">
               <div className="space-y-6">
-                {paymentLinks.map((link) => {
+                {paymentLinks.slice(0, visibleCount).map((link) => {
                   const status = getStatus(link)
                   const statusColor = getStatusColor(status)
                   const isInactive = status === 'Expired' || status === 'Deactivated'
