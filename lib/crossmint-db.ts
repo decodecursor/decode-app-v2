@@ -80,18 +80,26 @@ export class CrossmintDatabaseService {
    * Check if a payment link ID already exists
    */
   private async paymentLinkExists(linkId: string): Promise<boolean> {
-    const { data, error } = await supabase
-      .from('payment_links')
-      .select('id')
-      .eq('id', linkId)
-      .single();
-    
-    // If error and it's not "not found", something went wrong
-    if (error && error.code !== 'PGRST116') {
-      throw new Error(`Failed to check payment link existence: ${error.message}`);
+    try {
+      const { data, error } = await supabase
+        .from('payment_links')
+        .select('id')
+        .eq('id', linkId)
+        .single();
+      
+      // If error and it's not "not found", something went wrong
+      if (error && error.code !== 'PGRST116') {
+        console.warn(`Database error checking payment link existence: ${error.message}`);
+        // Return false to assume it doesn't exist rather than throwing
+        return false;
+      }
+      
+      return !!data;
+    } catch (error) {
+      console.error(`Unexpected error checking payment link existence: ${error}`);
+      // Return false to assume it doesn't exist rather than throwing
+      return false;
     }
-    
-    return !!data;
   }
   
   /**

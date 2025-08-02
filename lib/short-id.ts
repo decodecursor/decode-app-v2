@@ -27,14 +27,22 @@ export async function generateUniqueShortId(
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     const shortId = generateShortId();
     
-    // Check if this ID already exists
-    const exists = await checkExists(shortId);
-    
-    if (!exists) {
+    try {
+      // Check if this ID already exists
+      const exists = await checkExists(shortId);
+      
+      if (!exists) {
+        console.log(`✅ Generated unique short ID: ${shortId}`);
+        return shortId;
+      }
+      
+      console.warn(`Short ID collision detected: ${shortId}, retrying... (attempt ${attempt + 1}/${maxRetries})`);
+    } catch (error) {
+      console.error(`Error checking short ID existence: ${error}, attempting anyway with ID: ${shortId}`);
+      // If we can't check existence, just return the short ID anyway
+      // This prevents fallback to UUID due to database errors
       return shortId;
     }
-    
-    console.warn(`Short ID collision detected: ${shortId}, retrying... (attempt ${attempt + 1}/${maxRetries})`);
   }
   
   // Fallback to UUID if too many collisions (extremely rare)
