@@ -102,15 +102,19 @@ export async function POST(request: NextRequest) {
     // Calculate platform fee (5%)
     const feeCalculation = stripeService.calculatePlatformFee(amount);
 
-    // Create Stripe payment intent
+    // FORCE AED CURRENCY - Convert AED to USD for Stripe (3.67 AED = 1 USD)
+    const AED_TO_USD_RATE = 3.67;
+    const amountInUSD = Math.round((paymentLink.amount_aed / AED_TO_USD_RATE) * 100); // Convert to cents
+    
+    // Create Stripe payment intent (Stripe doesn't support AED directly, so we use USD)
     const paymentIntent = await stripeService.createPaymentIntent({
-      amount: amount,
-      currency: currency,
+      amount: amountInUSD,
+      currency: 'usd', // Force USD for Stripe processing
       paymentLinkId: paymentLinkId,
       beautyProfessionalId: paymentLink.creator?.email || 'unknown',
       customerEmail: customerEmail,
       customerName: customerName,
-      description: paymentLink.title || 'Beauty service payment'
+      description: `${paymentLink.title || 'Beauty service payment'} (AED ${paymentLink.amount_aed})`
     });
 
     // Log transaction attempt in database - using correct field names
@@ -121,13 +125,14 @@ export async function POST(request: NextRequest) {
         amount_aed: paymentLink.amount_aed,
         payment_processor: 'stripe',
         processor_transaction_id: paymentIntent.paymentIntentId,
+        processor_payment_id: paymentIntent.paymentIntentId, // Store in both fields for compatibility
         status: 'pending',
         buyer_email: customerEmail,
         created_at: new Date().toISOString(),
         metadata: {
           customer_name: customerName,
           original_amount_aed: paymentLink.amount_aed,
-          converted_amount_usd: amount / 100,
+          converted_amount_usd: amountInUSD / 100,
           fee_amount_usd: feeCalculation.feeAmount / 100,
           net_amount_usd: feeCalculation.netAmount / 100,
           beauty_professional_email: paymentLink.creator?.email || 'unknown'
@@ -148,8 +153,8 @@ export async function POST(request: NextRequest) {
       paymentDetails: {
         amount: paymentLink.amount_aed,
         currency: 'AED',
-        convertedAmount: amount / 100,
-        convertedCurrency: currency,
+        convertedAmount: amountInUSD / 100,
+        convertedCurrency: 'USD',
         description: paymentLink.title,
         professionalName: paymentLink.creator?.full_name || paymentLink.creator?.email?.split('@')[0] || 'Beauty Professional',
         clientName: paymentLink.client_name || 'Client'
@@ -159,9 +164,33 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('❌ Stripe payment intent creation failed:', error);
     
+    // Check if this is a Stripe API key error
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const isApiKeyError = errorMessage.includes('Invalid API Key') || 
+                         errorMessage.includes('api_key') ||
+                         errorMessage.includes('No API key');
+    
+    if (isApiKeyError) {
+      return NextResponse.json({
+        error: 'Stripe configuration error',
+        details: 'Invalid or missing Stripe API keys. Please configure valid Stripe keys in your environment variables.',
+        setupInstructions: {
+          message: 'To fix this issue:',
+          steps: [
+            '1. Go to https://dashboard.stripe.com/apikeys',
+            '2. Copy your Secret key (starts with sk_test_ or sk_live_)',
+            '3. Update STRIPE_SECRET_KEY in your .env file',
+            '4. Copy your Publishable key (starts with pk_test_ or pk_live_)',
+            '5. Update NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in your .env file',
+            '6. Restart your application'
+          ]
+        }
+      }, { status: 503 });
+    }
+    
     return NextResponse.json({
       error: 'Failed to create payment intent',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: errorMessage
     }, { status: 500 });
   }
 }

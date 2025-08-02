@@ -254,8 +254,8 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
           },
           body: JSON.stringify({
             paymentLinkId: props.paymentLinkId,
-            amount: Math.round(props.amount * 100), // Convert AED to cents for Stripe
-            currency: 'usd', // Stripe processes in USD (converted from AED)
+            amount: props.amount, // Send AED amount as-is, API will handle conversion
+            currency: 'aed', // Always send AED, API will convert to USD for Stripe
             customerEmail: props.customerEmail,
             customerName: props.customerName,
           }),

@@ -62,6 +62,22 @@ function PaymentSuccessContent() {
           console.log('✅ SUCCESS PAGE: Successfully updated transaction:', transaction.id);
         }
       }
+      
+      // CRITICAL: Also update payment link status
+      console.log('🔄 SUCCESS PAGE: Updating payment link status to paid');
+      const { error: linkUpdateError } = await supabase
+        .from('payment_links')
+        .update({
+          payment_status: 'paid',
+          paid_at: new Date().toISOString()
+        })
+        .eq('id', paymentLinkId);
+      
+      if (linkUpdateError) {
+        console.error('❌ SUCCESS PAGE: Failed to update payment link status:', linkUpdateError);
+      } else {
+        console.log('✅ SUCCESS PAGE: Payment link marked as paid');
+      }
     } catch (error) {
       console.error('❌ SUCCESS PAGE: Manual transaction update failed:', error);
     }

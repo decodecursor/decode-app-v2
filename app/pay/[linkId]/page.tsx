@@ -228,12 +228,38 @@ export default function PaymentPage() {
         }
 
         // Check payment status using the payment_status field
-        const isPaid = data.payment_status === 'paid'
+        let isPaid = data.payment_status === 'paid'
         console.log('💰 Payment status check:')
         console.log('- payment_status:', data.payment_status)
         console.log('- is_active:', data.is_active)
         console.log('- isPaid:', isPaid)
         console.log('- paid_at:', data.paid_at)
+        
+        // CRITICAL: Fallback check - verify with transactions table
+        // This handles cases where webhooks failed to update payment_status
+        if (!isPaid) {
+          console.log('🔍 Checking transactions table for completed payments...')
+          const { data: transactions, error: txError } = await supabase
+            .from('transactions')
+            .select('id, status, completed_at')
+            .eq('payment_link_id', linkId)
+            .eq('status', 'completed')
+            .limit(1)
+          
+          if (!txError && transactions && transactions.length > 0) {
+            console.log('✅ Found completed transaction - marking as paid')
+            isPaid = true
+            
+            // Update the payment link status (self-healing)
+            await supabase
+              .from('payment_links')
+              .update({ 
+                payment_status: 'paid',
+                paid_at: transactions[0].completed_at || new Date().toISOString()
+              })
+              .eq('id', linkId)
+          }
+        }
 
         const transformedData: PaymentLinkData = {
           ...data,
