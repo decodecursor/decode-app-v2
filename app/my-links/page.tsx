@@ -50,6 +50,7 @@ function MyLinksContent() {
   const [newPayLinkId, setNewPayLinkId] = useState<string | null>(null)
   const [highlightingId, setHighlightingId] = useState<string | null>(null)
   const [heartAnimatingId, setHeartAnimatingId] = useState<string | null>(null)
+  const [lastCheckedTimestamp, setLastCheckedTimestamp] = useState<number>(Date.now())
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -70,10 +71,14 @@ function MyLinksContent() {
           { 
             event: 'UPDATE', 
             schema: 'public', 
-            table: 'payment_links',
-            filter: `creator_id=eq.${user.id}`
+            table: 'payment_links'
+            // Removed filter to test if that's blocking updates
           }, 
           (payload) => {
+            // Only process updates for this user's payment links
+            if (payload.new?.creator_id !== user.id) {
+              return; // Skip updates for other users
+            }
             console.log('💖 Real-time payment update received:', payload)
             console.log('💖 Payload details:', {
               event_type: payload.eventType,
@@ -122,9 +127,52 @@ function MyLinksContent() {
           }
         })
         
-      // Cleanup subscription
+      // Fallback polling mechanism (every 10 seconds)
+      console.log('🔄 Setting up fallback polling for payment status changes...');
+      const pollingInterval = setInterval(async () => {
+        try {
+          console.log('🔍 Polling for payment status changes...');
+          
+          // Fetch current payment links and compare with state
+          const { data: currentLinks, error } = await (supabase as any)
+            .from('payment_links')
+            .select('id, is_paid, is_active')
+            .eq('creator_id', user.id);
+            
+          if (!error && currentLinks) {
+            const currentTime = Date.now();
+            
+            currentLinks.forEach((currentLink: any) => {
+              const existingLink = paymentLinks.find(link => link.id === currentLink.id);
+              
+              // Check if payment status changed to paid
+              if (existingLink && !existingLink.is_paid && currentLink.is_paid) {
+                console.log('🎉 POLLING: Payment completed! Triggering heart animation for:', currentLink.id);
+                
+                // Trigger heart animation
+                setHeartAnimatingId(currentLink.id);
+                setTimeout(() => setHeartAnimatingId(null), 3000);
+                
+                // Update state
+                setPaymentLinks(prev => prev.map(link => 
+                  link.id === currentLink.id 
+                    ? { ...link, is_paid: true, payment_status: 'paid' }
+                    : link
+                ));
+              }
+            });
+            
+            setLastCheckedTimestamp(currentTime);
+          }
+        } catch (pollingError) {
+          console.error('❌ Polling error:', pollingError);
+        }
+      }, 10000); // Check every 10 seconds
+      
+      // Cleanup subscription and polling
       return () => {
         subscription.unsubscribe()
+        clearInterval(pollingInterval)
       }
     }
     
