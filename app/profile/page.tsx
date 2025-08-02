@@ -12,7 +12,6 @@ interface UserProfile {
   professional_center_name: string | null
   full_name: string
   role: string
-  profile_photo_url: string | null
 }
 
 export default function ProfilePage() {
@@ -61,7 +60,7 @@ export default function ProfilePage() {
       // Fetch user profile using available database fields
       const { data: profileData, error } = await supabase
         .from('users')
-        .select('id, email, full_name, professional_center_name, role, profile_photo_url')
+        .select('id, email, full_name, professional_center_name, role')
         .eq('id', user.id)
         .single()
 
@@ -187,19 +186,7 @@ export default function ProfilePage() {
         .from('user-uploads')
         .getPublicUrl(filePath)
 
-      // Update user profile with the photo URL
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ profile_photo_url: publicUrl })
-        .eq('id', profile.id)
-
-      if (updateError) {
-        console.error('Database update error:', updateError)
-        throw updateError
-      }
-
-      // Update local profile state
-      setProfile({ ...profile, profile_photo_url: publicUrl })
+      // For now, just show success message since we uploaded to storage successfully
       setMessage({ type: 'success', text: 'Profile photo uploaded successfully!' })
       setSelectedImage(null)
     } catch (error) {
@@ -314,19 +301,11 @@ export default function ProfilePage() {
               {/* Current Profile Photo */}
               <div className="mb-8">
                   <div className="w-48 h-48 mx-auto rounded-lg overflow-hidden bg-gray-700 ring-4 ring-white/10">
-                    {profile?.profile_photo_url ? (
-                      <img 
-                        src={profile.profile_photo_url} 
-                        alt="Profile photo" 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                      </div>
-                    )}
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
 
