@@ -671,7 +671,7 @@ function MyLinksContent() {
               </div>
               <Link 
                 href="/payment/create" 
-                className="cosmic-button-primary px-4 py-2 !w-fit"
+                className="create-paylink-button"
               >
                 Create PayLink
               </Link>
