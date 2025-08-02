@@ -8,6 +8,7 @@ import { CrossmintPaymentElement } from '@crossmint/client-sdk-react-ui'
 import { walletCreationService } from '@/lib/wallet-creation'
 import StripeCheckoutButton from '@/components/payment/StripeCheckoutButton'
 import CustomPaymentForm from '@/components/payment/CustomPaymentForm'
+import { isValidPaymentLinkId } from '@/lib/short-id'
 
 interface PaymentLinkData {
   id: string
@@ -45,9 +46,9 @@ export default function PaymentPage() {
   const router = useRouter()
   const linkId = params.linkId as string
 
-  const isValidUUID = (uuid: string) => {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-    return uuidRegex.test(uuid)
+  // Updated to handle both short IDs and UUIDs
+  const isValidLinkId = (id: string) => {
+    return isValidPaymentLinkId(id)
   }
 
   const handlePaymentSuccess = async (payment: any) => {
@@ -164,7 +165,7 @@ export default function PaymentPage() {
 
   useEffect(() => {
     const fetchPaymentData = async () => {
-      if (!linkId || !isValidUUID(linkId)) {
+      if (!linkId || !isValidLinkId(linkId)) {
         setError('Invalid payment link')
         setErrorType('invalid')
         setLoading(false)

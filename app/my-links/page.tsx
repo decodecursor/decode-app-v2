@@ -952,8 +952,7 @@ function MyLinksContent() {
             <div className="cosmic-card max-w-md w-full">
               <h3 className="cosmic-heading mb-4 text-white">Deactivate Payment Link</h3>
               <p className="cosmic-body text-gray-300 mb-4">
-                Are you sure you want to deactivate the payment link for &ldquo;{linkToDeactivate.title}&rdquo;? 
-                This will prevent customers from making payments through this link.
+                Are you sure you want to deactivate the payment link for &lsquo;{linkToDeactivate.client_name || 'Client'}&rsquo; and the &lsquo;{linkToDeactivate.title}&rsquo;?
               </p>
               <p className="cosmic-body text-gray-400 text-sm mb-6">
                 Amount: AED {formatAmount(linkToDeactivate.amount_aed)}
@@ -1027,7 +1026,7 @@ function MyLinksContent() {
                 </button>
                 <button
                   onClick={handleDeactivateFirst}
-                  className="flex-1 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-medium transition-colors"
+                  className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
                   disabled={deactivatingId === linkToDelete.id}
                 >
                   {deactivatingId === linkToDelete.id ? 'Deactivating...' : 'Deactivate & Delete'}

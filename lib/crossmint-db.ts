@@ -2,6 +2,7 @@
 // Handles all database interactions related to wallets and transactions
 
 import { supabase } from '@/lib/supabase';
+import { generateUniqueShortId } from '@/lib/short-id';
 import {
   CrossmintUser,
   CrossmintPaymentLink,
@@ -76,16 +77,40 @@ export class CrossmintDatabaseService {
   // PAYMENT LINK MANAGEMENT
   
   /**
+   * Check if a payment link ID already exists
+   */
+  private async paymentLinkExists(linkId: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('payment_links')
+      .select('id')
+      .eq('id', linkId)
+      .single();
+    
+    // If error and it's not "not found", something went wrong
+    if (error && error.code !== 'PGRST116') {
+      throw new Error(`Failed to check payment link existence: ${error.message}`);
+    }
+    
+    return !!data;
+  }
+  
+  /**
    * Create payment link with marketplace fee calculation
    */
   async createPaymentLink(request: CreatePaymentLinkRequest): Promise<CreatePaymentLinkResponse> {
     const feeCalculation = calculateMarketplaceFee(request.original_amount_aed);
+    
+    // Generate a unique short ID for the payment link
+    const shortId = await generateUniqueShortId(
+      (id) => this.paymentLinkExists(id)
+    );
     
     // Set expiration to 7 days from now
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 7);
 
     const paymentLinkData = {
+      id: shortId, // Use our custom short ID
       client_name: request.client_name,
       title: request.title,
       description: request.description,
