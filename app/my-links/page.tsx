@@ -24,6 +24,7 @@ interface PaymentLink {
 function MyLinksContent() {
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([])
   const [loading, setLoading] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
 
   // Format amount with thousands separators 
   const formatAmount = (amount: number): string => {
@@ -307,6 +308,7 @@ function MyLinksContent() {
       setError('Failed to load payment links')
     } finally {
       setLoading(false)
+      setInitialLoading(false)
     }
   }
 
@@ -681,7 +683,7 @@ function MyLinksContent() {
             </div>
           )}
 
-          {paymentLinks.length === 0 ? (
+          {!initialLoading && paymentLinks.length === 0 ? (
             /* Empty State */
             <div className="cosmic-card text-center">
               <div className="mb-6">
@@ -702,7 +704,7 @@ function MyLinksContent() {
                 </Link>
               </div>
             </div>
-          ) : (
+          ) : !initialLoading ? (
             /* Payment Links List */
             <div className="cosmic-card">
               <div className="space-y-6">
@@ -931,6 +933,9 @@ function MyLinksContent() {
                 </div>
               )}
             </div>
+          ) : (
+            /* Initial Loading - Show nothing to prevent empty state flash */
+            <div className="cosmic-card h-40"></div>
           )}
           </div>
         </div>
