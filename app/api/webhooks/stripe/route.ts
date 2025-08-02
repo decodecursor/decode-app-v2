@@ -323,7 +323,7 @@ async function logWebhookEvent(event: Stripe.Event, signature: string): Promise<
     const paymentLinkId = eventData.metadata?.payment_link_id;
     
     // Log webhook event to database with all required fields
-    await supabaseAdminAdmin.from('webhook_events').upsert({
+    await supabaseAdmin.from('webhook_events').upsert({
       event_id: event.id,
       event_type: event.type,
       event_data: eventData,
