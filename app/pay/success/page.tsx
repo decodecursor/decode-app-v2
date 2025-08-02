@@ -95,6 +95,7 @@ function PaymentSuccessContent() {
       })
       
       // Manual transaction status update as fallback for webhook failures
+      // Note: 'id' here is the payment_link_id, not transaction id
       manualTransactionUpdate(id)
     } else {
       console.log('❌ Missing required params:', { 

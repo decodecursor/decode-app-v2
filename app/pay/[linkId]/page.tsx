@@ -246,24 +246,38 @@ export default function PaymentPage() {
         console.log('- is_active:', data.is_active)
         console.log('- Will check transactions table for payment status')
         
-        // CRITICAL: Fallback check - verify with transactions table
-        // This handles cases where webhooks failed to update payment_status
-        if (!isPaid) {
-          console.log('🔍 Checking transactions table for completed payments...')
-          const { data: transactions, error: txError } = await supabase
-            .from('transactions')
-            .select('id, status, completed_at')
-            .eq('payment_link_id', linkId)
-            .eq('status', 'completed')
-            .limit(1)
-          
-          if (!txError && transactions && transactions.length > 0) {
-            console.log('✅ Found completed transaction - marking as paid')
-            isPaid = true
-            
-            // Can't update payment_status column since it doesn't exist
-            console.log('✅ Payment link has been paid (found in transactions)')
-          }
+        // Always check transactions table since payment_status column doesn't exist
+        console.log('🔍 Checking transactions table for completed payments...')
+        console.log('🔍 Looking for transactions with payment_link_id:', linkId)
+        
+        // First, check ALL transactions for this payment link
+        const { data: allTransactions, error: allTxError } = await supabase
+          .from('transactions')
+          .select('id, status, payment_link_id, completed_at, payment_processor, processor_transaction_id')
+          .eq('payment_link_id', linkId)
+        
+        console.log('📊 All transactions for this link:', allTransactions?.length || 0)
+        if (allTransactions && allTransactions.length > 0) {
+          console.log('📋 Transaction details:', JSON.stringify(allTransactions, null, 2))
+        }
+        
+        // Now check for completed transactions
+        const { data: transactions, error: txError } = await supabase
+          .from('transactions')
+          .select('id, status, completed_at')
+          .eq('payment_link_id', linkId)
+          .eq('status', 'completed')
+          .limit(1)
+        
+        if (txError) {
+          console.error('❌ Error checking transactions:', txError)
+        } else if (!transactions || transactions.length === 0) {
+          console.log('ℹ️ No completed transactions found for this payment link')
+        } else {
+          console.log('✅ Found completed transaction - marking as paid')
+          console.log('✅ Transaction ID:', transactions[0].id)
+          console.log('✅ Completed at:', transactions[0].completed_at)
+          isPaid = true
         }
 
         const transformedData: PaymentLinkData = {
