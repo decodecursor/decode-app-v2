@@ -149,7 +149,7 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
     
     const heart = generateHeart(
       centerX + (Math.random() - 0.5) * 300, // Random x around center
-      centerY + Math.random() * 150, // Random y around center
+      (rect.height - 75) + Math.random() * 150, // Start 2cm from bottom edge
       bound,
       start,
       scale
@@ -161,7 +161,7 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
   const startAnimation = () => {
     // Generate hearts periodically for 2 seconds
     let heartCount = 0
-    const maxHearts = 16
+    const maxHearts = 20
     
     checkIntervalRef.current = setInterval(() => {
       if (heartCount < maxHearts) {
