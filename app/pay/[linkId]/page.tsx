@@ -17,8 +17,7 @@ interface PaymentLinkData {
   expiration_date: string
   is_active: boolean
   created_at: string
-  payment_status: 'unpaid' | 'paid' | 'failed' | 'refunded'
-  paid_at: string | null
+  is_paid: boolean
   isPaid?: boolean
   creator: {
     id: string
@@ -205,7 +204,8 @@ export default function PaymentPage() {
             is_active,
             created_at,
             description,
-            creator_id
+            creator_id,
+            is_paid
           `)
           .eq('id', linkId)
           .single()
@@ -240,67 +240,16 @@ export default function PaymentPage() {
           return
         }
 
-        // Since payment_status column doesn't exist, check transaction status
-        let isPaid = false
-        console.log('💰 Payment status check:')
+        // Simple payment status check using is_paid column
+        const isPaid = data.is_paid || false
+        console.log('💰 Simple payment status check:')
         console.log('- is_active:', data.is_active)
-        console.log('- Will check transactions table for payment status')
-        
-        // Always check transactions table since payment_status column doesn't exist
-        console.log('🔍 Checking transactions table for completed payments...')
-        console.log('🔍 Looking for transactions with payment_link_id:', linkId)
-        
-        try {
-          // First, check ALL transactions for this payment link
-          const { data: allTransactions, error: allTxError } = await supabase
-            .from('transactions')
-            .select('id, status, payment_link_id, completed_at, payment_processor, processor_transaction_id')
-            .eq('payment_link_id', linkId)
-          
-          if (allTxError) {
-            console.error('❌ Error fetching all transactions:', allTxError)
-          } else {
-            console.log('📊 Total transactions for this link:', allTransactions?.length || 0)
-            
-            if (allTransactions && allTransactions.length > 0) {
-              // Log each transaction separately to avoid console truncation
-              allTransactions.forEach((tx, index) => {
-                console.log(`📋 Transaction ${index + 1}/${allTransactions.length}:`)
-                console.log(`   - ID: ${tx.id}`)
-                console.log(`   - Status: ${tx.status}`)
-                console.log(`   - Processor: ${tx.payment_processor}`)
-                console.log(`   - Payment Intent: ${tx.processor_transaction_id || 'none'}`)
-                console.log(`   - Completed: ${tx.completed_at || 'not completed'}`)
-              })
-              
-              // Check if any transaction is completed
-              const completedTx = allTransactions.find(tx => tx.status === 'completed')
-              if (completedTx) {
-                console.log('✅ Found completed transaction!')
-                console.log(`✅ Transaction ID: ${completedTx.id}`)
-                console.log(`✅ Completed at: ${completedTx.completed_at}`)
-                isPaid = true
-              } else {
-                console.log('⚠️ Found transactions but none are completed')
-                console.log('⚠️ Transaction statuses:', allTransactions.map(tx => tx.status).join(', '))
-              }
-            } else {
-              console.log('❌ No transactions found for this payment link')
-              console.log('❌ This might mean:')
-              console.log('   1. Payment intent creation failed')
-              console.log('   2. Transaction was not created during payment')
-              console.log('   3. Wrong payment_link_id is being used')
-            }
-          }
-        } catch (error) {
-          console.error('❌ Exception while checking transactions:', error)
-        }
+        console.log('- is_paid:', data.is_paid)
+        console.log('- Payment status:', isPaid ? 'PAID ✅' : 'UNPAID ⚠️')
 
         const transformedData: PaymentLinkData = {
           ...data,
           isPaid,
-          payment_status: isPaid ? 'paid' : 'unpaid',
-          paid_at: null,
           creator: { 
             id: data.creator_id || '', 
             full_name: 'Beauty Professional', 

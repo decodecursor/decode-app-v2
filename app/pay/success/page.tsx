@@ -19,38 +19,25 @@ function PaymentSuccessContent() {
   const [loading, setLoading] = useState(true)
   const searchParams = useSearchParams()
 
-  // Manual transaction status update as fallback for webhook failures
-  const manualTransactionUpdate = async (paymentLinkId: string, paymentIntentId?: string) => {
+  // Simple payment status update
+  const markPaymentAsPaid = async (paymentLinkId: string) => {
     try {
-      console.log('🔄 SUCCESS PAGE: Calling transaction update API');
-      console.log('   - Payment Link ID:', paymentLinkId);
-      console.log('   - Payment Intent ID:', paymentIntentId || 'not provided');
+      console.log('✅ SUCCESS PAGE: Marking payment as paid for:', paymentLinkId);
       
-      // Call the API to update/create transaction
-      const response = await fetch('/api/payment/update-transaction', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          paymentLinkId,
-          paymentIntentId
-        })
-      });
+      // Simply update is_paid to true
+      const { error } = await supabase
+        .from('payment_links')
+        .update({ is_paid: true })
+        .eq('id', paymentLinkId);
 
-      const result = await response.json();
-      
-      if (!response.ok) {
-        console.error('❌ SUCCESS PAGE: Transaction update API failed:', result.error);
-        return;
+      if (error) {
+        console.error('❌ Failed to mark payment as paid:', error);
+      } else {
+        console.log('✅ Payment link marked as paid successfully');
       }
-
-      console.log('✅ SUCCESS PAGE: Transaction update successful');
-      console.log(`   - Action: ${result.action}`);
-      console.log(`   - ${result.action === 'created' ? 'Created new transaction' : `Updated ${result.updatedCount} transaction(s)`}`);
       
     } catch (error) {
-      console.error('❌ SUCCESS PAGE: Transaction update API call failed:', error);
+      console.error('❌ Error marking payment as paid:', error);
     }
   };
 
@@ -86,10 +73,8 @@ function PaymentSuccessContent() {
         timestamp
       })
       
-      // Manual transaction status update as fallback for webhook failures
-      // Note: 'id' here is the payment_link_id, not transaction id
-      // Pass the payment intent ID if available
-      manualTransactionUpdate(id, paymentIntent || undefined)
+      // Mark payment as paid
+      markPaymentAsPaid(id)
     } else {
       console.log('❌ Missing required params:', { 
         hasId: !!id, 
