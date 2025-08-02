@@ -107,74 +107,26 @@ export class CrossmintDatabaseService {
    * Create payment link with marketplace fee calculation
    */
   async createPaymentLink(request: CreatePaymentLinkRequest): Promise<CreatePaymentLinkResponse> {
-    console.log('🔄 Creating payment link - step 1: calculating fees');
     const feeCalculation = calculateMarketplaceFee(request.original_amount_aed);
-    console.log('✅ Fee calculation done:', feeCalculation);
-    
-    console.log('🔄 Creating payment link - step 2: generating UUID');
-    let uuid;
-    try {
-      uuid = uuidv4();
-      if (!uuid) {
-        throw new Error('uuidv4() returned null/undefined');
-      }
-      console.log('✅ UUID generated:', uuid);
-    } catch (error) {
-      console.error('❌ UUID generation failed:', error);
-      // Fallback to crypto.randomUUID() if available
-      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-        uuid = crypto.randomUUID();
-        console.log('✅ Fallback UUID generated:', uuid);
-      } else {
-        throw new Error('Both uuidv4() and crypto.randomUUID() failed');
-      }
-    }
-    
-    console.log('🔄 Creating payment link - step 3: generating short ID');
-    const shortId = await generateUniqueShortId(
-      (id) => this.shortIdExists(id)
-    );
-    console.log('✅ Short ID generated:', shortId);
     
     // Set expiration to 7 days from now
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 7);
 
-    const now = new Date().toISOString();
-    
     const paymentLinkData = {
-      id: uuid, // UUID primary key for database
-      short_id: shortId, // 8-character public ID for URLs
       client_name: request.client_name,
       title: request.title,
       description: request.description,
-      // Legacy field for compatibility
       amount_aed: feeCalculation.totalAmount,
-      // New clear naming fee fields
       service_amount_aed: feeCalculation.originalAmount,
       decode_amount_aed: feeCalculation.feeAmount,
       total_amount_aed: feeCalculation.totalAmount,
       expiration_date: expirationDate.toISOString(),
       creator_id: request.creator_id,
       linked_user_id: request.linked_user_id,
-      is_active: true,
-      created_at: now,
-      updated_at: now,
-      is_paid: false // Default to false for new payment links
+      is_active: true
     };
 
-    console.log('🔄 Creating payment link - step 4: inserting into database');
-    console.log('📝 Payment link data:', paymentLinkData);
-    
-    // Validate critical fields before insert
-    if (!paymentLinkData.id) {
-      throw new Error('UUID is null or undefined - cannot insert');
-    }
-    if (!paymentLinkData.short_id) {
-      throw new Error('Short ID is null or undefined - cannot insert');
-    }
-    console.log('✅ Validation passed - UUID:', paymentLinkData.id, 'Short ID:', paymentLinkData.short_id);
-    
     const { data, error } = await supabase
       .from('payment_links')
       .insert(paymentLinkData)
@@ -182,17 +134,8 @@ export class CrossmintDatabaseService {
       .single();
 
     if (error) {
-      console.error('❌ Database insert error:', error);
-      console.error('❌ Error details:', {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint
-      });
-      throw new Error(`Failed to create payment link: ${error.message} (Code: ${error.code})`);
+      throw new Error(`Failed to create payment link: ${error.message}`);
     }
-    
-    console.log('✅ Database insert successful:', data?.id);
 
     return {
       ...data,

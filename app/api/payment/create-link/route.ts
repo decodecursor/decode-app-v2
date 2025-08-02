@@ -135,15 +135,14 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // Generate payment URL using short_id for user-friendly URLs
-    const paymentUrl = `${process.env.NEXT_PUBLIC_APP_URL}/pay/${paymentLink.short_id || paymentLink.id}`;
+    // Generate payment URL
+    const paymentUrl = `${process.env.NEXT_PUBLIC_APP_URL}/pay/${paymentLink.id}`;
 
     return NextResponse.json({
       success: true,
       data: {
         paymentLink: {
           id: paymentLink.id,
-          short_id: paymentLink.short_id,
           title: paymentLink.title,
           client_name: paymentLink.client_name,
           description: paymentLink.description,
