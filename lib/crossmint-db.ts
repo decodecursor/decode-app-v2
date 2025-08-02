@@ -112,8 +112,23 @@ export class CrossmintDatabaseService {
     console.log('✅ Fee calculation done:', feeCalculation);
     
     console.log('🔄 Creating payment link - step 2: generating UUID');
-    const uuid = uuidv4();
-    console.log('✅ UUID generated:', uuid);
+    let uuid;
+    try {
+      uuid = uuidv4();
+      if (!uuid) {
+        throw new Error('uuidv4() returned null/undefined');
+      }
+      console.log('✅ UUID generated:', uuid);
+    } catch (error) {
+      console.error('❌ UUID generation failed:', error);
+      // Fallback to crypto.randomUUID() if available
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        uuid = crypto.randomUUID();
+        console.log('✅ Fallback UUID generated:', uuid);
+      } else {
+        throw new Error('Both uuidv4() and crypto.randomUUID() failed');
+      }
+    }
     
     console.log('🔄 Creating payment link - step 3: generating short ID');
     const shortId = await generateUniqueShortId(
@@ -150,6 +165,15 @@ export class CrossmintDatabaseService {
 
     console.log('🔄 Creating payment link - step 4: inserting into database');
     console.log('📝 Payment link data:', paymentLinkData);
+    
+    // Validate critical fields before insert
+    if (!paymentLinkData.id) {
+      throw new Error('UUID is null or undefined - cannot insert');
+    }
+    if (!paymentLinkData.short_id) {
+      throw new Error('Short ID is null or undefined - cannot insert');
+    }
+    console.log('✅ Validation passed - UUID:', paymentLinkData.id, 'Short ID:', paymentLinkData.short_id);
     
     const { data, error } = await supabase
       .from('payment_links')
