@@ -122,8 +122,8 @@ function MyLinksContent() {
           console.log('📡 Real-time subscription status:', status)
           if (status === 'SUBSCRIBED') {
             console.log('✅ Successfully subscribed to real-time updates')
-          } else if (status === 'SUBSCRIPTION_ERROR') {
-            console.error('❌ Real-time subscription error')
+          } else {
+            console.warn('⚠️ Real-time subscription status:', status)
           }
         })
         
