@@ -132,22 +132,6 @@ export default function Dashboard() {
     }, 800)
   }
 
-  const fetchRecentPayLinks = async (userId: string) => {
-    try {
-      const { data: payLinks } = await supabase
-        .from('payment_links')
-        .select('id, title, amount_aed, is_active, created_at')
-        .eq('creator_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(5)
-
-      if (payLinks) {
-        setRecentPayLinks(payLinks)
-      }
-    } catch (error) {
-      console.error('Error fetching recent PayLinks:', error)
-    }
-  }
 
   useEffect(() => {
     const getUser = async () => {
@@ -171,8 +155,6 @@ export default function Dashboard() {
         setCompanyName(userData.professional_center_name) // use available field
       }
       
-      // Fetch recent PayLinks
-      await fetchRecentPayLinks(user.id)
       
       setLoading(false)
     }
