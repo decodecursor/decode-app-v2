@@ -57,20 +57,64 @@ class StripeService {
 
   private validateConfig(): void {
     if (!this.config.secretKey) {
-      console.warn('Missing Stripe secret key. Ensure STRIPE_SECRET_KEY is set.');
+      console.warn('❌ Missing Stripe secret key. Ensure STRIPE_SECRET_KEY is set.');
+      return;
     }
     if (!this.config.publishableKey) {
-      console.warn('Missing Stripe publishable key. Ensure NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is set.');
+      console.warn('❌ Missing Stripe publishable key. Ensure NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is set.');
+      return;
+    }
+
+    // Validate key formats
+    const secretKeyPattern = /^sk_(test|live)_[a-zA-Z0-9]+$/;
+    const publishableKeyPattern = /^pk_(test|live)_[a-zA-Z0-9]+$/;
+
+    if (!secretKeyPattern.test(this.config.secretKey)) {
+      console.warn('❌ Invalid Stripe secret key format. Expected format: sk_test_... or sk_live_...');
+      console.warn('   Get your keys from: https://dashboard.stripe.com/apikeys');
+      return;
+    }
+
+    if (!publishableKeyPattern.test(this.config.publishableKey)) {
+      console.warn('❌ Invalid Stripe publishable key format. Expected format: pk_test_... or pk_live_...');
+      console.warn('   Get your keys from: https://dashboard.stripe.com/apikeys');
+      return;
+    }
+
+    // Check for placeholder values
+    if (this.config.secretKey.includes('your_stripe') || this.config.secretKey.includes('here')) {
+      console.warn('❌ Stripe secret key appears to be a placeholder. Replace with actual key from Stripe dashboard.');
+      return;
+    }
+
+    if (this.config.publishableKey.includes('your_stripe') || this.config.publishableKey.includes('here')) {
+      console.warn('❌ Stripe publishable key appears to be a placeholder. Replace with actual key from Stripe dashboard.');
+      return;
     }
     
-    if (this.config.secretKey) {
-      console.log(`✅ Stripe configured for ${this.config.environment} environment`);
-    }
+    console.log(`✅ Stripe configured for ${this.config.environment} environment`);
   }
 
   public ensureStripeInitialized(): void {
-    if (!this.config.secretKey || !this._stripe.paymentIntents) {
-      throw new Error('Stripe not properly configured. Missing STRIPE_SECRET_KEY environment variable.');
+    if (!this.config.secretKey) {
+      throw new Error('Stripe not configured: Missing STRIPE_SECRET_KEY environment variable. Please add your Stripe secret key to the environment variables.');
+    }
+    
+    if (!this.config.publishableKey) {
+      throw new Error('Stripe not configured: Missing NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY environment variable. Please add your Stripe publishable key to the environment variables.');
+    }
+
+    // Check for placeholder values
+    if (this.config.secretKey.includes('your_stripe') || this.config.secretKey.includes('here')) {
+      throw new Error('Stripe not configured: STRIPE_SECRET_KEY appears to be a placeholder. Please replace with your actual Stripe secret key from https://dashboard.stripe.com/apikeys');
+    }
+
+    if (this.config.publishableKey.includes('your_stripe') || this.config.publishableKey.includes('here')) {
+      throw new Error('Stripe not configured: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY appears to be a placeholder. Please replace with your actual Stripe publishable key from https://dashboard.stripe.com/apikeys');
+    }
+
+    if (!this._stripe.paymentIntents) {
+      throw new Error('Stripe not properly initialized. This may be due to an invalid API key format.');
     }
   }
 
