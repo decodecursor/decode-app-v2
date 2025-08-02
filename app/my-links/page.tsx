@@ -660,7 +660,7 @@ function MyLinksContent() {
               </div>
               <Link 
                 href="/payment/create" 
-                className="create-paylink-button"
+                className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block"
               >
                 Create PayLink
               </Link>
@@ -1058,7 +1058,7 @@ function MyLinksContent() {
 
               {/* Client, Service, Original Amount between QR and Close button */}
               <div className="mb-6 space-y-2">
-                <p className="text-white text-lg">{currentQRLink.client_name || 'Client'}</p>
+                <p className="text-white text-xl font-semibold">{currentQRLink.client_name || 'Client'}</p>
                 <p className="text-white text-lg">{currentQRLink.title}</p>
                 <p className="text-white text-xl font-semibold">AED {formatAmount(currentQRLink.amount_aed)}</p>
               </div>

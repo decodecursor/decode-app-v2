@@ -271,7 +271,7 @@ export default function CreatePayment() {
                 <button
                   type="submit"
                   disabled={creating}
-                  className="create-paylink-button"
+                  className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   {creating ? 'Creating PayLink...' : 'Create PayLink'}
                 </button>

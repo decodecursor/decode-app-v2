@@ -283,7 +283,7 @@ export default function Dashboard() {
                   
                   {/* Create PayLink - Black Button */}
                   <button 
-                    className="create-paylink-button"
+                    className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
                     onMouseOver={createHoverSparkles}
                     onClick={handleCreatePayLinkClick}
                   >
@@ -349,7 +349,7 @@ export default function Dashboard() {
                     {userRole === 'Beauty Professional' && (
                       <>
                         <button 
-                          className="block w-full text-left create-paylink-button mb-2"
+                          className="block w-full text-left bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] mb-2"
                           onMouseOver={createHoverSparkles}
                           onClick={(e) => {
                             setMobileMenuOpen(false)
