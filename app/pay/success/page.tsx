@@ -22,7 +22,7 @@ function PaymentSuccessContent() {
   // Simple payment status update
   const markPaymentAsPaid = async (paymentLinkId: string) => {
     try {
-      console.log('✅ SUCCESS PAGE: Marking payment as paid for:', paymentLinkId);
+      console.log('✅ SUCCESS PAGE: Marking payment as paid for link:', paymentLinkId);
       
       // Simply update is_paid to true
       const { error } = await supabase
