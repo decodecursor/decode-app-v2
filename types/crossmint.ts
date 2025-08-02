@@ -14,7 +14,8 @@ export interface CrossmintUser {
 }
 
 export interface CrossmintPaymentLink {
-  id: string;
+  id: string; // UUID primary key
+  short_id?: string; // 8-character public ID for URLs
   client_name: string | null;
   title: string;
   description: string | null;

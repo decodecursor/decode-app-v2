@@ -3,6 +3,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { generateUniqueShortId } from '@/lib/short-id';
+import { v4 as uuidv4 } from 'uuid';
 import {
   CrossmintUser,
   CrossmintPaymentLink,
@@ -77,26 +78,26 @@ export class CrossmintDatabaseService {
   // PAYMENT LINK MANAGEMENT
   
   /**
-   * Check if a payment link ID already exists
+   * Check if a short ID already exists
    */
-  private async paymentLinkExists(linkId: string): Promise<boolean> {
+  private async shortIdExists(shortId: string): Promise<boolean> {
     try {
       const { data, error } = await supabase
         .from('payment_links')
-        .select('id')
-        .eq('id', linkId)
+        .select('short_id')
+        .eq('short_id', shortId)
         .single();
       
       // If error and it's not "not found", something went wrong
       if (error && error.code !== 'PGRST116') {
-        console.warn(`Database error checking payment link existence: ${error.message}`);
+        console.warn(`Database error checking short ID existence: ${error.message}`);
         // Return false to assume it doesn't exist rather than throwing
         return false;
       }
       
       return !!data;
     } catch (error) {
-      console.error(`Unexpected error checking payment link existence: ${error}`);
+      console.error(`Unexpected error checking short ID existence: ${error}`);
       // Return false to assume it doesn't exist rather than throwing
       return false;
     }
@@ -108,9 +109,12 @@ export class CrossmintDatabaseService {
   async createPaymentLink(request: CreatePaymentLinkRequest): Promise<CreatePaymentLinkResponse> {
     const feeCalculation = calculateMarketplaceFee(request.original_amount_aed);
     
-    // Generate a unique short ID for the payment link
+    // Generate UUID for database primary key
+    const uuid = uuidv4();
+    
+    // Generate unique 8-character short ID for public URLs
     const shortId = await generateUniqueShortId(
-      (id) => this.paymentLinkExists(id)
+      (id) => this.shortIdExists(id)
     );
     
     // Set expiration to 7 days from now
@@ -118,7 +122,8 @@ export class CrossmintDatabaseService {
     expirationDate.setDate(expirationDate.getDate() + 7);
 
     const paymentLinkData = {
-      id: shortId, // Use our custom short ID
+      id: uuid, // UUID primary key for database
+      short_id: shortId, // 8-character public ID for URLs
       client_name: request.client_name,
       title: request.title,
       description: request.description,
@@ -152,9 +157,23 @@ export class CrossmintDatabaseService {
   }
 
   /**
-   * Get payment link with fee information
+   * Get payment link by either short_id or UUID (for backward compatibility)
    */
   async getPaymentLink(linkId: string): Promise<CrossmintPaymentLink | null> {
+    // First try to find by short_id (8 characters)
+    if (linkId.length === 8) {
+      const { data, error } = await supabase
+        .from('payment_links')
+        .select('*')
+        .eq('short_id', linkId)
+        .single();
+
+      if (data && !error) {
+        return data;
+      }
+    }
+
+    // Fallback to UUID lookup (for backward compatibility)
     const { data, error } = await supabase
       .from('payment_links')
       .select('*')
