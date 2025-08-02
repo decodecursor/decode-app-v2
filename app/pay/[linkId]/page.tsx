@@ -202,7 +202,22 @@ export default function PaymentPage() {
 
         console.log('🔍 DEBUG: Direct query result:', { data, error: fetchError })
 
-        if (fetchError || !data) {
+        if (fetchError) {
+          console.error('❌ DEBUG: Supabase query failed:', {
+            error: fetchError,
+            code: fetchError?.code,
+            message: fetchError?.message,
+            details: fetchError?.details,
+            hint: fetchError?.hint,
+            status: fetchError?.status
+          })
+          setError(`Payment link error: ${fetchError.message || 'Failed to load'}`)
+          setErrorType('not-found')
+          return
+        }
+
+        if (!data) {
+          console.error('❌ DEBUG: No data returned from query')
           setError('Payment link not found')
           setErrorType('not-found')
           return
