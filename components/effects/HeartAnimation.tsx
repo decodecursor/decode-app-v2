@@ -149,7 +149,7 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
     
     const heart = generateHeart(
       centerX + (Math.random() - 0.5) * 300, // Random x around center
-      (rect.height - 75) + Math.random() * 150, // Start 2cm from bottom edge
+      (rect.height / 2) + Math.random() * 150, // Start from vertical middle
       bound,
       start,
       scale
