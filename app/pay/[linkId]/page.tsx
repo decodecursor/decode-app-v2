@@ -181,6 +181,18 @@ export default function PaymentPage() {
     const fetchPaymentLinkDirect = async () => {
       try {
         console.log('🔍 DEBUG: Direct Supabase query for linkId:', linkId)
+        console.log('🔍 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+        console.log('🔍 Supabase Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.substring(0, 20) + '...')
+        
+        // Test query to verify connection
+        const { data: testData, error: testError } = await supabase
+          .from('payment_links')
+          .select('id')
+          .limit(5)
+        console.log('🔍 Test query - Found payment links:', testData?.length || 0)
+        if (testError) {
+          console.error('❌ Test query error:', JSON.stringify(testError, null, 2))
+        }
         
         const { data, error: fetchError } = await supabase
           .from('payment_links')
@@ -203,7 +215,7 @@ export default function PaymentPage() {
         console.log('🔍 DEBUG: Direct query result:', { data, error: fetchError })
 
         if (fetchError) {
-          console.error('❌ DEBUG: Supabase query failed:', fetchError)
+          console.error('❌ DEBUG: Supabase query failed - Full error:', JSON.stringify(fetchError, null, 2))
           setError('Payment link not found')
           setErrorType('not-found')
           return
