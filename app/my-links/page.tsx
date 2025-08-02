@@ -929,6 +929,7 @@ function MyLinksContent() {
               </div>
               
               {/* Load More Button */}
+              {console.log('Debug: visibleCount =', visibleCount, 'paymentLinks.length =', paymentLinks.length)}
               {visibleCount < paymentLinks.length && (
                 <div className="flex justify-center pt-6">
                   <button
