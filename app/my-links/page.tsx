@@ -935,8 +935,8 @@ function MyLinksContent() {
                     onClick={() => setVisibleCount(prev => prev + 6)}
                     className="cosmic-button-secondary px-6 py-3 flex flex-col items-center"
                   >
-                    <span>Load More</span>
-                    <span className="text-sm">({paymentLinks.length - visibleCount} remaining)</span>
+                    <span className="text-lg font-bold">Load More</span>
+                    <span className="text-xs font-normal">{paymentLinks.length - visibleCount} remaining</span>
                   </button>
                 </div>
               )}
