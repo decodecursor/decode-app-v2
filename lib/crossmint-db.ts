@@ -116,9 +116,9 @@ export class CrossmintDatabaseService {
       description: request.description,
       // Legacy field for compatibility
       amount_aed: feeCalculation.totalAmount,
-      // New marketplace fee fields
-      original_amount_aed: feeCalculation.originalAmount,
-      fee_amount_aed: feeCalculation.feeAmount,
+      // New clear naming fee fields
+      service_amount_aed: feeCalculation.originalAmount,
+      decode_amount_aed: feeCalculation.feeAmount,
       total_amount_aed: feeCalculation.totalAmount,
       expiration_date: expirationDate.toISOString(),
       creator_id: request.creator_id,

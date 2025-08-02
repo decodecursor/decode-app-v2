@@ -68,15 +68,15 @@ async function setupDatabase() {
     // Step 2: Test payment link creation with fees
     console.log('\n2️⃣ Testing payment link creation with fee calculation...\n');
     
-    // Calculate marketplace fee (11%)
+    // Calculate marketplace fee (9%)
     const originalAmount = 100;
-    const feePercentage = 11;
+    const feePercentage = 9;
     const feeAmount = Math.round(originalAmount * (feePercentage / 100) * 100) / 100;
     const totalAmount = Math.round((originalAmount + feeAmount) * 100) / 100;
     
     console.log(`💰 Test Payment Link:`)
     console.log(`   Original Amount: AED ${originalAmount}`);
-    console.log(`   Fee (11%): AED ${feeAmount}`);
+    console.log(`   Fee (9%): AED ${feeAmount}`);
     console.log(`   Total Amount: AED ${totalAmount}`);
     
     // Create a test payment link
@@ -84,8 +84,8 @@ async function setupDatabase() {
       title: 'Test Beauty Service - Database Setup',
       description: 'Test payment link created during database setup',
       amount_aed: totalAmount, // Total amount customer pays
-      original_amount_aed: originalAmount, // Amount professional receives
-      fee_amount_aed: feeAmount, // DECODE marketplace fee
+      service_amount_aed: originalAmount, // Amount professional receives
+      decode_amount_aed: feeAmount, // DECODE platform amount
       total_amount_aed: totalAmount, // Same as amount_aed for clarity
       creator_id: '00000000-0000-0000-0000-000000000000', // Test UUID
       expiration_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days

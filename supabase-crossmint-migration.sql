@@ -10,21 +10,21 @@ ADD COLUMN IF NOT EXISTS wallet_created_at TIMESTAMPTZ;
 -- Note: wallet_address already exists in the current schema
 
 -- 2. ADD MARKETPLACE FEE FIELDS TO PAYMENT_LINKS TABLE
--- Add fee calculation fields for 11% marketplace model
+-- Add fee calculation fields for 9% marketplace model
 ALTER TABLE payment_links 
-ADD COLUMN IF NOT EXISTS original_amount_aed DECIMAL(10,2),
-ADD COLUMN IF NOT EXISTS fee_amount_aed DECIMAL(10,2),
+ADD COLUMN IF NOT EXISTS service_amount_aed DECIMAL(10,2),
+ADD COLUMN IF NOT EXISTS decode_amount_aed DECIMAL(10,2),
 ADD COLUMN IF NOT EXISTS total_amount_aed DECIMAL(10,2),
 ADD COLUMN IF NOT EXISTS amount_usd DECIMAL(10,2);
 
 -- Update existing payment_links to have fee structure
--- For existing records, set original_amount = current amount_aed, calculate 11% fee
+-- For existing records, set original_amount = current amount_aed, calculate 9% fee
 UPDATE payment_links 
 SET 
-    original_amount_aed = amount_aed,
-    fee_amount_aed = ROUND(amount_aed * 0.11, 2),
-    total_amount_aed = ROUND(amount_aed * 1.11, 2)
-WHERE original_amount_aed IS NULL;
+    service_amount_aed = amount_aed,
+    decode_amount_aed = ROUND(amount_aed * 0.09, 2),
+    total_amount_aed = ROUND(amount_aed * 1.09, 2)
+WHERE service_amount_aed IS NULL;
 
 -- 3. CREATE WALLET_TRANSACTIONS TABLE
 -- Track all wallet transactions for transparency and auditing
@@ -162,9 +162,9 @@ CREATE TRIGGER update_wallet_transactions_updated_at
 ALTER TABLE payment_links 
 ADD CONSTRAINT IF NOT EXISTS check_fee_calculation 
 CHECK (
-    (original_amount_aed IS NULL AND fee_amount_aed IS NULL AND total_amount_aed IS NULL) OR
-    (original_amount_aed IS NOT NULL AND fee_amount_aed IS NOT NULL AND total_amount_aed IS NOT NULL AND
-     ABS(total_amount_aed - (original_amount_aed + fee_amount_aed)) < 0.01)
+    (service_amount_aed IS NULL AND decode_amount_aed IS NULL AND total_amount_aed IS NULL) OR
+    (service_amount_aed IS NOT NULL AND decode_amount_aed IS NOT NULL AND total_amount_aed IS NOT NULL AND
+     ABS(total_amount_aed - (service_amount_aed + decode_amount_aed)) < 0.01)
 );
 
 -- Ensure wallet transaction amounts are positive (except for refunds)
@@ -199,8 +199,8 @@ GRANT SELECT ON user_transaction_summary TO authenticated;
 
 -- Comments for documentation
 COMMENT ON TABLE wallet_transactions IS 'Tracks all cryptocurrency transactions for transparency and auditing';
-COMMENT ON COLUMN payment_links.original_amount_aed IS 'Original service amount before marketplace fee';
-COMMENT ON COLUMN payment_links.fee_amount_aed IS 'DECODE marketplace fee (11% of original amount)';
+COMMENT ON COLUMN payment_links.service_amount_aed IS 'Original service amount before marketplace fee';
+COMMENT ON COLUMN payment_links.decode_amount_aed IS 'DECODE platform amount (9% of service amount)';
 COMMENT ON COLUMN payment_links.total_amount_aed IS 'Total amount customer pays (original + fee)';
 COMMENT ON FUNCTION auto_deactivate_expired_links() IS 'Automatically deactivates payment links after 7 days';
 

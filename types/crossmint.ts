@@ -20,8 +20,8 @@ export interface CrossmintPaymentLink {
   description: string | null;
   // Original amount fields
   amount_aed: number; // Legacy field, kept for compatibility
-  original_amount_aed?: number; // New: original service amount
-  fee_amount_aed?: number; // New: marketplace fee (11%)
+  service_amount_aed?: number; // New: pure service amount
+  decode_amount_aed?: number; // New: decode platform amount (9%)
   total_amount_aed?: number; // New: total customer pays
   amount_usd?: number; // USD equivalent for international payments
   expiration_date: string;
@@ -148,13 +148,13 @@ export interface CrossmintWebhookPayload {
 // Fee calculation utilities
 export interface FeeCalculation {
   originalAmount: number;
-  feePercentage: number; // 11
+  feePercentage: number; // 9
   feeAmount: number;
   totalAmount: number;
 }
 
 export function calculateMarketplaceFee(originalAmount: number): FeeCalculation {
-  const feePercentage = 11;
+  const feePercentage = 9;
   const feeAmount = Math.round(originalAmount * (feePercentage / 100) * 100) / 100;
   const totalAmount = Math.round((originalAmount + feeAmount) * 100) / 100;
   

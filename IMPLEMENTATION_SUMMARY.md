@@ -6,7 +6,7 @@ Complete implementation summary for the DECODE beauty marketplace platform trans
 
 ### Objective
 Replace Crossmint PayButton with headless checkout implementation to enable:
-- 11% marketplace fee model with automatic distribution
+- 9% marketplace fee model with automatic distribution
 - Crypto wallet creation for beauty professionals
 - USDC-focused payment processing
 - 7-day payment link expiration
@@ -165,7 +165,7 @@ decode-app/
 
 ### Payment Creation Flow
 1. Beauty professional creates payment link
-2. System calculates 11% marketplace fee automatically
+2. System calculates 9% marketplace fee automatically
 3. Wallet created automatically if user doesn't have one
 4. Payment link stored with fee breakdown
 
@@ -179,7 +179,7 @@ decode-app/
 
 ### Marketplace Fee Distribution
 1. Customer payment received (total amount)
-2. Marketplace fee collected (11%)
+2. Marketplace fee collected (9%)
 3. Original amount transferred to beauty professional
 4. All transactions recorded in audit trail
 
@@ -188,8 +188,8 @@ decode-app/
 ```typescript
 // Example: AED 250 service
 const originalAmount = 250.00;  // Beauty professional amount
-const feeAmount = 27.50;        // 11% marketplace fee
-const totalAmount = 277.50;     // Customer pays total
+const feeAmount = 22.50;        // 9% marketplace fee
+const totalAmount = 272.50;     // Customer pays total
 
 // Database storage
 payment_links: {
@@ -215,7 +215,7 @@ wallet_transactions: [
 - **Test Coverage**: Complete integration testing suite
 
 ### Business Metrics
-- **Marketplace Fee**: 11% automatic collection
+- **Marketplace Fee**: 9% automatic collection
 - **Payment Link Expiration**: 7 days
 - **Supported Cryptocurrencies**: USDC (primary), ETH, MATIC
 - **Wallet Creation**: Automatic for all beauty professionals
@@ -306,7 +306,7 @@ wallet_transactions: [
 ### Technical Requirements
 - ✅ Crossmint PayButton completely replaced
 - ✅ Headless checkout implemented with crypto selection
-- ✅ 11% marketplace fee model automated
+- ✅ 9% marketplace fee model automated
 - ✅ Wallet creation and management functional
 - ✅ Complete transaction tracking implemented
 
