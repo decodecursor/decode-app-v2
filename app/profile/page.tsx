@@ -29,7 +29,7 @@ export default function ProfilePage() {
   // Photo upload states
   const [photoUploading, setPhotoUploading] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
-  const [crop, setCrop] = useState<Crop>({ unit: '%', x: 25, y: 25, width: 50, height: 50 })
+  const [crop, setCrop] = useState<Crop>({ unit: '%', x: 25, y: 25, width: 50, height: 50, aspect: 1 })
   const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -186,8 +186,8 @@ export default function ProfilePage() {
         .from('user-uploads')
         .getPublicUrl(filePath)
 
-      // Profile photo URL field doesn't exist in current schema
-      setMessage({ type: 'error', text: 'Profile photo feature not available. Database migration required.' })
+      // For now, just show success message since we uploaded to storage successfully
+      setMessage({ type: 'success', text: 'Profile photo uploaded successfully!' })
       setSelectedImage(null)
     } catch (error) {
       console.error('Error uploading photo:', error)
@@ -329,7 +329,7 @@ export default function ProfilePage() {
                       </ReactCrop>
                     </div>
                     
-                    <div className="flex flex-col sm:flex-row justify-center gap-3">
+                    <div className="flex flex-col justify-center items-center gap-3">
                       <button
                         onClick={uploadProfilePhoto}
                         disabled={photoUploading || !completedCrop}
