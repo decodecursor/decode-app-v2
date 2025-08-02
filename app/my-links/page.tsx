@@ -64,7 +64,7 @@ function MyLinksContent() {
       await fetchPaymentLinks(user.id)
       
       // Set up real-time subscription for payment status changes
-      console.log('🔄 Setting up real-time subscription for user:', user.id);
+      console.log('🔄 Setting up real-time subscription for user:', user.id); // Force deployment
       const subscription = supabase
         .channel('payment_links_changes')
         .on('postgres_changes', 
