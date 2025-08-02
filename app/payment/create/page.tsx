@@ -9,7 +9,7 @@ import { calculateMarketplaceFee } from '@/types/crossmint'
 
 export default function CreatePayment() {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
@@ -188,17 +188,7 @@ export default function CreatePayment() {
     setError('')
   }
 
-  if (loading) {
-    return (
-      <div className="cosmic-bg">
-        <div className="min-h-screen flex items-center justify-center px-4 py-8">
-          <div className="cosmic-card text-center">
-            <div className="cosmic-body">Loading...</div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // Loading state removed - show content immediately
 
   return (
     <div className="cosmic-bg">

@@ -61,7 +61,7 @@ function ConnectAccountOnboarding({
 export default function BankAccountPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [stripeAccountId, setStripeAccountId] = useState<string | null>(null)
   const [stripeConnectInstance, setStripeConnectInstance] = useState<StripeConnectInstance | null>(null)
   const [accountOnboardingComplete, setAccountOnboardingComplete] = useState(false)

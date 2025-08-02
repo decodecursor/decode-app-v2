@@ -15,7 +15,7 @@ export function SplitTransactionDisplay({
 }: SplitTransactionDisplayProps) {
   const [splitTransactions, setSplitTransactions] = useState<SplitTransaction[]>([])
   const [splitSummary, setSplitSummary] = useState<TransactionSplitSummary | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [expandedSplit, setExpandedSplit] = useState<string | null>(null)
 
@@ -102,14 +102,7 @@ export function SplitTransactionDisplay({
     return 'Unknown Recipient'
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
-        <span className="ml-3 text-gray-600">Loading split details...</span>
-      </div>
-    )
-  }
+  // Loading state removed - show content immediately
 
   if (error) {
     return (

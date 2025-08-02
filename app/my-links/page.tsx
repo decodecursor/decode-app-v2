@@ -23,7 +23,7 @@ interface PaymentLink {
 
 function MyLinksContent() {
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   // Format amount with thousands separators 
   const formatAmount = (amount: number): string => {
@@ -633,18 +633,7 @@ function MyLinksContent() {
     setCurrentQRLink(null)
   }
 
-  if (loading) {
-    return (
-      <div className="cosmic-bg">
-        <div className="min-h-screen flex items-center justify-center px-4 py-8">
-          <div className="cosmic-card text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
-            <div className="cosmic-body text-white">Loading your payment links...</div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // Loading state removed - show content immediately
 
   return (
     <div className="cosmic-bg">

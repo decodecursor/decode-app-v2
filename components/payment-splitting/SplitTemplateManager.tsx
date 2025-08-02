@@ -19,7 +19,7 @@ export function SplitTemplateManager({
   paymentLinkId
 }: SplitTemplateManagerProps) {
   const [templates, setTemplates] = useState<SplitTemplate[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [selectedTemplate, setSelectedTemplate] = useState<SplitTemplate | null>(null)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -126,14 +126,7 @@ export function SplitTemplateManager({
     return { name, contact, amount }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-        <span className="ml-3 text-gray-600">Loading templates...</span>
-      </div>
-    )
-  }
+  // Loading state removed - show content immediately
 
   return (
     <div className="space-y-6">

@@ -236,7 +236,7 @@ function PaymentForm({
 
 export function CustomPaymentForm(props: CustomPaymentFormProps) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [realClientName, setRealClientName] = useState<string | null>(null);
 
@@ -288,16 +288,7 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
     createPaymentIntent();
   }, [props.paymentLinkId]);
 
-  if (loading) {
-    return (
-      <div className="cosmic-bg min-h-screen flex items-center justify-center px-4">
-        <div className="cosmic-card-login max-w-md w-full text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="cosmic-body text-white">Preparing payment...</p>
-        </div>
-      </div>
-    );
-  }
+  // Loading state removed - show content immediately
 
   if (error || !clientSecret) {
     return (

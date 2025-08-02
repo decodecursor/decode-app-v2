@@ -12,7 +12,7 @@ type TimePeriod = 'today' | 'week' | 'month' | 'quarter' | 'year' | 'all'
 
 export default function AnalyticsPage() {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('month')
   const [user, setUser] = useState<any>(null)

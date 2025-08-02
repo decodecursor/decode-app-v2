@@ -8,7 +8,7 @@ import Link from 'next/link'
 
 export default function WalletPage() {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const getUser = async () => {
@@ -24,13 +24,7 @@ export default function WalletPage() {
     getUser()
   }, [])
 
-  if (loading) {
-    return (
-      <div className="cosmic-bg min-h-screen flex items-center justify-center">
-        <div className="text-white">Loading...</div>
-      </div>
-    )
-  }
+  // Loading state removed - show content immediately
 
   if (!user) {
     return null

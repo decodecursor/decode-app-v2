@@ -11,7 +11,7 @@ export default function Dashboard() {
   const [userRole, setUserRole] = useState<string | null>(null)
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null)
   const [companyName, setCompanyName] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -186,13 +186,7 @@ export default function Dashboard() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="cosmic-bg min-h-screen flex items-center justify-center">
-        <div className="text-white">Loading...</div>
-      </div>
-    )
-  }
+  // Loading state removed - show content immediately
 
   return (
     <div className="cosmic-bg">

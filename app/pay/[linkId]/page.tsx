@@ -30,7 +30,7 @@ interface PaymentLinkData {
 export default function PaymentPage() {
   const [paymentData, setPaymentData] = useState<PaymentLinkData | null>(null)
   const [crossmintOrder, setCrossmintOrder] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'crossmint'>('stripe')
 
   // Format amount with thousands separators
@@ -285,16 +285,7 @@ export default function PaymentPage() {
     fetchPaymentData()
   }, [linkId])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading payment...</p>
-        </div>
-      </div>
-    )
-  }
+  // Loading state removed - show content immediately
 
   if (error || !paymentData) {
     return (

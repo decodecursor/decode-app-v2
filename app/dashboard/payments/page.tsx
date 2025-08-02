@@ -51,7 +51,7 @@ export default function PaymentHistoryPage() {
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([])
   const [transactions, setTransactions] = useState<PaymentTransaction[]>([])
   const [stats, setStats] = useState<PaymentStats | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
@@ -309,23 +309,7 @@ export default function PaymentHistoryPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="cosmic-bg min-h-screen">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="cosmic-card">
-            <div className="animate-pulse">
-              <div className="h-8 bg-white/20 rounded mb-4"></div>
-              <div className="space-y-3">
-                <div className="h-4 bg-white/20 rounded w-3/4"></div>
-                <div className="h-4 bg-white/20 rounded w-1/2"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // Loading state removed - show content immediately
 
   if (error) {
     return (
