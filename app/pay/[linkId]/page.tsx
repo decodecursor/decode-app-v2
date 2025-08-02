@@ -265,7 +265,7 @@ export default function PaymentPage() {
             id: data.creator_id || '', 
             full_name: 'Beauty Professional', 
             email: '', 
-            professional_center_name: null 
+            company_name: null 
           }
         }
 
