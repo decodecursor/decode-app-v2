@@ -63,6 +63,7 @@ function MyLinksContent() {
       await fetchPaymentLinks(user.id)
       
       // Set up real-time subscription for payment status changes
+      console.log('🔄 Setting up real-time subscription for user:', user.id);
       const subscription = supabase
         .channel('payment_links_changes')
         .on('postgres_changes', 
@@ -73,7 +74,13 @@ function MyLinksContent() {
             filter: `creator_id=eq.${user.id}`
           }, 
           (payload) => {
-            console.log('💖 Real-time payment update:', payload)
+            console.log('💖 Real-time payment update received:', payload)
+            console.log('💖 Payload details:', {
+              event_type: payload.eventType,
+              old_is_paid: payload.old?.is_paid,
+              new_is_paid: payload.new?.is_paid,
+              link_id: payload.new?.id
+            })
             
             // Check if is_paid changed to true
             if (payload.new.is_paid === true && payload.old.is_paid === false) {
@@ -88,20 +95,32 @@ function MyLinksContent() {
               }, 3000)
             }
             
-            // Update the payment link in state
-            setPaymentLinks(prev => prev.map(link => 
-              link.id === payload.new.id 
-                ? {
-                    ...link,
-                    is_paid: payload.new.is_paid || false,
-                    is_active: payload.new.is_active || false,
-                    payment_status: payload.new.is_paid ? 'paid' : 'unpaid'
-                  }
-                : link
-            ))
+            // Always update the payment link in state for any change
+            console.log('🔄 Updating payment link state...')
+            setPaymentLinks(prev => {
+              const updated = prev.map(link => 
+                link.id === payload.new.id 
+                  ? {
+                      ...link,
+                      is_paid: payload.new.is_paid || false,
+                      is_active: payload.new.is_active || false,
+                      payment_status: payload.new.is_paid ? 'paid' : 'unpaid'
+                    }
+                  : link
+              )
+              console.log('✅ Payment links state updated')
+              return updated
+            })
           }
         )
-        .subscribe()
+        .subscribe((status) => {
+          console.log('📡 Real-time subscription status:', status)
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Successfully subscribed to real-time updates')
+          } else if (status === 'SUBSCRIPTION_ERROR') {
+            console.error('❌ Real-time subscription error')
+          }
+        })
         
       // Cleanup subscription
       return () => {

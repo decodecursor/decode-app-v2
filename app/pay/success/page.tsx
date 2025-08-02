@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 
 interface PaymentDetails {
   id: string
@@ -24,19 +25,23 @@ function PaymentSuccessContent() {
     try {
       console.log('✅ SUCCESS PAGE: Marking payment as paid for link:', paymentLinkId);
       
-      // Try to update is_paid to true (backwards compatible)
+      // Try to update is_paid to true using admin client for reliable real-time updates
       try {
-        const { error } = await (supabase as any)
+        console.log('🔄 Updating payment status with admin client...');
+        const { error } = await (supabaseAdmin as any)
           .from('payment_links')
           .update({ is_paid: true })
           .eq('id', paymentLinkId);
 
         if (error) {
           console.error('❌ Failed to mark payment as paid (column may not exist yet):', error);
+          console.error('❌ Error details:', JSON.stringify(error, null, 2));
         } else {
-          console.log('✅ Payment link marked as paid successfully');
+          console.log('✅ Payment link marked as paid successfully with admin client');
+          console.log('✅ Real-time update should be triggered now');
         }
       } catch (error) {
+        console.error('❌ Exception during payment status update:', error);
         console.log('ℹ️ is_paid column not available yet, payment tracking will work after database migration');
       }
       
