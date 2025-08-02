@@ -195,12 +195,7 @@ export default function PaymentPage() {
             description,
             payment_status,
             paid_at,
-            creator:creator_id (
-              id,
-              full_name,
-              email,
-              professional_center_name
-            )
+            creator_id
           `)
           .eq('id', linkId)
           .single()
@@ -266,9 +261,12 @@ export default function PaymentPage() {
           isPaid,
           payment_status: data.payment_status || 'unpaid',
           paid_at: data.paid_at,
-          creator: Array.isArray(data.creator) 
-            ? (data.creator[0] || { id: '', full_name: null, email: '', professional_center_name: null })
-            : (data.creator || { id: '', full_name: null, email: '', professional_center_name: null })
+          creator: { 
+            id: data.creator_id || '', 
+            full_name: 'Beauty Professional', 
+            email: '', 
+            professional_center_name: null 
+          }
         }
 
         setPaymentData(transformedData)
