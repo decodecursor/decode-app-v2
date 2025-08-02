@@ -210,7 +210,7 @@ function MyLinksContent() {
       }
 
       // Transform the data to include fields expected by PaymentLink interface
-      const paymentLinksWithStatus = (paymentLinksData || []).map(link => {
+      const paymentLinksWithStatus = (paymentLinksData || []).map((link: any) => {
         const isPaid = link?.is_paid || false
         return {
           id: link?.id || '',
