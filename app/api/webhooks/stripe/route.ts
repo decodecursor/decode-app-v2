@@ -162,7 +162,7 @@ async function handleCheckoutSessionManually(session: Stripe.Checkout.Session, p
   }
 
   // Mark payment link as paid for real-time updates
-  const { error: linkUpdateError } = await supabaseAdmin
+  const { error: linkUpdateError } = await (supabaseAdmin as any)
     .from('payment_links')
     .update({ is_paid: true })
     .eq('id', paymentLinkId);
@@ -204,7 +204,7 @@ async function updateTransactionToCompleted(transaction: any, paymentIntent: Str
   }
 
   // Mark payment link as paid for real-time updates
-  const { error: linkUpdateError } = await supabaseAdmin
+  const { error: linkUpdateError } = await (supabaseAdmin as any)
     .from('payment_links')
     .update({ is_paid: true })
     .eq('id', transaction.payment_link_id);
