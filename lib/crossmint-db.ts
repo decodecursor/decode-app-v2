@@ -141,7 +141,8 @@ export class CrossmintDatabaseService {
       .single();
 
     if (error) {
-      throw new Error(`Failed to create payment link: ${error.message}`);
+      console.error('❌ Database insert error:', error);
+      throw new Error(`Failed to create payment link: ${error.message} (Code: ${error.code})`);
     }
 
     return {
