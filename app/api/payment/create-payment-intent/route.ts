@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { stripeService } from '@/lib/stripe';
 
 interface CreatePaymentIntentRequest {
@@ -117,15 +118,14 @@ export async function POST(request: NextRequest) {
       description: `${paymentLink.title || 'Beauty service payment'} (AED ${paymentLink.amount_aed})`
     });
 
-    // Log transaction attempt in database - using correct field names
-    const { error: logError } = await supabase
+    // Log transaction attempt in database - using admin client to bypass RLS
+    const { error: logError } = await supabaseAdmin
       .from('transactions')
       .insert({
         payment_link_id: paymentLinkId,
         amount_aed: paymentLink.amount_aed,
         payment_processor: 'stripe',
         processor_transaction_id: paymentIntent.paymentIntentId,
-        processor_payment_id: paymentIntent.paymentIntentId, // Store in both fields for compatibility
         status: 'pending',
         buyer_email: customerEmail,
         created_at: new Date().toISOString(),

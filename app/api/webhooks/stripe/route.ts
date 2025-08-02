@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripeService } from '@/lib/stripe';
 import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import type Stripe from 'stripe';
 
 export async function POST(request: NextRequest) {
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
     console.log(`🔔 Stripe webhook received: ${event.type} (${event.id})`);
     
     // Check for duplicate webhook processing (idempotency)
-    const { data: existingEvent } = await supabase
+    const { data: existingEvent } = await supabaseAdmin
       .from('webhook_events')
       .select('id, status')
       .eq('event_id', event.id)
@@ -123,7 +124,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 // Fallback manual transaction handling
 async function handleCheckoutSessionManually(session: Stripe.Checkout.Session, paymentLinkId: string) {
   // Find the transaction by session ID (most reliable method)
-  const { data: transaction, error: findError } = await supabase
+  const { data: transaction, error: findError } = await supabaseAdmin
     .from('transactions')
     .select('*')
     .eq('payment_link_id', paymentLinkId)
@@ -136,11 +137,10 @@ async function handleCheckoutSessionManually(session: Stripe.Checkout.Session, p
   }
 
   // Update transaction to completed status
-  const { error: updateError } = await supabase
+  const { error: updateError } = await supabaseAdmin
     .from('transactions')
     .update({
       status: 'completed',
-      processor_payment_id: session.payment_intent as string,
       processor_transaction_id: session.payment_intent as string,
       completed_at: new Date().toISOString(),
       buyer_email: session.customer_email,
@@ -169,7 +169,7 @@ async function handleCheckoutSessionManually(session: Stripe.Checkout.Session, p
 
 // Helper function to update transaction to completed status
 async function updateTransactionToCompleted(transaction: any, paymentIntent: Stripe.PaymentIntent) {
-  const { error: updateError } = await supabase
+  const { error: updateError } = await supabaseAdmin
     .from('transactions')
     .update({
       status: 'completed',
@@ -208,7 +208,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       console.warn('⚠️ No payment_link_id in metadata, attempting to find by payment intent ID');
       
       // Try to find transaction by payment intent ID alone
-      const { data: transactionByIntent, error: intentError } = await supabase
+      const { data: transactionByIntent, error: intentError } = await supabaseAdmin
         .from('transactions')
         .select('*')
         .eq('processor_transaction_id', paymentIntent.id)
@@ -228,7 +228,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     console.log('   - payment_link_id:', paymentLinkId);
     console.log('   - processor_transaction_id:', paymentIntent.id);
     
-    const { data: transaction, error: findError } = await supabase
+    const { data: transaction, error: findError } = await supabaseAdmin
       .from('transactions')
       .select('*')
       .eq('payment_link_id', paymentLinkId)
@@ -240,7 +240,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       console.error('❌ Transaction not found, checking all transactions for this payment link');
       
       // List all transactions for debugging
-      const { data: allTx, error: allError } = await supabase
+      const { data: allTx, error: allError } = await supabaseAdmin
         .from('transactions')
         .select('id, payment_link_id, processor_transaction_id, status')
         .eq('payment_link_id', paymentLinkId);
@@ -273,11 +273,11 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
     }
 
     // Find the specific transaction
-    const { data: transaction, error: findError } = await supabase
+    const { data: transaction, error: findError } = await supabaseAdmin
       .from('transactions')
       .select('*')
       .eq('payment_link_id', paymentLinkId)
-      .eq('processor_payment_id', paymentIntent.id)
+      .eq('processor_transaction_id', paymentIntent.id)
       .eq('payment_processor', 'stripe')
       .single();
 
@@ -323,7 +323,7 @@ async function logWebhookEvent(event: Stripe.Event, signature: string): Promise<
     const paymentLinkId = eventData.metadata?.payment_link_id;
     
     // Log webhook event to database with all required fields
-    await supabase.from('webhook_events').upsert({
+    await supabaseAdminAdmin.from('webhook_events').upsert({
       event_id: event.id,
       event_type: event.type,
       event_data: eventData,
@@ -348,7 +348,7 @@ async function logWebhookEvent(event: Stripe.Event, signature: string): Promise<
 // Mark webhook event processing status
 async function markWebhookEventStatus(eventId: string, status: string, errorMessage?: string): Promise<void> {
   try {
-    await supabase
+    await supabaseAdmin
       .from('webhook_events')
       .update({
         status: status,

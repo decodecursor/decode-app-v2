@@ -22,109 +22,35 @@ function PaymentSuccessContent() {
   // Manual transaction status update as fallback for webhook failures
   const manualTransactionUpdate = async (paymentLinkId: string, paymentIntentId?: string) => {
     try {
-      console.log('🔄 SUCCESS PAGE: Attempting manual transaction status update');
+      console.log('🔄 SUCCESS PAGE: Calling transaction update API');
       console.log('   - Payment Link ID:', paymentLinkId);
       console.log('   - Payment Intent ID:', paymentIntentId || 'not provided');
       
-      // First, check if ANY transaction exists for this payment link
-      const { data: existingTransactions, error: fetchError } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('payment_link_id', paymentLinkId);
+      // Call the API to update/create transaction
+      const response = await fetch('/api/payment/update-transaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          paymentLinkId,
+          paymentIntentId
+        })
+      });
 
-      if (fetchError) {
-        console.error('❌ SUCCESS PAGE: Error fetching transactions:', fetchError);
-        return;
-      }
-
-      console.log('🔍 SUCCESS PAGE: Total existing transactions:', existingTransactions?.length || 0);
-
-      // If no transactions exist at all, create one
-      if (!existingTransactions || existingTransactions.length === 0) {
-        console.log('⚠️ SUCCESS PAGE: No transactions found - creating new completed transaction');
-        
-        // Get payment link details
-        const { data: paymentLink, error: linkError } = await supabase
-          .from('payment_links')
-          .select('*')
-          .eq('id', paymentLinkId)
-          .single();
-          
-        if (linkError || !paymentLink) {
-          console.error('❌ Cannot create transaction - payment link not found:', linkError);
-          return;
-        }
-        
-        // Create a completed transaction
-        const newTransaction = {
-          payment_link_id: paymentLinkId,
-          amount_aed: paymentLink.amount_aed,
-          status: 'completed',
-          payment_processor: 'stripe',
-          processor_transaction_id: paymentIntentId || `manual_${Date.now()}`,
-          processor_payment_id: paymentIntentId || `manual_${Date.now()}`,
-          completed_at: new Date().toISOString(),
-          created_at: new Date().toISOString(),
-          metadata: {
-            created_from: 'success_page_fallback',
-            payment_intent: paymentIntentId,
-            client_name: paymentLink.client_name,
-            service_title: paymentLink.title
-          }
-        };
-        
-        const { data: createdTx, error: createError } = await supabase
-          .from('transactions')
-          .insert(newTransaction)
-          .select()
-          .single();
-          
-        if (createError) {
-          console.error('❌ Failed to create transaction:', createError);
-        } else {
-          console.log('✅ Created new completed transaction:', createdTx.id);
-        }
-        return;
-      }
-
-      // Check if there are pending transactions to update
-      const pendingTransactions = existingTransactions.filter(tx => tx.status === 'pending');
-      console.log('🔍 SUCCESS PAGE: Pending transactions to update:', pendingTransactions.length);
-
-      // Update pending transactions to completed
-      for (const transaction of pendingTransactions) {
-        console.log('🔄 SUCCESS PAGE: Updating transaction:', transaction.id);
-        
-        const updateData: any = {
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        
-        // If we have a payment intent ID and the transaction doesn't have one, add it
-        if (paymentIntentId && !transaction.processor_transaction_id) {
-          updateData.processor_transaction_id = paymentIntentId;
-          updateData.processor_payment_id = paymentIntentId;
-        }
-        
-        const { error: updateError } = await supabase
-          .from('transactions')
-          .update(updateData)
-          .eq('id', transaction.id);
-
-        if (updateError) {
-          console.error('❌ SUCCESS PAGE: Failed to update transaction:', transaction.id, updateError);
-        } else {
-          console.log('✅ SUCCESS PAGE: Successfully updated transaction:', transaction.id);
-        }
-      }
+      const result = await response.json();
       
-      // Log final status
-      const completedCount = existingTransactions.filter(tx => tx.status === 'completed').length + pendingTransactions.length;
-      console.log(`✅ SUCCESS PAGE: Payment complete - ${completedCount} completed transaction(s)`);
+      if (!response.ok) {
+        console.error('❌ SUCCESS PAGE: Transaction update API failed:', result.error);
+        return;
+      }
+
+      console.log('✅ SUCCESS PAGE: Transaction update successful');
+      console.log(`   - Action: ${result.action}`);
+      console.log(`   - ${result.action === 'created' ? 'Created new transaction' : `Updated ${result.updatedCount} transaction(s)`}`);
       
     } catch (error) {
-      console.error('❌ SUCCESS PAGE: Manual transaction update failed:', error);
+      console.error('❌ SUCCESS PAGE: Transaction update API call failed:', error);
     }
   };
 

@@ -254,7 +254,7 @@ export default function PaymentPage() {
           // First, check ALL transactions for this payment link
           const { data: allTransactions, error: allTxError } = await supabase
             .from('transactions')
-            .select('id, status, payment_link_id, completed_at, payment_processor, processor_transaction_id, processor_payment_id')
+            .select('id, status, payment_link_id, completed_at, payment_processor, processor_transaction_id')
             .eq('payment_link_id', linkId)
           
           if (allTxError) {
