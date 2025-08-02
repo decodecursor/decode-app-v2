@@ -32,7 +32,6 @@ export async function generateUniqueShortId(
       const exists = await checkExists(shortId);
       
       if (!exists) {
-        console.log(`✅ Generated unique short ID: ${shortId}`);
         return shortId;
       }
       
