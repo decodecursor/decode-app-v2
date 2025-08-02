@@ -143,23 +143,29 @@ function MyLinksContent() {
             const currentTime = Date.now();
             
             currentLinks.forEach((currentLink: any) => {
-              const existingLink = paymentLinks.find(link => link.id === currentLink.id);
-              
-              // Check if payment status changed to paid
-              if (existingLink && !existingLink.is_paid && currentLink.is_paid) {
-                console.log('🎉 POLLING: Payment completed! Triggering heart animation for:', currentLink.id);
+              // Use functional state update to get current state
+              setPaymentLinks(prev => {
+                const existingLink = prev.find(link => link.id === currentLink.id);
                 
-                // Trigger heart animation
-                setHeartAnimatingId(currentLink.id);
-                setTimeout(() => setHeartAnimatingId(null), 3000);
+                // Check if payment status changed to paid
+                if (existingLink && !existingLink.is_paid && currentLink.is_paid) {
+                  console.log('🎉 POLLING: Payment completed! Triggering heart animation for:', currentLink.id);
+                  
+                  // Trigger heart animation
+                  setHeartAnimatingId(currentLink.id);
+                  setTimeout(() => setHeartAnimatingId(null), 3000);
+                  
+                  // Update this link to paid
+                  return prev.map(link => 
+                    link.id === currentLink.id 
+                      ? { ...link, is_paid: true, payment_status: 'paid' as 'paid' }
+                      : link
+                  );
+                }
                 
-                // Update state
-                setPaymentLinks(prev => prev.map(link => 
-                  link.id === currentLink.id 
-                    ? { ...link, is_paid: true, payment_status: 'paid' as 'paid' }
-                    : link
-                ));
-              }
+                // No change needed
+                return prev;
+              });
             });
             
             setLastCheckedTimestamp(currentTime);
