@@ -161,9 +161,19 @@ async function handleCheckoutSessionManually(session: Stripe.Checkout.Session, p
     throw new Error(`Failed to update transaction ${transaction.id}: ${updateError.message}`);
   }
 
-  // NOTE: Can't update payment_status column since it doesn't exist
-  console.log('✅ Payment marked as completed in transactions table');
+  // Mark payment link as paid for real-time updates
+  const { error: linkUpdateError } = await supabaseAdmin
+    .from('payment_links')
+    .update({ is_paid: true })
+    .eq('id', paymentLinkId);
 
+  if (linkUpdateError) {
+    console.error('❌ Failed to mark payment link as paid:', linkUpdateError);
+  } else {
+    console.log('✅ Payment link marked as paid - real-time update triggered');
+  }
+
+  console.log('✅ Payment marked as completed in transactions table');
   console.log('✅ Transaction completed manually:', transaction.id);
 }
 
@@ -193,7 +203,18 @@ async function updateTransactionToCompleted(transaction: any, paymentIntent: Str
     throw new Error(`Failed to update transaction ${transaction.id}: ${updateError.message}`);
   }
 
-  // NOTE: Can't update payment_status column since it doesn't exist
+  // Mark payment link as paid for real-time updates
+  const { error: linkUpdateError } = await supabaseAdmin
+    .from('payment_links')
+    .update({ is_paid: true })
+    .eq('id', transaction.payment_link_id);
+
+  if (linkUpdateError) {
+    console.error('❌ Failed to mark payment link as paid:', linkUpdateError);
+  } else {
+    console.log('✅ Payment link marked as paid - real-time update triggered');
+  }
+
   console.log('✅ Payment marked as completed in transactions table');
   console.log('✅ Payment intent processed successfully:', transaction.id);
 }
