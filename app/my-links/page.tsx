@@ -87,8 +87,8 @@ function MyLinksContent() {
               link_id: payload.new?.id
             })
             
-            // Check if is_paid changed to true
-            if (payload.new.is_paid === true && payload.old.is_paid === false) {
+            // Check if is_paid changed to true (handle null/undefined as false)
+            if (payload.new.is_paid === true && !payload.old?.is_paid) {
               console.log('🎉 Payment completed! Triggering heart animation for:', payload.new.id)
               
               // Trigger heart animation
