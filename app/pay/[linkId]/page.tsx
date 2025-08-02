@@ -177,47 +177,30 @@ export default function PaymentPage() {
       await fetchPaymentLinkDirect()
     }
 
-    // Fallback function for direct Supabase query
+    // Fetch payment link via API route (bypasses RLS)
     const fetchPaymentLinkDirect = async () => {
       try {
-        console.log('🔍 DEBUG: Direct Supabase query for linkId:', linkId)
+        console.log('🔍 DEBUG: Fetching payment link via API for linkId:', linkId)
         
-        const { data, error: fetchError } = await supabase
-          .from('payment_links')
-          .select(`
-            id,
-            title,
-            amount_aed,
-            client_name,
-            expiration_date,
-            is_active,
-            created_at,
-            description,
-            payment_status,
-            paid_at,
-            creator_id
-          `)
-          .eq('id', linkId)
-          .single()
+        const response = await fetch(`/api/payment/get-link?id=${linkId}`)
+        const result = await response.json()
 
-        console.log('🔍 DEBUG: Direct query result:', { data, error: fetchError })
+        console.log('🔍 DEBUG: API response:', result)
 
-        if (fetchError) {
-          console.error('❌ DEBUG: Supabase query failed:', {
-            error: fetchError,
-            code: fetchError?.code,
-            message: fetchError?.message,
-            details: fetchError?.details,
-            hint: fetchError?.hint,
-            status: fetchError?.status
+        if (!response.ok || result.error) {
+          console.error('❌ DEBUG: API request failed:', {
+            status: response.status,
+            error: result.error,
+            details: result.details
           })
-          setError(`Payment link error: ${fetchError.message || 'Failed to load'}`)
+          setError(result.error || 'Payment link not found')
           setErrorType('not-found')
           return
         }
 
+        const data = result.data
         if (!data) {
-          console.error('❌ DEBUG: No data returned from query')
+          console.error('❌ DEBUG: No data returned from API')
           setError('Payment link not found')
           setErrorType('not-found')
           return
