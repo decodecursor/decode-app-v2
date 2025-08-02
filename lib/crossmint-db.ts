@@ -107,15 +107,19 @@ export class CrossmintDatabaseService {
    * Create payment link with marketplace fee calculation
    */
   async createPaymentLink(request: CreatePaymentLinkRequest): Promise<CreatePaymentLinkResponse> {
+    console.log('🔄 Creating payment link - step 1: calculating fees');
     const feeCalculation = calculateMarketplaceFee(request.original_amount_aed);
+    console.log('✅ Fee calculation done:', feeCalculation);
     
-    // Generate UUID for database primary key
+    console.log('🔄 Creating payment link - step 2: generating UUID');
     const uuid = uuidv4();
+    console.log('✅ UUID generated:', uuid);
     
-    // Generate unique 8-character short ID for public URLs
+    console.log('🔄 Creating payment link - step 3: generating short ID');
     const shortId = await generateUniqueShortId(
       (id) => this.shortIdExists(id)
     );
+    console.log('✅ Short ID generated:', shortId);
     
     // Set expiration to 7 days from now
     const expirationDate = new Date();
@@ -139,6 +143,9 @@ export class CrossmintDatabaseService {
       is_active: true
     };
 
+    console.log('🔄 Creating payment link - step 4: inserting into database');
+    console.log('📝 Payment link data:', paymentLinkData);
+    
     const { data, error } = await supabase
       .from('payment_links')
       .insert(paymentLinkData)
@@ -147,8 +154,16 @@ export class CrossmintDatabaseService {
 
     if (error) {
       console.error('❌ Database insert error:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
       throw new Error(`Failed to create payment link: ${error.message} (Code: ${error.code})`);
     }
+    
+    console.log('✅ Database insert successful:', data?.id);
 
     return {
       ...data,
