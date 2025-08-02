@@ -14,7 +14,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
-  const [recentPayLinks, setRecentPayLinks] = useState<any[]>([])
   const dropdownRef = useRef<HTMLDivElement>(null)
   const hoverTimeout = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
@@ -451,40 +450,6 @@ export default function Dashboard() {
         <div className="mx-auto space-y-8 mt-[70vh]" style={{maxWidth: '3000px'}}>
           
 
-          {/* Recent Activity */}
-          <div className="cosmic-card">
-            <h2 className="cosmic-heading mb-4 text-white">Recent Activity</h2>
-            {recentPayLinks.length > 0 ? (
-              <div className="space-y-3">
-                {recentPayLinks.map((payLink) => (
-                  <div key={payLink.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg backdrop-blur">
-                    <div className="flex-1">
-                      <h3 className="text-white font-medium text-sm">{payLink.title || 'Untitled PayLink'}</h3>
-                      <p className="text-gray-300 text-xs mt-1">
-                        Created {new Date(payLink.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-green-400 font-semibold">AED {formatAmount(payLink.amount_aed)}</p>
-                      <div className="flex items-center mt-1">
-                        <div className={`w-2 h-2 rounded-full mr-2 ${payLink.is_active ? 'bg-green-400' : 'bg-gray-400'}`}></div>
-                        <span className={`text-xs ${payLink.is_active ? 'text-green-400' : 'text-gray-400'}`}>
-                          {payLink.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="cosmic-body text-white">No PayLinks created yet</p>
-                <p className="cosmic-body text-white text-sm mt-2">
-                  Create your first payment link to get started
-                </p>
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </div>
