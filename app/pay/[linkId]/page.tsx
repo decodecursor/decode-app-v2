@@ -205,8 +205,6 @@ export default function PaymentPage() {
             is_active,
             created_at,
             description,
-            payment_status,
-            paid_at,
             creator_id
           `)
           .eq('id', linkId)
@@ -242,13 +240,11 @@ export default function PaymentPage() {
           return
         }
 
-        // Check payment status using the payment_status field
-        let isPaid = data.payment_status === 'paid'
+        // Since payment_status column doesn't exist, check transaction status
+        let isPaid = false
         console.log('💰 Payment status check:')
-        console.log('- payment_status:', data.payment_status)
         console.log('- is_active:', data.is_active)
-        console.log('- isPaid:', isPaid)
-        console.log('- paid_at:', data.paid_at)
+        console.log('- Will check transactions table for payment status')
         
         // CRITICAL: Fallback check - verify with transactions table
         // This handles cases where webhooks failed to update payment_status
@@ -265,22 +261,16 @@ export default function PaymentPage() {
             console.log('✅ Found completed transaction - marking as paid')
             isPaid = true
             
-            // Update the payment link status (self-healing)
-            await supabase
-              .from('payment_links')
-              .update({ 
-                payment_status: 'paid',
-                paid_at: transactions[0]?.completed_at || new Date().toISOString()
-              })
-              .eq('id', linkId)
+            // Can't update payment_status column since it doesn't exist
+            console.log('✅ Payment link has been paid (found in transactions)')
           }
         }
 
         const transformedData: PaymentLinkData = {
           ...data,
           isPaid,
-          payment_status: data.payment_status || 'unpaid',
-          paid_at: data.paid_at,
+          payment_status: isPaid ? 'paid' : 'unpaid',
+          paid_at: null,
           creator: { 
             id: data.creator_id || '', 
             full_name: 'Beauty Professional', 
