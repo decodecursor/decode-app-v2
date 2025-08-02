@@ -281,7 +281,7 @@ export default function CreatePayment() {
                 <button
                   type="submit"
                   disabled={creating}
-                  className="cosmic-button-primary px-8 py-4 text-lg font-medium"
+                  className="create-paylink-button"
                 >
                   {creating ? 'Creating PayLink...' : 'Create PayLink'}
                 </button>
