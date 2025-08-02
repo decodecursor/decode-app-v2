@@ -241,7 +241,7 @@ export default function PaymentPage() {
         // Try to get is_paid column (backwards compatible)
         let isPaid = false
         try {
-          const { data: isPaidData } = await supabase
+          const { data: isPaidData } = await (supabase as any)
             .from('payment_links')
             .select('is_paid')
             .eq('id', linkId)
