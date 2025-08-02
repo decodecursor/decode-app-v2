@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { supabaseAdmin } from '@/lib/supabase-admin'
 
 interface PaymentDetails {
   id: string
@@ -28,7 +27,7 @@ function PaymentSuccessContent() {
       // Try to update is_paid to true using admin client for reliable real-time updates
       try {
         console.log('🔄 Updating payment status with admin client...');
-        const { error } = await (supabaseAdmin as any)
+        const { error } = await (supabase as any)
           .from('payment_links')
           .update({ is_paid: true })
           .eq('id', paymentLinkId);
