@@ -930,12 +930,21 @@ function MyLinksContent() {
               
               {/* Load More Button */}
               {visibleCount < paymentLinks.length && (
-                <div className="flex justify-center pt-6">
+                <div className="flex justify-center pt-8">
                   <button
                     onClick={() => setVisibleCount(prev => prev + 6)}
-                    className="cosmic-button-secondary px-6 py-3"
+                    className="group relative overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white font-medium py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex flex-col items-center gap-1"
                   >
-                    Load More ({paymentLinks.length - visibleCount} remaining)
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">Load More</span>
+                      <svg className="w-5 h-5 group-hover:translate-y-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                      </svg>
+                    </div>
+                    <span className="text-sm opacity-80">
+                      ({paymentLinks.length - visibleCount} remaining)
+                    </span>
+                    <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
                   </button>
                 </div>
               )}
