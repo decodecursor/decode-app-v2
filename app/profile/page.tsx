@@ -68,11 +68,12 @@ export default function ProfilePage() {
       setUser(user)
 
       // Fetch user profile using available database fields
+      // Type casting to bypass Supabase type checking for profile_photo_url column
       const { data: profileData, error } = await supabase
         .from('users')
         .select('id, email, full_name, professional_center_name, role, profile_photo_url')
         .eq('id', user.id)
-        .single()
+        .single() as { data: UserProfile | null, error: any }
 
       if (error) {
         console.error('Error fetching profile:', error)
