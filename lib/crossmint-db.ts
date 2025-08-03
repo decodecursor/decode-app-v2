@@ -109,6 +109,9 @@ export class CrossmintDatabaseService {
   async createPaymentLink(request: CreatePaymentLinkRequest): Promise<CreatePaymentLinkResponse> {
     const feeCalculation = calculateMarketplaceFee(request.original_amount_aed);
     
+    // Debug: Log fee calculation
+    console.log('🔢 Fee calculation for amount', request.original_amount_aed, ':', feeCalculation);
+    
     // Set expiration to 7 days from now
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 7);
@@ -117,15 +120,25 @@ export class CrossmintDatabaseService {
       client_name: request.client_name,
       title: request.title,
       description: request.description,
+      // Legacy field for backward compatibility (total amount)
       amount_aed: feeCalculation.totalAmount,
-      service_amount_aed: feeCalculation.originalAmount,
-      decode_amount_aed: feeCalculation.feeAmount,
-      total_amount_aed: feeCalculation.totalAmount,
+      // New separate amount fields for analytics
+      service_amount_aed: feeCalculation.originalAmount,  // What professional receives
+      decode_amount_aed: feeCalculation.feeAmount,        // 9% marketplace fee
+      total_amount_aed: feeCalculation.totalAmount,       // What customer pays
       expiration_date: expirationDate.toISOString(),
       creator_id: request.creator_id,
       linked_user_id: request.linked_user_id,
       is_active: true
     };
+
+    // Debug: Log what we're inserting
+    console.log('📝 Inserting payment link data:', {
+      service_amount_aed: paymentLinkData.service_amount_aed,
+      decode_amount_aed: paymentLinkData.decode_amount_aed,
+      total_amount_aed: paymentLinkData.total_amount_aed,
+      amount_aed: paymentLinkData.amount_aed
+    });
 
     const { data, error } = await supabase
       .from('payment_links')
@@ -136,6 +149,15 @@ export class CrossmintDatabaseService {
     if (error) {
       throw new Error(`Failed to create payment link: ${error.message}`);
     }
+
+    // Debug: Log what was actually saved
+    console.log('💾 Saved payment link data:', {
+      id: data.id,
+      service_amount_aed: data.service_amount_aed,
+      decode_amount_aed: data.decode_amount_aed,
+      total_amount_aed: data.total_amount_aed,
+      amount_aed: data.amount_aed
+    });
 
     return {
       ...data,
