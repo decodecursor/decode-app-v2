@@ -3,11 +3,6 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-console.log('🔍 Database service environment check:', {
-  url: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'MISSING',
-  serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? `SET (${process.env.SUPABASE_SERVICE_ROLE_KEY.substring(0, 20)}...)` : 'MISSING'
-});
-
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -53,11 +48,19 @@ export class CrossmintDatabaseService {
    * Get user with wallet information
    */
   async getUserWithWallet(userId: string): Promise<CrossmintUser | null> {
+    console.log('🔍 getUserWithWallet called with:', userId);
+    console.log('🔍 Environment check in function:', {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'MISSING',
+      serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'MISSING'
+    });
+    
     const { data, error } = await supabase
       .from('users')
       .select('*')
       .eq('id', userId)
       .single();
+
+    console.log('🔍 Supabase query result:', { data, error });
 
     if (error) {
       if (error.code === 'PGRST116') return null; // Not found
