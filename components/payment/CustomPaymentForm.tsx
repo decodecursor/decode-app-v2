@@ -102,18 +102,18 @@ function PaymentForm({
             src="/logo.png" 
             alt="DECODE" 
             className="mx-auto mb-2" 
-            style={{height: '32px', filter: 'brightness(0) invert(1)'}} 
+            style={{height: '38px', filter: 'brightness(0) invert(1)'}} 
           />
-          <p className="!text-sm cosmic-body opacity-70">Professional Beauty Services</p>
+          <p className="!text-xs cosmic-body opacity-70">Make Girls More Beautiful</p>
         </div>
 
         {/* Payment Information */}
         <div className="space-y-2 mb-4">
           <div className="text-center space-y-1">
-            <div className="cosmic-body text-base font-medium text-white">
+            <div className="cosmic-body text-base text-white">
               {beautyProfessionalName}
             </div>
-            <div className="cosmic-body text-sm text-white opacity-80">
+            <div className="cosmic-body text-sm font-bold text-white opacity-80">
               {customerName || 'Client Name'}
             </div>
             <div className="cosmic-body text-sm text-white opacity-80">
@@ -127,7 +127,7 @@ function PaymentForm({
 
         {/* Express Checkout (Apple Pay, Google Pay) */}
         <div className="space-y-1 mb-2">
-          <div className="cosmic-input p-2">
+          <div className="cosmic-input p-1">
             <ExpressCheckoutElement
               options={{
                 paymentMethods: {
@@ -336,7 +336,7 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
         '.Label': {
           color: '#ffffff',
           fontSize: '12px', // Reduced label size
-          marginBottom: '2px',
+          marginBottom: '3px', // Increased by 50% (2px * 1.5 = 3px)
         },
         // Force card icons to display side by side
         '.CardNumberInput .IconContainer': {
