@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import ReactCrop, { Crop, PixelCrop } from 'react-image-crop'
-import 'react-image-crop/dist/ReactCrop.css'
+// Removed ReactCrop - using custom Instagram-style interface
 
 interface UserProfile {
   id: string
@@ -29,10 +28,13 @@ export default function ProfilePage() {
   // Photo upload states
   const [photoUploading, setPhotoUploading] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
-  const [crop, setCrop] = useState<Crop>({ unit: '%', x: 25, y: 25, width: 50, height: 50 })
-  const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null)
+  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 })
+  const [imageScale, setImageScale] = useState(1)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const imgRef = useRef<HTMLImageElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // Password change states
   const [currentPassword, setCurrentPassword] = useState('')
@@ -123,26 +125,30 @@ export default function ProfilePage() {
     reader.readAsDataURL(file)
   }
 
-  const getCroppedImg = (image: HTMLImageElement, crop: PixelCrop): Promise<Blob> => {
+  const getCroppedImg = (image: HTMLImageElement): Promise<Blob> => {
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')!
 
-    const scaleX = image.naturalWidth / image.width
-    const scaleY = image.naturalHeight / image.height
+    const size = 300 // Fixed circular crop size
+    canvas.width = size
+    canvas.height = size
 
-    canvas.width = crop.width
-    canvas.height = crop.height
+    // Create circular clipping path
+    ctx.beginPath()
+    ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI)
+    ctx.clip()
 
+    // Calculate scaled dimensions
+    const scaledWidth = image.naturalWidth * imageScale
+    const scaledHeight = image.naturalHeight * imageScale
+
+    // Draw image with position and scale
     ctx.drawImage(
       image,
-      crop.x * scaleX,
-      crop.y * scaleY,
-      crop.width * scaleX,
-      crop.height * scaleY,
-      0,
-      0,
-      crop.width,
-      crop.height
+      imagePosition.x,
+      imagePosition.y,
+      scaledWidth,
+      scaledHeight
     )
 
     return new Promise((resolve) => {
@@ -153,11 +159,11 @@ export default function ProfilePage() {
   }
 
   const uploadProfilePhoto = async () => {
-    if (!completedCrop || !imgRef.current || !profile) return
+    if (!imgRef.current || !profile || !selectedImage) return
 
     setPhotoUploading(true)
     try {
-      const croppedImageBlob = await getCroppedImg(imgRef.current, completedCrop)
+      const croppedImageBlob = await getCroppedImg(imgRef.current)
       
       const fileExt = 'jpg'
       const fileName = `${profile.id}-${Date.now()}.${fileExt}`
@@ -189,12 +195,37 @@ export default function ProfilePage() {
       // For now, just show success message since we uploaded to storage successfully
       setMessage({ type: 'success', text: 'Profile photo uploaded successfully!' })
       setSelectedImage(null)
+      setImagePosition({ x: 0, y: 0 })
+      setImageScale(1)
     } catch (error) {
       console.error('Error uploading photo:', error)
       setMessage({ type: 'error', text: 'Failed to upload profile photo. Check console for details.' })
     } finally {
       setPhotoUploading(false)
     }
+  }
+
+  // Handle mouse/touch events for dragging
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true)
+    setDragStart({ x: e.clientX - imagePosition.x, y: e.clientY - imagePosition.y })
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return
+    setImagePosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y
+    })
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  // Handle zoom slider
+  const handleZoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImageScale(parseFloat(e.target.value))
   }
 
   const changeEmail = async () => {
@@ -303,47 +334,134 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-              {/* Image Cropper */}
+              {/* Instagram-Style Image Editor */}
               {selectedImage && (
                   <div className="mb-8">
-                    <div className="max-w-sm mx-auto mb-6">
-                      <ReactCrop
-                        crop={crop}
-                        onChange={(c) => setCrop(c)}
-                        onComplete={(c) => setCompletedCrop(c)}
-                        aspect={1}
-                        circularCrop
-                      >
-                        <img
-                          ref={imgRef}
-                          src={selectedImage}
-                          alt="Crop preview"
-                          className="max-w-full max-h-64 mx-auto rounded-lg"
-                        />
-                      </ReactCrop>
+                    <div className="flex flex-col lg:flex-row gap-8 items-center justify-center">
+                      {/* Main Image Container */}
+                      <div className="relative">
+                        <div 
+                          ref={containerRef}
+                          className="relative w-80 h-80 bg-gray-900 rounded-2xl overflow-hidden cursor-move"
+                          onMouseDown={handleMouseDown}
+                          onMouseMove={handleMouseMove}
+                          onMouseUp={handleMouseUp}
+                          onMouseLeave={handleMouseUp}
+                        >
+                          {/* Circular Crop Overlay */}
+                          <div className="absolute inset-0 pointer-events-none">
+                            <div className="absolute inset-0 bg-black bg-opacity-60"></div>
+                            <div className="absolute top-1/2 left-1/2 w-64 h-64 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-lg bg-transparent"></div>
+                          </div>
+                          
+                          {/* Image */}
+                          <img
+                            ref={imgRef}
+                            src={selectedImage}
+                            alt="Edit preview"
+                            className="absolute select-none"
+                            style={{
+                              transform: `translate(${imagePosition.x}px, ${imagePosition.y}px) scale(${imageScale})`,
+                              transformOrigin: 'center',
+                              transition: isDragging ? 'none' : 'transform 0.2s ease'
+                            }}
+                            onLoad={() => {
+                              if (imgRef.current) {
+                                const img = imgRef.current
+                                const container = containerRef.current
+                                if (container) {
+                                  // Center the image initially
+                                  const containerRect = container.getBoundingClientRect()
+                                  const imgRect = img.getBoundingClientRect()
+                                  setImagePosition({
+                                    x: (containerRect.width - imgRect.width) / 2,
+                                    y: (containerRect.height - imgRect.height) / 2
+                                  })
+                                }
+                              }
+                            }}
+                          />
+                        </div>
+                        
+                        {/* Zoom Slider */}
+                        <div className="mt-4 flex items-center gap-3">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                          <input
+                            type="range"
+                            min="0.5"
+                            max="3"
+                            step="0.1"
+                            value={imageScale}
+                            onChange={handleZoomChange}
+                            className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                          />
+                          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                          </svg>
+                        </div>
+                      </div>
+                      
+                      {/* Circular Preview */}
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="relative">
+                          <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-800 border-4 border-white shadow-xl">
+                            <div className="w-full h-full relative">
+                              <img
+                                src={selectedImage}
+                                alt="Preview"
+                                className="absolute"
+                                style={{
+                                  transform: `translate(${(imagePosition.x * 32) / 80}px, ${(imagePosition.y * 32) / 80}px) scale(${imageScale * 0.4})`,
+                                  transformOrigin: 'center'
+                                }}
+                              />
+                            </div>
+                          </div>
+                          <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-400 text-center">Drag to reposition<br />Use slider to zoom</p>
+                      </div>
                     </div>
                     
-                    <div className="flex flex-col justify-center items-center gap-3">
+                    {/* Action Buttons */}
+                    <div className="flex justify-center gap-4 mt-8">
                       <button
-                        onClick={uploadProfilePhoto}
-                        disabled={photoUploading || !completedCrop}
-                        className="cosmic-button-primary disabled:opacity-50"
-                      >
-                        {photoUploading ? 'Uploading...' : 'Save Photo'}
-                      </button>
-                      <button
-                        onClick={() => setSelectedImage(null)}
-                        className="cosmic-button-secondary"
+                        onClick={() => {
+                          setSelectedImage(null)
+                          setImagePosition({ x: 0, y: 0 })
+                          setImageScale(1)
+                        }}
+                        className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-full font-medium transition-all duration-200 transform hover:scale-105"
                       >
                         Cancel
+                      </button>
+                      <button
+                        onClick={uploadProfilePhoto}
+                        disabled={photoUploading}
+                        className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-full font-medium transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
+                      >
+                        {photoUploading ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Uploading...
+                          </div>
+                        ) : (
+                          'Save Photo'
+                        )}
                       </button>
                     </div>
                   </div>
                 )}
 
-              {/* Upload Button */}
+              {/* Modern Upload Button */}
               {!selectedImage && (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -353,13 +471,19 @@ export default function ProfilePage() {
                     />
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="cosmic-button-primary px-6 py-3"
+                      className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-2xl font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
                     >
-                      <svg className="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      Choose New Photo
+                      <div className="flex items-center justify-center gap-3">
+                        <div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center group-hover:bg-opacity-30 transition-all">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                        </div>
+                        Choose Photo
+                      </div>
+                      <div className="absolute inset-0 bg-white bg-opacity-0 group-hover:bg-opacity-10 rounded-2xl transition-all duration-300"></div>
                     </button>
+                    <p className="text-sm text-gray-400 text-center">JPG, PNG or GIF (max 5MB)</p>
                   </div>
               )}
             </div>

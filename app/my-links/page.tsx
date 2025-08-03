@@ -661,7 +661,7 @@ function MyLinksContent() {
           <div className="cosmic-card">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="cosmic-heading mb-2">My PayLinks</h1>
+                <h1 className="cosmic-heading mb-2">PayLinks</h1>
               </div>
               <Link 
                 href="/payment/create" 
