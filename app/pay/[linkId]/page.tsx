@@ -176,50 +176,30 @@ export default function PaymentPage() {
       await fetchPaymentLinkDirect()
     }
 
-    // Direct Supabase query (RLS is disabled on payment_links table)
+    // Use API endpoint instead of direct Supabase query to avoid RLS issues
     const fetchPaymentLinkDirect = async () => {
       try {
-        console.log('🔍 DEBUG: Direct Supabase query for linkId:', linkId)
-        console.log('🔍 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-        console.log('🔍 Supabase Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.substring(0, 20) + '...')
+        console.log('🔍 Fetching payment link via API:', linkId)
         
-        // Test query to verify connection
-        const { data: testData, error: testError } = await supabase
-          .from('payment_links')
-          .select('id')
-          .limit(5)
-        console.log('🔍 Test query - Found payment links:', testData?.length || 0)
-        if (testError) {
-          console.error('❌ Test query error:', JSON.stringify(testError, null, 2))
-        }
+        const response = await fetch(`/api/payment/create-link?linkId=${linkId}`)
         
-        const { data, error: fetchError } = await supabase
-          .from('payment_links')
-          .select(`
-            id,
-            title,
-            amount_aed,
-            client_name,
-            expiration_date,
-            is_active,
-            created_at,
-            description,
-            creator_id
-          `)
-          .eq('id', linkId)
-          .single()
-
-        console.log('🔍 DEBUG: Direct query result:', { data, error: fetchError })
-
-        if (fetchError) {
-          console.error('❌ DEBUG: Supabase query failed - Full error:', JSON.stringify(fetchError, null, 2))
-          setError('Payment link not found')
-          setErrorType('not-found')
-          return
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('❌ API error:', errorData)
+          throw new Error(errorData.error || 'Failed to fetch payment link')
         }
+
+        const result = await response.json()
+        console.log('🔍 API result:', result)
+        
+        if (!result.success || !result.data) {
+          throw new Error('Invalid API response')
+        }
+
+        const data = result.data.paymentLink
+        const creator = result.data.creator
 
         if (!data) {
-          console.error('❌ DEBUG: No data returned from query')
           setError('Payment link not found')
           setErrorType('not-found')
           return
@@ -238,35 +218,20 @@ export default function PaymentPage() {
           setErrorType('expired')
           return
         }
-
-        // Try to get is_paid column (backwards compatible)
-        let isPaid = false
-        try {
-          const { data: isPaidData } = await (supabase as any)
-            .from('payment_links')
-            .select('is_paid')
-            .eq('id', linkId)
-            .single()
-          
-          isPaid = isPaidData?.is_paid || false
-        } catch {
-          // Column doesn't exist yet, default to false
-          isPaid = false
-        }
         
         console.log('💰 Payment status check:')
         console.log('- is_active:', data.is_active)
-        console.log('- is_paid:', isPaid)
-        console.log('- Payment status:', isPaid ? 'PAID ✅' : 'UNPAID ⚠️')
+        console.log('- is_paid:', data.is_paid || false)
+        console.log('- Payment status:', data.is_paid ? 'PAID ✅' : 'UNPAID ⚠️')
 
         const transformedData: PaymentLinkData = {
           ...data,
-          isPaid,
+          isPaid: data.is_paid || false,
           creator: { 
-            id: data.creator_id || '', 
-            full_name: 'Beauty Professional', 
-            email: '', 
-            company_name: null 
+            id: creator.id, 
+            full_name: creator.name, 
+            email: 'creator@example.com', 
+            company_name: creator.professionalCenter 
           }
         }
 
