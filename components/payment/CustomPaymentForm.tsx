@@ -334,64 +334,32 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
       theme: 'night',
       variables: {
         colorPrimary: '#7C3AED',
-        colorBackground: 'rgba(255, 255, 255, 0.1)',
+        colorBackground: '#1a1a1a',
         colorText: '#ffffff',
         colorDanger: '#ef4444',
         fontFamily: 'Inter, sans-serif',
-        fontSizeBase: '14px', // Reduced from 16px
+        fontSizeBase: '14px',
         borderRadius: '8px',
-        spacingUnit: '3px', // Reduced from 6px to compress fields
+        spacingUnit: '3px',
       },
       rules: {
         '.Input': {
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          border: '1px solid rgba(255, 255, 255, 0.3)',
+          backgroundColor: '#1a1a1a',
+          border: '1px solid #4d4d4d',
           color: '#ffffff',
-          padding: '8px 12px', // Reduced padding to make fields shorter
+          padding: '8px 12px',
           fontSize: '14px',
           lineHeight: '1.2',
         },
         '.Input:focus': {
-          border: '1px solid rgba(255, 255, 255, 0.6)',
+          border: '1px solid #999999',
           boxShadow: 'none',
         },
         '.Label': {
           color: '#ffffff',
-          fontSize: '12px', // Reduced label size
-          marginBottom: '6px', // Increased by 20% (5px * 1.2 = 6px)
+          fontSize: '12px',
+          marginBottom: '6px',
         },
-        // Express Checkout button height reduction - trying different selectors
-        '.StripeElement': {
-          height: '36px !important',
-          minHeight: '36px !important',
-        },
-        '.ExpressCheckout': {
-          height: '36px !important',
-          minHeight: '36px !important',
-          padding: '6px 12px !important',
-        },
-        '.ExpressCheckoutElement': {
-          height: '36px !important',
-          minHeight: '36px !important',
-        },
-        '.ExpressCheckout-button': {
-          height: '36px !important',
-          minHeight: '36px !important',
-          padding: '6px 12px !important',
-        },
-        // Additional targeting for Google Pay and Apple Pay buttons
-        'button': {
-          height: '36px !important',
-          minHeight: '36px !important',
-        },
-        // Force card icons to display side by side
-        '.CardNumberInput .IconContainer': {
-          display: 'flex !important',
-          flexDirection: 'row !important',
-          alignItems: 'center',
-          gap: '4px',
-          flexWrap: 'nowrap !important',
-        }
       },
     },
   };
