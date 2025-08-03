@@ -40,13 +40,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify creator exists and is a Beauty Professional
+    console.log('🔍 Looking for creator with ID:', creator_id);
+    
     const { data: creator, error: creatorError } = await supabase
       .from('users')
       .select('id, email, full_name, role, wallet_address')
       .eq('id', creator_id)
       .single();
 
+    console.log('🔍 Creator query result:', { creator, creatorError });
+
     if (creatorError || !creator) {
+      console.log('❌ Creator not found or error:', creatorError);
       return NextResponse.json(
         { error: 'Creator not found' },
         { status: 404 }
