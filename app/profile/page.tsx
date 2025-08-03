@@ -11,6 +11,7 @@ interface UserProfile {
   professional_center_name: string | null
   full_name: string
   role: string
+  profile_photo_url?: string | null // NOTE: Requires database column: ALTER TABLE users ADD COLUMN profile_photo_url TEXT;
 }
 
 export default function ProfilePage() {
