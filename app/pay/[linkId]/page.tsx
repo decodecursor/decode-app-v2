@@ -181,7 +181,9 @@ export default function PaymentPage() {
       try {
         console.log('🔍 Fetching payment link via API:', linkId)
         
-        const response = await fetch(`/api/payment/create-link?linkId=${linkId}`)
+        const response = await fetch(`/api/payment/create-link?linkId=${linkId}`, {
+          method: 'GET'
+        })
         
         if (!response.ok) {
           const errorData = await response.json()
@@ -238,8 +240,12 @@ export default function PaymentPage() {
         setPaymentData(transformedData)
         
         console.log('✅ DEBUG: Payment data loaded successfully')
-      } catch (fallbackError) {
-        console.error('❌ DEBUG: Fallback also failed:', fallbackError)
+      } catch (error) {
+        console.error('❌ Payment page error:', error)
+        console.error('❌ Error details:', {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined
+        })
         setError('Unable to load payment information')
         setErrorType('network')
       } finally {
