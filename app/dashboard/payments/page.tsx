@@ -58,7 +58,6 @@ export default function PaymentHistoryPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
   const [sortBy, setSortBy] = useState<'created_at' | 'amount_aed' | 'total_revenue'>('created_at')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-  const [showStats, setShowStats] = useState(true)
   const [heartAnimationLinks, setHeartAnimationLinks] = useState<Set<string>>(new Set())
 
   useEffect(() => {
@@ -442,24 +441,12 @@ export default function PaymentHistoryPage() {
         </div>
 
         {/* Analytics */}
-        {showStats && transactions.length > 0 && (
+        {transactions.length > 0 && (
           <div className="mb-8">
             <PaymentStats 
               transactions={transactions}
               paymentLinks={filteredAndSortedLinks}
             />
-          </div>
-        )}
-
-        {/* Toggle Analytics Button */}
-        {transactions.length > 0 && (
-          <div className="cosmic-card mb-8 text-center">
-            <button
-              onClick={() => setShowStats(!showStats)}
-              className="cosmic-button-secondary"
-            >
-              {showStats ? 'Hide Analytics' : 'Show Analytics'}
-            </button>
           </div>
         )}
 

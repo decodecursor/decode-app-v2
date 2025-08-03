@@ -362,36 +362,34 @@ export default function PaymentStats({ transactions, paymentLinks }: PaymentStat
       {/* Payments */}
       <div className="cosmic-card">
         <h3 className="cosmic-heading text-white mb-4">Payments</h3>
-        <div className="overflow-x-auto">
-          <div className="flex space-x-4 pb-4">
-            {getFilteredTransactions().map((transaction, index) => (
-              <div key={`${transaction.id}-${index}`} className="min-w-80 bg-white/5 rounded-lg p-4 flex-shrink-0">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1">
-                    <h4 className="cosmic-body text-white font-medium mb-1">
-                      {transaction.payment_link?.client_name || 'Client'}
-                    </h4>
-                    <p className="cosmic-label text-white/70 text-sm mb-2">
-                      {transaction.payment_link?.title || 'Service'}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="cosmic-body text-white font-bold">
-                      {formatCurrency(transaction.amount_aed)}
-                    </p>
-                    <p className="cosmic-label text-white/50 text-xs">
-                      {new Date(transaction.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
+        <div className="space-y-3">
+          {getFilteredTransactions().map((transaction, index) => (
+            <div key={`${transaction.id}-${index}`} className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <span className="w-6 h-6 bg-purple-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                  {index + 1}
+                </span>
+                <div className="flex-1">
+                  <span className="cosmic-body text-white font-medium">
+                    {transaction.payment_link?.client_name || 'Client'} - {transaction.payment_link?.title || 'Service'}
+                  </span>
                 </div>
               </div>
-            ))}
-            {getFilteredTransactions().length === 0 && (
-              <div className="min-w-80 bg-white/5 rounded-lg p-4 flex-shrink-0 text-center">
-                <p className="cosmic-body text-white/50">No payments found for this period</p>
+              <div className="flex items-center space-x-3">
+                <span className="cosmic-body text-white font-bold">
+                  {formatCurrency(transaction.amount_aed)}
+                </span>
+                <span className="cosmic-label text-white/50 text-sm w-20 text-right">
+                  {new Date(transaction.created_at).toLocaleDateString()}
+                </span>
               </div>
-            )}
-          </div>
+            </div>
+          ))}
+          {getFilteredTransactions().length === 0 && (
+            <div className="text-center py-4">
+              <p className="cosmic-body text-white/50">No payments found for this period</p>
+            </div>
+          )}
         </div>
       </div>
 
