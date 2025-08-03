@@ -206,9 +206,10 @@ export default function ProfilePage() {
       setProfilePhotoUrl(publicUrl)
       
       // Update user profile in database with photo URL
+      // Type casting to bypass Supabase type checking for profile_photo_url column
       const { error: updateError } = await supabase
         .from('users')
-        .update({ profile_photo_url: publicUrl })
+        .update({ profile_photo_url: publicUrl } as any)
         .eq('id', profile.id)
 
       if (updateError) {
