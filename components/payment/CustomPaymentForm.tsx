@@ -133,8 +133,7 @@ function PaymentForm({
                 paymentMethods: {
                   applePay: 'always',
                   googlePay: 'always'
-                },
-                buttonHeight: 36  // Reduced height to make button shorter
+                }
               }}
               onConfirm={async (event) => {
                 console.log('🍎 DEBUG: Express Checkout onConfirm called', event);
