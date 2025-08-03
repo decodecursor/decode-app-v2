@@ -378,6 +378,7 @@ export default function PaymentHistoryPage() {
             <PaymentStats 
               transactions={transactions}
               paymentLinks={filteredAndSortedLinks}
+              user={user}
             />
           )}
           </div>

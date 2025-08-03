@@ -23,6 +23,13 @@ interface PaymentStatsProps {
     transaction_count: number
     total_revenue: number
   }>
+  user: {
+    id: string
+    email?: string
+    user_metadata?: {
+      full_name?: string
+    }
+  } | null
 }
 
 interface DateRangeStats {
@@ -38,7 +45,7 @@ interface PopularAmount {
   percentage: number
 }
 
-export default function PaymentStats({ transactions, paymentLinks }: PaymentStatsProps) {
+export default function PaymentStats({ transactions, paymentLinks, user }: PaymentStatsProps) {
   const [dateRange, setDateRange] = useState<'today' | '7d' | '30d' | '90d' | 'all'>('today')
   const [statsData, setStatsData] = useState<{
     current: DateRangeStats
@@ -168,7 +175,7 @@ export default function PaymentStats({ transactions, paymentLinks }: PaymentStat
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'AED'
     }).format(amount)
   }
 
@@ -233,9 +240,9 @@ export default function PaymentStats({ transactions, paymentLinks }: PaymentStat
       {/* Date Range Selector */}
       <div className="cosmic-card">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="cosmic-heading text-white">Analytics Overview</h2>
+          <h2 className="cosmic-heading text-white">Analytics</h2>
           <div className="flex space-x-2">
-            {(['today', '7d', '30d', '90d', 'all'] as const).map((range) => (
+            {(['today', '7d', '30d', 'all'] as const).map((range) => (
               <button
                 key={range}
                 onClick={() => setDateRange(range)}
@@ -245,7 +252,7 @@ export default function PaymentStats({ transactions, paymentLinks }: PaymentStat
                     : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                 }`}
               >
-                {range === 'all' ? 'All Time' : range === 'today' ? 'Today' : range.toUpperCase()}
+                {range === 'today' ? 'Today' : range === '7d' ? 'This Week' : range === '30d' ? 'This Month' : 'Custom'}
               </button>
             ))}
           </div>
@@ -293,7 +300,7 @@ export default function PaymentStats({ transactions, paymentLinks }: PaymentStat
 
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="cosmic-label text-white/70">Avg Payment</h3>
+              <h3 className="cosmic-label text-white/70">Average Payment</h3>
               {dateRange !== 'all' && (
                 <span className={`text-xs font-medium ${getChangeColor(current.averagePayment, previous.averagePayment)}`}>
                   {formatPercentageChange(current.averagePayment, previous.averagePayment)}
@@ -312,17 +319,21 @@ export default function PaymentStats({ transactions, paymentLinks }: PaymentStat
 
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="cosmic-label text-white/70">Success Rate</h3>
-              <span className="text-xs font-medium text-green-400">
-                {current.successRate.toFixed(1)}%
-              </span>
+              <h3 className="cosmic-label text-white/70">{user?.user_metadata?.full_name || user?.email || 'User'} Commission</h3>
+              {dateRange !== 'all' && (
+                <span className={`text-xs font-medium ${getChangeColor(current.revenue * 0.1, previous.revenue * 0.1)}`}>
+                  {formatPercentageChange(current.revenue * 0.1, previous.revenue * 0.1)}
+                </span>
+              )}
             </div>
-            <p className="text-2xl font-bold text-green-400 mb-1">
-              Excellent
+            <p className="text-2xl font-bold text-white mb-1">
+              {formatCurrency(current.revenue * 0.1)}
             </p>
-            <p className="text-xs text-white/50">
-              All payments processed successfully
-            </p>
+            {dateRange !== 'all' && (
+              <p className="text-xs text-white/50">
+                vs {formatCurrency(previous.revenue * 0.1)} previous period
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -330,7 +341,7 @@ export default function PaymentStats({ transactions, paymentLinks }: PaymentStat
       {/* Revenue Chart */}
       {revenueByDay.length > 0 && (
         <div className="cosmic-card">
-          <h3 className="cosmic-heading text-white mb-4">Revenue Trend</h3>
+          <h3 className="cosmic-heading text-white mb-4">Charts</h3>
           <div className="h-64 flex items-end space-x-1">
             {revenueByDay.map((day) => {
               const maxRevenue = Math.max(...revenueByDay.map(d => d.revenue), 1)
