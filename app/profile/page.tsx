@@ -28,6 +28,7 @@ export default function ProfilePage() {
   // Photo upload states
   const [photoUploading, setPhotoUploading] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null)
   const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 })
   const [imageScale, setImageScale] = useState(1)
   const [isDragging, setIsDragging] = useState(false)
@@ -62,7 +63,7 @@ export default function ProfilePage() {
       // Fetch user profile using available database fields
       const { data: profileData, error } = await supabase
         .from('users')
-        .select('id, email, full_name, professional_center_name, role')
+        .select('id, email, full_name, professional_center_name, role, profile_photo_url')
         .eq('id', user.id)
         .single()
 
@@ -73,6 +74,7 @@ export default function ProfilePage() {
         setProfile(profileData)
         setProfessionalCenterName(profileData.professional_center_name || '')
         setNewEmail(profileData.email || user.email || '')
+        setProfilePhotoUrl(profileData.profile_photo_url || null)
       } else {
         setMessage({ type: 'error', text: 'No profile data found' })
       }
@@ -192,8 +194,22 @@ export default function ProfilePage() {
         .from('user-uploads')
         .getPublicUrl(filePath)
 
-      // For now, just show success message since we uploaded to storage successfully
-      setMessage({ type: 'success', text: 'Profile photo uploaded successfully!' })
+      // Update profile photo URL in state and database
+      setProfilePhotoUrl(publicUrl)
+      
+      // Update user profile in database with photo URL
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ profile_photo_url: publicUrl })
+        .eq('id', profile.id)
+
+      if (updateError) {
+        console.error('Error updating profile photo URL:', updateError)
+        setMessage({ type: 'error', text: 'Failed to save profile photo. Please try again.' })
+        return
+      }
+
+      // Reset editor state without showing success message
       setSelectedImage(null)
       setImagePosition({ x: 0, y: 0 })
       setImageScale(1)
@@ -355,15 +371,23 @@ export default function ProfilePage() {
             <h2 className="text-xl font-semibold text-white mb-8">Profile Photo</h2>
             
             <div className="text-center">
-              {/* Current Profile Photo Placeholder */}
+              {/* Profile Photo Display */}
               {!selectedImage && (
                 <div className="mb-8">
                   <div className="w-48 h-48 mx-auto rounded-full overflow-hidden bg-gray-700 ring-4 ring-white/10">
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
+                    {profilePhotoUrl ? (
+                      <img
+                        src={profilePhotoUrl}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
