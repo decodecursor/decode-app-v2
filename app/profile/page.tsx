@@ -222,19 +222,19 @@ export default function ProfilePage() {
       const newX = e.clientX - dragStart.x
       const newY = e.clientY - dragStart.y
       
-      // Calculate boundaries to keep image within reasonable bounds of crop circle
+      // Calculate simple boundaries for smooth dragging in all directions
       const img = imgRef.current
       const scaledWidth = img.naturalWidth * imageScale
       const scaledHeight = img.naturalHeight * imageScale
-      const cropRadius = 128 // 256px diameter / 2
-      const containerCenter = 160 // 320px / 2
+      const containerWidth = 320
+      const containerHeight = 320
+      const buffer = 100 // Allow image to move beyond container but keep some portion visible
       
-      // Allow some movement outside crop circle but prevent going too far
-      const maxOffset = Math.max(scaledWidth, scaledHeight) / 2
-      const minX = containerCenter - maxOffset
-      const maxX = containerCenter + maxOffset - scaledWidth
-      const minY = containerCenter - maxOffset  
-      const maxY = containerCenter + maxOffset - scaledHeight
+      // Simple boundary logic - allow generous movement in all directions
+      const minX = -scaledWidth + buffer
+      const maxX = containerWidth - buffer
+      const minY = -scaledHeight + buffer  
+      const maxY = containerHeight - buffer
       
       setImagePosition({
         x: Math.max(minX, Math.min(maxX, newX)),
