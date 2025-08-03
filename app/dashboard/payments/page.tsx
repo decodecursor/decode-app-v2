@@ -342,9 +342,9 @@ export default function PaymentHistoryPage() {
         <div className="cosmic-card mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="cosmic-logo text-2xl text-white mb-2">Payment History</h1>
+              <h1 className="cosmic-logo text-2xl text-white mb-2">Earnings</h1>
               <p className="cosmic-body text-white/70">
-                Track your payment links and revenue analytics
+                Track your earnings and revenue analytics
               </p>
             </div>
             <Link href="/dashboard" className="cosmic-button-secondary">
