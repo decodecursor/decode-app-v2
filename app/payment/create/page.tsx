@@ -159,7 +159,7 @@ export default function CreatePayment() {
         body: JSON.stringify({
           client_name: formData.client.trim(),
           title: formData.title.trim(),
-          description: formData.description?.trim() || '',
+          description: `Beauty service: ${formData.title.trim()}`,
           original_amount_aed: originalAmount,
           creator_id: user.id
         })
