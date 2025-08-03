@@ -2,20 +2,8 @@
 // POST /api/payment/create-link
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { crossmintDB } from '@/lib/crossmint-db';
 import { calculateMarketplaceFee } from '@/types/crossmint';
-
-// Initialize Supabase client with service role for server-side operations
-console.log('🔍 Environment check:', {
-  url: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'MISSING',
-  serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? `SET (${process.env.SUPABASE_SERVICE_ROLE_KEY.substring(0, 20)}...)` : 'MISSING'
-});
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,19 +32,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify creator exists and is a Beauty Professional
+    // Verify creator exists and is a Beauty Professional using crossmintDB
     console.log('🔍 Looking for creator with ID:', creator_id);
     
-    const { data: creator, error: creatorError } = await supabase
-      .from('users')
-      .select('id, email, full_name, role, wallet_address')
-      .eq('id', creator_id)
-      .single();
+    const creator = await crossmintDB.getUserWithWallet(creator_id);
 
-    console.log('🔍 Creator query result:', { creator, creatorError });
-
-    if (creatorError || !creator) {
-      console.log('❌ Creator not found or error:', creatorError);
+    if (!creator) {
+      console.log('❌ Creator not found');
       return NextResponse.json(
         { error: 'Creator not found' },
         { status: 404 }
