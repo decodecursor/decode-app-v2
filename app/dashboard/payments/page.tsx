@@ -357,12 +357,10 @@ export default function PaymentHistoryPage() {
 
         {/* Analytics */}
         {transactions.length > 0 && (
-          <div className="mb-8">
-            <PaymentStats 
-              transactions={transactions}
-              paymentLinks={filteredAndSortedLinks}
-            />
-          </div>
+          <PaymentStats 
+            transactions={transactions}
+            paymentLinks={filteredAndSortedLinks}
+          />
         )}
 
       </div>
