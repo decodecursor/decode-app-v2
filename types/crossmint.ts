@@ -21,9 +21,9 @@ export interface CrossmintPaymentLink {
   description: string | null;
   // Original amount fields
   amount_aed: number; // Legacy field, kept for compatibility
-  service_amount_aed?: number; // New: pure service amount
-  decode_amount_aed?: number; // New: decode platform amount (9%)
-  total_amount_aed?: number; // New: total customer pays
+  service_amount_aed: number; // New: pure service amount
+  decode_amount_aed: number; // New: decode platform amount (9%)
+  total_amount_aed: number; // New: total customer pays
   amount_usd?: number; // USD equivalent for international payments
   expiration_date: string;
   creator_id: string;
