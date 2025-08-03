@@ -7,6 +7,11 @@ import { crossmintDB } from '@/lib/crossmint-db';
 import { calculateMarketplaceFee } from '@/types/crossmint';
 
 // Initialize Supabase client with service role for server-side operations
+console.log('🔍 Environment check:', {
+  url: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'MISSING',
+  serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? `SET (${process.env.SUPABASE_SERVICE_ROLE_KEY.substring(0, 20)}...)` : 'MISSING'
+});
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
