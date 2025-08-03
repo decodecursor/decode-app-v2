@@ -767,7 +767,7 @@ function MyLinksContent() {
                           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
                             <div className="text-right">
                               <div className="text-white font-medium text-xl">
-                                AED {formatAmount(link.service_amount_aed || link.amount_aed)}
+                                AED {formatAmount(link.service_amount_aed || (link.amount_aed / 1.09))}
                               </div>
                               {/* Fee information not available with current schema */}
                             </div>
@@ -952,7 +952,7 @@ function MyLinksContent() {
                 Are you sure you want to deactivate the payment link for &lsquo;{linkToDeactivate.client_name || 'Client'}&rsquo; and the &lsquo;{linkToDeactivate.title}&rsquo;?
               </p>
               <p className="cosmic-body text-gray-400 text-sm mb-6">
-                Amount: AED {formatAmount(linkToDeactivate.service_amount_aed || linkToDeactivate.amount_aed)}
+                Amount: AED {formatAmount(linkToDeactivate.service_amount_aed || (linkToDeactivate.amount_aed / 1.09))}
               </p>
               <div className="flex space-x-4">
                 <button
@@ -982,7 +982,7 @@ function MyLinksContent() {
                 This action cannot be undone.
               </p>
               <p className="cosmic-body text-gray-400 text-sm mb-6">
-                Amount: AED {formatAmount(linkToDelete.service_amount_aed || linkToDelete.amount_aed)}
+                Amount: AED {formatAmount(linkToDelete.service_amount_aed || (linkToDelete.amount_aed / 1.09))}
               </p>
               <div className="flex space-x-4">
                 <button
@@ -1068,7 +1068,7 @@ function MyLinksContent() {
               <div className="mb-6 space-y-2">
                 <p className="text-white text-xl font-semibold">{currentQRLink.client_name || 'Client'}</p>
                 <p className="text-white text-lg">{currentQRLink.title}</p>
-                <p className="text-white text-xl font-semibold">AED {formatAmount(currentQRLink.service_amount_aed || currentQRLink.amount_aed)}</p>
+                <p className="text-white text-xl font-semibold">AED {formatAmount(currentQRLink.service_amount_aed || (currentQRLink.amount_aed / 1.09))}</p>
               </div>
 
               <button
