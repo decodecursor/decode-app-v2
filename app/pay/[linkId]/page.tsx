@@ -2,6 +2,21 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { isValidPaymentLinkId } from '@/lib/short-id'
+import { createClient } from '@supabase/supabase-js'
+import { walletCreationService } from '@/lib/wallet-creation'
+import CustomPaymentForm from '@/components/payment/CustomPaymentForm'
+import { CrossmintPaymentElement } from '@crossmint/client-sdk-react-ui'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
+// Helper function to get business display name
+const getBusinessDisplayName = (creator: any) => {
+  return creator?.company_name || creator?.full_name || 'Beauty Professional'
+}
 
 interface PaymentLinkData {
   id: string
@@ -22,32 +37,16 @@ interface PaymentLinkData {
 
 export default function PaymentPage() {
   const [mounted, setMounted] = useState(false)
-  
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-  
-  if (!mounted) {
-    return null // Prevent SSR hydration issues
-  }
-  
-  console.log('🔍 PaymentPage component rendering')
-  
-  // Temporarily return a simple test page
-  return (
-    <div className="min-h-screen bg-white flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Payment Page Test</h1>
-        <p className="text-gray-600">If you see this, the page is working!</p>
-        <p className="text-gray-400 text-sm mt-2">Component mounted: {mounted ? 'Yes' : 'No'}</p>
-      </div>
-    </div>
-  )
-  
   const [paymentData, setPaymentData] = useState<PaymentLinkData | null>(null)
   const [crossmintOrder, setCrossmintOrder] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'crossmint'>('stripe')
+  const [error, setError] = useState('')
+  const [errorType, setErrorType] = useState<'not-found' | 'inactive' | 'expired' | 'invalid' | 'network' | 'creator-missing'>('not-found')
+  
+  const params = useParams()
+  const router = useRouter()
+  const linkId = params.linkId as string
 
   // Format amount with thousands separators
   const formatAmount = (amount: number): string => {
@@ -56,15 +55,18 @@ export default function PaymentPage() {
       maximumFractionDigits: 2
     })
   }
-  const [error, setError] = useState('')
-  const [errorType, setErrorType] = useState<'not-found' | 'inactive' | 'expired' | 'invalid' | 'network' | 'creator-missing'>('not-found')
-  const params = useParams()
-  const router = useRouter()
-  const linkId = params.linkId as string
 
   // Updated to handle both short IDs and UUIDs
   const isValidLinkId = (id: string) => {
     return isValidPaymentLinkId(id)
+  }
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return null // Prevent SSR hydration issues
   }
 
   const handlePaymentSuccess = async (payment: any) => {
@@ -364,7 +366,7 @@ export default function PaymentPage() {
         onSuccess={() => {
           console.log('💳 Stripe payment success callback triggered');
         }}
-        onError={(error) => {
+        onError={(error: any) => {
           console.error('Payment error:', error);
         }}
       />
