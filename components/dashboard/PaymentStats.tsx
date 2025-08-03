@@ -183,6 +183,33 @@ export default function PaymentStats({ transactions, paymentLinks }: PaymentStat
     return 'text-gray-400'
   }
 
+  const getFilteredTransactions = () => {
+    const now = new Date()
+    let startDate: Date
+
+    switch (dateRange) {
+      case 'today':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        break
+      case '7d':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+        break
+      case '30d':
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+        break
+      case '90d':
+        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
+        break
+      default:
+        startDate = new Date(0) // All time
+    }
+
+    return transactions
+      .filter(t => new Date(t.created_at) >= startDate)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 10) // Show max 10 transactions
+  }
+
   if (!statsData) {
     return (
       <div className="cosmic-card">
@@ -331,78 +358,42 @@ export default function PaymentStats({ transactions, paymentLinks }: PaymentStat
         </div>
       )}
 
-      {/* Popular Payment Amounts */}
-      {popularAmounts.length > 0 && (
-        <div className="cosmic-card">
-          <h3 className="cosmic-heading text-white mb-4">Popular Payment Amounts</h3>
-          <div className="space-y-3">
-            {popularAmounts.map((item, rank) => (
-              <div key={item.amount} className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <span className="w-6 h-6 bg-purple-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                    {rank + 1}
-                  </span>
-                  <span className="cosmic-body text-white font-medium">
-                    {formatCurrency(item.amount)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="flex-1 w-24 bg-white/10 rounded-full h-2">
-                    <div 
-                      className="bg-gradient-to-r from-purple-400 to-purple-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${item.percentage}%` }}
-                    ></div>
+      {/* Payments */}
+      <div className="cosmic-card">
+        <h3 className="cosmic-heading text-white mb-4">Payments</h3>
+        <div className="overflow-x-auto">
+          <div className="flex space-x-4 pb-4">
+            {getFilteredTransactions().map((transaction, index) => (
+              <div key={`${transaction.id}-${index}`} className="min-w-80 bg-white/5 rounded-lg p-4 flex-shrink-0">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1">
+                    <h4 className="cosmic-body text-white font-medium mb-1">
+                      {transaction.payment_link?.client_name || 'Client'}
+                    </h4>
+                    <p className="cosmic-label text-white/70 text-sm mb-2">
+                      {transaction.payment_link?.title || 'Service'}
+                    </p>
                   </div>
-                  <span className="cosmic-body text-white/70 text-sm w-12 text-right">
-                    {item.count}x
-                  </span>
-                  <span className="cosmic-body text-white/50 text-sm w-12 text-right">
-                    {item.percentage.toFixed(1)}%
-                  </span>
+                  <div className="text-right">
+                    <p className="cosmic-body text-white font-bold">
+                      {formatCurrency(transaction.amount_aed)}
+                    </p>
+                    <p className="cosmic-label text-white/50 text-xs">
+                      {new Date(transaction.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* Quick Insights */}
-      <div className="cosmic-card">
-        <h3 className="cosmic-heading text-white mb-4">Quick Insights</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-            <div className="flex items-center space-x-3 mb-2">
-              <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-              <span className="cosmic-label text-blue-400">Growth Trend</span>
-            </div>
-            <p className="cosmic-body text-white text-sm">
-              {current.revenue > previous.revenue 
-                ? 'Revenue is trending upward compared to the previous period.'
-                : current.revenue < previous.revenue
-                ? 'Revenue has decreased compared to the previous period.'
-                : 'Revenue has remained stable compared to the previous period.'
-              }
-            </p>
-          </div>
-
-          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-            <div className="flex items-center space-x-3 mb-2">
-              <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="cosmic-label text-green-400">Performance</span>
-            </div>
-            <p className="cosmic-body text-white text-sm">
-              {current.successRate === 100 
-                ? 'All payment transactions have been successfully processed.'
-                : `${current.successRate.toFixed(1)}% of transactions completed successfully.`
-              }
-            </p>
+            {getFilteredTransactions().length === 0 && (
+              <div className="min-w-80 bg-white/5 rounded-lg p-4 flex-shrink-0 text-center">
+                <p className="cosmic-body text-white/50">No payments found for this period</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
     </div>
   )
 }

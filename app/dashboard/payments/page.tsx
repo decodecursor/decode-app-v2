@@ -462,46 +462,6 @@ export default function PaymentHistoryPage() {
           </div>
         )}
 
-        {/* Payment Links List */}
-        <div className="space-y-4">
-          {filteredAndSortedLinks.length === 0 ? (
-            <div className="cosmic-card text-center py-12">
-              <div className="w-16 h-16 bg-gray-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              </div>
-              <h3 className="cosmic-heading text-white mb-2">No Payment Links Found</h3>
-              <p className="cosmic-body text-white/70 mb-4">
-                {searchTerm || statusFilter !== 'all' 
-                  ? 'No payment links match your current filters.'
-                  : 'You haven\'t created any payment links yet.'
-                }
-              </p>
-              <Link href="/payment/create" className="cosmic-button-primary">
-                Create Your First Payment Link
-              </Link>
-            </div>
-          ) : (
-            filteredAndSortedLinks.map((link) => (
-              <PaymentLinkCard
-                key={link.id}
-                {...link}
-                onCopyLink={copyPaymentLink}
-                showHeartAnimation={heartAnimationLinks.has(link.id)}
-              />
-            ))
-          )}
-        </div>
-
-        {/* Pagination could be added here for large datasets */}
-        {filteredAndSortedLinks.length > 0 && (
-          <div className="cosmic-card mt-8 text-center">
-            <p className="cosmic-body text-white/70">
-              Showing {filteredAndSortedLinks.length} of {paymentLinks.length} payment links
-            </p>
-          </div>
-        )}
       </div>
     </div>
   )
