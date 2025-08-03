@@ -683,6 +683,52 @@ body {
   background: #EF4444;
 }
 
+/* Circular Profile Photo Crop Styles */
+.circular-crop-container {
+  position: relative;
+  display: inline-block;
+}
+
+.circular-crop-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.circular-crop-overlay::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(100%, 100%);
+  height: min(100%, 100%);
+  border: 2px solid #10b981;
+  border-radius: 50%;
+  box-shadow: 
+    0 0 0 9999px rgba(0, 0, 0, 0.3),
+    0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+.circular-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #10b981;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.circular-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* Landscape orientation adjustments */
 @media (max-width: 768px) and (orientation: landscape) {
   .cosmic-card {

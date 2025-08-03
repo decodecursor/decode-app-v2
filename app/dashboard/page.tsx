@@ -222,16 +222,16 @@ export default function Dashboard() {
                   {profileDropdownOpen && (
                     <div className="absolute left-0 mt-2 w-64 bg-gray-800/95 backdrop-blur-lg rounded-xl shadow-lg border border-gray-600/50 py-2 z-50">
                       {/* Profile */}
-                      <Link href="/profile" className="w-full flex items-center px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
-                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <Link href="/profile" className="w-full flex items-center px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                         <span className="nav-button">Profile</span>
                       </Link>
 
                       {/* Bank Account */}
-                      <Link href="/bank-account" className="w-full flex items-center px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
-                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <Link href="/bank-account" className="w-full flex items-center px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
                         <span className="nav-button">Bank Account</span>
@@ -240,9 +240,9 @@ export default function Dashboard() {
                       {/* Logout */}
                       <button 
                         onClick={handleSignOut}
-                        className="w-full flex items-center px-2 py-1.5 text-gray-300 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        className="w-full flex items-center px-5 py-1.5 text-gray-300 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                       >
-                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
                         <span className="nav-button">Logout</span>
@@ -378,11 +378,11 @@ export default function Dashboard() {
                     {/* Profile */}
                     <Link
                       href="/profile"
-                      className="block w-full text-left nav-button px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                      className="block w-full text-left nav-button px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <div className="flex items-center">
-                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                         Profile
@@ -392,11 +392,11 @@ export default function Dashboard() {
                     {/* Bank Account */}
                     <Link
                       href="/bank-account"
-                      className="block w-full text-left nav-button px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                      className="block w-full text-left nav-button px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <div className="flex items-center">
-                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
                         Bank Account
@@ -406,10 +406,10 @@ export default function Dashboard() {
                     {/* Logout */}
                     <button 
                       onClick={handleSignOut}
-                      className="block w-full text-left nav-button px-2 py-1.5 text-gray-300 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      className="block w-full text-left nav-button px-5 py-1.5 text-gray-300 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                     >
                       <div className="flex items-center">
-                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
                         Logout

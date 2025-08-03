@@ -123,6 +123,42 @@ export default function ProfilePage() {
     reader.readAsDataURL(file)
   }
 
+  const getCircularPreviewUrl = (): string | null => {
+    if (!imgRef.current || !completedCrop) return null
+    
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')!
+    const image = imgRef.current
+    
+    const scaleX = image.naturalWidth / image.width
+    const scaleY = image.naturalHeight / image.height
+    
+    // Set canvas size for preview (smaller)
+    const size = 80
+    canvas.width = size
+    canvas.height = size
+    
+    // Create circular clipping path
+    ctx.beginPath()
+    ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2)
+    ctx.clip()
+    
+    // Draw the cropped image
+    ctx.drawImage(
+      image,
+      completedCrop.x * scaleX,
+      completedCrop.y * scaleY,
+      completedCrop.width * scaleX,
+      completedCrop.height * scaleY,
+      0,
+      0,
+      size,
+      size
+    )
+    
+    return canvas.toDataURL('image/jpeg', 0.9)
+  }
+
   const getCroppedImg = (image: HTMLImageElement, crop: PixelCrop): Promise<Blob> => {
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')!
@@ -260,7 +296,7 @@ export default function ProfilePage() {
   // Loading state removed - show content immediately
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="cosmic-bg">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -306,21 +342,37 @@ export default function ProfilePage() {
               {/* Image Cropper */}
               {selectedImage && (
                   <div className="mb-8">
-                    <div className="max-w-sm mx-auto mb-6">
-                      <ReactCrop
-                        crop={crop}
-                        onChange={(c) => setCrop(c)}
-                        onComplete={(c) => setCompletedCrop(c)}
-                        aspect={1}
-                      >
-                        <img
-                          ref={imgRef}
-                          src={selectedImage}
-                          alt="Crop preview"
-                          className="max-w-full max-h-64 mx-auto rounded-lg"
-                        />
-                      </ReactCrop>
+                    <div className="text-center mb-4">
+                      <p className="text-gray-300 text-sm">Select the area for your circular profile photo</p>
                     </div>
+                    <div className="max-w-sm mx-auto mb-6">
+                      <div className="circular-crop-container">
+                        <ReactCrop
+                          crop={crop}
+                          onChange={(c) => setCrop(c)}
+                          onComplete={(c) => setCompletedCrop(c)}
+                          aspect={1}
+                        >
+                          <img
+                            ref={imgRef}
+                            src={selectedImage}
+                            alt="Crop preview"
+                            className="max-w-full max-h-64 mx-auto rounded-lg"
+                          />
+                        </ReactCrop>
+                        <div className="circular-crop-overlay"></div>
+                      </div>
+                    </div>
+                    
+                    {/* Circular Preview */}
+                    {completedCrop && (
+                      <div className="text-center mb-6">
+                        <p className="text-gray-300 text-sm mb-3">Preview:</p>
+                        <div className="circular-preview mx-auto">
+                          <img src={getCircularPreviewUrl() || ''} alt="Circular preview" />
+                        </div>
+                      </div>
+                    )}
                     
                     <div className="flex flex-col justify-center items-center gap-3">
                       <button
