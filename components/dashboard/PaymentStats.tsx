@@ -319,7 +319,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
 
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="cosmic-label text-white/70">{user?.user_metadata?.full_name || user?.email || 'User'} Commission</h3>
+              <h3 className="cosmic-label text-white/70">Anna's Commission</h3>
               {dateRange !== 'all' && (
                 <span className={`text-xs font-medium ${getChangeColor(current.revenue * 0.1, previous.revenue * 0.1)}`}>
                   {formatPercentageChange(current.revenue * 0.1, previous.revenue * 0.1)}

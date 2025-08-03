@@ -270,7 +270,7 @@ export default function Dashboard() {
                     href="/dashboard/payments" 
                     className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                   >
-                    Payment History
+                    Earnings
                   </Link>
                   
                   {/* My PayLinks */}
@@ -278,7 +278,7 @@ export default function Dashboard() {
                     href="/my-links" 
                     className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                   >
-                    My PayLinks
+                    PayLinks
                   </Link>
                   
                   {/* Create PayLink - Black Button */}
@@ -363,14 +363,14 @@ export default function Dashboard() {
                           className="block nav-button px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                           onClick={() => setMobileMenuOpen(false)}
                         >
-                          My PayLinks
+                          PayLinks
                         </Link>
                         <Link 
                           href="/dashboard/payments" 
                           className="block nav-button px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                           onClick={() => setMobileMenuOpen(false)}
                         >
-                          Payment History
+                          Earnings
                         </Link>
                       </>
                     )}
