@@ -134,7 +134,7 @@ export class CrossmintDatabaseService {
     const { data, error } = await supabase
       .from('payment_links')
       .insert(paymentLinkData)
-      .select()
+      .select('*')
       .single();
 
     if (error) {
