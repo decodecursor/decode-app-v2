@@ -354,59 +354,6 @@ export default function PaymentHistoryPage() {
         </div>
 
 
-        {/* Filters and Search */}
-        <div className="cosmic-card mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="cosmic-label text-white/70 block mb-2">Search</label>
-              <input
-                type="text"
-                placeholder="Search payment links..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="cosmic-input"
-              />
-            </div>
-            
-            <div>
-              <label className="cosmic-label text-white/70 block mb-2">Status</label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-                className="cosmic-input"
-              >
-                <option value="all">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="cosmic-label text-white/70 block mb-2">Sort By</label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'created_at' | 'amount_aed' | 'total_revenue')}
-                className="cosmic-input"
-              >
-                <option value="created_at">Date Created</option>
-                <option value="amount_aed">Amount</option>
-                <option value="total_revenue">Revenue</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="cosmic-label text-white/70 block mb-2">Order</label>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-                className="cosmic-input"
-              >
-                <option value="desc">Descending</option>
-                <option value="asc">Ascending</option>
-              </select>
-            </div>
-          </div>
-        </div>
 
         {/* Analytics */}
         {transactions.length > 0 && (
