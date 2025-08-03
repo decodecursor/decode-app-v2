@@ -10,6 +10,7 @@ interface PaymentTransaction {
   payment_link: {
     title: string
     amount_aed: number
+    client_name: string | null
   }
 }
 
