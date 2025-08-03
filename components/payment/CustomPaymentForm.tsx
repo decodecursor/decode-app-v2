@@ -338,6 +338,21 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
           fontSize: '12px', // Reduced label size
           marginBottom: '5px', // Increased by another 50% (3px * 1.5 = 4.5px, rounded to 5px)
         },
+        // Express Checkout button height reduction
+        '.ExpressCheckout': {
+          height: '36px',
+          minHeight: '36px',
+          padding: '6px 12px',
+        },
+        '.ExpressCheckoutElement': {
+          height: '36px',
+          minHeight: '36px',
+        },
+        '.ExpressCheckout-button': {
+          height: '36px !important',
+          minHeight: '36px !important',
+          padding: '6px 12px !important',
+        },
         // Force card icons to display side by side
         '.CardNumberInput .IconContainer': {
           display: 'flex !important',
