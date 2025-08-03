@@ -28,9 +28,10 @@ interface PaymentLinkData {
 }
 
 export default function PaymentPage() {
+  console.log('🔍 PaymentPage component rendering')
   const [paymentData, setPaymentData] = useState<PaymentLinkData | null>(null)
   const [crossmintOrder, setCrossmintOrder] = useState<any>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'crossmint'>('stripe')
 
   // Format amount with thousands separators
@@ -256,9 +257,19 @@ export default function PaymentPage() {
     fetchPaymentData()
   }, [linkId])
 
-  // Loading state removed - show content immediately
+  // Show loading state first
+  if (loading && !paymentData && !error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading payment information...</p>
+        </div>
+      </div>
+    )
+  }
 
-  if (error || !paymentData) {
+  if (error || (!loading && !paymentData)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
