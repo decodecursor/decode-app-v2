@@ -212,10 +212,28 @@ export default function ProfilePage() {
   }
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return
+    if (!isDragging || !imgRef.current) return
+    
+    const newX = e.clientX - dragStart.x
+    const newY = e.clientY - dragStart.y
+    
+    // Calculate boundaries to keep image within reasonable bounds of crop circle
+    const img = imgRef.current
+    const scaledWidth = img.naturalWidth * imageScale
+    const scaledHeight = img.naturalHeight * imageScale
+    const cropRadius = 128 // 256px diameter / 2
+    const containerCenter = 160 // 320px / 2
+    
+    // Allow some movement outside crop circle but prevent going too far
+    const maxOffset = Math.max(scaledWidth, scaledHeight) / 2
+    const minX = containerCenter - maxOffset
+    const maxX = containerCenter + maxOffset - scaledWidth
+    const minY = containerCenter - maxOffset  
+    const maxY = containerCenter + maxOffset - scaledHeight
+    
     setImagePosition({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y
+      x: Math.max(minX, Math.min(maxX, newX)),
+      y: Math.max(minY, Math.min(maxY, newY))
     })
   }
 
@@ -342,11 +360,17 @@ export default function ProfilePage() {
                       <div className="relative">
                         <div 
                           ref={containerRef}
-                          className="relative w-80 h-80 bg-gray-900 rounded-2xl overflow-hidden cursor-move"
+                          className={`relative w-80 h-80 bg-gray-600 rounded-2xl overflow-hidden transition-all duration-200 ${
+                            isDragging ? 'cursor-grabbing' : 'cursor-grab'
+                          }`}
                           onMouseDown={handleMouseDown}
                           onMouseMove={handleMouseMove}
                           onMouseUp={handleMouseUp}
                           onMouseLeave={handleMouseUp}
+                          style={{
+                            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)`,
+                            backgroundSize: '20px 20px'
+                          }}
                         >
                           {/* Circular Crop Overlay */}
                           <div className="absolute inset-0 pointer-events-none">
@@ -359,25 +383,36 @@ export default function ProfilePage() {
                             ref={imgRef}
                             src={selectedImage}
                             alt="Edit preview"
-                            className="absolute select-none"
+                            className={`absolute select-none border-2 rounded-lg shadow-lg transition-all duration-200 ${
+                              isDragging 
+                                ? 'border-blue-400 shadow-blue-400/50' 
+                                : 'border-white/50 hover:border-white/80'
+                            }`}
                             style={{
                               transform: `translate(${imagePosition.x}px, ${imagePosition.y}px) scale(${imageScale})`,
                               transformOrigin: 'center',
-                              transition: isDragging ? 'none' : 'transform 0.2s ease'
+                              transition: isDragging ? 'none' : 'transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease'
                             }}
                             onLoad={() => {
-                              if (imgRef.current) {
+                              if (imgRef.current && containerRef.current) {
                                 const img = imgRef.current
                                 const container = containerRef.current
-                                if (container) {
-                                  // Center the image initially
-                                  const containerRect = container.getBoundingClientRect()
-                                  const imgRect = img.getBoundingClientRect()
-                                  setImagePosition({
-                                    x: (containerRect.width - imgRect.width) / 2,
-                                    y: (containerRect.height - imgRect.height) / 2
-                                  })
-                                }
+                                
+                                // Calculate proper centering based on natural dimensions
+                                const containerWidth = 320 // 80 * 4 = 320px
+                                const containerHeight = 320
+                                
+                                // Scale image to fill circular crop area (256px diameter)
+                                const minScale = Math.max(256 / img.naturalWidth, 256 / img.naturalHeight)
+                                const scaledWidth = img.naturalWidth * minScale
+                                const scaledHeight = img.naturalHeight * minScale
+                                
+                                // Center the scaled image
+                                setImagePosition({
+                                  x: (containerWidth - scaledWidth) / 2,
+                                  y: (containerHeight - scaledHeight) / 2
+                                })
+                                setImageScale(minScale)
                               }
                             }}
                           />
