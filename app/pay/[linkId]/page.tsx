@@ -29,6 +29,17 @@ interface PaymentLinkData {
 
 export default function PaymentPage() {
   console.log('🔍 PaymentPage component rendering')
+  
+  // Temporarily return a simple test page
+  return (
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Payment Page Test</h1>
+        <p className="text-gray-600">If you see this, the page is working!</p>
+      </div>
+    </div>
+  )
+  
   const [paymentData, setPaymentData] = useState<PaymentLinkData | null>(null)
   const [crossmintOrder, setCrossmintOrder] = useState<any>(null)
   const [loading, setLoading] = useState(true)
