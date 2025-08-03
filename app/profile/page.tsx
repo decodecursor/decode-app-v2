@@ -97,11 +97,11 @@ export default function ProfilePage() {
         throw error
       } else {
         setProfile({ ...profile, professional_center_name: professionalCenterName.trim() })
-        setMessage({ type: 'success', text: 'Professional center name updated successfully' })
+        setMessage({ type: 'success', text: 'Company name updated successfully' })
       }
     } catch (error) {
       console.error('Error updating professional center name:', error)
-      setMessage({ type: 'error', text: 'Failed to update professional center name. Check console for details.' })
+      setMessage({ type: 'error', text: 'Failed to update company name. Check console for details.' })
     } finally {
       setSaving(false)
     }
@@ -294,7 +294,7 @@ export default function ProfilePage() {
             <div className="text-center">
               {/* Current Profile Photo */}
               <div className="mb-8">
-                  <div className="w-48 h-48 mx-auto rounded-lg overflow-hidden bg-gray-700 ring-4 ring-white/10">
+                  <div className="w-48 h-48 mx-auto rounded-full overflow-hidden bg-gray-700 ring-4 ring-white/10">
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
                       <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -366,13 +366,13 @@ export default function ProfilePage() {
 
           {/* Professional Center Name Card */}
           <div className="cosmic-card-profile">
-            <h2 className="text-xl font-semibold text-white mb-6">Professional Center Name</h2>
+            <h2 className="text-xl font-semibold text-white mb-6">Company Name</h2>
             <div className="space-y-4">
               <input
                 type="text"
                 value={professionalCenterName}
                 onChange={(e) => setProfessionalCenterName(e.target.value)}
-                placeholder="Enter your professional center/business name"
+                placeholder="Enter your company/business name"
                 className="cosmic-input w-full"
               />
               <button
@@ -387,12 +387,18 @@ export default function ProfilePage() {
 
           {/* Email Address Card */}
           <div className="cosmic-card-profile">
-            <h2 className="text-xl font-semibold text-white mb-6">Email Address</h2>
+            <div className="flex items-center gap-3 mb-6">
+              <h2 className="text-xl font-semibold text-white">Email Address</h2>
+              {user?.email_confirmed_at && (
+                <div className="flex items-center gap-1 px-2 py-1 bg-green-600/20 text-green-400 text-xs font-medium rounded-full border border-green-500/30">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Verified
+                </div>
+              )}
+            </div>
             <div className="space-y-4">
-              {/* Email Info */}
-              <div className="text-gray-400 text-sm mb-4">
-                Current email: {profile?.email}
-              </div>
 
               <input
                 type="email"
