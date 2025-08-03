@@ -3,8 +3,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import ReactCrop, { Crop, PixelCrop } from 'react-image-crop'
-import 'react-image-crop/dist/ReactCrop.css'
 
 interface UserProfile {
   id: string
@@ -29,8 +27,10 @@ export default function ProfilePage() {
   // Photo upload states
   const [photoUploading, setPhotoUploading] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
-  const [crop, setCrop] = useState<Crop>({ unit: '%', x: 25, y: 25, width: 50, height: 50 })
-  const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null)
+  const [imageScale, setImageScale] = useState(1)
+  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const imgRef = useRef<HTMLImageElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -123,18 +123,37 @@ export default function ProfilePage() {
     reader.readAsDataURL(file)
   }
 
-  const getCircularPreviewUrl = (): string | null => {
-    if (!imgRef.current || !completedCrop) return null
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true)
+    setDragStart({ x: e.clientX - imagePosition.x, y: e.clientY - imagePosition.y })
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return
+    setImagePosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y
+    })
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  const handleZoom = (direction: 'in' | 'out') => {
+    const newScale = direction === 'in' ? imageScale * 1.1 : imageScale * 0.9
+    setImageScale(Math.max(0.5, Math.min(3, newScale)))
+  }
+
+  const getCroppedImg = (): Promise<Blob> => {
+    if (!imgRef.current) throw new Error('No image selected')
     
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')!
     const image = imgRef.current
     
-    const scaleX = image.naturalWidth / image.width
-    const scaleY = image.naturalHeight / image.height
-    
-    // Set canvas size for preview (smaller)
-    const size = 80
+    // Set canvas size for profile photo (square for circular crop)
+    const size = 400
     canvas.width = size
     canvas.height = size
     
@@ -143,42 +162,15 @@ export default function ProfilePage() {
     ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2)
     ctx.clip()
     
-    // Draw the cropped image
-    ctx.drawImage(
-      image,
-      completedCrop.x * scaleX,
-      completedCrop.y * scaleY,
-      completedCrop.width * scaleX,
-      completedCrop.height * scaleY,
-      0,
-      0,
-      size,
-      size
-    )
+    // Calculate image dimensions and position
+    const scaledWidth = image.naturalWidth * imageScale
+    const scaledHeight = image.naturalHeight * imageScale
     
-    return canvas.toDataURL('image/jpeg', 0.9)
-  }
-
-  const getCroppedImg = (image: HTMLImageElement, crop: PixelCrop): Promise<Blob> => {
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')!
-
-    const scaleX = image.naturalWidth / image.width
-    const scaleY = image.naturalHeight / image.height
-
-    canvas.width = crop.width
-    canvas.height = crop.height
-
+    // Draw the image with current scale and position
     ctx.drawImage(
       image,
-      crop.x * scaleX,
-      crop.y * scaleY,
-      crop.width * scaleX,
-      crop.height * scaleY,
-      0,
-      0,
-      crop.width,
-      crop.height
+      0, 0, image.naturalWidth, image.naturalHeight,
+      imagePosition.x, imagePosition.y, scaledWidth, scaledHeight
     )
 
     return new Promise((resolve) => {
@@ -189,11 +181,11 @@ export default function ProfilePage() {
   }
 
   const uploadProfilePhoto = async () => {
-    if (!completedCrop || !imgRef.current || !profile) return
+    if (!imgRef.current || !profile || !selectedImage) return
 
     setPhotoUploading(true)
     try {
-      const croppedImageBlob = await getCroppedImg(imgRef.current, completedCrop)
+      const croppedImageBlob = await getCroppedImg()
       
       const fileExt = 'jpg'
       const fileName = `${profile.id}-${Date.now()}.${fileExt}`
@@ -339,45 +331,51 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-              {/* Image Cropper */}
+              {/* Circular Photo Selector */}
               {selectedImage && (
                   <div className="mb-8">
                     <div className="text-center mb-4">
-                      <p className="text-gray-300 text-sm">Select the area for your circular profile photo</p>
-                    </div>
-                    <div className="max-w-sm mx-auto mb-6">
-                      <div className="circular-crop-container">
-                        <ReactCrop
-                          crop={crop}
-                          onChange={(c) => setCrop(c)}
-                          onComplete={(c) => setCompletedCrop(c)}
-                          aspect={1}
-                        >
-                          <img
-                            ref={imgRef}
-                            src={selectedImage}
-                            alt="Crop preview"
-                            className="max-w-full max-h-64 mx-auto rounded-lg"
-                          />
-                        </ReactCrop>
-                        <div className="circular-crop-overlay"></div>
-                      </div>
+                      <p className="text-gray-300 text-sm">Drag to position and use controls to zoom</p>
                     </div>
                     
-                    {/* Circular Preview */}
-                    {completedCrop && (
-                      <div className="text-center mb-6">
-                        <p className="text-gray-300 text-sm mb-3">Preview:</p>
-                        <div className="circular-preview mx-auto">
-                          <img src={getCircularPreviewUrl() || ''} alt="Circular preview" />
-                        </div>
-                      </div>
-                    )}
+                    <div className="circular-photo-selector"
+                         onMouseDown={handleMouseDown}
+                         onMouseMove={handleMouseMove}
+                         onMouseUp={handleMouseUp}
+                         onMouseLeave={handleMouseUp}>
+                      <img
+                        ref={imgRef}
+                        src={selectedImage}
+                        alt="Profile photo"
+                        style={{
+                          transform: `translate(${imagePosition.x}px, ${imagePosition.y}px) scale(${imageScale})`,
+                          transformOrigin: 'center'
+                        }}
+                        draggable={false}
+                      />
+                    </div>
                     
-                    <div className="flex flex-col justify-center items-center gap-3">
+                    <div className="photo-controls">
+                      <button 
+                        onClick={() => handleZoom('out')}
+                        className="zoom-button"
+                        type="button"
+                      >
+                        −
+                      </button>
+                      <button 
+                        onClick={() => handleZoom('in')}
+                        className="zoom-button"
+                        type="button"
+                      >
+                        +
+                      </button>
+                    </div>
+                    
+                    <div className="flex flex-col justify-center items-center gap-3 mt-6">
                       <button
                         onClick={uploadProfilePhoto}
-                        disabled={photoUploading || !completedCrop}
+                        disabled={photoUploading || !selectedImage}
                         className="cosmic-button-primary disabled:opacity-50"
                       >
                         {photoUploading ? 'Uploading...' : 'Save Photo'}
@@ -464,7 +462,7 @@ export default function ProfilePage() {
                 disabled={saving || !newEmail.trim() || newEmail === profile?.email}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
-                {saving ? 'Sending...' : 'Change Email'}
+                {saving ? 'Sending...' : 'Change'}
               </button>
               
               {emailVerificationSent && (
