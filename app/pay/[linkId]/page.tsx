@@ -1,14 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
-import { getUserDisplayName, getBusinessDisplayName } from '@/lib/user-display'
-import { useParams, useRouter } from 'next/navigation'
-import { CrossmintPaymentElement } from '@crossmint/client-sdk-react-ui'
-import { walletCreationService } from '@/lib/wallet-creation'
-import StripeCheckoutButton from '@/components/payment/StripeCheckoutButton'
-import CustomPaymentForm from '@/components/payment/CustomPaymentForm'
-import { isValidPaymentLinkId } from '@/lib/short-id'
 
 interface PaymentLinkData {
   id: string
@@ -28,6 +20,16 @@ interface PaymentLinkData {
 }
 
 export default function PaymentPage() {
+  const [mounted, setMounted] = useState(false)
+  
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  
+  if (!mounted) {
+    return null // Prevent SSR hydration issues
+  }
+  
   console.log('🔍 PaymentPage component rendering')
   
   // Temporarily return a simple test page
@@ -36,6 +38,7 @@ export default function PaymentPage() {
       <div className="text-center">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Payment Page Test</h1>
         <p className="text-gray-600">If you see this, the page is working!</p>
+        <p className="text-gray-400 text-sm mt-2">Component mounted: {mounted ? 'Yes' : 'No'}</p>
       </div>
     </div>
   )
