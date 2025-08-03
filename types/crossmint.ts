@@ -156,11 +156,12 @@ export interface FeeCalculation {
 
 export function calculateMarketplaceFee(originalAmount: number): FeeCalculation {
   const feePercentage = 9;
-  const feeAmount = Math.round(originalAmount * (feePercentage / 100) * 100) / 100;
-  const totalAmount = Math.round((originalAmount + feeAmount) * 100) / 100;
+  // Calculate fee as exactly 9% to match database constraint
+  const feeAmount = Number((originalAmount * 0.09).toFixed(2));
+  const totalAmount = Number((originalAmount + feeAmount).toFixed(2));
   
   return {
-    originalAmount,
+    originalAmount: Number(originalAmount.toFixed(2)),
     feePercentage,
     feeAmount,
     totalAmount
