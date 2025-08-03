@@ -341,21 +341,11 @@ export default function ProfilePage() {
             <h2 className="text-xl font-semibold text-white mb-8">Profile Photo</h2>
             
             <div className="text-center">
-              {/* Current Profile Photo */}
-              <div className="mb-8">
-                  <div className="w-48 h-48 mx-auto rounded-full overflow-hidden bg-gray-700 ring-4 ring-white/10">
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
 
               {/* Instagram-Style Image Editor */}
               {selectedImage && (
                   <div className="mb-8">
-                    <div className="flex flex-col lg:flex-row gap-8 items-center justify-center">
+                    <div className="flex justify-center">
                       {/* Main Image Container */}
                       <div className="relative">
                         <div 
@@ -372,13 +362,7 @@ export default function ProfilePage() {
                             backgroundSize: '20px 20px'
                           }}
                         >
-                          {/* Circular Crop Overlay */}
-                          <div className="absolute inset-0 pointer-events-none">
-                            <div className="absolute inset-0 bg-black bg-opacity-60"></div>
-                            <div className="absolute top-1/2 left-1/2 w-64 h-64 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-lg bg-transparent"></div>
-                          </div>
-                          
-                          {/* Image */}
+                          {/* Image Behind Mask */}
                           <img
                             ref={imgRef}
                             src={selectedImage}
@@ -391,7 +375,8 @@ export default function ProfilePage() {
                             style={{
                               transform: `translate(${imagePosition.x}px, ${imagePosition.y}px) scale(${imageScale})`,
                               transformOrigin: 'center',
-                              transition: isDragging ? 'none' : 'transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease'
+                              transition: isDragging ? 'none' : 'transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease',
+                              zIndex: 1
                             }}
                             onLoad={() => {
                               if (imgRef.current && containerRef.current) {
@@ -416,10 +401,22 @@ export default function ProfilePage() {
                               }
                             }}
                           />
+
+                          {/* Circular Crop Mask - Above Image */}
+                          <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 2 }}>
+                            <div 
+                              className="absolute inset-0 bg-black bg-opacity-70"
+                              style={{
+                                maskImage: 'radial-gradient(circle 128px at center, transparent 128px, black 128px)',
+                                WebkitMaskImage: 'radial-gradient(circle 128px at center, transparent 128px, black 128px)'
+                              }}
+                            ></div>
+                            <div className="absolute top-1/2 left-1/2 w-64 h-64 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/30"></div>
+                          </div>
                         </div>
                         
                         {/* Zoom Slider */}
-                        <div className="mt-4 flex items-center gap-3">
+                        <div className="mt-6 flex items-center gap-3">
                           <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                           </svg>
@@ -436,31 +433,8 @@ export default function ProfilePage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
                           </svg>
                         </div>
-                      </div>
-                      
-                      {/* Circular Preview */}
-                      <div className="flex flex-col items-center gap-4">
-                        <div className="relative">
-                          <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-800 border-4 border-white shadow-xl">
-                            <div className="w-full h-full relative">
-                              <img
-                                src={selectedImage}
-                                alt="Preview"
-                                className="absolute"
-                                style={{
-                                  transform: `translate(${(imagePosition.x * 32) / 80}px, ${(imagePosition.y * 32) / 80}px) scale(${imageScale * 0.4})`,
-                                  transformOrigin: 'center'
-                                }}
-                              />
-                            </div>
-                          </div>
-                          <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-400 text-center">Drag to reposition<br />Use slider to zoom</p>
+                        
+                        <p className="text-sm text-gray-400 text-center mt-4">Drag to reposition • Use slider to zoom</p>
                       </div>
                     </div>
                     
