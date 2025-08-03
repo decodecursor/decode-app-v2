@@ -150,24 +150,28 @@ export default function CreatePayment() {
       // Ensure wallet exists before creating payment link
       await ensureUserHasWallet(user)
 
-      // Save payment link to Supabase (compatible with current schema)
-      const { data, error: saveError } = await supabase
-        .from('payment_links')
-        .insert({
+      // Create payment link using proper API endpoint
+      const response = await fetch('/api/payment/create-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           client_name: formData.client.trim(),
           title: formData.title.trim(),
-          description: `Service: ${formData.title.trim()} | Original: AED ${feeCalculation.originalAmount} | Fee: AED ${feeCalculation.feeAmount} | Total: AED ${feeCalculation.totalAmount}`,
-          amount_aed: feeCalculation.totalAmount, // Store total amount (what customer pays)
-          expiration_date: expirationDate.toISOString(),
-          creator_id: user.id,
-          is_active: true
+          description: formData.description?.trim() || '',
+          original_amount_aed: originalAmount,
+          creator_id: user.id
         })
-        .select()
-        .single()
+      });
 
-      if (saveError) {
-        throw saveError
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create payment link');
       }
+
+      const result = await response.json();
+      const data = result.data.paymentLink;
 
       console.log('Payment link created successfully:', data)
       
