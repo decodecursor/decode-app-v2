@@ -48,10 +48,16 @@ export default function ProfilePage() {
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
 
   useEffect(() => {
-    checkUser()
+    // Only run on client-side
+    if (typeof window !== 'undefined') {
+      checkUser()
+    }
   }, [])
 
   const checkUser = async () => {
+    // Additional client-side guard
+    if (typeof window === 'undefined') return
+    
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
