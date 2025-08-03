@@ -97,18 +97,18 @@ function PaymentForm({
     <div className="cosmic-bg min-h-screen flex items-center justify-center px-4 py-8">
       <div className="cosmic-card-login max-w-6xl md:max-w-md w-full">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-4">
           <img 
             src="/logo.png" 
             alt="DECODE" 
-            className="mx-auto mb-2" 
-            style={{height: '40px', filter: 'brightness(0) invert(1)'}} 
+            className="mx-auto mb-1" 
+            style={{height: '30px', filter: 'brightness(0) invert(1)'}} 
           />
           <p className="!text-sm cosmic-body opacity-70">Professional Beauty Services</p>
         </div>
 
         {/* Payment Information */}
-        <div className="space-y-6 mb-8">
+        <div className="space-y-4 mb-6">
           <div className="text-center space-y-2">
             <div className="cosmic-body text-lg font-medium text-white">
               {beautyProfessionalName}
@@ -126,8 +126,8 @@ function PaymentForm({
         </div>
 
         {/* Express Checkout (Apple Pay, Google Pay) */}
-        <div className="space-y-4 mb-6">
-          <div className="cosmic-input p-4">
+        <div className="space-y-3 mb-4">
+          <div className="cosmic-input p-3">
             <ExpressCheckoutElement
               options={{
                 paymentMethods: {
@@ -171,15 +171,15 @@ function PaymentForm({
         </div>
 
         {/* Divider */}
-        <div className="flex items-center space-x-4 my-6">
+        <div className="flex items-center space-x-4 my-4">
           <div className="flex-1 h-px bg-white/20"></div>
           <span className="!text-sm cosmic-body text-white opacity-60">or pay with card</span>
           <div className="flex-1 h-px bg-white/20"></div>
         </div>
 
         {/* Client Information Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="space-y-2">
             <div>
               <input
                 type="email"
@@ -193,7 +193,7 @@ function PaymentForm({
           </div>
 
           {/* Payment Element */}
-          <div className="space-y-4">
+          <div className="space-y-2">
             <div className="cosmic-input p-0 overflow-hidden">
               <PaymentElement 
                 options={{
