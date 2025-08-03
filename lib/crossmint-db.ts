@@ -117,12 +117,7 @@ export class CrossmintDatabaseService {
       client_name: request.client_name,
       title: request.title,
       description: request.description,
-      // Legacy field for backward compatibility (total amount)
       amount_aed: feeCalculation.totalAmount,
-      // New separate amount fields for analytics
-      service_amount_aed: feeCalculation.originalAmount,  // What professional receives
-      decode_amount_aed: feeCalculation.feeAmount,        // 9% marketplace fee
-      total_amount_aed: feeCalculation.totalAmount,       // What customer pays
       expiration_date: expirationDate.toISOString(),
       creator_id: request.creator_id,
       linked_user_id: request.linked_user_id,
@@ -142,7 +137,7 @@ export class CrossmintDatabaseService {
     return {
       ...data,
       fee_calculation: feeCalculation
-    };
+    } as any;
   }
 
   /**
