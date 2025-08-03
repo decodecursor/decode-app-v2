@@ -357,6 +357,10 @@ export default function PaymentPage() {
   }
 
   // Original design for Crossmint and selection
+  if (!paymentData) {
+    return null; // This shouldn't happen due to earlier checks, but satisfies TypeScript
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center px-4 py-8">
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full">
