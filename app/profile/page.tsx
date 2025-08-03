@@ -207,39 +207,53 @@ export default function ProfilePage() {
 
   // Handle mouse/touch events for dragging
   const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
     setIsDragging(true)
     setDragStart({ x: e.clientX - imagePosition.x, y: e.clientY - imagePosition.y })
   }
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !imgRef.current) return
-    
-    const newX = e.clientX - dragStart.x
-    const newY = e.clientY - dragStart.y
-    
-    // Calculate boundaries to keep image within reasonable bounds of crop circle
-    const img = imgRef.current
-    const scaledWidth = img.naturalWidth * imageScale
-    const scaledHeight = img.naturalHeight * imageScale
-    const cropRadius = 128 // 256px diameter / 2
-    const containerCenter = 160 // 320px / 2
-    
-    // Allow some movement outside crop circle but prevent going too far
-    const maxOffset = Math.max(scaledWidth, scaledHeight) / 2
-    const minX = containerCenter - maxOffset
-    const maxX = containerCenter + maxOffset - scaledWidth
-    const minY = containerCenter - maxOffset  
-    const maxY = containerCenter + maxOffset - scaledHeight
-    
-    setImagePosition({
-      x: Math.max(minX, Math.min(maxX, newX)),
-      y: Math.max(minY, Math.min(maxY, newY))
-    })
-  }
+  // Document-level drag handling for proper mouse tracking
+  useEffect(() => {
+    if (!isDragging) return
 
-  const handleMouseUp = () => {
-    setIsDragging(false)
-  }
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!imgRef.current) return
+      
+      const newX = e.clientX - dragStart.x
+      const newY = e.clientY - dragStart.y
+      
+      // Calculate boundaries to keep image within reasonable bounds of crop circle
+      const img = imgRef.current
+      const scaledWidth = img.naturalWidth * imageScale
+      const scaledHeight = img.naturalHeight * imageScale
+      const cropRadius = 128 // 256px diameter / 2
+      const containerCenter = 160 // 320px / 2
+      
+      // Allow some movement outside crop circle but prevent going too far
+      const maxOffset = Math.max(scaledWidth, scaledHeight) / 2
+      const minX = containerCenter - maxOffset
+      const maxX = containerCenter + maxOffset - scaledWidth
+      const minY = containerCenter - maxOffset  
+      const maxY = containerCenter + maxOffset - scaledHeight
+      
+      setImagePosition({
+        x: Math.max(minX, Math.min(maxX, newX)),
+        y: Math.max(minY, Math.min(maxY, newY))
+      })
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDragging, dragStart.x, dragStart.y, imageScale])
 
   // Handle zoom slider
   const handleZoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -341,6 +355,18 @@ export default function ProfilePage() {
             <h2 className="text-xl font-semibold text-white mb-8">Profile Photo</h2>
             
             <div className="text-center">
+              {/* Current Profile Photo Placeholder */}
+              {!selectedImage && (
+                <div className="mb-8">
+                  <div className="w-48 h-48 mx-auto rounded-full overflow-hidden bg-gray-700 ring-4 ring-white/10">
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Instagram-Style Image Editor */}
               {selectedImage && (
@@ -354,9 +380,6 @@ export default function ProfilePage() {
                             isDragging ? 'cursor-grabbing' : 'cursor-grab'
                           }`}
                           onMouseDown={handleMouseDown}
-                          onMouseMove={handleMouseMove}
-                          onMouseUp={handleMouseUp}
-                          onMouseLeave={handleMouseUp}
                           style={{
                             backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)`,
                             backgroundSize: '20px 20px'
