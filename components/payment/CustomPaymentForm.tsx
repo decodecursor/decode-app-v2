@@ -104,7 +104,7 @@ function PaymentForm({
             className="mx-auto mb-2" 
             style={{height: '38px', filter: 'brightness(0) invert(1)'}} 
           />
-          <p className="!text-xs cosmic-body opacity-70">Make Girls More Beautiful</p>
+          <p className="!text-sm cosmic-body opacity-70">Make Girls More Beautiful</p>
         </div>
 
         {/* Payment Information */}
@@ -113,10 +113,10 @@ function PaymentForm({
             <div className="cosmic-body text-base text-white">
               {beautyProfessionalName}
             </div>
-            <div className="cosmic-body text-sm font-bold text-white opacity-80">
+            <div className="cosmic-body text-sm font-bold text-white">
               {customerName || 'Client Name'}
             </div>
-            <div className="cosmic-body text-sm text-white opacity-80">
+            <div className="cosmic-body text-sm text-white">
               {description}
             </div>
             <div className="cosmic-body text-2xl font-bold text-white mt-2">
@@ -127,13 +127,14 @@ function PaymentForm({
 
         {/* Express Checkout (Apple Pay, Google Pay) */}
         <div className="space-y-1 mb-2">
-          <div className="cosmic-input p-1">
+          <div className="cosmic-input p-1" style={{ minHeight: 'auto' }}>
             <ExpressCheckoutElement
               options={{
                 paymentMethods: {
                   applePay: 'always',
                   googlePay: 'always'
-                }
+                },
+                buttonHeight: 36  // Reduced height to make button shorter
               }}
               onConfirm={async (event) => {
                 console.log('🍎 DEBUG: Express Checkout onConfirm called', event);
@@ -336,7 +337,7 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
         '.Label': {
           color: '#ffffff',
           fontSize: '12px', // Reduced label size
-          marginBottom: '3px', // Increased by 50% (2px * 1.5 = 3px)
+          marginBottom: '5px', // Increased by another 50% (3px * 1.5 = 4.5px, rounded to 5px)
         },
         // Force card icons to display side by side
         '.CardNumberInput .IconContainer': {
