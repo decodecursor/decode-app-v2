@@ -133,6 +133,10 @@ function PaymentForm({
                 paymentMethods: {
                   applePay: 'always',
                   googlePay: 'always'
+                },
+                buttonTheme: {
+                  applePay: 'white-outline',
+                  googlePay: 'white'
                 }
               }}
               onConfirm={async (event) => {
@@ -336,22 +340,31 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
         '.Label': {
           color: '#ffffff',
           fontSize: '12px', // Reduced label size
-          marginBottom: '5px', // Increased by another 50% (3px * 1.5 = 4.5px, rounded to 5px)
+          marginBottom: '6px', // Increased by 20% (5px * 1.2 = 6px)
         },
-        // Express Checkout button height reduction
+        // Express Checkout button height reduction - trying different selectors
+        '.StripeElement': {
+          height: '36px !important',
+          minHeight: '36px !important',
+        },
         '.ExpressCheckout': {
-          height: '36px',
-          minHeight: '36px',
-          padding: '6px 12px',
+          height: '36px !important',
+          minHeight: '36px !important',
+          padding: '6px 12px !important',
         },
         '.ExpressCheckoutElement': {
-          height: '36px',
-          minHeight: '36px',
+          height: '36px !important',
+          minHeight: '36px !important',
         },
         '.ExpressCheckout-button': {
           height: '36px !important',
           minHeight: '36px !important',
           padding: '6px 12px !important',
+        },
+        // Additional targeting for Google Pay and Apple Pay buttons
+        'button': {
+          height: '36px !important',
+          minHeight: '36px !important',
         },
         // Force card icons to display side by side
         '.CardNumberInput .IconContainer': {
