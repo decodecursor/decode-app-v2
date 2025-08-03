@@ -683,49 +683,13 @@ body {
   background: #EF4444;
 }
 
-/* Circular Profile Photo Crop Styles */
-.circular-photo-selector {
-  width: 300px;
-  height: 300px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  overflow: hidden;
-  margin: 0 auto;
-  position: relative;
-  cursor: move;
-  background: #374151;
+/* ReactCrop Circular Selection Styling */
+.ReactCrop__crop-selection {
+  border-radius: 50% !important;
 }
 
-.circular-photo-selector img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.1s ease;
-}
-
-.photo-controls {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.zoom-button {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.zoom-button:hover {
-  background: rgba(255, 255, 255, 0.2);
+.ReactCrop__drag-handle {
+  border-radius: 50% !important;
 }
 
 /* Landscape orientation adjustments */

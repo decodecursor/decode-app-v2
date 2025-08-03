@@ -38,7 +38,7 @@ interface PopularAmount {
 }
 
 export default function PaymentStats({ transactions, paymentLinks }: PaymentStatsProps) {
-  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d')
+  const [dateRange, setDateRange] = useState<'today' | '7d' | '30d' | '90d' | 'all'>('today')
   const [statsData, setStatsData] = useState<{
     current: DateRangeStats
     previous: DateRangeStats
@@ -53,6 +53,11 @@ export default function PaymentStats({ transactions, paymentLinks }: PaymentStat
     let previousPeriodEnd: Date
 
     switch (dateRange) {
+      case 'today':
+        currentPeriodStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        previousPeriodStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+        previousPeriodEnd = currentPeriodStart
+        break
       case '7d':
         currentPeriodStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
         previousPeriodStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
@@ -202,7 +207,7 @@ export default function PaymentStats({ transactions, paymentLinks }: PaymentStat
         <div className="flex justify-between items-center mb-6">
           <h2 className="cosmic-heading text-white">Analytics Overview</h2>
           <div className="flex space-x-2">
-            {(['7d', '30d', '90d', 'all'] as const).map((range) => (
+            {(['today', '7d', '30d', '90d', 'all'] as const).map((range) => (
               <button
                 key={range}
                 onClick={() => setDateRange(range)}
@@ -212,7 +217,7 @@ export default function PaymentStats({ transactions, paymentLinks }: PaymentStat
                     : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                 }`}
               >
-                {range === 'all' ? 'All Time' : range.toUpperCase()}
+                {range === 'all' ? 'All Time' : range === 'today' ? 'Today' : range.toUpperCase()}
               </button>
             ))}
           </div>
