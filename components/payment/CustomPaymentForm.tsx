@@ -97,29 +97,29 @@ function PaymentForm({
     <div className="cosmic-bg min-h-screen flex items-center justify-center px-4 py-2">
       <div className="cosmic-card-login max-w-6xl md:max-w-md w-full">
         {/* Header */}
-        <div className="text-center mb-2">
+        <div className="text-center mb-4">
           <img 
             src="/logo.png" 
             alt="DECODE" 
-            className="mx-auto mb-0" 
-            style={{height: '24px', filter: 'brightness(0) invert(1)'}} 
+            className="mx-auto mb-2" 
+            style={{height: '32px', filter: 'brightness(0) invert(1)'}} 
           />
-          <p className="!text-xs cosmic-body opacity-70">Professional Beauty Services</p>
+          <p className="!text-sm cosmic-body opacity-70">Professional Beauty Services</p>
         </div>
 
         {/* Payment Information */}
-        <div className="space-y-1 mb-3">
+        <div className="space-y-2 mb-4">
           <div className="text-center space-y-1">
-            <div className="cosmic-body text-sm font-medium text-white">
+            <div className="cosmic-body text-base font-medium text-white">
               {beautyProfessionalName}
             </div>
-            <div className="cosmic-body text-xs text-white opacity-80">
+            <div className="cosmic-body text-sm text-white opacity-80">
               {customerName || 'Client Name'}
             </div>
-            <div className="cosmic-body text-xs text-white opacity-80">
+            <div className="cosmic-body text-sm text-white opacity-80">
               {description}
             </div>
-            <div className="cosmic-body text-xl font-bold text-white mt-1">
+            <div className="cosmic-body text-2xl font-bold text-white mt-2">
               {currency} {amount.toFixed(2)}
             </div>
           </div>
@@ -194,7 +194,7 @@ function PaymentForm({
 
           {/* Payment Element */}
           <div className="space-y-1">
-            <div className="cosmic-input p-0 overflow-hidden">
+            <div className="cosmic-input p-0 overflow-hidden" style={{ fontSize: '14px' }}>
               <PaymentElement 
                 options={{
                   layout: 'tabs',
@@ -316,15 +316,18 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
         colorText: '#ffffff',
         colorDanger: '#ef4444',
         fontFamily: 'Inter, sans-serif',
-        fontSizeBase: '16px', // Better mobile support
+        fontSizeBase: '14px', // Reduced from 16px
         borderRadius: '8px',
-        spacingUnit: '6px', // Better spacing for icons
+        spacingUnit: '3px', // Reduced from 6px to compress fields
       },
       rules: {
         '.Input': {
           backgroundColor: 'rgba(255, 255, 255, 0.1)',
           border: '1px solid rgba(255, 255, 255, 0.3)',
           color: '#ffffff',
+          padding: '8px 12px', // Reduced padding to make fields shorter
+          fontSize: '14px',
+          lineHeight: '1.2',
         },
         '.Input:focus': {
           border: '1px solid rgba(255, 255, 255, 0.6)',
@@ -332,7 +335,8 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
         },
         '.Label': {
           color: '#ffffff',
-          fontSize: '14px',
+          fontSize: '12px', // Reduced label size
+          marginBottom: '2px',
         },
         // Force card icons to display side by side
         '.CardNumberInput .IconContainer': {
