@@ -339,7 +339,7 @@ export default function PaymentHistoryPage() {
     <div className="cosmic-bg min-h-screen">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="cosmic-card mb-6">
+        <div className="cosmic-card mb-8">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="cosmic-logo text-2xl text-white mb-2">Earnings</h1>
