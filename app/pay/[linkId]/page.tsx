@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import CustomPaymentForm from '@/components/payment/CustomPaymentForm'
+import { CrossmintPaymentElement } from '@crossmint/client-sdk-react-ui'
 
 interface PaymentLinkData {
   id: string
@@ -25,6 +27,7 @@ export default function PaymentPage() {
   const [paymentData, setPaymentData] = useState<PaymentLinkData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'crossmint'>('stripe')
   
   const params = useParams()
   const router = useRouter()
@@ -201,13 +204,94 @@ export default function PaymentPage() {
             </div>
           </div>
 
-          {/* Payment Options Placeholder */}
+          {/* Payment Options */}
           <div className="mt-8 border-t border-gray-200 pt-8">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Payment Options</h4>
-            <div className="text-center py-8 bg-gray-50 rounded-lg">
-              <p className="text-gray-600">Payment methods will be restored next...</p>
-              <p className="text-sm text-gray-500 mt-2">Link ID: {linkId}</p>
+            
+            {/* Payment Method Selector */}
+            <div className="mb-6">
+              <div className="flex rounded-lg border border-gray-300 p-1 bg-gray-50">
+                <button
+                  onClick={() => setPaymentMethod('stripe')}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    paymentMethod === 'stripe'
+                      ? 'bg-white text-purple-700 shadow-sm border border-purple-200'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  💳 Card Payment
+                </button>
+                <button
+                  onClick={() => setPaymentMethod('crossmint')}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    paymentMethod === 'crossmint'
+                      ? 'bg-white text-purple-700 shadow-sm border border-purple-200'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  🔗 Alternative Payment
+                </button>
+              </div>
             </div>
+
+            {/* Payment Forms */}
+            {paymentMethod === 'stripe' && paymentData && (
+              <CustomPaymentForm
+                paymentLinkId={linkId}
+                amount={paymentData.total_amount_aed || paymentData.amount_aed}
+                currency="AED"
+                description={paymentData.title}
+                beautyProfessionalName={paymentData.creator?.name || 'Beauty Professional'}
+                customerName={paymentData.client_name || undefined}
+                onSuccess={() => {
+                  console.log('💳 Stripe payment success callback triggered');
+                }}
+                onError={(error: any) => {
+                  console.error('Payment error:', error);
+                }}
+              />
+            )}
+
+            {paymentMethod === 'crossmint' && paymentData && (
+              <div className="space-y-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
+                      <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <h5 className="font-medium text-green-900">Alternative Payment Methods</h5>
+                  </div>
+                  <p className="text-sm text-green-700">
+                    Multiple payment options including cryptocurrency wallets and other methods.
+                  </p>
+                </div>
+
+                <CrossmintPaymentElement
+                  clientId={process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID!}
+                  environment="production"
+                  currency="USD"
+                  locale="en-US"
+                  paymentMethod="fiat"
+                  uiConfig={{
+                    colors: {
+                      accent: '#7C3AED',
+                      background: '#FFFFFF',
+                      textPrimary: '#111827'
+                    }
+                  }}
+                  whPassThroughArgs={{
+                    paymentLinkId: linkId,
+                    beautyProfessionalId: paymentData.creator?.id || '',
+                    service: 'beauty',
+                    title: paymentData.title,
+                    originalAmount: paymentData.total_amount_aed || paymentData.amount_aed,
+                    originalCurrency: 'AED'
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
