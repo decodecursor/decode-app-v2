@@ -1,7 +1,12 @@
 // Database operations for Crossmint integration
 // Handles all database interactions related to wallets and transactions
 
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 import { generateUniqueShortId } from '@/lib/short-id';
 import { v4 as uuidv4 } from 'uuid';
 import {
