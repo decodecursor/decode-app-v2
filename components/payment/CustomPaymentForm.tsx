@@ -139,6 +139,24 @@ function PaymentForm({
                   googlePay: 'white'
                 }
               }}
+              onReady={(event) => {
+                console.log('🍎 DEBUG: Express Checkout ready event:', event);
+                console.log('🍎 DEBUG: Available payment methods:', event.availablePaymentMethods);
+                if (!event.availablePaymentMethods) {
+                  console.warn('⚠️ DEBUG: No payment methods available in Express Checkout');
+                } else {
+                  if (event.availablePaymentMethods.applePay) {
+                    console.log('✅ DEBUG: Apple Pay is available');
+                  } else {
+                    console.log('❌ DEBUG: Apple Pay is NOT available');
+                  }
+                  if (event.availablePaymentMethods.googlePay) {
+                    console.log('✅ DEBUG: Google Pay is available');
+                  } else {
+                    console.log('❌ DEBUG: Google Pay is NOT available');
+                  }
+                }
+              }}
               onConfirm={async (event) => {
                 console.log('🍎 DEBUG: Express Checkout onConfirm called', event);
                 

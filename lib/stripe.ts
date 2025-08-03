@@ -169,6 +169,11 @@ class StripeService {
         amount: request.amount,
         currency: request.currency.toLowerCase(),
         description: request.description,
+        payment_method_types: ['card'],
+        automatic_payment_methods: {
+          enabled: true,
+          allow_redirects: 'never'
+        },
         metadata: {
           payment_link_id: request.paymentLinkId,
           beauty_professional_id: request.beautyProfessionalId,
