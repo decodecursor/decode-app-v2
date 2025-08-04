@@ -148,7 +148,7 @@ function PaymentForm({
                   overflow: 'never'
                 }
               }}
-                onReady={(event) => {
+              onReady={(event) => {
                 console.log('🍎 DEBUG: Express Checkout ready event:', event);
                 console.log('🍎 DEBUG: Available payment methods:', event.availablePaymentMethods);
                 if (!event.availablePaymentMethods) {
