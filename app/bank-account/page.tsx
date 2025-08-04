@@ -36,6 +36,11 @@ export default function BankAccountPage() {
   const [iban, setIban] = useState('')
   const [bank, setBank] = useState('')
   const [isConnected, setIsConnected] = useState(false)
+  
+  // Track saved values for comparison
+  const [savedBeneficiary, setSavedBeneficiary] = useState('')
+  const [savedIban, setSavedIban] = useState('')
+  const [savedBank, setSavedBank] = useState('')
 
   const handleSaveBankAccount = async () => {
     if (!beneficiary.trim() || !iban.trim() || !bank.trim()) {
@@ -69,12 +74,11 @@ export default function BankAccountPage() {
       }
       
       setIsConnected(true)
-      setMessage({ type: 'success', text: 'Bank account saved successfully!' })
       
-      // Clear form fields after successful save
-      setBeneficiary('')
-      setIban('')
-      setBank('')
+      // Update saved values to current form values
+      setSavedBeneficiary(beneficiary.trim())
+      setSavedIban(iban.trim())
+      setSavedBank(bank.trim())
       
     } catch (error) {
       console.error('Error saving bank account:', error)
@@ -394,10 +398,11 @@ export default function BankAccountPage() {
               
               <button
                 onClick={handleSaveBankAccount}
-                disabled={loading}
-                className="cosmic-button-primary mt-8 w-full"
+                disabled={loading || (!beneficiary.trim() || !iban.trim() || !bank.trim() || 
+                  (beneficiary.trim() === savedBeneficiary && iban.trim() === savedIban && bank.trim() === savedBank))}
+                className="cosmic-button-primary disabled:opacity-50 mt-8 w-full"
               >
-                {loading ? 'Saving...' : 'Save'}
+                {loading ? 'Saving...' : 'Change'}
               </button>
               </div>
             )}
