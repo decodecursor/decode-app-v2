@@ -49,7 +49,7 @@ export default function BankAccountPage() {
     // Simulate saving process
     setTimeout(() => {
       setIsConnected(true)
-      setMessage({ type: 'success', text: 'Bank account connected successfully!' })
+      setMessage(null)
       setLoading(false)
     }, 1000)
   }
