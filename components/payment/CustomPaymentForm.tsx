@@ -128,22 +128,25 @@ function PaymentForm({
         {/* Express Checkout (Apple Pay, Google Pay) */}
         <div className="space-y-1 mb-2">
           <div className="cosmic-input p-1" style={{ minHeight: 'auto' }}>
-            <div style={{ display: 'flex', gap: '8px', flexDirection: 'row' }}>
-              <ExpressCheckoutElement
-                options={{
-                  paymentMethods: {
-                    applePay: 'always',
-                    googlePay: 'always'
-                  },
-                  buttonTheme: {
-                    applePay: 'white-outline',
-                    googlePay: 'white'
-                  },
-                  buttonType: {
-                    googlePay: 'plain'
-                  },
-                  buttonHeight: 40
-                }}
+            <ExpressCheckoutElement
+              options={{
+                paymentMethods: {
+                  applePay: 'always',
+                  googlePay: 'always'
+                },
+                buttonTheme: {
+                  applePay: 'white-outline',
+                  googlePay: 'white'
+                },
+                buttonType: {
+                  googlePay: 'plain'
+                },
+                buttonHeight: 40,
+                layout: {
+                  maxColumns: 2,
+                  overflow: 'never'
+                }
+              }}
                 onReady={(event) => {
                 console.log('🍎 DEBUG: Express Checkout ready event:', event);
                 console.log('🍎 DEBUG: Available payment methods:', event.availablePaymentMethods);
@@ -194,7 +197,6 @@ function PaymentForm({
                 }
               }}
             />
-            </div>
           </div>
         </div>
 
@@ -346,7 +348,7 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
         fontFamily: 'Inter, sans-serif',
         fontSizeBase: '14px',
         borderRadius: '8px',
-        spacingUnit: '6px',
+        spacingUnit: '4px',
       },
       rules: {
         '.Input': {
@@ -364,10 +366,10 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
         '.Label': {
           color: '#ffffff',
           fontSize: '12px',
-          marginBottom: '8px',
+          marginBottom: '7px',
         },
         '.Row': {
-          marginBottom: '12px',
+          marginBottom: '6px',
         },
       },
     },
