@@ -363,7 +363,7 @@ export default function ProfilePage() {
         {/* Centered Content Area */}
         <div className="flex justify-center">
           <div className="w-full max-w-2xl">
-            {/* Back to Dashboard Link */}
+            {/* Back to Dashboard Link - Updated */}
             <div className="mb-6">
               <button
                 onClick={() => router.push('/dashboard')}
