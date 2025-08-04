@@ -70,11 +70,7 @@ export default function BankAccountPage() {
       }
 
       if (userData) {
-        // User exists, show setup message since Stripe Connect isn't available yet
-        setMessage({ 
-          type: 'info', 
-          text: 'Bank account setup is not yet available. The database needs to be updated with Stripe Connect support. Please run the migration script provided in database-migrations/stripe-connect-columns.sql' 
-        })
+        // User exists, show normal interface
         setCurrentStep('create')
         setLoading(false)
         return
