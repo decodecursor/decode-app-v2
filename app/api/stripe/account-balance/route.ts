@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       .eq('user_id', userId)
       .eq('status', 'pending') as any)
 
-    const pendingAmount = pendingTransfers?.reduce((sum, t) => sum + t.amount_aed, 0) || 0
+    const pendingAmount = pendingTransfers?.reduce((sum: number, t: any) => sum + t.amount_aed, 0) || 0
 
     // Get this week's earnings
     const startOfWeek = new Date()
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
       .eq('status', 'completed')
       .gte('created_at', startOfWeek.toISOString()) as any)
 
-    const weeklyEarnings = weeklyTransfers?.reduce((sum, t) => sum + t.amount_aed, 0) || 0
+    const weeklyEarnings = weeklyTransfers?.reduce((sum: number, t: any) => sum + t.amount_aed, 0) || 0
 
     return NextResponse.json({
       available: balance.available,
