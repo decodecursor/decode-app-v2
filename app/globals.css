@@ -15,6 +15,20 @@
   --cosmic-button-gradient-end: #000000;
 }
 
+/* Force Express Checkout Element buttons to display horizontally */
+.ExpressCheckoutElement > div {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 8px !important;
+  justify-content: center !important;
+}
+
+/* Ensure individual payment buttons have proper width */
+.ExpressCheckoutElement > div > * {
+  flex: 1 !important;
+  max-width: 180px !important;
+}
+
 /* Base Cosmic Background */
 .cosmic-bg {
   background-image: url('/starry-background.jpg');

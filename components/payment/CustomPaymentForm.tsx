@@ -126,8 +126,8 @@ function PaymentForm({
         </div>
 
         {/* Express Checkout (Apple Pay, Google Pay) */}
-        <div className="space-y-1 mb-2">
-          <div className="cosmic-input p-1" style={{ minHeight: 'auto' }}>
+        <div className="mb-4">
+          <div style={{ padding: '4px' }}>
             <ExpressCheckoutElement
               options={{
                 paymentMethods: {
@@ -141,9 +141,10 @@ function PaymentForm({
                 buttonType: {
                   googlePay: 'plain'
                 },
-                buttonHeight: 40,
+                buttonHeight: 36,
                 layout: {
                   maxColumns: 2,
+                  maxRows: 1,
                   overflow: 'never'
                 }
               }}
