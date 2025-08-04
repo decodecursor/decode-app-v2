@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { ConnectOnboarding } from '@/components/stripe/ConnectOnboarding'
 import { ConnectAccountManagement } from '@/components/stripe/ConnectAccountManagement'
 import { ConnectNotificationBanner } from '@/components/stripe/ConnectNotificationBanner'
 import { VerificationBadge } from '@/components/stripe/VerificationBadge'
@@ -33,9 +32,50 @@ export default function BankAccountPage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState<{ show: boolean; action: 'remove' | 'setPrimary' | null; accountId: string | null }>({ show: false, action: null, accountId: null })
   const [actionLoading, setActionLoading] = useState(false)
 
+  const handleStartOnboarding = async () => {
+    try {
+      setLoading(true)
+      setMessage({ type: 'info', text: 'Creating onboarding link...' })
+      
+      const response = await fetch('/api/stripe/account-links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId: stripeAccountId })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error)
+      }
+
+      // Redirect to Stripe onboarding
+      window.location.href = result.url
+    } catch (error) {
+      console.error('Error creating onboarding link:', error)
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to create onboarding link' })
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     checkUser()
   }, [])
+
+  useEffect(() => {
+    // Handle return from Stripe onboarding
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('success') === 'true') {
+      setMessage({ type: 'success', text: 'Onboarding completed successfully! Loading your account details...' })
+      setCurrentStep('complete')
+      if (user) {
+        loadAccountData(user.id)
+      }
+    } else if (urlParams.get('refresh') === 'true') {
+      setMessage({ type: 'info', text: 'Onboarding session expired. Please try again.' })
+      setCurrentStep('onboarding')
+    }
+  }, [user])
 
   const checkUser = async () => {
     try {
@@ -291,11 +331,24 @@ export default function BankAccountPage() {
           )}
 
           {currentStep === 'onboarding' && stripeAccountId && (
-            <ConnectOnboarding
-              accountId={stripeAccountId}
-              onExit={handleOnboardingExit}
-              onComplete={handleOnboardingComplete}
-            />
+            <div className="cosmic-card text-center py-12">
+              <div className="w-24 h-24 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-12 h-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-4">Complete Your Account Setup</h2>
+              <p className="text-gray-400 mb-8 max-w-md mx-auto">
+                You'll be redirected to Stripe's secure onboarding page to complete your account setup. This process typically takes just a few minutes.
+              </p>
+              <button
+                onClick={handleStartOnboarding}
+                className="cosmic-button-primary"
+                disabled={loading}
+              >
+                {loading ? 'Creating onboarding link...' : 'Continue to Stripe Onboarding'}
+              </button>
+            </div>
           )}
 
           {currentStep === 'complete' && stripeAccountId && (
