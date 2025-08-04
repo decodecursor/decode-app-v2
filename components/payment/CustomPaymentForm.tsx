@@ -127,7 +127,7 @@ function PaymentForm({
 
         {/* Express Checkout (Apple Pay, Google Pay) */}
         <div className="mb-4 express-checkout-expanded">
-          <div style={{ marginBottom: '8px', minHeight: '100px' }}>
+          <div className="cosmic-input express-checkout-no-border" style={{ minHeight: 'auto' }}>
             <ExpressCheckoutElement
               options={{
                 paymentMethods: {
