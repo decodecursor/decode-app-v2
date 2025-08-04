@@ -125,9 +125,12 @@ function PaymentForm({
           </div>
         </div>
 
-        {/* Express Checkout (Apple Pay, Google Pay) */}
-        <div className="mb-4">
-          <ExpressCheckoutElement
+        {/* Only render payment elements when clientSecret is ready */}
+        {clientSecret ? (
+          <>
+            {/* Express Checkout (Apple Pay, Google Pay) */}
+            <div className="mb-4">
+              <ExpressCheckoutElement
             options={{
               paymentMethods: {
                 applePay: 'always',
@@ -258,6 +261,12 @@ function PaymentForm({
             {loading ? 'Processing...' : `Pay ${currency} ${amount.toFixed(2)}`}
           </button>
         </form>
+          </>
+        ) : (
+          <div className="text-center py-8">
+            <div className="cosmic-body text-white opacity-60">Loading payment form...</div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -334,8 +343,19 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
     );
   }
 
+  // Only create Elements when we have a clientSecret
+  if (!clientSecret) {
+    return (
+      <div className="cosmic-bg min-h-screen flex items-center justify-center px-4">
+        <div className="cosmic-card-login max-w-md w-full text-center">
+          <div className="cosmic-body text-white opacity-60">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
   const stripeOptions: StripeElementsOptions = {
-    clientSecret: clientSecret || '',
+    clientSecret,
     appearance: {
       theme: 'night',
       variables: {
@@ -372,7 +392,7 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
 
   return (
     <Elements stripe={stripePromise} options={stripeOptions}>
-      <PaymentForm {...props} clientSecret={clientSecret || ''} customerName={realClientName || props.customerName} />
+      <PaymentForm {...props} clientSecret={clientSecret} customerName={realClientName || props.customerName} />
     </Elements>
   );
 }
