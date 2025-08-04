@@ -97,14 +97,14 @@ function PaymentForm({
     <div className="cosmic-bg min-h-screen flex items-center justify-center px-4 py-2">
       <div className="cosmic-card-login max-w-6xl md:max-w-md w-full">
         {/* Header */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-7">
           <img 
             src="/logo.png" 
             alt="DECODE" 
             className="mx-auto mb-2" 
             style={{height: '38px', filter: 'brightness(0) invert(1)'}} 
           />
-          <p className="cosmic-body opacity-70" style={{ fontSize: '0.8rem', marginTop: '-4px' }}>Make Girls More Beautiful</p>
+          <p className="cosmic-body opacity-70" style={{ fontSize: '0.9rem', marginTop: '-4px' }}>Make Girls More Beautiful</p>
         </div>
 
         {/* Payment Information */}
@@ -140,10 +140,6 @@ function PaymentForm({
                 },
                 buttonType: {
                   googlePay: 'plain'
-                },
-                layout: {
-                  maxColumns: 0
-                  // Removed maxRows to allow vertical expansion on mobile
                 }
               }}
               onReady={(event) => {
