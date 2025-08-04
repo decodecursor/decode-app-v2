@@ -360,7 +360,7 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Back to Dashboard Link */}
+        {/* Back to Dashboard Link - Positioned above cosmic cards */}
         <div className="flex justify-center mb-6">
           <div className="w-full max-w-2xl">
             <button
