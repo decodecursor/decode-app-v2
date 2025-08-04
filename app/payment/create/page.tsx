@@ -216,13 +216,13 @@ export default function CreatePayment() {
 
             <form onSubmit={generatePaymentLink} className="space-y-6">
               <div>
-                <label className="cosmic-label block mb-2">Client *</label>
+                <label className="cosmic-label block mb-2">Client</label>
                 <input
                   type="text"
                   name="client"
                   value={formData.client}
                   onChange={handleInputChange}
-                  placeholder="e.g., Sarah Johnson"
+                  placeholder="Sarah Johnson"
                   className={`cosmic-input ${errors.client ? 'border-red-500' : ''}`}
                   disabled={creating}
                 />
@@ -232,13 +232,13 @@ export default function CreatePayment() {
               </div>
 
               <div>
-                <label className="cosmic-label block mb-2">Service *</label>
+                <label className="cosmic-label block mb-2">Service</label>
                 <input
                   type="text"
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  placeholder="e.g., Haircut"
+                  placeholder="Haircut"
                   className={`cosmic-input ${errors.title ? 'border-red-500' : ''}`}
                   disabled={creating}
                 />
@@ -248,7 +248,7 @@ export default function CreatePayment() {
               </div>
 
               <div>
-                <label className="cosmic-label block mb-2">Amount in AED *</label>
+                <label className="cosmic-label block mb-2">Amount in AED</label>
                 <input
                   type="number"
                   name="amount"
