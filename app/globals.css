@@ -15,32 +15,6 @@
   --cosmic-button-gradient-end: #000000;
 }
 
-/* Force Express Checkout to show all buttons without "Show More" */
-.express-checkout-expanded [class*="CollapsedWrapper"] {
-  display: none !important;
-}
-
-.express-checkout-expanded [class*="ExpandedWrapper"] {
-  display: block !important;
-}
-
-/* Also try to force any show more buttons to be hidden */
-.express-checkout-expanded button[aria-label*="Show more"],
-.express-checkout-expanded button[aria-label*="show more"],
-.express-checkout-expanded [class*="ShowMore"] {
-  display: none !important;
-}
-
-/* Ensure all payment buttons are visible */
-.express-checkout-expanded [class*="PaymentMethod"] {
-  display: block !important;
-}
-
-/* Remove border from express checkout cosmic-input to avoid double frame */
-.express-checkout-no-border.cosmic-input {
-  border: none !important;
-  background: transparent !important;
-}
 
 /* Base Cosmic Background */
 .cosmic-bg {

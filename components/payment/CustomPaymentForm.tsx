@@ -126,23 +126,17 @@ function PaymentForm({
         </div>
 
         {/* Express Checkout (Apple Pay, Google Pay) */}
-        <div className="mb-4 express-checkout-expanded">
-          <div className="cosmic-input express-checkout-no-border p-0" style={{ minHeight: 'auto' }}>
-            <ExpressCheckoutElement
-              options={{
-                paymentMethods: {
-                  applePay: 'always',
-                  googlePay: 'always'
-                },
-                buttonTheme: {
-                  applePay: 'white-outline',
-                  googlePay: 'white'
-                },
-                buttonType: {
-                  googlePay: 'plain'
-                },
-                paymentMethodOrder: ['applePay', 'googlePay']
-              }}
+        <div className="mb-4">
+          <ExpressCheckoutElement
+            options={{
+              paymentMethods: {
+                applePay: 'always',
+                googlePay: 'always'
+              },
+              buttonType: {
+                googlePay: 'plain'
+              }
+            }}
               onReady={(event) => {
                 console.log('🍎 DEBUG: Express Checkout ready event:', event);
                 console.log('🍎 DEBUG: Available payment methods:', event.availablePaymentMethods);
@@ -201,9 +195,8 @@ function PaymentForm({
                   setError(errorMessage);
                   onError?.(errorMessage);
                 }
-              }}
-            />
-          </div>
+            }}
+          />
         </div>
 
         {/* Divider */}
@@ -324,11 +317,6 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
     createPaymentIntent();
   }, [props.paymentLinkId]);
 
-  // Don't show anything while loading
-  if (!clientSecret && !error) {
-    return null;
-  }
-
   // Only show error if there's an actual error
   if (error) {
     return (
@@ -347,7 +335,7 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
   }
 
   const stripeOptions: StripeElementsOptions = {
-    clientSecret: clientSecret || undefined,
+    clientSecret: clientSecret || '',
     appearance: {
       theme: 'night',
       variables: {
@@ -384,7 +372,7 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
 
   return (
     <Elements stripe={stripePromise} options={stripeOptions}>
-      <PaymentForm {...props} clientSecret={clientSecret!} customerName={realClientName || props.customerName} />
+      <PaymentForm {...props} clientSecret={clientSecret || ''} customerName={realClientName || props.customerName} />
     </Elements>
   );
 }
