@@ -35,11 +35,11 @@ export async function GET(request: NextRequest) {
     )
 
     // Get pending transfers from database
-    const { data: pendingTransfers } = await supabaseAdmin
-      .from('transfers')
+    const { data: pendingTransfers } = await (supabaseAdmin
+      .from('transfers' as any)
       .select('amount_aed')
       .eq('user_id', userId)
-      .eq('status', 'pending')
+      .eq('status', 'pending') as any)
 
     const pendingAmount = pendingTransfers?.reduce((sum, t) => sum + t.amount_aed, 0) || 0
 
@@ -48,12 +48,12 @@ export async function GET(request: NextRequest) {
     startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1) // Monday
     startOfWeek.setHours(0, 0, 0, 0)
 
-    const { data: weeklyTransfers } = await supabaseAdmin
-      .from('transfers')
+    const { data: weeklyTransfers } = await (supabaseAdmin
+      .from('transfers' as any)
       .select('amount_aed')
       .eq('user_id', userId)
       .eq('status', 'completed')
-      .gte('created_at', startOfWeek.toISOString())
+      .gte('created_at', startOfWeek.toISOString()) as any)
 
     const weeklyEarnings = weeklyTransfers?.reduce((sum, t) => sum + t.amount_aed, 0) || 0
 
