@@ -350,18 +350,17 @@ export default function ProfilePage() {
   return (
     <div className="cosmic-bg">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        {/* Back to Dashboard Link */}
+        <div className="mb-6">
           <button
             onClick={() => router.push('/dashboard')}
-            className="flex items-center text-gray-300 hover:text-white transition-colors"
+            className="flex items-center text-gray-300 hover:text-white transition-colors w-fit"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back to Dashboard
           </button>
-          <h1 className="text-3xl font-bold text-white">Profile Settings</h1>
         </div>
 
         {/* Message Display */}
