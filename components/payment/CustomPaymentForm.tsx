@@ -141,7 +141,7 @@ function PaymentForm({
                 layout: {
                   maxColumns: 2,
                   maxRows: 1,
-                  overflow: 'horizontal'
+                  overflow: 'auto'
                 },
                 buttonType: {
                   googlePay: 'plain'
