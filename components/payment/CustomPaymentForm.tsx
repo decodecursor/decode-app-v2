@@ -137,6 +137,9 @@ function PaymentForm({
                 buttonTheme: {
                   applePay: 'white-outline',
                   googlePay: 'white'
+                },
+                buttonType: {
+                  googlePay: 'plain'
                 }
               }}
               onReady={(event) => {
