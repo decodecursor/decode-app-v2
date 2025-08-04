@@ -140,7 +140,8 @@ function PaymentForm({
                 },
                 buttonType: {
                   googlePay: 'plain'
-                }
+                },
+                buttonHeight: 36
               }}
               onReady={(event) => {
                 console.log('🍎 DEBUG: Express Checkout ready event:', event);
