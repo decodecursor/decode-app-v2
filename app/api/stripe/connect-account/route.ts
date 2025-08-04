@@ -61,9 +61,9 @@ export async function POST(request: NextRequest) {
     // Ensure Stripe is initialized
     stripeService.ensureStripeInitialized()
 
-    // Create Stripe Connect account for UAE
+    // Create Stripe Connect account for UAE (Standard = non-loss-liable)
     const account = await stripeService.stripe.accounts.create({
-      type: 'express',
+      type: 'standard',
       country: 'AE', // United Arab Emirates
       email: userData.email,
       business_type: 'individual', // For independent contractors
