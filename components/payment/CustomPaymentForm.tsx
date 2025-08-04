@@ -384,7 +384,7 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
 
   return (
     <Elements stripe={stripePromise} options={stripeOptions}>
-      <PaymentForm {...props} clientSecret={clientSecret} customerName={realClientName || props.customerName} />
+      <PaymentForm {...props} clientSecret={clientSecret!} customerName={realClientName || props.customerName} />
     </Elements>
   );
 }
