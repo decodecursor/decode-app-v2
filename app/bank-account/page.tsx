@@ -287,23 +287,24 @@ export default function BankAccountPage() {
         )}
 
 
-        {/* Back to Dashboard Link */}
-        <div className="mb-6">
-          <Link
-            href="/dashboard"
-            className="flex items-center text-gray-300 hover:text-white transition-colors w-fit"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Dashboard
-          </Link>
-        </div>
-
         {/* Main Content */}
         <div className="space-y-6 flex justify-center">
-          {currentStep === 'create' && (
-            <div className="cosmic-card text-center py-12 max-w-md w-full">
+          <div className="max-w-md w-full">
+            {/* Back to Dashboard Link */}
+            <div className="mb-6">
+              <Link
+                href="/dashboard"
+                className="flex items-center text-gray-300 hover:text-white transition-colors w-fit"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Dashboard
+              </Link>
+            </div>
+            
+            {currentStep === 'create' && (
+              <div className="cosmic-card text-center py-12">
               <div className="w-24 h-24 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-12 h-12 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -365,10 +366,9 @@ export default function BankAccountPage() {
               >
                 {loading ? 'Saving...' : 'Save'}
               </button>
-            </div>
-          )}
-
-
+              </div>
+            )}
+          </div>
         </div>
 
       </div>
