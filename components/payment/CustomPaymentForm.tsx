@@ -126,7 +126,7 @@ function PaymentForm({
         </div>
 
         {/* Express Checkout (Apple Pay, Google Pay) */}
-        <div className="mb-4">
+        <div className="mb-4 express-checkout-wrapper">
           <div style={{ padding: '4px' }}>
             <ExpressCheckoutElement
               options={{
