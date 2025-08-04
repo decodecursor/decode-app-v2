@@ -55,77 +55,30 @@ export default function BankAccountPage() {
 
   const loadAccountData = async (userId: string) => {
     try {
-      // First try to load basic user data
-      let userData: any = null
-      let userError: any = null
-
-      // Try with Stripe Connect columns first
-      try {
-        const result = await supabase
-          .from('users')
-          .select('id, stripe_connect_account_id, stripe_connect_status, stripe_onboarding_completed')
-          .eq('id', userId)
-          .single()
-        
-        userData = result.data
-        userError = result.error
-      } catch (stripeError) {
-        console.warn('⚠️ Stripe Connect columns not available, falling back to basic user data')
-        
-        // Fallback: try with just basic columns to verify user exists
-        const result = await supabase
-          .from('users')
-          .select('id')
-          .eq('id', userId)
-          .single()
-        
-        userData = result.data
-        userError = result.error
-        
-        // If user exists but no Stripe columns, show setup message
-        if (result.data && !result.error) {
-          setMessage({ 
-            type: 'info', 
-            text: 'Bank account setup not yet available. Database needs to be updated with Stripe Connect support.' 
-          })
-          setCurrentStep('create')
-          setLoading(false)
-          return
-        }
-      }
+      // Simple approach: just verify user exists and show info message
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', userId)
+        .single()
 
       if (userError) {
-        console.error('🔴 Database error details:', {
-          message: userError.message,
-          details: userError.details,
-          hint: userError.hint,
-          code: userError.code,
-          userId: userId
-        })
+        console.error('🔴 Database error:', userError.message)
         setMessage({ type: 'error', text: `Database error: ${userError.message}` })
         setLoading(false)
         return
       }
 
-      // Check if we have Stripe Connect data
-      if (userData?.stripe_connect_account_id) {
-        setStripeAccountId(userData.stripe_connect_account_id)
-        setAccountStatus((userData.stripe_connect_status as 'not_connected' | 'pending' | 'active' | 'restricted') || 'pending')
-        setOnboardingComplete(userData.stripe_onboarding_completed || false)
-        
-        if (userData.stripe_onboarding_completed) {
-          setCurrentStep('complete')
-          await loadBankAccountDetails(userId)
-        } else {
-          setCurrentStep('onboarding')
-        }
-      } else {
-        // No Stripe Connect account yet, show create step
+      if (userData) {
+        // User exists, show setup message since Stripe Connect isn't available yet
+        setMessage({ 
+          type: 'info', 
+          text: 'Bank account setup is not yet available. The database needs to be updated with Stripe Connect support. Please run the migration script provided in database-migrations/stripe-connect-columns.sql' 
+        })
         setCurrentStep('create')
-        console.log('📝 User has no Stripe Connect account, showing create step')
+        setLoading(false)
+        return
       }
-
-      setLoading(false)
     } catch (error) {
       console.error('Error loading account data:', error)
       setMessage({ type: 'error', text: 'Failed to load account information' })
