@@ -31,31 +31,28 @@ export default function BankAccountPage() {
   const [nextPayoutDate, setNextPayoutDate] = useState<string | null>(null)
   const [showConfirmDialog, setShowConfirmDialog] = useState<{ show: boolean; action: 'remove' | 'setPrimary' | null; accountId: string | null }>({ show: false, action: null, accountId: null })
   const [actionLoading, setActionLoading] = useState(false)
+  
+  // Form fields for simplified bank account entry
+  const [beneficiary, setBeneficiary] = useState('')
+  const [iban, setIban] = useState('')
+  const [bank, setBank] = useState('')
+  const [isConnected, setIsConnected] = useState(false)
 
-  const handleStartOnboarding = async () => {
-    try {
-      setLoading(true)
-      setMessage({ type: 'info', text: 'Creating onboarding link...' })
-      
-      const response = await fetch('/api/stripe/account-links', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accountId: stripeAccountId })
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error)
-      }
-
-      // Redirect to Stripe onboarding
-      window.location.href = result.url
-    } catch (error) {
-      console.error('Error creating onboarding link:', error)
-      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to create onboarding link' })
-      setLoading(false)
+  const handleSaveBankAccount = async () => {
+    if (!beneficiary.trim() || !iban.trim() || !bank.trim()) {
+      setMessage({ type: 'error', text: 'Please fill in all fields' })
+      return
     }
+
+    setLoading(true)
+    setMessage({ type: 'info', text: 'Saving bank account details...' })
+    
+    // Simulate saving process
+    setTimeout(() => {
+      setIsConnected(true)
+      setMessage({ type: 'success', text: 'Bank account connected successfully!' })
+      setLoading(false)
+    }, 1000)
   }
 
   useEffect(() => {
@@ -309,153 +306,73 @@ export default function BankAccountPage() {
         )}
 
         {/* Main Content */}
-        <div className="space-y-6">
+        <div className="space-y-6 flex justify-center">
           {currentStep === 'create' && (
-            <div className="cosmic-card text-center py-12">
+            <div className="cosmic-card text-center py-12 max-w-md w-full">
               <div className="w-24 h-24 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-12 h-12 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-white mb-4">Connect Your Bank Account</h2>
-              <p className="text-gray-400 mb-8 max-w-md mx-auto">
-                To receive weekly payouts from your beauty services, you need to connect a UAE business bank account.
-              </p>
-              <button
-                onClick={createStripeAccount}
-                className="cosmic-button-primary"
-              >
-                Start Bank Account Setup
-              </button>
-            </div>
-          )}
-
-          {currentStep === 'onboarding' && stripeAccountId && (
-            <div className="cosmic-card text-center py-12">
-              <div className="w-24 h-24 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-12 h-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-bold text-white mb-4">Complete Your Account Setup</h2>
-              <p className="text-gray-400 mb-8 max-w-md mx-auto">
-                You'll be redirected to Stripe's secure onboarding page to complete your account setup. This process typically takes just a few minutes.
-              </p>
-              <button
-                onClick={handleStartOnboarding}
-                className="cosmic-button-primary"
-                disabled={loading}
-              >
-                {loading ? 'Creating onboarding link...' : 'Continue to Stripe Onboarding'}
-              </button>
-            </div>
-          )}
-
-          {currentStep === 'complete' && stripeAccountId && (
-            <>
-              {/* Account Status Overview */}
-              <AccountStatusOverview
-                status={accountStatus}
-                balance={balance.available}
-                pending={balance.pending}
-                currency={balance.currency}
-                nextPayoutDate={nextPayoutDate}
-              />
-
-              {/* Bank Accounts */}
-              <div className="cosmic-card">
-                <h2 className="text-xl font-semibold text-white mb-6">Connected Bank Accounts</h2>
+              
+              {isConnected && (
+                <div className="mb-4">
+                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-600/20 text-green-400 border border-green-500/30">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Connected
+                  </div>
+                </div>
+              )}
+              
+              <h2 className="text-2xl font-bold text-white mb-8">Connect Business Bank Account</h2>
+              
+              <div className="space-y-4 text-left">
+                <div>
+                  <input
+                    type="text"
+                    value={beneficiary}
+                    onChange={(e) => setBeneficiary(e.target.value)}
+                    placeholder="Boho Beauty Salon"
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                  />
+                </div>
                 
-                {bankAccounts.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {bankAccounts.map((account) => (
-                      <BankAccountCard
-                        key={account.id}
-                        bankName={account.bank_name}
-                        accountNumber={`****${account.account_number.slice(-4)}`}
-                        accountHolderName={account.account_holder_name}
-                        isPrimary={account.is_primary}
-                        isVerified={account.is_verified}
-                        status={account.status}
-                        onSetPrimary={bankAccounts.length > 1 && !account.is_primary ? () => {
-                          setShowConfirmDialog({ show: true, action: 'setPrimary', accountId: account.id })
-                        } : undefined}
-                        onRemove={bankAccounts.length > 1 ? () => {
-                          setShowConfirmDialog({ show: true, action: 'remove', accountId: account.id })
-                        } : undefined}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 bg-gray-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                      </svg>
-                    </div>
-                    <p className="text-gray-400">No bank accounts found.</p>
-                    <p className="text-gray-500 text-sm mt-1">They will appear here once configured through the account management section.</p>
-                  </div>
-                )}
+                <div>
+                  <input
+                    type="text"
+                    value={iban}
+                    onChange={(e) => setIban(e.target.value)}
+                    placeholder="AE 0700 3001 2769 3138 2000 1"
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <input
+                    type="text"
+                    value={bank}
+                    onChange={(e) => setBank(e.target.value)}
+                    placeholder="RAK Bank"
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                  />
+                </div>
               </div>
-
-              {/* Payout History */}
-              {user && <PayoutHistory userId={user.id} />}
-
-              {/* Account Management */}
-              <ConnectComponentWrapper 
-                title="Account Management"
-                description="Update your business information, bank account details, or view additional settings."
+              
+              <button
+                onClick={handleSaveBankAccount}
+                disabled={loading}
+                className="cosmic-button-primary mt-8 w-full"
               >
-                <ConnectAccountManagement accountId={stripeAccountId} />
-              </ConnectComponentWrapper>
-            </>
+                {loading ? 'Saving...' : 'Save'}
+              </button>
+            </div>
           )}
+
+
         </div>
 
-        {/* Confirmation Dialog */}
-        {showConfirmDialog.show && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="cosmic-card max-w-md w-full">
-              <h3 className="text-xl font-semibold text-white mb-4">
-                {showConfirmDialog.action === 'remove' ? 'Remove Bank Account?' : 'Set as Primary Account?'}
-              </h3>
-              <p className="text-gray-400 mb-6">
-                {showConfirmDialog.action === 'remove' 
-                  ? 'Are you sure you want to remove this bank account? This action cannot be undone.'
-                  : 'This will set this account as your primary bank account for receiving payouts.'}
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setShowConfirmDialog({ show: false, action: null, accountId: null })}
-                  className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
-                  disabled={actionLoading}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    if (showConfirmDialog.accountId) {
-                      if (showConfirmDialog.action === 'remove') {
-                        handleRemoveAccount(showConfirmDialog.accountId)
-                      } else {
-                        handleSetPrimary(showConfirmDialog.accountId)
-                      }
-                    }
-                  }}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    showConfirmDialog.action === 'remove' 
-                      ? 'bg-red-600 hover:bg-red-700 text-white' 
-                      : 'cosmic-button-primary'
-                  }`}
-                  disabled={actionLoading}
-                >
-                  {actionLoading ? 'Processing...' : showConfirmDialog.action === 'remove' ? 'Remove' : 'Set as Primary'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )
