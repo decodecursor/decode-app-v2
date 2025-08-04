@@ -47,12 +47,7 @@ export function ConnectOnboarding({ accountId, onExit, onComplete }: ConnectOnbo
         if (!mounted) return
 
         // Create account onboarding component
-        accountOnboarding = await stripeConnectInstance.create('account-onboarding', {
-          collectionOptions: {
-            fields: 'currently_due',
-            futureRequirements: 'include'
-          }
-        })
+        accountOnboarding = stripeConnectInstance.create('account-onboarding')
 
         // Set up event listeners
         accountOnboarding.on('exit', () => {

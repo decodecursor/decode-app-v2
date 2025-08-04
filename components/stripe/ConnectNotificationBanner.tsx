@@ -47,7 +47,7 @@ export function ConnectNotificationBanner({ accountId }: ConnectNotificationBann
         if (!mounted) return
 
         // Create notification banner component
-        notificationBanner = await stripeConnectInstance.create('notification-banner')
+        notificationBanner = stripeConnectInstance.create('notification-banner')
 
         // Set up event listeners
         notificationBanner.on('change', (event: any) => {

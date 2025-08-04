@@ -47,7 +47,7 @@ export function ConnectAccountManagement({ accountId }: ConnectAccountManagement
         if (!mounted) return
 
         // Create account management component
-        accountManagement = await stripeConnectInstance.create('account-management')
+        accountManagement = stripeConnectInstance.create('account-management')
 
         // Mount the component
         if (containerRef.current && mounted) {
