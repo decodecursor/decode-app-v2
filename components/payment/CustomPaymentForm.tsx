@@ -127,7 +127,7 @@ function PaymentForm({
 
         {/* Express Checkout (Apple Pay, Google Pay) */}
         <div className="mb-4">
-          <div style={{ maxWidth: '320px', margin: '0 auto' }}>
+          <div style={{ marginBottom: '8px' }}>
             <ExpressCheckoutElement
               options={{
                 paymentMethods: {
@@ -143,7 +143,8 @@ function PaymentForm({
                 },
                 layout: {
                   maxColumns: 2,
-                  maxRows: 1
+                  maxRows: 1,
+                  overflow: 'never'
                 }
               }}
               onReady={(event) => {
