@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
         )
       `)
       .eq('id', paymentLinkId)
-      .single();
+      .single() as any;
 
     console.log('🔍 DEBUG: Supabase query result:');
     console.log('- Error:', fetchError);
