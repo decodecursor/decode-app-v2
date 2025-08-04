@@ -650,6 +650,7 @@ export default function ProfilePage() {
                 {passwordChanging ? 'Changing...' : 'Change'}
               </button>
             </div>
+            </div>
           </div>
         </div>
       </div>
