@@ -43,15 +43,48 @@ export default function BankAccountPage() {
       return
     }
 
+    if (!user?.id) {
+      setMessage({ type: 'error', text: 'User not authenticated' })
+      return
+    }
+
     setLoading(true)
     setMessage({ type: 'info', text: 'Saving bank account details...' })
     
-    // Simulate saving process
-    setTimeout(() => {
+    try {
+      const { error } = await supabase
+        .from('user_bank_accounts')
+        .insert({
+          user_id: user.id,
+          beneficiary_name: beneficiary.trim(),
+          iban_number: iban.trim(),
+          bank_name: bank.trim(),
+          is_primary: true,
+          status: 'pending'
+        })
+
+      if (error) {
+        console.error('Supabase insert error:', error)
+        throw error
+      }
+      
       setIsConnected(true)
-      setMessage(null)
+      setMessage({ type: 'success', text: 'Bank account saved successfully!' })
+      
+      // Clear form fields after successful save
+      setBeneficiary('')
+      setIban('')
+      setBank('')
+      
+    } catch (error) {
+      console.error('Error saving bank account:', error)
+      setMessage({ 
+        type: 'error', 
+        text: error instanceof Error ? error.message : 'Failed to save bank account' 
+      })
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
   }
 
   useEffect(() => {
