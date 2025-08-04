@@ -140,11 +140,22 @@ function PaymentForm({
                 },
                 buttonType: {
                   googlePay: 'plain'
-                }
+                },
+                paymentMethodOrder: ['applePay', 'googlePay']
               }}
               onReady={(event) => {
                 console.log('🍎 DEBUG: Express Checkout ready event:', event);
                 console.log('🍎 DEBUG: Available payment methods:', event.availablePaymentMethods);
+                
+                // Auto-click Show More button after a short delay
+                setTimeout(() => {
+                  const showMoreButton = document.querySelector('button[aria-label*="Show more"], button[aria-label*="show more"], [class*="ShowMore"]') as HTMLButtonElement;
+                  if (showMoreButton) {
+                    console.log('🔄 Auto-clicking Show More button');
+                    showMoreButton.click();
+                  }
+                }, 200);
+                
                 if (!event.availablePaymentMethods) {
                   console.warn('⚠️ DEBUG: No payment methods available in Express Checkout');
                 } else {
