@@ -140,6 +140,10 @@ function PaymentForm({
                 },
                 buttonType: {
                   googlePay: 'plain'
+                },
+                layout: {
+                  maxColumns: 2,
+                  maxRows: 1
                 }
               }}
               onReady={(event) => {
