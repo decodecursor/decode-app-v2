@@ -347,7 +347,7 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
   }
 
   const stripeOptions: StripeElementsOptions = {
-    clientSecret,
+    clientSecret: clientSecret || undefined,
     appearance: {
       theme: 'night',
       variables: {
