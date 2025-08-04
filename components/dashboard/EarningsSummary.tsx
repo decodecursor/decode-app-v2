@@ -1,0 +1,158 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
+
+interface EarningsSummaryProps {
+  userId: string
+}
+
+interface EarningsData {
+  todayEarnings: number
+  weekEarnings: number
+  monthEarnings: number
+  totalEarnings: number
+}
+
+export function EarningsSummary({ userId }: EarningsSummaryProps) {
+  const [loading, setLoading] = useState(true)
+  const [earnings, setEarnings] = useState<EarningsData>({
+    todayEarnings: 0,
+    weekEarnings: 0,
+    monthEarnings: 0,
+    totalEarnings: 0
+  })
+
+  useEffect(() => {
+    loadEarnings()
+  }, [userId])
+
+  const loadEarnings = async () => {
+    try {
+      // Get today's start
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+
+      // Get this week's start (Monday)
+      const weekStart = new Date()
+      const day = weekStart.getDay()
+      const diff = weekStart.getDate() - day + (day === 0 ? -6 : 1)
+      weekStart.setDate(diff)
+      weekStart.setHours(0, 0, 0, 0)
+
+      // Get this month's start
+      const monthStart = new Date()
+      monthStart.setDate(1)
+      monthStart.setHours(0, 0, 0, 0)
+
+      // Load today's earnings
+      const { data: todayData } = await supabase
+        .from('transfers')
+        .select('amount_aed')
+        .eq('user_id', userId)
+        .eq('status', 'completed')
+        .gte('created_at', today.toISOString())
+
+      // Load this week's earnings
+      const { data: weekData } = await supabase
+        .from('transfers')
+        .select('amount_aed')
+        .eq('user_id', userId)
+        .eq('status', 'completed')
+        .gte('created_at', weekStart.toISOString())
+
+      // Load this month's earnings
+      const { data: monthData } = await supabase
+        .from('transfers')
+        .select('amount_aed')
+        .eq('user_id', userId)
+        .eq('status', 'completed')
+        .gte('created_at', monthStart.toISOString())
+
+      // Load total earnings
+      const { data: totalData } = await supabase
+        .from('transfers')
+        .select('amount_aed')
+        .eq('user_id', userId)
+        .eq('status', 'completed')
+
+      setEarnings({
+        todayEarnings: todayData?.reduce((sum, t) => sum + t.amount_aed, 0) || 0,
+        weekEarnings: weekData?.reduce((sum, t) => sum + t.amount_aed, 0) || 0,
+        monthEarnings: monthData?.reduce((sum, t) => sum + t.amount_aed, 0) || 0,
+        totalEarnings: totalData?.reduce((sum, t) => sum + t.amount_aed, 0) || 0
+      })
+    } catch (error) {
+      console.error('Error loading earnings:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('en-AE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount)
+  }
+
+  if (loading) {
+    return (
+      <div className="cosmic-card">
+        <h3 className="text-lg font-semibold text-white mb-6">Earnings</h3>
+        <div className="grid grid-cols-2 gap-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="animate-pulse">
+              <div className="h-4 w-20 bg-gray-700 rounded mb-2" />
+              <div className="h-6 w-24 bg-gray-700 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="cosmic-card">
+      <h3 className="text-lg font-semibold text-white mb-6">Earnings</h3>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white/5 rounded-lg p-4 backdrop-blur-sm">
+          <p className="text-gray-400 text-sm mb-1">Today</p>
+          <p className="text-xl font-semibold text-white">
+            AED {formatAmount(earnings.todayEarnings)}
+          </p>
+        </div>
+        
+        <div className="bg-white/5 rounded-lg p-4 backdrop-blur-sm">
+          <p className="text-gray-400 text-sm mb-1">This Week</p>
+          <p className="text-xl font-semibold text-white">
+            AED {formatAmount(earnings.weekEarnings)}
+          </p>
+        </div>
+        
+        <div className="bg-white/5 rounded-lg p-4 backdrop-blur-sm">
+          <p className="text-gray-400 text-sm mb-1">This Month</p>
+          <p className="text-xl font-semibold text-white">
+            AED {formatAmount(earnings.monthEarnings)}
+          </p>
+        </div>
+        
+        <div className="bg-purple-600/20 rounded-lg p-4 backdrop-blur-sm border border-purple-500/30">
+          <p className="text-purple-300 text-sm mb-1">Total</p>
+          <p className="text-xl font-semibold text-purple-100">
+            AED {formatAmount(earnings.totalEarnings)}
+          </p>
+        </div>
+      </div>
+
+      {earnings.weekEarnings > 0 && (
+        <div className="mt-4 pt-4 border-t border-gray-800">
+          <p className="text-xs text-gray-500">
+            Weekly payouts are processed every Monday
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}

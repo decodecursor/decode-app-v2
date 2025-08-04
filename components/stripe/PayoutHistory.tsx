@@ -21,6 +21,7 @@ interface PayoutHistoryProps {
 export function PayoutHistory({ userId }: PayoutHistoryProps) {
   const [payouts, setPayouts] = useState<Payout[]>([])
   const [loading, setLoading] = useState(true)
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     loadPayouts()
@@ -61,6 +62,51 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
     })
   }
 
+  const exportToCSV = async () => {
+    setExporting(true)
+    try {
+      // Load all payouts for export
+      const { data, error } = await supabase
+        .from('payouts')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      // Create CSV content
+      const headers = ['Date', 'Amount (AED)', 'Status', 'Period Start', 'Period End', 'Paid Date']
+      const rows = (data || []).map(payout => [
+        formatDate(payout.created_at),
+        payout.amount_aed.toFixed(2),
+        payout.status,
+        formatDate(payout.period_start),
+        formatDate(payout.period_end),
+        payout.paid_at ? formatDate(payout.paid_at) : 'Pending'
+      ])
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\n')
+
+      // Download CSV file
+      const blob = new Blob([csvContent], { type: 'text/csv' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `payouts_${new Date().toISOString().split('T')[0]}.csv`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error exporting payouts:', error)
+    } finally {
+      setExporting(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="cosmic-card">
@@ -76,7 +122,21 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
 
   return (
     <div className="cosmic-card">
-      <h3 className="text-lg font-semibold text-white mb-6">Payout History</h3>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-semibold text-white">Payout History</h3>
+        {payouts.length > 0 && (
+          <button
+            onClick={exportToCSV}
+            disabled={exporting}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            {exporting ? 'Exporting...' : 'Export CSV'}
+          </button>
+        )}
+      </div>
       
       {payouts.length === 0 ? (
         <p className="text-gray-400 text-center py-8">No payouts yet. Your first payout will appear here.</p>

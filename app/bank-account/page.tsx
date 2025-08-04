@@ -30,6 +30,8 @@ export default function BankAccountPage() {
     currency: 'AED' 
   })
   const [nextPayoutDate, setNextPayoutDate] = useState<string | null>(null)
+  const [showConfirmDialog, setShowConfirmDialog] = useState<{ show: boolean; action: 'remove' | 'setPrimary' | null; accountId: string | null }>({ show: false, action: null, accountId: null })
+  const [actionLoading, setActionLoading] = useState(false)
 
   useEffect(() => {
     checkUser()
@@ -174,6 +176,54 @@ export default function BankAccountPage() {
     setMessage({ type: 'info', text: 'You can complete the onboarding process anytime.' })
   }
 
+  const handleSetPrimary = async (accountId: string) => {
+    setActionLoading(true)
+    try {
+      const response = await fetch('/api/stripe/bank-account/set-primary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId, userId: user?.id })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to set primary account')
+      }
+
+      setMessage({ type: 'success', text: 'Primary bank account updated successfully' })
+      await loadBankAccountDetails(user.id)
+    } catch (error) {
+      console.error('Error setting primary account:', error)
+      setMessage({ type: 'error', text: 'Failed to update primary account' })
+    } finally {
+      setActionLoading(false)
+      setShowConfirmDialog({ show: false, action: null, accountId: null })
+    }
+  }
+
+  const handleRemoveAccount = async (accountId: string) => {
+    setActionLoading(true)
+    try {
+      const response = await fetch('/api/stripe/bank-account/remove', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId, userId: user?.id })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to remove bank account')
+      }
+
+      setMessage({ type: 'success', text: 'Bank account removed successfully' })
+      await loadBankAccountDetails(user.id)
+    } catch (error) {
+      console.error('Error removing account:', error)
+      setMessage({ type: 'error', text: 'Failed to remove bank account' })
+    } finally {
+      setActionLoading(false)
+      setShowConfirmDialog({ show: false, action: null, accountId: null })
+    }
+  }
+
 
   if (loading) {
     return (
@@ -284,13 +334,11 @@ export default function BankAccountPage() {
                         isPrimary={account.is_primary}
                         isVerified={account.is_verified}
                         status={account.status}
-                        onSetPrimary={bankAccounts.length > 1 ? () => {
-                          // TODO: Implement set primary
-                          console.log('Set primary:', account.id)
+                        onSetPrimary={bankAccounts.length > 1 && !account.is_primary ? () => {
+                          setShowConfirmDialog({ show: true, action: 'setPrimary', accountId: account.id })
                         } : undefined}
                         onRemove={bankAccounts.length > 1 ? () => {
-                          // TODO: Implement remove
-                          console.log('Remove:', account.id)
+                          setShowConfirmDialog({ show: true, action: 'remove', accountId: account.id })
                         } : undefined}
                       />
                     ))}
@@ -319,6 +367,54 @@ export default function BankAccountPage() {
                 <ConnectAccountManagement accountId={stripeAccountId} />
               </ConnectComponentWrapper>
             </>
+          )}
+        </div>
+
+        {/* Confirmation Dialog */}
+        {showConfirmDialog.show && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="cosmic-card max-w-md w-full">
+              <h3 className="text-xl font-semibold text-white mb-4">
+                {showConfirmDialog.action === 'remove' ? 'Remove Bank Account?' : 'Set as Primary Account?'}
+              </h3>
+              <p className="text-gray-400 mb-6">
+                {showConfirmDialog.action === 'remove' 
+                  ? 'Are you sure you want to remove this bank account? This action cannot be undone.'
+                  : 'This will set this account as your primary bank account for receiving payouts.'}
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowConfirmDialog({ show: false, action: null, accountId: null })}
+                  className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                  disabled={actionLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (showConfirmDialog.accountId) {
+                      if (showConfirmDialog.action === 'remove') {
+                        handleRemoveAccount(showConfirmDialog.accountId)
+                      } else {
+                        handleSetPrimary(showConfirmDialog.accountId)
+                      }
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    showConfirmDialog.action === 'remove' 
+                      ? 'bg-red-600 hover:bg-red-700 text-white' 
+                      : 'cosmic-button-primary'
+                  }`}
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? 'Processing...' : showConfirmDialog.action === 'remove' ? 'Remove' : 'Set as Primary'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
           )}
         </div>
       </div>
