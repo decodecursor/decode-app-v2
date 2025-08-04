@@ -360,10 +360,11 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Back to Dashboard Link - Positioned at left edge of cosmic cards */}
-        <div className="mb-6">
-          <div className="flex justify-center">
-            <div className="w-full max-w-2xl">
+        {/* Main Content */}
+        <div className="space-y-6 flex justify-center">
+          <div className="w-full max-w-2xl">
+            {/* Back to Dashboard Link */}
+            <div className="mb-6">
               <button
                 onClick={() => router.push('/dashboard')}
                 className="flex items-center text-gray-300 hover:text-white transition-colors w-fit"
@@ -374,12 +375,7 @@ export default function ProfilePage() {
                 Back to Dashboard
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="space-y-6 flex justify-center">
-          <div className="w-full max-w-2xl">
+            
             <div className="space-y-8">
           {/* Profile Photo Section */}  
           <div className="cosmic-card-profile h-fit">
