@@ -15,34 +15,6 @@
   --cosmic-button-gradient-end: #000000;
 }
 
-/* Force Express Checkout Element buttons to display horizontally */
-/* Only apply within our specific wrapper to avoid global conflicts */
-/* TEMPORARILY COMMENTED OUT TO DEBUG WHITE SCREEN
-.express-checkout-wrapper [class*="__ExpressCheckoutElement"] {
-  display: flex !important;
-  flex-direction: row !important;
-  gap: 8px !important;
-  justify-content: center !important;
-}
-*/
-
-/* Target the inner container that holds the buttons */
-/* TEMPORARILY COMMENTED OUT TO DEBUG WHITE SCREEN
-.express-checkout-wrapper [class*="__ExpressCheckoutElement"] > div {
-  display: flex !important;
-  flex-direction: row !important;
-  gap: 8px !important;
-}
-*/
-
-/* Ensure buttons don't overflow */
-/* TEMPORARILY COMMENTED OUT TO DEBUG WHITE SCREEN
-.express-checkout-wrapper [class*="__ExpressCheckoutElement"] button,
-.express-checkout-wrapper [class*="__ExpressCheckoutElement"] > div > * {
-  max-width: 180px !important;
-  flex: 1 !important;
-}
-*/
 
 /* Base Cosmic Background */
 .cosmic-bg {
