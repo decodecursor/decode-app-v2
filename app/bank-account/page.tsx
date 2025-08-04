@@ -415,9 +415,5 @@ export default function BankAccountPage() {
         )}
       </div>
     </div>
-          )}
-        </div>
-      </div>
-    </div>
   )
 }
