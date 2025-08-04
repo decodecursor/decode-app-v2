@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "preflight": "node scripts/production-preflight-check.js"
+    "preflight": "node scripts/production-preflight-check.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "next lint",
+    "test:env": "node scripts/test-env.js",
+    "test:build": "npm run typecheck && npm run build",
+    "validate": "npm run typecheck && npm run lint && npm run test:env"
   },
   "dependencies": {
     "@crossmint/client-sdk-react-ui": "^0.2.7",
@@ -37,6 +42,8 @@
     "@types/react-dom": "^18",
     "@types/react-image-crop": "^8.1.3",
     "@types/uuid": "^10.0.0",
+    "eslint": "^8",
+    "eslint-config-next": "15.3.4",
     "typescript": "^5"
   }
 }

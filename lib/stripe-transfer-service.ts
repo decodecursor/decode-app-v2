@@ -1,5 +1,6 @@
 import { stripeService } from './stripe'
 import { supabaseAdmin } from './supabase-admin'
+import { logger } from './logger'
 
 interface CreateTransferRequest {
   paymentIntentId: string
@@ -51,11 +52,11 @@ export class StripeTransferService {
         })
 
       if (dbError) {
-        console.error('Failed to record transfer in database:', dbError)
+        logger.error('Failed to record transfer in database:', dbError)
         // Don't fail the transfer, it was successful in Stripe
       }
 
-      console.log(`Transfer created: ${transfer.id} for AED ${request.amountAed} to ${request.connectedAccountId}`)
+      logger.info(`Transfer created: ${transfer.id} for AED ${request.amountAed} to ${request.connectedAccountId}`)
       
       return {
         success: true,
@@ -64,7 +65,7 @@ export class StripeTransferService {
       }
 
     } catch (error) {
-      console.error('Transfer creation failed:', error)
+      logger.error('Transfer creation failed:', error)
       
       // Record failed transfer attempt
       await supabaseAdmin
@@ -103,7 +104,7 @@ export class StripeTransferService {
         currency: 'AED'
       }
     } catch (error) {
-      console.error('Failed to get account balance:', error)
+      logger.error('Failed to get account balance:', error)
       return {
         available: 0,
         pending: 0,
@@ -124,7 +125,7 @@ export class StripeTransferService {
       const balance = await this.getAccountBalance(connectedAccountId)
       
       if (balance.available <= 0) {
-        console.log(`No balance available for payout to ${connectedAccountId}`)
+        logger.info(`No balance available for payout to ${connectedAccountId}`)
         return null
       }
 
@@ -164,7 +165,7 @@ export class StripeTransferService {
           scheduled_for: endDate.toISOString().split('T')[0]
         })
 
-      console.log(`Weekly payout created: ${payout.id} for AED ${balance.available}`)
+      logger.info(`Weekly payout created: ${payout.id} for AED ${balance.available}`)
       
       return {
         payoutId: payout.id,
@@ -173,7 +174,7 @@ export class StripeTransferService {
       }
 
     } catch (error) {
-      console.error('Weekly payout creation failed:', error)
+      logger.error('Weekly payout creation failed:', error)
       throw error
     }
   }
