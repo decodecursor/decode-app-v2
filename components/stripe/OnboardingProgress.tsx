@@ -22,13 +22,13 @@ export function OnboardingProgress({ currentStep }: OnboardingProgressProps) {
 
   return (
     <div className="w-full mb-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-center">
         {steps.map((step, index) => {
           const status = getStepStatus(step.id)
           const isLast = index === steps.length - 1
           
           return (
-            <div key={step.id} className="flex items-center flex-1">
+            <div key={step.id} className="flex items-center">
               <div className="flex flex-col items-center">
                 {/* Step Circle */}
                 <div
@@ -75,7 +75,7 @@ export function OnboardingProgress({ currentStep }: OnboardingProgressProps) {
               
               {/* Connector Line */}
               {!isLast && (
-                <div className="flex-1 mx-4 mt-0">
+                <div className="w-20 mx-4 mt-0">
                   <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
                     <div 
                       className={`

@@ -279,7 +279,7 @@ export default function BankAccountPage() {
               </div>
               <h2 className="text-2xl font-bold text-white mb-4">Connect Your Bank Account</h2>
               <p className="text-gray-400 mb-8 max-w-md mx-auto">
-                To receive weekly payouts from your beauty services, you need to connect a UAE bank account.
+                To receive weekly payouts from your beauty services, you need to connect a UAE business bank account.
               </p>
               <button
                 onClick={createStripeAccount}

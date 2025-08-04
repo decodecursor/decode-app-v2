@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       type: 'standard',
       country: 'AE', // United Arab Emirates
       email: userData.email,
-      business_type: 'individual', // For independent contractors
+      business_type: 'company', // UAE requires company registration
       business_profile: {
         name: userData.professional_center_name || undefined,
         mcc: '7230', // Beauty shops and barber shops
