@@ -44,7 +44,7 @@ class StripeService {
     // Only initialize Stripe if we have a secret key (not during build time)
     if (this.config.secretKey) {
       this._stripe = new Stripe(this.config.secretKey, {
-        apiVersion: '2025-07-30.basil',
+        apiVersion: '2025-06-30.basil',
         typescript: true,
       });
     } else {
