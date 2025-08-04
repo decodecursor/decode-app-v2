@@ -5,7 +5,6 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
-import { EarningsSummary } from '@/components/dashboard/EarningsSummary'
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null)
@@ -427,11 +426,6 @@ export default function Dashboard() {
         <div className="container mx-auto px-4 py-8 mt-[70vh]">
           {userRole === 'Beauty Professional' && user && (
             <div className="max-w-7xl mx-auto">
-              {/* Earnings Summary */}
-              <div className="mb-6">
-                <EarningsSummary userId={user.id} />
-              </div>
-              
               {/* Quick Actions */}
               <div className="cosmic-card">
                 <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
