@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { stripeTransferService } from '@/lib/stripe-transfer-service'
+import { logger } from '@/lib/logger'
 
 // This endpoint should be called by a cron job every Monday at midnight
 // You can use Vercel Cron Jobs or an external service like cron-job.org
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    console.log('🏦 Starting weekly payout process...')
+    logger.info('🏦 Starting weekly payout process...')
 
     // Get all active beauty professionals with connected accounts
     const { data: users, error: usersError } = await supabaseAdmin
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
       .select('id, email, stripe_connect_account_id')
       .eq('role', 'Beauty Professional')
       .eq('stripe_connect_status', 'active')
-      .not('stripe_connect_account_id', 'is', null)
+      .not('stripe_connect_account_id', 'is', null) as any
 
     if (usersError) {
       throw new Error(`Failed to fetch users: ${usersError.message}`)
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
     // Process payouts for each user
     for (const user of users || []) {
       try {
-        console.log(`Processing payout for user ${user.email}...`)
+        logger.info(`Processing payout for user ${user.email}...`)
         
         const payout = await stripeTransferService.createWeeklyPayout(
           user.stripe_connect_account_id!,
@@ -48,9 +49,9 @@ export async function GET(request: NextRequest) {
 
         if (payout) {
           results.successful++
-          console.log(`✅ Payout created for ${user.email}: AED ${payout.amount}`)
+          logger.info(`✅ Payout created for ${user.email}: AED ${payout.amount}`)
         } else {
-          console.log(`⏭️ No balance for ${user.email}, skipping`)
+          logger.info(`⏭️ No balance for ${user.email}, skipping`)
         }
 
       } catch (error) {
@@ -61,11 +62,11 @@ export async function GET(request: NextRequest) {
           email: user.email,
           error: errorMessage
         })
-        console.error(`❌ Failed to create payout for ${user.email}:`, error)
+        logger.error(`❌ Failed to create payout for ${user.email}:`, error)
       }
     }
 
-    console.log('🏁 Weekly payout process completed:', results)
+    logger.info('🏁 Weekly payout process completed:', results)
 
     // Send summary email (optional)
     if (process.env.ADMIN_EMAIL) {
@@ -79,7 +80,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Weekly payout cron job failed:', error)
+    logger.error('Weekly payout cron job failed:', error)
     return NextResponse.json(
       { 
         error: error instanceof Error ? error.message : 'Weekly payout processing failed',
