@@ -65,11 +65,8 @@ export function ConnectOnboarding({ accountId, onExit, onComplete }: ConnectOnbo
         accountOnboarding = stripeConnectInstance.create('account-onboarding')
         console.log('✅ Account onboarding component created')
 
-        // Set up event listeners
-        accountOnboarding.on('exit', () => {
-          console.log('User exited onboarding')
-          onExit?.()
-        })
+        // Note: Standard accounts don't support .on() event listeners (only Express accounts do)
+        // We rely on status polling below to detect completion
 
         // Mount the component
         if (containerRef.current && mounted) {
