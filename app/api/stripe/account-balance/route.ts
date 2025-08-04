@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 import { stripeTransferService } from '@/lib/stripe-transfer-service'
 
 export async function GET(request: NextRequest) {
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
     )
 
     // Get pending transfers from database
-    const { data: pendingTransfers } = await supabase
+    const { data: pendingTransfers } = await supabaseAdmin
       .from('transfers')
       .select('amount_aed')
       .eq('user_id', userId)
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
     startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1) // Monday
     startOfWeek.setHours(0, 0, 0, 0)
 
-    const { data: weeklyTransfers } = await supabase
+    const { data: weeklyTransfers } = await supabaseAdmin
       .from('transfers')
       .select('amount_aed')
       .eq('user_id', userId)
