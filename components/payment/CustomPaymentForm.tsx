@@ -127,7 +127,7 @@ function PaymentForm({
 
         {/* Express Checkout (Apple Pay, Google Pay) */}
         <div className="mb-4 express-checkout-expanded">
-          <div className="cosmic-input express-checkout-no-border" style={{ minHeight: 'auto' }}>
+          <div className="cosmic-input express-checkout-no-border p-0" style={{ minHeight: 'auto' }}>
             <ExpressCheckoutElement
               options={{
                 paymentMethods: {
@@ -324,9 +324,13 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
     createPaymentIntent();
   }, [props.paymentLinkId]);
 
-  // Loading state removed - show content immediately
+  // Don't show anything while loading
+  if (!clientSecret && !error) {
+    return null;
+  }
 
-  if (error || !clientSecret) {
+  // Only show error if there's an actual error
+  if (error) {
     return (
       <div className="cosmic-bg min-h-screen flex items-center justify-center px-4">
         <div className="cosmic-card-login max-w-md w-full text-center">
@@ -336,7 +340,7 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-white mb-4">Payment Error</h1>
-          <p className="cosmic-body text-white opacity-80">{error || 'Unable to initialize payment'}</p>
+          <p className="cosmic-body text-white opacity-80">{error}</p>
         </div>
       </div>
     );
