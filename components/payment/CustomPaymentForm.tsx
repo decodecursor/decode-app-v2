@@ -142,7 +142,7 @@ function PaymentForm({
                   googlePay: 'plain'
                 },
                 layout: {
-                  maxColumns: 2,
+                  maxColumns: 0,
                   maxRows: 1
                 }
               }}
