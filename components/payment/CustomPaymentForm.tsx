@@ -104,7 +104,7 @@ function PaymentForm({
             className="mx-auto mb-2" 
             style={{height: '38px', filter: 'brightness(0) invert(1)'}} 
           />
-          <p className="!text-sm cosmic-body opacity-70">Make Girls More Beautiful</p>
+          <p className="text-base cosmic-body opacity-70">Make Girls More Beautiful</p>
         </div>
 
         {/* Payment Information */}
@@ -137,6 +137,14 @@ function PaymentForm({
                 buttonTheme: {
                   applePay: 'white-outline',
                   googlePay: 'white'
+                },
+                layout: {
+                  maxColumns: 2,
+                  maxRows: 1,
+                  overflow: 'horizontal'
+                },
+                buttonType: {
+                  googlePay: 'plain'
                 }
               }}
               onReady={(event) => {
@@ -200,8 +208,8 @@ function PaymentForm({
         </div>
 
         {/* Client Information Form */}
-        <form onSubmit={handleSubmit} className="space-y-2">
-          <div className="space-y-1">
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="space-y-2">
             <div>
               <input
                 type="email"
@@ -215,7 +223,7 @@ function PaymentForm({
           </div>
 
           {/* Payment Element */}
-          <div className="space-y-1">
+          <div className="space-y-2">
             <div className="cosmic-input p-0 overflow-hidden" style={{ fontSize: '14px' }}>
               <PaymentElement 
                 options={{
