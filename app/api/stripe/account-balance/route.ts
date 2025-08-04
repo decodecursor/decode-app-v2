@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       .from('users')
       .select('stripe_connect_account_id')
       .eq('id', userId)
-      .single()
+      .single() as any
 
     if (userError || !userData?.stripe_connect_account_id) {
       return NextResponse.json(
