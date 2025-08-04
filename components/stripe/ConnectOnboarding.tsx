@@ -23,7 +23,10 @@ export function ConnectOnboarding({ accountId, onExit, onComplete }: ConnectOnbo
 
     const initializeConnect = async () => {
       try {
+        console.log('🚀 Initializing Connect onboarding for account:', accountId)
+        
         // Fetch account session from API
+        console.log('📡 Fetching account session...')
         const response = await fetch('/api/stripe/account-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -31,23 +34,36 @@ export function ConnectOnboarding({ accountId, onExit, onComplete }: ConnectOnbo
         })
 
         if (!response.ok) {
-          throw new Error('Failed to create account session')
+          const errorData = await response.text()
+          console.error('❌ Account session creation failed:', response.status, errorData)
+          throw new Error(`Failed to create account session: ${response.status} ${errorData}`)
         }
 
         const { client_secret } = await response.json()
+        console.log('✅ Account session created successfully')
 
-        if (!mounted) return
+        if (!mounted) {
+          console.log('⚠️ Component unmounted during session creation')
+          return
+        }
 
         // Initialize Stripe Connect
+        console.log('🔄 Loading Stripe Connect...')
         const stripeConnectInstance = await loadConnectAndInitialize({
           publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
           fetchClientSecret: async () => client_secret
         })
+        console.log('✅ Stripe Connect loaded successfully')
 
-        if (!mounted) return
+        if (!mounted) {
+          console.log('⚠️ Component unmounted during Stripe Connect loading')
+          return
+        }
 
         // Create account onboarding component
+        console.log('🔄 Creating account onboarding component...')
         accountOnboarding = stripeConnectInstance.create('account-onboarding')
+        console.log('✅ Account onboarding component created')
 
         // Set up event listeners
         accountOnboarding.on('exit', () => {
@@ -57,8 +73,15 @@ export function ConnectOnboarding({ accountId, onExit, onComplete }: ConnectOnbo
 
         // Mount the component
         if (containerRef.current && mounted) {
+          console.log('🔄 Mounting onboarding component...')
           accountOnboarding.mount(containerRef.current)
+          console.log('✅ Onboarding component mounted successfully')
           setLoading(false)
+        } else {
+          console.error('❌ Cannot mount: containerRef or mounted check failed', {
+            hasContainer: !!containerRef.current,
+            mounted
+          })
         }
 
         // Check account status periodically
@@ -83,9 +106,11 @@ export function ConnectOnboarding({ accountId, onExit, onComplete }: ConnectOnbo
         }
 
       } catch (err) {
-        console.error('Error initializing Connect:', err)
+        console.error('💥 Error initializing Connect onboarding:', err)
         if (mounted) {
-          setError(err instanceof Error ? err.message : 'Failed to initialize onboarding')
+          const errorMessage = err instanceof Error ? err.message : 'Failed to initialize onboarding'
+          console.error('❌ Setting error state:', errorMessage)
+          setError(errorMessage)
           setLoading(false)
         }
         return () => {} // Return empty cleanup function
