@@ -72,7 +72,7 @@ export default function BankAccountPage() {
       } catch (stripeError) {
         console.warn('⚠️ Stripe Connect columns not available, falling back to basic user data')
         
-        // Fallback: try with just basic columns
+        // Fallback: try with just basic columns to verify user exists
         const result = await supabase
           .from('users')
           .select('id')
@@ -81,6 +81,17 @@ export default function BankAccountPage() {
         
         userData = result.data
         userError = result.error
+        
+        // If user exists but no Stripe columns, show setup message
+        if (result.data && !result.error) {
+          setMessage({ 
+            type: 'info', 
+            text: 'Bank account setup not yet available. Database needs to be updated with Stripe Connect support.' 
+          })
+          setCurrentStep('create')
+          setLoading(false)
+          return
+        }
       }
 
       if (userError) {

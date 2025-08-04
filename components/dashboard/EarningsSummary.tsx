@@ -45,36 +45,39 @@ export function EarningsSummary({ userId }: EarningsSummaryProps) {
       monthStart.setDate(1)
       monthStart.setHours(0, 0, 0, 0)
 
-      // Load today's earnings
+      // Load today's earnings from paid payment links
       const { data: todayData } = await supabase
-        .from('transfers')
+        .from('payment_links')
         .select('amount_aed')
-        .eq('user_id', userId)
-        .eq('status', 'completed')
-        .gte('created_at', today.toISOString())
+        .eq('creator_id', userId)
+        .eq('payment_status', 'paid')
+        .not('paid_at', 'is', null)
+        .gte('paid_at', today.toISOString())
 
       // Load this week's earnings
       const { data: weekData } = await supabase
-        .from('transfers')
+        .from('payment_links')
         .select('amount_aed')
-        .eq('user_id', userId)
-        .eq('status', 'completed')
-        .gte('created_at', weekStart.toISOString())
+        .eq('creator_id', userId)
+        .eq('payment_status', 'paid')
+        .not('paid_at', 'is', null)
+        .gte('paid_at', weekStart.toISOString())
 
       // Load this month's earnings
       const { data: monthData } = await supabase
-        .from('transfers')
+        .from('payment_links')
         .select('amount_aed')
-        .eq('user_id', userId)
-        .eq('status', 'completed')
-        .gte('created_at', monthStart.toISOString())
+        .eq('creator_id', userId)
+        .eq('payment_status', 'paid')
+        .not('paid_at', 'is', null)
+        .gte('paid_at', monthStart.toISOString())
 
       // Load total earnings
       const { data: totalData } = await supabase
-        .from('transfers')
+        .from('payment_links')
         .select('amount_aed')
-        .eq('user_id', userId)
-        .eq('status', 'completed')
+        .eq('creator_id', userId)
+        .eq('payment_status', 'paid')
 
       setEarnings({
         todayEarnings: todayData?.reduce((sum, t) => sum + t.amount_aed, 0) || 0,
@@ -146,13 +149,6 @@ export function EarningsSummary({ userId }: EarningsSummaryProps) {
         </div>
       </div>
 
-      {earnings.weekEarnings > 0 && (
-        <div className="mt-4 pt-4 border-t border-gray-800">
-          <p className="text-xs text-gray-500">
-            Weekly payouts are processed every Monday
-          </p>
-        </div>
-      )}
     </div>
   )
 }
