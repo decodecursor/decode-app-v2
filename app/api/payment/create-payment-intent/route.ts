@@ -46,7 +46,8 @@ export async function POST(request: NextRequest) {
       .select(`
         id,
         title,
-        amount_aed,
+        service_amount_aed,
+        total_amount_aed,
         client_name,
         expiration_date,
         is_active,
@@ -100,12 +101,13 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Calculate platform fee (5%)
-    const feeCalculation = stripeService.calculatePlatformFee(amount);
+    // Use the amounts from the database
+    const serviceAmount = paymentLink.service_amount_aed;
+    const totalAmount = paymentLink.total_amount_aed;
 
     // FORCE AED CURRENCY - Convert AED to USD for Stripe (3.67 AED = 1 USD)
     const AED_TO_USD_RATE = 3.67;
-    const amountInUSD = Math.round((paymentLink.amount_aed / AED_TO_USD_RATE) * 100); // Convert to cents
+    const amountInUSD = Math.round((totalAmount / AED_TO_USD_RATE) * 100); // Convert to cents
     
     // Create Stripe payment intent (Stripe doesn't support AED directly, so we use USD)
     const paymentIntent = await stripeService.createPaymentIntent({
@@ -115,7 +117,7 @@ export async function POST(request: NextRequest) {
       beautyProfessionalId: paymentLink.creator?.email || 'unknown',
       customerEmail: customerEmail,
       customerName: customerName,
-      description: `${paymentLink.title || 'Beauty service payment'} (AED ${paymentLink.amount_aed})`
+      description: `${paymentLink.title || 'Beauty service payment'} (AED ${totalAmount})`
     });
 
     // Log transaction attempt in database - using admin client to bypass RLS
@@ -123,7 +125,7 @@ export async function POST(request: NextRequest) {
       .from('transactions')
       .insert({
         payment_link_id: paymentLinkId,
-        amount_aed: paymentLink.amount_aed,
+        amount_aed: totalAmount,
         payment_processor: 'stripe',
         processor_transaction_id: paymentIntent.paymentIntentId,
         status: 'pending',
@@ -131,10 +133,9 @@ export async function POST(request: NextRequest) {
         created_at: new Date().toISOString(),
         metadata: {
           customer_name: customerName,
-          service_amount_aed: (paymentLink as any).service_amount_aed || paymentLink.amount_aed,
+          service_amount_aed: serviceAmount,
+          total_amount_aed: totalAmount,
           converted_amount_usd: amountInUSD / 100,
-          fee_amount_usd: feeCalculation.feeAmount / 100,
-          net_amount_usd: feeCalculation.netAmount / 100,
           beauty_professional_email: paymentLink.creator?.email || 'unknown'
         }
       });
