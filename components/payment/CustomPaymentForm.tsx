@@ -104,7 +104,7 @@ function PaymentForm({
             className="mx-auto mb-2" 
             style={{height: '38px', filter: 'brightness(0) invert(1)'}} 
           />
-          <p className="cosmic-body opacity-70" style={{ fontSize: '0.9rem', marginTop: '-4px' }}>Make Girls More Beautiful</p>
+          <p className="cosmic-body opacity-70" style={{ fontSize: '0.95rem', marginTop: '-4px' }}>Make Girls More Beautiful</p>
         </div>
 
         {/* Payment Information */}
@@ -126,8 +126,8 @@ function PaymentForm({
         </div>
 
         {/* Express Checkout (Apple Pay, Google Pay) */}
-        <div className="mb-4">
-          <div style={{ marginBottom: '8px' }}>
+        <div className="mb-4 express-checkout-expanded">
+          <div style={{ marginBottom: '8px', minHeight: '100px' }}>
             <ExpressCheckoutElement
               options={{
                 paymentMethods: {
