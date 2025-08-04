@@ -129,7 +129,7 @@ function PaymentForm({
         {clientSecret ? (
           <>
             {/* Express Checkout (Apple Pay, Google Pay) */}
-            <div className="mb-4">
+            <div className="mb-4" style={{ minHeight: '120px' }}>
               <ExpressCheckoutElement
             options={{
               paymentMethods: {
