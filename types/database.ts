@@ -262,9 +262,9 @@ export interface Database {
         Row: {
           id: string
           user_id: string
-          account_number: string
+          iban_number: string
           bank_name: string
-          account_holder_name: string
+          beneficiary_name: string
           is_primary: boolean
           is_verified: boolean
           status: string
@@ -274,9 +274,9 @@ export interface Database {
         Insert: {
           id?: string
           user_id: string
-          account_number: string
+          iban_number: string
           bank_name: string
-          account_holder_name: string
+          beneficiary_name: string
           is_primary?: boolean
           is_verified?: boolean
           status?: string
@@ -286,9 +286,9 @@ export interface Database {
         Update: {
           id?: string
           user_id?: string
-          account_number?: string
+          iban_number?: string
           bank_name?: string
-          account_holder_name?: string
+          beneficiary_name?: string
           is_primary?: boolean
           is_verified?: boolean
           status?: string

@@ -5,8 +5,8 @@ export async function POST(req: NextRequest) {
   try {
     const {
       bank_name,
-      account_holder_name,
-      account_number,
+      beneficiary_name,
+      iban_number,
       routing_number,
       iban,
       swift_code,
@@ -25,9 +25,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate required fields
-    if (!bank_name || !account_holder_name || !account_number) {
+    if (!bank_name || !beneficiary_name || !iban_number) {
       return NextResponse.json(
-        { error: 'Bank name, account holder name, and account number are required' },
+        { error: 'Bank name, beneficiary name, and IBAN number are required' },
         { status: 400 }
       )
     }
@@ -47,17 +47,17 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Check if account number already exists for this user
+    // Check if IBAN number already exists for this user
     const { data: existingAccount } = await supabase
       .from('user_bank_accounts')
       .select('id')
       .eq('user_id', user.id)
-      .eq('account_number', account_number)
+      .eq('iban_number', iban_number)
       .single()
 
     if (existingAccount) {
       return NextResponse.json(
-        { error: 'This account number is already registered' },
+        { error: 'This IBAN number is already registered' },
         { status: 400 }
       )
     }
@@ -68,8 +68,8 @@ export async function POST(req: NextRequest) {
       .insert({
         user_id: user.id,
         bank_name: bank_name.trim(),
-        account_holder_name: account_holder_name.trim(),
-        account_number: account_number.trim(),
+        beneficiary_name: beneficiary_name.trim(),
+        iban_number: iban_number.trim(),
         routing_number: routing_number?.trim() || null,
         iban: iban?.trim() || null,
         swift_code: swift_code?.trim() || null,

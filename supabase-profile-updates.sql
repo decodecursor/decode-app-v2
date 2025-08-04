@@ -71,8 +71,8 @@ CREATE TABLE IF NOT EXISTS user_bank_accounts (
     
     -- Bank Account Information
     bank_name TEXT NOT NULL,
-    account_holder_name TEXT NOT NULL,
-    account_number TEXT NOT NULL,
+    beneficiary_name TEXT NOT NULL,
+    iban_number TEXT NOT NULL,
     routing_number TEXT,
     iban TEXT,
     swift_code TEXT,

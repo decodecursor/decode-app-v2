@@ -73,8 +73,8 @@ export async function POST(request: NextRequest) {
                 .insert({
                   user_id: user.id,
                   bank_name: bankAccount.bank_name || 'Bank',
-                  account_holder_name: bankAccount.account_holder_name || account.business_profile?.name || '',
-                  account_number: `****${bankAccount.last4}`,
+                  beneficiary_name: bankAccount.account_holder_name || account.business_profile?.name || '',
+                  iban_number: `****${bankAccount.last4}`,
                   routing_number: bankAccount.routing_number || '',
                   is_verified: true,
                   is_primary: true,
