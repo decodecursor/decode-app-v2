@@ -144,8 +144,7 @@ function PaymentForm({
                   },
                   buttonHeight: 40
                 }}
-                style={{ width: '100%' }}
-              onReady={(event) => {
+                onReady={(event) => {
                 console.log('🍎 DEBUG: Express Checkout ready event:', event);
                 console.log('🍎 DEBUG: Available payment methods:', event.availablePaymentMethods);
                 if (!event.availablePaymentMethods) {
