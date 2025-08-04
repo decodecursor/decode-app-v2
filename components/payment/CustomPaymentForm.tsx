@@ -126,8 +126,8 @@ function PaymentForm({
         </div>
 
         {/* Express Checkout (Apple Pay, Google Pay) */}
-        <div className="mb-4 express-checkout-wrapper">
-          <div style={{ padding: '4px' }}>
+        <div className="space-y-1 mb-2">
+          <div className="cosmic-input p-1" style={{ minHeight: 'auto' }}>
             <ExpressCheckoutElement
               options={{
                 paymentMethods: {
@@ -137,15 +137,6 @@ function PaymentForm({
                 buttonTheme: {
                   applePay: 'white-outline',
                   googlePay: 'white'
-                },
-                buttonType: {
-                  googlePay: 'plain'
-                },
-                buttonHeight: 36,
-                layout: {
-                  maxColumns: 2,
-                  maxRows: 1,
-                  overflow: 'never'
                 }
               }}
               onReady={(event) => {
