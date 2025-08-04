@@ -369,9 +369,6 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
           fontSize: '12px',
           marginBottom: '7px',
         },
-        '.Row': {
-          marginBottom: '6px',
-        },
       },
     },
   };
