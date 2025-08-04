@@ -363,8 +363,8 @@ export default function ProfilePage() {
         {/* Main Content */}
         <div className="space-y-6 flex justify-center">
           <div className="w-full max-w-2xl">
-            {/* Back to Dashboard Link */}
-            <div className="mb-6">
+            {/* Back to Dashboard Link - Positioned to align with centered cosmic cards */}
+            <div className="mb-6" style={{ width: '28vw', margin: '0 auto' }}>
               <button
                 onClick={() => router.push('/dashboard')}
                 className="flex items-center text-gray-300 hover:text-white transition-colors w-fit"
