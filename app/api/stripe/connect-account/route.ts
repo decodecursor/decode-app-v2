@@ -44,26 +44,61 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Note: stripe_connect_account_id field doesn't exist in current schema
-    // This means we'll create a new account each time (not ideal but functional)
+    // Check if user already has a Stripe Connect account
+    const { data: existingAccount } = await supabase
+      .from('users')
+      .select('stripe_connect_account_id')
+      .eq('id', user.id)
+      .single()
+
+    if (existingAccount?.stripe_connect_account_id) {
+      return NextResponse.json({
+        accountId: existingAccount.stripe_connect_account_id,
+        message: 'Existing Stripe Connect account found'
+      })
+    }
 
     // Ensure Stripe is initialized
     stripeService.ensureStripeInitialized()
 
-    // Create Stripe Connect account
+    // Create Stripe Connect account for UAE
     const account = await stripeService.stripe.accounts.create({
       type: 'express',
+      country: 'AE', // United Arab Emirates
       email: userData.email,
+      business_type: 'individual', // For independent contractors
       business_profile: {
         name: userData.professional_center_name || undefined,
+        mcc: '7230', // Beauty shops and barber shops
+        url: 'https://decode-beauty.ae', // Your platform URL
       },
       capabilities: {
         card_payments: { requested: true },
         transfers: { requested: true },
       },
+      settings: {
+        payouts: {
+          schedule: {
+            interval: 'manual', // We'll handle weekly payouts programmatically
+          },
+        },
+      },
     })
 
-    // Note: Cannot store stripe_connect_account_id since field doesn't exist in current schema
+    // Store the Stripe Connect account ID
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ 
+        stripe_connect_account_id: account.id,
+        stripe_connect_status: 'pending'
+      })
+      .eq('id', user.id)
+
+    if (updateError) {
+      console.error('Failed to store Stripe Connect account ID:', updateError)
+      // Don't fail the request, account was created successfully
+    }
+
     console.log('Created Stripe Connect account:', account.id, 'for user:', user.id)
 
     return NextResponse.json({

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@crossmint/client-sdk-react-ui": "^0.2.7",
+    "@stripe/connect-js": "^5.5.0",
     "@stripe/react-stripe-js": "^3.8.1",
     "@stripe/stripe-js": "^7.7.0",
     "@supabase/supabase-js": "^2.50.0",

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripeService } from '@/lib/stripe';
 import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { stripeTransferService } from '@/lib/stripe-transfer-service';
 import type Stripe from 'stripe';
 
 export async function POST(request: NextRequest) {
@@ -174,6 +175,36 @@ async function handleCheckoutSessionManually(session: Stripe.Checkout.Session, p
   }
 
   console.log('✅ Payment marked as completed in transactions table');
+  
+  // Create transfer to connected account
+  try {
+    // Get payment link details to find the beauty professional
+    const { data: paymentLink } = await supabaseAdmin
+      .from('payment_links')
+      .select('created_by_user_id, amount_aed')
+      .eq('id', paymentLinkId)
+      .single();
+
+    if (paymentLink?.created_by_user_id) {
+      // Get the service amount (before platform fee)
+      const serviceAmount = paymentLink.amount_aed;
+      
+      // Create transfer for the full service amount
+      await stripeTransferService.createTransfer({
+        paymentIntentId: session.payment_intent as string,
+        connectedAccountId: '', // Will be fetched in the service
+        amountAed: serviceAmount,
+        paymentId: transaction.id,
+        userId: paymentLink.created_by_user_id
+      });
+      
+      console.log('✅ Transfer created for beauty professional');
+    }
+  } catch (transferError) {
+    console.error('❌ Failed to create transfer:', transferError);
+    // Don't fail the webhook, payment was successful
+  }
+  
   console.log('✅ Transaction completed manually:', transaction.id);
 }
 

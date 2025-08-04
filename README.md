@@ -34,3 +34,14 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+### Cron Jobs
+
+This app includes a weekly payout cron job configured in `vercel.json`. The cron job runs every Monday at midnight GST (Sunday 8 PM UTC).
+
+To enable the cron job:
+1. Set the `CRON_SECRET` environment variable in your Vercel project settings
+2. The cron job will automatically be registered when you deploy to Vercel
+3. The job will process payouts for all active beauty professionals every Monday
+
+The cron endpoint is `/api/cron/weekly-payouts` and requires the `CRON_SECRET` for authentication.

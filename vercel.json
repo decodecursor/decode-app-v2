@@ -1,19 +1,8 @@
 {
-  "env": {
-    "NEXT_PUBLIC_APP_URL": "https://decode-app-v2.vercel.app",
-    "EMAIL_FROM": "DECODE Beauty <noreply@decode.beauty>",
-    "SUPPORT_EMAIL": "support@decode.beauty",
-    "DEBUG_EMAIL": "false"
-  },
-  "functions": {
-    "app/api/webhooks/crossmint/route.ts": {
-      "maxDuration": 30
-    },
-    "app/api/webhooks/stripe/route.ts": {
-      "maxDuration": 30
-    },
-    "app/api/wallet/create/route.ts": {
-      "maxDuration": 30
+  "crons": [
+    {
+      "path": "/api/cron/weekly-payouts",
+      "schedule": "0 20 * * 0"
     }
-  }
+  ]
 }

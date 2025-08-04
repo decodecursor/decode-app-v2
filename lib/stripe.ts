@@ -245,17 +245,17 @@ class StripeService {
   }
 
   /**
-   * Calculate platform fee (same as Crossmint implementation)
+   * Calculate platform fee (9% added on top of service amount)
    */
-  calculatePlatformFee(amount: number): { netAmount: number; feeAmount: number; totalAmount: number } {
-    const feePercentage = 0.05; // 5% platform fee
-    const feeAmount = Math.round(amount * feePercentage);
-    const netAmount = amount - feeAmount;
+  calculatePlatformFee(serviceAmount: number): { serviceAmount: number; feeAmount: number; totalAmount: number } {
+    const feePercentage = 0.09; // 9% platform fee
+    const feeAmount = Math.round(serviceAmount * feePercentage);
+    const totalAmount = serviceAmount + feeAmount;
     
     return {
-      netAmount,
+      serviceAmount,
       feeAmount,
-      totalAmount: amount
+      totalAmount
     };
   }
 
