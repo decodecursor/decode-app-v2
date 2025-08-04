@@ -55,20 +55,48 @@ export default function BankAccountPage() {
 
   const loadAccountData = async (userId: string) => {
     try {
-      // Load user data with Stripe account info
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('stripe_connect_account_id, stripe_connect_status, stripe_onboarding_completed')
-        .eq('id', userId)
-        .single()
+      // First try to load basic user data
+      let userData: any = null
+      let userError: any = null
+
+      // Try with Stripe Connect columns first
+      try {
+        const result = await supabase
+          .from('users')
+          .select('id, stripe_connect_account_id, stripe_connect_status, stripe_onboarding_completed')
+          .eq('id', userId)
+          .single()
+        
+        userData = result.data
+        userError = result.error
+      } catch (stripeError) {
+        console.warn('⚠️ Stripe Connect columns not available, falling back to basic user data')
+        
+        // Fallback: try with just basic columns
+        const result = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', userId)
+          .single()
+        
+        userData = result.data
+        userError = result.error
+      }
 
       if (userError) {
-        console.error('Error loading user data:', userError)
-        setMessage({ type: 'error', text: 'Failed to load account data' })
+        console.error('🔴 Database error details:', {
+          message: userError.message,
+          details: userError.details,
+          hint: userError.hint,
+          code: userError.code,
+          userId: userId
+        })
+        setMessage({ type: 'error', text: `Database error: ${userError.message}` })
         setLoading(false)
         return
       }
 
+      // Check if we have Stripe Connect data
       if (userData?.stripe_connect_account_id) {
         setStripeAccountId(userData.stripe_connect_account_id)
         setAccountStatus((userData.stripe_connect_status as 'not_connected' | 'pending' | 'active' | 'restricted') || 'pending')
@@ -81,7 +109,9 @@ export default function BankAccountPage() {
           setCurrentStep('onboarding')
         }
       } else {
+        // No Stripe Connect account yet, show create step
         setCurrentStep('create')
+        console.log('📝 User has no Stripe Connect account, showing create step')
       }
 
       setLoading(false)

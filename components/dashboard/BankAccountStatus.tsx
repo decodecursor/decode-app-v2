@@ -22,12 +22,20 @@ export function BankAccountStatus({ userId }: BankAccountStatusProps) {
 
   const loadAccountStatus = async () => {
     try {
-      // Load user's Stripe Connect status
-      const { data: userData } = await supabase
-        .from('users')
-        .select('stripe_connect_account_id, stripe_connect_status, stripe_onboarding_completed')
-        .eq('id', userId)
-        .single()
+      // Load user's Stripe Connect status with fallback
+      let userData: any = null
+      
+      try {
+        const result = await supabase
+          .from('users')
+          .select('stripe_connect_account_id, stripe_connect_status, stripe_onboarding_completed')
+          .eq('id', userId)
+          .single()
+        userData = result.data
+      } catch (error) {
+        console.warn('⚠️ Stripe Connect columns not available in BankAccountStatus, showing fallback UI')
+        // If Stripe columns don't exist, userData will remain null
+      }
 
       if (userData?.stripe_connect_account_id) {
         setHasConnectedAccount(true)
