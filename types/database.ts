@@ -24,6 +24,14 @@ export interface Database {
           created_at: string
           crossmint_wallet_id: string | null
           wallet_created_at: string | null
+          stripe_connect_account_id: string | null
+          stripe_connect_status: string | null
+          stripe_onboarding_completed: boolean | null
+          stripe_payouts_enabled: boolean | null
+          stripe_charges_enabled: boolean | null
+          stripe_details_submitted: boolean | null
+          stripe_capabilities: Json | null
+          stripe_requirements: Json | null
         }
         Insert: {
           id?: string
@@ -36,6 +44,14 @@ export interface Database {
           created_at?: string
           crossmint_wallet_id?: string | null
           wallet_created_at?: string | null
+          stripe_connect_account_id?: string | null
+          stripe_connect_status?: string | null
+          stripe_onboarding_completed?: boolean | null
+          stripe_payouts_enabled?: boolean | null
+          stripe_charges_enabled?: boolean | null
+          stripe_details_submitted?: boolean | null
+          stripe_capabilities?: Json | null
+          stripe_requirements?: Json | null
         }
         Update: {
           id?: string
@@ -48,6 +64,14 @@ export interface Database {
           created_at?: string
           crossmint_wallet_id?: string | null
           wallet_created_at?: string | null
+          stripe_connect_account_id?: string | null
+          stripe_connect_status?: string | null
+          stripe_onboarding_completed?: boolean | null
+          stripe_payouts_enabled?: boolean | null
+          stripe_charges_enabled?: boolean | null
+          stripe_details_submitted?: boolean | null
+          stripe_capabilities?: Json | null
+          stripe_requirements?: Json | null
         }
         Relationships: []
       }
@@ -242,6 +266,7 @@ export interface Database {
           bank_name: string
           account_holder_name: string
           is_primary: boolean
+          is_verified: boolean
           status: string
           created_at: string
           updated_at: string
@@ -253,6 +278,7 @@ export interface Database {
           bank_name: string
           account_holder_name: string
           is_primary?: boolean
+          is_verified?: boolean
           status?: string
           created_at?: string
           updated_at?: string
@@ -264,6 +290,7 @@ export interface Database {
           bank_name?: string
           account_holder_name?: string
           is_primary?: boolean
+          is_verified?: boolean
           status?: string
           created_at?: string
           updated_at?: string
@@ -341,6 +368,115 @@ export interface Database {
           }
         ]
       }
+      payouts: {
+        Row: {
+          id: string
+          user_id: string
+          stripe_payout_id: string
+          amount_aed: number
+          currency: string
+          status: string
+          arrival_date: string | null
+          payment_id: string | null
+          metadata: Json | null
+          period_start: string | null
+          period_end: string | null
+          scheduled_for: string | null
+          paid_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          stripe_payout_id: string
+          amount_aed: number
+          currency?: string
+          status?: string
+          arrival_date?: string | null
+          payment_id?: string | null
+          metadata?: Json | null
+          period_start?: string | null
+          period_end?: string | null
+          scheduled_for?: string | null
+          paid_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          stripe_payout_id?: string
+          amount_aed?: number
+          currency?: string
+          status?: string
+          arrival_date?: string | null
+          payment_id?: string | null
+          metadata?: Json | null
+          period_start?: string | null
+          period_end?: string | null
+          scheduled_for?: string | null
+          paid_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payouts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      transfers: {
+        Row: {
+          id: string
+          user_id: string
+          payment_id: string
+          amount_aed: number
+          stripe_connect_account_id: string
+          stripe_transfer_id: string | null
+          status: string
+          failure_reason: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          payment_id: string
+          amount_aed: number
+          stripe_connect_account_id: string
+          stripe_transfer_id?: string | null
+          status?: string
+          failure_reason?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          payment_id?: string
+          amount_aed?: number
+          stripe_connect_account_id?: string
+          stripe_transfer_id?: string | null
+          status?: string
+          failure_reason?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transfers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -381,6 +517,14 @@ export type UserBankAccountUpdate = Database['public']['Tables']['user_bank_acco
 export type WalletTransactionRow = Database['public']['Tables']['wallet_transactions']['Row']
 export type WalletTransactionInsert = Database['public']['Tables']['wallet_transactions']['Insert']
 export type WalletTransactionUpdate = Database['public']['Tables']['wallet_transactions']['Update']
+
+export type PayoutRow = Database['public']['Tables']['payouts']['Row']
+export type PayoutInsert = Database['public']['Tables']['payouts']['Insert']
+export type PayoutUpdate = Database['public']['Tables']['payouts']['Update']
+
+export type TransferRow = Database['public']['Tables']['transfers']['Row']
+export type TransferInsert = Database['public']['Tables']['transfers']['Insert']
+export type TransferUpdate = Database['public']['Tables']['transfers']['Update']
 
 // Extended types for queries with relations
 export type PaymentLinkWithCreator = PaymentLinkRow & {

@@ -33,7 +33,7 @@ export async function DELETE(request: NextRequest) {
         .neq('id', accountId)
         .limit(1)
 
-      if (otherAccounts && otherAccounts.length > 0) {
+      if (otherAccounts && otherAccounts.length > 0 && otherAccounts[0]?.id) {
         await supabase
           .from('user_bank_accounts')
           .update({ is_primary: true })

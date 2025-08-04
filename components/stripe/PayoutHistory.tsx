@@ -7,9 +7,9 @@ interface Payout {
   id: string
   amount_aed: number
   status: string
-  period_start: string
-  period_end: string
-  scheduled_for: string
+  period_start: string | null
+  period_end: string | null
+  scheduled_for: string | null
   paid_at: string | null
   created_at: string
 }
@@ -80,8 +80,8 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
         formatDate(payout.created_at),
         payout.amount_aed.toFixed(2),
         payout.status,
-        formatDate(payout.period_start),
-        formatDate(payout.period_end),
+        payout.period_start ? formatDate(payout.period_start) : 'N/A',
+        payout.period_end ? formatDate(payout.period_end) : 'N/A',
         payout.paid_at ? formatDate(payout.paid_at) : 'Pending'
       ])
 
@@ -159,7 +159,7 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
                     </span>
                   </div>
                   <p className="text-sm text-gray-400">
-                    Period: {formatDate(payout.period_start)} - {formatDate(payout.period_end)}
+                    Period: {payout.period_start ? formatDate(payout.period_start) : 'N/A'} - {payout.period_end ? formatDate(payout.period_end) : 'N/A'}
                   </p>
                 </div>
                 <div className="text-right">
@@ -167,7 +167,7 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
                     {payout.paid_at ? (
                       <>Paid on {formatDate(payout.paid_at)}</>
                     ) : (
-                      <>Scheduled for {formatDate(payout.scheduled_for)}</>
+                      <>Scheduled for {payout.scheduled_for ? formatDate(payout.scheduled_for) : 'N/A'}</>
                     )}
                   </p>
                 </div>

@@ -31,7 +31,7 @@ export function BankAccountStatus({ userId }: BankAccountStatusProps) {
 
       if (userData?.stripe_connect_account_id) {
         setHasConnectedAccount(true)
-        setAccountStatus(userData.stripe_connect_status || 'pending')
+        setAccountStatus((userData.stripe_connect_status as 'not_connected' | 'pending' | 'active' | 'restricted') || 'pending')
 
         // Load balance if account is active
         if (userData.stripe_connect_status === 'active') {

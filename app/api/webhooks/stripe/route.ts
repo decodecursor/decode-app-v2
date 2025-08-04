@@ -181,11 +181,11 @@ async function handleCheckoutSessionManually(session: Stripe.Checkout.Session, p
     // Get payment link details to find the beauty professional
     const { data: paymentLink } = await supabaseAdmin
       .from('payment_links')
-      .select('created_by_user_id, amount_aed')
+      .select('creator_id, amount_aed')
       .eq('id', paymentLinkId)
       .single();
 
-    if (paymentLink?.created_by_user_id) {
+    if (paymentLink?.creator_id) {
       // Get the service amount (before platform fee)
       const serviceAmount = paymentLink.amount_aed;
       
@@ -195,7 +195,7 @@ async function handleCheckoutSessionManually(session: Stripe.Checkout.Session, p
         connectedAccountId: '', // Will be fetched in the service
         amountAed: serviceAmount,
         paymentId: transaction.id,
-        userId: paymentLink.created_by_user_id
+        userId: paymentLink.creator_id
       });
       
       console.log('✅ Transfer created for beauty professional');

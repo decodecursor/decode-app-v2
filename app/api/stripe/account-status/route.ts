@@ -29,8 +29,8 @@ export async function GET(request: NextRequest) {
         stripe_payouts_enabled: account.payouts_enabled || false,
         stripe_charges_enabled: account.charges_enabled || false,
         stripe_details_submitted: account.details_submitted || false,
-        stripe_capabilities: account.capabilities,
-        stripe_requirements: account.requirements
+        stripe_capabilities: account.capabilities as any,
+        stripe_requirements: account.requirements as any
       })
       .eq('stripe_connect_account_id', accountId)
 

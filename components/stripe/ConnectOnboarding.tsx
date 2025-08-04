@@ -93,6 +93,7 @@ export function ConnectOnboarding({ accountId, onExit, onComplete }: ConnectOnbo
           setError(err instanceof Error ? err.message : 'Failed to initialize onboarding')
           setLoading(false)
         }
+        return () => {} // Return empty cleanup function
       }
     }
 

@@ -71,7 +71,7 @@ export default function BankAccountPage() {
 
       if (userData?.stripe_connect_account_id) {
         setStripeAccountId(userData.stripe_connect_account_id)
-        setAccountStatus(userData.stripe_connect_status || 'pending')
+        setAccountStatus((userData.stripe_connect_status as 'not_connected' | 'pending' | 'active' | 'restricted') || 'pending')
         setOnboardingComplete(userData.stripe_onboarding_completed || false)
         
         if (userData.stripe_onboarding_completed) {
