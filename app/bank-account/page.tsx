@@ -10,7 +10,6 @@ import { VerificationBadge } from '@/components/stripe/VerificationBadge'
 import { BankAccountCard } from '@/components/stripe/BankAccountCard'
 import { AccountStatusOverview } from '@/components/stripe/AccountStatusOverview'
 import { ConnectComponentWrapper } from '@/components/stripe/ConnectComponentWrapper'
-import { OnboardingProgress } from '@/components/stripe/OnboardingProgress'
 import { PayoutHistory } from '@/components/stripe/PayoutHistory'
 
 export default function BankAccountPage() {
@@ -270,19 +269,6 @@ export default function BankAccountPage() {
   return (
     <div className="cosmic-bg min-h-screen">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <Link
-            href="/dashboard"
-            className="flex items-center text-gray-300 hover:text-white transition-colors"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Dashboard
-          </Link>
-          <h1 className="text-3xl font-bold text-white">Bank Account Management</h1>
-        </div>
 
         {/* Message Display */}
         {message && (
@@ -300,10 +286,19 @@ export default function BankAccountPage() {
           <ConnectNotificationBanner accountId={stripeAccountId} />
         )}
 
-        {/* Progress Indicator */}
-        {currentStep !== 'loading' && (
-          <OnboardingProgress currentStep={currentStep === 'create' ? 'create' : currentStep} />
-        )}
+
+        {/* Back to Dashboard Link */}
+        <div className="mb-6">
+          <Link
+            href="/dashboard"
+            className="flex items-center text-gray-300 hover:text-white transition-colors w-fit"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Dashboard
+          </Link>
+        </div>
 
         {/* Main Content */}
         <div className="space-y-6 flex justify-center">
@@ -330,6 +325,7 @@ export default function BankAccountPage() {
               
               <div className="space-y-4 text-left">
                 <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Beneficiary</label>
                   <input
                     type="text"
                     value={beneficiary}
@@ -340,6 +336,7 @@ export default function BankAccountPage() {
                 </div>
                 
                 <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">IBAN</label>
                   <input
                     type="text"
                     value={iban}
@@ -350,6 +347,7 @@ export default function BankAccountPage() {
                 </div>
                 
                 <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Bank</label>
                   <input
                     type="text"
                     value={bank}
