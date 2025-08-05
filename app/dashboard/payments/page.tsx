@@ -387,18 +387,26 @@ export default function PaymentHistoryPage() {
 
   // Show loading state while authenticating or if no user
   if (!user) {
+    console.log('🔄 LOADING STATE TRIGGERED - user is undefined, showing loading screen')
     return (
-      <div className="cosmic-bg min-h-screen">
-        <div className="flex justify-center items-center min-h-screen">
-          <div className="cosmic-card text-center">
-            <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-purple-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-            </div>
-            <h2 className="cosmic-heading text-white mb-2">Loading Dashboard</h2>
-            <p className="cosmic-body text-white/70">Authenticating and loading your data...</p>
-          </div>
+      <div style={{ 
+        backgroundColor: '#1a1a1a', 
+        minHeight: '100vh', 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        color: 'white',
+        fontSize: '24px',
+        fontFamily: 'Arial'
+      }}>
+        <div style={{
+          backgroundColor: '#333',
+          padding: '40px',
+          borderRadius: '10px',
+          textAlign: 'center'
+        }}>
+          <div>🔄 LOADING DASHBOARD...</div>
+          <div style={{fontSize: '16px', marginTop: '10px'}}>Authenticating user...</div>
         </div>
       </div>
     )
