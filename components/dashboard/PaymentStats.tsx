@@ -113,7 +113,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         previousPeriodEnd = new Date(0)
     }
 
-    // Filter transactions for current and previous periods
+    // Filter transactions for current and previous periods (using when payment was completed)
     const currentTransactions = transactions.filter(t => 
       new Date(t.created_at) >= currentPeriodStart
     )

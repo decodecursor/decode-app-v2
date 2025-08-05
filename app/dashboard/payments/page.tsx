@@ -109,7 +109,7 @@ export default function PaymentHistoryPage() {
       setLoading(true)
       setError('')
 
-      // Fetch only PAID payment links with transaction counts and revenue
+      // Fetch payment links that have completed transactions (paid payment links)
       const { data: linksData, error: linksError } = await supabase
         .from('payment_links')
         .select(`
@@ -134,25 +134,43 @@ export default function PaymentHistoryPage() {
           )
         `)
         .eq('creator_id', userId)
-        .eq('payment_status', 'paid')
-        .order('paid_at', { ascending: false })
+        .order('created_at', { ascending: false })
 
       if (linksError) throw linksError
 
-      // Process the data to include transaction counts and revenue
-      const processedLinks: PaymentLink[] = (linksData || []).map(link => {
-        const transactions = link.transactions || []
-        const completedTransactions = transactions.filter(t => t.status === 'completed')
-        
-        return {
-          ...link,
-          creator: Array.isArray(link.creator) ? (link.creator[0] || { full_name: null, email: '' }) : (link.creator || { full_name: null, email: '' }),
-          transaction_count: completedTransactions.length,
-          total_revenue: completedTransactions.reduce((sum, t) => sum + (t.amount_aed || 0), 0)
-        }
-      })
+      // Process the data to include transaction counts and revenue - only include links with completed transactions
+      const processedLinks: PaymentLink[] = (linksData || [])
+        .map(link => {
+          const transactions = link.transactions || []
+          const completedTransactions = transactions.filter(t => t.status === 'completed')
+          
+          return {
+            ...link,
+            creator: Array.isArray(link.creator) ? (link.creator[0] || { full_name: null, email: '' }) : (link.creator || { full_name: null, email: '' }),
+            transaction_count: completedTransactions.length,
+            total_revenue: completedTransactions.reduce((sum, t) => sum + (t.amount_aed || 0), 0)
+          }
+        })
+        .filter(link => link.transaction_count > 0) // Only include payment links that have been paid (have completed transactions)
 
       setPaymentLinks(processedLinks)
+
+      // If no paid payment links found, still show the analytics section but with empty data
+      if (processedLinks.length === 0) {
+        setTransactions([])
+        setStats({
+          totalRevenue: 0,
+          activeLinks: 0,
+          totalTransactions: 0,
+          successfulPayments: 0,
+          averagePayment: 0,
+          thisMonth: {
+            revenue: 0,
+            transactions: 0
+          }
+        })
+        return
+      }
 
       // Fetch all transactions for paid payment links only
       const { data: transactionsData } = await supabase
