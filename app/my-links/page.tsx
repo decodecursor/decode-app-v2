@@ -625,7 +625,7 @@ function MyLinksContent() {
       // Create WhatsApp share URL with new format
       const clientName = link.client_name || 'Client'
       const serviceName = link.title || 'Service'
-      const whatsappMessage = `Spoil ${clientName} with a ${serviceName} at ${companyName}: ${paymentUrl}`
+      const whatsappMessage = `Spoil ${clientName} with a ${serviceName} at ${companyName} \n${paymentUrl}`
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`
       
       // Generate QR code for the WhatsApp URL
