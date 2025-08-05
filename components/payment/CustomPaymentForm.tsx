@@ -108,7 +108,7 @@ function PaymentForm({
         </div>
 
         {/* Payment Information */}
-        <div className="space-y-2 mb-4">
+        <div className="bg-black rounded-lg p-6 mb-6">
           <div className="text-center space-y-1">
             <div className="cosmic-body text-base text-white">
               Service by {beautyProfessionalName}
