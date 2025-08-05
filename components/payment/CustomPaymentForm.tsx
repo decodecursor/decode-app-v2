@@ -111,7 +111,7 @@ function PaymentForm({
         <div className="space-y-2 mb-4">
           <div className="text-center space-y-1">
             <div className="cosmic-body text-base text-white">
-              {beautyProfessionalName}
+              Service by {beautyProfessionalName}
             </div>
             <div className="cosmic-body text-sm font-bold text-white">
               {customerName || 'Client Name'}
