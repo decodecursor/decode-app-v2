@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { DayPicker, DateRange } from 'react-day-picker'
+import 'react-day-picker/dist/style.css'
 
 interface PaymentTransaction {
   id: string
@@ -46,7 +48,9 @@ interface PopularAmount {
 }
 
 export default function PaymentStats({ transactions, paymentLinks, user }: PaymentStatsProps) {
-  const [dateRange, setDateRange] = useState<'today' | '7d' | '30d' | '90d' | 'all'>('today')
+  const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'custom'>('today')
+  const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined)
+  const [showDatePicker, setShowDatePicker] = useState(false)
   const [statsData, setStatsData] = useState<{
     current: DateRangeStats
     previous: DateRangeStats
@@ -55,7 +59,13 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
   } | null>(null)
 
   const calculateStats = useCallback(() => {
-    const now = new Date()
+    // UAE timezone offset is +4 hours (UTC+4)
+    const getUAEDate = (date: Date) => {
+      const utc = date.getTime() + (date.getTimezoneOffset() * 60000)
+      return new Date(utc + (4 * 3600000))
+    }
+
+    const now = getUAEDate(new Date())
     let currentPeriodStart: Date
     let previousPeriodStart: Date
     let previousPeriodEnd: Date
@@ -66,20 +76,36 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         previousPeriodStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
         previousPeriodEnd = currentPeriodStart
         break
-      case '7d':
-        currentPeriodStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-        previousPeriodStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
+      case 'week':
+        // Start from Monday 12 midnight
+        const dayOfWeek = now.getDay()
+        const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+        currentPeriodStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysFromMonday)
+        currentPeriodStart.setHours(0, 0, 0, 0)
+        previousPeriodStart = new Date(currentPeriodStart.getTime() - 7 * 24 * 60 * 60 * 1000)
         previousPeriodEnd = currentPeriodStart
         break
-      case '30d':
-        currentPeriodStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-        previousPeriodStart = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
+      case 'month':
+        // Start from 1st day of month at 12 midnight
+        currentPeriodStart = new Date(now.getFullYear(), now.getMonth(), 1)
+        currentPeriodStart.setHours(0, 0, 0, 0)
+        const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+        previousPeriodStart = prevMonth
         previousPeriodEnd = currentPeriodStart
         break
-      case '90d':
-        currentPeriodStart = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
-        previousPeriodStart = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000)
-        previousPeriodEnd = currentPeriodStart
+      case 'custom':
+        if (customDateRange?.from && customDateRange?.to) {
+          currentPeriodStart = new Date(customDateRange.from)
+          currentPeriodStart.setHours(0, 0, 0, 0)
+          // For custom range, no previous period comparison
+          previousPeriodStart = new Date(0)
+          previousPeriodEnd = new Date(0)
+        } else {
+          // Fallback to today if custom range not set
+          currentPeriodStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+          previousPeriodStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+          previousPeriodEnd = currentPeriodStart
+        }
         break
       default:
         currentPeriodStart = new Date(0)
@@ -92,7 +118,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
       new Date(t.created_at) >= currentPeriodStart
     )
     
-    const previousTransactions = dateRange !== 'all' ? transactions.filter(t => {
+    const previousTransactions = dateRange !== 'custom' ? transactions.filter(t => {
       const date = new Date(t.created_at)
       return date >= previousPeriodStart && date < previousPeriodEnd
     }) : []
@@ -129,11 +155,31 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
     // Calculate revenue by day for chart
     const revenueByDay: Array<{ date: string; revenue: number; transactions: number }> = []
     
-    if (dateRange !== 'all') {
-      const days = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90
+    if (dateRange !== 'custom' || (customDateRange?.from && customDateRange?.to)) {
+      let days = 7
+      let chartStart = currentPeriodStart
       
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
+      switch (dateRange) {
+        case 'today':
+          days = 1
+          break
+        case 'week':
+          days = 7
+          break
+        case 'month':
+          days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+          break
+        case 'custom':
+          if (customDateRange?.from && customDateRange?.to) {
+            const diffTime = Math.abs(customDateRange.to.getTime() - customDateRange.from.getTime())
+            days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+            chartStart = customDateRange.from
+          }
+          break
+      }
+      
+      for (let i = 0; i < days; i++) {
+        const date = new Date(chartStart.getTime() + i * 24 * 60 * 60 * 1000)
         const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate())
         const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000)
         
@@ -166,7 +212,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
       popularAmounts,
       revenueByDay
     })
-  }, [dateRange, transactions, paymentLinks])
+  }, [dateRange, customDateRange, transactions, paymentLinks])
 
   useEffect(() => {
     calculateStats()
@@ -192,30 +238,52 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
   }
 
   const getFilteredTransactions = () => {
-    const now = new Date()
+    const getUAEDate = (date: Date) => {
+      const utc = date.getTime() + (date.getTimezoneOffset() * 60000)
+      return new Date(utc + (4 * 3600000))
+    }
+
+    const now = getUAEDate(new Date())
     let startDate: Date
+    let endDate: Date = now
 
     switch (dateRange) {
       case 'today':
         startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
         break
-      case '7d':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      case 'week':
+        const dayOfWeek = now.getDay()
+        const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysFromMonday)
+        startDate.setHours(0, 0, 0, 0)
         break
-      case '30d':
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      case 'month':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+        startDate.setHours(0, 0, 0, 0)
         break
-      case '90d':
-        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
+      case 'custom':
+        if (customDateRange?.from) {
+          startDate = new Date(customDateRange.from)
+          startDate.setHours(0, 0, 0, 0)
+          if (customDateRange.to) {
+            endDate = new Date(customDateRange.to)
+            endDate.setHours(23, 59, 59, 999)
+          }
+        } else {
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        }
         break
       default:
-        startDate = new Date(0) // All time
+        startDate = new Date(0)
     }
 
     return transactions
-      .filter(t => new Date(t.created_at) >= startDate)
+      .filter(t => {
+        const tDate = new Date(t.created_at)
+        return tDate >= startDate && tDate <= endDate
+      })
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, 10) // Show max 10 transactions
+      .slice(0, 10)
   }
 
   if (!statsData) {
@@ -242,17 +310,24 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         <div className="flex justify-between items-center mb-6">
           <h2 className="cosmic-heading text-white">Analytics</h2>
           <div className="flex space-x-2">
-            {(['today', '7d', '30d', 'all'] as const).map((range) => (
+            {(['today', 'week', 'month', 'custom'] as const).map((range) => (
               <button
                 key={range}
-                onClick={() => setDateRange(range)}
+                onClick={() => {
+                  if (range === 'custom') {
+                    setShowDatePicker(true)
+                  } else {
+                    setDateRange(range)
+                    setShowDatePicker(false)
+                  }
+                }}
                 className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                   dateRange === range
                     ? 'bg-purple-600 text-white'
                     : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                 }`}
               >
-                {range === 'today' ? 'Today' : range === '7d' ? 'This Week' : range === '30d' ? 'This Month' : 'Custom'}
+                {range === 'today' ? 'Today' : range === 'week' ? 'This Week' : range === 'month' ? 'This Month' : 'Custom'}
               </button>
             ))}
           </div>
@@ -263,7 +338,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
               <h3 className="cosmic-label text-white/70">Revenue</h3>
-              {dateRange !== 'all' && (
+              {dateRange !== 'custom' && (
                 <span className={`text-xs font-medium ${getChangeColor(current.revenue, previous.revenue)}`}>
                   {formatPercentageChange(current.revenue, previous.revenue)}
                 </span>
@@ -272,7 +347,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
             <p className="text-2xl font-bold text-white mb-1">
               {formatCurrency(current.revenue)}
             </p>
-            {dateRange !== 'all' && (
+            {dateRange !== 'custom' && (
               <p className="text-xs text-white/50">
                 vs {formatCurrency(previous.revenue)} previous period
               </p>
@@ -282,7 +357,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
               <h3 className="cosmic-label text-white/70">Transactions</h3>
-              {dateRange !== 'all' && (
+              {dateRange !== 'custom' && (
                 <span className={`text-xs font-medium ${getChangeColor(current.transactions, previous.transactions)}`}>
                   {formatPercentageChange(current.transactions, previous.transactions)}
                 </span>
@@ -291,7 +366,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
             <p className="text-2xl font-bold text-white mb-1">
               {current.transactions}
             </p>
-            {dateRange !== 'all' && (
+            {dateRange !== 'custom' && (
               <p className="text-xs text-white/50">
                 vs {previous.transactions} previous period
               </p>
@@ -301,18 +376,18 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
               <h3 className="cosmic-label text-white/70">Anna's Commission</h3>
-              {dateRange !== 'all' && (
-                <span className={`text-xs font-medium ${getChangeColor(current.averagePayment, previous.averagePayment)}`}>
-                  {formatPercentageChange(current.averagePayment, previous.averagePayment)}
+              {dateRange !== 'custom' && (
+                <span className={`text-xs font-medium ${getChangeColor(current.revenue * 0.01, previous.revenue * 0.01)}`}>
+                  {formatPercentageChange(current.revenue * 0.01, previous.revenue * 0.01)}
                 </span>
               )}
             </div>
             <p className="text-2xl font-bold text-white mb-1">
-              {formatCurrency(current.averagePayment)}
+              {formatCurrency(current.revenue * 0.01)}
             </p>
-            {dateRange !== 'all' && (
+            {dateRange !== 'custom' && (
               <p className="text-xs text-white/50">
-                vs {formatCurrency(previous.averagePayment)} previous period
+                vs {formatCurrency(previous.revenue * 0.01)} previous period
               </p>
             )}
           </div>
@@ -320,7 +395,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
               <h3 className="cosmic-label text-white/70">Next Payout</h3>
-              {dateRange !== 'all' && (
+              {dateRange !== 'custom' && (
                 <span className={`text-xs font-medium ${getChangeColor(current.revenue * 0.1, previous.revenue * 0.1)}`}>
                   {formatPercentageChange(current.revenue * 0.1, previous.revenue * 0.1)}
                 </span>
@@ -329,13 +404,48 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
             <p className="text-2xl font-bold text-white mb-1">
               {formatCurrency(current.revenue * 0.1)}
             </p>
-            {dateRange !== 'all' && (
+            {dateRange !== 'custom' && (
               <p className="text-xs text-white/50">
                 vs {formatCurrency(previous.revenue * 0.1)} previous period
               </p>
             )}
           </div>
         </div>
+        
+        {/* Custom Date Picker Modal */}
+        {showDatePicker && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-semibold mb-4 text-gray-900">Select Date Range</h3>
+              <DayPicker
+                mode="range"
+                selected={customDateRange}
+                onSelect={setCustomDateRange}
+                className="mb-4"
+              />
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    if (customDateRange?.from) {
+                      setDateRange('custom')
+                      setShowDatePicker(false)
+                    }
+                  }}
+                  disabled={!customDateRange?.from}
+                  className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  Apply
+                </button>
+                <button
+                  onClick={() => setShowDatePicker(false)}
+                  className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Revenue Chart */}
@@ -364,7 +474,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
             })}
           </div>
           <div className="flex justify-between items-center mt-4 text-xs text-white/50">
-            <span>Last {dateRange === '7d' ? '7' : dateRange === '30d' ? '30' : '90'} days</span>
+            <span>Period: {dateRange === 'today' ? 'Today' : dateRange === 'week' ? 'This Week' : dateRange === 'month' ? 'This Month' : 'Custom Range'}</span>
             <span>Peak: {formatCurrency(Math.max(...revenueByDay.map(d => d.revenue)))}</span>
           </div>
         </div>

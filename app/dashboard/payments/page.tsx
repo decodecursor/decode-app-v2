@@ -15,6 +15,8 @@ interface PaymentLink {
   expiration_date: string
   is_active: boolean
   created_at: string
+  payment_status: string
+  paid_at: string | null
   creator: {
     full_name: string | null
     email: string
@@ -59,6 +61,34 @@ export default function PaymentHistoryPage() {
   const [sortBy, setSortBy] = useState<'created_at' | 'amount_aed' | 'total_revenue'>('created_at')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [heartAnimationLinks, setHeartAnimationLinks] = useState<Set<string>>(new Set())
+  const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'custom'>('today')
+  const [customDateRange, setCustomDateRange] = useState<{ from?: Date; to?: Date } | undefined>(undefined)
+
+  // Load date range from localStorage on component mount
+  useEffect(() => {
+    const savedDateRange = localStorage.getItem('paymentAnalyticsDateRange')
+    const savedCustomRange = localStorage.getItem('paymentAnalyticsCustomRange')
+    
+    if (savedDateRange) {
+      setDateRange(savedDateRange as 'today' | 'week' | 'month' | 'custom')
+    }
+    
+    if (savedCustomRange) {
+      const parsed = JSON.parse(savedCustomRange)
+      if (parsed.from) parsed.from = new Date(parsed.from)
+      if (parsed.to) parsed.to = new Date(parsed.to)
+      setCustomDateRange(parsed)
+    }
+  }, [])
+
+  // Save date range to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('paymentAnalyticsDateRange', dateRange)
+  }, [dateRange])
+
+  useEffect(() => {
+    localStorage.setItem('paymentAnalyticsCustomRange', JSON.stringify(customDateRange))
+  }, [customDateRange])
 
   useEffect(() => {
     const getUser = async () => {
@@ -79,7 +109,7 @@ export default function PaymentHistoryPage() {
       setLoading(true)
       setError('')
 
-      // Fetch payment links with transaction counts and revenue
+      // Fetch only PAID payment links with transaction counts and revenue
       const { data: linksData, error: linksError } = await supabase
         .from('payment_links')
         .select(`
@@ -90,6 +120,8 @@ export default function PaymentHistoryPage() {
           expiration_date,
           is_active,
           created_at,
+          payment_status,
+          paid_at,
           creator:creator_id (
             full_name,
             email
@@ -97,11 +129,13 @@ export default function PaymentHistoryPage() {
           transactions (
             id,
             amount_aed,
-            status
+            status,
+            created_at
           )
         `)
         .eq('creator_id', userId)
-        .order('created_at', { ascending: false })
+        .eq('payment_status', 'paid')
+        .order('paid_at', { ascending: false })
 
       if (linksError) throw linksError
 
@@ -120,7 +154,7 @@ export default function PaymentHistoryPage() {
 
       setPaymentLinks(processedLinks)
 
-      // Fetch all transactions with payment link details
+      // Fetch all transactions for paid payment links only
       const { data: transactionsData } = await supabase
         .from('transactions')
         .select(`
@@ -130,10 +164,12 @@ export default function PaymentHistoryPage() {
           created_at,
           payment_link:payment_link_id (
             title,
-            amount_aed
+            amount_aed,
+            client_name
           )
         `)
         .in('payment_link_id', processedLinks.map(link => link.id))
+        .eq('status', 'completed')
         .order('created_at', { ascending: false })
 
       const processedTransactions: PaymentTransaction[] = (transactionsData || [])
