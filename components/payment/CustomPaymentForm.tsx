@@ -150,14 +150,67 @@ function PaymentForm({
                 console.log('🍎 DEBUG: Express Checkout ready event:', event);
                 console.log('🍎 DEBUG: Available payment methods:', event.availablePaymentMethods);
                 
-                // Auto-click Show More button after a short delay
+                // Function to force vertical layout
+                const forceVerticalLayout = () => {
+                  // Check if we're on mobile
+                  const isMobile = window.innerWidth <= 768;
+                  if (!isMobile) return;
+                  
+                  // Find all possible containers and buttons
+                  const expressCheckout = document.querySelector('.express-checkout-expanded');
+                  if (expressCheckout) {
+                    // Get all divs and buttons within express checkout
+                    const allDivs = expressCheckout.querySelectorAll('div');
+                    const allButtons = expressCheckout.querySelectorAll('button');
+                    
+                    // Force vertical layout on all divs
+                    allDivs.forEach((div) => {
+                      if (div.style.display === 'flex' || getComputedStyle(div).display === 'flex') {
+                        div.style.cssText += 'flex-direction: column !important; width: 100% !important;';
+                      }
+                    });
+                    
+                    // Force full width on all buttons
+                    allButtons.forEach((button) => {
+                      button.style.cssText += 'width: 100% !important; max-width: 100% !important; margin-bottom: 8px !important; display: block !important;';
+                    });
+                    
+                    // Remove margin from last button
+                    if (allButtons.length > 0) {
+                      allButtons[allButtons.length - 1].style.marginBottom = '0';
+                    }
+                  }
+                };
+                
+                // Auto-click Show More button and force layout
                 setTimeout(() => {
                   const showMoreButton = document.querySelector('button[aria-label*="Show more"], button[aria-label*="show more"], [class*="ShowMore"]') as HTMLButtonElement;
                   if (showMoreButton) {
                     console.log('🔄 Auto-clicking Show More button');
                     showMoreButton.click();
                   }
-                }, 200);
+                  
+                  // Force vertical layout after Stripe renders
+                  forceVerticalLayout();
+                  
+                  // Set up MutationObserver to maintain layout
+                  const observer = new MutationObserver(() => {
+                    forceVerticalLayout();
+                  });
+                  
+                  const expressCheckout = document.querySelector('.express-checkout-expanded');
+                  if (expressCheckout) {
+                    observer.observe(expressCheckout, { 
+                      childList: true, 
+                      subtree: true, 
+                      attributes: true,
+                      attributeFilter: ['style', 'class']
+                    });
+                  }
+                }, 300);
+                
+                // Also force layout on window resize
+                window.addEventListener('resize', forceVerticalLayout);
                 
                 if (!event.availablePaymentMethods) {
                   console.warn('⚠️ DEBUG: No payment methods available in Express Checkout');

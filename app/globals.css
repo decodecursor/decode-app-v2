@@ -23,6 +23,14 @@
   width: 100% !important;
 }
 
+/* Target Stripe iframe if present */
+.express-checkout-expanded iframe,
+.express-checkout-expanded [class*="__PrivateStripeElement"] {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+}
+
 /* Express Checkout Expanded State - Force show all payment methods */
 .express-checkout-expanded [class*="CollapsedWrapper"] {
   display: none !important;
@@ -41,28 +49,72 @@
   display: none !important;
 }
 
-/* Express checkout layout - Default vertical stack */
-.express-checkout-expanded [class*="ExpressCheckoutElement"] {
+/* Express checkout layout - Comprehensive targeting for vertical stack on mobile */
+.express-checkout-expanded,
+.express-checkout-expanded > div,
+.express-checkout-expanded [class*="ExpressCheckoutElement"],
+.express-checkout-expanded [class*="express-checkout"],
+.express-checkout-expanded [class*="ExpressCheckout"] {
   display: flex !important;
   flex-direction: column !important;
   gap: 12px !important;
   width: 100% !important;
+  max-width: 100% !important;
 }
 
-.express-checkout-expanded [class*="PaymentMethod"] {
+/* Target all possible payment method containers */
+.express-checkout-expanded [class*="PaymentMethod"],
+.express-checkout-expanded [class*="payment-method"],
+.express-checkout-expanded [class*="PaymentOption"],
+.express-checkout-expanded [class*="wallet"],
+.express-checkout-expanded [class*="Button"],
+.express-checkout-expanded > div > div,
+.express-checkout-expanded > div > div > div {
   width: 100% !important;
+  max-width: 100% !important;
   min-width: 0 !important;
+  flex: none !important;
+  display: block !important;
+}
+
+/* Target Stripe's internal button containers */
+.express-checkout-expanded div[style*="display: flex"],
+.express-checkout-expanded div[style*="display:flex"] {
+  flex-direction: column !important;
+  width: 100% !important;
+}
+
+/* Force grid layout as fallback */
+.express-checkout-expanded > div:first-child {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-gap: 12px !important;
+  width: 100% !important;
 }
 
 /* Desktop: side-by-side layout */
 @media (min-width: 769px) {
-  .express-checkout-expanded [class*="ExpressCheckoutElement"] {
+  .express-checkout-expanded,
+  .express-checkout-expanded > div,
+  .express-checkout-expanded [class*="ExpressCheckoutElement"],
+  .express-checkout-expanded [class*="express-checkout"],
+  .express-checkout-expanded [class*="ExpressCheckout"] {
     flex-direction: row !important;
     gap: 8px !important;
   }
   
-  .express-checkout-expanded [class*="PaymentMethod"] {
+  .express-checkout-expanded > div:first-child {
+    display: flex !important;
+    grid-template-columns: none !important;
+  }
+  
+  .express-checkout-expanded [class*="PaymentMethod"],
+  .express-checkout-expanded [class*="payment-method"],
+  .express-checkout-expanded [class*="PaymentOption"],
+  .express-checkout-expanded [class*="wallet"],
+  .express-checkout-expanded [class*="Button"] {
     flex: 1 !important;
+    width: auto !important;
   }
 }
 
@@ -504,32 +556,67 @@ body {
     letter-spacing: -0.025em;
   }
 
-  /* Express checkout mobile-specific overrides */
+  /* Express checkout mobile-specific overrides with maximum specificity */
   .express-checkout-expanded {
     width: 100% !important;
   }
   
-  .express-checkout-expanded [class*="ExpressCheckoutElement"] > div {
+  /* Target all nested divs and force vertical layout */
+  .express-checkout-expanded div,
+  .express-checkout-expanded > div,
+  .express-checkout-expanded > div > div,
+  .express-checkout-expanded > div > div > div,
+  .express-checkout-expanded [class*="ExpressCheckoutElement"] > div,
+  .express-checkout-expanded [id*="express-checkout"] > div {
+    display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
+    max-width: 100% !important;
   }
   
+  /* Override any inline styles */
+  .express-checkout-expanded [style*="flex-direction: row"],
+  .express-checkout-expanded [style*="flex-direction:row"] {
+    flex-direction: column !important;
+  }
+  
+  /* Target payment method buttons with all possible selectors */
   .express-checkout-expanded [class*="PaymentMethod"],
-  .express-checkout-expanded [class*="paymentMethod"] {
+  .express-checkout-expanded [class*="paymentMethod"],
+  .express-checkout-expanded [class*="payment-method"],
+  .express-checkout-expanded [class*="WalletButton"],
+  .express-checkout-expanded [class*="wallet-button"],
+  .express-checkout-expanded button,
+  .express-checkout-expanded > div > button,
+  .express-checkout-expanded > div > div > button {
     width: 100% !important;
     max-width: 100% !important;
-    margin: 0 !important;
+    min-width: 100% !important;
+    margin: 0 0 8px 0 !important;
+    display: block !important;
+    flex: none !important;
   }
   
-  /* Force Apple Pay and Google Pay buttons to stack vertically */
+  /* Specific targeting for Apple Pay and Google Pay */
   .express-checkout-expanded button[aria-label*="Apple Pay"],
   .express-checkout-expanded button[aria-label*="Google Pay"],
+  .express-checkout-expanded button[aria-label*="apple pay"],
+  .express-checkout-expanded button[aria-label*="google pay"],
   .express-checkout-expanded [class*="apple-pay"],
-  .express-checkout-expanded [class*="google-pay"] {
+  .express-checkout-expanded [class*="google-pay"],
+  .express-checkout-expanded [class*="ApplePay"],
+  .express-checkout-expanded [class*="GooglePay"] {
     width: 100% !important;
     max-width: 100% !important;
     display: block !important;
     margin-bottom: 8px !important;
+  }
+  
+  /* Last button should have no margin */
+  .express-checkout-expanded button:last-child,
+  .express-checkout-expanded > div > button:last-child,
+  .express-checkout-expanded > div > div > button:last-child {
+    margin-bottom: 0 !important;
   }
 
   /* Professional info mobile layout */
