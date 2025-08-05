@@ -71,28 +71,45 @@ export default function PaymentHistoryPage() {
 
   // Load date range from localStorage on component mount
   useEffect(() => {
-    const savedDateRange = localStorage.getItem('paymentAnalyticsDateRange')
-    const savedCustomRange = localStorage.getItem('paymentAnalyticsCustomRange')
-    
-    if (savedDateRange) {
-      setDateRange(savedDateRange as 'today' | 'week' | 'month' | 'custom')
-    }
-    
-    if (savedCustomRange) {
-      const parsed = JSON.parse(savedCustomRange)
-      if (parsed.from) parsed.from = new Date(parsed.from)
-      if (parsed.to) parsed.to = new Date(parsed.to)
-      setCustomDateRange(parsed)
+    try {
+      console.log('📱 Loading localStorage data...')
+      const savedDateRange = localStorage.getItem('paymentAnalyticsDateRange')
+      const savedCustomRange = localStorage.getItem('paymentAnalyticsCustomRange')
+      
+      if (savedDateRange) {
+        setDateRange(savedDateRange as 'today' | 'week' | 'month' | 'custom')
+      }
+      
+      if (savedCustomRange) {
+        const parsed = JSON.parse(savedCustomRange)
+        if (parsed.from) parsed.from = new Date(parsed.from)
+        if (parsed.to) parsed.to = new Date(parsed.to)
+        setCustomDateRange(parsed)
+      }
+      console.log('✅ localStorage data loaded successfully')
+    } catch (error) {
+      console.error('❌ Error loading localStorage data:', error)
+      // Clear corrupted data
+      localStorage.removeItem('paymentAnalyticsDateRange')
+      localStorage.removeItem('paymentAnalyticsCustomRange')
     }
   }, [])
 
   // Save date range to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('paymentAnalyticsDateRange', dateRange)
+    try {
+      localStorage.setItem('paymentAnalyticsDateRange', dateRange)
+    } catch (error) {
+      console.error('❌ Error saving dateRange to localStorage:', error)
+    }
   }, [dateRange])
 
   useEffect(() => {
-    localStorage.setItem('paymentAnalyticsCustomRange', JSON.stringify(customDateRange))
+    try {
+      localStorage.setItem('paymentAnalyticsCustomRange', JSON.stringify(customDateRange))
+    } catch (error) {
+      console.error('❌ Error saving customDateRange to localStorage:', error)
+    }
   }, [customDateRange])
 
   useEffect(() => {
@@ -385,6 +402,8 @@ export default function PaymentHistoryPage() {
     }
   }
 
+  console.log('🎯 ABOUT TO CHECK USER STATE - user:', user, 'typeof user:', typeof user)
+  
   // Show loading state while authenticating or if no user
   if (!user) {
     console.log('🔄 LOADING STATE TRIGGERED - user is undefined, showing loading screen')
