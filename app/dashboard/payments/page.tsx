@@ -64,6 +64,8 @@ export default function PaymentHistoryPage() {
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'custom'>('today')
   const [customDateRange, setCustomDateRange] = useState<{ from?: Date; to?: Date } | undefined>(undefined)
 
+  console.log('🔄 PaymentHistoryPage render - user:', user?.id, 'paymentLinks:', paymentLinks.length, 'loading:', loading, 'error:', error)
+
   // Load date range from localStorage on component mount
   useEffect(() => {
     const savedDateRange = localStorage.getItem('paymentAnalyticsDateRange')
@@ -106,6 +108,7 @@ export default function PaymentHistoryPage() {
 
   const fetchPaymentData = async (userId: string) => {
     try {
+      console.log('🔍 Starting fetchPaymentData for user:', userId)
       setLoading(true)
       setError('')
 
@@ -137,6 +140,8 @@ export default function PaymentHistoryPage() {
         .order('created_at', { ascending: false })
 
       if (linksError) throw linksError
+      
+      console.log('📊 Raw payment links data:', linksData?.length || 0, 'links found')
 
       // Process the data to include transaction counts and revenue - only include links with completed transactions
       const processedLinks: PaymentLink[] = (linksData || [])
@@ -153,10 +158,12 @@ export default function PaymentHistoryPage() {
         })
         .filter(link => link.transaction_count > 0) // Only include payment links that have been paid (have completed transactions)
 
+      console.log('💰 Processed paid links:', processedLinks.length, 'links with completed transactions')
       setPaymentLinks(processedLinks)
 
       // If no paid payment links found, still show the analytics section but with empty data
       if (processedLinks.length === 0) {
+        console.log('⚠️ No paid payment links found - showing empty state')
         setTransactions([])
         setStats({
           totalRevenue: 0,
@@ -227,9 +234,10 @@ export default function PaymentHistoryPage() {
       })
 
     } catch (error) {
-      console.error('Error fetching payment data:', error)
+      console.error('❌ Error fetching payment data:', error)
       setError('Failed to load payment data. Please try again.')
     } finally {
+      console.log('✅ Finished fetchPaymentData')
       setLoading(false)
     }
   }
