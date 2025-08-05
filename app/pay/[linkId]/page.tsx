@@ -156,16 +156,16 @@ export default function PaymentPage() {
           <div className="cosmic-card max-w-lg w-full text-center">
             {/* Already Paid Animation */}
             <div className="mb-8">
-              <div className="relative w-20 h-20 mx-auto mb-6">
+              <div className="relative w-14 h-14 mx-auto mb-6">
                 <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-pulse"></div>
-                <div className="relative w-20 h-20 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
-                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="relative w-14 h-14 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
               </div>
               <h1 className="cosmic-logo text-blue-400 mb-2">Payment Completed</h1>
-              <p className="cosmic-body opacity-70 mb-4">This payment link has already been completed by another person</p>
+              <p className="cosmic-body opacity-70 mb-4">This payment link has already been paid</p>
             </div>
 
             {/* Payment Details */}
@@ -179,20 +179,6 @@ export default function PaymentPage() {
               </p>
             </div>
 
-            {/* Info Message */}
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <svg className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div>
-                  <p className="cosmic-body text-blue-300 font-medium">Payment Link Used</p>
-                  <p className="cosmic-body opacity-70 text-sm mt-1">
-                    This payment link can only be used once and has been completed successfully.
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
