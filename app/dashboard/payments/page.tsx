@@ -198,41 +198,35 @@ export default function PaymentHistoryPage() {
       console.log('💰 Processed paid links:', processedLinks.length, 'links with completed transactions')
       setPaymentLinks(processedLinks)
 
-      // If no paid payment links found, still show the analytics section but with empty data
+      // If no paid payment links found, set empty data but continue to show analytics
       if (processedLinks.length === 0) {
-        console.log('⚠️ No paid payment links found - showing empty state')
+        console.log('⚠️ No paid payment links found - showing analytics with zero values')
         setTransactions([])
-        setStats({
-          totalRevenue: 0,
-          activeLinks: 0,
-          totalTransactions: 0,
-          successfulPayments: 0,
-          averagePayment: 0,
-          thisMonth: {
-            revenue: 0,
-            transactions: 0
-          }
-        })
-        return
+        // Don't return early - let the UI render with empty data
       }
 
       // Fetch all transactions for paid payment links only
-      const { data: transactionsData } = await supabase
-        .from('transactions')
-        .select(`
-          id,
-          amount_aed,
-          status,
-          created_at,
-          payment_link:payment_link_id (
-            title,
+      let transactionsData: any[] = []
+      if (processedLinks.length > 0) {
+        const { data } = await supabase
+          .from('transactions')
+          .select(`
+            id,
             amount_aed,
-            client_name
-          )
-        `)
-        .in('payment_link_id', processedLinks.map(link => link.id))
-        .eq('status', 'completed')
-        .order('created_at', { ascending: false })
+            status,
+            created_at,
+            payment_link:payment_link_id (
+              title,
+              amount_aed,
+              client_name
+            )
+          `)
+          .in('payment_link_id', processedLinks.map(link => link.id))
+          .eq('status', 'completed')
+          .order('created_at', { ascending: false })
+        
+        transactionsData = data || []
+      }
 
       const processedTransactions: PaymentTransaction[] = (transactionsData || [])
         .filter(t => t.payment_link)
@@ -504,13 +498,11 @@ export default function PaymentHistoryPage() {
         {/* Analytics */}
         <div className="flex justify-center">
           <div style={{width: '70vw'}}>
-          {transactions.length > 0 && (
             <PaymentStats 
               transactions={transactions}
               paymentLinks={filteredAndSortedLinks}
               user={user}
             />
-          )}
           </div>
         </div>
 
