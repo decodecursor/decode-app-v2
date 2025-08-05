@@ -19,6 +19,8 @@
 .express-checkout-no-border.cosmic-input {
   border: none !important;
   background: transparent !important;
+  padding: 0 !important;
+  width: 100% !important;
 }
 
 /* Express Checkout Expanded State - Force show all payment methods */
@@ -39,16 +41,29 @@
   display: none !important;
 }
 
-/* Force express checkout to show side-by-side layout */
+/* Express checkout layout - Default vertical stack */
 .express-checkout-expanded [class*="ExpressCheckoutElement"] {
   display: flex !important;
-  flex-direction: row !important;
-  gap: 8px !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  width: 100% !important;
 }
 
 .express-checkout-expanded [class*="PaymentMethod"] {
-  flex: 1 !important;
+  width: 100% !important;
   min-width: 0 !important;
+}
+
+/* Desktop: side-by-side layout */
+@media (min-width: 769px) {
+  .express-checkout-expanded [class*="ExpressCheckoutElement"] {
+    flex-direction: row !important;
+    gap: 8px !important;
+  }
+  
+  .express-checkout-expanded [class*="PaymentMethod"] {
+    flex: 1 !important;
+  }
 }
 
 /* Base Cosmic Background */
@@ -487,6 +502,34 @@ body {
     font-size: 32px;
     font-weight: 700;
     letter-spacing: -0.025em;
+  }
+
+  /* Express checkout mobile-specific overrides */
+  .express-checkout-expanded {
+    width: 100% !important;
+  }
+  
+  .express-checkout-expanded [class*="ExpressCheckoutElement"] > div {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+  
+  .express-checkout-expanded [class*="PaymentMethod"],
+  .express-checkout-expanded [class*="paymentMethod"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+  
+  /* Force Apple Pay and Google Pay buttons to stack vertically */
+  .express-checkout-expanded button[aria-label*="Apple Pay"],
+  .express-checkout-expanded button[aria-label*="Google Pay"],
+  .express-checkout-expanded [class*="apple-pay"],
+  .express-checkout-expanded [class*="google-pay"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+    margin-bottom: 8px !important;
   }
 
   /* Professional info mobile layout */
