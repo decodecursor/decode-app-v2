@@ -142,6 +142,30 @@ export default function BankAccountPage() {
       }
 
       if (userData) {
+        // Load existing bank account data
+        const { data: bankAccounts } = await supabase
+          .from('user_bank_accounts')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+        
+        if (bankAccounts && bankAccounts.length > 0) {
+          const account = bankAccounts[0]
+          // Populate form fields with saved data
+          setBeneficiary(account.beneficiary_name || '')
+          setIban(account.iban_number || '')
+          setBank(account.bank_name || '')
+          
+          // Update saved values for comparison
+          setSavedBeneficiary(account.beneficiary_name || '')
+          setSavedIban(account.iban_number || '')
+          setSavedBank(account.bank_name || '')
+          
+          // Set connected status
+          setIsConnected(true)
+        }
+        
         // User exists, show normal interface
         setCurrentStep('create')
         setLoading(false)
