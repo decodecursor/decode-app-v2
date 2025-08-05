@@ -144,6 +144,7 @@ export default function PaymentHistoryPage() {
       setError('')
 
       // Fetch payment links that have completed transactions (paid payment links)
+      console.log('🔍 About to query payment_links table for user:', userId)
       const { data: linksData, error: linksError } = await supabase
         .from('payment_links')
         .select(`
@@ -170,7 +171,16 @@ export default function PaymentHistoryPage() {
         .eq('creator_id', userId)
         .order('created_at', { ascending: false })
 
-      if (linksError) throw linksError
+      console.log('📊 Payment links query result:', { 
+        data: linksData?.length || 0, 
+        error: linksError,
+        errorDetails: linksError ? JSON.stringify(linksError, null, 2) : null
+      })
+
+      if (linksError) {
+        console.error('❌ Payment links query failed:', linksError)
+        throw linksError
+      }
       
       console.log('📊 Raw payment links data:', linksData?.length || 0, 'links found')
 
@@ -265,8 +275,12 @@ export default function PaymentHistoryPage() {
       })
 
     } catch (error) {
-      console.error('❌ Error fetching payment data:', error)
-      setError('Failed to load payment data. Please try again.')
+      console.error('❌ DETAILED ERROR in fetchPaymentData:')
+      console.error('Error object:', error)
+      console.error('Error message:', error?.message)
+      console.error('Error stack:', error?.stack)
+      console.error('Full error details:', JSON.stringify(error, null, 2))
+      setError(`Database error: ${error?.message || 'Unknown error'}`)
     } finally {
       console.log('✅ Finished fetchPaymentData')
       setLoading(false)
