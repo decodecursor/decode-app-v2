@@ -177,7 +177,10 @@ function PaymentForm({
                     
                     // Remove margin from last button
                     if (allButtons.length > 0) {
-                      allButtons[allButtons.length - 1].style.marginBottom = '0';
+                      const lastButton = allButtons[allButtons.length - 1];
+                      if (lastButton) {
+                        lastButton.style.marginBottom = '0';
+                      }
                     }
                   }
                 };
