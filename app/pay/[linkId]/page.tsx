@@ -156,10 +156,10 @@ export default function PaymentPage() {
           <div className="cosmic-card max-w-lg w-full text-center">
             {/* Already Paid Animation */}
             <div className="mb-8">
-              <div className="relative w-14 h-14 mx-auto mb-6">
+              <div className="relative w-14 h-14 mx-auto mb-4">
                 <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-pulse"></div>
                 <div className="relative w-14 h-14 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
-                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
@@ -169,12 +169,12 @@ export default function PaymentPage() {
             </div>
 
             {/* Payment Details */}
-            <div className="bg-white/10 rounded-lg p-6 backdrop-blur-sm mb-6">
-              <h3 className="cosmic-body font-medium text-white mb-2">{paymentData.title}</h3>
-              <p className="cosmic-body text-blue-400 font-bold text-xl">
-                AED {formatAmount(paymentData.total_amount_aed || paymentData.amount_aed)}
+            <div className="bg-black rounded-lg p-6 mb-6">
+              <p className="cosmic-body text-white mb-2">{paymentData.title}</p>
+              <p className="cosmic-body text-white">
+                {paymentData.client_name || 'Client Name'}
               </p>
-              <p className="cosmic-body opacity-70 text-sm mt-2">
+              <p className="cosmic-body text-white mt-2">
                 Service by {getBusinessDisplayName(paymentData.creator)}
               </p>
             </div>
