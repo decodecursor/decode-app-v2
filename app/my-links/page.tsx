@@ -768,7 +768,7 @@ function MyLinksContent() {
                         </div>
                       )}
                       
-                      <div className="flex flex-col gap-4">
+                      <div className="flex flex-col gap-3">
                         {/* Top Row: Title, Amount, Status */}
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                           <div className="flex-1">
@@ -777,17 +777,26 @@ function MyLinksContent() {
                                 {link.client_name}
                               </p>
                             )}
-                            <h3 className="text-white font-medium text-lg mb-3">
+                            <h3 className="text-white font-medium text-lg mb-1">
                               {link.title}
                             </h3>
                           </div>
                           
                           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
                             <div className="text-right">
-                              <div className="text-white font-medium text-xl">
-                                AED {formatAmount(link.service_amount_aed || (link.amount_aed / 1.09))}
-                              </div>
-                              {/* Fee information not available with current schema */}
+                              {link.is_active && (
+                                <p className={`text-sm ${getExpiryColor(link.expiration_date)}`}>
+                                  {(() => {
+                                    if (isPaid) {
+                                      return `Paid ${formatDate(link.expiration_date)}`
+                                    }
+                                    const now = new Date()
+                                    const expirationDate = new Date(link.expiration_date)
+                                    const isExpired = now > expirationDate
+                                    return `${isExpired ? 'Expired' : 'Expires'} ${formatDate(link.expiration_date)}`
+                                  })()}
+                                </p>
+                              )}
                             </div>
                             
                             <div className="text-right">
@@ -798,34 +807,14 @@ function MyLinksContent() {
                           </div>
                         </div>
 
-                        {/* Date Row - Full Width */}
-                        <div className="w-full flex justify-between items-center">
-                          <p className="text-gray-400 text-sm">
-                            Created {formatDate(link.created_at)}
-                          </p>
-                          {link.is_active && (
-                            <p className={`text-sm ${getExpiryColor(link.expiration_date)}`}>
-                              {(() => {
-                                if (isPaid) {
-                                  return `Paid ${formatDate(link.expiration_date)}`
-                                }
-                                const now = new Date()
-                                const expirationDate = new Date(link.expiration_date)
-                                const isExpired = now > expirationDate
-                                return `${isExpired ? 'Expired' : 'Expires'} ${formatDate(link.expiration_date)}`
-                              })()}
-                            </p>
-                          )}
-                        </div>
 
-                        {/* Bottom Row: Payment URL and Action Buttons */}
-                        <div className="pt-3 border-t border-gray-700">
+                        {/* Bottom Row: Amount and Action Buttons */}
+                        <div className="pt-2 border-t border-gray-700">
                           <div className="flex items-center gap-3">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-gray-400 text-xs mb-1">Payment Link:</p>
-                              <p className="text-gray-300 text-sm font-mono truncate">
-                                {generatePaymentUrl(link.id)}
-                              </p>
+                            <div className="flex-1">
+                              <div className="text-white font-medium text-xl">
+                                AED {formatAmount(link.service_amount_aed || (link.amount_aed / 1.09))}
+                              </div>
                             </div>
                             <div className="flex gap-2 ml-4">
                             <button

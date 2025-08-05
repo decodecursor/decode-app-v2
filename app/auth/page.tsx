@@ -56,7 +56,7 @@ export default function AuthPage() {
         <div className="cosmic-card-login">
           <div className="text-center mb-8">
             <img src="/logo.png" alt="DECODE" className="mx-auto mb-2" style={{height: '40px', filter: 'brightness(0) invert(1)'}} />
-            <p className="cosmic-body opacity-70">Making Girls More Beautiful</p>
+            <p className="cosmic-body opacity-70">Make Girls More Beautiful</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
