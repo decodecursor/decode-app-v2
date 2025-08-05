@@ -138,20 +138,31 @@ function PaymentSuccessContent() {
         <div className="cosmic-card max-w-lg w-full text-center">
           {/* Success Animation */}
           <div className="mb-8">
-            <div className="relative w-20 h-20 mx-auto mb-6">
+            <div className="relative w-14 h-14 mx-auto mb-4">
               <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping"></div>
-              <div className="relative w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center">
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="relative w-14 h-14 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center">
+                <svg className="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
             </div>
             <h1 className="cosmic-logo text-green-400 mb-2">Payment Successful</h1>
-            <p className="cosmic-body opacity-70">Your payment has been processed successfully</p>
+            <p className="cosmic-body opacity-70 mb-4">Your payment has been processed successfully</p>
+          </div>
+
+          {/* Payment Details */}
+          <div className="bg-black rounded-lg p-6 mb-6">
+            <p className="cosmic-body text-white mb-2">{paymentDetails.description}</p>
+            <p className="cosmic-body text-white">
+              {paymentDetails.clientName || 'Client Name'}
+            </p>
+            <p className="cosmic-body text-white mt-2">
+              Service by Boho Beauty Salon
+            </p>
           </div>
 
           {/* Personalized Thank You Message */}
-          <div className="mt-8">
+          <div>
             <p className="cosmic-body text-white text-lg">
               ❤️ Thank you so much, {paymentDetails.clientName || 'Client'} ❤️
             </p>
