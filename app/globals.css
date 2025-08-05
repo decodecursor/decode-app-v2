@@ -21,6 +21,36 @@
   background: transparent !important;
 }
 
+/* Express Checkout Expanded State - Force show all payment methods */
+.express-checkout-expanded [class*="CollapsedWrapper"] {
+  display: none !important;
+}
+
+.express-checkout-expanded [class*="ExpandedWrapper"] {
+  display: block !important;
+}
+
+.express-checkout-expanded [class*="show more"],
+.express-checkout-expanded [class*="Show more"],
+.express-checkout-expanded [class*="Show More"],
+.express-checkout-expanded [aria-label*="show more"],
+.express-checkout-expanded [aria-label*="Show more"],
+.express-checkout-expanded [aria-label*="Show More"] {
+  display: none !important;
+}
+
+/* Force express checkout to show side-by-side layout */
+.express-checkout-expanded [class*="ExpressCheckoutElement"] {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 8px !important;
+}
+
+.express-checkout-expanded [class*="PaymentMethod"] {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
 /* Base Cosmic Background */
 .cosmic-bg {
   background-image: url('/starry-background.jpg');
