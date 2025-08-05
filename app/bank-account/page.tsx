@@ -54,7 +54,6 @@ export default function BankAccountPage() {
     }
 
     setLoading(true)
-    setMessage({ type: 'info', text: 'Saving bank account details...' })
     
     try {
       const { error } = await supabase
@@ -402,7 +401,7 @@ export default function BankAccountPage() {
                   (beneficiary.trim() === savedBeneficiary && iban.trim() === savedIban && bank.trim() === savedBank))}
                 className="cosmic-button-primary disabled:opacity-50 mt-8 w-full"
               >
-                {loading ? 'Saving...' : 'Change'}
+                {loading ? 'Saving...' : 'Save'}
               </button>
               </div>
             )}
