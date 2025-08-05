@@ -110,13 +110,13 @@ function PaymentForm({
         {/* Payment Information */}
         <div className="bg-black rounded-lg p-6 mb-6">
           <div className="text-center space-y-1">
-            <div className="cosmic-body text-base text-white">
+            <div className="cosmic-body text-base text-white font-bold">
               Service by {beautyProfessionalName}
             </div>
             <div className="cosmic-body text-sm font-bold text-white">
               {customerName || 'Client Name'}
             </div>
-            <div className="cosmic-body text-sm text-white">
+            <div className="cosmic-body text-sm text-white font-bold">
               {description}
             </div>
             <div className="cosmic-body text-2xl font-bold text-white mt-2">
