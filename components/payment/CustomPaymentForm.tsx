@@ -129,17 +129,23 @@ function PaymentForm({
         {clientSecret ? (
           <>
             {/* Express Checkout (Apple Pay, Google Pay) */}
-            <div className="mb-4" style={{ minHeight: '120px' }}>
-              <ExpressCheckoutElement
-            options={{
-              paymentMethods: {
-                applePay: 'always',
-                googlePay: 'always'
-              },
-              buttonType: {
-                googlePay: 'plain'
-              }
-            }}
+            <div className="mb-4 express-checkout-expanded">
+              <div className="cosmic-input express-checkout-no-border" style={{ minHeight: 'auto' }}>
+                <ExpressCheckoutElement
+                  options={{
+                    paymentMethods: {
+                      applePay: 'always',
+                      googlePay: 'always'
+                    },
+                    buttonTheme: {
+                      applePay: 'white-outline',
+                      googlePay: 'white'
+                    },
+                    buttonType: {
+                      googlePay: 'plain'
+                    },
+                    paymentMethodOrder: ['applePay', 'googlePay']
+                  }}
               onReady={(event) => {
                 console.log('🍎 DEBUG: Express Checkout ready event:', event);
                 console.log('🍎 DEBUG: Available payment methods:', event.availablePaymentMethods);
@@ -198,9 +204,10 @@ function PaymentForm({
                   setError(errorMessage);
                   onError?.(errorMessage);
                 }
-            }}
-          />
-        </div>
+                  }}
+                />
+              </div>
+            </div>
 
         {/* Divider */}
         <div className="flex items-center space-x-4 my-2">

@@ -15,6 +15,11 @@
   --cosmic-button-gradient-end: #000000;
 }
 
+/* Remove border from express checkout cosmic-input to avoid double frame */
+.express-checkout-no-border.cosmic-input {
+  border: none !important;
+  background: transparent !important;
+}
 
 /* Base Cosmic Background */
 .cosmic-bg {
