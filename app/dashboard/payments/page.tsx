@@ -128,7 +128,7 @@ export default function PaymentHistoryPage() {
         console.log('✅ User authenticated:', user.id)
         setUser(user)
         await fetchPaymentData(user.id)
-      } catch (error) {
+      } catch (error: any) {
         console.error('❌ Authentication error:', error)
         setError('Authentication failed. Please try logging in again.')
       }
@@ -274,7 +274,7 @@ export default function PaymentHistoryPage() {
         }
       })
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ DETAILED ERROR in fetchPaymentData:')
       console.error('Error object:', error)
       console.error('Error message:', error?.message)
