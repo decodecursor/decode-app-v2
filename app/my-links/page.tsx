@@ -606,8 +606,26 @@ function MyLinksContent() {
       // Generate the payment URL
       const paymentUrl = generatePaymentUrl(link.id)
       
-      // Create WhatsApp share URL with pre-filled message
-      const whatsappMessage = `Check out this payment link for ${link.title}: ${paymentUrl}`
+      // Fetch user profile for company name
+      const { data: { user } } = await supabase.auth.getUser()
+      let companyName = 'Our Business'
+      
+      if (user) {
+        const { data: profileData } = await supabase
+          .from('users')
+          .select('professional_center_name')
+          .eq('id', user.id)
+          .single()
+        
+        if (profileData?.professional_center_name) {
+          companyName = profileData.professional_center_name
+        }
+      }
+      
+      // Create WhatsApp share URL with new format
+      const clientName = link.client_name || 'Client'
+      const serviceName = link.title || 'Service'
+      const whatsappMessage = `Spoil ${clientName} with a ${serviceName} at ${companyName}: ${paymentUrl}`
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`
       
       // Generate QR code for the WhatsApp URL
