@@ -493,74 +493,81 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
       </div>
 
       {/* Revenue Chart */}
-      {revenueByDay.length > 0 && (
-        <div className="cosmic-card">
-          <h3 className="cosmic-heading text-white mb-4">Charts</h3>
-          <div className="h-64 flex items-end space-x-1">
-            {revenueByDay.map((day) => {
-              const maxRevenue = Math.max(...revenueByDay.map(d => d.revenue), 1)
-              const height = (day.revenue / maxRevenue) * 100
-              
-              return (
-                <div key={day.date} className="flex-1 flex flex-col items-center group">
-                  <div className="relative flex-1 w-full flex items-end">
-                    <div 
-                      className="w-full bg-gradient-to-t from-purple-600 to-purple-400 rounded-t-sm transition-all duration-300 group-hover:from-purple-500 group-hover:to-purple-300"
-                      style={{ height: `${height}%` }}
-                      title={`${day.date}: ${formatCurrency(day.revenue)} (${day.transactions} transactions)`}
-                    ></div>
-                  </div>
-                  <span className="text-xs text-white/50 mt-2 transform rotate-45 origin-center">
-                    {new Date(day.date).getDate()}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-          <div className="flex justify-between items-center mt-4 text-xs text-white/50">
-            <span>Period: {dateRange === 'today' ? 'Today' : dateRange === 'week' ? 'This Week' : dateRange === 'month' ? 'This Month' : 'Custom Range'}</span>
-            <span>Peak: {formatCurrency(Math.max(...revenueByDay.map(d => d.revenue)))}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Payments */}
       <div className="cosmic-card">
-        <h3 className="cosmic-heading text-white mb-4">Recent Payments</h3>
+        <h3 className="cosmic-heading text-white mb-4">Charts</h3>
+        {revenueByDay.length > 0 ? (
+          <>
+            <div className="h-64 flex items-end space-x-1">
+              {revenueByDay.map((day) => {
+                const maxRevenue = Math.max(...revenueByDay.map(d => d.revenue), 1)
+                const height = day.revenue > 0 ? (day.revenue / maxRevenue) * 100 : 2
+                
+                return (
+                  <div key={day.date} className="flex-1 flex flex-col items-center group">
+                    <div className="relative flex-1 w-full flex items-end">
+                      <div 
+                        className={`w-full rounded-t-sm transition-all duration-300 ${
+                          day.revenue > 0 
+                            ? 'bg-gradient-to-t from-purple-600 to-purple-400 group-hover:from-purple-500 group-hover:to-purple-300' 
+                            : 'bg-white/10'
+                        }`}
+                        style={{ height: `${height}%`, minHeight: '2px' }}
+                        title={`${day.date}: ${formatCurrency(day.revenue)} (${day.transactions} transactions)`}
+                      ></div>
+                    </div>
+                    <span className="text-xs text-white/50 mt-2 transform rotate-45 origin-center">
+                      {new Date(day.date).getDate()}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+            <div className="flex justify-between items-center mt-4 text-xs text-white/50">
+              <span>Period: {dateRange === 'today' ? 'Today' : dateRange === 'week' ? 'This Week' : dateRange === 'month' ? 'This Month' : 'Custom Range'}</span>
+              <span>Total: {formatCurrency(revenueByDay.reduce((sum, d) => sum + d.revenue, 0))}</span>
+            </div>
+          </>
+        ) : (
+          <div className="h-64 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-8 h-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <p className="cosmic-body text-white/50">No data available for the selected period</p>
+              <p className="cosmic-label text-white/30 mt-1">Try selecting a different date range</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* PayLinks */}
+      <div className="cosmic-card">
+        <h3 className="cosmic-heading text-white mb-4">PayLinks</h3>
         <div className="space-y-3">
           {getFilteredPayments().map((payment, index) => (
-            <div key={`${payment.id}-${index}`} className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-3 flex-1">
-                  <span className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">
+            <div key={`${payment.id}-${index}`} className="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3 flex-1">
+                  <span className="w-7 h-7 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">
                     {index + 1}
                   </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap gap-x-3 gap-y-1 mb-1">
-                      <span className="cosmic-body text-white font-semibold">
-                        {payment.client_name || 'Client'}
-                      </span>
-                      <span className="cosmic-body text-white/70">
-                        •
-                      </span>
-                      <span className="cosmic-body text-white/90">
-                        {payment.title || 'Service'}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <span className="cosmic-label text-white/60">
-                        {formatPaymentDate(payment.paid_at!)}
-                      </span>
-                    </div>
-                  </div>
+                  <span className="cosmic-body text-white font-semibold">
+                    {payment.client_name || 'Client'}
+                  </span>
+                  <span className="cosmic-body text-white/70">•</span>
+                  <span className="cosmic-body text-white/90">
+                    {payment.title || 'Service'}
+                  </span>
                 </div>
-                <div className="text-right ml-4">
-                  <span className="cosmic-body text-green-400 font-bold text-lg">
+                <div className="flex items-center space-x-4">
+                  <span className="cosmic-body text-green-400 font-bold">
                     {formatCurrency(payment.service_amount_aed || payment.amount_aed)}
                   </span>
-                  <div className="cosmic-label text-white/50 text-xs mt-1">
-                    Service Amount
-                  </div>
+                  <span className="cosmic-label text-white/60 text-sm min-w-[140px] text-right">
+                    {formatPaymentDate(payment.paid_at!)}
+                  </span>
                 </div>
               </div>
             </div>
