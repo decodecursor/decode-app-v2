@@ -262,11 +262,20 @@ function MyLinksContent() {
       // Fetch payment links with backwards compatible is_paid and paid_at columns
       let paymentLinksData, fetchError
       try {
-        // Try to get payment_status and paid_at columns (from migration)
-        console.log('🔍 Attempting to fetch with payment_status and paid_at fields...')
+        // Try to get payment_status and paid_at columns (from migration) + transaction data as backup
+        console.log('🔍 Attempting to fetch with payment_status, paid_at, and transaction data...')
         const result = await (supabase as any)
           .from('payment_links')
-          .select('id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, expiration_date, is_active, created_at, payment_status, paid_at')
+          .select(`
+            id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
+            expiration_date, is_active, created_at, payment_status, paid_at,
+            transactions (
+              id,
+              status,
+              created_at,
+              completed_at
+            )
+          `)
           .eq('creator_id', userId)
           .order('created_at', { ascending: false })
         
@@ -275,6 +284,7 @@ function MyLinksContent() {
         
         if (!fetchError) {
           console.log('✅ Successfully fetched with payment_status and paid_at fields')
+          console.log('🔍 RAW DATABASE DATA:', JSON.stringify(paymentLinksData, null, 2))
         } else {
           console.log('❌ Error with payment_status query:', fetchError)
           throw fetchError
@@ -282,10 +292,19 @@ function MyLinksContent() {
       } catch (primaryError) {
         console.log('⚠️ Primary query failed, trying fallback with is_paid field...', primaryError)
         try {
-          // Fallback to is_paid column (older migration)
+          // Fallback to is_paid column (older migration) + transaction data
           const result = await (supabase as any)
             .from('payment_links')
-            .select('id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, expiration_date, is_active, created_at, is_paid')
+            .select(`
+              id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
+              expiration_date, is_active, created_at, is_paid,
+              transactions (
+                id,
+                status,
+                created_at,
+                completed_at
+              )
+            `)
             .eq('creator_id', userId)
             .order('created_at', { ascending: false })
           
@@ -300,10 +319,19 @@ function MyLinksContent() {
           }
         } catch (fallbackError) {
           console.log('⚠️ is_paid fallback failed, using basic query...', fallbackError)
-          // Final fallback without payment status fields
+          // Final fallback without payment status fields but with transaction data
           const result = await supabase
             .from('payment_links')
-            .select('id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, expiration_date, is_active, created_at')
+            .select(`
+              id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
+              expiration_date, is_active, created_at,
+              transactions (
+                id,
+                status,
+                created_at,
+                completed_at
+              )
+            `)
             .eq('creator_id', userId)
             .order('created_at', { ascending: false })
           
@@ -341,6 +369,55 @@ function MyLinksContent() {
           console.log(`📊 No payment status fields available for link ${link.id}, assuming unpaid`)
         }
         
+        // Calculate actual payment date from multiple sources
+        let actualPaidAt = null
+        
+        if (isPaid) {
+          // Priority order for payment date:
+          // 1. paid_at field (from migration)
+          // 2. earliest completed transaction
+          // 3. earliest transaction of any status (as last resort)
+          
+          if (link?.paid_at) {
+            actualPaidAt = link.paid_at
+            console.log(`💰 Using paid_at field for link ${link.id}: ${actualPaidAt}`)
+          } else if (link?.transactions && link.transactions.length > 0) {
+            // Find completed transactions first
+            const completedTransactions = link.transactions.filter((t: any) => t.status === 'completed')
+            
+            if (completedTransactions.length > 0) {
+              // Use completed_at if available, otherwise created_at
+              const earliestCompleted = completedTransactions.reduce((earliest: any, current: any) => {
+                const currentDate = current.completed_at || current.created_at
+                const earliestDate = earliest.completed_at || earliest.created_at
+                return new Date(currentDate) < new Date(earliestDate) ? current : earliest
+              })
+              actualPaidAt = earliestCompleted.completed_at || earliestCompleted.created_at
+              console.log(`💰 Using earliest completed transaction date for link ${link.id}: ${actualPaidAt}`)
+            } else {
+              // No completed transactions, use earliest transaction as fallback
+              const earliestTransaction = link.transactions.reduce((earliest: any, current: any) => {
+                return new Date(current.created_at) < new Date(earliest.created_at) ? current : earliest
+              })
+              actualPaidAt = earliestTransaction.created_at
+              console.log(`💰 Using earliest transaction date as fallback for link ${link.id}: ${actualPaidAt}`)
+            }
+          } else {
+            console.log(`⚠️ No payment date available for paid link ${link.id}, will fallback to expiry date`)
+          }
+        }
+        
+        // Debug logging for each link
+        console.log(`🔍 Processing link ${link.id}:`, {
+          payment_status: link?.payment_status,
+          is_paid: link?.is_paid,
+          paid_at: link?.paid_at,
+          transactions_count: link?.transactions?.length || 0,
+          computed_isPaid: isPaid,
+          computed_paymentStatus: paymentStatus,
+          final_actualPaidAt: actualPaidAt
+        })
+        
         return {
           id: link?.id || '',
           client_name: link?.client_name,
@@ -352,7 +429,7 @@ function MyLinksContent() {
           description: link?.description,
           is_paid: isPaid,
           payment_status: paymentStatus,
-          paid_at: link?.paid_at || null
+          paid_at: actualPaidAt
         }
       })
       
