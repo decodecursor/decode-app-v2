@@ -68,6 +68,23 @@ export async function POST(request: NextRequest) {
       }
       
       console.log('✅ Created new completed transaction:', createdTx.id);
+      
+      // Also directly update payment_links to trigger real-time subscription
+      console.log('🔄 API: Updating payment_links for real-time subscription...');
+      const { error: linkError } = await supabaseAdmin
+        .from('payment_links')
+        .update({ 
+          payment_status: 'paid',
+          paid_at: new Date().toISOString()
+        })
+        .eq('id', paymentLinkId);
+        
+      if (linkError) {
+        console.error('❌ API: Failed to update payment_links for real-time:', linkError);
+      } else {
+        console.log('✅ API: Payment link updated - real-time subscription should trigger');
+      }
+      
       return NextResponse.json({ 
         success: true, 
         action: 'created', 
@@ -104,6 +121,25 @@ export async function POST(request: NextRequest) {
       } else {
         console.log('✅ API: Successfully updated transaction:', transaction.id);
         updatedTransactions.push(updated);
+      }
+    }
+    
+    // Also directly update payment_links to trigger real-time subscription
+    // This ensures the my-links page updates immediately with heart animation
+    if (updatedTransactions.length > 0) {
+      console.log('🔄 API: Updating payment_links for real-time subscription...');
+      const { error: linkError } = await supabaseAdmin
+        .from('payment_links')
+        .update({ 
+          payment_status: 'paid',
+          paid_at: new Date().toISOString()
+        })
+        .eq('id', paymentLinkId);
+        
+      if (linkError) {
+        console.error('❌ API: Failed to update payment_links for real-time:', linkError);
+      } else {
+        console.log('✅ API: Payment link updated - real-time subscription should trigger');
       }
     }
     
