@@ -32,6 +32,7 @@ interface PaymentTransaction {
   amount_aed: number
   status: string
   created_at: string
+  completed_at: string | null
   payment_link: {
     title: string
     amount_aed: number
@@ -379,6 +380,7 @@ export default function PaymentHistoryPage() {
             amount_aed,
             status,
             created_at,
+            completed_at,
             payment_link:payment_link_id (
               title,
               amount_aed,
@@ -387,7 +389,7 @@ export default function PaymentHistoryPage() {
           `)
           .in('payment_link_id', processedLinks.map(link => link.id))
           .eq('status', 'completed')
-          .order('created_at', { ascending: false })
+          .order('completed_at', { ascending: false })
         
         transactionsData = data || []
       }

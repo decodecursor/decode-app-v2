@@ -9,6 +9,7 @@ interface PaymentTransaction {
   amount_aed: number
   status: string
   created_at: string
+  completed_at?: string | null
   payment_link: {
     title: string
     amount_aed: number
@@ -114,14 +115,34 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
     }
 
     // Filter transactions for current and previous periods (using when payment was completed)
-    const currentTransactions = transactions.filter(t => 
-      new Date(t.created_at) >= currentPeriodStart
-    )
+    console.log(`📊 Analytics Debug - Date Range: ${dateRange}`)
+    console.log(`📊 Current Period Start: ${currentPeriodStart.toISOString()}`)
+    console.log(`📊 Previous Period Start: ${previousPeriodStart.toISOString()}`)
+    console.log(`📊 Previous Period End: ${previousPeriodEnd.toISOString()}`)
+    console.log(`📊 Total Transactions Available: ${transactions.length}`)
+    
+    const currentTransactions = transactions.filter(t => {
+      // Use completed_at if available, fallback to created_at
+      const transactionDate = new Date(t.completed_at || t.created_at)
+      const isIncluded = transactionDate >= currentPeriodStart
+      
+      console.log(`📊 Transaction ${t.id}: completed_at=${t.completed_at}, created_at=${t.created_at}, using_date=${transactionDate.toISOString()}, included_in_current=${isIncluded}`)
+      
+      return isIncluded
+    })
     
     const previousTransactions = dateRange !== 'custom' ? transactions.filter(t => {
-      const date = new Date(t.created_at)
-      return date >= previousPeriodStart && date < previousPeriodEnd
+      // Use completed_at if available, fallback to created_at
+      const transactionDate = new Date(t.completed_at || t.created_at)
+      const isIncluded = transactionDate >= previousPeriodStart && transactionDate < previousPeriodEnd
+      
+      console.log(`📊 Transaction ${t.id}: included_in_previous=${isIncluded}`)
+      
+      return isIncluded
     }) : []
+    
+    console.log(`📊 Current Period Transactions: ${currentTransactions.length}`)
+    console.log(`📊 Previous Period Transactions: ${previousTransactions.length}`)
 
     // Calculate current period stats
     const currentRevenue = currentTransactions.reduce((sum, t) => sum + t.amount_aed, 0)
@@ -184,7 +205,8 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000)
         
         const dayTransactions = transactions.filter(t => {
-          const tDate = new Date(t.created_at)
+          // Use completed_at if available, fallback to created_at
+          const tDate = new Date(t.completed_at || t.created_at)
           return tDate >= dayStart && tDate < dayEnd
         })
         
@@ -279,10 +301,15 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
 
     return transactions
       .filter(t => {
-        const tDate = new Date(t.created_at)
+        // Use completed_at if available, fallback to created_at
+        const tDate = new Date(t.completed_at || t.created_at)
         return tDate >= startDate && tDate <= endDate
       })
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .sort((a, b) => {
+        const aDate = new Date(b.completed_at || b.created_at)
+        const bDate = new Date(a.completed_at || a.created_at)
+        return aDate.getTime() - bDate.getTime()
+      })
       .slice(0, 10)
   }
 
@@ -501,7 +528,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                   {formatCurrency(transaction.amount_aed)}
                 </span>
                 <span className="cosmic-label text-white/50 text-sm w-20 text-right">
-                  {new Date(transaction.created_at).toLocaleDateString()}
+                  {new Date(transaction.completed_at || transaction.created_at).toLocaleDateString()}
                 </span>
               </div>
             </div>
