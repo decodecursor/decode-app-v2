@@ -21,8 +21,10 @@ interface PaymentStatsProps {
   transactions: PaymentTransaction[]
   paymentLinks: Array<{
     id: string
+    title: string
     amount_aed: number
     created_at: string
+    paid_at: string | null
     transaction_count: number
     total_revenue: number
   }>
@@ -114,45 +116,43 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         previousPeriodEnd = new Date(0)
     }
 
-    // Filter transactions for current and previous periods (using when payment was completed)
+    // Filter payment links by their paid_at dates
     console.log(`📊 Analytics Debug - Date Range: ${dateRange}`)
     console.log(`📊 Current Period Start: ${currentPeriodStart.toISOString()}`)
-    console.log(`📊 Previous Period Start: ${previousPeriodStart.toISOString()}`)
-    console.log(`📊 Previous Period End: ${previousPeriodEnd.toISOString()}`)
-    console.log(`📊 Total Transactions Available: ${transactions.length}`)
+    console.log(`📊 Available Payment Links: ${paymentLinks.length}`)
     
-    const currentTransactions = transactions.filter(t => {
-      // Use completed_at if available, fallback to created_at
-      const transactionDate = new Date(t.completed_at || t.created_at)
-      const isIncluded = transactionDate >= currentPeriodStart
+    const currentPeriodLinks = paymentLinks.filter(link => {
+      if (!link.paid_at) return false
+      const paidDate = new Date(link.paid_at)
+      const isIncluded = paidDate >= currentPeriodStart
       
-      console.log(`📊 Transaction ${t.id}: completed_at=${t.completed_at}, created_at=${t.created_at}, using_date=${transactionDate.toISOString()}, included_in_current=${isIncluded}`)
+      console.log(`📊 Payment Link ${link.id}: paid_at=${link.paid_at}, included_in_current=${isIncluded}`)
       
       return isIncluded
     })
     
-    const previousTransactions = dateRange !== 'custom' ? transactions.filter(t => {
-      // Use completed_at if available, fallback to created_at
-      const transactionDate = new Date(t.completed_at || t.created_at)
-      const isIncluded = transactionDate >= previousPeriodStart && transactionDate < previousPeriodEnd
+    const previousPeriodLinks = dateRange !== 'custom' ? paymentLinks.filter(link => {
+      if (!link.paid_at) return false
+      const paidDate = new Date(link.paid_at)
+      const isIncluded = paidDate >= previousPeriodStart && paidDate < previousPeriodEnd
       
-      console.log(`📊 Transaction ${t.id}: included_in_previous=${isIncluded}`)
+      console.log(`📊 Payment Link ${link.id}: included_in_previous=${isIncluded}`)
       
       return isIncluded
     }) : []
     
-    console.log(`📊 Current Period Transactions: ${currentTransactions.length}`)
-    console.log(`📊 Previous Period Transactions: ${previousTransactions.length}`)
+    console.log(`📊 Current Period Links: ${currentPeriodLinks.length}`)
+    console.log(`📊 Previous Period Links: ${previousPeriodLinks.length}`)
 
-    // Calculate current period stats
-    const currentRevenue = currentTransactions.reduce((sum, t) => sum + t.amount_aed, 0)
-    const currentCount = currentTransactions.length
+    // Calculate current period stats from payment links
+    const currentRevenue = currentPeriodLinks.reduce((sum, link) => sum + link.total_revenue, 0)
+    const currentCount = currentPeriodLinks.reduce((sum, link) => sum + link.transaction_count, 0)
     const currentAverage = currentCount > 0 ? currentRevenue / currentCount : 0
-    const currentSuccessRate = 100 // Assuming all shown transactions are successful
+    const currentSuccessRate = 100 // All paid links are successful
 
-    // Calculate previous period stats
-    const previousRevenue = previousTransactions.reduce((sum, t) => sum + t.amount_aed, 0)
-    const previousCount = previousTransactions.length
+    // Calculate previous period stats from payment links
+    const previousRevenue = previousPeriodLinks.reduce((sum, link) => sum + link.total_revenue, 0)
+    const previousCount = previousPeriodLinks.reduce((sum, link) => sum + link.transaction_count, 0)
     const previousAverage = previousCount > 0 ? previousRevenue / previousCount : 0
     const previousSuccessRate = 100
 
@@ -204,16 +204,16 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate())
         const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000)
         
-        const dayTransactions = transactions.filter(t => {
-          // Use completed_at if available, fallback to created_at
-          const tDate = new Date(t.completed_at || t.created_at)
-          return tDate >= dayStart && tDate < dayEnd
+        const dayLinks = paymentLinks.filter(link => {
+          if (!link.paid_at) return false
+          const paidDate = new Date(link.paid_at)
+          return paidDate >= dayStart && paidDate < dayEnd
         })
         
         revenueByDay.push({
           date: date.toISOString().split('T')[0]!,
-          revenue: dayTransactions.reduce((sum, t) => sum + t.amount_aed, 0),
-          transactions: dayTransactions.length
+          revenue: dayLinks.reduce((sum, link) => sum + link.total_revenue, 0),
+          transactions: dayLinks.reduce((sum, link) => sum + link.transaction_count, 0)
         })
       }
     }
@@ -299,18 +299,33 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         startDate = new Date(0)
     }
 
-    return transactions
-      .filter(t => {
-        // Use completed_at if available, fallback to created_at
-        const tDate = new Date(t.completed_at || t.created_at)
-        return tDate >= startDate && tDate <= endDate
-      })
+    // Get transactions from payment links that were paid in the selected period
+    const filteredLinks = paymentLinks.filter(link => {
+      if (!link.paid_at) return false
+      const paidDate = new Date(link.paid_at)
+      return paidDate >= startDate && paidDate <= endDate
+    })
+
+    // Convert payment links to transaction format for display
+    return filteredLinks
       .sort((a, b) => {
-        const aDate = new Date(b.completed_at || b.created_at)
-        const bDate = new Date(a.completed_at || a.created_at)
+        const aDate = new Date(b.paid_at!)
+        const bDate = new Date(a.paid_at!)
         return aDate.getTime() - bDate.getTime()
       })
       .slice(0, 10)
+      .map(link => ({
+        id: link.id,
+        amount_aed: link.total_revenue,
+        status: 'completed',
+        created_at: link.paid_at!,
+        completed_at: link.paid_at,
+        payment_link: {
+          title: link.title || 'Payment Link',
+          amount_aed: link.amount_aed,
+          client_name: null
+        }
+      }))
   }
 
   if (!statsData) {
