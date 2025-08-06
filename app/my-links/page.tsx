@@ -87,13 +87,18 @@ function MyLinksContent() {
             console.log('💖 Real-time payment update received:', payload)
             console.log('💖 Payload details:', {
               event_type: payload.eventType,
-              old_is_paid: payload.old?.is_paid,
-              new_is_paid: payload.new?.is_paid,
+              old_payment_status: payload.old?.payment_status,
+              new_payment_status: payload.new?.payment_status,
+              old_paid_at: payload.old?.paid_at,
+              new_paid_at: payload.new?.paid_at,
               link_id: payload.new?.id
             })
             
-            // Check if is_paid changed to true (handle null/undefined as false)
-            if (payload.new.is_paid === true && !payload.old?.is_paid) {
+            // Check if payment_status changed to 'paid' or paid_at was set
+            const justPaid = (payload.new.payment_status === 'paid' && payload.old?.payment_status !== 'paid') ||
+                           (payload.new.paid_at && !payload.old?.paid_at)
+            
+            if (justPaid) {
               console.log('🎉 Payment completed! Triggering heart animation for:', payload.new.id)
               
               // Trigger heart animation
@@ -112,9 +117,10 @@ function MyLinksContent() {
                 link.id === payload.new.id 
                   ? {
                       ...link,
-                      is_paid: payload.new.is_paid || false,
-                      is_active: payload.new.is_active || false,
-                      payment_status: (payload.new.is_paid ? 'paid' : 'unpaid') as 'paid' | 'unpaid'
+                      is_paid: payload.new.payment_status === 'paid' || payload.new.is_paid || false,
+                      is_active: payload.new.is_active !== undefined ? payload.new.is_active : link.is_active,
+                      payment_status: payload.new.payment_status || (payload.new.is_paid ? 'paid' : 'unpaid') as 'paid' | 'unpaid',
+                      paid_at: payload.new.paid_at || link.paid_at
                     }
                   : link
               )
