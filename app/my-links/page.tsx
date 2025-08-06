@@ -259,28 +259,61 @@ function MyLinksContent() {
       setLoading(true)
       setError('')
 
-      // Fetch payment links with backwards compatible is_paid column
+      // Fetch payment links with backwards compatible is_paid and paid_at columns
       let paymentLinksData, fetchError
       try {
-        // Try to get is_paid and paid_at columns
+        // Try to get payment_status and paid_at columns (from migration)
+        console.log('🔍 Attempting to fetch with payment_status and paid_at fields...')
         const result = await (supabase as any)
           .from('payment_links')
-          .select('id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, expiration_date, is_active, created_at, is_paid, paid_at')
+          .select('id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, expiration_date, is_active, created_at, payment_status, paid_at')
           .eq('creator_id', userId)
           .order('created_at', { ascending: false })
         
         paymentLinksData = result.data
         fetchError = result.error
-      } catch {
-        // Fallback without is_paid column
-        const result = await supabase
-          .from('payment_links')
-          .select('id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, expiration_date, is_active, created_at')
-          .eq('creator_id', userId)
-          .order('created_at', { ascending: false })
         
-        paymentLinksData = result.data
-        fetchError = result.error
+        if (!fetchError) {
+          console.log('✅ Successfully fetched with payment_status and paid_at fields')
+        } else {
+          console.log('❌ Error with payment_status query:', fetchError)
+          throw fetchError
+        }
+      } catch (primaryError) {
+        console.log('⚠️ Primary query failed, trying fallback with is_paid field...', primaryError)
+        try {
+          // Fallback to is_paid column (older migration)
+          const result = await (supabase as any)
+            .from('payment_links')
+            .select('id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, expiration_date, is_active, created_at, is_paid')
+            .eq('creator_id', userId)
+            .order('created_at', { ascending: false })
+          
+          paymentLinksData = result.data
+          fetchError = result.error
+          
+          if (!fetchError) {
+            console.log('✅ Successfully fetched with is_paid field (fallback)')
+          } else {
+            console.log('❌ Error with is_paid fallback query:', fetchError)
+            throw fetchError
+          }
+        } catch (fallbackError) {
+          console.log('⚠️ is_paid fallback failed, using basic query...', fallbackError)
+          // Final fallback without payment status fields
+          const result = await supabase
+            .from('payment_links')
+            .select('id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, expiration_date, is_active, created_at')
+            .eq('creator_id', userId)
+            .order('created_at', { ascending: false })
+          
+          paymentLinksData = result.data
+          fetchError = result.error
+          
+          if (!fetchError) {
+            console.log('✅ Successfully fetched with basic query (final fallback)')
+          }
+        }
       }
 
       if (fetchError) {
@@ -289,7 +322,25 @@ function MyLinksContent() {
 
       // Transform the data to include fields expected by PaymentLink interface
       const paymentLinksWithStatus = (paymentLinksData || []).map((link: any) => {
-        const isPaid = link?.is_paid || false
+        // Determine payment status from available fields (priority: payment_status > is_paid)
+        let isPaid = false
+        let paymentStatus: 'unpaid' | 'paid' | 'failed' | 'refunded' = 'unpaid'
+        
+        if (link?.payment_status) {
+          // Use payment_status field if available (from migration)
+          paymentStatus = link.payment_status as 'unpaid' | 'paid' | 'failed' | 'refunded'
+          isPaid = paymentStatus === 'paid'
+          console.log(`📊 Using payment_status field for link ${link.id}: ${paymentStatus}`)
+        } else if (typeof link?.is_paid !== 'undefined') {
+          // Fallback to is_paid field
+          isPaid = Boolean(link.is_paid)
+          paymentStatus = isPaid ? 'paid' : 'unpaid'
+          console.log(`📊 Using is_paid field for link ${link.id}: ${isPaid}`)
+        } else {
+          // No payment status available, assume unpaid
+          console.log(`📊 No payment status fields available for link ${link.id}, assuming unpaid`)
+        }
+        
         return {
           id: link?.id || '',
           client_name: link?.client_name,
@@ -300,15 +351,27 @@ function MyLinksContent() {
           created_at: link?.created_at || '',
           description: link?.description,
           is_paid: isPaid,
-          payment_status: (isPaid ? 'paid' : 'unpaid') as 'unpaid' | 'paid' | 'failed' | 'refunded',
+          payment_status: paymentStatus,
           paid_at: link?.paid_at || null
         }
       })
       
       setPaymentLinks(paymentLinksWithStatus)
     } catch (error) {
-      console.error('Error fetching payment links:', error)
-      setError('Failed to load payment links')
+      console.error('❌ DETAILED ERROR in fetchPaymentLinks:')
+      console.error('Error object:', error)
+      console.error('Error message:', (error as any)?.message)
+      console.error('Full error details:', JSON.stringify(error, null, 2))
+      
+      let errorMessage = 'Failed to load payment links'
+      if ((error as any)?.message) {
+        errorMessage += `: ${(error as any).message}`
+      }
+      if ((error as any)?.code) {
+        errorMessage += ` (Code: ${(error as any).code})`
+      }
+      
+      setError(errorMessage)
     } finally {
       setLoading(false)
       setInitialLoading(false)
