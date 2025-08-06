@@ -23,6 +23,8 @@ interface PaymentStatsProps {
     id: string
     title: string
     amount_aed: number
+    service_amount_aed: number | null
+    client_name: string | null
     created_at: string
     paid_at: string | null
     transaction_count: number
@@ -144,14 +146,14 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
     console.log(`📊 Current Period Links: ${currentPeriodLinks.length}`)
     console.log(`📊 Previous Period Links: ${previousPeriodLinks.length}`)
 
-    // Calculate current period stats from payment links
-    const currentRevenue = currentPeriodLinks.reduce((sum, link) => sum + link.total_revenue, 0)
+    // Calculate current period stats from payment links (using service_amount_aed)
+    const currentRevenue = currentPeriodLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0)
     const currentCount = currentPeriodLinks.reduce((sum, link) => sum + link.transaction_count, 0)
     const currentAverage = currentCount > 0 ? currentRevenue / currentCount : 0
     const currentSuccessRate = 100 // All paid links are successful
 
-    // Calculate previous period stats from payment links
-    const previousRevenue = previousPeriodLinks.reduce((sum, link) => sum + link.total_revenue, 0)
+    // Calculate previous period stats from payment links (using service_amount_aed)
+    const previousRevenue = previousPeriodLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0)
     const previousCount = previousPeriodLinks.reduce((sum, link) => sum + link.transaction_count, 0)
     const previousAverage = previousCount > 0 ? previousRevenue / previousCount : 0
     const previousSuccessRate = 100
@@ -212,7 +214,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         
         revenueByDay.push({
           date: date.toISOString().split('T')[0]!,
-          revenue: dayLinks.reduce((sum, link) => sum + link.total_revenue, 0),
+          revenue: dayLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0),
           transactions: dayLinks.reduce((sum, link) => sum + link.transaction_count, 0)
         })
       }
@@ -259,7 +261,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
     return 'text-gray-400'
   }
 
-  const getFilteredTransactions = () => {
+  const getFilteredPayments = () => {
     const getUAEDate = (date: Date) => {
       const utc = date.getTime() + (date.getTimezoneOffset() * 60000)
       return new Date(utc + (4 * 3600000))
@@ -299,14 +301,14 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         startDate = new Date(0)
     }
 
-    // Get transactions from payment links that were paid in the selected period
+    // Get payment links that were paid in the selected period
     const filteredLinks = paymentLinks.filter(link => {
       if (!link.paid_at) return false
       const paidDate = new Date(link.paid_at)
       return paidDate >= startDate && paidDate <= endDate
     })
 
-    // Convert payment links to transaction format for display
+    // Return payment links sorted by paid_at date
     return filteredLinks
       .sort((a, b) => {
         const aDate = new Date(b.paid_at!)
@@ -314,18 +316,18 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         return aDate.getTime() - bDate.getTime()
       })
       .slice(0, 10)
-      .map(link => ({
-        id: link.id,
-        amount_aed: link.total_revenue,
-        status: 'completed',
-        created_at: link.paid_at!,
-        completed_at: link.paid_at,
-        payment_link: {
-          title: link.title || 'Payment Link',
-          amount_aed: link.amount_aed,
-          client_name: null
-        }
-      }))
+  }
+
+  const formatPaymentDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    })
   }
 
   if (!statsData) {
@@ -524,32 +526,52 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
 
       {/* Payments */}
       <div className="cosmic-card">
-        <h3 className="cosmic-heading text-white mb-4">Payments</h3>
+        <h3 className="cosmic-heading text-white mb-4">Recent Payments</h3>
         <div className="space-y-3">
-          {getFilteredTransactions().map((transaction, index) => (
-            <div key={`${transaction.id}-${index}`} className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <span className="w-6 h-6 bg-purple-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                  {index + 1}
-                </span>
-                <div className="flex-1">
-                  <span className="cosmic-body text-white font-medium">
-                    {transaction.payment_link?.client_name || 'Client'} - {transaction.payment_link?.title || 'Service'}
+          {getFilteredPayments().map((payment, index) => (
+            <div key={`${payment.id}-${index}`} className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start space-x-3 flex-1">
+                  <span className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">
+                    {index + 1}
                   </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 mb-1">
+                      <span className="cosmic-body text-white font-semibold">
+                        {payment.client_name || 'Client'}
+                      </span>
+                      <span className="cosmic-body text-white/70">
+                        •
+                      </span>
+                      <span className="cosmic-body text-white/90">
+                        {payment.title || 'Service'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="cosmic-label text-white/60">
+                        {formatPaymentDate(payment.paid_at!)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <span className="cosmic-body text-white font-bold">
-                  {formatCurrency(transaction.amount_aed)}
-                </span>
-                <span className="cosmic-label text-white/50 text-sm w-20 text-right">
-                  {new Date(transaction.completed_at || transaction.created_at).toLocaleDateString()}
-                </span>
+                <div className="text-right ml-4">
+                  <span className="cosmic-body text-green-400 font-bold text-lg">
+                    {formatCurrency(payment.service_amount_aed || payment.amount_aed)}
+                  </span>
+                  <div className="cosmic-label text-white/50 text-xs mt-1">
+                    Service Amount
+                  </div>
+                </div>
               </div>
             </div>
           ))}
-          {getFilteredTransactions().length === 0 && (
-            <div className="text-center py-4">
+          {getFilteredPayments().length === 0 && (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-8 h-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
               <p className="cosmic-body text-white/50">No payments found for this period</p>
             </div>
           )}

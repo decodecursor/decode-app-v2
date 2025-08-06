@@ -15,6 +15,8 @@ interface PaymentLink {
   title: string
   description: string | null
   amount_aed: number
+  service_amount_aed: number | null
+  client_name: string | null
   expiration_date: string
   is_active: boolean
   created_at: string
@@ -153,6 +155,8 @@ export default function PaymentHistoryPage() {
           title,
           description,
           amount_aed,
+          service_amount_aed,
+          client_name,
           expiration_date,
           is_active,
           created_at,
