@@ -19,33 +19,40 @@ function PaymentSuccessContent() {
   const [loading, setLoading] = useState(true)
   const searchParams = useSearchParams()
 
-  // Simple payment status update
-  const markPaymentAsPaid = async (paymentLinkId: string) => {
+  // Update transaction status to completed
+  const markPaymentAsPaid = async (paymentLinkId: string, paymentIntent?: string) => {
     try {
-      console.log('✅ SUCCESS PAGE: Marking payment as paid for link:', paymentLinkId);
+      console.log('✅ SUCCESS PAGE: Marking payment as completed for link:', paymentLinkId);
       
-      // Try to update is_paid to true using admin client for reliable real-time updates
+      // Call the update-transaction API to mark transaction as completed
+      // This will trigger the database trigger to update paid_at
       try {
-        console.log('🔄 Updating payment status with admin client...');
-        const { error } = await (supabase as any)
-          .from('payment_links')
-          .update({ is_paid: true })
-          .eq('id', paymentLinkId);
+        console.log('🔄 Calling update-transaction API...');
+        const response = await fetch('/api/payment/update-transaction', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            paymentLinkId,
+            paymentIntentId: paymentIntent
+          }),
+        });
 
-        if (error) {
-          console.error('❌ Failed to mark payment as paid (column may not exist yet):', error);
-          console.error('❌ Error details:', JSON.stringify(error, null, 2));
+        const result = await response.json();
+        
+        if (response.ok) {
+          console.log('✅ Transaction updated successfully:', result);
+          console.log('✅ Database trigger should now update paid_at timestamp');
         } else {
-          console.log('✅ Payment link marked as paid successfully with admin client');
-          console.log('✅ Real-time update should be triggered now');
+          console.error('❌ Failed to update transaction:', result.error);
         }
       } catch (error) {
-        console.error('❌ Exception during payment status update:', error);
-        console.log('ℹ️ is_paid column not available yet, payment tracking will work after database migration');
+        console.error('❌ Exception during transaction update:', error);
       }
       
     } catch (error) {
-      console.error('❌ Error marking payment as paid:', error);
+      console.error('❌ Error marking payment as completed:', error);
     }
   };
 
@@ -81,8 +88,8 @@ function PaymentSuccessContent() {
         timestamp
       })
       
-      // Mark payment as paid
-      markPaymentAsPaid(id)
+      // Mark payment as completed with payment intent if available
+      markPaymentAsPaid(id, paymentIntent || undefined)
     } else {
       console.log('❌ Missing required params:', { 
         hasId: !!id, 
