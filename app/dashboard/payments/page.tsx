@@ -18,6 +18,7 @@ interface PaymentLink {
   expiration_date: string
   is_active: boolean
   created_at: string
+  paid_at: string | null
   creator: {
     full_name: string | null
     email: string
@@ -153,6 +154,7 @@ export default function PaymentHistoryPage() {
           expiration_date,
           is_active,
           created_at,
+          paid_at,
           creator:creator_id (
             full_name,
             email

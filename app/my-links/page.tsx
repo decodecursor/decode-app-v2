@@ -262,10 +262,10 @@ function MyLinksContent() {
       // Fetch payment links with backwards compatible is_paid column
       let paymentLinksData, fetchError
       try {
-        // Try to get is_paid column
+        // Try to get is_paid and paid_at columns
         const result = await (supabase as any)
           .from('payment_links')
-          .select('id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, expiration_date, is_active, created_at, is_paid')
+          .select('id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, expiration_date, is_active, created_at, is_paid, paid_at')
           .eq('creator_id', userId)
           .order('created_at', { ascending: false })
         
@@ -301,7 +301,7 @@ function MyLinksContent() {
           description: link?.description,
           is_paid: isPaid,
           payment_status: (isPaid ? 'paid' : 'unpaid') as 'unpaid' | 'paid' | 'failed' | 'refunded',
-          paid_at: isPaid ? (link?.created_at || null) : null
+          paid_at: link?.paid_at || null
         }
       })
       
@@ -788,7 +788,7 @@ function MyLinksContent() {
                                 <p className={`text-sm ${getExpiryColor(link.expiration_date)}`}>
                                   {(() => {
                                     if (isPaid) {
-                                      return `Paid ${formatDate(link.expiration_date)}`
+                                      return `Paid ${formatDate(link.paid_at || link.expiration_date)}`
                                     }
                                     const now = new Date()
                                     const expirationDate = new Date(link.expiration_date)

@@ -12,6 +12,7 @@ interface PaymentLinkCardProps {
   expiration_date: string
   is_active: boolean
   created_at: string
+  paid_at: string | null
   transaction_count: number
   total_revenue: number
   onCopyLink?: (linkId: string) => void
@@ -28,6 +29,7 @@ export default function PaymentLinkCard({
   expiration_date,
   is_active,
   created_at,
+  paid_at,
   transaction_count,
   total_revenue,
   onCopyLink,
@@ -182,10 +184,21 @@ export default function PaymentLinkCard({
                     <p className="cosmic-body text-white">{formatDate(created_at)}</p>
                   </div>
                   <div>
-                    <span className="cosmic-label text-white/50">Expires</span>
-                    <p className={`cosmic-body ${isExpired() ? 'text-red-400' : 'text-white'}`}>
-                      {formatDate(expiration_date)}
-                    </p>
+                    {paid_at ? (
+                      <>
+                        <span className="cosmic-label text-white/50">Paid On</span>
+                        <p className="cosmic-body text-green-400">
+                          {formatDate(paid_at)}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <span className="cosmic-label text-white/50">Expires</span>
+                        <p className={`cosmic-body ${isExpired() ? 'text-red-400' : 'text-white'}`}>
+                          {formatDate(expiration_date)}
+                        </p>
+                      </>
+                    )}
                   </div>
                   <div>
                     <span className="cosmic-label text-white/50">Link ID</span>
