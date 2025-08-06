@@ -170,7 +170,7 @@ export default function PaymentHistoryPage() {
           )
         `)
         .eq('creator_id', userId)
-        .is('paid_at', null, { negate: true }) // Only get paid payment links
+        .not('paid_at', 'is', null) // Only get paid payment links
         .order('paid_at', { ascending: false })
 
       if (linksError) {
