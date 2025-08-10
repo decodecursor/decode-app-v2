@@ -2,26 +2,21 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import RoleSelectionModal from '@/components/RoleSelectionModal'
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [showRoleModal, setShowRoleModal] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setMessage('')
     
-    // Validate role selection for signup
-    if (!isLogin && !role) {
-      setMessage('Please select your role')
-      setLoading(false)
-      return
-    }
     
     try {
       if (isLogin) {
@@ -39,7 +34,12 @@ export default function AuthPage() {
           password
         })
         if (error) throw error
-        setMessage('Check your email to confirm your account!')
+        
+        if (data.user) {
+          setShowRoleModal(true)
+        } else {
+          setMessage('Check your email to confirm your account!')
+        }
         console.log('User signed up:', data.user)
       }
     } catch (error) {
@@ -48,6 +48,16 @@ export default function AuthPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleRoleModalClose = () => {
+    setShowRoleModal(false)
+    setMessage('Check your email to confirm your account!')
+  }
+
+  const handleRoleModalComplete = () => {
+    setShowRoleModal(false)
+    window.location.href = '/dashboard'
   }
 
   return (
@@ -82,53 +92,12 @@ export default function AuthPage() {
                 disabled={loading}
               />
             </div>
-            
-            {!isLogin && (
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-300">
-                  Select your role
-                </label>
-                <div className="space-y-3">
-                  <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border border-gray-700 hover:border-purple-500 transition-colors">
-                    <input
-                      type="radio"
-                      name="role"
-                      value="Beauty Professional"
-                      checked={role === 'Beauty Professional'}
-                      onChange={(e) => setRole(e.target.value)}
-                      className="w-4 h-4 text-purple-500 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2"
-                      disabled={loading}
-                    />
-                    <div className="flex-1">
-                      <div className="text-white font-medium">Beauty Professional</div>
-                      <div className="text-gray-400 text-xs">Create payment links for your services</div>
-                    </div>
-                  </label>
-                  
-                  <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border border-gray-700 hover:border-purple-500 transition-colors">
-                    <input
-                      type="radio"
-                      name="role"
-                      value="Beauty Model"
-                      checked={role === 'Beauty Model'}
-                      onChange={(e) => setRole(e.target.value)}
-                      className="w-4 h-4 text-purple-500 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2"
-                      disabled={loading}
-                    />
-                    <div className="flex-1">
-                      <div className="text-white font-medium">Beauty Model</div>
-                      <div className="text-gray-400 text-xs">Receive payments through linked accounts</div>
-                    </div>
-                  </label>
-                </div>
-              </div>
-            )}
             <button
               type="submit"
               disabled={loading}
               className="cosmic-button-primary w-full"
             >
-              {loading ? 'Loading...' : (isLogin ? 'Login' : 'Sign up')}
+              {loading ? 'Loading...' : (isLogin ? 'Login' : 'Register')}
             </button>
             
             {message && (
@@ -147,12 +116,19 @@ export default function AuthPage() {
                 onClick={() => setIsLogin(!isLogin)}
                 className="cosmic-button-secondary"
               >
-                {isLogin ? "Don't have an account? Register" : "Already have an account? Sign in"}
+                {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
               </button>
             </div>
           </form>
         </div>
       </div>
+      
+      <RoleSelectionModal
+        isOpen={showRoleModal}
+        userEmail={email}
+        onClose={handleRoleModalClose}
+        onComplete={handleRoleModalComplete}
+      />
     </div>
   )
 }

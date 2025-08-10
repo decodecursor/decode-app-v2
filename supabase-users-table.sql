@@ -6,7 +6,8 @@ CREATE TABLE users (
     professional_center_name TEXT,
     instagram_handle TEXT UNIQUE,
     wallet_address TEXT,
-    role TEXT NOT NULL CHECK (role IN ('Beauty Professional', 'Beauty Model', 'Admin')),
+    company_name TEXT NOT NULL,
+    role TEXT NOT NULL CHECK (role IN ('Admin', 'User')),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
