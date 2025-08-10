@@ -9,6 +9,7 @@ interface PasswordInputProps {
   required?: boolean
   disabled?: boolean
   className?: string
+  showValidation?: boolean
 }
 
 export default function PasswordInput({ 
@@ -17,9 +18,11 @@ export default function PasswordInput({
   placeholder = "Password",
   required = false,
   disabled = false,
-  className = "cosmic-input"
+  className = "cosmic-input",
+  showValidation = false
 }: PasswordInputProps) {
   const [showPassword, setShowPassword] = useState(false)
+  const isValid = value.length >= 6 || value.length === 0
 
   return (
     <div className="relative">
@@ -28,10 +31,16 @@ export default function PasswordInput({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`${className} pr-12`}
+        className={`${className} pr-12 ${showValidation && !isValid && value.length > 0 ? 'border-red-500' : ''}`}
         required={required}
         disabled={disabled}
+        minLength={6}
       />
+      {showValidation && !isValid && value.length > 0 && (
+        <div className="absolute -bottom-5 left-0 text-xs text-red-400">
+          Password must be at least 6 characters
+        </div>
+      )}
       <button
         type="button"
         onClick={() => setShowPassword(!showPassword)}

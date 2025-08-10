@@ -154,7 +154,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, onClose, onCompl
                 />
                 <div className="flex-1">
                   <div className="text-white font-medium">Admin</div>
-                  <div className="text-gray-400 text-xs">Manage company data and approve user registrations</div>
+                  <div className="text-gray-300 text-xs">Manage company data and approve user registrations</div>
                 </div>
               </label>
               
@@ -174,7 +174,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, onClose, onCompl
                 />
                 <div className="flex-1">
                   <div className="text-white font-medium">User</div>
-                  <div className="text-gray-400 text-xs">Access features and use services</div>
+                  <div className="text-gray-300 text-xs">Access features and use services</div>
                 </div>
               </label>
             </div>
@@ -186,7 +186,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, onClose, onCompl
             </div>
           )}
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             <button
               type="submit"
               disabled={loading}
@@ -198,7 +198,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, onClose, onCompl
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="cosmic-button-secondary w-full"
+              className="cosmic-button-secondary w-full text-sm"
             >
               Cancel
             </button>

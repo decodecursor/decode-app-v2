@@ -89,6 +89,7 @@ export default function AuthPage() {
                 placeholder="Password"
                 required
                 disabled={loading}
+                showValidation={!isLogin}
               />
             </div>
             <button

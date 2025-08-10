@@ -150,8 +150,8 @@
   -webkit-backdrop-filter: blur(15px);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.4);
-  padding: 25px;
-  min-height: 420px;
+  padding: 32px;
+  min-height: 500px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   margin: 0 auto;
 }
@@ -161,6 +161,12 @@
   .cosmic-card-login {
     width: 24.5vw;
   }
+}
+
+/* Purple radio buttons */
+input[type="radio"]:checked {
+  accent-color: #a855f7;
+  background-color: #a855f7;
 }
 
 /* Smaller Stats Cards */
