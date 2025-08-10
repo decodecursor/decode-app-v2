@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
 interface RoleSelectionModalProps {
@@ -15,6 +15,36 @@ export default function RoleSelectionModal({ isOpen, userEmail, onClose, onCompl
   const [companyName, setCompanyName] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [companySuggestions, setCompanySuggestions] = useState<string[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+
+  useEffect(() => {
+    const fetchCompanySuggestions = async () => {
+      if (companyName.length >= 3) {
+        try {
+          const response = await fetch(`/api/companies/suggestions?q=${encodeURIComponent(companyName)}`)
+          const data = await response.json()
+          if (data.suggestions) {
+            setCompanySuggestions(data.suggestions)
+            setShowSuggestions(data.suggestions.length > 0)
+          }
+        } catch (error) {
+          console.error('Error fetching company suggestions:', error)
+        }
+      } else {
+        setShowSuggestions(false)
+        setCompanySuggestions([])
+      }
+    }
+
+    const debounceTimer = setTimeout(fetchCompanySuggestions, 300)
+    return () => clearTimeout(debounceTimer)
+  }, [companyName])
+
+  const handleCompanySelect = (selectedCompany: string) => {
+    setCompanyName(selectedCompany)
+    setShowSuggestions(false)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -67,23 +97,40 @@ export default function RoleSelectionModal({ isOpen, userEmail, onClose, onCompl
       <div className="cosmic-card-login max-w-md w-full">
         <div className="text-center mb-6">
           <h2 className="cosmic-heading text-xl mb-2">Complete Your Profile</h2>
-          <p className="cosmic-body opacity-70">Choose your role and company details</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
+          <div className="relative">
             <label className="block text-sm font-medium text-gray-300 mb-3">
-              Company Name
+              Company
             </label>
             <input
               type="text"
-              placeholder="Enter your company name"
+              placeholder="Enter company name"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
+              onFocus={() => setShowSuggestions(companySuggestions.length > 0)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               className="cosmic-input"
               required
               disabled={loading}
+              autoComplete="off"
             />
+            
+            {showSuggestions && companySuggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 bg-gray-800 border border-gray-600 rounded-lg mt-1 z-10 max-h-32 overflow-y-auto">
+                {companySuggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    className="w-full text-left px-4 py-2 text-white hover:bg-purple-600 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                    onClick={() => handleCompanySelect(suggestion)}
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="space-y-3">
@@ -103,7 +150,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, onClose, onCompl
                 />
                 <div className="flex-1">
                   <div className="text-white font-medium">Admin</div>
-                  <div className="text-gray-400 text-xs">Manage company users and approve signups</div>
+                  <div className="text-gray-400 text-xs">Manage company data and approve user registrations</div>
                 </div>
               </label>
               
@@ -119,7 +166,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, onClose, onCompl
                 />
                 <div className="flex-1">
                   <div className="text-white font-medium">User</div>
-                  <div className="text-gray-400 text-xs">Access company features and services</div>
+                  <div className="text-gray-400 text-xs">Access features and use services</div>
                 </div>
               </label>
             </div>

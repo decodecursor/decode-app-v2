@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import RoleSelectionModal from '@/components/RoleSelectionModal'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -82,12 +83,10 @@ export default function AuthPage() {
               />
             </div>
             <div>
-              <input
-                type="password"
-                placeholder="Password"
+              <PasswordInput
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="cosmic-input"
+                onChange={setPassword}
+                placeholder="Password"
                 required
                 disabled={loading}
               />

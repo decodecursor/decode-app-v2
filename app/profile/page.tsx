@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import PasswordInput from '@/components/PasswordInput'
 // Removed ReactCrop - using custom Instagram-style interface
 
 interface UserProfile {
@@ -621,24 +622,21 @@ export default function ProfilePage() {
           <div className="cosmic-card-profile">
             <h2 className="text-xl font-semibold text-white mb-6">Password</h2>
             <div className="space-y-4">
-              <input
-                type="password"
+              <PasswordInput
                 value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
+                onChange={setCurrentPassword}
                 placeholder="Current password"
                 className="cosmic-input w-full"
               />
-              <input
-                type="password"
+              <PasswordInput
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                onChange={setNewPassword}
                 placeholder="New password"
                 className="cosmic-input w-full"
               />
-              <input
-                type="password"
+              <PasswordInput
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={setConfirmPassword}
                 placeholder="Confirm new password"
                 className="cosmic-input w-full"
               />
