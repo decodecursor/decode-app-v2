@@ -87,20 +87,29 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
         throw new Error('User not found')
       }
 
+      // Log the data we're about to insert for debugging
+      const userData = {
+        id: user.id,
+        email: userEmail,
+        user_name: userName.trim(),
+        role: role,
+        company_name: companyName.trim(),
+        branch_name: null,  // No branch assignment during registration - admin will assign later
+        approval_status: role === 'Admin' ? 'approved' : 'pending',
+        terms_accepted_at: termsAcceptedAt
+      }
+      
+      console.log('Attempting to insert user data:', userData)
+      console.log('User ID type:', typeof user.id, 'User ID value:', user.id)
+      
       const { error } = await supabase
         .from('users')
-        .insert({
-          id: user.id,
-          email: userEmail,
-          user_name: userName.trim(),
-          role: role,
-          company_name: companyName.trim(),
-          branch_name: null,  // No branch assignment during registration - admin will assign later
-          approval_status: role === 'Admin' ? 'approved' : 'pending',
-          terms_accepted_at: termsAcceptedAt
-        })
+        .insert(userData)
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase insert error:', error)
+        throw error
+      }
 
       onComplete()
     } catch (error) {
@@ -124,12 +133,23 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
       
       // Handle specific database errors
       const errorMessage = (error as any)?.message || 'An error occurred'
+      const errorCode = (error as any)?.code
+      const errorDetails = (error as any)?.details
+      
+      // Log full error for debugging
+      console.log('Full error object:', error)
+      
       if (errorMessage.includes('company_name') && errorMessage.includes('null')) {
         setMessage('Company name is required and cannot be empty')
       } else if (errorMessage.includes('email') && errorMessage.includes('duplicate')) {
         setMessage('This email is already registered')
+      } else if (errorCode === '23505') {
+        setMessage('A user with this email already exists')
+      } else if (errorCode === '42501') {
+        setMessage('Permission denied. Please try again or contact support.')
       } else {
-        setMessage(`Registration failed: ${errorMessage}`)
+        // Show more detailed error for debugging
+        setMessage(`Database error: ${errorMessage}${errorDetails ? ` - ${errorDetails}` : ''}`)
       }
     } finally {
       setLoading(false)
