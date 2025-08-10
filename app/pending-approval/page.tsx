@@ -55,22 +55,22 @@ export default function PendingApproval() {
           <div className="text-center space-y-4">
             <div className="p-6 bg-yellow-900/20 rounded-lg border border-yellow-600/30">
               <div className="text-yellow-400 text-lg font-medium mb-2">
-                👋 Hello {userName}!
+                👋 Hello {userName}
               </div>
               <div className="text-gray-300 text-sm leading-relaxed">
-                Your registration for <span className="font-medium text-white">{companyName}</span> is pending approval from your company administrator.
+                Your registration is pending your company admin's approval.
               </div>
             </div>
 
             <div className="text-gray-400 text-sm">
-              You will receive access once your admin approves your account. Please check back later or contact your administrator.
+              You will receive access once your admin approves your account. Please contact your administrator.
             </div>
 
             <button
               onClick={handleSignOut}
               className="cosmic-button-secondary w-full mt-6"
             >
-              Sign Out
+              Logout
             </button>
           </div>
         </div>
