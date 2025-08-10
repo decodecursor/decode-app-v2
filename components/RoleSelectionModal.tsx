@@ -120,7 +120,6 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
         code: (error as any)?.code
       })
       console.error('User data being inserted:', {
-        id: user?.id,
         email: userEmail,
         user_name: userName.trim(),
         role: role,
