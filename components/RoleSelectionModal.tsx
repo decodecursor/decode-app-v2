@@ -6,18 +6,18 @@ import { supabase } from '@/lib/supabase'
 interface RoleSelectionModalProps {
   isOpen: boolean
   userEmail: string
+  termsAcceptedAt: string
   onClose: () => void
   onComplete: () => void
 }
 
-export default function RoleSelectionModal({ isOpen, userEmail, onClose, onComplete }: RoleSelectionModalProps) {
+export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt, onClose, onComplete }: RoleSelectionModalProps) {
   const [role, setRole] = useState('')
   const [companyName, setCompanyName] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [companySuggestions, setCompanySuggestions] = useState<string[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const [agreedToTerms, setAgreedToTerms] = useState(true)
 
   useEffect(() => {
     const fetchCompanySuggestions = async () => {
@@ -59,11 +59,6 @@ export default function RoleSelectionModal({ isOpen, userEmail, onClose, onCompl
       setMessage('Please enter your company name')
       return
     }
-    
-    if (!agreedToTerms) {
-      setMessage('Please agree to the Terms of Service and Privacy Policy')
-      return
-    }
 
     setLoading(true)
     setMessage('')
@@ -83,7 +78,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, onClose, onCompl
           full_name: '',
           role: role,
           company_name: companyName.trim(),
-          terms_accepted_at: new Date().toISOString()
+          terms_accepted_at: termsAcceptedAt
         })
 
       if (error) throw error
@@ -185,27 +180,6 @@ export default function RoleSelectionModal({ isOpen, userEmail, onClose, onCompl
                 </div>
               </label>
             </div>
-          </div>
-
-          <div className="flex items-start space-x-3">
-            <input
-              type="checkbox"
-              id="terms-agreement"
-              checked={agreedToTerms}
-              onChange={(e) => setAgreedToTerms(e.target.checked)}
-              className="w-4 h-4 mt-1 text-purple-500 bg-gray-800 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
-              disabled={loading}
-            />
-            <label htmlFor="terms-agreement" className="text-sm text-gray-300 leading-relaxed">
-              I agree to the{' '}
-              <a href="#" className="text-purple-400 underline hover:text-purple-300 transition-colors">
-                Terms of Service
-              </a>
-              {' '}and{' '}
-              <a href="#" className="text-purple-400 underline hover:text-purple-300 transition-colors">
-                Privacy Policy
-              </a>
-            </label>
           </div>
 
           {message && (

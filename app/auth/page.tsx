@@ -12,12 +12,19 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [showRoleModal, setShowRoleModal] = useState(false)
+  const [agreedToTerms, setAgreedToTerms] = useState(true)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setMessage('')
     
+    // Validate terms acceptance for signup
+    if (!isLogin && !agreedToTerms) {
+      setMessage('Please agree to the Terms of Service and Privacy Policy')
+      setLoading(false)
+      return
+    }
     
     try {
       if (isLogin) {
@@ -92,6 +99,30 @@ export default function AuthPage() {
                 showValidation={!isLogin}
               />
             </div>
+            
+            {!isLogin && (
+              <div className="flex items-start space-x-3">
+                <input
+                  type="checkbox"
+                  id="auth-terms-agreement"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="w-4 h-4 mt-1 text-purple-500 bg-gray-800 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
+                  disabled={loading}
+                />
+                <label htmlFor="auth-terms-agreement" className="text-xs text-gray-300 leading-relaxed">
+                  I agree to the{' '}
+                  <a href="#" className="text-purple-400 underline hover:text-purple-300 transition-colors">
+                    Terms of Service
+                  </a>
+                  {' '}and{' '}
+                  <a href="#" className="text-purple-400 underline hover:text-purple-300 transition-colors">
+                    Privacy Policy
+                  </a>
+                </label>
+              </div>
+            )}
+            
             <button
               type="submit"
               disabled={loading}
@@ -110,7 +141,7 @@ export default function AuthPage() {
               </div>
             )}
             
-            <div className="text-center pt-4">
+            <div className="text-center pt-2">
               <button
                 type="button"
                 onClick={() => setIsLogin(!isLogin)}
@@ -126,6 +157,7 @@ export default function AuthPage() {
       <RoleSelectionModal
         isOpen={showRoleModal}
         userEmail={email}
+        termsAcceptedAt={new Date().toISOString()}
         onClose={handleRoleModalClose}
         onComplete={handleRoleModalComplete}
       />
