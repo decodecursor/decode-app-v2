@@ -157,8 +157,8 @@ export default function Dashboard() {
         setCompanyName(userData.company_name || userData.professional_center_name) // prefer company_name
         setUserName(userData.user_name)
         
-        // Check if user is approved
-        if (userData.approval_status === 'pending') {
+        // Check if user is approved (skip check for Admins)
+        if (userData.approval_status === 'pending' && userData.role !== 'Admin') {
           window.location.href = '/pending-approval'
           return
         }
