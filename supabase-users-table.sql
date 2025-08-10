@@ -8,6 +8,7 @@ CREATE TABLE users (
     wallet_address TEXT,
     company_name TEXT NOT NULL,
     role TEXT NOT NULL CHECK (role IN ('Admin', 'User')),
+    terms_accepted_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
