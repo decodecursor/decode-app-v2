@@ -1,5 +1,22 @@
 # Database Migrations
 
+## 🚨 URGENT: Fix Registration Error
+
+**If users cannot register with "Database error saving new user", run this immediately:**
+
+1. Go to your Supabase dashboard
+2. Navigate to SQL Editor
+3. Create a new query
+4. Run this SQL:
+
+```sql
+-- Removes the outdated auth trigger causing registration failures
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP FUNCTION IF EXISTS public.handle_new_user();
+```
+
+**Why:** The old trigger uses wrong column names and missing required fields. User creation is now handled by the app.
+
 ## Running Migrations
 
 To apply the Stripe Connect fields migration, run the following SQL file in your Supabase SQL editor:
