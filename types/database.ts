@@ -16,11 +16,13 @@ export interface Database {
         Row: {
           id: string
           email: string
-          full_name: string
+          user_name: string
           professional_center_name: string | null
           instagram_handle: string | null
           wallet_address: string | null
           role: string
+          company_name: string
+          terms_accepted_at: string | null
           created_at: string
           crossmint_wallet_id: string | null
           wallet_created_at: string | null
@@ -36,11 +38,13 @@ export interface Database {
         Insert: {
           id?: string
           email: string
-          full_name: string
+          user_name: string
           professional_center_name?: string | null
           instagram_handle?: string | null
           wallet_address?: string | null
           role: string
+          company_name: string
+          terms_accepted_at?: string | null
           created_at?: string
           crossmint_wallet_id?: string | null
           wallet_created_at?: string | null
@@ -56,11 +60,13 @@ export interface Database {
         Update: {
           id?: string
           email?: string
-          full_name?: string
+          user_name?: string
           professional_center_name?: string | null
           instagram_handle?: string | null
           wallet_address?: string | null
           role?: string
+          company_name?: string
+          terms_accepted_at?: string | null
           created_at?: string
           crossmint_wallet_id?: string | null
           wallet_created_at?: string | null
@@ -548,4 +554,4 @@ export type TransactionWithPaymentLink = TransactionRow & {
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'cancelled' | 'refunded' | 'expired'
 export type PaymentProcessor = 'stripe' | 'crossmint'
 export type WebhookStatus = 'received' | 'processed' | 'failed' | 'unhandled'
-export type UserRole = 'Beauty Professional' | 'Beauty Model' | 'Admin'
+export type UserRole = 'Admin' | 'User'
