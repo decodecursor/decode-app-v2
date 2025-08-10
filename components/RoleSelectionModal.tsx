@@ -95,7 +95,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
           user_name: userName.trim(),
           role: role,
           company_name: companyName.trim(),
-          branch_name: 'Default Branch',  // Set default branch, admins can assign proper branches later
+          branch_name: 'Downtown Branch',  // Set default branch that system expects
           approval_status: role === 'Admin' ? 'approved' : 'pending',
           terms_accepted_at: termsAcceptedAt
         })
@@ -117,7 +117,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
         user_name: userName.trim(),
         role: role,
         company_name: companyName.trim(),
-        branch_name: 'Default Branch',
+        branch_name: 'Downtown Branch',
         approval_status: role === 'Admin' ? 'approved' : 'pending',
         terms_accepted_at: termsAcceptedAt
       })
