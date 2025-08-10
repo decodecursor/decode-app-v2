@@ -63,6 +63,12 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
       return
     }
     
+    // Additional validation to ensure company name is not just spaces
+    if (companyName.trim().length < 2) {
+      setMessage('Company name must be at least 2 characters long')
+      return
+    }
+    
     if (!userName.trim()) {
       setMessage('Please enter your name')
       return
@@ -70,6 +76,12 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
     
     if (!branchName.trim()) {
       setMessage('Please enter your branch name')
+      return
+    }
+    
+    // Additional validation to ensure branch name is not just spaces
+    if (branchName.trim().length < 2) {
+      setMessage('Branch name must be at least 2 characters long')
       return
     }
 
@@ -100,8 +112,35 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
 
       onComplete()
     } catch (error) {
-      setMessage((error as Error).message || 'An error occurred')
       console.error('Profile creation error:', error)
+      console.error('Error details:', {
+        message: (error as any)?.message,
+        details: (error as any)?.details,
+        hint: (error as any)?.hint,
+        code: (error as any)?.code
+      })
+      console.error('User data being inserted:', {
+        id: user?.id,
+        email: userEmail,
+        user_name: userName.trim(),
+        role: role,
+        company_name: companyName.trim(),
+        branch_name: branchName.trim(),
+        approval_status: role === 'Admin' ? 'approved' : 'pending',
+        terms_accepted_at: termsAcceptedAt
+      })
+      
+      // Handle specific database errors
+      const errorMessage = (error as any)?.message || 'An error occurred'
+      if (errorMessage.includes('company_name') && errorMessage.includes('null')) {
+        setMessage('Company name is required and cannot be empty')
+      } else if (errorMessage.includes('branch_name') && errorMessage.includes('null')) {
+        setMessage('Branch name is required and cannot be empty')
+      } else if (errorMessage.includes('email') && errorMessage.includes('duplicate')) {
+        setMessage('This email is already registered')
+      } else {
+        setMessage(`Registration failed: ${errorMessage}`)
+      }
     } finally {
       setLoading(false)
     }
