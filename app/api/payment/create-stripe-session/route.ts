@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
 
     // Transform creator data - Supabase relations are properly typed now
     const creator = paymentLink.creator;
-    const creatorName = creator?.full_name || 'Beauty Professional';
+    const creatorName = creator?.user_name || 'Beauty Professional';
 
     return NextResponse.json({
       success: true,
