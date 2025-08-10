@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [userRole, setUserRole] = useState<string | null>(null)
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null)
   const [companyName, setCompanyName] = useState<string | null>(null)
+  const [userName, setUserName] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
@@ -145,14 +146,15 @@ export default function Dashboard() {
       // Fetch user role, professional center name, and profile photo from users table
       const { data: userData } = await supabase
         .from('users')
-        .select('role, professional_center_name, profile_photo_url')
+        .select('role, professional_center_name, profile_photo_url, user_name, company_name')
         .eq('id', user.id)
         .single() as { data: any, error: any }
       
       if (userData) {
         setUserRole(userData.role)
         setProfilePhoto(userData.profile_photo_url || null) // Load profile photo from database
-        setCompanyName(userData.professional_center_name) // use available field
+        setCompanyName(userData.company_name || userData.professional_center_name) // prefer company_name
+        setUserName(userData.user_name)
       }
       
       
@@ -254,16 +256,21 @@ export default function Dashboard() {
                 {/* User Info Text */}
                 <div className="flex flex-col justify-center">
                   <div className="user-info-name">
-                    Anna Hayner
+                    {userName || 'No name set'}
                   </div>
                   <div className="user-info-company">
                     {companyName || 'No company set'}
                   </div>
+                  {userRole && (
+                    <div className="text-xs text-gray-400">
+                      {userRole}
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Right side - Navigation Buttons */}
-              {userRole === 'Beauty Professional' && (
+              {userRole === 'Admin' && (
                 <div className="flex gap-4 items-center">
                   {/* Payment History */}
                   <Link 
@@ -319,11 +326,16 @@ export default function Dashboard() {
                   {/* Mobile User Info Text */}
                   <div className="flex flex-col justify-center">
                     <div className="user-info-name text-base">
-                      Anna Hayner
+                      {userName || 'No name set'}
                     </div>
                     <div className="user-info-company text-xs">
                       {companyName || 'No company set'}
                     </div>
+                    {userRole && (
+                      <div className="text-xs text-gray-400">
+                        {userRole}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -346,7 +358,7 @@ export default function Dashboard() {
                 <div className="border-t border-gray-700 pt-4">
                   <nav className="space-y-2">
                     
-                    {userRole === 'Beauty Professional' && (
+                    {userRole === 'Admin' && (
                       <>
                         <button 
                           className="block w-full text-left bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] mb-2"
