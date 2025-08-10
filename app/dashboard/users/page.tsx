@@ -64,8 +64,11 @@ export default function UsersManagement() {
         if (error) throw error
         setUsers(companyUsers || [])
 
-        // Get unique branches for this company
-        const uniqueBranches = [...new Set(companyUsers?.map(u => u.branch_name || 'Downtown Branch') || [])]
+        // Get unique branches for this company - include all branches from comma-separated values
+        const allUserBranches = companyUsers?.flatMap(u => 
+          (u.branch_name || 'Downtown Branch').split(',').map(b => b.trim())
+        ) || []
+        const uniqueBranches = [...new Set(['Downtown Branch', ...allUserBranches])]
         setBranches(uniqueBranches)
 
       } catch (error) {
@@ -115,8 +118,8 @@ export default function UsersManagement() {
     if (!newBranchName.trim() || !adminCompany) return
     
     try {
-      // Just add to local branches state - branches are created when users join them
-      const updatedBranches = [...branches, newBranchName.trim()]
+      // Add to local branches state - persist all created branches
+      const updatedBranches = [...new Set([...branches, newBranchName.trim()])]
       setBranches(updatedBranches)
       
       setNewBranchName('')
@@ -136,11 +139,23 @@ export default function UsersManagement() {
     if (!branchToDelete) return
     
     try {
-      // Check if any users are in this branch
-      const usersInBranch = users.filter(u => (u.branch_name || 'Downtown Branch') === branchToDelete)
+      // Check if any users are in this branch (handle comma-separated branches)
+      const usersInBranch = users.filter(u => {
+        const userBranches = (u.branch_name || 'Downtown Branch').split(',').map(b => b.trim())
+        return userBranches.includes(branchToDelete)
+      })
       
       if (usersInBranch.length > 0) {
         setMessage(`Cannot delete '${branchToDelete}' - ${usersInBranch.length} user(s) still assigned to this branch`)
+        setTimeout(() => setMessage(''), 3000)
+        setShowDeleteBranchModal(false)
+        setBranchToDelete('')
+        return
+      }
+      
+      // Don't allow deleting Downtown Branch
+      if (branchToDelete === 'Downtown Branch') {
+        setMessage('Cannot delete the default Downtown Branch')
         setTimeout(() => setMessage(''), 3000)
         setShowDeleteBranchModal(false)
         setBranchToDelete('')
@@ -202,9 +217,25 @@ export default function UsersManagement() {
     if (!selectedBranch) return
     
     try {
+      // Get current user's branches
+      const currentUser = users.find(u => u.id === userId)
+      if (!currentUser) return
+      
+      const currentBranches = (currentUser.branch_name || 'Downtown Branch').split(',').map(b => b.trim())
+      
+      // Check if user is already in this branch
+      if (currentBranches.includes(selectedBranch)) {
+        setShowAddUserModal(false)
+        setSelectedBranch('')
+        return
+      }
+      
+      // Add new branch to existing branches
+      const updatedBranches = [...currentBranches, selectedBranch].join(',')
+      
       const { error } = await supabase
         .from('users')
-        .update({ branch_name: selectedBranch })
+        .update({ branch_name: updatedBranches })
         .eq('id', userId)
       
       if (error) throw error
@@ -212,13 +243,9 @@ export default function UsersManagement() {
       // Update local state
       setUsers(users.map(u => 
         u.id === userId 
-          ? { ...u, branch_name: selectedBranch }
+          ? { ...u, branch_name: updatedBranches }
           : u
       ))
-      
-      // Update branches state
-      const updatedBranches = [...new Set(users.map(u => u.branch_name || 'Downtown Branch'))]
-      setBranches(updatedBranches)
       
       setShowAddUserModal(false)
       setSelectedBranch('')
@@ -240,9 +267,12 @@ export default function UsersManagement() {
   const approvedUsers = users.filter(u => u.approval_status === 'approved')
   const rejectedUsers = users.filter(u => u.approval_status === 'rejected')
 
-  // Group by branch - include empty branches
+  // Group by branch - include empty branches and handle multi-branch users
   const usersByBranch = branches.reduce((acc, branch) => {
-    acc[branch] = users.filter(u => (u.branch_name || 'Downtown Branch') === branch)
+    acc[branch] = users.filter(u => {
+      const userBranches = (u.branch_name || 'Downtown Branch').split(',').map(b => b.trim())
+      return userBranches.includes(branch)
+    })
     return acc
   }, {} as Record<string, User[]>)
 
@@ -412,7 +442,10 @@ export default function UsersManagement() {
               
               <div className="max-h-64 overflow-y-auto space-y-2 mb-6">
                 {users
-                  .filter(u => (u.branch_name || 'Downtown Branch') !== selectedBranch)
+                  .filter(u => {
+                    const userBranches = (u.branch_name || 'Downtown Branch').split(',').map(b => b.trim())
+                    return !userBranches.includes(selectedBranch)
+                  })
                   .map(user => (
                     <div key={user.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
                       <div className="text-white text-sm">
@@ -432,7 +465,10 @@ export default function UsersManagement() {
                   ))
                 }
                 
-                {users.filter(u => (u.branch_name || 'Downtown Branch') !== selectedBranch).length === 0 && (
+                {users.filter(u => {
+                  const userBranches = (u.branch_name || 'Downtown Branch').split(',').map(b => b.trim())
+                  return !userBranches.includes(selectedBranch)
+                }).length === 0 && (
                   <div className="text-center text-gray-400 py-8">
                     No users available to add to this branch
                   </div>
