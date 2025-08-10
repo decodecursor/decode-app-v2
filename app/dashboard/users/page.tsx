@@ -112,7 +112,7 @@ export default function UsersManagement() {
 
   // Group by branch
   const usersByBranch = users.reduce((acc, user) => {
-    const branch = user.branch_name || 'No Branch'
+    const branch = user.branch_name || 'Downtown Branch'
     if (!acc[branch]) acc[branch] = []
     acc[branch].push(user)
     return acc
@@ -120,42 +120,39 @@ export default function UsersManagement() {
 
   return (
     <div className="cosmic-bg min-h-screen">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-white mb-2">User Management</h1>
-            <p className="text-gray-300">{adminCompany}</p>
+      <div className="min-h-screen px-4 py-8">
+        {/* Header Card */}
+        <div className="flex justify-center mb-8">
+          <div style={{width: '70vw'}}>
+            <div className="cosmic-card">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h1 className="cosmic-heading mb-2">User Management</h1>
+                  <p className="text-gray-300">{adminCompany}</p>
+                </div>
+                <Link 
+                  href="/dashboard"
+                  className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors px-4 py-2"
+                >
+                  ← Back to Dashboard
+                </Link>
+              </div>
+            </div>
           </div>
-          <Link 
-            href="/dashboard"
-            className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors px-4 py-2"
-          >
-            ← Back to Dashboard
-          </Link>
         </div>
 
         {message && (
-          <div className={`mb-6 p-4 rounded-lg ${message.includes('Failed') ? 'bg-red-900/20 text-red-300' : 'bg-green-900/20 text-green-300'}`}>
-            {message}
+          <div className="flex justify-center mb-8">
+            <div style={{width: '70vw'}}>
+              <div className={`p-4 rounded-lg ${message.includes('Failed') ? 'bg-red-900/20 text-red-300' : 'bg-green-900/20 text-green-300'}`}>
+                {message}
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 w-1/2 mx-auto">
-          <div className="cosmic-card text-center">
-            <div className="text-3xl font-bold text-yellow-400">{pendingUsers.length}</div>
-            <div className="text-gray-300">Pending Approval</div>
-          </div>
-          <div className="cosmic-card text-center">
-            <div className="text-3xl font-bold text-green-400">{approvedUsers.length}</div>
-            <div className="text-gray-300">Approved Users</div>
-          </div>
-          <div className="cosmic-card text-center">
-            <div className="text-3xl font-bold text-red-400">{rejectedUsers.length}</div>
-            <div className="text-gray-300">Rejected Users</div>
-          </div>
-        </div>
+        <div className="flex justify-center">
+          <div style={{width: '70vw'}}>
 
         {/* Users by Branch */}
         {Object.entries(usersByBranch).map(([branch, branchUsers]) => (
@@ -165,12 +162,8 @@ export default function UsersManagement() {
             <div className="space-y-3">
               {branchUsers.map(user => (
                 <div key={user.id} className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
-                  <div className="flex-1">
-                    <div className="text-white font-medium">{user.user_name}</div>
-                    <div className="text-gray-300 text-sm">{user.email}</div>
-                    <div className="text-xs text-gray-400">
-                      {user.role} • {new Date(user.created_at).toLocaleDateString()}
-                    </div>
+                  <div className="flex-1 text-white">
+                    {user.user_name} - {user.role} - {user.email}
                   </div>
                   
                   <div className="flex items-center gap-3">
@@ -213,11 +206,13 @@ export default function UsersManagement() {
           </div>
         ))}
 
-        {users.length === 0 && (
-          <div className="cosmic-card text-center py-12">
-            <div className="text-gray-400 text-lg">No users found for {adminCompany}</div>
+            {users.length === 0 && (
+              <div className="cosmic-card text-center py-12">
+                <div className="text-gray-400 text-lg">No users found for {adminCompany}</div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   )
