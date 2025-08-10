@@ -138,7 +138,11 @@ export default function RoleSelectionModal({ isOpen, userEmail, onClose, onCompl
               Select your role
             </label>
             <div className="space-y-3">
-              <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border border-gray-700 hover:border-purple-500 transition-colors">
+              <label className={`flex items-center space-x-3 cursor-pointer p-3 rounded-lg border transition-colors ${
+                role === 'Admin' 
+                  ? 'border-purple-500 bg-purple-500/10' 
+                  : 'border-gray-700 hover:border-purple-500'
+              }`}>
                 <input
                   type="radio"
                   name="role"
@@ -154,7 +158,11 @@ export default function RoleSelectionModal({ isOpen, userEmail, onClose, onCompl
                 </div>
               </label>
               
-              <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border border-gray-700 hover:border-purple-500 transition-colors">
+              <label className={`flex items-center space-x-3 cursor-pointer p-3 rounded-lg border transition-colors ${
+                role === 'User' 
+                  ? 'border-purple-500 bg-purple-500/10' 
+                  : 'border-gray-700 hover:border-purple-500'
+              }`}>
                 <input
                   type="radio"
                   name="role"
@@ -178,21 +186,21 @@ export default function RoleSelectionModal({ isOpen, userEmail, onClose, onCompl
             </div>
           )}
 
-          <div className="flex space-x-3">
+          <div className="space-y-3">
+            <button
+              type="submit"
+              disabled={loading}
+              className="cosmic-button-primary w-full"
+            >
+              {loading ? 'Creating...' : 'Register'}
+            </button>
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="cosmic-button-secondary flex-1"
+              className="cosmic-button-secondary w-full"
             >
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="cosmic-button-primary flex-1"
-            >
-              {loading ? 'Creating...' : 'Complete Setup'}
             </button>
           </div>
         </form>
