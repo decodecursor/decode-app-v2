@@ -16,6 +16,18 @@ export default function AuthPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(true)
   const [emailError, setEmailError] = useState('')
   const [checkingEmail, setCheckingEmail] = useState(false)
+  
+  // Auto-hide error messages after 5 seconds
+  useEffect(() => {
+    if (message && (message.includes('error') || message.includes('Error') || message.includes('Invalid'))) {
+      const timer = setTimeout(() => {
+        setMessage('')
+      }, 5000)
+      
+      return () => clearTimeout(timer)
+    }
+    return undefined
+  }, [message])
 
   // Real-time email validation
   useEffect(() => {
@@ -85,7 +97,8 @@ export default function AuthPage() {
           setSignedUpUser(data.user)  // Store the user data
           setShowRoleModal(true)
         } else {
-          setMessage('Check your email to confirm your account!')
+          // No user object means email confirmation required
+          window.location.href = `/verify-email?email=${encodeURIComponent(email)}`
         }
         console.log('User signed up:', data.user)
       }
@@ -99,12 +112,14 @@ export default function AuthPage() {
 
   const handleRoleModalClose = () => {
     setShowRoleModal(false)
-    setMessage('Check your email to confirm your account!')
+    // Redirect to verification page even if user closes modal
+    window.location.href = `/verify-email?email=${encodeURIComponent(email)}`
   }
 
   const handleRoleModalComplete = () => {
     setShowRoleModal(false)
-    window.location.href = '/dashboard'
+    // Redirect to email verification page
+    window.location.href = `/verify-email?email=${encodeURIComponent(email)}`
   }
 
   return (

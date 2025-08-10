@@ -21,10 +21,11 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
   const [message, setMessage] = useState('')
   const [companySuggestions, setCompanySuggestions] = useState<string[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [hasSelectedSuggestion, setHasSelectedSuggestion] = useState(false)
 
   useEffect(() => {
     const fetchCompanySuggestions = async () => {
-      if (companyName.length >= 3) {
+      if (companyName.length >= 3 && !hasSelectedSuggestion) {
         try {
           const response = await fetch(`/api/companies/suggestions?q=${encodeURIComponent(companyName)}`)
           const data = await response.json()
@@ -43,12 +44,22 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
 
     const debounceTimer = setTimeout(fetchCompanySuggestions, 300)
     return () => clearTimeout(debounceTimer)
-  }, [companyName])
+  }, [companyName, hasSelectedSuggestion])
 
   const handleCompanySelect = (selectedCompany: string) => {
     setCompanyName(selectedCompany)
     setShowSuggestions(false)
     setCompanySuggestions([])
+    setHasSelectedSuggestion(true)  // Mark that user has selected a suggestion
+  }
+  
+  // Handle manual typing in company field
+  const handleCompanyChange = (value: string) => {
+    setCompanyName(value)
+    // If user is manually editing, reset the selection flag
+    if (hasSelectedSuggestion && value !== companyName) {
+      setHasSelectedSuggestion(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -147,8 +158,8 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
               type="text"
               placeholder="Enter company name"
               value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              onFocus={() => setShowSuggestions(companySuggestions.length > 0)}
+              onChange={(e) => handleCompanyChange(e.target.value)}
+              onFocus={() => !hasSelectedSuggestion && setShowSuggestions(companySuggestions.length > 0)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               className="cosmic-input"
               required
