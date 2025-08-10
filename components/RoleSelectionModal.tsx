@@ -15,7 +15,6 @@ interface RoleSelectionModalProps {
 export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt, onClose, onComplete }: RoleSelectionModalProps) {
   const [role, setRole] = useState('')
   const [companyName, setCompanyName] = useState('')
-  const [branchName, setBranchName] = useState('')
   const [userName, setUserName] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -74,17 +73,6 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
       setMessage('Please enter your name')
       return
     }
-    
-    if (!branchName.trim()) {
-      setMessage('Please enter your branch name')
-      return
-    }
-    
-    // Additional validation to ensure branch name is not just spaces
-    if (branchName.trim().length < 2) {
-      setMessage('Branch name must be at least 2 characters long')
-      return
-    }
 
     setLoading(true)
     setMessage('')
@@ -107,7 +95,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
           user_name: userName.trim(),
           role: role,
           company_name: companyName.trim(),
-          branch_name: branchName.trim(),
+          branch_name: 'Default Branch',  // Set default branch, admins can assign proper branches later
           approval_status: role === 'Admin' ? 'approved' : 'pending',
           terms_accepted_at: termsAcceptedAt
         })
@@ -129,7 +117,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
         user_name: userName.trim(),
         role: role,
         company_name: companyName.trim(),
-        branch_name: branchName.trim(),
+        branch_name: 'Default Branch',
         approval_status: role === 'Admin' ? 'approved' : 'pending',
         terms_accepted_at: termsAcceptedAt
       })
@@ -138,8 +126,6 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
       const errorMessage = (error as any)?.message || 'An error occurred'
       if (errorMessage.includes('company_name') && errorMessage.includes('null')) {
         setMessage('Company name is required and cannot be empty')
-      } else if (errorMessage.includes('branch_name') && errorMessage.includes('null')) {
-        setMessage('Branch name is required and cannot be empty')
       } else if (errorMessage.includes('email') && errorMessage.includes('duplicate')) {
         setMessage('This email is already registered')
       } else {
@@ -208,20 +194,6 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
             />
           </div>
 
-          <div className="relative">
-            <label className="block text-sm font-medium text-gray-300 mb-3">
-              Branch
-            </label>
-            <input
-              type="text"
-              placeholder="Enter branch name (e.g. Dubai Downtown)"
-              value={branchName}
-              onChange={(e) => setBranchName(e.target.value)}
-              className="cosmic-input"
-              required
-              disabled={loading}
-            />
-          </div>
 
           <div className="space-y-3">
             <label className="block text-sm font-medium text-gray-300">
