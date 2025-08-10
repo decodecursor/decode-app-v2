@@ -42,9 +42,6 @@ export default function VerifyEmailPage() {
               style={{height: '40px', filter: 'brightness(0) invert(1)'}} 
             />
             <h1 className="cosmic-heading text-2xl mb-2">Check Your Email</h1>
-            <p className="cosmic-body opacity-70 text-sm">
-              We've sent a verification link to your email address.
-            </p>
           </div>
 
           <div className="space-y-6">
@@ -64,9 +61,7 @@ export default function VerifyEmailPage() {
               </p>
 
               <div className="text-xs text-gray-400 space-y-1">
-                <p>• Check your spam folder if you don't see the email</p>
                 <p>• The verification link expires in 24 hours</p>
-                <p>• You can close this tab after clicking the link</p>
               </div>
             </div>
 
