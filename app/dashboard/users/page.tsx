@@ -26,6 +26,7 @@ export default function UsersManagement() {
   const [branchToDelete, setBranchToDelete] = useState('')
   const [showDeleteUserModal, setShowDeleteUserModal] = useState(false)
   const [userToDelete, setUserToDelete] = useState<User | null>(null)
+  const [branchToRemoveFrom, setBranchToRemoveFrom] = useState('')
   const [branches, setBranches] = useState<string[]>([])
   const [showAddUserModal, setShowAddUserModal] = useState(false)
   const [selectedBranch, setSelectedBranch] = useState('')
@@ -178,38 +179,50 @@ export default function UsersManagement() {
     }
   }
 
-  const handleDeleteUserClick = (user: User) => {
+  const handleDeleteUserClick = (user: User, branch: string) => {
     setUserToDelete(user)
+    setBranchToRemoveFrom(branch)
     setShowDeleteUserModal(true)
   }
 
   const handleDeleteUser = async () => {
-    if (!userToDelete) return
+    if (!userToDelete || !branchToRemoveFrom) return
     
     try {
+      // Get current user's branches
+      const currentBranches = (userToDelete.branch_name || 'Downtown Branch').split(',').map(b => b.trim())
+      
+      // Remove the specific branch
+      const remainingBranches = currentBranches.filter(b => b !== branchToRemoveFrom)
+      
+      // If no branches left, assign to Downtown Branch as default
+      const updatedBranchName = remainingBranches.length > 0 ? remainingBranches.join(',') : 'Downtown Branch'
+      
       const { error } = await supabase
         .from('users')
-        .delete()
+        .update({ branch_name: updatedBranchName })
         .eq('id', userToDelete.id)
       
       if (error) throw error
       
       // Update local state
-      setUsers(users.filter(u => u.id !== userToDelete.id))
+      setUsers(users.map(u => 
+        u.id === userToDelete.id 
+          ? { ...u, branch_name: updatedBranchName }
+          : u
+      ))
       
-      // Update branches state
-      const updatedBranches = [...new Set(users.filter(u => u.id !== userToDelete.id).map(u => u.branch_name || 'Downtown Branch'))]
-      setBranches(updatedBranches)
-      
-      setMessage(`User '${userToDelete.user_name}' deleted successfully`)
+      setMessage(`User '${userToDelete.user_name}' removed from ${branchToRemoveFrom}`)
       setTimeout(() => setMessage(''), 3000)
       setShowDeleteUserModal(false)
       setUserToDelete(null)
+      setBranchToRemoveFrom('')
     } catch (error) {
-      console.error('Error deleting user:', error)
-      setMessage('Failed to delete user')
+      console.error('Error removing user from branch:', error)
+      setMessage('Failed to remove user from branch')
       setShowDeleteUserModal(false)
       setUserToDelete(null)
+      setBranchToRemoveFrom('')
     }
   }
 
@@ -401,9 +414,9 @@ export default function UsersManagement() {
                     
                     {/* Delete User Button */}
                     <button
-                      onClick={() => handleDeleteUserClick(user)}
+                      onClick={() => handleDeleteUserClick(user, branch)}
                       className="px-2 py-2 text-sm border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors"
-                      title="Delete user"
+                      title="Remove user from branch"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -539,9 +552,9 @@ export default function UsersManagement() {
         {showDeleteUserModal && userToDelete && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="cosmic-card max-w-md w-full">
-              <h3 className="cosmic-heading mb-4 text-white">Delete User</h3>
+              <h3 className="cosmic-heading mb-4 text-white">Remove User from Branch</h3>
               <p className="cosmic-body text-gray-300 mb-4">
-                Are you sure you want to permanently delete the user &ldquo;{userToDelete.user_name}&rdquo;?
+                Are you sure you want to remove &ldquo;{userToDelete.user_name}&rdquo; from &ldquo;{branchToRemoveFrom}&rdquo;?
               </p>
               <p className="cosmic-body text-gray-400 text-sm mb-6">
                 Role: {userToDelete.role} • Email: {userToDelete.email}
@@ -551,6 +564,7 @@ export default function UsersManagement() {
                   onClick={() => {
                     setShowDeleteUserModal(false)
                     setUserToDelete(null)
+                    setBranchToRemoveFrom('')
                   }}
                   className="cosmic-button-secondary flex-1 py-3 border border-white/30 rounded-lg"
                 >
@@ -560,7 +574,7 @@ export default function UsersManagement() {
                   onClick={handleDeleteUser}
                   className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
                 >
-                  Delete User
+                  Remove from Branch
                 </button>
               </div>
             </div>
