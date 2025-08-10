@@ -24,6 +24,8 @@ export default function UsersManagement() {
   const [newBranchName, setNewBranchName] = useState('')
   const [showDeleteBranchModal, setShowDeleteBranchModal] = useState(false)
   const [branchToDelete, setBranchToDelete] = useState('')
+  const [showDeleteUserModal, setShowDeleteUserModal] = useState(false)
+  const [userToDelete, setUserToDelete] = useState<User | null>(null)
   const [branches, setBranches] = useState<string[]>([])
 
   useEffect(() => {
@@ -125,26 +127,74 @@ export default function UsersManagement() {
     }
   }
 
-  const handleDeleteBranch = async (branchName: string) => {
+  const handleDeleteBranchClick = (branchName: string) => {
+    setBranchToDelete(branchName)
+    setShowDeleteBranchModal(true)
+  }
+
+  const handleDeleteBranch = async () => {
+    if (!branchToDelete) return
+    
     try {
       // Check if any users are in this branch
-      const usersInBranch = users.filter(u => (u.branch_name || 'Downtown Branch') === branchName)
+      const usersInBranch = users.filter(u => (u.branch_name || 'Downtown Branch') === branchToDelete)
       
       if (usersInBranch.length > 0) {
-        setMessage(`Cannot delete '${branchName}' - ${usersInBranch.length} user(s) still assigned to this branch`)
+        setMessage(`Cannot delete '${branchToDelete}' - ${usersInBranch.length} user(s) still assigned to this branch`)
         setTimeout(() => setMessage(''), 3000)
+        setShowDeleteBranchModal(false)
+        setBranchToDelete('')
         return
       }
       
       // Remove from local branches state
-      const updatedBranches = branches.filter(b => b !== branchName)
+      const updatedBranches = branches.filter(b => b !== branchToDelete)
       setBranches(updatedBranches)
       
-      setMessage(`Branch '${branchName}' deleted successfully`)
+      setMessage(`Branch '${branchToDelete}' deleted successfully`)
       setTimeout(() => setMessage(''), 3000)
+      setShowDeleteBranchModal(false)
+      setBranchToDelete('')
     } catch (error) {
       console.error('Error deleting branch:', error)
       setMessage('Failed to delete branch')
+      setShowDeleteBranchModal(false)
+      setBranchToDelete('')
+    }
+  }
+
+  const handleDeleteUserClick = (user: User) => {
+    setUserToDelete(user)
+    setShowDeleteUserModal(true)
+  }
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return
+    
+    try {
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', userToDelete.id)
+      
+      if (error) throw error
+      
+      // Update local state
+      setUsers(users.filter(u => u.id !== userToDelete.id))
+      
+      // Update branches state
+      const updatedBranches = [...new Set(users.filter(u => u.id !== userToDelete.id).map(u => u.branch_name || 'Downtown Branch'))]
+      setBranches(updatedBranches)
+      
+      setMessage(`User '${userToDelete.user_name}' deleted successfully`)
+      setTimeout(() => setMessage(''), 3000)
+      setShowDeleteUserModal(false)
+      setUserToDelete(null)
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      setMessage('Failed to delete user')
+      setShowDeleteUserModal(false)
+      setUserToDelete(null)
     }
   }
 
@@ -221,14 +271,14 @@ export default function UsersManagement() {
 
         <div className="flex justify-center">
           <div style={{width: '70vw'}}>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="flex flex-wrap gap-6">
               {/* Users by Branch */}
               {Object.entries(usersByBranch).map(([branch, branchUsers]) => (
-                <div key={branch} className="cosmic-card">
+                <div key={branch} className="cosmic-card w-[calc(50%-12px)]">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold text-white">{branch}</h3>
               <button
-                onClick={() => handleDeleteBranch(branch)}
+                onClick={() => handleDeleteBranchClick(branch)}
                 className="px-3 py-1 text-sm border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 rounded-lg transition-colors"
                 title="Delete branch"
               >
@@ -238,20 +288,18 @@ export default function UsersManagement() {
             
             <div className="space-y-3">
               {branchUsers.map(user => (
-                <div key={user.id} className="flex items-start justify-between p-4 bg-gray-800/50 rounded-lg">
+                <div key={user.id} className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
                   <div className="flex-1">
-                    <div className="text-purple-400 text-sm font-semibold mb-1">
-                      {user.role}
-                    </div>
-                    <h4 className="text-white font-medium text-base mb-1">
-                      {user.user_name}
-                    </h4>
-                    <div className="text-gray-400 text-sm">
-                      {user.email}
+                    <div className="text-white text-sm">
+                      <span className="text-purple-400 font-semibold">{user.role}</span>
+                      <span className="text-gray-400 mx-2">•</span>
+                      <span className="font-medium">{user.user_name}</span>
+                      <span className="text-gray-400 mx-2">•</span>
+                      <span className="text-gray-400">{user.email}</span>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-3 ml-4">
+                  <div className="flex items-center gap-2 ml-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                       user.approval_status === 'approved' 
                         ? 'bg-green-900/20 text-green-400' 
@@ -278,6 +326,17 @@ export default function UsersManagement() {
                         </button>
                       </div>
                     )}
+                    
+                    {/* Delete User Button */}
+                    <button
+                      onClick={() => handleDeleteUserClick(user)}
+                      className="px-2 py-2 text-sm border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors"
+                      title="Delete user"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -299,6 +358,83 @@ export default function UsersManagement() {
             )}
           </div>
         </div>
+
+        {/* Delete Branch Modal */}
+        {showDeleteBranchModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="cosmic-card max-w-md w-full">
+              <h3 className="cosmic-heading mb-4 text-white">Delete Branch</h3>
+              <p className="cosmic-body text-gray-300 mb-4">
+                Are you sure you want to delete the branch &ldquo;{branchToDelete}&rdquo;?
+              </p>
+              {(() => {
+                const usersInBranch = users.filter(u => (u.branch_name || 'Downtown Branch') === branchToDelete)
+                if (usersInBranch.length > 0) {
+                  return (
+                    <p className="cosmic-body text-red-400 text-sm mb-6">
+                      Cannot delete: {usersInBranch.length} user(s) still assigned to this branch
+                    </p>
+                  )
+                }
+                return (
+                  <p className="cosmic-body text-gray-400 text-sm mb-6">
+                    This action cannot be undone.
+                  </p>
+                )
+              })()}
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => {
+                    setShowDeleteBranchModal(false)
+                    setBranchToDelete('')
+                  }}
+                  className="cosmic-button-secondary flex-1 py-3 border border-white/30 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteBranch}
+                  disabled={users.filter(u => (u.branch_name || 'Downtown Branch') === branchToDelete).length > 0}
+                  className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Delete Branch
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete User Modal */}
+        {showDeleteUserModal && userToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="cosmic-card max-w-md w-full">
+              <h3 className="cosmic-heading mb-4 text-white">Delete User</h3>
+              <p className="cosmic-body text-gray-300 mb-4">
+                Are you sure you want to permanently delete the user &ldquo;{userToDelete.user_name}&rdquo;?
+              </p>
+              <p className="cosmic-body text-gray-400 text-sm mb-6">
+                Role: {userToDelete.role} • Email: {userToDelete.email}
+              </p>
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => {
+                    setShowDeleteUserModal(false)
+                    setUserToDelete(null)
+                  }}
+                  className="cosmic-button-secondary flex-1 py-3 border border-white/30 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteUser}
+                  className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  Delete User
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Create Branch Modal */}
         {showCreateBranchModal && (
