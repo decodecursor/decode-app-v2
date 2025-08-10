@@ -278,10 +278,14 @@ export default function UsersManagement() {
   const approvedUsers = users.filter(u => u.approval_status === 'approved')
   const rejectedUsers = users.filter(u => u.approval_status === 'rejected')
 
-  // Group by branch - include empty branches and handle multi-branch users
+  // Separate unassigned users (null/empty branch_name) from assigned users
+  const unassignedUsers = users.filter(u => !u.branch_name || u.branch_name.trim() === '')
+  const assignedUsers = users.filter(u => u.branch_name && u.branch_name.trim() !== '')
+
+  // Group assigned users by branch - handle multi-branch users
   const usersByBranch = branches.reduce((acc, branch) => {
-    acc[branch] = users.filter(u => {
-      const userBranches = (u.branch_name || 'Downtown Branch').split(',').map(b => b.trim())
+    acc[branch] = assignedUsers.filter(u => {
+      const userBranches = (u.branch_name || '').split(',').map(b => b.trim())
       return userBranches.includes(branch)
     })
     return acc
@@ -343,6 +347,112 @@ export default function UsersManagement() {
         <div className="flex justify-center">
           <div style={{width: '70vw'}}>
             <div className="space-y-6">
+              {/* Unassigned Users Section */}
+              {unassignedUsers.length > 0 && (
+                <div className="cosmic-card w-1/2 mx-auto mb-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold text-gray-300">
+                      Unassigned Users ({unassignedUsers.length})
+                    </h3>
+                    <div className="text-sm text-gray-400">
+                      Awaiting branch assignment
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3 bg-gray-900/30 rounded-lg p-4 border-l-4 border-yellow-500/50">
+                    {unassignedUsers.map(user => (
+                      <div key={user.id} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-700/50">
+                        <div className="flex-1">
+                          <div className="text-gray-300 text-sm">
+                            <span className="font-medium">{user.user_name}</span>
+                            <span className="text-gray-500 mx-2">•</span>
+                            <span className="text-purple-400 font-semibold">{user.role}</span>
+                            <span className="text-gray-500 mx-2">•</span>
+                            <span className="text-gray-500">{user.email}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            user.approval_status === 'approved' 
+                              ? 'bg-green-900/20 text-green-400' 
+                              : user.approval_status === 'rejected'
+                              ? 'bg-red-900/20 text-red-400'
+                              : 'bg-yellow-900/20 text-yellow-400'
+                          }`}>
+                            {user.approval_status === 'approved' ? 'Active' : user.approval_status}
+                          </span>
+                          
+                          {/* Branch Assignment Dropdown */}
+                          <select
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                setSelectedBranch(e.target.value)
+                                handleAddUserToBranch(user.id)
+                              }
+                            }}
+                            className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-1.5"
+                            defaultValue=""
+                          >
+                            <option value="" disabled>Assign to branch</option>
+                            {branches.map(branch => (
+                              <option key={branch} value={branch}>{branch}</option>
+                            ))}
+                          </select>
+                          
+                          {user.approval_status === 'pending' && (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleApproval(user.id, 'approved')}
+                                className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleApproval(user.id, 'rejected')}
+                                className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {/* Bulk Actions */}
+                    <div className="pt-3 border-t border-gray-700/50 mt-4">
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs text-gray-400">
+                          💡 Tip: Assign users to branches to organize your team
+                        </div>
+                        <div className="flex gap-2">
+                          <select
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                // Bulk assign all unassigned users to selected branch
+                                const targetBranch = e.target.value
+                                unassignedUsers.forEach(user => {
+                                  setSelectedBranch(targetBranch)
+                                  handleAddUserToBranch(user.id)
+                                })
+                              }
+                            }}
+                            className="bg-gray-700 border border-gray-600 text-white text-xs rounded-lg px-2 py-1"
+                            defaultValue=""
+                          >
+                            <option value="" disabled>Bulk assign all to...</option>
+                            {branches.map(branch => (
+                              <option key={branch} value={branch}>{branch}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Users by Branch */}
               {Object.entries(usersByBranch).map(([branch, branchUsers]) => (
                 <div key={branch} className="cosmic-card w-1/2 mx-auto">
