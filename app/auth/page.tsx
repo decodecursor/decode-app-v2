@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import RoleSelectionModal from '@/components/RoleSelectionModal'
 import PasswordInput from '@/components/PasswordInput'
@@ -13,6 +13,36 @@ export default function AuthPage() {
   const [message, setMessage] = useState('')
   const [showRoleModal, setShowRoleModal] = useState(false)
   const [agreedToTerms, setAgreedToTerms] = useState(true)
+  const [emailError, setEmailError] = useState('')
+  const [checkingEmail, setCheckingEmail] = useState(false)
+
+  // Real-time email validation
+  useEffect(() => {
+    const checkEmailExists = async () => {
+      if (!isLogin && email && email.includes('@')) {
+        setCheckingEmail(true)
+        try {
+          const { data: existingUser } = await supabase.auth.admin.listUsers()
+          const emailExists = existingUser?.users?.some(user => user.email === email)
+          
+          if (emailExists) {
+            setEmailError('This email is already registered')
+          } else {
+            setEmailError('')
+          }
+        } catch (error) {
+          console.error('Error checking email:', error)
+        } finally {
+          setCheckingEmail(false)
+        }
+      } else {
+        setEmailError('')
+      }
+    }
+
+    const debounceTimer = setTimeout(checkEmailExists, 500)
+    return () => clearTimeout(debounceTimer)
+  }, [email, isLogin])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,6 +52,13 @@ export default function AuthPage() {
     // Validate terms acceptance for signup
     if (!isLogin && !agreedToTerms) {
       setMessage('Please agree to the Terms of Service and Privacy Policy')
+      setLoading(false)
+      return
+    }
+    
+    // Check for email error
+    if (!isLogin && emailError) {
+      setMessage(emailError)
       setLoading(false)
       return
     }
@@ -37,14 +74,6 @@ export default function AuthPage() {
         window.location.href = '/dashboard'
         return // Don't set loading to false for login - let redirect happen
       } else {
-        // Check if email already exists
-        const { data: existingUser } = await supabase.auth.admin.listUsers()
-        const emailExists = existingUser?.users?.some(user => user.email === email)
-        
-        if (emailExists) {
-          throw new Error('This email is already registered. Please use a different email or try logging in.')
-        }
-        
         const { data, error } = await supabase.auth.signUp({
           email,
           password
@@ -86,16 +115,26 @@ export default function AuthPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
+            <div className="relative">
               <input
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="cosmic-input"
+                className={`cosmic-input ${!isLogin && emailError ? 'border-red-500' : ''}`}
                 required
                 disabled={loading}
               />
+              {!isLogin && checkingEmail && (
+                <div className="absolute -bottom-5 left-0 text-xs text-gray-400">
+                  Checking email...
+                </div>
+              )}
+              {!isLogin && emailError && (
+                <div className="absolute -bottom-5 left-0 text-xs text-red-400">
+                  {emailError}
+                </div>
+              )}
             </div>
             <div>
               <PasswordInput
@@ -120,11 +159,11 @@ export default function AuthPage() {
                 />
                 <label htmlFor="auth-terms-agreement" className="text-xs text-gray-300 leading-relaxed">
                   I agree to the{' '}
-                  <a href="#" className="text-purple-400 underline hover:text-purple-300 transition-colors">
+                  <a href="https://welovedecode.com/#terms" target="_blank" rel="noopener noreferrer" className="text-purple-400 underline hover:text-purple-300 transition-colors">
                     Terms of Service
                   </a>
                   {' '}and{' '}
-                  <a href="#" className="text-purple-400 underline hover:text-purple-300 transition-colors">
+                  <a href="https://welovedecode.com/#privacy" target="_blank" rel="noopener noreferrer" className="text-purple-400 underline hover:text-purple-300 transition-colors">
                     Privacy Policy
                   </a>
                 </label>
