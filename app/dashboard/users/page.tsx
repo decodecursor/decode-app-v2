@@ -266,6 +266,31 @@ export default function UsersManagement() {
     }
   }
 
+  const handleUpdateUserBranches = async (userId: string, newBranchNames: string | null) => {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ branch_name: newBranchNames })
+        .eq('id', userId)
+      
+      if (error) throw error
+      
+      // Update local state
+      setUsers(users.map(u => 
+        u.id === userId 
+          ? { ...u, branch_name: newBranchNames }
+          : u
+      ))
+      
+      setMessage('User branch assignment updated successfully')
+      setTimeout(() => setMessage(''), 3000)
+      
+    } catch (error) {
+      console.error('Error updating user branches:', error)
+      setMessage('Failed to update user branch assignment')
+    }
+  }
+
   if (loading) {
     return (
       <div className="cosmic-bg min-h-screen flex items-center justify-center">
@@ -354,8 +379,8 @@ export default function UsersManagement() {
                     <h3 className="text-xl font-semibold text-gray-300">
                       Unassigned Users ({unassignedUsers.length})
                     </h3>
-                    <div className="text-sm text-gray-400">
-                      Awaiting branch assignment
+                    <div className="text-base font-semibold text-yellow-400 bg-yellow-400/10 px-3 py-1 rounded-lg border border-yellow-400/30">
+                      ⚠️ Awaiting branch assignment
                     </div>
                   </div>
                   
@@ -383,22 +408,58 @@ export default function UsersManagement() {
                             {user.approval_status === 'approved' ? 'Active' : user.approval_status}
                           </span>
                           
-                          {/* Branch Assignment Dropdown */}
-                          <select
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                setSelectedBranch(e.target.value)
-                                handleAddUserToBranch(user.id)
-                              }
-                            }}
-                            className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-1.5"
-                            defaultValue=""
-                          >
-                            <option value="" disabled>Assign to branch</option>
-                            {branches.map(branch => (
-                              <option key={branch} value={branch}>{branch}</option>
-                            ))}
-                          </select>
+                          {/* Multi-Branch Assignment Interface */}
+                          <div className="relative">
+                            <details className="relative">
+                              <summary className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-1.5 cursor-pointer hover:bg-gray-600 transition-colors list-none flex items-center justify-between">
+                                <span>Assign to branches</span>
+                                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </summary>
+                              <div className="absolute top-full left-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-10 min-w-[200px]">
+                                <div className="p-2 space-y-2 max-h-48 overflow-y-auto">
+                                  {branches.map(branch => {
+                                    const userBranches = (user.branch_name || '').split(',').map(b => b.trim())
+                                    const isAssigned = userBranches.includes(branch)
+                                    return (
+                                      <label key={branch} className="flex items-center space-x-2 p-2 hover:bg-gray-600 rounded cursor-pointer">
+                                        <input
+                                          type="checkbox"
+                                          checked={isAssigned}
+                                          onChange={() => {
+                                            if (isAssigned) {
+                                              // Remove from branch
+                                              const remainingBranches = userBranches.filter(b => b !== branch)
+                                              const updatedBranchName = remainingBranches.length > 0 ? remainingBranches.join(',') : null
+                                              handleUpdateUserBranches(user.id, updatedBranchName)
+                                            } else {
+                                              // Add to branch
+                                              const newBranches = userBranches.filter(b => b !== '').concat(branch)
+                                              handleUpdateUserBranches(user.id, newBranches.join(','))
+                                            }
+                                          }}
+                                          className="w-4 h-4 text-purple-500 bg-gray-600 border-gray-500 rounded focus:ring-purple-500"
+                                        />
+                                        <span className="text-white text-sm">{branch}</span>
+                                      </label>
+                                    )
+                                  })}
+                                </div>
+                                <div className="border-t border-gray-600 p-2">
+                                  <button
+                                    onClick={() => {
+                                      // Clear all branch assignments
+                                      handleUpdateUserBranches(user.id, null)
+                                    }}
+                                    className="w-full text-xs text-red-400 hover:text-red-300 py-1"
+                                  >
+                                    Clear all branches
+                                  </button>
+                                </div>
+                              </div>
+                            </details>
+                          </div>
                           
                           {user.approval_status === 'pending' && (
                             <div className="flex gap-2">
@@ -420,35 +481,6 @@ export default function UsersManagement() {
                       </div>
                     ))}
                     
-                    {/* Bulk Actions */}
-                    <div className="pt-3 border-t border-gray-700/50 mt-4">
-                      <div className="flex items-center justify-between">
-                        <div className="text-xs text-gray-400">
-                          💡 Tip: Assign users to branches to organize your team
-                        </div>
-                        <div className="flex gap-2">
-                          <select
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                // Bulk assign all unassigned users to selected branch
-                                const targetBranch = e.target.value
-                                unassignedUsers.forEach(user => {
-                                  setSelectedBranch(targetBranch)
-                                  handleAddUserToBranch(user.id)
-                                })
-                              }
-                            }}
-                            className="bg-gray-700 border border-gray-600 text-white text-xs rounded-lg px-2 py-1"
-                            defaultValue=""
-                          >
-                            <option value="" disabled>Bulk assign all to...</option>
-                            {branches.map(branch => (
-                              <option key={branch} value={branch}>{branch}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               )}
