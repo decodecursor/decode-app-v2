@@ -72,7 +72,7 @@ export default function AuthPage() {
     <div className="cosmic-bg">
       <div className="min-h-screen flex items-center justify-center px-4 py-8">
         <div className="cosmic-card-login">
-          <div className="text-center mb-8">
+          <div className="text-center mb-16">
             <img src="/logo.png" alt="DECODE" className="mx-auto mb-2" style={{height: '40px', filter: 'brightness(0) invert(1)'}} />
             <p className="cosmic-body opacity-70">Make Girls More Beautiful</p>
           </div>
@@ -110,7 +110,7 @@ export default function AuthPage() {
                   className="w-4 h-4 mt-1 text-purple-500 bg-gray-800 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
                   disabled={loading}
                 />
-                <label htmlFor="auth-terms-agreement" className="text-xs text-gray-300 leading-relaxed">
+                <label htmlFor="auth-terms-agreement" className="text-sm text-gray-300 leading-relaxed">
                   I agree to the{' '}
                   <a href="#" className="text-purple-400 underline hover:text-purple-300 transition-colors">
                     Terms of Service
@@ -141,7 +141,7 @@ export default function AuthPage() {
               </div>
             )}
             
-            <div className="text-center pt-2">
+            <div className="text-center pt-1">
               <button
                 type="button"
                 onClick={() => setIsLogin(!isLogin)}

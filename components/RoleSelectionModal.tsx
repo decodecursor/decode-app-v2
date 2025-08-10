@@ -45,6 +45,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
   const handleCompanySelect = (selectedCompany: string) => {
     setCompanyName(selectedCompany)
     setShowSuggestions(false)
+    setCompanySuggestions([])
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -97,7 +98,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center px-4 z-50">
       <div className="cosmic-card-login max-w-md w-full">
-        <div className="text-center mb-6">
+        <div className="text-center mb-12">
           <h2 className="cosmic-heading text-xl mb-2">Complete Your Profile</h2>
         </div>
 
@@ -156,7 +157,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
                 />
                 <div className="flex-1">
                   <div className="text-white font-medium">Admin</div>
-                  <div className="text-gray-300 text-xs">Manage company data and approve user registrations</div>
+                  <div className="text-gray-300 text-xs">Manage company data and approve users</div>
                 </div>
               </label>
               

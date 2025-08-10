@@ -163,8 +163,9 @@
   }
 }
 
-/* Purple radio buttons */
-input[type="radio"]:checked {
+/* Purple radio buttons and checkboxes */
+input[type="radio"]:checked,
+input[type="checkbox"]:checked {
   accent-color: #a855f7;
   background-color: #a855f7;
 }
