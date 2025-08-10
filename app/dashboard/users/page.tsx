@@ -27,6 +27,8 @@ export default function UsersManagement() {
   const [showDeleteUserModal, setShowDeleteUserModal] = useState(false)
   const [userToDelete, setUserToDelete] = useState<User | null>(null)
   const [branches, setBranches] = useState<string[]>([])
+  const [showAddUserModal, setShowAddUserModal] = useState(false)
+  const [selectedBranch, setSelectedBranch] = useState('')
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -119,8 +121,6 @@ export default function UsersManagement() {
       
       setNewBranchName('')
       setShowCreateBranchModal(false)
-      setMessage(`Branch '${newBranchName.trim()}' created successfully`)
-      setTimeout(() => setMessage(''), 3000)
     } catch (error) {
       console.error('Error creating branch:', error)
       setMessage('Failed to create branch')
@@ -198,6 +198,36 @@ export default function UsersManagement() {
     }
   }
 
+  const handleAddUserToBranch = async (userId: string) => {
+    if (!selectedBranch) return
+    
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ branch_name: selectedBranch })
+        .eq('id', userId)
+      
+      if (error) throw error
+      
+      // Update local state
+      setUsers(users.map(u => 
+        u.id === userId 
+          ? { ...u, branch_name: selectedBranch }
+          : u
+      ))
+      
+      // Update branches state
+      const updatedBranches = [...new Set(users.map(u => u.branch_name || 'Downtown Branch'))]
+      setBranches(updatedBranches)
+      
+      setShowAddUserModal(false)
+      setSelectedBranch('')
+    } catch (error) {
+      console.error('Error adding user to branch:', error)
+      setMessage('Failed to add user to branch')
+    }
+  }
+
   if (loading) {
     return (
       <div className="cosmic-bg min-h-screen flex items-center justify-center">
@@ -271,18 +301,31 @@ export default function UsersManagement() {
 
         <div className="flex justify-center">
           <div style={{width: '70vw'}}>
-            {/* Users by Branch */}
-            {Object.entries(usersByBranch).map(([branch, branchUsers]) => (
-              <div key={branch} className="cosmic-card mb-6 w-1/2 mx-auto">
+            <div className="space-y-6">
+              {/* Users by Branch */}
+              {Object.entries(usersByBranch).map(([branch, branchUsers]) => (
+                <div key={branch} className="cosmic-card w-1/2 mx-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold text-white">{branch}</h3>
-              <button
-                onClick={() => handleDeleteBranchClick(branch)}
-                className="px-3 py-1 text-sm border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 rounded-lg transition-colors"
-                title="Delete branch"
-              >
-                Delete Branch
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setSelectedBranch(branch)
+                    setShowAddUserModal(true)
+                  }}
+                  className="bg-gradient-to-br from-purple-600 to-purple-800 text-white border-none rounded-lg text-[13px] font-medium px-4 py-1.5 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-purple-500 hover:to-purple-700"
+                  title="Add user to branch"
+                >
+                  Add User
+                </button>
+                <button
+                  onClick={() => handleDeleteBranchClick(branch)}
+                  className="px-3 py-1 text-sm border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 rounded-lg transition-colors"
+                  title="Delete branch"
+                >
+                  Delete Branch
+                </button>
+              </div>
             </div>
             
             <div className="space-y-3">
@@ -347,7 +390,8 @@ export default function UsersManagement() {
               </div>
             )}
           </div>
-        ))}
+              ))}
+            </div>
 
             {users.length === 0 && (
               <div className="cosmic-card text-center py-12">
@@ -356,6 +400,59 @@ export default function UsersManagement() {
             )}
           </div>
         </div>
+
+        {/* Add User Modal */}
+        {showAddUserModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="cosmic-card max-w-lg w-full">
+              <h3 className="cosmic-heading mb-4 text-white">Add User to {selectedBranch}</h3>
+              <p className="text-gray-300 text-sm mb-4">
+                Select users to add to this branch:
+              </p>
+              
+              <div className="max-h-64 overflow-y-auto space-y-2 mb-6">
+                {users
+                  .filter(u => (u.branch_name || 'Downtown Branch') !== selectedBranch)
+                  .map(user => (
+                    <div key={user.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                      <div className="text-white text-sm">
+                        <span className="font-medium">{user.user_name}</span>
+                        <span className="text-gray-400 mx-2">•</span>
+                        <span className="text-purple-400">{user.role}</span>
+                        <span className="text-gray-400 mx-2">•</span>
+                        <span className="text-gray-400">{user.email}</span>
+                      </div>
+                      <button
+                        onClick={() => handleAddUserToBranch(user.id)}
+                        className="px-3 py-1 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  ))
+                }
+                
+                {users.filter(u => (u.branch_name || 'Downtown Branch') !== selectedBranch).length === 0 && (
+                  <div className="text-center text-gray-400 py-8">
+                    No users available to add to this branch
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex justify-end">
+                <button
+                  onClick={() => {
+                    setShowAddUserModal(false)
+                    setSelectedBranch('')
+                  }}
+                  className="cosmic-button-secondary px-6 py-3 border border-white/30 rounded-lg"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Delete Branch Modal */}
         {showDeleteBranchModal && (
