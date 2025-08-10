@@ -159,7 +159,7 @@ export default function UsersManagement() {
 
         {/* Users by Branch */}
         {Object.entries(usersByBranch).map(([branch, branchUsers]) => (
-          <div key={branch} className="cosmic-card mb-6">
+          <div key={branch} className="cosmic-card mb-6 w-1/2 mx-auto">
             <h3 className="text-xl font-semibold text-white mb-4">{branch}</h3>
             
             <div className="space-y-3">
