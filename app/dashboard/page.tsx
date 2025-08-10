@@ -174,29 +174,6 @@ export default function Dashboard() {
             setPendingUsersCount(count || 0)
           }
           fetchPendingCount()
-          
-          // Set up real-time subscription for pending users
-          const channel = supabase
-            .channel('users-changes')
-            .on(
-              'postgres_changes',
-              {
-                event: '*',
-                schema: 'public',
-                table: 'users',
-                filter: `company_name=eq.${userData.company_name}`
-              },
-              () => {
-                // Refetch pending count when users table changes
-                fetchPendingCount()
-              }
-            )
-            .subscribe()
-            
-          // Cleanup subscription on component unmount
-          return () => {
-            supabase.removeChannel(channel)
-          }
         }
       }
       
@@ -206,6 +183,45 @@ export default function Dashboard() {
     
     getUser()
   }, [])
+
+  // Set up real-time subscription for pending users
+  useEffect(() => {
+    if (userRole === 'Admin' && companyName) {
+      const fetchPendingCount = async () => {
+        const { count } = await supabase
+          .from('users')
+          .select('*', { count: 'exact', head: true })
+          .eq('company_name', companyName)
+          .eq('approval_status', 'pending')
+        setPendingUsersCount(count || 0)
+      }
+      
+      const channel = supabase
+        .channel('users-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'users',
+            filter: `company_name=eq.${companyName}`
+          },
+          () => {
+            // Refetch pending count when users table changes
+            fetchPendingCount()
+          }
+        )
+        .subscribe()
+        
+      // Cleanup subscription on component unmount
+      return () => {
+        supabase.removeChannel(channel)
+      }
+    }
+    
+    // Always return a cleanup function (even if empty)
+    return () => {}
+  }, [userRole, companyName])
 
   // Close dropdown when clicking outside
   useEffect(() => {
