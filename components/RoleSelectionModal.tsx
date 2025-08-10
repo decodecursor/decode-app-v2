@@ -7,12 +7,13 @@ import { supabase } from '@/lib/supabase'
 interface RoleSelectionModalProps {
   isOpen: boolean
   userEmail: string
+  userId?: string  // User ID passed from signup
   termsAcceptedAt: string
   onClose: () => void
   onComplete: () => void
 }
 
-export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt, onClose, onComplete }: RoleSelectionModalProps) {
+export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcceptedAt, onClose, onComplete }: RoleSelectionModalProps) {
   const [role, setRole] = useState('')
   const [companyName, setCompanyName] = useState('')
   const [userName, setUserName] = useState('')
@@ -78,16 +79,21 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
     setMessage('')
     
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      // Use the userId passed from signup, or try to get from session as fallback
+      let userIdToUse = userId
       
-      if (!user) {
-        throw new Error('User not found')
+      if (!userIdToUse) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          throw new Error('Unable to get user information. Please try logging in again.')
+        }
+        userIdToUse = user.id
       }
 
       const { error } = await supabase
         .from('users')
         .insert({
-          id: user.id,
+          id: userIdToUse,
           email: userEmail,
           user_name: userName.trim(),
           role: role,

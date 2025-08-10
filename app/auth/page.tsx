@@ -12,6 +12,7 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [showRoleModal, setShowRoleModal] = useState(false)
+  const [signedUpUser, setSignedUpUser] = useState<any>(null)
   const [agreedToTerms, setAgreedToTerms] = useState(true)
   const [emailError, setEmailError] = useState('')
   const [checkingEmail, setCheckingEmail] = useState(false)
@@ -81,6 +82,7 @@ export default function AuthPage() {
         if (error) throw error
         
         if (data.user) {
+          setSignedUpUser(data.user)  // Store the user data
           setShowRoleModal(true)
         } else {
           setMessage('Check your email to confirm your account!')
@@ -204,6 +206,7 @@ export default function AuthPage() {
       <RoleSelectionModal
         isOpen={showRoleModal}
         userEmail={email}
+        userId={signedUpUser?.id}  // Pass the user ID directly
         termsAcceptedAt={new Date().toISOString()}
         onClose={handleRoleModalClose}
         onComplete={handleRoleModalComplete}
