@@ -70,7 +70,7 @@ export class TransferService {
           source_transaction_id: request.sourceTransactionId,
           payment_transaction_id: request.paymentTransactionId,
           transfer_type: 'professional_payout',
-          professional_name: professional.full_name,
+          professional_name: professional.user_name,
           service_title: paymentLink.title,
           client_name: paymentLink.client_name,
           initiated_at: new Date().toISOString()
@@ -127,7 +127,7 @@ export class TransferService {
         .select(`
           *,
           payment_links (id, title, client_name),
-          users (id, full_name, wallet_address)
+          users (id, user_name, wallet_address)
         `)
         .eq('id', transactionId)
         .eq('status', 'failed')
@@ -196,7 +196,7 @@ export class TransferService {
         .select(`
           *,
           payment_links (id, title, client_name, service_amount_aed),
-          users (id, full_name, email, wallet_address)
+          users (id, user_name, email, wallet_address)
         `)
         .eq('transaction_type', 'transfer_out')
         .eq('status', 'pending')
@@ -224,7 +224,7 @@ export class TransferService {
         .select(`
           *,
           payment_links (id, title, client_name, service_amount_aed),
-          users (id, full_name, email, wallet_address)
+          users (id, user_name, email, wallet_address)
         `)
         .eq('transaction_type', 'transfer_out')
         .eq('status', 'failed')

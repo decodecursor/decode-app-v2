@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
         expiration_date,
         is_active,
         creator:users!creator_id (
-          full_name,
+          user_name,
           email
         )
       `)
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
         convertedAmount: amountInUSD / 100,
         convertedCurrency: 'USD',
         description: paymentLink.title,
-        professionalName: paymentLink.creator?.full_name || paymentLink.creator?.email?.split('@')[0] || 'Beauty Professional',
+        professionalName: paymentLink.creator?.user_name || paymentLink.creator?.email?.split('@')[0] || 'Beauty Professional',
         clientName: paymentLink.client_name || 'Client'
       }
     });

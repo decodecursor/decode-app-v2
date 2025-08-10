@@ -10,7 +10,7 @@ interface UserProfile {
   id: string
   email: string
   professional_center_name: string | null
-  full_name: string
+  user_name: string
   role: string
   profile_photo_url?: string | null // NOTE: Requires database column: ALTER TABLE users ADD COLUMN profile_photo_url TEXT;
 }
@@ -72,7 +72,7 @@ export default function ProfilePage() {
       // Type casting to bypass Supabase type checking for profile_photo_url column
       const { data: profileData, error } = await supabase
         .from('users')
-        .select('id, email, full_name, professional_center_name, role, profile_photo_url')
+        .select('id, email, user_name, professional_center_name, role, profile_photo_url')
         .eq('id', user.id)
         .single() as { data: UserProfile | null, error: any }
 

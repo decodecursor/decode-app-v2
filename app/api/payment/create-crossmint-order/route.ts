@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
         expiration_date,
         is_active,
         creator:creator_id (
-          full_name,
+          user_name,
           email
         )
       `)
@@ -92,8 +92,8 @@ export async function POST(request: NextRequest) {
 
     // Transform creator data
     const creator = Array.isArray(paymentLink.creator) 
-      ? (paymentLink.creator[0] || { full_name: null, email: '' })
-      : (paymentLink.creator || { full_name: null, email: '' })
+      ? (paymentLink.creator[0] || { user_name: null, email: '' })
+      : (paymentLink.creator || { user_name: null, email: '' })
 
     // Convert AED to USD for Crossmint (approximate rate: 1 AED = 0.27 USD)
     const amountUSD = Math.round(paymentLink.amount_aed * 0.27 * 100) // Convert to cents

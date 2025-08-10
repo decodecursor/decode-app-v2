@@ -3,7 +3,7 @@
 export interface CrossmintUser {
   id: string;
   email: string;
-  full_name: string;
+  user_name: string;
   professional_center_name: string | null;
   instagram_handle: string | null;
   wallet_address: string | null;
@@ -57,7 +57,7 @@ export interface WalletTransaction {
 export interface UserTransactionSummary {
   user_id: string;
   email: string;
-  full_name: string;
+  user_name: string;
   total_transactions: number;
   total_received_usdc: number;
   total_transferred_usdc: number;

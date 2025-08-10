@@ -17,7 +17,7 @@ interface PaymentLinkData {
   isPaid?: boolean
   creator: {
     id: string
-    full_name: string | null
+    user_name: string | null
     email: string
     company_name: string | null
   }
@@ -93,7 +93,7 @@ export default function PaymentPageClient() {
           isPaid: data.is_paid || false,
           creator: { 
             id: creator.id, 
-            full_name: creator.name, 
+            user_name: creator.name, 
             email: creator.email || 'creator@example.com',
             company_name: creator.professionalCenter 
           }

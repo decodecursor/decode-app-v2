@@ -22,7 +22,7 @@ interface PaymentLink {
   created_at: string
   paid_at: string | null
   creator: {
-    full_name: string | null
+    user_name: string | null
     email: string
   }
   transaction_count: number
@@ -162,7 +162,7 @@ export default function PaymentHistoryPage() {
           created_at,
           paid_at,
           creator:creator_id (
-            full_name,
+            user_name,
             email
           ),
           transactions (
@@ -192,7 +192,7 @@ export default function PaymentHistoryPage() {
           
           return {
             ...link,
-            creator: Array.isArray(link.creator) ? (link.creator[0] || { full_name: null, email: '' }) : (link.creator || { full_name: null, email: '' }),
+            creator: Array.isArray(link.creator) ? (link.creator[0] || { user_name: null, email: '' }) : (link.creator || { user_name: null, email: '' }),
             transaction_count: completedTransactions.length,
             total_revenue: completedTransactions.reduce((sum: number, t: any) => sum + (t.amount_aed || 0), 0)
           }

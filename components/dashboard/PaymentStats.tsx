@@ -34,7 +34,7 @@ interface PaymentStatsProps {
     id: string
     email?: string
     user_metadata?: {
-      full_name?: string
+      user_name?: string
     }
   } | null
 }

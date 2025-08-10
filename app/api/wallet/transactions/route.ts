@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     // Verify user exists
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('id, email, full_name, wallet_address, crossmint_wallet_id')
+      .select('id, email, user_name, wallet_address, crossmint_wallet_id')
       .eq('id', userId)
       .single();
 
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
         user: {
           id: user.id,
           email: user.email,
-          name: user.full_name,
+          name: user.user_name,
           walletAddress: user.wallet_address,
           crossmintWalletId: user.crossmint_wallet_id
         },

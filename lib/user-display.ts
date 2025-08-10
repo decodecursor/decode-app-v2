@@ -7,20 +7,20 @@ export interface UserDisplayInfo {
   id?: string
   email: string
   company_name?: string | null
-  full_name?: string | null
+  user_name?: string | null
 }
 
 /**
  * Get the best display name for a user
- * Priority: company_name > full_name > email (first part) 
+ * Priority: company_name > user_name > email (first part) 
  */
 export function getUserDisplayName(user: UserDisplayInfo): string {
   if (user.company_name?.trim()) {
     return user.company_name.trim()
   }
   
-  if (user.full_name?.trim()) {
-    return user.full_name.trim()
+  if (user.user_name?.trim()) {
+    return user.user_name.trim()
   }
   
   // Fallback to first part of email
@@ -42,7 +42,7 @@ export function getUserDisplayNameWithFallback(
  * Check if user has a proper display name (not just email fallback)
  */
 export function hasProperDisplayName(user: UserDisplayInfo): boolean {
-  return Boolean(user.company_name?.trim() || user.full_name?.trim())
+  return Boolean(user.company_name?.trim() || user.user_name?.trim())
 }
 
 /**
@@ -53,6 +53,6 @@ export function getBusinessDisplayName(user: UserDisplayInfo): string {
     return user.company_name.trim()
   }
   
-  // For business contexts, show full name or email as fallback
-  return user.full_name?.trim() || user.email?.split('@')[0] || 'Business'
+  // For business contexts, show user name or email as fallback
+  return user.user_name?.trim() || user.email?.split('@')[0] || 'Business'
 }

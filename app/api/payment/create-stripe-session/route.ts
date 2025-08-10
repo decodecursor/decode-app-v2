@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         creator:users!creator_id (
           id,
           email,
-          full_name
+          user_name
         )
       `)
       .eq('id', paymentLinkId)

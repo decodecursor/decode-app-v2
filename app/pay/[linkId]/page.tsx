@@ -15,7 +15,7 @@ interface PaymentLinkData {
   isPaid?: boolean
   creator: {
     id: string
-    full_name: string | null
+    user_name: string | null
     email: string
     company_name: string | null
   }
@@ -41,7 +41,7 @@ async function fetchPaymentDataForMetadata(linkId: string): Promise<PaymentLinkD
     // Fetch creator data
     const { data: creator, error: creatorError } = await supabase
       .from('users')
-      .select('id, full_name, email, professional_center_name')
+      .select('id, user_name, email, professional_center_name')
       .eq('id', paymentLink.creator_id)
       .single()
 
@@ -69,7 +69,7 @@ async function fetchPaymentDataForMetadata(linkId: string): Promise<PaymentLinkD
       isPaid: (paymentLink as any).is_paid || paymentLink.payment_status === 'paid',
       creator: { 
         id: creator.id, 
-        full_name: creator.full_name, 
+        user_name: creator.user_name, 
         email: creator.email || 'creator@example.com',
         company_name: creator.professional_center_name
       }

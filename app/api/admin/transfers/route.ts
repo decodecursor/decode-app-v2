@@ -184,7 +184,7 @@ function formatTransferForAdmin(transfer: any) {
     },
     professional: {
       id: user?.id,
-      name: user?.full_name,
+      name: user?.user_name,
       email: user?.email,
       walletAddress: user?.wallet_address
     },

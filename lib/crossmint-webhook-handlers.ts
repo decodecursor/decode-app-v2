@@ -159,7 +159,7 @@ async function handleHeadlessPaymentCompleted(event: CrossmintHeadlessWebhookEve
             destination_wallet: beautyProfessional.wallet_address,
             source_transaction_id: paymentTransaction.id,
             transfer_type: 'professional_payout',
-            professional_name: beautyProfessional.full_name
+            professional_name: beautyProfessional.user_name
           }
         });
 

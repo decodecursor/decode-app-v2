@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`🔄 Creating payment link for ${creator.full_name} (${creator.email})`);
+    console.log(`🔄 Creating payment link for ${creator.user_name} (${creator.email})`);
 
     // Create payment link with marketplace fee calculation
     const paymentLink = await crossmintDB.createPaymentLink({
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
         paymentUrl,
         creator: {
           id: creator.id,
-          name: creator.full_name,
+          name: creator.user_name,
           email: creator.email
         },
         qrCodeUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/qr?url=${encodeURIComponent(paymentUrl)}`
@@ -210,7 +210,7 @@ export async function GET(request: NextRequest) {
         paymentUrl,
         creator: creator ? {
           id: creator.id,
-          name: creator.full_name,
+          name: creator.user_name,
           professionalCenter: creator.professional_center_name
         } : null,
         qrCodeUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/qr?url=${encodeURIComponent(paymentUrl)}`

@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
         expiration_date,
         is_active,
         creator:creator_id (
-          full_name,
+          user_name,
           email
         )
       `)
@@ -59,8 +59,8 @@ export async function POST(request: NextRequest) {
 
     // Transform creator data
     const creator = Array.isArray(paymentLink.creator) 
-      ? (paymentLink.creator[0] || { full_name: null, email: '' })
-      : (paymentLink.creator || { full_name: null, email: '' })
+      ? (paymentLink.creator[0] || { user_name: null, email: '' })
+      : (paymentLink.creator || { user_name: null, email: '' })
 
     // Create payment with Crossmint API
     const crossmintPayload = {

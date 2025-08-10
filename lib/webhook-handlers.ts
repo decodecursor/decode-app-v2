@@ -334,11 +334,11 @@ async function sendPaymentConfirmationEmail({
     // Get creator information
     const { data: creator } = await supabase
       .from('users')
-      .select('full_name, email')
+      .select('user_name, email')
       .eq('id', creatorId)
       .single()
 
-    const creatorName = creator?.full_name || creator?.email || 'Service Provider'
+    const creatorName = creator?.user_name || creator?.email || 'Service Provider'
     const creatorEmail = creator?.email || ''
 
     // Send payment confirmation email
@@ -426,7 +426,7 @@ async function notifyCreatorOfFailedPayment(
         title,
         creator:creator_id (
           email,
-          full_name
+          user_name
         )
       `)
       .eq('id', paymentLinkId)
@@ -464,7 +464,7 @@ async function sendCreatorPaymentNotification(
         title,
         creator:creator_id (
           email,
-          full_name
+          user_name
         )
       `)
       .eq('id', paymentLinkId)
@@ -479,7 +479,7 @@ async function sendCreatorPaymentNotification(
         // Send creator notification
         const result = await emailService.sendCreatorPaymentNotification({
           creatorEmail: creator.email,
-          creatorName: creator.full_name || creator.email,
+          creatorName: creator.user_name || creator.email,
           transactionId: data.id,
           amount: data.amount,
           currency: data.currency,
