@@ -142,7 +142,7 @@ export default function UsersManagement() {
         )}
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 w-1/2 mx-auto">
           <div className="cosmic-card text-center">
             <div className="text-3xl font-bold text-yellow-400">{pendingUsers.length}</div>
             <div className="text-gray-300">Pending Approval</div>
