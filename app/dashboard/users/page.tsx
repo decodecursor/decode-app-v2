@@ -20,6 +20,10 @@ export default function UsersManagement() {
   const [adminCompany, setAdminCompany] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const [showCreateBranchModal, setShowCreateBranchModal] = useState(false)
+  const [newBranchName, setNewBranchName] = useState('')
+  const [showDeleteBranchModal, setShowDeleteBranchModal] = useState(false)
+  const [branchToDelete, setBranchToDelete] = useState('')
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -128,13 +132,18 @@ export default function UsersManagement() {
               <div className="flex justify-between items-center">
                 <div>
                   <h1 className="cosmic-heading mb-2">User Management</h1>
-                  <p className="text-gray-300">{adminCompany}</p>
+                  <Link 
+                    href="/dashboard"
+                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    ← Back to Dashboard
+                  </Link>
                 </div>
                 <Link 
-                  href="/dashboard"
-                  className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors px-4 py-2"
+                  href="/payment/create"
+                  className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block"
                 >
-                  ← Back to Dashboard
+                  Create PayLink
                 </Link>
               </div>
             </div>
@@ -150,6 +159,18 @@ export default function UsersManagement() {
             </div>
           </div>
         )}
+
+        {/* Create Branch Button */}
+        <div className="flex justify-center mb-6">
+          <div style={{width: '70vw'}}>
+            <button
+              onClick={() => setShowCreateBranchModal(true)}
+              className="cosmic-button-primary"
+            >
+              Create New Branch
+            </button>
+          </div>
+        </div>
 
         <div className="flex justify-center">
           <div style={{width: '70vw'}}>
