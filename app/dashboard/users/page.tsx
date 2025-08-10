@@ -271,10 +271,9 @@ export default function UsersManagement() {
 
         <div className="flex justify-center">
           <div style={{width: '70vw'}}>
-            <div className="flex flex-wrap gap-6">
-              {/* Users by Branch */}
-              {Object.entries(usersByBranch).map(([branch, branchUsers]) => (
-                <div key={branch} className="cosmic-card w-[calc(50%-12px)]">
+            {/* Users by Branch */}
+            {Object.entries(usersByBranch).map(([branch, branchUsers]) => (
+              <div key={branch} className="cosmic-card mb-6 w-1/2 mx-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold text-white">{branch}</h3>
               <button
@@ -291,9 +290,9 @@ export default function UsersManagement() {
                 <div key={user.id} className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
                   <div className="flex-1">
                     <div className="text-white text-sm">
-                      <span className="text-purple-400 font-semibold">{user.role}</span>
-                      <span className="text-gray-400 mx-2">•</span>
                       <span className="font-medium">{user.user_name}</span>
+                      <span className="text-gray-400 mx-2">•</span>
+                      <span className="text-purple-400 font-semibold">{user.role}</span>
                       <span className="text-gray-400 mx-2">•</span>
                       <span className="text-gray-400">{user.email}</span>
                     </div>
@@ -348,8 +347,7 @@ export default function UsersManagement() {
               </div>
             )}
           </div>
-              ))}
-            </div>
+        ))}
 
             {users.length === 0 && (
               <div className="cosmic-card text-center py-12">
