@@ -174,6 +174,29 @@ export default function Dashboard() {
             setPendingUsersCount(count || 0)
           }
           fetchPendingCount()
+          
+          // Set up real-time subscription for pending users
+          const channel = supabase
+            .channel('users-changes')
+            .on(
+              'postgres_changes',
+              {
+                event: '*',
+                schema: 'public',
+                table: 'users',
+                filter: `company_name=eq.${userData.company_name}`
+              },
+              () => {
+                // Refetch pending count when users table changes
+                fetchPendingCount()
+              }
+            )
+            .subscribe()
+            
+          // Cleanup subscription on component unmount
+          return () => {
+            supabase.removeChannel(channel)
+          }
         }
       }
       

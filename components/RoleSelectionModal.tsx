@@ -189,7 +189,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
             </label>
             <input
               type="text"
-              placeholder="Enter your name"
+              placeholder="Enter your full name"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
               className="cosmic-input"

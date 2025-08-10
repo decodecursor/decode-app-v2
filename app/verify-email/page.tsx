@@ -60,9 +60,6 @@ export default function VerifyEmailPage() {
                 Click the verification link in your email to activate your account and complete registration.
               </p>
 
-              <div className="text-xs text-gray-400 space-y-1">
-                <p>• The verification link expires in 24 hours</p>
-              </div>
             </div>
 
             {message && (

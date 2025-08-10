@@ -282,8 +282,8 @@ export default function UsersManagement() {
           : u
       ))
       
-      setMessage('User branch assignment updated successfully')
-      setTimeout(() => setMessage(''), 3000)
+      setMessage('Assignment updated')
+      setTimeout(() => setMessage(''), 2000)
       
     } catch (error) {
       console.error('Error updating user branches:', error)
@@ -361,7 +361,7 @@ export default function UsersManagement() {
         {message && (
           <div className="flex justify-center mb-8">
             <div style={{width: '70vw'}}>
-              <div className={`p-4 rounded-lg ${message.includes('Failed') ? 'bg-red-900/20 text-red-300' : 'bg-green-900/20 text-green-300'}`}>
+              <div className={`p-2 rounded-lg text-sm ${message.includes('Failed') ? 'bg-red-900/20 text-red-300' : 'bg-green-900/10 text-green-400 border border-green-500/20'}`}>
                 {message}
               </div>
             </div>
@@ -374,7 +374,7 @@ export default function UsersManagement() {
             <div className="space-y-6">
               {/* Unassigned Users Section */}
               {unassignedUsers.length > 0 && (
-                <div className="cosmic-card w-1/2 mx-auto mb-6">
+                <div className="cosmic-card w-1/2 mx-auto mb-6 border-2 border-orange-500/50 bg-gradient-to-r from-orange-900/20 to-yellow-900/20 shadow-lg shadow-orange-500/10">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-semibold text-gray-300">
                       Unassigned Users ({unassignedUsers.length})
@@ -384,7 +384,7 @@ export default function UsersManagement() {
                     </div>
                   </div>
                   
-                  <div className="space-y-3 bg-gray-900/30 rounded-lg p-4 border-l-4 border-yellow-500/50">
+                  <div className="space-y-3 bg-gradient-to-r from-orange-900/20 to-amber-900/20 rounded-lg p-4 border-l-4 border-orange-500 shadow-inner">
                     {unassignedUsers.map(user => (
                       <div key={user.id} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-700/50">
                         <div className="flex-1">
@@ -417,7 +417,7 @@ export default function UsersManagement() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                 </svg>
                               </summary>
-                              <div className="absolute top-full left-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-10 min-w-[200px]">
+                              <div className="absolute top-full left-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-50 min-w-[200px]">
                                 <div className="p-2 space-y-2 max-h-48 overflow-y-auto">
                                   {branches.map(branch => {
                                     const userBranches = (user.branch_name || '').split(',').map(b => b.trim())
