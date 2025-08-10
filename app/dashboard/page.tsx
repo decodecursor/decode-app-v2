@@ -292,14 +292,6 @@ export default function Dashboard() {
               {/* Right side - Navigation Buttons */}
               {userRole === 'Admin' && (
                 <div className="flex gap-4 items-center">
-                  {/* Payment History */}
-                  <Link 
-                    href="/dashboard/payments" 
-                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    Earnings
-                  </Link>
-                  
                   {/* Users Management */}
                   <Link 
                     href="/dashboard/users" 
@@ -311,6 +303,14 @@ export default function Dashboard() {
                         {pendingUsersCount}
                       </span>
                     )}
+                  </Link>
+                  
+                  {/* Payment History */}
+                  <Link 
+                    href="/dashboard/payments" 
+                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    Earnings
                   </Link>
                   
                   {/* My PayLinks */}
