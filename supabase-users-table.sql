@@ -7,7 +7,11 @@ CREATE TABLE users (
     instagram_handle TEXT UNIQUE,
     wallet_address TEXT,
     company_name TEXT NOT NULL,
+    branch_name TEXT,
     role TEXT NOT NULL CHECK (role IN ('Admin', 'User')),
+    approval_status TEXT DEFAULT 'pending' CHECK (approval_status IN ('pending', 'approved', 'rejected')),
+    approved_by UUID REFERENCES users(id),
+    approved_at TIMESTAMPTZ,
     terms_accepted_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );

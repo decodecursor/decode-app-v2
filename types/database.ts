@@ -22,6 +22,10 @@ export interface Database {
           wallet_address: string | null
           role: string
           company_name: string
+          branch_name: string | null
+          approval_status: string
+          approved_by: string | null
+          approved_at: string | null
           terms_accepted_at: string | null
           created_at: string
           crossmint_wallet_id: string | null
@@ -44,6 +48,10 @@ export interface Database {
           wallet_address?: string | null
           role: string
           company_name: string
+          branch_name?: string | null
+          approval_status?: string
+          approved_by?: string | null
+          approved_at?: string | null
           terms_accepted_at?: string | null
           created_at?: string
           crossmint_wallet_id?: string | null
@@ -66,6 +74,10 @@ export interface Database {
           wallet_address?: string | null
           role?: string
           company_name?: string
+          branch_name?: string | null
+          approval_status?: string
+          approved_by?: string | null
+          approved_at?: string | null
           terms_accepted_at?: string | null
           created_at?: string
           crossmint_wallet_id?: string | null

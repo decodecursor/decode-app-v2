@@ -14,6 +14,7 @@ interface RoleSelectionModalProps {
 export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt, onClose, onComplete }: RoleSelectionModalProps) {
   const [role, setRole] = useState('')
   const [companyName, setCompanyName] = useState('')
+  const [branchName, setBranchName] = useState('')
   const [userName, setUserName] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -66,6 +67,11 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
       setMessage('Please enter your name')
       return
     }
+    
+    if (!branchName.trim()) {
+      setMessage('Please enter your branch name')
+      return
+    }
 
     setLoading(true)
     setMessage('')
@@ -85,6 +91,8 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
           user_name: userName.trim(),
           role: role,
           company_name: companyName.trim(),
+          branch_name: branchName.trim(),
+          approval_status: role === 'Admin' ? 'approved' : 'pending',
           terms_accepted_at: termsAcceptedAt
         })
 
@@ -151,6 +159,21 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
               placeholder="Enter your name"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
+              className="cosmic-input"
+              required
+              disabled={loading}
+            />
+          </div>
+
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-300 mb-3">
+              Branch
+            </label>
+            <input
+              type="text"
+              placeholder="Enter branch name (e.g. Dubai Downtown)"
+              value={branchName}
+              onChange={(e) => setBranchName(e.target.value)}
               className="cosmic-input"
               required
               disabled={loading}
