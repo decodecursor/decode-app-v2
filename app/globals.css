@@ -172,15 +172,15 @@ input[type="checkbox"]:checked {
 
 /* Gray terms checkbox - match password eye icon color */
 .terms-checkbox {
-  accent-color: #9ca3af;
-  background-color: transparent;
-  border-color: #9ca3af;
+  accent-color: #9ca3af !important;
+  background-color: transparent !important;
+  border-color: #9ca3af !important;
 }
 
 .terms-checkbox:checked {
-  accent-color: #9ca3af;
-  background-color: #9ca3af;
-  border-color: #9ca3af;
+  accent-color: #9ca3af !important;
+  background-color: #9ca3af !important;
+  border-color: #9ca3af !important;
 }
 
 /* Smaller Stats Cards */
