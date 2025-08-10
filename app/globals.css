@@ -172,15 +172,31 @@ input[type="checkbox"]:checked {
 
 /* Gray terms checkbox - match password eye icon color */
 .terms-checkbox {
-  accent-color: #9ca3af !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 16px !important;
+  height: 16px !important;
+  border: 1px solid #9ca3af !important;
+  border-radius: 4px !important;
   background-color: transparent !important;
-  border-color: #9ca3af !important;
+  cursor: pointer !important;
+  position: relative !important;
 }
 
 .terms-checkbox:checked {
-  accent-color: #9ca3af !important;
   background-color: #9ca3af !important;
   border-color: #9ca3af !important;
+}
+
+.terms-checkbox:checked::after {
+  content: '✓' !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  color: #000000 !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
 }
 
 /* Smaller Stats Cards */
