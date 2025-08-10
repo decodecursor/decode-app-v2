@@ -22,10 +22,10 @@ export default function AuthPage() {
       if (!isLogin && email && email.includes('@')) {
         setCheckingEmail(true)
         try {
-          const { data: existingUser } = await supabase.auth.admin.listUsers()
-          const emailExists = existingUser?.users?.some(user => user.email === email)
+          const response = await fetch(`/api/auth/check-email?email=${encodeURIComponent(email)}`)
+          const data = await response.json()
           
-          if (emailExists) {
+          if (data.exists) {
             setEmailError('This email is already registered')
           } else {
             setEmailError('')
