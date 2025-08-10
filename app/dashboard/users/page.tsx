@@ -189,12 +189,20 @@ export default function UsersManagement() {
                 <div>
                   <h1 className="cosmic-heading mb-2">User Management</h1>
                 </div>
-                <Link 
-                  href="/payment/create"
-                  className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block"
-                >
-                  Create PayLink
-                </Link>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowCreateBranchModal(true)}
+                    className="bg-gradient-to-br from-purple-600 to-purple-800 text-white border-none rounded-lg text-[15px] font-medium px-5 py-2.5 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-purple-500 hover:to-purple-700 hover:shadow-[0_4px_12px_rgba(168,85,247,0.4)]"
+                  >
+                    Create Branch
+                  </button>
+                  <Link 
+                    href="/payment/create"
+                    className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block"
+                  >
+                    Create PayLink
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -210,26 +218,13 @@ export default function UsersManagement() {
           </div>
         )}
 
-        {/* Branch Management Section */}
-        <div className="flex justify-center mb-6">
-          <div style={{width: '70vw'}}>
-            <div className="flex justify-end">
-              <button
-                onClick={() => setShowCreateBranchModal(true)}
-                className="bg-gradient-to-br from-purple-600 to-purple-800 text-white border-none rounded-lg text-[15px] font-medium px-5 py-2.5 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-purple-500 hover:to-purple-700 hover:shadow-[0_4px_12px_rgba(168,85,247,0.4)]"
-              >
-                + Create New Branch
-              </button>
-            </div>
-          </div>
-        </div>
 
         <div className="flex justify-center">
           <div style={{width: '70vw'}}>
-
-        {/* Users by Branch */}
-        {Object.entries(usersByBranch).map(([branch, branchUsers]) => (
-          <div key={branch} className="cosmic-card mb-6 w-1/2 mx-auto">
+            <div className="grid grid-cols-2 gap-6">
+              {/* Users by Branch */}
+              {Object.entries(usersByBranch).map(([branch, branchUsers]) => (
+                <div key={branch} className="cosmic-card">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold text-white">{branch}</h3>
               <button
@@ -243,12 +238,20 @@ export default function UsersManagement() {
             
             <div className="space-y-3">
               {branchUsers.map(user => (
-                <div key={user.id} className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
-                  <div className="flex-1 text-white">
-                    {user.user_name} - {user.role} - {user.email}
+                <div key={user.id} className="flex items-start justify-between p-4 bg-gray-800/50 rounded-lg">
+                  <div className="flex-1">
+                    <div className="text-purple-400 text-sm font-semibold mb-1">
+                      {user.role}
+                    </div>
+                    <h4 className="text-white font-medium text-base mb-1">
+                      {user.user_name}
+                    </h4>
+                    <div className="text-gray-400 text-sm">
+                      {user.email}
+                    </div>
                   </div>
                   
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 ml-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                       user.approval_status === 'approved' 
                         ? 'bg-green-900/20 text-green-400' 
@@ -286,7 +289,8 @@ export default function UsersManagement() {
               </div>
             )}
           </div>
-        ))}
+              ))}
+            </div>
 
             {users.length === 0 && (
               <div className="cosmic-card text-center py-12">
