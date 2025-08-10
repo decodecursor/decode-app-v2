@@ -170,10 +170,17 @@ input[type="checkbox"]:checked {
   background-color: #a855f7;
 }
 
-/* Gray terms checkbox - less distracting */
+/* Gray terms checkbox - match password eye icon color */
+.terms-checkbox {
+  accent-color: #9ca3af;
+  background-color: transparent;
+  border-color: #9ca3af;
+}
+
 .terms-checkbox:checked {
   accent-color: #9ca3af;
   background-color: #9ca3af;
+  border-color: #9ca3af;
 }
 
 /* Smaller Stats Cards */

@@ -154,7 +154,7 @@ export default function AuthPage() {
                   id="auth-terms-agreement"
                   checked={agreedToTerms}
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="w-4 h-4 text-gray-300 bg-gray-800 border-gray-600 rounded focus:ring-gray-500 focus:ring-2 terms-checkbox"
+                  className="w-4 h-4 bg-gray-800 border-gray-600 rounded focus:ring-gray-400 focus:ring-2 terms-checkbox"
                   disabled={loading}
                 />
                 <label htmlFor="auth-terms-agreement" className="text-xs text-gray-300 leading-relaxed text-center">
