@@ -1,5 +1,6 @@
 'use client'
 
+// Force cache clear for TypeScript fix
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
@@ -88,8 +89,11 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
     setLoading(true)
     setMessage('')
     
+    let currentUser: any = null
+    
     try {
       const { data: { user } } = await supabase.auth.getUser()
+      currentUser = user
       
       if (!user) {
         throw new Error('User not found')
@@ -120,6 +124,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
         code: (error as any)?.code
       })
       console.error('User data being inserted:', {
+        id: currentUser?.id,
         email: userEmail,
         user_name: userName.trim(),
         role: role,
