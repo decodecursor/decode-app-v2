@@ -37,6 +37,14 @@ export default function AuthPage() {
         window.location.href = '/dashboard'
         return // Don't set loading to false for login - let redirect happen
       } else {
+        // Check if email already exists
+        const { data: existingUser } = await supabase.auth.admin.listUsers()
+        const emailExists = existingUser?.users?.some(user => user.email === email)
+        
+        if (emailExists) {
+          throw new Error('This email is already registered. Please use a different email or try logging in.')
+        }
+        
         const { data, error } = await supabase.auth.signUp({
           email,
           password
@@ -110,7 +118,7 @@ export default function AuthPage() {
                   className="w-4 h-4 mt-1 text-purple-500 bg-gray-800 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
                   disabled={loading}
                 />
-                <label htmlFor="auth-terms-agreement" className="text-sm text-gray-300 leading-relaxed">
+                <label htmlFor="auth-terms-agreement" className="text-xs text-gray-300 leading-relaxed">
                   I agree to the{' '}
                   <a href="#" className="text-purple-400 underline hover:text-purple-300 transition-colors">
                     Terms of Service

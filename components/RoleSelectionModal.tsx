@@ -14,6 +14,7 @@ interface RoleSelectionModalProps {
 export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt, onClose, onComplete }: RoleSelectionModalProps) {
   const [role, setRole] = useState('')
   const [companyName, setCompanyName] = useState('')
+  const [userName, setUserName] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [companySuggestions, setCompanySuggestions] = useState<string[]>([])
@@ -60,6 +61,11 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
       setMessage('Please enter your company name')
       return
     }
+    
+    if (!userName.trim()) {
+      setMessage('Please enter your name')
+      return
+    }
 
     setLoading(true)
     setMessage('')
@@ -76,7 +82,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
         .insert({
           id: user.id,
           email: userEmail,
-          full_name: '',
+          user_name: userName.trim(),
           role: role,
           company_name: companyName.trim(),
           terms_accepted_at: termsAcceptedAt
@@ -136,6 +142,21 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
             )}
           </div>
 
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-300 mb-3">
+              Name
+            </label>
+            <input
+              type="text"
+              placeholder="Enter your name"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              className="cosmic-input"
+              required
+              disabled={loading}
+            />
+          </div>
+
           <div className="space-y-3">
             <label className="block text-sm font-medium text-gray-300">
               Select your role
@@ -177,7 +198,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, termsAcceptedAt,
                 />
                 <div className="flex-1">
                   <div className="text-white font-medium">User</div>
-                  <div className="text-gray-300 text-xs">Access features and use services</div>
+                  <div className="text-gray-300 text-xs">Access features and use service</div>
                 </div>
               </label>
             </div>

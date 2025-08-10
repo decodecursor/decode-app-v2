@@ -2,7 +2,7 @@
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email TEXT UNIQUE NOT NULL,
-    full_name TEXT NOT NULL,
+    user_name TEXT NOT NULL,
     professional_center_name TEXT,
     instagram_handle TEXT UNIQUE,
     wallet_address TEXT,
