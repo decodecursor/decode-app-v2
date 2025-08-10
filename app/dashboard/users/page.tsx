@@ -212,8 +212,6 @@ export default function UsersManagement() {
           : u
       ))
       
-      setMessage(`User '${userToDelete.user_name}' removed from ${branchToRemoveFrom}`)
-      setTimeout(() => setMessage(''), 3000)
       setShowDeleteUserModal(false)
       setUserToDelete(null)
       setBranchToRemoveFrom('')
