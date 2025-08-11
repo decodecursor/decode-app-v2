@@ -108,17 +108,9 @@ export default function UsersManagement() {
 
         setAdminCompany(adminData.company_name)
 
-        // Get company profile image from any admin user in the company
-        const { data: adminWithPhoto } = await supabase
-          .from('users')
-          .select('profile_photo_url')
-          .eq('company_name', adminData.company_name)
-          .eq('role', 'Admin')
-          .not('profile_photo_url', 'is', null)
-          .limit(1)
-          .single()
-        
-        setCompanyProfileImage(adminWithPhoto?.profile_photo_url || null)
+        // TODO: Add profile_photo_url column to users table in database
+        // For now, set to null - ProfileImage component will show user initials
+        setCompanyProfileImage(null)
 
         // Get all users in the same company (remove profile_photo_url from query)
         const { data: companyUsers, error } = await supabase
