@@ -63,14 +63,15 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
     revenueByDay: Array<{ date: string; revenue: number; transactions: number }>
   } | null>(null)
 
-  const calculateStats = useCallback(() => {
-    // UAE timezone offset is +4 hours (UTC+4)
-    const getUAEDate = (date: Date) => {
-      const utc = date.getTime() + (date.getTimezoneOffset() * 60000)
-      return new Date(utc + (4 * 3600000))
-    }
+  // UAE timezone offset is +4 hours (UTC+4)
+  const getUAEDate = (date: Date) => {
+    const utc = date.getTime() + (date.getTimezoneOffset() * 60000)
+    return new Date(utc + (4 * 3600000))
+  }
 
-    const now = getUAEDate(new Date())
+  const now = getUAEDate(new Date())
+
+  const calculateStats = useCallback(() => {
     let currentPeriodStart: Date
     let previousPeriodStart: Date
     let previousPeriodEnd: Date
@@ -241,7 +242,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
       popularAmounts,
       revenueByDay
     })
-  }, [dateRange, customDateRange, transactions, paymentLinks])
+  }, [dateRange, customDateRange, transactions, paymentLinks, now, getUAEDate])
 
   useEffect(() => {
     calculateStats()
