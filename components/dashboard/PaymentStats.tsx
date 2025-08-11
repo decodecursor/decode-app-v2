@@ -172,7 +172,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
       .slice(0, 5)
 
     // Calculate revenue by day for chart
-    const revenueByDay: Array<{ date: string; revenue: number; transactions: number }> = []
+    const revenueByDay: Array<{ date: string; dayNumber: number; revenue: number; transactions: number }> = []
     
     if (dateRange !== 'custom' || (customDateRange?.from && customDateRange?.to)) {
       let days = 7
