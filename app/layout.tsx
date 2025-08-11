@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DECODE - Beauty Payment Platform",
+  title: "WeLoveDecode",
   description: "Streamlined payment solutions for beauty professionals",
 };
 

@@ -184,72 +184,49 @@ export default function Dashboard() {
     getUser()
   }, [])
 
-  // Set up real-time subscription for pending users
+  // Set up polling-based real-time updates for pending users
   useEffect(() => {
     if (userRole === 'Admin' && companyName) {
-      console.log('Setting up real-time subscription for company:', companyName)
-      console.log('Current user role:', userRole)
-      console.log('Supabase connection status:', supabase.realtime.channels.length, 'channels active')
-      
       const fetchPendingCount = async () => {
-        const { count } = await supabase
-          .from('users')
-          .select('*', { count: 'exact', head: true })
-          .eq('company_name', companyName)
-          .eq('approval_status', 'pending')
-        console.log('Fetched pending count:', count)
-        setPendingUsersCount(count || 0)
+        try {
+          const { count } = await supabase
+            .from('users')
+            .select('*', { count: 'exact', head: true })
+            .eq('company_name', companyName)
+            .eq('approval_status', 'pending')
+          setPendingUsersCount(count || 0)
+        } catch (error) {
+          console.error('Error fetching pending users count:', error)
+        }
+      }
+
+      // Initial fetch
+      fetchPendingCount()
+      
+      // Set up polling every 30 seconds
+      const pollInterval = setInterval(() => {
+        // Only poll if page is visible to save resources
+        if (document.visibilityState === 'visible') {
+          fetchPendingCount()
+        }
+      }, 30000) // 30 seconds
+      
+      // Refresh immediately when page becomes visible
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          fetchPendingCount()
+        }
       }
       
-      // Create a unique channel name to avoid conflicts
-      const channelName = `users-changes-${Date.now()}`
-      const channel = supabase
-        .channel(channelName)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'users',
-            filter: `company_name=eq.${companyName}`
-          },
-          (payload) => {
-            console.log('New user INSERT event received:', payload)
-            fetchPendingCount()
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'users',
-            filter: `company_name=eq.${companyName}`
-          },
-          (payload) => {
-            console.log('User UPDATE event received:', payload)
-            // Only refetch if approval_status changed
-            if (payload.old?.approval_status !== payload.new?.approval_status) {
-              console.log('Approval status changed - refetching count')
-              fetchPendingCount()
-            }
-          }
-        )
-        .subscribe((status) => {
-          console.log('Subscription status:', status)
-          if (status === 'SUBSCRIBED') {
-            console.log('Successfully subscribed to real-time updates')
-          }
-        })
-        
-      // Cleanup subscription on component unmount
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+      
+      // Cleanup on component unmount
       return () => {
-        console.log('Cleaning up real-time subscription')
-        supabase.removeChannel(channel)
+        clearInterval(pollInterval)
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
       }
     }
     
-    // Always return a cleanup function (even if empty)
     return () => {}
   }, [userRole, companyName])
 
@@ -374,6 +351,36 @@ export default function Dashboard() {
                     )}
                   </Link>
                   
+                  {/* Payment History */}
+                  <Link 
+                    href="/dashboard/payments" 
+                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    Earnings
+                  </Link>
+                  
+                  {/* My PayLinks */}
+                  <Link 
+                    href="/my-links" 
+                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    PayLinks
+                  </Link>
+                  
+                  {/* Create PayLink - Black Button */}
+                  <button 
+                    className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+                    onMouseOver={createHoverSparkles}
+                    onClick={handleCreatePayLinkClick}
+                  >
+                    Create PayLink
+                  </button>
+                </div>
+              )}
+
+              {/* User Navigation Buttons */}
+              {userRole === 'User' && (
+                <div className="flex gap-4 items-center">
                   {/* Payment History */}
                   <Link 
                     href="/dashboard/payments" 

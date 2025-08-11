@@ -4,6 +4,58 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
+// Profile Image Component
+const ProfileImage = ({ photoUrl, userName, size = 'sm' }: { 
+  photoUrl: string | null
+  userName: string
+  size?: 'sm' | 'md' 
+}) => {
+  const [imageError, setImageError] = useState(false)
+  const [imageLoading, setImageLoading] = useState(true)
+  
+  const sizeClasses = {
+    sm: 'w-8 h-8 text-xs',
+    md: 'w-10 h-10 text-sm'
+  }
+  
+  const handleImageLoad = () => {
+    setImageLoading(false)
+  }
+  
+  const handleImageError = () => {
+    setImageError(true)
+    setImageLoading(false)
+  }
+  
+  if (!photoUrl || imageError) {
+    // Default avatar with user initials
+    const initials = userName
+      ? userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+      : '??'
+    
+    return (
+      <div className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-medium flex-shrink-0`}>
+        {initials}
+      </div>
+    )
+  }
+  
+  return (
+    <div className={`${sizeClasses[size]} rounded-full overflow-hidden bg-gray-700 flex-shrink-0 relative`}>
+      {imageLoading && (
+        <div className="absolute inset-0 bg-gray-700 animate-pulse" />
+      )}
+      <img
+        src={photoUrl}
+        alt={userName}
+        className="w-full h-full object-cover"
+        onLoad={handleImageLoad}
+        onError={handleImageError}
+      />
+    </div>
+  )
+}
+
 interface User {
   id: string
   email: string
@@ -13,6 +65,7 @@ interface User {
   role: string
   approval_status: string
   created_at: string
+  profile_photo_url: string | null
 }
 
 export default function UsersManagement() {
@@ -58,7 +111,7 @@ export default function UsersManagement() {
         // Get all users in the same company
         const { data: companyUsers, error } = await supabase
           .from('users')
-          .select('id, email, user_name, company_name, branch_name, role, approval_status, created_at')
+          .select('id, email, user_name, company_name, branch_name, role, approval_status, created_at, profile_photo_url')
           .eq('company_name', adminData.company_name)
           .order('created_at', { ascending: false })
 
@@ -99,15 +152,16 @@ export default function UsersManagement() {
 
       if (error) throw error
 
-      // Update local state
-      setUsers(users.map(u => 
-        u.id === userId 
-          ? { ...u, approval_status: action }
-          : u
-      ))
+      // Update local state immediately
+      setUsers(prevUsers => 
+        prevUsers.map(u => 
+          u.id === userId 
+            ? { ...u, approval_status: action }
+            : u
+        )
+      )
 
-      setMessage(`User ${action} successfully`)
-      setTimeout(() => setMessage(''), 3000)
+      // No success message needed
 
     } catch (error) {
       console.error('Error updating user:', error)
@@ -282,8 +336,7 @@ export default function UsersManagement() {
           : u
       ))
       
-      setMessage('Assignment updated')
-      setTimeout(() => setMessage(''), 2000)
+      // No success message needed
       
     } catch (error) {
       console.error('Error updating user branches:', error)
@@ -374,20 +427,25 @@ export default function UsersManagement() {
             <div className="space-y-6">
               {/* Unassigned Users Section */}
               {unassignedUsers.length > 0 && (
-                <div className="cosmic-card w-1/2 mx-auto mb-6 border-2 border-orange-500/50 bg-gradient-to-r from-orange-900/20 to-yellow-900/20 shadow-lg shadow-orange-500/10">
+                <div className="cosmic-card w-1/2 mx-auto mb-6 border-2 border-red-500/70 bg-gradient-to-r from-red-900/30 to-pink-900/30 shadow-lg shadow-red-500/20 ring-2 ring-red-400/30">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold text-gray-300">
-                      Unassigned Users ({unassignedUsers.length})
+                    <h3 className="text-xl font-semibold text-white">
+                      Unassigned Users
                     </h3>
                     <div className="text-base font-semibold text-yellow-400 bg-yellow-400/10 px-3 py-1 rounded-lg border border-yellow-400/30">
                       ⚠️ Awaiting branch assignment
                     </div>
                   </div>
                   
-                  <div className="space-y-3 bg-gradient-to-r from-orange-900/20 to-amber-900/20 rounded-lg p-4 border-l-4 border-orange-500 shadow-inner">
+                  <div className="space-y-3 bg-gradient-to-r from-red-900/30 to-rose-900/30 rounded-lg p-4 border-l-4 border-red-500 shadow-inner">
                     {unassignedUsers.map(user => (
                       <div key={user.id} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-700/50">
-                        <div className="flex-1">
+                        <div className="flex items-center gap-3 flex-1">
+                          <ProfileImage 
+                            photoUrl={user.profile_photo_url} 
+                            userName={user.user_name}
+                            size="md"
+                          />
                           <div className="text-gray-300 text-sm">
                             <span className="font-medium">{user.user_name}</span>
                             <span className="text-gray-500 mx-2">•</span>
@@ -417,7 +475,7 @@ export default function UsersManagement() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                 </svg>
                               </summary>
-                              <div className="absolute top-full left-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-50 min-w-[200px]">
+                              <div className="absolute top-full left-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-[100] min-w-[200px]">
                                 <div className="p-2 space-y-2 max-h-48 overflow-y-auto">
                                   {branches.map(branch => {
                                     const userBranches = (user.branch_name || '').split(',').map(b => b.trim())
@@ -514,7 +572,12 @@ export default function UsersManagement() {
             <div className="space-y-3">
               {branchUsers.map(user => (
                 <div key={user.id} className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
-                  <div className="flex-1">
+                  <div className="flex items-center gap-3 flex-1">
+                    <ProfileImage 
+                      photoUrl={user.profile_photo_url} 
+                      userName={user.user_name}
+                      size="md"
+                    />
                     <div className="text-white text-sm">
                       <span className="font-medium">{user.user_name}</span>
                       <span className="text-gray-400 mx-2">•</span>
@@ -601,12 +664,19 @@ export default function UsersManagement() {
                   })
                   .map(user => (
                     <div key={user.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
-                      <div className="text-white text-sm">
-                        <span className="font-medium">{user.user_name}</span>
-                        <span className="text-gray-400 mx-2">•</span>
-                        <span className="text-purple-400">{user.role}</span>
-                        <span className="text-gray-400 mx-2">•</span>
-                        <span className="text-gray-400">{user.email}</span>
+                      <div className="flex items-center gap-3 text-white text-sm">
+                        <ProfileImage 
+                          photoUrl={user.profile_photo_url} 
+                          userName={user.user_name}
+                          size="sm"
+                        />
+                        <div>
+                          <span className="font-medium">{user.user_name}</span>
+                          <span className="text-gray-400 mx-2">•</span>
+                          <span className="text-purple-400">{user.role}</span>
+                          <span className="text-gray-400 mx-2">•</span>
+                          <span className="text-gray-400">{user.email}</span>
+                        </div>
                       </div>
                       <button
                         onClick={() => handleAddUserToBranch(user.id)}
