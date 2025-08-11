@@ -191,6 +191,9 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
           break
         case 'month':
           days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+          // For month view, ensure chartStart is properly set to 1st day in UAE timezone
+          chartStart = new Date(now.getFullYear(), now.getMonth(), 1)
+          chartStart.setHours(0, 0, 0, 0)
           break
         case 'custom':
           if (customDateRange?.from && customDateRange?.to) {
@@ -202,8 +205,10 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
       }
       
       for (let i = 0; i < days; i++) {
+        // Create date in UAE timezone consistently
         const date = new Date(chartStart.getTime() + i * 24 * 60 * 60 * 1000)
-        const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+        const uaeDate = getUAEDate(date)
+        const dayStart = new Date(uaeDate.getFullYear(), uaeDate.getMonth(), uaeDate.getDate())
         const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000)
         
         const dayLinks = paymentLinks.filter(link => {
@@ -213,7 +218,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         })
         
         revenueByDay.push({
-          date: date.toISOString().split('T')[0]!,
+          date: uaeDate.toISOString().split('T')[0]!,
           revenue: dayLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0),
           transactions: dayLinks.reduce((sum, link) => sum + link.transaction_count, 0)
         })
@@ -523,7 +528,12 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
               })}
             </div>
             <div className="flex justify-between items-center mt-4 text-xs text-white/50">
-              <span>Period: {dateRange === 'today' ? 'Today' : dateRange === 'week' ? 'This Week' : dateRange === 'month' ? 'This Month' : 'Custom Range'}</span>
+              <span>Period: {
+                dateRange === 'today' ? `Today (${now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })})` : 
+                dateRange === 'week' ? 'This Week' : 
+                dateRange === 'month' ? `This Month (${now.toLocaleDateString('en-US', { month: 'long' })})` : 
+                'Custom Range'
+              }</span>
               <span>Total: {formatCurrency(revenueByDay.reduce((sum, d) => sum + d.revenue, 0))}</span>
             </div>
           </>
