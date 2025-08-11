@@ -60,16 +60,11 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
     current: DateRangeStats
     previous: DateRangeStats
     popularAmounts: PopularAmount[]
-    revenueByDay: Array<{ date: string; revenue: number; transactions: number }>
+    revenueByDay: Array<{ date: string; dayNumber: number; revenue: number; transactions: number }>
   } | null>(null)
 
-  // UAE timezone offset is +4 hours (UTC+4)
-  const getUAEDate = (date: Date) => {
-    const utc = date.getTime() + (date.getTimezoneOffset() * 60000)
-    return new Date(utc + (4 * 3600000))
-  }
-
-  const now = getUAEDate(new Date())
+  // Use simple local date - no complex timezone conversion
+  const now = new Date()
 
   const calculateStats = useCallback(() => {
     let currentPeriodStart: Date
@@ -227,6 +222,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         
         revenueByDay.push({
           date: date.toISOString().split('T')[0]!,
+          dayNumber: date.getDate(),
           revenue: dayLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0),
           transactions: dayLinks.reduce((sum, link) => sum + link.transaction_count, 0)
         })
@@ -249,7 +245,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
       popularAmounts,
       revenueByDay
     })
-  }, [dateRange, customDateRange, transactions, paymentLinks, now, getUAEDate])
+  }, [dateRange, customDateRange, transactions, paymentLinks, now])
 
   useEffect(() => {
     calculateStats()
@@ -495,7 +491,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                       ></div>
                     </div>
                     <span className="text-xs text-white/50 mt-2 transform rotate-45 origin-center">
-                      {parseInt(day.date.split('-')[2] || '1')}
+                      {day.dayNumber}
                     </span>
                   </div>
                 )
@@ -574,13 +570,47 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
     {/* Custom Date Picker Modal - Moved outside stacking context */}
     {showDatePicker && (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10001]">
-        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-          <h3 className="text-lg font-semibold mb-4 text-gray-900">Select Date Range</h3>
+        <div className="bg-gray-800/95 backdrop-blur-lg rounded-lg p-6 max-w-md w-full mx-4 border border-gray-600/50">
+          <h3 className="text-lg font-semibold mb-4 text-white">Select Date Range</h3>
           <DayPicker
             mode="range"
             selected={customDateRange}
             onSelect={setCustomDateRange}
             className="mb-4"
+            modifiersStyles={{
+              selected: {
+                backgroundColor: '#a855f7',
+                color: 'white',
+              },
+              range_start: {
+                backgroundColor: '#a855f7',
+                color: 'white',
+              },
+              range_end: {
+                backgroundColor: '#a855f7', 
+                color: 'white',
+              },
+              range_middle: {
+                backgroundColor: '#a855f7/50',
+                color: 'white',
+              },
+            }}
+            styles={{
+              root: { color: 'white' },
+              months: { color: 'white' },
+              month: { color: 'white' },
+              caption: { color: 'white' },
+              caption_label: { color: 'white', fontSize: '16px', fontWeight: '600' },
+              nav: { color: 'white' },
+              nav_button: { color: 'white' },
+              table: { color: 'white' },
+              head_row: { color: 'white' },
+              head_cell: { color: 'white', fontWeight: '500' },
+              row: { color: 'white' },
+              cell: { color: 'white' },
+              day: { color: 'white' },
+              day_button: { color: 'white', borderRadius: '6px' },
+            }}
           />
           <div className="flex space-x-3">
             <button
