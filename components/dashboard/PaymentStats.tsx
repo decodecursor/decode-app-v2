@@ -361,6 +361,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
   const { current, previous, popularAmounts, revenueByDay } = statsData
 
   return (
+    <>
     <div className="space-y-6">
       {/* Date Range Selector */}
       <div className="cosmic-card">
@@ -604,5 +605,6 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         </div>
       </div>
     )}
+    </>
   )
 }
