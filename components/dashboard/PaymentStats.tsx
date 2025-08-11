@@ -186,9 +186,17 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
       switch (dateRange) {
         case 'today':
           days = 1
+          // For today view, ensure chartStart is set to today's date in UAE timezone
+          chartStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+          chartStart.setHours(0, 0, 0, 0)
           break
         case 'week':
           days = 7
+          // For week view, ensure chartStart is set to Monday in UAE timezone
+          const dayOfWeekForChart = now.getDay()
+          const daysFromMondayForChart = dayOfWeekForChart === 0 ? 6 : dayOfWeekForChart - 1
+          chartStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysFromMondayForChart)
+          chartStart.setHours(0, 0, 0, 0)
           break
         case 'month':
           days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
@@ -206,10 +214,9 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
       }
       
       for (let i = 0; i < days; i++) {
-        // Create date in UAE timezone consistently
+        // chartStart is already in UAE timezone, no need for double conversion
         const date = new Date(chartStart.getTime() + i * 24 * 60 * 60 * 1000)
-        const uaeDate = getUAEDate(date)
-        const dayStart = new Date(uaeDate.getFullYear(), uaeDate.getMonth(), uaeDate.getDate())
+        const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate())
         const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000)
         
         const dayLinks = paymentLinks.filter(link => {
@@ -219,7 +226,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         })
         
         revenueByDay.push({
-          date: uaeDate.toISOString().split('T')[0]!,
+          date: date.toISOString().split('T')[0]!,
           revenue: dayLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0),
           transactions: dayLinks.reduce((sum, link) => sum + link.transaction_count, 0)
         })
@@ -464,7 +471,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         
         {/* Custom Date Picker Modal */}
         {showDatePicker && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10001]">
             <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
               <h3 className="text-lg font-semibold mb-4 text-gray-900">Select Date Range</h3>
               <DayPicker
