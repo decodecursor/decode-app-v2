@@ -468,41 +468,6 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
             )}
           </div>
         </div>
-        
-        {/* Custom Date Picker Modal */}
-        {showDatePicker && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10001]">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-              <h3 className="text-lg font-semibold mb-4 text-gray-900">Select Date Range</h3>
-              <DayPicker
-                mode="range"
-                selected={customDateRange}
-                onSelect={setCustomDateRange}
-                className="mb-4"
-              />
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => {
-                    if (customDateRange?.from) {
-                      setDateRange('custom')
-                      setShowDatePicker(false)
-                    }
-                  }}
-                  disabled={!customDateRange?.from}
-                  className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                  Apply
-                </button>
-                <button
-                  onClick={() => setShowDatePicker(false)}
-                  className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Revenue Chart */}
@@ -529,7 +494,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                       ></div>
                     </div>
                     <span className="text-xs text-white/50 mt-2 transform rotate-45 origin-center">
-                      {new Date(day.date).getDate()}
+                      {parseInt(day.date.split('-')[2])}
                     </span>
                   </div>
                 )
@@ -604,5 +569,40 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
       </div>
 
     </div>
+
+    {/* Custom Date Picker Modal - Moved outside stacking context */}
+    {showDatePicker && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10001]">
+        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <h3 className="text-lg font-semibold mb-4 text-gray-900">Select Date Range</h3>
+          <DayPicker
+            mode="range"
+            selected={customDateRange}
+            onSelect={setCustomDateRange}
+            className="mb-4"
+          />
+          <div className="flex space-x-3">
+            <button
+              onClick={() => {
+                if (customDateRange?.from) {
+                  setDateRange('custom')
+                  setShowDatePicker(false)
+                }
+              }}
+              disabled={!customDateRange?.from}
+              className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            >
+              Apply
+            </button>
+            <button
+              onClick={() => setShowDatePicker(false)}
+              className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
   )
 }
