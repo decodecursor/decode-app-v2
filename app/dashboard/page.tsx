@@ -160,17 +160,22 @@ export default function Dashboard() {
         // Fetch company profile image from admin user in same company
         const currentCompanyName = userData.company_name || userData.professional_center_name
         if (currentCompanyName) {
-          const { data: adminWithPhoto } = await supabase
-            .from('users')
-            .select('profile_photo_url')
-            .eq('company_name', currentCompanyName)
-            .eq('role', 'Admin')
-            .not('profile_photo_url', 'is', null)
-            .limit(1)
-            .single()
-          
-          if (adminWithPhoto?.profile_photo_url) {
-            setCompanyProfileImage(adminWithPhoto.profile_photo_url)
+          try {
+            const { data: adminWithPhoto, error } = await supabase
+              .from('users')
+              .select('profile_photo_url')
+              .eq('company_name', currentCompanyName)
+              .eq('role', 'Admin')
+              .not('profile_photo_url', 'is', null)
+              .limit(1)
+              .maybeSingle() // Use maybeSingle instead of single to avoid errors when no rows found
+            
+            if (!error && adminWithPhoto?.profile_photo_url) {
+              setCompanyProfileImage(adminWithPhoto.profile_photo_url)
+            }
+          } catch (error) {
+            console.log('Could not fetch company profile image:', error)
+            // Continue without company image - will show default avatar
           }
         }
         
