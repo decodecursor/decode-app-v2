@@ -170,8 +170,12 @@ export default function Dashboard() {
               .limit(1)
               .maybeSingle() // Use maybeSingle instead of single to avoid errors when no rows found
             
-            if (!error && adminWithPhoto?.profile_photo_url) {
-              setCompanyProfileImage(adminWithPhoto.profile_photo_url)
+            // Type guard with explicit casting to handle RLS/permissions issues
+            if (!error && adminWithPhoto && typeof adminWithPhoto === 'object') {
+              const photoData = adminWithPhoto as { profile_photo_url?: string }
+              if (photoData.profile_photo_url) {
+                setCompanyProfileImage(photoData.profile_photo_url)
+              }
             }
           } catch (error) {
             console.log('Could not fetch company profile image:', error)
@@ -440,10 +444,10 @@ export default function Dashboard() {
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                     className="instagram-avatar"
                   >
-                    {profilePhoto ? (
+                    {companyProfileImage ? (
                       <img 
-                        src={profilePhoto} 
-                        alt="Profile" 
+                        src={companyProfileImage} 
+                        alt="Company Profile" 
                       />
                     ) : (
                       <div className="avatar-fallback">
