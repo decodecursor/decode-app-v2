@@ -495,7 +495,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                       ></div>
                     </div>
                     <span className="text-xs text-white/50 mt-2 transform rotate-45 origin-center">
-                      {parseInt(day.date.split('-')[2])}
+                      {parseInt(day.date.split('-')[2] || '1')}
                     </span>
                   </div>
                 )
