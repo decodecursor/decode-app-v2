@@ -65,12 +65,12 @@ interface User {
   role: string
   approval_status: string
   created_at: string
-  profile_photo_url: string | null
 }
 
 export default function UsersManagement() {
   const [users, setUsers] = useState<User[]>([])
   const [adminCompany, setAdminCompany] = useState<string>('')
+  const [companyProfileImage, setCompanyProfileImage] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [showCreateBranchModal, setShowCreateBranchModal] = useState(false)
@@ -108,10 +108,22 @@ export default function UsersManagement() {
 
         setAdminCompany(adminData.company_name)
 
-        // Get all users in the same company
+        // Get company profile image from any admin user in the company
+        const { data: adminWithPhoto } = await supabase
+          .from('users')
+          .select('profile_photo_url')
+          .eq('company_name', adminData.company_name)
+          .eq('role', 'Admin')
+          .not('profile_photo_url', 'is', null)
+          .limit(1)
+          .single()
+        
+        setCompanyProfileImage(adminWithPhoto?.profile_photo_url || null)
+
+        // Get all users in the same company (remove profile_photo_url from query)
         const { data: companyUsers, error } = await supabase
           .from('users')
-          .select('id, email, user_name, company_name, branch_name, role, approval_status, created_at, profile_photo_url')
+          .select('id, email, user_name, company_name, branch_name, role, approval_status, created_at')
           .eq('company_name', adminData.company_name)
           .order('created_at', { ascending: false })
 
@@ -442,7 +454,7 @@ export default function UsersManagement() {
                       <div key={user.id} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-700/50">
                         <div className="flex items-center gap-3 flex-1">
                           <ProfileImage 
-                            photoUrl={user.profile_photo_url} 
+                            photoUrl={companyProfileImage} 
                             userName={user.user_name}
                             size="md"
                           />
@@ -574,7 +586,7 @@ export default function UsersManagement() {
                 <div key={user.id} className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
                   <div className="flex items-center gap-3 flex-1">
                     <ProfileImage 
-                      photoUrl={user.profile_photo_url} 
+                      photoUrl={companyProfileImage} 
                       userName={user.user_name}
                       size="md"
                     />
@@ -666,7 +678,7 @@ export default function UsersManagement() {
                     <div key={user.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
                       <div className="flex items-center gap-3 text-white text-sm">
                         <ProfileImage 
-                          photoUrl={user.profile_photo_url} 
+                          photoUrl={companyProfileImage} 
                           userName={user.user_name}
                           size="sm"
                         />
