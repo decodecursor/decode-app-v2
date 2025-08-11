@@ -187,34 +187,64 @@ export default function Dashboard() {
   // Set up real-time subscription for pending users
   useEffect(() => {
     if (userRole === 'Admin' && companyName) {
+      console.log('Setting up real-time subscription for company:', companyName)
+      console.log('Current user role:', userRole)
+      console.log('Supabase connection status:', supabase.realtime.channels.length, 'channels active')
+      
       const fetchPendingCount = async () => {
         const { count } = await supabase
           .from('users')
           .select('*', { count: 'exact', head: true })
           .eq('company_name', companyName)
           .eq('approval_status', 'pending')
+        console.log('Fetched pending count:', count)
         setPendingUsersCount(count || 0)
       }
       
+      // Create a unique channel name to avoid conflicts
+      const channelName = `users-changes-${Date.now()}`
       const channel = supabase
-        .channel('users-changes')
+        .channel(channelName)
         .on(
           'postgres_changes',
           {
-            event: '*',
+            event: 'INSERT',
             schema: 'public',
             table: 'users',
             filter: `company_name=eq.${companyName}`
           },
-          () => {
-            // Refetch pending count when users table changes
+          (payload) => {
+            console.log('New user INSERT event received:', payload)
             fetchPendingCount()
           }
         )
-        .subscribe()
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'users',
+            filter: `company_name=eq.${companyName}`
+          },
+          (payload) => {
+            console.log('User UPDATE event received:', payload)
+            // Only refetch if approval_status changed
+            if (payload.old?.approval_status !== payload.new?.approval_status) {
+              console.log('Approval status changed - refetching count')
+              fetchPendingCount()
+            }
+          }
+        )
+        .subscribe((status) => {
+          console.log('Subscription status:', status)
+          if (status === 'SUBSCRIBED') {
+            console.log('Successfully subscribed to real-time updates')
+          }
+        })
         
       // Cleanup subscription on component unmount
       return () => {
+        console.log('Cleaning up real-time subscription')
         supabase.removeChannel(channel)
       }
     }
