@@ -6,10 +6,11 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 
+
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null)
   const [userRole, setUserRole] = useState<string | null>(null)
-  const [profilePhoto, setProfilePhoto] = useState<string | null>(null)
+  const [companyProfileImage, setCompanyProfileImage] = useState<string | null>(null)
   const [companyName, setCompanyName] = useState<string | null>(null)
   const [userName, setUserName] = useState<string | null>(null)
   const [pendingUsersCount, setPendingUsersCount] = useState(0)
@@ -147,15 +148,31 @@ export default function Dashboard() {
       // Fetch user role, professional center name, and profile photo from users table
       const { data: userData } = await supabase
         .from('users')
-        .select('role, professional_center_name, profile_photo_url, user_name, company_name, approval_status')
+        .select('role, professional_center_name, user_name, company_name, approval_status')
         .eq('id', user.id)
         .single() as { data: any, error: any }
       
       if (userData) {
         setUserRole(userData.role)
-        setProfilePhoto(userData.profile_photo_url || null) // Load profile photo from database
         setCompanyName(userData.company_name || userData.professional_center_name) // prefer company_name
         setUserName(userData.user_name)
+        
+        // Fetch company profile image from admin user in same company
+        const currentCompanyName = userData.company_name || userData.professional_center_name
+        if (currentCompanyName) {
+          const { data: adminWithPhoto } = await supabase
+            .from('users')
+            .select('profile_photo_url')
+            .eq('company_name', currentCompanyName)
+            .eq('role', 'Admin')
+            .not('profile_photo_url', 'is', null)
+            .limit(1)
+            .single()
+          
+          if (adminWithPhoto?.profile_photo_url) {
+            setCompanyProfileImage(adminWithPhoto.profile_photo_url)
+          }
+        }
         
         // Check if user is approved (skip check for Admins)
         if (userData.approval_status === 'pending' && userData.role !== 'Admin') {
@@ -272,10 +289,10 @@ export default function Dashboard() {
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                     className="instagram-avatar"
                   >
-                    {profilePhoto ? (
+                    {companyProfileImage ? (
                       <img 
-                        src={profilePhoto} 
-                        alt="Profile" 
+                        src={companyProfileImage} 
+                        alt="Company Profile" 
                       />
                     ) : (
                       <div className="avatar-fallback">
