@@ -381,7 +381,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="cosmic-label text-white/70">Revenue</h3>
+              <h3 className="cosmic-label text-white/70">Company Revenue</h3>
               {dateRange !== 'custom' && (
                 <span className={`text-xs font-medium ${getChangeColor(current.revenue, previous.revenue)}`}>
                   {formatPercentageChange(current.revenue, previous.revenue)}
@@ -400,7 +400,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
 
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="cosmic-label text-white/70">Transactions</h3>
+              <h3 className="cosmic-label text-white/70">Company Transactions</h3>
               {dateRange !== 'custom' && (
                 <span className={`text-xs font-medium ${getChangeColor(current.transactions, previous.transactions)}`}>
                   {formatPercentageChange(current.transactions, previous.transactions)}
@@ -419,7 +419,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
 
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="cosmic-label text-white/70">Anna's Commission</h3>
+              <h3 className="cosmic-label text-white/70">My Commission</h3>
               {dateRange !== 'custom' && (
                 <span className={`text-xs font-medium ${getChangeColor(current.revenue * 0.01, previous.revenue * 0.01)}`}>
                   {formatPercentageChange(current.revenue * 0.01, previous.revenue * 0.01)}
@@ -438,7 +438,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
 
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="cosmic-label text-white/70">Next Payout</h3>
+              <h3 className="cosmic-label text-white/70">My Next Payout</h3>
               {dateRange !== 'custom' && (
                 <span className={`text-xs font-medium ${getChangeColor(current.revenue * 0.1, previous.revenue * 0.1)}`}>
                   {formatPercentageChange(current.revenue * 0.1, previous.revenue * 0.1)}
@@ -458,7 +458,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         
         {/* Custom Date Picker Modal */}
         {showDatePicker && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
             <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
               <h3 className="text-lg font-semibold mb-4 text-gray-900">Select Date Range</h3>
               <DayPicker
