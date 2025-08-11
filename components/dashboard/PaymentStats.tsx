@@ -570,7 +570,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
     {/* Custom Date Picker Modal - Moved outside stacking context */}
     {showDatePicker && (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10001]">
-        <div className="bg-gray-800/95 backdrop-blur-lg rounded-lg p-6 max-w-md w-full mx-4 border border-gray-600/50">
+        <div className="cosmic-card max-w-md mx-4">
           <h3 className="text-lg font-semibold mb-4 text-white">Select Date Range</h3>
           <DayPicker
             mode="range"
@@ -591,25 +591,10 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                 color: 'white',
               },
               range_middle: {
-                backgroundColor: '#a855f7/50',
+                backgroundColor: '#a855f7',
+                opacity: 0.5,
                 color: 'white',
               },
-            }}
-            styles={{
-              root: { color: 'white' },
-              months: { color: 'white' },
-              month: { color: 'white' },
-              caption: { color: 'white' },
-              caption_label: { color: 'white', fontSize: '16px', fontWeight: '600' },
-              nav: { color: 'white' },
-              nav_button: { color: 'white' },
-              table: { color: 'white' },
-              head_row: { color: 'white' },
-              head_cell: { color: 'white', fontWeight: '500' },
-              row: { color: 'white' },
-              cell: { color: 'white' },
-              day: { color: 'white' },
-              day_button: { color: 'white', borderRadius: '6px' },
             }}
           />
           <div className="flex space-x-3">
