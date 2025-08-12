@@ -451,8 +451,10 @@ body {
   width: 54px;
   height: 54px;
   border-radius: 50%;
-  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-  padding: 3px;
+  border: 3px solid transparent;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-image: linear-gradient(white, white), linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
   cursor: pointer;
   transition: all 0.3s ease;
   box-sizing: border-box;
@@ -464,8 +466,8 @@ body {
 }
 
 .instagram-avatar img {
-  width: 100%;
-  height: 100%;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   border: none;
   object-fit: cover;
@@ -474,8 +476,8 @@ body {
 }
 
 .instagram-avatar .avatar-fallback {
-  width: 100%;
-  height: 100%;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   border: none;
   background: #6B7280;
