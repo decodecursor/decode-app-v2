@@ -129,10 +129,10 @@ export default function Dashboard() {
     event.preventDefault()
     createMagicalStarExplosion(event)
     
-    // Navigate after 0.8 seconds to show the full effect
+    // Navigate after 0.6 seconds to show the full effect
     setTimeout(() => {
       router.push('/payment/create')
-    }, 800)
+    }, 600)
   }
 
 
