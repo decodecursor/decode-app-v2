@@ -489,6 +489,19 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
               console.log('📊 Chart Data:', revenueByDay)
               console.log('📊 Max Revenue:', maxRevenue)
               
+              // Smart rounding function for Y-axis values
+              const smartRound = (value: number): number => {
+                if (value === 0) return 0
+                if (value <= 10) return Math.round(value)
+                if (value <= 50) return Math.round(value / 5) * 5
+                if (value <= 100) return Math.round(value / 10) * 10
+                if (value <= 500) return Math.round(value / 25) * 25
+                if (value <= 1000) return Math.round(value / 50) * 50
+                if (value <= 5000) return Math.round(value / 100) * 100
+                if (value <= 10000) return Math.round(value / 250) * 250
+                return Math.round(value / 500) * 500
+              }
+              
               // Calculate Y-axis scale properly
               const yAxisSteps = 5
               // If no revenue, show scale up to 100. Otherwise, add 20% padding
@@ -497,7 +510,10 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
               console.log('📊 Y-Axis Max:', yAxisMax)
               
               const stepValue = yAxisMax / yAxisSteps
-              const yAxisValues = Array.from({length: yAxisSteps + 1}, (_, i) => yAxisMax - (i * stepValue))
+              const yAxisValues = Array.from({length: yAxisSteps + 1}, (_, i) => {
+                const rawValue = yAxisMax - (i * stepValue)
+                return i === yAxisSteps ? 0 : smartRound(rawValue)
+              })
               
               // Get appropriate date labels based on period
               const getDateLabel = (day: any, index: number) => {
