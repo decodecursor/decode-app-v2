@@ -497,10 +497,15 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
               const maxRevenue = Math.max(...revenueByDay.map(d => d.revenue), 1)
               const maxTransactions = Math.max(...revenueByDay.map(d => d.transactions), 1)
               
+              console.log('📊 Chart Data:', revenueByDay)
+              console.log('📊 Max Revenue:', maxRevenue)
+              
               // Calculate Y-axis scale properly
               const yAxisSteps = 5
-              // Simple and effective scaling - always add 20% padding
-              const yAxisMax = Math.ceil(maxRevenue * 1.2)
+              // For 2050, this should be around 2500
+              const yAxisMax = maxRevenue > 0 ? Math.ceil(maxRevenue * 1.2) : 100
+              
+              console.log('📊 Y-Axis Max:', yAxisMax)
               
               const stepValue = yAxisMax / yAxisSteps
               const yAxisValues = Array.from({length: yAxisSteps + 1}, (_, i) => yAxisMax - (i * stepValue))
@@ -557,6 +562,10 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                           const heightPercent = day.revenue > 0 ? (day.revenue / yAxisMax) * 100 : 1
                           const opacityLevel = day.transactions > 0 ? Math.min(0.4 + (day.transactions / maxTransactions) * 0.6, 1) : 0.3
                           
+                          if (day.revenue > 0) {
+                            console.log(`Bar ${index} (Day ${day.dayNumber}): revenue=${day.revenue}, yAxisMax=${yAxisMax}, heightPercent=${heightPercent}%`)
+                          }
+                          
                           // Create proper date object - parse as UTC to avoid timezone issues
                           const dateParts = day.date.split('-').map(Number)
                           const dayDate = new Date(dateParts[0] || 2024, (dateParts[1] || 1) - 1, dateParts[2] || 1)
@@ -575,8 +584,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                                   }`}
                                   style={{ 
                                     height: `${heightPercent}%`, 
-                                    minHeight: '4px',
-                                    opacity: opacityLevel
+                                    minHeight: '4px'
                                   }}
                                   title={`${dayDate.toLocaleDateString('en-US', { 
                                     weekday: 'short', 
