@@ -479,21 +479,17 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
               const maxRevenue = Math.max(...revenueByDay.map(d => d.revenue), 1)
               const maxTransactions = Math.max(...revenueByDay.map(d => d.transactions), 1)
               
-              // Calculate Y-axis scale
+              // Debug logging
+              console.log('Chart Debug - maxRevenue:', maxRevenue, 'revenueByDay:', revenueByDay)
+              
+              // Calculate Y-axis scale - ensure it's close to actual max revenue
               const yAxisSteps = 5
-              // Improved scaling: ensure proper scaling for all revenue ranges
-              let stepValue
-              if (maxRevenue <= 50) {
-                stepValue = Math.ceil(maxRevenue / yAxisSteps / 5) * 5 // Round to nearest 5 for small amounts
-              } else if (maxRevenue <= 500) {
-                stepValue = Math.ceil(maxRevenue / yAxisSteps / 10) * 10 // Round to nearest 10
-              } else if (maxRevenue <= 5000) {
-                stepValue = Math.ceil(maxRevenue / yAxisSteps / 50) * 50 // Round to nearest 50
-              } else {
-                stepValue = Math.ceil(maxRevenue / yAxisSteps / 100) * 100 // Round to nearest 100
-              }
-              const yAxisMax = stepValue * yAxisSteps
+              // Simplified scaling: just add 20% padding to max revenue
+              const yAxisMax = Math.ceil(maxRevenue * 1.2)
+              const stepValue = Math.ceil(yAxisMax / yAxisSteps)
               const yAxisValues = Array.from({length: yAxisSteps + 1}, (_, i) => yAxisMax - (i * stepValue))
+              
+              console.log('Chart Debug - yAxisMax:', yAxisMax, 'stepValue:', stepValue)
               
               // Get appropriate date labels based on period
               const getDateLabel = (day: any, index: number) => {
@@ -546,7 +542,13 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                         {revenueByDay.map((day, index) => {
                           const heightPercent = day.revenue > 0 ? (day.revenue / yAxisMax) * 100 : 1
                           const opacityLevel = day.transactions > 0 ? Math.min(0.4 + (day.transactions / maxTransactions) * 0.6, 1) : 0.3
-                          const isToday = new Date(day.date).toDateString() === new Date().toDateString()
+                          
+                          // Create proper date object from the stored date string
+                          const dayDate = new Date(day.date + 'T00:00:00')
+                          const isToday = dayDate.toDateString() === new Date().toDateString()
+                          
+                          // Debug logging for each bar
+                          console.log(`Bar ${index} - Date: ${day.date}, Revenue: ${day.revenue}, Height%: ${heightPercent}, yAxisMax: ${yAxisMax}`)
                           
                           return (
                             <div key={day.date} className="flex-1 flex flex-col items-center group cursor-pointer">
@@ -561,10 +563,10 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                                   }`}
                                   style={{ 
                                     height: `${heightPercent}%`, 
-                                    minHeight: '2px',
+                                    minHeight: '4px',
                                     opacity: opacityLevel
                                   }}
-                                  title={`${new Date(day.date).toLocaleDateString('en-US', { 
+                                  title={`${dayDate.toLocaleDateString('en-US', { 
                                     weekday: 'short', 
                                     month: 'short', 
                                     day: 'numeric' 
@@ -574,7 +576,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                               
                               {/* Enhanced Tooltip on Hover */}
                               <div className="absolute bottom-full mb-2 hidden group-hover:block bg-black/90 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10 transform -translate-x-1/2 left-1/2">
-                                <div className="font-semibold">{new Date(day.date).toLocaleDateString('en-US', { 
+                                <div className="font-semibold">{dayDate.toLocaleDateString('en-US', { 
                                   weekday: 'short', 
                                   month: 'short', 
                                   day: 'numeric' 
