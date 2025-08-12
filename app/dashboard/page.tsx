@@ -288,7 +288,7 @@ export default function Dashboard() {
 
         {/* Navigation Menu */}
         <div className="mx-auto mb-8" style={{maxWidth: '3000px'}}>
-          <div className="cosmic-card">
+          <div className="cosmic-card" style={{transform: 'scaleY(0.85)'}}>
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center justify-between w-full">
               {/* Left side - Profile Section */}
