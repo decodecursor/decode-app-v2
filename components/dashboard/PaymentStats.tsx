@@ -575,16 +575,55 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
             .date-picker-custom { height: 380px !important; overflow: hidden !important; }
             .date-picker-custom .rdp-months { display: flex !important; gap: 1rem !important; height: 100% !important; }
             .date-picker-custom .rdp-month { min-height: 360px !important; }
+            
+            /* Navigation arrows - comprehensive targeting */
             .date-picker-custom .rdp-nav_button,
             .date-picker-custom .rdp-nav_button_previous,
             .date-picker-custom .rdp-nav_button_next,
             .date-picker-custom button[name="previous-month"],
-            .date-picker-custom button[name="next-month"] { color: #a855f7 !important; }
-            .date-picker-custom .rdp-day_today { color: #a855f7 !important; font-weight: bold !important; }
+            .date-picker-custom button[name="next-month"],
+            .date-picker-custom .rdp-button,
+            .date-picker-custom .rdp-nav button { 
+              color: #a855f7 !important; 
+              border-color: #a855f7 !important;
+              fill: #a855f7 !important;
+            }
+            
+            .date-picker-custom .rdp-nav_button svg,
+            .date-picker-custom .rdp-nav_button_previous svg,
+            .date-picker-custom .rdp-nav_button_next svg,
+            .date-picker-custom button[name="previous-month"] svg,
+            .date-picker-custom button[name="next-month"] svg {
+              fill: #a855f7 !important;
+              color: #a855f7 !important;
+            }
+            
+            /* Current date (today) */
+            .date-picker-custom .rdp-day_today,
+            .date-picker-custom [aria-current="date"],
+            .date-picker-custom .rdp-day[data-today] { 
+              color: #a855f7 !important; 
+              font-weight: bold !important; 
+              background-color: transparent !important;
+            }
+            
+            /* Selected dates */
             .date-picker-custom .rdp-day_selected,
             .date-picker-custom .rdp-day_range_start,
-            .date-picker-custom .rdp-day_range_end { background-color: #a855f7 !important; color: white !important; border-radius: 50% !important; }
-            .date-picker-custom .rdp-day_range_middle { background-color: #a855f7 !important; opacity: 0.3 !important; }
+            .date-picker-custom .rdp-day_range_end,
+            .date-picker-custom [aria-selected="true"],
+            .date-picker-custom .rdp-day[data-selected] { 
+              background-color: #a855f7 !important; 
+              color: white !important; 
+              border-radius: 50% !important; 
+              border: none !important;
+            }
+            
+            .date-picker-custom .rdp-day_range_middle { 
+              background-color: #a855f7 !important; 
+              opacity: 0.3 !important; 
+              color: white !important;
+            }
           `}</style>
           <h3 className="text-lg font-semibold mb-4 text-white">Select Date Range</h3>
           <DayPicker
@@ -596,7 +635,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
             onSelect={setCustomDateRange}
             className="mb-4 date-picker-custom"
           />
-          <div className="flex space-x-3">
+          <div className="flex space-x-3" style={{ marginTop: '-37px', paddingTop: '10px' }}>
             <button
               onClick={() => {
                 if (customDateRange?.from) {
