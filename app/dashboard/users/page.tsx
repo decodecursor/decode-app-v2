@@ -36,7 +36,7 @@ export default function UsersManagement() {
   const [users, setUsers] = useState<User[]>([])
   const [adminCompany, setAdminCompany] = useState<string>('')
   const [companyProfileImage, setCompanyProfileImage] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [showCreateBranchModal, setShowCreateBranchModal] = useState(false)
   const [newBranchName, setNewBranchName] = useState('')
@@ -97,8 +97,6 @@ export default function UsersManagement() {
       } catch (error) {
         console.error('Error loading users:', error)
         setMessage('Failed to load users')
-      } finally {
-        setLoading(false)
       }
     }
 
@@ -313,13 +311,6 @@ export default function UsersManagement() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="cosmic-bg min-h-screen flex items-center justify-center">
-        <div className="text-white">Loading...</div>
-      </div>
-    )
-  }
 
   const pendingUsers = users.filter(u => u.approval_status === 'pending')
   const approvedUsers = users.filter(u => u.approval_status === 'approved')
