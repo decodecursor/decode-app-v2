@@ -469,46 +469,171 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
 
       {/* Revenue Chart */}
       <div className="cosmic-card">
-        <h3 className="cosmic-heading text-white mb-4">Charts</h3>
+        <h3 className="cosmic-heading text-white mb-4">Revenue Analytics</h3>
         {revenueByDay.length > 0 ? (
           <>
-            <div className="h-64 flex items-end space-x-1">
-              {revenueByDay.map((day) => {
-                const maxRevenue = Math.max(...revenueByDay.map(d => d.revenue), 1)
-                const height = day.revenue > 0 ? (day.revenue / maxRevenue) * 100 : 2
+            {(() => {
+              const maxRevenue = Math.max(...revenueByDay.map(d => d.revenue), 1)
+              const maxTransactions = Math.max(...revenueByDay.map(d => d.transactions), 1)
+              
+              // Calculate Y-axis scale
+              const yAxisSteps = 5
+              const stepValue = Math.ceil(maxRevenue / yAxisSteps / 10) * 10 // Round to nearest 10
+              const yAxisMax = stepValue * yAxisSteps
+              const yAxisValues = Array.from({length: yAxisSteps + 1}, (_, i) => yAxisMax - (i * stepValue))
+              
+              // Get appropriate date labels based on period
+              const getDateLabel = (day: any, index: number) => {
+                const date = new Date(day.date)
+                const isToday = date.toDateString() === new Date().toDateString()
                 
-                return (
-                  <div key={day.date} className="flex-1 flex flex-col items-center group">
-                    <div className="relative flex-1 w-full flex items-end">
-                      <div 
-                        className={`w-full rounded-t-sm transition-all duration-300 ${
-                          day.revenue > 0 
-                            ? 'bg-gradient-to-t from-purple-600 to-purple-400 group-hover:from-purple-500 group-hover:to-purple-300' 
-                            : 'bg-white/10'
-                        }`}
-                        style={{ height: `${height}%`, minHeight: '2px' }}
-                        title={`${day.date}: ${formatCurrency(day.revenue)} (${day.transactions} transactions)`}
-                      ></div>
+                if (dateRange === 'today') {
+                  return isToday ? 'Today' : day.dayNumber.toString()
+                } else if (dateRange === 'week') {
+                  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+                  return weekdays[date.getDay()]
+                } else if (dateRange === 'month') {
+                  // Show every 5th day for better spacing
+                  return (day.dayNumber % 5 === 1 || day.dayNumber === 1) ? day.dayNumber.toString() : ''
+                } else {
+                  return day.dayNumber.toString()
+                }
+              }
+              
+              return (
+                <div className="relative">
+                  {/* Chart Container */}
+                  <div className="flex h-80">
+                    {/* Y-Axis */}
+                    <div className="w-16 flex flex-col justify-between py-4 pr-2">
+                      {yAxisValues.map((value, index) => (
+                        <div key={index} className="text-right">
+                          <span className="text-xs text-white/50">
+                            {value > 0 ? formatCurrency(value).replace('AED', '').trim() : '0'}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                    <span className="text-xs text-white/50 mt-2 transform rotate-45 origin-center">
-                      {day.dayNumber}
-                    </span>
+                    
+                    {/* Chart Area */}
+                    <div className="flex-1 relative">
+                      {/* Grid Lines */}
+                      <div className="absolute inset-0">
+                        {yAxisValues.map((value, index) => (
+                          <div 
+                            key={index}
+                            className="absolute w-full border-t border-white/5"
+                            style={{ top: `${(index / yAxisSteps) * 100}%` }}
+                          />
+                        ))}
+                      </div>
+                      
+                      {/* Bars */}
+                      <div className="h-full flex items-end space-x-1 pt-4 pb-4">
+                        {revenueByDay.map((day, index) => {
+                          const heightPercent = day.revenue > 0 ? (day.revenue / yAxisMax) * 100 : 1
+                          const opacityLevel = day.transactions > 0 ? Math.min(0.4 + (day.transactions / maxTransactions) * 0.6, 1) : 0.3
+                          const isToday = new Date(day.date).toDateString() === new Date().toDateString()
+                          
+                          return (
+                            <div key={day.date} className="flex-1 flex flex-col items-center group cursor-pointer">
+                              <div className="relative flex-1 w-full flex items-end">
+                                <div 
+                                  className={`w-full rounded-t-sm transition-all duration-300 ${
+                                    day.revenue > 0 
+                                      ? isToday 
+                                        ? 'bg-gradient-to-t from-yellow-500 to-yellow-300 group-hover:from-yellow-400 group-hover:to-yellow-200' 
+                                        : 'bg-gradient-to-t from-purple-600 to-purple-400 group-hover:from-purple-500 group-hover:to-purple-300'
+                                      : 'bg-white/10'
+                                  }`}
+                                  style={{ 
+                                    height: `${heightPercent}%`, 
+                                    minHeight: '2px',
+                                    opacity: opacityLevel
+                                  }}
+                                  title={`${new Date(day.date).toLocaleDateString('en-US', { 
+                                    weekday: 'short', 
+                                    month: 'short', 
+                                    day: 'numeric' 
+                                  })}: ${formatCurrency(day.revenue)} (${day.transactions} transactions)`}
+                                ></div>
+                              </div>
+                              
+                              {/* Enhanced Tooltip on Hover */}
+                              <div className="absolute bottom-full mb-2 hidden group-hover:block bg-black/90 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10 transform -translate-x-1/2 left-1/2">
+                                <div className="font-semibold">{new Date(day.date).toLocaleDateString('en-US', { 
+                                  weekday: 'short', 
+                                  month: 'short', 
+                                  day: 'numeric' 
+                                })}</div>
+                                <div>Revenue: {formatCurrency(day.revenue)}</div>
+                                <div>Transactions: {day.transactions}</div>
+                                {day.transactions > 0 && (
+                                  <div>Avg: {formatCurrency(day.revenue / day.transactions)}</div>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
                   </div>
-                )
-              })}
+                  
+                  {/* X-Axis Labels */}
+                  <div className="flex ml-16">
+                    {revenueByDay.map((day, index) => {
+                      const label = getDateLabel(day, index)
+                      return (
+                        <div key={day.date} className="flex-1 text-center">
+                          <span className="text-xs text-white/50">
+                            {label}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })()}
+            
+            {/* Chart Summary */}
+            <div className="flex justify-between items-center mt-6 pt-4 border-t border-white/10">
+              <div className="text-xs text-white/50">
+                <span>Period: {
+                  dateRange === 'today' ? `Today (${now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })})` : 
+                  dateRange === 'week' ? 'This Week' : 
+                  dateRange === 'month' ? `This Month (${now.toLocaleDateString('en-US', { month: 'long' })})` : 
+                  'Custom Range'
+                }</span>
+              </div>
+              <div className="text-xs text-white/50">
+                <span>Total: {formatCurrency(revenueByDay.reduce((sum, d) => sum + d.revenue, 0))}</span>
+                <span className="ml-4">Transactions: {revenueByDay.reduce((sum, d) => sum + d.transactions, 0)}</span>
+              </div>
             </div>
-            <div className="flex justify-between items-center mt-4 text-xs text-white/50">
-              <span>Period: {
-                dateRange === 'today' ? `Today (${now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })})` : 
-                dateRange === 'week' ? 'This Week' : 
-                dateRange === 'month' ? `This Month (${now.toLocaleDateString('en-US', { month: 'long' })})` : 
-                'Custom Range'
-              }</span>
-              <span>Total: {formatCurrency(revenueByDay.reduce((sum, d) => sum + d.revenue, 0))}</span>
+            
+            {/* Chart Legend */}
+            <div className="flex items-center justify-center space-x-6 mt-4 text-xs text-white/60">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-gradient-to-t from-purple-600 to-purple-400 rounded-sm"></div>
+                <span>Revenue (bar height)</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-purple-600 rounded-sm opacity-30"></div>
+                <span>Low activity</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-purple-600 rounded-sm opacity-100"></div>
+                <span>High activity</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-gradient-to-t from-yellow-500 to-yellow-300 rounded-sm"></div>
+                <span>Today</span>
+              </div>
             </div>
           </>
         ) : (
-          <div className="h-64 flex items-center justify-center">
+          <div className="h-80 flex items-center justify-center">
             <div className="text-center">
               <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3">
                 <svg className="w-8 h-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
