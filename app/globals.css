@@ -914,7 +914,8 @@ body {
   z-index: 1000 !important;
   cursor: pointer !important;
   pointer-events: auto !important;
-  display: inline-block !important;
+  display: inline-flex !important;
+  align-items: center !important;
 }
 
 /* Custom Date Picker Purple Theme Overrides */
