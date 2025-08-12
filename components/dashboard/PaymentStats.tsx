@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { DayPicker, DateRange } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
 
@@ -63,8 +63,8 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
     revenueByDay: Array<{ date: string; dayNumber: number; revenue: number; transactions: number }>
   } | null>(null)
 
-  // Use simple local date - no complex timezone conversion
-  const now = new Date()
+  // Use stable date reference to prevent infinite re-renders
+  const now = useMemo(() => new Date(), [dateRange])
 
   const calculateStats = useCallback(() => {
     let currentPeriodStart: Date
@@ -181,23 +181,20 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
       switch (dateRange) {
         case 'today':
           days = 1
-          // For today view, ensure chartStart is set to today's date in UAE timezone
-          chartStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-          chartStart.setHours(0, 0, 0, 0)
+          // For today view, set to today's date at midnight local time
+          chartStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
           break
         case 'week':
           days = 7
-          // For week view, ensure chartStart is set to Monday in UAE timezone
+          // For week view, set to Monday at midnight local time
           const dayOfWeekForChart = now.getDay()
           const daysFromMondayForChart = dayOfWeekForChart === 0 ? 6 : dayOfWeekForChart - 1
-          chartStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysFromMondayForChart)
-          chartStart.setHours(0, 0, 0, 0)
+          chartStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysFromMondayForChart, 0, 0, 0, 0)
           break
         case 'month':
           days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
-          // For month view, ensure chartStart is properly set to 1st day in UAE timezone
-          chartStart = new Date(now.getFullYear(), now.getMonth(), 1)
-          chartStart.setHours(0, 0, 0, 0)
+          // For month view, start from 1st day of current month in local time
+          chartStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
           break
         case 'custom':
           if (customDateRange?.from && customDateRange?.to) {
@@ -227,8 +224,14 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         const revenue = dayLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0)
         const transactionCount = dayLinks.reduce((sum, link) => sum + link.transaction_count, 0)
         
+        // Store date as local date string, not UTC ISO string
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        const localDateStr = `${year}-${month}-${day}`
+        
         revenueByDay.push({
-          date: date.toISOString().split('T')[0]!,
+          date: localDateStr,
           dayNumber: date.getDate(),
           revenue: revenue,
           transactions: transactionCount
