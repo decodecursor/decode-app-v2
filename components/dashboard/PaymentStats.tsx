@@ -649,8 +649,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
             selected={customDateRange}
             onSelect={setCustomDateRange}
             className="mb-4 date-picker-custom"
-            defaultMonth={new Date()}
-            reverseMonths={true}
+            defaultMonth={new Date(new Date().getFullYear(), new Date().getMonth() - 1)}
           />
           <div className="flex space-x-3" style={{ marginTop: '-40px', paddingTop: '10px' }}>
             <button
@@ -661,7 +660,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                 }
               }}
               disabled={!customDateRange?.from}
-              className="flex-1 bg-purple-600/50 text-white py-2 px-4 rounded-lg hover:bg-purple-600/70 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 disabled:bg-purple-600/20 disabled:cursor-not-allowed"
             >
               Apply
             </button>
