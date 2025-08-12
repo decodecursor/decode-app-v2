@@ -645,7 +645,9 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                   dateRange === 'today' ? `Today (${now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })})` : 
                   dateRange === 'week' ? 'This Week' : 
                   dateRange === 'month' ? `This Month (${now.toLocaleDateString('en-US', { month: 'long' })})` : 
-                  'Custom Range'
+                  dateRange === 'custom' && customDateRange?.from && customDateRange?.to ? 
+                    `${customDateRange.from.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} – ${customDateRange.to.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` :
+                    'Custom Range'
                 }</span>
               </div>
             </div>
