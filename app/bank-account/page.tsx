@@ -371,28 +371,18 @@ export default function BankAccountPage() {
             
             {currentStep === 'create' && (
               <div className="cosmic-card text-center py-12 max-w-md w-full">
-              <div className="w-24 h-24 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-12 h-12 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                </svg>
-              </div>
-              
-              {isConnected && (
-                <div className="mb-4">
-                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-600/20 text-green-400 border border-green-500/30">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Added Successfully
-                  </div>
-                </div>
-              )}
               
               <h2 className="text-2xl font-bold text-white mb-8">
                 {userRole === 'User' ? 'Add Your Personal Bank Account' : 'Add Business Bank Account'}
               </h2>
               
-              <div className="space-y-4 text-left">
+              <div className="w-24 h-24 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-8">
+                <svg className="w-12 h-12 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+              </div>
+              
+              <div className="space-y-4 text-left mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     {userRole === 'User' ? 'Your Full Name' : 'Beneficiary'}
@@ -429,11 +419,22 @@ export default function BankAccountPage() {
                 </div>
               </div>
               
+              {isConnected && (
+                <div className="mb-6">
+                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-600/20 text-green-400 border border-green-500/30">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Added Successfully
+                  </div>
+                </div>
+              )}
+              
               <button
                 onClick={handleSaveBankAccount}
                 disabled={loading || (!beneficiary.trim() || !iban.trim() || !bank.trim() || 
                   (beneficiary.trim() === savedBeneficiary && iban.trim() === savedIban && bank.trim() === savedBank))}
-                className="cosmic-button-primary disabled:opacity-50 mt-8 w-full"
+                className="cosmic-button-primary disabled:opacity-50 w-full"
               >
                 {loading ? 'Saving...' : 'Save'}
               </button>

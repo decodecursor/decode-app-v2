@@ -509,7 +509,7 @@ body {
 
 /* User Info Text Styling */
 .user-info-name {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: white;
   line-height: 1.2;
@@ -536,7 +536,7 @@ body {
 
   /* Mobile user info styling */
   .user-info-name {
-    font-size: 16px;
+    font-size: 14px;
   }
   
   .user-info-company {
