@@ -455,6 +455,7 @@ export default function PaymentHistoryPage() {
     )
   }
 
+  // Main component return
   return (
     <div className="cosmic-bg min-h-screen">
       <div className="min-h-screen px-4 py-8">
@@ -488,10 +489,9 @@ export default function PaymentHistoryPage() {
                 Create PayLink
               </Link>
             </div>
+            </div>
           </div>
         </div>
-
-
 
         {/* Analytics */}
         <div className="flex justify-center">
