@@ -130,7 +130,11 @@ function PaymentSuccessContent() {
             <p className="cosmic-body opacity-70 mb-6">
               We couldn&apos;t find the payment confirmation details. Please check your email for the receipt.
             </p>
-            <Link href="/dashboard" className="cosmic-button-primary inline-block">
+            <Link 
+              href="/dashboard" 
+              className="cosmic-button-primary inline-block payment-back-button"
+              onClick={() => console.log('Back to Dashboard clicked from success page')}
+            >
               Back to Dashboard
             </Link>
           </div>

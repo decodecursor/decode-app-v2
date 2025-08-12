@@ -202,7 +202,11 @@ function PaymentPendingContent() {
             <p className="cosmic-body opacity-70 mb-6">
               We couldn&apos;t find the payment information to track.
             </p>
-            <Link href="/dashboard" className="cosmic-button-primary inline-block">
+            <Link 
+              href="/dashboard" 
+              className="cosmic-button-primary inline-block payment-back-button"
+              onClick={() => console.log('Back to Dashboard clicked from pending page')}
+            >
               Back to Dashboard
             </Link>
           </div>
@@ -243,7 +247,8 @@ function PaymentPendingContent() {
               </button>
               <Link 
                 href="/dashboard" 
-                className="cosmic-input text-center cosmic-body font-medium hover:bg-white/10 transition-colors block"
+                className="cosmic-input text-center cosmic-body font-medium hover:bg-white/10 transition-colors block payment-back-button"
+                onClick={() => console.log('Back to Dashboard clicked from pending timeout state')}
               >
                 Back to Dashboard
               </Link>
@@ -348,7 +353,8 @@ function PaymentPendingContent() {
               <div className="space-y-2">
                 <Link 
                   href="/dashboard" 
-                  className="cosmic-input text-center cosmic-body font-medium hover:bg-white/10 transition-colors block"
+                  className="cosmic-input text-center cosmic-body font-medium hover:bg-white/10 transition-colors block payment-back-button"
+                  onClick={() => console.log('Back to Dashboard clicked from pending processing state')}
                 >
                   Back to Dashboard
                 </Link>

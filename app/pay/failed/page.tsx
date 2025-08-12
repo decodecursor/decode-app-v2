@@ -143,7 +143,11 @@ function PaymentFailedContent() {
             <p className="cosmic-body opacity-70 mb-6">
               We couldn&apos;t retrieve the payment failure details.
             </p>
-            <Link href="/dashboard" className="cosmic-button-primary inline-block">
+            <Link 
+              href="/dashboard" 
+              className="cosmic-button-primary inline-block payment-back-button"
+              onClick={() => console.log('Back to Dashboard clicked from failed page')}
+            >
               Back to Dashboard
             </Link>
           </div>

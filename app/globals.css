@@ -907,3 +907,41 @@ body {
     max-height: 80vh;
   }
 }
+
+/* Ensure payment page buttons are clickable */
+.payment-back-button {
+  position: relative !important;
+  z-index: 1000 !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  display: inline-block !important;
+}
+
+/* Custom Date Picker Purple Theme Overrides */
+.date-picker-purple .rdp-nav_button,
+.date-picker-purple .rdp-nav_button_previous,
+.date-picker-purple .rdp-nav_button_next {
+  color: #a855f7 !important;
+}
+
+.date-picker-purple .rdp-day_today {
+  color: #a855f7 !important;
+  font-weight: bold !important;
+}
+
+.date-picker-purple .rdp-day_selected,
+.date-picker-purple .rdp-day_range_start,
+.date-picker-purple .rdp-day_range_end {
+  background-color: #a855f7 !important;
+  color: white !important;
+  border-radius: 50% !important;
+  border: none !important;
+}
+
+.date-picker-purple .rdp-day_range_middle {
+  background-color: #a855f7 !important;
+  opacity: 0.3 !important;
+  color: white !important;
+  border-radius: 0 !important;
+  border: none !important;
+}

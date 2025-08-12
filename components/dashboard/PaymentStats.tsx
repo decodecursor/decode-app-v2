@@ -570,56 +570,14 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
     {/* Custom Date Picker Modal - Only render when visible */}
     {showDatePicker ? (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10001]">
-        <div className="cosmic-card max-w-4xl mx-4">
+        <div className="cosmic-card max-w-2xl mx-4">
           <h3 className="text-lg font-semibold mb-4 text-white">Select Date Range</h3>
           <DayPicker
             mode="range"
-            numberOfMonths={3}
+            numberOfMonths={2}
             selected={customDateRange}
             onSelect={setCustomDateRange}
-            className="mb-4"
-            styles={{
-              nav_button: {
-                color: '#a855f7',
-              },
-              nav_button_previous: {
-                color: '#a855f7',
-              },
-              nav_button_next: {
-                color: '#a855f7',
-              },
-            }}
-            modifiersStyles={{
-              today: {
-                color: '#a855f7',
-                fontWeight: 'bold',
-              },
-              selected: {
-                backgroundColor: '#a855f7',
-                color: 'white',
-                borderRadius: '50%',
-                border: 'none',
-              },
-              range_start: {
-                backgroundColor: '#a855f7',
-                color: 'white',
-                borderRadius: '50%',
-                border: 'none',
-              },
-              range_end: {
-                backgroundColor: '#a855f7', 
-                color: 'white',
-                borderRadius: '50%',
-                border: 'none',
-              },
-              range_middle: {
-                backgroundColor: '#a855f7',
-                opacity: 0.3,
-                color: 'white',
-                borderRadius: '0',
-                border: 'none',
-              },
-            }}
+            className="mb-4 date-picker-purple"
           />
           <div className="flex space-x-3">
             <button
