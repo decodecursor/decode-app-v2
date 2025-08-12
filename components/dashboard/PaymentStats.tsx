@@ -570,7 +570,22 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
     {/* Custom Date Picker Modal - Only render when visible */}
     {showDatePicker ? (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10001]">
-        <div className="cosmic-card max-w-2xl mx-4">
+        <div className="cosmic-card max-w-2xl mx-4" style={{ height: '480px' }}>
+          <style>{`
+            .date-picker-custom { height: 380px !important; overflow: hidden !important; }
+            .date-picker-custom .rdp-months { display: flex !important; gap: 1rem !important; height: 100% !important; }
+            .date-picker-custom .rdp-month { min-height: 360px !important; }
+            .date-picker-custom .rdp-nav_button,
+            .date-picker-custom .rdp-nav_button_previous,
+            .date-picker-custom .rdp-nav_button_next,
+            .date-picker-custom button[name="previous-month"],
+            .date-picker-custom button[name="next-month"] { color: #a855f7 !important; }
+            .date-picker-custom .rdp-day_today { color: #a855f7 !important; font-weight: bold !important; }
+            .date-picker-custom .rdp-day_selected,
+            .date-picker-custom .rdp-day_range_start,
+            .date-picker-custom .rdp-day_range_end { background-color: #a855f7 !important; color: white !important; border-radius: 50% !important; }
+            .date-picker-custom .rdp-day_range_middle { background-color: #a855f7 !important; opacity: 0.3 !important; }
+          `}</style>
           <h3 className="text-lg font-semibold mb-4 text-white">Select Date Range</h3>
           <DayPicker
             mode="range"
@@ -579,19 +594,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
             showOutsideDays={true}
             selected={customDateRange}
             onSelect={setCustomDateRange}
-            className="mb-4 date-picker-purple"
-            classNames={{
-              months: "flex space-x-4",
-              month: "space-y-4",
-              nav_button: "text-purple-500 hover:text-purple-700",
-              nav_button_previous: "text-purple-500 hover:text-purple-700",
-              nav_button_next: "text-purple-500 hover:text-purple-700",
-              day_today: "text-purple-500 font-bold",
-              day_selected: "bg-purple-500 text-white rounded-full",
-              day_range_start: "bg-purple-500 text-white rounded-full",
-              day_range_end: "bg-purple-500 text-white rounded-full", 
-              day_range_middle: "bg-purple-500 bg-opacity-30 text-white"
-            }}
+            className="mb-4 date-picker-custom"
           />
           <div className="flex space-x-3">
             <button

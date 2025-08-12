@@ -283,25 +283,8 @@ export default function Dashboard() {
   // Loading state removed - show content immediately
 
   return (
-    <>
-      {/* TESTING ALERT - CHANGES ARE WORKING */}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 9999,
-        backgroundColor: 'red',
-        color: 'white',
-        textAlign: 'center',
-        padding: '20px',
-        fontSize: '24px',
-        fontWeight: 'bold'
-      }}>
-        🚨 TESTING: IF YOU SEE THIS RED BANNER, CHANGES ARE WORKING! 🚨
-      </div>
     <div className="cosmic-bg">
-      <div className="min-h-screen px-4 py-8" style={{ paddingTop: '80px' }}>
+      <div className="min-h-screen px-4 py-8">
 
         {/* Navigation Menu */}
         <div className="mx-auto mb-8" style={{maxWidth: '3000px'}}>
@@ -592,6 +575,5 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
-    </>
   )
 }
