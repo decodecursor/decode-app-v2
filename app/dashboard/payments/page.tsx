@@ -404,32 +404,6 @@ export default function PaymentHistoryPage() {
 
   console.log('🎯 ABOUT TO CHECK USER STATE - user:', user, 'typeof user:', typeof user)
   
-  // Show loading state while authenticating or if no user
-  if (!user) {
-    console.log('🔄 LOADING STATE TRIGGERED - user is undefined, showing loading screen')
-    return (
-      <div style={{ 
-        backgroundColor: '#1a1a1a', 
-        minHeight: '100vh', 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center',
-        color: 'white',
-        fontSize: '24px',
-        fontFamily: 'Arial'
-      }}>
-        <div style={{
-          backgroundColor: '#333',
-          padding: '40px',
-          borderRadius: '10px',
-          textAlign: 'center'
-        }}>
-          <div>🔄 LOADING DASHBOARD...</div>
-          <div style={{fontSize: '16px', marginTop: '10px'}}>Authenticating user...</div>
-        </div>
-      </div>
-    )
-  }
 
   if (error) {
     return (
