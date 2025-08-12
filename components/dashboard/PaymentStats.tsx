@@ -67,10 +67,6 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
   const now = new Date()
 
   const calculateStats = useCallback(() => {
-    console.log('🔍 CALCULATE STATS DEBUG - Starting calculation')
-    console.log('📊 Payment Links Data:', paymentLinks)
-    console.log('💰 Transactions Data:', transactions)
-    
     let currentPeriodStart: Date
     let previousPeriodStart: Date
     let previousPeriodEnd: Date
@@ -212,47 +208,24 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
           break
       }
       
-      console.log(`📅 Chart period: ${dateRange}, Days: ${days}, ChartStart: ${chartStart}`)
-      
       for (let i = 0; i < days; i++) {
-        // chartStart is already in UAE timezone, no need for double conversion
         const date = new Date(chartStart.getTime() + i * 24 * 60 * 60 * 1000)
         const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate())
         const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000)
         
-        console.log(`\n🗓️  Processing Day ${i + 1}: ${date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}`)
-        console.log(`   Chart Date Object: ${date}`)
-        console.log(`   Chart Date ISO: ${date.toISOString().split('T')[0]}`)
-        
         const dayLinks = paymentLinks.filter(link => {
-          if (!link.paid_at) {
-            console.log(`   ❌ Link ${link.id} has no paid_at`)
-            return false
-          }
+          if (!link.paid_at) return false
           
           // Create dates in the same timezone context for accurate comparison
           const paidDate = new Date(link.paid_at)
           const paidDateOnly = new Date(paidDate.getFullYear(), paidDate.getMonth(), paidDate.getDate())
           const chartDateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate())
           
-          console.log(`   🔍 Link ${link.id}: paid_at="${link.paid_at}", paidDate=${paidDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}`)
-          console.log(`   📊 Comparing: chartDate=${chartDateOnly.getTime()} vs paidDate=${paidDateOnly.getTime()}`)
-          
-          const matches = paidDateOnly.getTime() === chartDateOnly.getTime()
-          console.log(`   ${matches ? '✅' : '❌'} Match: ${matches}`)
-          
-          return matches
+          return paidDateOnly.getTime() === chartDateOnly.getTime()
         })
         
-        const revenue = dayLinks.reduce((sum, link) => {
-          const amount = link.service_amount_aed || link.amount_aed
-          console.log(`   💰 Link ${link.id}: service_amount_aed=${link.service_amount_aed}, amount_aed=${link.amount_aed}, using=${amount}`)
-          return sum + amount
-        }, 0)
-        
+        const revenue = dayLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0)
         const transactionCount = dayLinks.reduce((sum, link) => sum + link.transaction_count, 0)
-        
-        console.log(`   📈 Day Summary: ${dayLinks.length} links, Revenue: ${revenue}, Transactions: ${transactionCount}`)
         
         revenueByDay.push({
           date: date.toISOString().split('T')[0]!,
@@ -510,17 +483,27 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
               const maxRevenue = Math.max(...revenueByDay.map(d => d.revenue), 1)
               const maxTransactions = Math.max(...revenueByDay.map(d => d.transactions), 1)
               
-              // Debug logging
-              console.log('Chart Debug - maxRevenue:', maxRevenue, 'revenueByDay:', revenueByDay)
-              
-              // Calculate Y-axis scale - ensure it's close to actual max revenue
+              // Calculate Y-axis scale properly
               const yAxisSteps = 5
-              // Simplified scaling: just add 20% padding to max revenue
-              const yAxisMax = Math.ceil(maxRevenue * 1.2)
-              const stepValue = Math.ceil(yAxisMax / yAxisSteps)
-              const yAxisValues = Array.from({length: yAxisSteps + 1}, (_, i) => yAxisMax - (i * stepValue))
+              // Better scaling: round up to nice numbers
+              let yAxisMax
+              if (maxRevenue <= 100) {
+                yAxisMax = Math.ceil(maxRevenue / 20) * 20
+              } else if (maxRevenue <= 1000) {
+                yAxisMax = Math.ceil(maxRevenue / 100) * 100
+              } else if (maxRevenue <= 10000) {
+                yAxisMax = Math.ceil(maxRevenue / 500) * 500
+              } else {
+                yAxisMax = Math.ceil(maxRevenue / 1000) * 1000
+              }
               
-              console.log('Chart Debug - yAxisMax:', yAxisMax, 'stepValue:', stepValue)
+              // Ensure yAxisMax is at least slightly higher than maxRevenue
+              if (yAxisMax <= maxRevenue) {
+                yAxisMax = maxRevenue * 1.1
+              }
+              
+              const stepValue = yAxisMax / yAxisSteps
+              const yAxisValues = Array.from({length: yAxisSteps + 1}, (_, i) => yAxisMax - (i * stepValue))
               
               // Get appropriate date labels based on period
               const getDateLabel = (day: any, index: number) => {
@@ -574,12 +557,10 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                           const heightPercent = day.revenue > 0 ? (day.revenue / yAxisMax) * 100 : 1
                           const opacityLevel = day.transactions > 0 ? Math.min(0.4 + (day.transactions / maxTransactions) * 0.6, 1) : 0.3
                           
-                          // Create proper date object from the stored date string
-                          const dayDate = new Date(day.date + 'T00:00:00')
+                          // Create proper date object - parse as UTC to avoid timezone issues
+                          const [year, month, dayNum] = day.date.split('-').map(Number)
+                          const dayDate = new Date(year, month - 1, dayNum)
                           const isToday = dayDate.toDateString() === new Date().toDateString()
-                          
-                          // Debug logging for each bar
-                          console.log(`Bar ${index} - Date: ${day.date}, Revenue: ${day.revenue}, Height%: ${heightPercent}, yAxisMax: ${yAxisMax}`)
                           
                           return (
                             <div key={day.date} className="flex-1 flex flex-col items-center group cursor-pointer">
@@ -605,8 +586,13 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                                 ></div>
                               </div>
                               
-                              {/* Enhanced Tooltip on Hover */}
-                              <div className="absolute bottom-full mb-2 hidden group-hover:block bg-black/90 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10 transform -translate-x-1/2 left-1/2">
+                              {/* Enhanced Tooltip on Hover - positioned relative to bar */}
+                              <div className="absolute hidden group-hover:block bg-black/90 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10"
+                                   style={{
+                                     bottom: `${heightPercent + 5}%`,
+                                     left: '50%',
+                                     transform: 'translateX(-50%)'
+                                   }}>
                                 <div className="font-semibold">{dayDate.toLocaleDateString('en-US', { 
                                   weekday: 'short', 
                                   month: 'short', 
@@ -639,7 +625,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
               )
             })()}
             
-            {/* Chart Summary */}
+            {/* Chart Summary - only show period */}
             <div className="flex justify-between items-center mt-6 pt-4 border-t border-white/10">
               <div className="text-xs text-white/50">
                 <span>Period: {
@@ -648,30 +634,6 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                   dateRange === 'month' ? `This Month (${now.toLocaleDateString('en-US', { month: 'long' })})` : 
                   'Custom Range'
                 }</span>
-              </div>
-              <div className="text-xs text-white/50">
-                <span>Total: {formatCurrency(revenueByDay.reduce((sum, d) => sum + d.revenue, 0))}</span>
-                <span className="ml-4">Transactions: {revenueByDay.reduce((sum, d) => sum + d.transactions, 0)}</span>
-              </div>
-            </div>
-            
-            {/* Chart Legend */}
-            <div className="flex items-center justify-center space-x-6 mt-4 text-xs text-white/60">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-gradient-to-t from-purple-600 to-purple-400 rounded-sm"></div>
-                <span>Revenue (bar height)</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-purple-600 rounded-sm opacity-30"></div>
-                <span>Low activity</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-purple-600 rounded-sm opacity-100"></div>
-                <span>High activity</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-gradient-to-t from-yellow-500 to-yellow-300 rounded-sm"></div>
-                <span>Today</span>
               </div>
             </div>
           </>
