@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   description: "Streamlined payment solutions for beauty professionals",
   icons: {
     icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
       { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
       { url: '/favicon.png', sizes: '32x32', type: 'image/png' },
     ],

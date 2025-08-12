@@ -380,7 +380,7 @@ export default function ProfilePage() {
             <div className="space-y-8">
           {/* Profile Photo Section */}  
           <div className="cosmic-card-profile h-fit">
-            <h2 className="text-xl font-semibold text-white mb-8">Profile Photo</h2>
+            <h2 className="text-xl font-semibold text-white mb-8">Company Profile Photo</h2>
             
             <div className="text-center">
               {/* Profile Photo Display */}

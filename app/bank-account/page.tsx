@@ -383,13 +383,13 @@ export default function BankAccountPage() {
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    Connected
+                    Added Successfully
                   </div>
                 </div>
               )}
               
               <h2 className="text-2xl font-bold text-white mb-8">
-                {userRole === 'User' ? 'Add Your Personal Bank Account' : 'Connect Business Bank Account'}
+                {userRole === 'User' ? 'Add Your Personal Bank Account' : 'Add Business Bank Account'}
               </h2>
               
               <div className="space-y-4 text-left">
