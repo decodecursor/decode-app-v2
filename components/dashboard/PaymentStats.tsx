@@ -205,6 +205,8 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
           break
       }
       
+      console.log(`📅 Chart Generation: ${dateRange} view, ${days} days, starting from ${chartStart}`)
+      
       for (let i = 0; i < days; i++) {
         const date = new Date(chartStart.getTime() + i * 24 * 60 * 60 * 1000)
         
@@ -212,17 +214,26 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
           if (!link.paid_at) return false
           
           // Parse paid_at date and handle timezone properly
-          // paid_at might be like "2025-08-06T09:53:00" or "2025-08-06"
           const paidDate = new Date(link.paid_at)
           
           // Compare just the date parts (year, month, day) ignoring time and timezone
-          return paidDate.getFullYear() === date.getFullYear() &&
-                 paidDate.getMonth() === date.getMonth() &&
-                 paidDate.getDate() === date.getDate()
+          const matches = paidDate.getFullYear() === date.getFullYear() &&
+                         paidDate.getMonth() === date.getMonth() &&
+                         paidDate.getDate() === date.getDate()
+          
+          if (i < 10 || matches) { // Log first 10 days and any matches
+            console.log(`  Day ${i+1} (${date.toLocaleDateString()}): Checking link paid on ${paidDate.toLocaleDateString()} - Match: ${matches}`)
+          }
+          
+          return matches
         })
         
         const revenue = dayLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0)
         const transactionCount = dayLinks.reduce((sum, link) => sum + link.transaction_count, 0)
+        
+        if (revenue > 0) {
+          console.log(`  📊 Day ${i+1} (${date.toLocaleDateString()}): Revenue=${revenue}, Transactions=${transactionCount}`)
+        }
         
         // Store date as local date string, not UTC ISO string
         const year = date.getFullYear()
