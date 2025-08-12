@@ -558,8 +558,8 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                           const opacityLevel = day.transactions > 0 ? Math.min(0.4 + (day.transactions / maxTransactions) * 0.6, 1) : 0.3
                           
                           // Create proper date object - parse as UTC to avoid timezone issues
-                          const [year, month, dayNum] = day.date.split('-').map(Number)
-                          const dayDate = new Date(year, month - 1, dayNum)
+                          const dateParts = day.date.split('-').map(Number)
+                          const dayDate = new Date(dateParts[0] || 2024, (dateParts[1] || 1) - 1, dateParts[2] || 1)
                           const isToday = dayDate.toDateString() === new Date().toDateString()
                           
                           return (
