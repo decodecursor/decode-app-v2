@@ -448,11 +448,14 @@ body {
 .instagram-avatar {
   position: relative;
   display: inline-block;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
-  padding: 0;
-  background: transparent;
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  padding: 3px;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .instagram-avatar:hover {
@@ -461,19 +464,18 @@ body {
 }
 
 .instagram-avatar img {
-  width: 48px;
-  height: 48px;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  border: 3px solid transparent;
-  background: linear-gradient(white, white) padding-box,
-              linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) border-box;
+  border: none;
   object-fit: cover;
   display: block;
+  background: white;
 }
 
 .instagram-avatar .avatar-fallback {
-  width: 48px;
-  height: 48px;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   border: none;
   background: #6B7280;
