@@ -875,15 +875,15 @@ body {
 }
 
 .ribbon-paid {
-  background: #10B981;
+  background: #10b981;
 }
 
 .ribbon-expired {
-  background: #EF4444;
+  background: #ef4444;
 }
 
 .ribbon-deactivated {
-  background: #EF4444;
+  background: #ef4444;
 }
 
 /* ReactCrop Circular Selection Styling */
