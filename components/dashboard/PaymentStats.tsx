@@ -67,6 +67,10 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
   const now = new Date()
 
   const calculateStats = useCallback(() => {
+    console.log('🔍 CALCULATE STATS DEBUG - Starting calculation')
+    console.log('📊 Payment Links Data:', paymentLinks)
+    console.log('💰 Transactions Data:', transactions)
+    
     let currentPeriodStart: Date
     let previousPeriodStart: Date
     let previousPeriodEnd: Date
@@ -208,26 +212,53 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
           break
       }
       
+      console.log(`📅 Chart period: ${dateRange}, Days: ${days}, ChartStart: ${chartStart}`)
+      
       for (let i = 0; i < days; i++) {
         // chartStart is already in UAE timezone, no need for double conversion
         const date = new Date(chartStart.getTime() + i * 24 * 60 * 60 * 1000)
         const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate())
         const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000)
         
+        console.log(`\n🗓️  Processing Day ${i + 1}: ${date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}`)
+        console.log(`   Chart Date Object: ${date}`)
+        console.log(`   Chart Date ISO: ${date.toISOString().split('T')[0]}`)
+        
         const dayLinks = paymentLinks.filter(link => {
-          if (!link.paid_at) return false
+          if (!link.paid_at) {
+            console.log(`   ❌ Link ${link.id} has no paid_at`)
+            return false
+          }
+          
           // Create dates in the same timezone context for accurate comparison
           const paidDate = new Date(link.paid_at)
           const paidDateOnly = new Date(paidDate.getFullYear(), paidDate.getMonth(), paidDate.getDate())
           const chartDateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-          return paidDateOnly.getTime() === chartDateOnly.getTime()
+          
+          console.log(`   🔍 Link ${link.id}: paid_at="${link.paid_at}", paidDate=${paidDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}`)
+          console.log(`   📊 Comparing: chartDate=${chartDateOnly.getTime()} vs paidDate=${paidDateOnly.getTime()}`)
+          
+          const matches = paidDateOnly.getTime() === chartDateOnly.getTime()
+          console.log(`   ${matches ? '✅' : '❌'} Match: ${matches}`)
+          
+          return matches
         })
+        
+        const revenue = dayLinks.reduce((sum, link) => {
+          const amount = link.service_amount_aed || link.amount_aed
+          console.log(`   💰 Link ${link.id}: service_amount_aed=${link.service_amount_aed}, amount_aed=${link.amount_aed}, using=${amount}`)
+          return sum + amount
+        }, 0)
+        
+        const transactionCount = dayLinks.reduce((sum, link) => sum + link.transaction_count, 0)
+        
+        console.log(`   📈 Day Summary: ${dayLinks.length} links, Revenue: ${revenue}, Transactions: ${transactionCount}`)
         
         revenueByDay.push({
           date: date.toISOString().split('T')[0]!,
           dayNumber: date.getDate(),
-          revenue: dayLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0),
-          transactions: dayLinks.reduce((sum, link) => sum + link.transaction_count, 0)
+          revenue: revenue,
+          transactions: transactionCount
         })
       }
     }
