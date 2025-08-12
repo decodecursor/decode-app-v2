@@ -576,6 +576,17 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
             .date-picker-custom .rdp-months { display: flex !important; gap: 1rem !important; height: 100% !important; }
             .date-picker-custom .rdp-month { min-height: 360px !important; }
             
+            /* Month alignment */
+            .date-picker-custom .rdp-caption {
+              text-align: left !important;
+              margin-bottom: 1rem !important;
+            }
+            
+            .date-picker-custom .rdp-caption_label {
+              text-align: left !important;
+              margin-left: 0 !important;
+            }
+            
             /* Navigation arrows - comprehensive targeting */
             .date-picker-custom .rdp-nav_button,
             .date-picker-custom .rdp-nav_button_previous,
@@ -583,7 +594,9 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
             .date-picker-custom button[name="previous-month"],
             .date-picker-custom button[name="next-month"],
             .date-picker-custom .rdp-button,
-            .date-picker-custom .rdp-nav button { 
+            .date-picker-custom .rdp-nav button,
+            .date-picker-custom .rdp-nav,
+            .date-picker-custom nav button { 
               color: #a855f7 !important; 
               border-color: #a855f7 !important;
               fill: #a855f7 !important;
@@ -593,7 +606,9 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
             .date-picker-custom .rdp-nav_button_previous svg,
             .date-picker-custom .rdp-nav_button_next svg,
             .date-picker-custom button[name="previous-month"] svg,
-            .date-picker-custom button[name="next-month"] svg {
+            .date-picker-custom button[name="next-month"] svg,
+            .date-picker-custom .rdp-nav svg,
+            .date-picker-custom nav svg {
               fill: #a855f7 !important;
               color: #a855f7 !important;
             }
@@ -634,8 +649,10 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
             selected={customDateRange}
             onSelect={setCustomDateRange}
             className="mb-4 date-picker-custom"
+            defaultMonth={new Date()}
+            reverseMonths={true}
           />
-          <div className="flex space-x-3" style={{ marginTop: '-37px', paddingTop: '10px' }}>
+          <div className="flex space-x-3" style={{ marginTop: '-40px', paddingTop: '10px' }}>
             <button
               onClick={() => {
                 if (customDateRange?.from) {

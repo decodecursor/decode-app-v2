@@ -205,7 +205,11 @@ function PaymentPendingContent() {
             <Link 
               href="/dashboard" 
               className="cosmic-button-primary inline-block payment-back-button"
-              onClick={() => console.log('Back to Dashboard clicked from pending page')}
+              onClick={(e) => {
+                console.log('Back to Dashboard clicked from pending page');
+                e.preventDefault();
+                window.location.href = '/dashboard';
+              }}
             >
               Back to Dashboard
             </Link>
@@ -248,7 +252,11 @@ function PaymentPendingContent() {
               <Link 
                 href="/dashboard" 
                 className="cosmic-input text-center cosmic-body font-medium hover:bg-white/10 transition-colors block payment-back-button"
-                onClick={() => console.log('Back to Dashboard clicked from pending timeout state')}
+                onClick={(e) => {
+                  console.log('Back to Dashboard clicked from pending timeout state');
+                  e.preventDefault();
+                  window.location.href = '/dashboard';
+                }}
               >
                 Back to Dashboard
               </Link>
@@ -354,7 +362,11 @@ function PaymentPendingContent() {
                 <Link 
                   href="/dashboard" 
                   className="cosmic-input text-center cosmic-body font-medium hover:bg-white/10 transition-colors block payment-back-button"
-                  onClick={() => console.log('Back to Dashboard clicked from pending processing state')}
+                  onClick={(e) => {
+                    console.log('Back to Dashboard clicked from pending processing state');
+                    e.preventDefault();
+                    window.location.href = '/dashboard';
+                  }}
                 >
                   Back to Dashboard
                 </Link>
