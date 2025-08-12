@@ -205,8 +205,6 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
           break
       }
       
-      console.log(`📅 Chart Generation: ${dateRange} view, ${days} days, starting from ${chartStart}`)
-      
       for (let i = 0; i < days; i++) {
         const date = new Date(chartStart.getTime() + i * 24 * 60 * 60 * 1000)
         
@@ -217,23 +215,13 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
           const paidDate = new Date(link.paid_at)
           
           // Compare just the date parts (year, month, day) ignoring time and timezone
-          const matches = paidDate.getFullYear() === date.getFullYear() &&
-                         paidDate.getMonth() === date.getMonth() &&
-                         paidDate.getDate() === date.getDate()
-          
-          if (i < 10 || matches) { // Log first 10 days and any matches
-            console.log(`  Day ${i+1} (${date.toLocaleDateString()}): Checking link paid on ${paidDate.toLocaleDateString()} - Match: ${matches}`)
-          }
-          
-          return matches
+          return paidDate.getFullYear() === date.getFullYear() &&
+                 paidDate.getMonth() === date.getMonth() &&
+                 paidDate.getDate() === date.getDate()
         })
         
         const revenue = dayLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0)
         const transactionCount = dayLinks.reduce((sum, link) => sum + link.transaction_count, 0)
-        
-        if (revenue > 0) {
-          console.log(`  📊 Day ${i+1} (${date.toLocaleDateString()}): Revenue=${revenue}, Transactions=${transactionCount}`)
-        }
         
         // Store date as local date string, not UTC ISO string
         const year = date.getFullYear()
@@ -494,7 +482,8 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         {revenueByDay.length > 0 ? (
           <>
             {(() => {
-              const maxRevenue = Math.max(...revenueByDay.map(d => d.revenue), 1)
+              const revenues = revenueByDay.map(d => d.revenue)
+              const maxRevenue = revenues.length > 0 ? Math.max(...revenues) : 0
               const maxTransactions = Math.max(...revenueByDay.map(d => d.transactions), 1)
               
               console.log('📊 Chart Data:', revenueByDay)
@@ -502,7 +491,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
               
               // Calculate Y-axis scale properly
               const yAxisSteps = 5
-              // For 2050, this should be around 2500
+              // If no revenue, show scale up to 100. Otherwise, add 20% padding
               const yAxisMax = maxRevenue > 0 ? Math.ceil(maxRevenue * 1.2) : 100
               
               console.log('📊 Y-Axis Max:', yAxisMax)
