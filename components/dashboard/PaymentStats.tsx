@@ -208,40 +208,24 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
           break
       }
       
-      // Debug: Log all payment dates
-      console.log('📊 All Payment Links with paid_at:')
-      paymentLinks.forEach(link => {
-        if (link.paid_at) {
-          console.log(`  Link ${link.id}: paid_at="${link.paid_at}", amount=${link.service_amount_aed || link.amount_aed}`)
-        }
-      })
-      
       for (let i = 0; i < days; i++) {
         const date = new Date(chartStart.getTime() + i * 24 * 60 * 60 * 1000)
-        
-        console.log(`\n📅 Day ${i + 1}/${days}: Chart date = ${date.toISOString().split('T')[0]}`)
         
         const dayLinks = paymentLinks.filter(link => {
           if (!link.paid_at) return false
           
-          // Parse paid_at date string
+          // Parse paid_at date and handle timezone properly
+          // paid_at might be like "2025-08-06T09:53:00" or "2025-08-06"
           const paidDate = new Date(link.paid_at)
-          const paidDateStr = paidDate.toISOString().split('T')[0]
-          const chartDateStr = date.toISOString().split('T')[0]
           
-          const matches = paidDateStr === chartDateStr
-          
-          if (matches) {
-            console.log(`  ✅ MATCH: Link ${link.id} paid on ${paidDateStr}`)
-          }
-          
-          return matches
+          // Compare just the date parts (year, month, day) ignoring time and timezone
+          return paidDate.getFullYear() === date.getFullYear() &&
+                 paidDate.getMonth() === date.getMonth() &&
+                 paidDate.getDate() === date.getDate()
         })
         
         const revenue = dayLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0)
         const transactionCount = dayLinks.reduce((sum, link) => sum + link.transaction_count, 0)
-        
-        console.log(`  💰 Revenue: ${revenue}, Transactions: ${transactionCount}, Links matched: ${dayLinks.length}`)
         
         revenueByDay.push({
           date: date.toISOString().split('T')[0]!,
@@ -499,28 +483,10 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
               const maxRevenue = Math.max(...revenueByDay.map(d => d.revenue), 1)
               const maxTransactions = Math.max(...revenueByDay.map(d => d.transactions), 1)
               
-              console.log('📊 Chart Rendering Debug:')
-              console.log('  revenueByDay:', revenueByDay)
-              console.log('  maxRevenue:', maxRevenue)
-              
               // Calculate Y-axis scale properly
               const yAxisSteps = 5
-              // Better scaling: round up to nice numbers
-              let yAxisMax
-              if (maxRevenue <= 100) {
-                yAxisMax = Math.ceil(maxRevenue / 20) * 20
-              } else if (maxRevenue <= 1000) {
-                yAxisMax = Math.ceil(maxRevenue / 100) * 100
-              } else if (maxRevenue <= 10000) {
-                yAxisMax = Math.ceil(maxRevenue / 500) * 500
-              } else {
-                yAxisMax = Math.ceil(maxRevenue / 1000) * 1000
-              }
-              
-              // Ensure yAxisMax is at least slightly higher than maxRevenue
-              if (yAxisMax <= maxRevenue) {
-                yAxisMax = maxRevenue * 1.1
-              }
+              // Simple and effective scaling - always add 20% padding
+              const yAxisMax = Math.ceil(maxRevenue * 1.2)
               
               const stepValue = yAxisMax / yAxisSteps
               const yAxisValues = Array.from({length: yAxisSteps + 1}, (_, i) => yAxisMax - (i * stepValue))
@@ -576,10 +542,6 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                         {revenueByDay.map((day, index) => {
                           const heightPercent = day.revenue > 0 ? (day.revenue / yAxisMax) * 100 : 1
                           const opacityLevel = day.transactions > 0 ? Math.min(0.4 + (day.transactions / maxTransactions) * 0.6, 1) : 0.3
-                          
-                          if (day.revenue > 0) {
-                            console.log(`Bar ${index}: revenue=${day.revenue}, yAxisMax=${yAxisMax}, heightPercent=${heightPercent}%`)
-                          }
                           
                           // Create proper date object - parse as UTC to avoid timezone issues
                           const dateParts = day.date.split('-').map(Number)
