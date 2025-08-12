@@ -5,7 +5,12 @@ export const metadata: Metadata = {
   title: "WeLoveDecode",
   description: "Streamlined payment solutions for beauty professionals",
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
+      { url: '/favicon.png', sizes: '32x32', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/favicon.png',
   },
 };
 
