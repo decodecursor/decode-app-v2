@@ -4,6 +4,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "WeLoveDecode",
   description: "Streamlined payment solutions for beauty professionals",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
