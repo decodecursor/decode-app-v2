@@ -492,7 +492,6 @@ export default function PaymentHistoryPage() {
                 Create PayLink
               </Link>
             </div>
-            </div>
           </div>
         </div>
 
