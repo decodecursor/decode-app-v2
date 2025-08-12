@@ -643,7 +643,13 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
               <div className="text-xs text-white/50">
                 <span>Period: {
                   dateRange === 'today' ? `Today (${now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })})` : 
-                  dateRange === 'week' ? 'This Week' : 
+                  dateRange === 'week' ? (() => {
+                    const dayOfWeek = now.getDay()
+                    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+                    const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysFromMonday)
+                    const weekEnd = new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000)
+                    return `This Week (${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} – ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})`
+                  })() : 
                   dateRange === 'month' ? `This Month (${now.toLocaleDateString('en-US', { month: 'long' })})` : 
                   dateRange === 'custom' && customDateRange?.from && customDateRange?.to ? 
                     `${customDateRange.from.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} – ${customDateRange.to.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` :
@@ -669,7 +675,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
 
       {/* PayLinks */}
       <div className="cosmic-card">
-        <h3 className="cosmic-heading text-white mb-4">PayLinks</h3>
+        <h3 className="cosmic-heading text-white mb-4">Successful PayLinks</h3>
         <div className="space-y-3">
           {getFilteredPayments().map((payment, index) => (
             <div key={`${payment.id}-${index}`} className="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors">
