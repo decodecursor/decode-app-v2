@@ -460,38 +460,34 @@ export default function PaymentHistoryPage() {
     <div className="cosmic-bg min-h-screen">
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Button - Above Header */}
-        <div className="flex justify-center mb-4">
-          <div style={{width: '70vw', paddingLeft: '17px'}}>
-            <Link 
-              href="/dashboard" 
-              className="inline-flex items-center text-gray-300 hover:text-white transition-colors payment-back-button"
-              onClick={(e) => {
-                console.log('Back to Dashboard clicked from analytics/payments page');
-                e.preventDefault();
-                window.location.href = '/dashboard';
-              }}
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>Back to Dashboard
-            </Link>
-          </div>
+        <div className="mb-4" style={{width: '70vw', margin: '0 auto', paddingLeft: '17px'}}>
+          <Link 
+            href="/dashboard" 
+            className="inline-flex items-center text-gray-300 hover:text-white transition-colors payment-back-button"
+            onClick={(e) => {
+              console.log('Back to Dashboard clicked from analytics/payments page');
+              e.preventDefault();
+              window.location.href = '/dashboard';
+            }}
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>Back to Dashboard
+          </Link>
         </div>
 
         {/* Header */}
-        <div className="flex justify-center mb-6">
-          <div className="cosmic-card">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="cosmic-heading mb-2">Earnings</h1>
-              </div>
-              <Link 
-                href="/payment/create" 
-                className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block"
-              >
-                Create PayLink
-              </Link>
+        <div className="cosmic-card mb-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="cosmic-heading mb-2">Earnings</h1>
             </div>
+            <Link 
+              href="/payment/create" 
+              className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block"
+            >
+              Create PayLink
+            </Link>
           </div>
         </div>
 
