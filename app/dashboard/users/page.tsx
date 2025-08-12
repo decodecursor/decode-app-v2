@@ -4,54 +4,19 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
-// Profile Image Component
-const ProfileImage = ({ photoUrl, userName, size = 'sm' }: { 
-  photoUrl: string | null
-  userName: string
+// Numbered Avatar Component
+const NumberedAvatar = ({ number, size = 'sm' }: { 
+  number: number
   size?: 'sm' | 'md' 
 }) => {
-  const [imageError, setImageError] = useState(false)
-  const [imageLoading, setImageLoading] = useState(true)
-  
   const sizeClasses = {
     sm: 'w-8 h-8 text-xs',
     md: 'w-10 h-10 text-sm'
   }
   
-  const handleImageLoad = () => {
-    setImageLoading(false)
-  }
-  
-  const handleImageError = () => {
-    setImageError(true)
-    setImageLoading(false)
-  }
-  
-  if (!photoUrl || imageError) {
-    // Default avatar with user initials
-    const initials = userName
-      ? userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-      : '??'
-    
-    return (
-      <div className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-medium flex-shrink-0`}>
-        {initials}
-      </div>
-    )
-  }
-  
   return (
-    <div className={`${sizeClasses[size]} rounded-full overflow-hidden bg-gray-700 flex-shrink-0 relative`}>
-      {imageLoading && (
-        <div className="absolute inset-0 bg-gray-700 animate-pulse" />
-      )}
-      <img
-        src={photoUrl}
-        alt={userName}
-        className="w-full h-full object-cover"
-        onLoad={handleImageLoad}
-        onError={handleImageError}
-      />
+    <div className={`${sizeClasses[size]} rounded-full bg-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0`}>
+      {number}
     </div>
   )
 }
@@ -442,12 +407,11 @@ export default function UsersManagement() {
                   </div>
                   
                   <div className="space-y-3 bg-gradient-to-r from-red-900/30 to-rose-900/30 rounded-lg p-4 border-l-4 border-red-500 shadow-inner">
-                    {unassignedUsers.map(user => (
+                    {unassignedUsers.map((user, index) => (
                       <div key={user.id} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-700/50">
                         <div className="flex items-center gap-3 flex-1">
-                          <ProfileImage 
-                            photoUrl={companyProfileImage} 
-                            userName={user.user_name}
+                          <NumberedAvatar 
+                            number={index + 1}
                             size="md"
                           />
                           <div className="text-gray-300 text-sm">
@@ -574,12 +538,11 @@ export default function UsersManagement() {
             </div>
             
             <div className="space-y-3">
-              {branchUsers.map(user => (
+              {branchUsers.map((user, index) => (
                 <div key={user.id} className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
                   <div className="flex items-center gap-3 flex-1">
-                    <ProfileImage 
-                      photoUrl={companyProfileImage} 
-                      userName={user.user_name}
+                    <NumberedAvatar 
+                      number={index + 1}
                       size="md"
                     />
                     <div className="text-white text-sm">
@@ -666,12 +629,11 @@ export default function UsersManagement() {
                     const userBranches = (u.branch_name || 'Downtown Branch').split(',').map(b => b.trim())
                     return !userBranches.includes(selectedBranch)
                   })
-                  .map(user => (
+                  .map((user, index) => (
                     <div key={user.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
                       <div className="flex items-center gap-3 text-white text-sm">
-                        <ProfileImage 
-                          photoUrl={companyProfileImage} 
-                          userName={user.user_name}
+                        <NumberedAvatar 
+                          number={index + 1}
                           size="sm"
                         />
                         <div>

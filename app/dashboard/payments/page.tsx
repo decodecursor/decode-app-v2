@@ -461,7 +461,7 @@ export default function PaymentHistoryPage() {
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Button - Above Header */}
         <div className="flex justify-center mb-4">
-          <div style={{width: '70vw'}}>
+          <div style={{width: '70vw'}} className="px-6">
             <Link 
               href="/dashboard" 
               className="inline-flex items-center text-gray-300 hover:text-white transition-colors payment-back-button"
@@ -481,7 +481,7 @@ export default function PaymentHistoryPage() {
         {/* Header */}
         <div className="flex justify-center mb-6">
           <div style={{width: '70vw'}}>
-            <div className="cosmic-card">
+            <div className="cosmic-card p-6">
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="cosmic-heading mb-2">Earnings</h1>
