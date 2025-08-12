@@ -918,20 +918,40 @@ body {
 }
 
 /* Custom Date Picker Purple Theme Overrides */
-.date-picker-purple .rdp-nav_button,
-.date-picker-purple .rdp-nav_button_previous,
-.date-picker-purple .rdp-nav_button_next {
-  color: #a855f7 !important;
+.date-picker-purple .rdp-months {
+  display: flex !important;
+  gap: 1rem !important;
 }
 
-.date-picker-purple .rdp-day_today {
+.date-picker-purple .rdp-nav_button,
+.date-picker-purple .rdp-nav_button_previous,
+.date-picker-purple .rdp-nav_button_next,
+.date-picker-purple button[name="previous-month"],
+.date-picker-purple button[name="next-month"] {
+  color: #a855f7 !important;
+  border-color: #a855f7 !important;
+}
+
+.date-picker-purple .rdp-nav_button:hover,
+.date-picker-purple .rdp-nav_button_previous:hover,
+.date-picker-purple .rdp-nav_button_next:hover,
+.date-picker-purple button[name="previous-month"]:hover,
+.date-picker-purple button[name="next-month"]:hover {
+  color: #9333ea !important;
+  border-color: #9333ea !important;
+}
+
+.date-picker-purple .rdp-day_today,
+.date-picker-purple .rdp-day[aria-current="date"] {
   color: #a855f7 !important;
   font-weight: bold !important;
+  background-color: transparent !important;
 }
 
 .date-picker-purple .rdp-day_selected,
 .date-picker-purple .rdp-day_range_start,
-.date-picker-purple .rdp-day_range_end {
+.date-picker-purple .rdp-day_range_end,
+.date-picker-purple .rdp-day[aria-selected="true"] {
   background-color: #a855f7 !important;
   color: white !important;
   border-radius: 50% !important;

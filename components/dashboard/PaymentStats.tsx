@@ -575,9 +575,23 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
           <DayPicker
             mode="range"
             numberOfMonths={2}
+            pagedNavigation={false}
+            showOutsideDays={true}
             selected={customDateRange}
             onSelect={setCustomDateRange}
             className="mb-4 date-picker-purple"
+            classNames={{
+              months: "flex space-x-4",
+              month: "space-y-4",
+              nav_button: "text-purple-500 hover:text-purple-700",
+              nav_button_previous: "text-purple-500 hover:text-purple-700",
+              nav_button_next: "text-purple-500 hover:text-purple-700",
+              day_today: "text-purple-500 font-bold",
+              day_selected: "bg-purple-500 text-white rounded-full",
+              day_range_start: "bg-purple-500 text-white rounded-full",
+              day_range_end: "bg-purple-500 text-white rounded-full", 
+              day_range_middle: "bg-purple-500 bg-opacity-30 text-white"
+            }}
           />
           <div className="flex space-x-3">
             <button
