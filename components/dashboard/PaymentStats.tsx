@@ -208,24 +208,40 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
           break
       }
       
+      // Debug: Log all payment dates
+      console.log('📊 All Payment Links with paid_at:')
+      paymentLinks.forEach(link => {
+        if (link.paid_at) {
+          console.log(`  Link ${link.id}: paid_at="${link.paid_at}", amount=${link.service_amount_aed || link.amount_aed}`)
+        }
+      })
+      
       for (let i = 0; i < days; i++) {
         const date = new Date(chartStart.getTime() + i * 24 * 60 * 60 * 1000)
-        const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-        const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000)
+        
+        console.log(`\n📅 Day ${i + 1}/${days}: Chart date = ${date.toISOString().split('T')[0]}`)
         
         const dayLinks = paymentLinks.filter(link => {
           if (!link.paid_at) return false
           
-          // Create dates in the same timezone context for accurate comparison
+          // Parse paid_at date string
           const paidDate = new Date(link.paid_at)
-          const paidDateOnly = new Date(paidDate.getFullYear(), paidDate.getMonth(), paidDate.getDate())
-          const chartDateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+          const paidDateStr = paidDate.toISOString().split('T')[0]
+          const chartDateStr = date.toISOString().split('T')[0]
           
-          return paidDateOnly.getTime() === chartDateOnly.getTime()
+          const matches = paidDateStr === chartDateStr
+          
+          if (matches) {
+            console.log(`  ✅ MATCH: Link ${link.id} paid on ${paidDateStr}`)
+          }
+          
+          return matches
         })
         
         const revenue = dayLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0)
         const transactionCount = dayLinks.reduce((sum, link) => sum + link.transaction_count, 0)
+        
+        console.log(`  💰 Revenue: ${revenue}, Transactions: ${transactionCount}, Links matched: ${dayLinks.length}`)
         
         revenueByDay.push({
           date: date.toISOString().split('T')[0]!,
@@ -483,6 +499,10 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
               const maxRevenue = Math.max(...revenueByDay.map(d => d.revenue), 1)
               const maxTransactions = Math.max(...revenueByDay.map(d => d.transactions), 1)
               
+              console.log('📊 Chart Rendering Debug:')
+              console.log('  revenueByDay:', revenueByDay)
+              console.log('  maxRevenue:', maxRevenue)
+              
               // Calculate Y-axis scale properly
               const yAxisSteps = 5
               // Better scaling: round up to nice numbers
@@ -556,6 +576,10 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                         {revenueByDay.map((day, index) => {
                           const heightPercent = day.revenue > 0 ? (day.revenue / yAxisMax) * 100 : 1
                           const opacityLevel = day.transactions > 0 ? Math.min(0.4 + (day.transactions / maxTransactions) * 0.6, 1) : 0.3
+                          
+                          if (day.revenue > 0) {
+                            console.log(`Bar ${index}: revenue=${day.revenue}, yAxisMax=${yAxisMax}, heightPercent=${heightPercent}%`)
+                          }
                           
                           // Create proper date object - parse as UTC to avoid timezone issues
                           const dateParts = day.date.split('-').map(Number)
