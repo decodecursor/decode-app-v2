@@ -61,7 +61,12 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
     previous: DateRangeStats
     popularAmounts: PopularAmount[]
     revenueByDay: Array<{ date: string; dayNumber: number; revenue: number; transactions: number }>
-  } | null>(null)
+  }>({
+    current: { revenue: 0, transactions: 0, averagePayment: 0, successRate: 0 },
+    previous: { revenue: 0, transactions: 0, averagePayment: 0, successRate: 0 },
+    popularAmounts: [],
+    revenueByDay: []
+  })
 
   // Use stable date reference to prevent infinite re-renders
   const now = useMemo(() => new Date(), [dateRange])
@@ -348,20 +353,6 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
     })
   }
 
-  if (!statsData) {
-    return (
-      <div className="cosmic-card">
-        <div className="animate-pulse">
-          <div className="h-6 bg-white/20 rounded mb-4"></div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-20 bg-white/10 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   const { current, previous, popularAmounts, revenueByDay } = statsData
 
