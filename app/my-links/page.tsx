@@ -897,7 +897,7 @@ function MyLinksContent() {
                           : isPaid
                             ? 'bg-slate-900/60 border-l-green-500/50 hover:border-green-400 hover:bg-slate-800/60 hover:shadow-2xl hover:shadow-green-400/60 hover:scale-[1.01]'
                             : isInactive 
-                              ? 'bg-slate-900/60 border-l-red-500/50 opacity-75 hover:border-red-400 hover:bg-slate-800/60 hover:shadow-2xl hover:shadow-red-400/60 hover:scale-[1.01]'
+                              ? 'bg-slate-900/60 border-l-red-500/50 hover:border-red-400 hover:bg-slate-800/60 hover:shadow-2xl hover:shadow-red-400/60 hover:scale-[1.01]'
                               : 'bg-slate-900/85 border-l-purple-500/50 hover:border-purple-400 hover:bg-slate-800/90 hover:shadow-2xl hover:shadow-purple-400/60 hover:scale-[1.01]'
                       }`}>
                       
