@@ -561,8 +561,8 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                           const isToday = dayDate.toDateString() === new Date().toDateString()
                           
                           return (
-                            <div key={day.date} className="flex-1 flex flex-col items-center group cursor-pointer">
-                              <div className="relative flex-1 w-full flex items-end">
+                            <div key={day.date} className="flex-1 h-full flex flex-col items-center group cursor-pointer">
+                              <div className="relative flex-1 w-full h-full flex items-end">
                                 <div 
                                   className={`w-full rounded-t-sm transition-all duration-300 ${
                                     day.revenue > 0 
