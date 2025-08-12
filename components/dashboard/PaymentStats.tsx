@@ -216,8 +216,11 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         
         const dayLinks = paymentLinks.filter(link => {
           if (!link.paid_at) return false
+          // Create dates in the same timezone context for accurate comparison
           const paidDate = new Date(link.paid_at)
-          return paidDate >= dayStart && paidDate < dayEnd
+          const paidDateOnly = new Date(paidDate.getFullYear(), paidDate.getMonth(), paidDate.getDate())
+          const chartDateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+          return paidDateOnly.getTime() === chartDateOnly.getTime()
         })
         
         revenueByDay.push({
@@ -478,7 +481,17 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
               
               // Calculate Y-axis scale
               const yAxisSteps = 5
-              const stepValue = Math.ceil(maxRevenue / yAxisSteps / 10) * 10 // Round to nearest 10
+              // Improved scaling: ensure proper scaling for all revenue ranges
+              let stepValue
+              if (maxRevenue <= 50) {
+                stepValue = Math.ceil(maxRevenue / yAxisSteps / 5) * 5 // Round to nearest 5 for small amounts
+              } else if (maxRevenue <= 500) {
+                stepValue = Math.ceil(maxRevenue / yAxisSteps / 10) * 10 // Round to nearest 10
+              } else if (maxRevenue <= 5000) {
+                stepValue = Math.ceil(maxRevenue / yAxisSteps / 50) * 50 // Round to nearest 50
+              } else {
+                stepValue = Math.ceil(maxRevenue / yAxisSteps / 100) * 100 // Round to nearest 100
+              }
               const yAxisMax = stepValue * yAxisSteps
               const yAxisValues = Array.from({length: yAxisSteps + 1}, (_, i) => yAxisMax - (i * stepValue))
               
@@ -568,9 +581,6 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                                 })}</div>
                                 <div>Revenue: {formatCurrency(day.revenue)}</div>
                                 <div>Transactions: {day.transactions}</div>
-                                {day.transactions > 0 && (
-                                  <div>Avg: {formatCurrency(day.revenue / day.transactions)}</div>
-                                )}
                               </div>
                             </div>
                           )
