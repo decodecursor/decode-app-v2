@@ -15,6 +15,7 @@ import { PayoutHistory } from '@/components/stripe/PayoutHistory'
 export default function BankAccountPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
+  const [userRole, setUserRole] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [stripeAccountId, setStripeAccountId] = useState<string | null>(null)
   const [accountStatus, setAccountStatus] = useState<'not_connected' | 'pending' | 'active' | 'restricted'>('not_connected')
@@ -127,10 +128,10 @@ export default function BankAccountPage() {
 
   const loadAccountData = async (userId: string) => {
     try {
-      // Simple approach: just verify user exists and show info message
+      // Fetch user data including role
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('id')
+        .select('id, role')
         .eq('id', userId)
         .single()
 
@@ -142,6 +143,9 @@ export default function BankAccountPage() {
       }
 
       if (userData) {
+        // Set user role
+        setUserRole(userData.role)
+        
         // Load existing bank account data
         const { data: bankAccounts } = await supabase
           .from('user_bank_accounts')
@@ -384,16 +388,20 @@ export default function BankAccountPage() {
                 </div>
               )}
               
-              <h2 className="text-2xl font-bold text-white mb-8">Connect Business Bank Account</h2>
+              <h2 className="text-2xl font-bold text-white mb-8">
+                {userRole === 'User' ? 'Add Your Personal Bank Account' : 'Connect Business Bank Account'}
+              </h2>
               
               <div className="space-y-4 text-left">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Beneficiary</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    {userRole === 'User' ? 'Your Full Name' : 'Beneficiary'}
+                  </label>
                   <input
                     type="text"
                     value={beneficiary}
                     onChange={(e) => setBeneficiary(e.target.value)}
-                    placeholder="Boho Beauty Salon"
+                    placeholder={userRole === 'User' ? 'John Smith' : 'Boho Beauty Salon'}
                     className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                   />
                 </div>

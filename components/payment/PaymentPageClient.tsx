@@ -84,7 +84,7 @@ export default function PaymentPageClient() {
         const now = new Date()
         const expirationDate = new Date(data.expiration_date)
         if (now > expirationDate) {
-          setError('Payment link expired')
+          setError('This payment link has expired and is no longer available')
           return
         }
 
@@ -131,17 +131,36 @@ export default function PaymentPageClient() {
 
   // Show error state
   if (error || (!loading && !paymentData)) {
+    const isExpiredLink = error && error.includes('expired')
+    
     return (
       <div className="cosmic-bg">
         <div className="min-h-screen flex items-center justify-center px-4">
           <div className="cosmic-card max-w-md w-full text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${
+              isExpiredLink ? 'bg-orange-100' : 'bg-red-100'
+            }`}>
+              {isExpiredLink ? (
+                <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              ) : (
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              )}
             </div>
-            <h1 className="cosmic-logo text-red-400 mb-4">Payment Link Error</h1>
+            <h1 className={`cosmic-logo mb-4 ${
+              isExpiredLink ? 'text-orange-400' : 'text-red-400'
+            }`}>
+              {isExpiredLink ? 'Payment Link Expired' : 'Payment Link Error'}
+            </h1>
             <p className="cosmic-body text-white opacity-80">{error}</p>
+            {isExpiredLink && (
+              <p className="cosmic-body text-gray-300 opacity-60 mt-4 text-sm">
+                Please contact the service provider for a new payment link.
+              </p>
+            )}
           </div>
         </div>
       </div>

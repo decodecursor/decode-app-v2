@@ -567,33 +567,57 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
 
     </div>
 
-    {/* Custom Date Picker Modal - Moved outside stacking context */}
-    {showDatePicker && (
+    {/* Custom Date Picker Modal - Only render when visible */}
+    {showDatePicker ? (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10001]">
-        <div className="cosmic-card max-w-md mx-4">
+        <div className="cosmic-card max-w-4xl mx-4">
           <h3 className="text-lg font-semibold mb-4 text-white">Select Date Range</h3>
           <DayPicker
             mode="range"
+            numberOfMonths={3}
             selected={customDateRange}
             onSelect={setCustomDateRange}
             className="mb-4"
+            styles={{
+              nav_button: {
+                color: '#a855f7',
+              },
+              nav_button_previous: {
+                color: '#a855f7',
+              },
+              nav_button_next: {
+                color: '#a855f7',
+              },
+            }}
             modifiersStyles={{
+              today: {
+                color: '#a855f7',
+                fontWeight: 'bold',
+              },
               selected: {
                 backgroundColor: '#a855f7',
                 color: 'white',
+                borderRadius: '50%',
+                border: 'none',
               },
               range_start: {
                 backgroundColor: '#a855f7',
                 color: 'white',
+                borderRadius: '50%',
+                border: 'none',
               },
               range_end: {
                 backgroundColor: '#a855f7', 
                 color: 'white',
+                borderRadius: '50%',
+                border: 'none',
               },
               range_middle: {
                 backgroundColor: '#a855f7',
-                opacity: 0.5,
+                opacity: 0.3,
                 color: 'white',
+                borderRadius: '0',
+                border: 'none',
               },
             }}
           />
@@ -606,7 +630,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                 }
               }}
               disabled={!customDateRange?.from}
-              className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              className="flex-1 bg-purple-600/50 text-white py-2 px-4 rounded-lg hover:bg-purple-600/70 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
               Apply
             </button>
@@ -619,7 +643,7 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
           </div>
         </div>
       </div>
-    )}
+    ) : null}
     </>
   )
 }
