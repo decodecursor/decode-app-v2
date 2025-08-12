@@ -448,10 +448,10 @@ body {
 .instagram-avatar {
   position: relative;
   display: inline-block;
-  width: 54px;
-  height: 54px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  border: 3px solid transparent;
+  border: 4px solid transparent;
   background-origin: border-box;
   background-clip: padding-box, border-box;
   background-image: linear-gradient(white, white), linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
