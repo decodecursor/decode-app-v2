@@ -180,8 +180,8 @@ export default function CreatePayment() {
       const originalAmount = parseFloat(formData.amount)
       const feeCalculation = calculateMarketplaceFee(originalAmount)
 
-      // Ensure wallet exists before creating payment link
-      await ensureUserHasWallet(user)
+      // Wallet creation removed - not needed for beauty business
+      // await ensureUserHasWallet(user)
 
       // Create payment link using proper API endpoint
       const response = await fetch('/api/payment/create-link', {
