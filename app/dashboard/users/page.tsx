@@ -216,8 +216,8 @@ export default function UsersManagement() {
       // Remove the specific branch
       const remainingBranches = currentBranches.filter(b => b !== branchToRemoveFrom)
       
-      // If no branches left, assign to Downtown Branch as default
-      const updatedBranchName = remainingBranches.length > 0 ? remainingBranches.join(',') : 'Downtown Branch'
+      // If no branches left, set to null (unassigned)
+      const updatedBranchName = remainingBranches.length > 0 ? remainingBranches.join(',') : null
       
       const { error } = await supabase
         .from('users')
@@ -316,8 +316,8 @@ export default function UsersManagement() {
   const approvedUsers = users.filter(u => u.approval_status === 'approved')
   const rejectedUsers = users.filter(u => u.approval_status === 'rejected')
 
-  // Separate unassigned users (null/empty branch_name) from assigned users
-  const unassignedUsers = users.filter(u => !u.branch_name || u.branch_name.trim() === '')
+  // Separate unassigned users - only show pending users who need branch assignment
+  const unassignedUsers = users.filter(u => (!u.branch_name || u.branch_name.trim() === '') && u.approval_status === 'pending')
   const assignedUsers = users.filter(u => u.branch_name && u.branch_name.trim() !== '')
 
   // Group assigned users by branch - handle multi-branch users
