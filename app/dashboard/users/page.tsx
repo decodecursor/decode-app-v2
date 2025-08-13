@@ -275,8 +275,18 @@ export default function UsersManagement() {
       const currentUser = users.find(u => u.id === userId)
       if (!currentUser) return
       
-      // For unassigned users, simply assign to the selected branch only
-      const updatedBranches = selectedBranch
+      // Get current user's branches, properly handling null/empty
+      const currentBranches = (currentUser.branch_name || '').split(',').map(b => b.trim()).filter(b => b !== '')
+      
+      // Check if user is already in this branch
+      if (currentBranches.includes(selectedBranch)) {
+        setShowAddUserModal(false)
+        setSelectedBranch('')
+        return
+      }
+      
+      // Add new branch to existing branches
+      const updatedBranches = [...currentBranches, selectedBranch].join(',')
       
       const { error } = await supabase
         .from('users')
@@ -400,7 +410,7 @@ export default function UsersManagement() {
             <div className="space-y-6">
               {/* Unassigned Users Section */}
               {unassignedUsers.length > 0 && (
-                <div className="w-1/2 mx-auto mb-6 border-2 border-red-500 bg-red-800 shadow-lg shadow-red-500/30 ring-2 ring-red-400/40 relative z-10 overflow-visible rounded-lg">
+                <div className="cosmic-card w-1/2 mx-auto mb-6 border-2 border-red-500 bg-red-800 shadow-lg shadow-red-500/30 ring-2 ring-red-400/40 relative z-10 overflow-visible">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-semibold text-white">
                       New User(s)
