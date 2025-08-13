@@ -324,7 +324,7 @@ export default function CreatePayment() {
               </div>
 
               {/* Branch Information */}
-              <div className="mt-0.5 text-center">
+              <div className="-mt-1 text-center">
                 {userBranches.length > 1 ? (
                   <button
                     type="button"

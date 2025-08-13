@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [companyProfileImage, setCompanyProfileImage] = useState<string | null>(null)
   const [companyName, setCompanyName] = useState<string | null>(null)
   const [userName, setUserName] = useState<string | null>(null)
+  const [userBranch, setUserBranch] = useState<string | null>(null)
   const [pendingUsersCount, setPendingUsersCount] = useState(0)
   const [loading, setLoading] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -148,7 +149,7 @@ export default function Dashboard() {
       // Fetch user role, professional center name, and profile photo from users table
       const { data: userData } = await supabase
         .from('users')
-        .select('role, professional_center_name, user_name, company_name, approval_status')
+        .select('role, professional_center_name, user_name, company_name, approval_status, branch_name')
         .eq('id', user.id)
         .single() as { data: any, error: any }
       
@@ -156,6 +157,14 @@ export default function Dashboard() {
         setUserRole(userData.role)
         setCompanyName(userData.company_name || userData.professional_center_name) // prefer company_name
         setUserName(userData.user_name)
+        
+        // Set user branch (first branch if multiple)
+        if (userData.branch_name) {
+          const branches = userData.branch_name.split(',').map((b: string) => b.trim()).filter((b: string) => b !== '')
+          setUserBranch(branches[0] || null)
+        } else {
+          setUserBranch(null)
+        }
         
         // Fetch company profile image from admin user in same company
         const currentCompanyName = userData.company_name || userData.professional_center_name
@@ -353,9 +362,9 @@ export default function Dashboard() {
                   <div className="user-info-company">
                     {companyName || 'No company set'}
                   </div>
-                  {userRole && (
+                  {(userRole || userBranch) && (
                     <div className="text-xs text-gray-400">
-                      {userRole}
+                      {userRole === 'Admin' ? userRole : (userBranch || userRole)}
                     </div>
                   )}
                 </div>
