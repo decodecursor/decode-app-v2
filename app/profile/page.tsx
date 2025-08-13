@@ -378,7 +378,8 @@ export default function ProfilePage() {
             </div>
             
             <div className="space-y-8">
-          {/* Profile Photo Section */}  
+          {/* Profile Photo Section - Admin Only */}  
+          {profile?.role === 'Admin' && (
           <div className="cosmic-card-profile h-fit">
             <h2 className="text-xl font-semibold text-white mb-8">Company Profile Photo</h2>
             
@@ -556,8 +557,10 @@ export default function ProfilePage() {
               )}
             </div>
           </div>
+          )}
 
-          {/* Professional Center Name Card */}
+          {/* Professional Center Name Card - Admin Only */}
+          {profile?.role === 'Admin' && (
           <div className="cosmic-card-profile">
             <h2 className="text-xl font-semibold text-white mb-6">Company Name</h2>
             <div className="space-y-4">
@@ -577,6 +580,7 @@ export default function ProfilePage() {
               </button>
             </div>
           </div>
+          )}
 
           {/* Email Address Card */}
           <div className="cosmic-card-profile">

@@ -385,7 +385,7 @@ export default function BankAccountPage() {
               <div className="space-y-4 text-left mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    {userRole === 'User' ? 'Your Full Name' : 'Beneficiary'}
+                    Beneficiary
                   </label>
                   <input
                     type="text"
