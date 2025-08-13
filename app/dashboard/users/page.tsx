@@ -48,6 +48,7 @@ export default function UsersManagement() {
   const [branches, setBranches] = useState<string[]>([])
   const [showAddUserModal, setShowAddUserModal] = useState(false)
   const [selectedBranch, setSelectedBranch] = useState('')
+  const [pendingAssignments, setPendingAssignments] = useState<Record<string, string[]>>({})
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -108,13 +109,27 @@ export default function UsersManagement() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
+      // Get pending branch assignments for this user
+      const assignedBranches = pendingAssignments[userId] || []
+      
+      // Prepare update data
+      const updateData: any = {
+        approval_status: action,
+        approved_by: user.id,
+        approved_at: new Date().toISOString()
+      }
+      
+      // If approving, also assign the selected branches
+      if (action === 'approved' && assignedBranches.length > 0) {
+        updateData.branch_name = assignedBranches.join(',')
+      } else if (action === 'approved' && assignedBranches.length === 0) {
+        // If approving without branch selection, assign to Downtown Branch by default
+        updateData.branch_name = 'Downtown Branch'
+      }
+
       const { error } = await supabase
         .from('users')
-        .update({
-          approval_status: action,
-          approved_by: user.id,
-          approved_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', userId)
 
       if (error) throw error
@@ -123,10 +138,17 @@ export default function UsersManagement() {
       setUsers(prevUsers => 
         prevUsers.map(u => 
           u.id === userId 
-            ? { ...u, approval_status: action }
+            ? { ...u, ...updateData }
             : u
         )
       )
+      
+      // Clear pending assignments for this user after approval/rejection
+      setPendingAssignments(prev => {
+        const newAssignments = { ...prev }
+        delete newAssignments[userId]
+        return newAssignments
+      })
 
       // No success message needed
 
@@ -437,8 +459,8 @@ export default function UsersManagement() {
                               <div className="absolute top-full left-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-[9999] min-w-[200px]">
                                 <div className="p-2 space-y-2 max-h-48 overflow-y-auto">
                                   {branches.map(branch => {
-                                    const userBranches = (user.branch_name || '').split(',').map(b => b.trim())
-                                    const isAssigned = userBranches.includes(branch)
+                                    const pendingBranches = pendingAssignments[user.id] || []
+                                    const isAssigned = pendingBranches.includes(branch)
                                     return (
                                       <label key={branch} className="flex items-center space-x-2 p-2 hover:bg-gray-600 rounded cursor-pointer">
                                         <input
@@ -446,14 +468,17 @@ export default function UsersManagement() {
                                           checked={isAssigned}
                                           onChange={() => {
                                             if (isAssigned) {
-                                              // Remove from branch
-                                              const remainingBranches = userBranches.filter(b => b !== branch)
-                                              const updatedBranchName = remainingBranches.length > 0 ? remainingBranches.join(',') : null
-                                              handleUpdateUserBranches(user.id, updatedBranchName)
+                                              // Remove from pending branches
+                                              setPendingAssignments(prev => ({
+                                                ...prev,
+                                                [user.id]: pendingBranches.filter(b => b !== branch)
+                                              }))
                                             } else {
-                                              // Add to branch
-                                              const newBranches = userBranches.filter(b => b !== '').concat(branch)
-                                              handleUpdateUserBranches(user.id, newBranches.join(','))
+                                              // Add to pending branches
+                                              setPendingAssignments(prev => ({
+                                                ...prev,
+                                                [user.id]: [...pendingBranches, branch]
+                                              }))
                                             }
                                           }}
                                           className="w-4 h-4 text-purple-500 bg-gray-600 border-gray-500 rounded focus:ring-purple-500"
@@ -466,8 +491,11 @@ export default function UsersManagement() {
                                 <div className="border-t border-gray-600 p-2">
                                   <button
                                     onClick={() => {
-                                      // Clear all branch assignments
-                                      handleUpdateUserBranches(user.id, null)
+                                      // Clear all pending branch assignments
+                                      setPendingAssignments(prev => ({
+                                        ...prev,
+                                        [user.id]: []
+                                      }))
                                     }}
                                     className="w-full text-xs text-red-400 hover:text-red-300 py-1"
                                   >
