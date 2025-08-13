@@ -338,8 +338,8 @@ export default function UsersManagement() {
   const approvedUsers = users.filter(u => u.approval_status === 'approved')
   const rejectedUsers = users.filter(u => u.approval_status === 'rejected')
 
-  // Separate unassigned users - show all users without branch assignment
-  const unassignedUsers = users.filter(u => !u.branch_name || u.branch_name.trim() === '')
+  // Separate unassigned users - only show pending users who need branch assignment
+  const unassignedUsers = users.filter(u => (!u.branch_name || u.branch_name.trim() === '') && u.approval_status === 'pending')
   const assignedUsers = users.filter(u => u.branch_name && u.branch_name.trim() !== '')
 
   // Group assigned users by branch - handle multi-branch users
@@ -409,7 +409,7 @@ export default function UsersManagement() {
             <div className="space-y-6">
               {/* Unassigned Users Section */}
               {unassignedUsers.length > 0 && (
-                <div className="cosmic-card w-1/2 mx-auto mb-6 border-2 border-red-500 bg-gradient-to-r from-red-900 to-red-800 shadow-lg shadow-red-500/30 ring-2 ring-red-400/40 relative z-10 overflow-visible">
+                <div className="w-1/2 mx-auto mb-6 border-2 border-red-500 bg-red-800 shadow-lg shadow-red-500/30 ring-2 ring-red-400/40 relative z-10 overflow-visible rounded-lg">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-semibold text-white">
                       New User(s)
