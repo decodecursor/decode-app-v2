@@ -387,10 +387,10 @@ export default function UsersManagement() {
             <div className="space-y-6">
               {/* Unassigned Users Section */}
               {unassignedUsers.length > 0 && (
-                <div className="cosmic-card w-1/2 mx-auto mb-6 border-2 border-red-500/70 bg-gradient-to-r from-red-900/30 to-pink-900/30 shadow-lg shadow-red-500/20 ring-2 ring-red-400/30">
+                <div className="cosmic-card w-1/2 mx-auto mb-6 border-2 border-red-500 bg-gradient-to-r from-red-900/80 to-red-800/80 shadow-lg shadow-red-500/30 ring-2 ring-red-400/40">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-semibold text-white">
-                      Unassigned Users
+                      New Users
                     </h3>
                     <div className="text-base font-semibold text-yellow-400 bg-yellow-400/10 px-3 py-1 rounded-lg border border-yellow-400/30">
                       ⚠️ Awaiting branch assignment
@@ -434,7 +434,7 @@ export default function UsersManagement() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                 </svg>
                               </summary>
-                              <div className="absolute top-full left-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-[100] min-w-[200px]">
+                              <div className="absolute top-full left-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-[1000] min-w-[200px]">
                                 <div className="p-2 space-y-2 max-h-48 overflow-y-auto">
                                   {branches.map(branch => {
                                     const userBranches = (user.branch_name || '').split(',').map(b => b.trim())

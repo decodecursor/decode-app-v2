@@ -41,7 +41,6 @@ export default function VerifyEmailPage() {
               className="mx-auto mb-4" 
               style={{height: '40px', filter: 'brightness(0) invert(1)'}} 
             />
-            <h1 className="cosmic-heading text-2xl mb-2">Check Your Email</h1>
           </div>
 
           <div className="space-y-6">
