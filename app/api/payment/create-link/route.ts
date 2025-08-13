@@ -45,9 +45,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (creator.role !== 'Beauty Professional') {
+    if (!['User', 'Beauty Professional', 'Admin'].includes(creator.role)) {
       return NextResponse.json(
-        { error: 'Only Beauty Professionals can create payment links' },
+        { error: 'Only authenticated users can create payment links' },
         { status: 403 }
       );
     }
