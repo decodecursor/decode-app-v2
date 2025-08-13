@@ -275,17 +275,8 @@ export default function UsersManagement() {
       const currentUser = users.find(u => u.id === userId)
       if (!currentUser) return
       
-      const currentBranches = (currentUser.branch_name || 'Downtown Branch').split(',').map(b => b.trim())
-      
-      // Check if user is already in this branch
-      if (currentBranches.includes(selectedBranch)) {
-        setShowAddUserModal(false)
-        setSelectedBranch('')
-        return
-      }
-      
-      // Add new branch to existing branches
-      const updatedBranches = [...currentBranches, selectedBranch].join(',')
+      // For unassigned users, simply assign to the selected branch only
+      const updatedBranches = selectedBranch
       
       const { error } = await supabase
         .from('users')
