@@ -324,7 +324,7 @@ export default function CreatePayment() {
               </div>
 
               {/* Branch Information */}
-              <div className="mt-2 text-center">
+              <div className="mt-0.5 text-center">
                 {userBranches.length > 1 ? (
                   <button
                     type="button"
@@ -337,7 +337,7 @@ export default function CreatePayment() {
                     </svg>
                   </button>
                 ) : (
-                  <div className="text-sm text-gray-400">
+                  <div className="text-sm text-gray-300">
                     {selectedBranch}
                   </div>
                 )}
