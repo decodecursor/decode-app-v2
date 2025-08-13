@@ -387,17 +387,17 @@ export default function UsersManagement() {
             <div className="space-y-6">
               {/* Unassigned Users Section */}
               {unassignedUsers.length > 0 && (
-                <div className="cosmic-card w-1/2 mx-auto mb-6 border-2 border-red-500 bg-gradient-to-r from-red-900/80 to-red-800/80 shadow-lg shadow-red-500/30 ring-2 ring-red-400/40">
+                <div className="cosmic-card w-1/2 mx-auto mb-6 border-2 border-red-500 bg-gradient-to-r from-red-900 to-red-800 shadow-lg shadow-red-500/30 ring-2 ring-red-400/40 relative z-10 overflow-visible">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-semibold text-white">
-                      New Users
+                      New User(s)
                     </h3>
                     <div className="text-base font-semibold text-yellow-400 bg-yellow-400/10 px-3 py-1 rounded-lg border border-yellow-400/30">
                       ⚠️ Awaiting branch assignment
                     </div>
                   </div>
                   
-                  <div className="space-y-3 bg-gradient-to-r from-red-900/30 to-rose-900/30 rounded-lg p-4 border-l-4 border-red-500 shadow-inner">
+                  <div className="space-y-3 bg-black/20 rounded-lg p-4 border-l-4 border-red-500 shadow-inner">
                     {unassignedUsers.map((user, index) => (
                       <div key={user.id} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-700/50">
                         <div className="flex items-center gap-3 flex-1">
@@ -434,7 +434,7 @@ export default function UsersManagement() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                 </svg>
                               </summary>
-                              <div className="absolute top-full left-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-[1000] min-w-[200px]">
+                              <div className="absolute top-full left-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-[9999] min-w-[200px]">
                                 <div className="p-2 space-y-2 max-h-48 overflow-y-auto">
                                   {branches.map(branch => {
                                     const userBranches = (user.branch_name || '').split(',').map(b => b.trim())
