@@ -22,6 +22,12 @@ export default function CreatePayment() {
     title: '',
     amount: ''
   })
+  
+  // Branch management states
+  const [userBranches, setUserBranches] = useState<string[]>([])
+  const [selectedBranch, setSelectedBranch] = useState<string>('')
+  const [showBranchSelector, setShowBranchSelector] = useState(false)
+  
   const router = useRouter()
 
   const ensureUserHasWallet = async (user: User) => {
@@ -78,6 +84,33 @@ export default function CreatePayment() {
         return
       }
       setUser(user)
+      
+      // Fetch user's branch information
+      try {
+        const { data: userData, error } = await supabase
+          .from('users')
+          .select('branch_name')
+          .eq('id', user.id)
+          .single()
+        
+        if (error) {
+          console.error('Error fetching user branches:', error)
+        } else if (userData?.branch_name) {
+          const branches = userData.branch_name.split(',').map(b => b.trim()).filter(b => b !== '')
+          setUserBranches(branches)
+          setSelectedBranch(branches[0] || 'Downtown Branch') // Default to first branch
+        } else {
+          // Default to Downtown Branch if no branch assigned
+          setUserBranches(['Downtown Branch'])
+          setSelectedBranch('Downtown Branch')
+        }
+      } catch (error) {
+        console.error('Error fetching branches:', error)
+        // Fallback to default branch
+        setUserBranches(['Downtown Branch'])
+        setSelectedBranch('Downtown Branch')
+      }
+      
       setLoading(false)
     }
 
@@ -161,7 +194,8 @@ export default function CreatePayment() {
           title: formData.title.trim(),
           description: `Beauty service: ${formData.title.trim()}`,
           original_amount_aed: originalAmount,
-          creator_id: user.id
+          creator_id: user.id,
+          branch_name: selectedBranch
         })
       });
 
@@ -288,10 +322,75 @@ export default function CreatePayment() {
                   {creating ? 'Creating PayLink...' : 'Create PayLink'}
                 </button>
               </div>
+
+              {/* Branch Information */}
+              <div className="mt-4 text-center">
+                {userBranches.length > 1 ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowBranchSelector(true)}
+                    className="text-sm text-gray-300 hover:text-white transition-colors flex items-center justify-center gap-1 mx-auto"
+                  >
+                    <span>Branch: {selectedBranch}</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                ) : (
+                  <div className="text-sm text-gray-400">
+                    Branch: {selectedBranch}
+                  </div>
+                )}
+              </div>
             </form>
           </div>
         </div>
       </div>
+
+      {/* Branch Selection Modal */}
+      {showBranchSelector && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="cosmic-card max-w-md w-full">
+            <h3 className="cosmic-heading mb-4 text-white">Select Branch</h3>
+            <p className="text-gray-300 text-sm mb-4">
+              Choose which branch this payment link is for:
+            </p>
+            
+            <div className="space-y-2 mb-6">
+              {userBranches.map((branch) => (
+                <button
+                  key={branch}
+                  onClick={() => {
+                    setSelectedBranch(branch)
+                    setShowBranchSelector(false)
+                  }}
+                  className={`w-full text-left p-3 rounded-lg transition-colors ${
+                    selectedBranch === branch
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700'
+                  }`}
+                >
+                  {branch}
+                  {selectedBranch === branch && (
+                    <svg className="w-4 h-4 float-right mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowBranchSelector(false)}
+                className="cosmic-button-secondary px-6 py-2 border border-white/30 rounded-lg"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
