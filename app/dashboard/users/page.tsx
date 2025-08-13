@@ -338,8 +338,8 @@ export default function UsersManagement() {
   const approvedUsers = users.filter(u => u.approval_status === 'approved')
   const rejectedUsers = users.filter(u => u.approval_status === 'rejected')
 
-  // Separate unassigned users - only show pending users who need branch assignment
-  const unassignedUsers = users.filter(u => (!u.branch_name || u.branch_name.trim() === '') && u.approval_status === 'pending')
+  // Separate unassigned users - show all users without branch assignment
+  const unassignedUsers = users.filter(u => !u.branch_name || u.branch_name.trim() === '')
   const assignedUsers = users.filter(u => u.branch_name && u.branch_name.trim() !== '')
 
   // Group assigned users by branch - handle multi-branch users
@@ -645,7 +645,7 @@ export default function UsersManagement() {
               <div className="max-h-64 overflow-y-auto space-y-2 mb-6">
                 {users
                   .filter(u => {
-                    const userBranches = (u.branch_name || 'Downtown Branch').split(',').map(b => b.trim())
+                    const userBranches = (u.branch_name || '').split(',').map(b => b.trim()).filter(b => b !== '')
                     return !userBranches.includes(selectedBranch)
                   })
                   .map((user, index) => (
