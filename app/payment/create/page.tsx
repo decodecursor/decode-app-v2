@@ -324,21 +324,21 @@ export default function CreatePayment() {
               </div>
 
               {/* Branch Information */}
-              <div className="mt-4 text-center">
+              <div className="mt-2 text-center">
                 {userBranches.length > 1 ? (
                   <button
                     type="button"
                     onClick={() => setShowBranchSelector(true)}
                     className="text-sm text-gray-300 hover:text-white transition-colors flex items-center justify-center gap-1 mx-auto"
                   >
-                    <span>Branch: {selectedBranch}</span>
+                    <span>{selectedBranch}</span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
                 ) : (
                   <div className="text-sm text-gray-400">
-                    Branch: {selectedBranch}
+                    {selectedBranch}
                   </div>
                 )}
               </div>
