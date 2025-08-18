@@ -198,8 +198,9 @@ function PaymentForm({
                   if (showMoreButton && !(isApplePayAvailable && isMobile)) {
                     console.log('🔄 Auto-clicking Show More button');
                     showMoreButton.click();
-                  } else if (isApplePayAvailable && isMobile) {
-                    console.log('🍎 Skipping Show More button click - Apple Pay available on mobile');
+                  } else if (isApplePayAvailable && isMobile && showMoreButton) {
+                    console.log('🍎 Hiding Show More button - Apple Pay available on mobile');
+                    showMoreButton.style.display = 'none';
                   }
                   
                   // Force vertical layout after Stripe renders
@@ -276,18 +277,15 @@ function PaymentForm({
               </div>
             </div>
 
-            {/* Only show card payment section if Apple Pay is NOT available on mobile */}
-            {!(isApplePayAvailable && isMobile) && (
-              <>
-                {/* Divider */}
-                <div className="flex items-center space-x-4 my-2">
-                  <div className="flex-1 h-px bg-white/20"></div>
-                  <span className="!text-sm cosmic-body text-white opacity-60">or pay with card</span>
-                  <div className="flex-1 h-px bg-white/20"></div>
-                </div>
+        {/* Divider */}
+        <div className="flex items-center space-x-4 my-2">
+          <div className="flex-1 h-px bg-white/20"></div>
+          <span className="!text-sm cosmic-body text-white opacity-60">or pay with card</span>
+          <div className="flex-1 h-px bg-white/20"></div>
+        </div>
 
-                {/* Client Information Form */}
-                <form onSubmit={handleSubmit} className="space-y-3">
+        {/* Client Information Form */}
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div className="space-y-2">
             <div>
               <input
@@ -338,8 +336,6 @@ function PaymentForm({
             {loading ? 'Processing...' : `Pay ${currency} ${amount.toFixed(2)}`}
           </button>
         </form>
-              </>
-            )}
           </>
         ) : (
           <div className="text-center py-8">
