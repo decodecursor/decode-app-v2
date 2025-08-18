@@ -185,6 +185,9 @@ function PaymentForm({
                   }
                 };
                 
+                // Store Apple Pay availability before setTimeout (to avoid scope issues)
+                const hasApplePay = event.availablePaymentMethods?.applePay || false;
+                
                 // Auto-click Show More button and force layout
                 setTimeout(() => {
                   const showMoreButton = document.querySelector('button[aria-label*="Show more"], button[aria-label*="show more"], [class*="ShowMore"]') as HTMLButtonElement;
@@ -192,7 +195,7 @@ function PaymentForm({
                   
                   if (showMoreButton) {
                     // Check if Apple Pay is available and on mobile - if so, hide the button
-                    if (event.availablePaymentMethods?.applePay && isMobileDevice) {
+                    if (hasApplePay && isMobileDevice) {
                       console.log('🍎 Hiding Show More button - Apple Pay available on mobile');
                       showMoreButton.style.display = 'none';
                     } else {
@@ -288,10 +291,7 @@ function PaymentForm({
                 type="email"
                 placeholder="Email Address"
                 value={clientInfo.email}
-                onChange={(e) => {
-                  console.log('🔍 Email input changed:', e.target.value);
-                  setClientInfo(prev => ({ ...prev, email: e.target.value }));
-                }}
+                onChange={(e) => setClientInfo(prev => ({ ...prev, email: e.target.value }))}
                 className="cosmic-input"
                 required
               />
