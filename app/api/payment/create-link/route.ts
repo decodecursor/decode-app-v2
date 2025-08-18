@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Generate payment URL
-    const paymentUrl = `${process.env.NEXT_PUBLIC_APP_URL}/pay/${paymentLink.id}`;
+    const paymentUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.welovedecode.com'}/pay/${paymentLink.id}`;
 
     return NextResponse.json({
       success: true,
@@ -201,7 +201,7 @@ export async function GET(request: NextRequest) {
     // Get creator details
     const creator = await crossmintDB.getUserWithWallet(paymentLink.creator_id);
     
-    const paymentUrl = `${process.env.NEXT_PUBLIC_APP_URL}/pay/${paymentLink.id}`;
+    const paymentUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.welovedecode.com'}/pay/${paymentLink.id}`;
 
     return NextResponse.json({
       success: true,
