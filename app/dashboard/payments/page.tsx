@@ -392,7 +392,7 @@ export default function PaymentHistoryPage() {
   }
 
   const copyPaymentLink = async (linkId: string) => {
-    const link = `${window.location.origin}/pay/${linkId}`
+    const link = `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/pay/${linkId}`
     try {
       await navigator.clipboard.writeText(link)
       // You could add a toast notification here
