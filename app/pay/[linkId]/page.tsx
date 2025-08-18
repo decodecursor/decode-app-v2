@@ -97,7 +97,7 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
       title: 'It\'s Pamper Time',
       description: 'A special beauty treatment awaits you',
       type: 'website',
-      url: `https://decode-app-v2.vercel.app/pay/${linkId}`,
+      url: `https://app.welovedecode.com/pay/${linkId}`,
     },
     twitter: {
       card: 'summary',
@@ -122,7 +122,7 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
         title: personalizedTitle,
         description: personalizedDescription,
         type: 'website',
-        url: `https://decode-app-v2.vercel.app/pay/${linkId}`,
+        url: `https://app.welovedecode.com/pay/${linkId}`,
       },
       twitter: {
         card: 'summary',

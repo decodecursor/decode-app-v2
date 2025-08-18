@@ -17,7 +17,7 @@
 ### 3. Webhook Configuration
 - ✅ Webhook secret properly configured
 - ✅ Signature verification ready
-- ✅ Webhook endpoint: `https://decode-app-v2.vercel.app/api/webhooks/crossmint`
+- ✅ Webhook endpoint: `https://app.welovedecode.com/api/webhooks/crossmint`
 - ✅ Email notifications configured with Resend
 
 ## ⚠️ REQUIRED FOR REAL PAYMENTS
@@ -40,7 +40,7 @@ NEXT_PUBLIC_CROSSMINT_API_KEY=ck_staging_5TCFHsqJf...  ← STAGING KEY
    - `NEXT_PUBLIC_CROSSMINT_API_KEY=ck_live_...`
 
 ### 2. Webhook Configuration in Crossmint Console
-- Set webhook URL to: `https://decode-app-v2.vercel.app/api/webhooks/crossmint`
+- Set webhook URL to: `https://app.welovedecode.com/api/webhooks/crossmint`
 - Use webhook secret: `whsec_e+YB01ZA2LF+g0YMC2LHvgUwpNt9ENhY`
 
 ## 🧪 TESTING RESULTS

@@ -895,9 +895,9 @@ function MyLinksContent() {
                         isNewPayLink
                           ? 'bg-yellow-900/10 border-l-yellow-500 border-yellow-400/60 shadow-2xl shadow-yellow-400/40 scale-[1.02] animate-pulse'
                           : isPaid
-                            ? 'bg-blue-900/20 border-l-green-500 hover:border-green-400 hover:bg-blue-800/20 hover:shadow-2xl hover:shadow-green-400/60 hover:scale-[1.01]'
+                            ? 'bg-blue-900/30 border-l-green-500 hover:border-green-400 hover:bg-blue-800/30 hover:shadow-2xl hover:shadow-green-400/60 hover:scale-[1.01]'
                             : isInactive 
-                              ? 'bg-blue-900/20 border-l-red-500 hover:border-red-400 hover:bg-blue-800/20 hover:shadow-2xl hover:shadow-red-400/60 hover:scale-[1.01]'
+                              ? 'bg-blue-900/30 border-l-red-500 hover:border-red-400 hover:bg-blue-800/30 hover:shadow-2xl hover:shadow-red-400/60 hover:scale-[1.01]'
                               : 'bg-gray-900/80 border-l-purple-500 hover:border-purple-400 hover:bg-gray-800/80 hover:shadow-2xl hover:shadow-purple-400/60 hover:scale-[1.01]'
                       }`}>
                       

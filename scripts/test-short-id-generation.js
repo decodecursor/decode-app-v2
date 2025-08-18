@@ -82,7 +82,7 @@ async function testShortIdGeneration() {
 
   // Test 5: URL examples
   console.log('Test 5: URL examples with short IDs');
-  const baseUrl = 'https://decode-app-v2.vercel.app/pay/';
+  const baseUrl = 'https://app.welovedecode.com/pay/';
   for (let i = 0; i < 3; i++) {
     const id = generateShortId();
     console.log(`  ${baseUrl}${id}`);

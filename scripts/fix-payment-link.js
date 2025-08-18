@@ -102,7 +102,7 @@ async function fixPaymentLink() {
     console.log(`   Amount: $99.99`)
     console.log(`   Creator: ${userId}`)
     console.log('')
-    console.log('🔗 Test link: https://decode-app-v2.vercel.app/pay/' + paymentLinkId)
+    console.log('🔗 Test link: https://app.welovedecode.com/pay/' + paymentLinkId)
     
   } catch (error) {
     console.error('❌ Error fixing payment link:', error.message)

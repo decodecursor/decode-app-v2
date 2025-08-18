@@ -37,7 +37,7 @@ This guide explains how to properly configure Apple Pay for the DECODE Beauty pa
    1. Go to [Stripe Dashboard](https://dashboard.stripe.com)
    2. Navigate to Settings > Payment methods > Apple Pay
    3. Click "Add a new domain"
-   4. Enter your production domain (e.g., `decode-app-v2.vercel.app`)
+   4. Enter your production domain (e.g., `app.welovedecode.com`)
    5. Click "Add" - Stripe will automatically verify the domain using the file we created
 
 ### 2. **Test on HTTPS**
