@@ -49,6 +49,13 @@ function PaymentForm({
     name: customerName,
     email: customerEmail
   });
+  const [isApplePayAvailable, setIsApplePayAvailable] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile device
+  useEffect(() => {
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -185,12 +192,14 @@ function PaymentForm({
                   }
                 };
                 
-                // Auto-click Show More button and force layout
+                // Auto-click Show More button and force layout (but only if not Apple Pay on mobile)
                 setTimeout(() => {
                   const showMoreButton = document.querySelector('button[aria-label*="Show more"], button[aria-label*="show more"], [class*="ShowMore"]') as HTMLButtonElement;
-                  if (showMoreButton) {
+                  if (showMoreButton && !(isApplePayAvailable && isMobile)) {
                     console.log('🔄 Auto-clicking Show More button');
                     showMoreButton.click();
+                  } else if (isApplePayAvailable && isMobile) {
+                    console.log('🍎 Skipping Show More button click - Apple Pay available on mobile');
                   }
                   
                   // Force vertical layout after Stripe renders
@@ -220,8 +229,10 @@ function PaymentForm({
                 } else {
                   if (event.availablePaymentMethods.applePay) {
                     console.log('✅ DEBUG: Apple Pay is available');
+                    setIsApplePayAvailable(true);
                   } else {
                     console.log('❌ DEBUG: Apple Pay is NOT available');
+                    setIsApplePayAvailable(false);
                   }
                   if (event.availablePaymentMethods.googlePay) {
                     console.log('✅ DEBUG: Google Pay is available');
@@ -265,15 +276,18 @@ function PaymentForm({
               </div>
             </div>
 
-        {/* Divider */}
-        <div className="flex items-center space-x-4 my-2">
-          <div className="flex-1 h-px bg-white/20"></div>
-          <span className="!text-sm cosmic-body text-white opacity-60">or pay with card</span>
-          <div className="flex-1 h-px bg-white/20"></div>
-        </div>
+            {/* Only show card payment section if Apple Pay is NOT available on mobile */}
+            {!(isApplePayAvailable && isMobile) && (
+              <>
+                {/* Divider */}
+                <div className="flex items-center space-x-4 my-2">
+                  <div className="flex-1 h-px bg-white/20"></div>
+                  <span className="!text-sm cosmic-body text-white opacity-60">or pay with card</span>
+                  <div className="flex-1 h-px bg-white/20"></div>
+                </div>
 
-        {/* Client Information Form */}
-        <form onSubmit={handleSubmit} className="space-y-3">
+                {/* Client Information Form */}
+                <form onSubmit={handleSubmit} className="space-y-3">
           <div className="space-y-2">
             <div>
               <input
@@ -324,6 +338,8 @@ function PaymentForm({
             {loading ? 'Processing...' : `Pay ${currency} ${amount.toFixed(2)}`}
           </button>
         </form>
+              </>
+            )}
           </>
         ) : (
           <div className="text-center py-8">
