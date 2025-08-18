@@ -87,30 +87,62 @@ function MyLinksContent() {
             console.log('💖 Real-time payment update received:', payload)
             console.log('💖 Payload details:', {
               event_type: payload.eventType,
+              table: payload.table,
               old_payment_status: payload.old?.payment_status,
               new_payment_status: payload.new?.payment_status,
               old_paid_at: payload.old?.paid_at,
               new_paid_at: payload.new?.paid_at,
               old_is_paid: payload.old?.is_paid,
               new_is_paid: payload.new?.is_paid,
-              link_id: payload.new?.id
+              old_is_active: payload.old?.is_active,
+              new_is_active: payload.new?.is_active,
+              link_id: payload.new?.id,
+              timestamp: new Date().toISOString()
             })
             
-            // Check if payment_status changed to 'paid' or paid_at was set or is_paid was set to true
-            const justPaid = (payload.new.payment_status === 'paid' && payload.old?.payment_status !== 'paid') ||
-                           (payload.new.paid_at && !payload.old?.paid_at) ||
-                           (payload.new.is_paid && !payload.old?.is_paid)
+            // Enhanced payment detection - check ALL possible indicators
+            const statusChangedToPaid = payload.new.payment_status === 'paid' && payload.old?.payment_status !== 'paid'
+            const paidAtWasSet = payload.new.paid_at && !payload.old?.paid_at
+            const isPaidWasSet = payload.new.is_paid && !payload.old?.is_paid
+            const statusExistsAndPaid = payload.new.payment_status === 'paid' && (!payload.old?.payment_status || payload.old.payment_status !== 'paid')
+            const isPaidIsTrue = payload.new.is_paid === true && payload.old?.is_paid !== true
+            
+            console.log('💖 Payment detection flags:', {
+              statusChangedToPaid,
+              paidAtWasSet,
+              isPaidWasSet,
+              statusExistsAndPaid,
+              isPaidIsTrue
+            })
+            
+            const justPaid = statusChangedToPaid || paidAtWasSet || isPaidWasSet || statusExistsAndPaid || isPaidIsTrue
             
             if (justPaid) {
               console.log('🎉 Payment completed! Triggering heart animation for:', payload.new.id)
+              console.log('🎉 Current heart animating state:', heartAnimatingId)
+              console.log('🎉 Setting heart animation for link:', payload.new.id, 'at timestamp:', new Date().toISOString())
               
-              // Trigger heart animation
-              setHeartAnimatingId(payload.new.id)
+              // Clear any existing animation first
+              setHeartAnimatingId(null)
               
-              // Auto-hide after 3 seconds
+              // Use setTimeout to ensure state update processes
               setTimeout(() => {
-                setHeartAnimatingId(null)
-              }, 3000)
+                console.log('🎉 Actually setting heart animation now for:', payload.new.id)
+                setHeartAnimatingId(payload.new.id)
+                
+                // Auto-hide after 3 seconds with additional logging
+                setTimeout(() => {
+                  console.log('🎉 Clearing heart animation for:', payload.new.id)
+                  setHeartAnimatingId(null)
+                }, 3000)
+              }, 50)
+              
+              // Also trigger a backup animation after 1 second in case the first one doesn't work
+              setTimeout(() => {
+                console.log('🎉 Backup heart animation trigger for:', payload.new.id)
+                setHeartAnimatingId(payload.new.id)
+                setTimeout(() => setHeartAnimatingId(null), 3000)
+              }, 1000)
             }
             
             // Always update the payment link in state for any change
@@ -141,16 +173,16 @@ function MyLinksContent() {
           }
         })
         
-      // Fallback polling mechanism (every 10 seconds)
-      console.log('🔄 Setting up fallback polling for payment status changes...');
+      // Enhanced fallback polling mechanism (every 5 seconds for faster detection)
+      console.log('🔄 Setting up enhanced fallback polling for payment status changes...');
       const pollingInterval = setInterval(async () => {
         try {
-          console.log('🔍 Polling for payment status changes...');
+          console.log('🔍 Enhanced polling for payment status changes...');
           
-          // Fetch current payment links and compare with state
+          // Fetch current payment links with all payment-related fields
           const { data: currentLinks, error } = await (supabase as any)
             .from('payment_links')
-            .select('id, is_paid, is_active')
+            .select('id, is_paid, is_active, payment_status, paid_at')
             .eq('creator_id', user.id);
             
           if (!error && currentLinks) {
@@ -161,30 +193,86 @@ function MyLinksContent() {
               setPaymentLinks(prev => {
                 const existingLink = prev.find(link => link.id === currentLink.id);
                 
-                // Check if payment status changed to paid
-                console.log('🔍 POLLING: Checking payment status for link:', currentLink.id, {
-                  existing_is_paid: existingLink?.is_paid,
+                if (!existingLink) return prev; // Link not found in state
+                
+                // Enhanced payment detection logic (same as real-time subscription)
+                const statusChangedToPaid = currentLink.payment_status === 'paid' && existingLink.payment_status !== 'paid'
+                const paidAtWasSet = currentLink.paid_at && !existingLink.paid_at
+                const isPaidWasSet = currentLink.is_paid && !existingLink.is_paid
+                const statusExistsAndPaid = currentLink.payment_status === 'paid' && existingLink.payment_status !== 'paid'
+                const isPaidIsTrue = currentLink.is_paid === true && existingLink.is_paid !== true
+                
+                const justPaid = statusChangedToPaid || paidAtWasSet || isPaidWasSet || statusExistsAndPaid || isPaidIsTrue
+                
+                console.log('🔍 POLLING: Enhanced payment check for link:', currentLink.id, {
+                  existing_payment_status: existingLink.payment_status,
+                  current_payment_status: currentLink.payment_status,
+                  existing_is_paid: existingLink.is_paid,
                   current_is_paid: currentLink.is_paid,
-                  existing_payment_status: existingLink?.payment_status,
-                  current_payment_status: currentLink.payment_status
+                  existing_paid_at: existingLink.paid_at,
+                  current_paid_at: currentLink.paid_at,
+                  justPaid,
+                  statusChangedToPaid,
+                  paidAtWasSet,
+                  isPaidWasSet
                 });
                 
-                if (existingLink && !existingLink.is_paid && currentLink.is_paid) {
+                if (justPaid) {
                   console.log('🎉 POLLING: Payment completed! Triggering heart animation for:', currentLink.id);
+                  console.log('🎉 POLLING: Timestamp:', new Date().toISOString());
                   
-                  // Trigger heart animation
-                  setHeartAnimatingId(currentLink.id);
-                  setTimeout(() => setHeartAnimatingId(null), 3000);
+                  // Enhanced heart animation triggering (same as real-time)
+                  setHeartAnimatingId(null)
+                  setTimeout(() => {
+                    console.log('🎉 POLLING: Setting heart animation for:', currentLink.id)
+                    setHeartAnimatingId(currentLink.id);
+                    setTimeout(() => {
+                      console.log('🎉 POLLING: Clearing heart animation for:', currentLink.id)
+                      setHeartAnimatingId(null)
+                    }, 3000)
+                  }, 50)
                   
-                  // Update this link to paid
+                  // Backup animation
+                  setTimeout(() => {
+                    console.log('🎉 POLLING: Backup heart animation for:', currentLink.id)
+                    setHeartAnimatingId(currentLink.id)
+                    setTimeout(() => setHeartAnimatingId(null), 3000)
+                  }, 1000)
+                  
+                  // Update this link to paid with all available fields
                   return prev.map(link => 
                     link.id === currentLink.id 
-                      ? { ...link, is_paid: true, payment_status: 'paid' as 'paid' }
+                      ? { 
+                          ...link, 
+                          is_paid: true, 
+                          payment_status: 'paid' as 'paid',
+                          paid_at: currentLink.paid_at || new Date().toISOString()
+                        }
                       : link
                   );
                 }
                 
-                // No change needed
+                // No payment change, but update other fields if they changed
+                const hasOtherChanges = 
+                  existingLink.is_active !== currentLink.is_active ||
+                  existingLink.payment_status !== currentLink.payment_status
+                
+                if (hasOtherChanges) {
+                  console.log('🔄 POLLING: Updating non-payment fields for:', currentLink.id)
+                  return prev.map(link => 
+                    link.id === currentLink.id 
+                      ? { 
+                          ...link, 
+                          is_active: currentLink.is_active,
+                          payment_status: currentLink.payment_status || link.payment_status,
+                          is_paid: currentLink.is_paid || link.is_paid,
+                          paid_at: currentLink.paid_at || link.paid_at
+                        }
+                      : link
+                  );
+                }
+                
+                // No changes needed
                 return prev;
               });
             });
@@ -192,9 +280,9 @@ function MyLinksContent() {
             setLastCheckedTimestamp(currentTime);
           }
         } catch (pollingError) {
-          console.error('❌ Polling error:', pollingError);
+          console.error('❌ Enhanced polling error:', pollingError);
         }
-      }, 10000); // Check every 10 seconds
+      }, 5000); // Check every 5 seconds for faster detection
       
       // Cleanup subscription and polling
       return () => {
