@@ -288,7 +288,10 @@ function PaymentForm({
                 type="email"
                 placeholder="Email Address"
                 value={clientInfo.email}
-                onChange={(e) => setClientInfo(prev => ({ ...prev, email: e.target.value }))}
+                onChange={(e) => {
+                  console.log('🔍 Email input changed:', e.target.value);
+                  setClientInfo(prev => ({ ...prev, email: e.target.value }));
+                }}
                 className="cosmic-input"
                 required
               />
