@@ -49,13 +49,6 @@ function PaymentForm({
     name: customerName,
     email: customerEmail
   });
-  const [isApplePayAvailable, setIsApplePayAvailable] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Detect mobile device
-  useEffect(() => {
-    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
-  }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -192,15 +185,20 @@ function PaymentForm({
                   }
                 };
                 
-                // Auto-click Show More button and force layout (but only if not Apple Pay on mobile)
+                // Auto-click Show More button and force layout
                 setTimeout(() => {
                   const showMoreButton = document.querySelector('button[aria-label*="Show more"], button[aria-label*="show more"], [class*="ShowMore"]') as HTMLButtonElement;
-                  if (showMoreButton && !(isApplePayAvailable && isMobile)) {
-                    console.log('🔄 Auto-clicking Show More button');
-                    showMoreButton.click();
-                  } else if (isApplePayAvailable && isMobile && showMoreButton) {
-                    console.log('🍎 Hiding Show More button - Apple Pay available on mobile');
-                    showMoreButton.style.display = 'none';
+                  const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                  
+                  if (showMoreButton) {
+                    // Check if Apple Pay is available and on mobile - if so, hide the button
+                    if (event.availablePaymentMethods?.applePay && isMobileDevice) {
+                      console.log('🍎 Hiding Show More button - Apple Pay available on mobile');
+                      showMoreButton.style.display = 'none';
+                    } else {
+                      console.log('🔄 Auto-clicking Show More button');
+                      showMoreButton.click();
+                    }
                   }
                   
                   // Force vertical layout after Stripe renders
@@ -230,10 +228,8 @@ function PaymentForm({
                 } else {
                   if (event.availablePaymentMethods.applePay) {
                     console.log('✅ DEBUG: Apple Pay is available');
-                    setIsApplePayAvailable(true);
                   } else {
                     console.log('❌ DEBUG: Apple Pay is NOT available');
-                    setIsApplePayAvailable(false);
                   }
                   if (event.availablePaymentMethods.googlePay) {
                     console.log('✅ DEBUG: Google Pay is available');
