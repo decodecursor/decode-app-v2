@@ -91,12 +91,15 @@ function MyLinksContent() {
               new_payment_status: payload.new?.payment_status,
               old_paid_at: payload.old?.paid_at,
               new_paid_at: payload.new?.paid_at,
+              old_is_paid: payload.old?.is_paid,
+              new_is_paid: payload.new?.is_paid,
               link_id: payload.new?.id
             })
             
-            // Check if payment_status changed to 'paid' or paid_at was set
+            // Check if payment_status changed to 'paid' or paid_at was set or is_paid was set to true
             const justPaid = (payload.new.payment_status === 'paid' && payload.old?.payment_status !== 'paid') ||
-                           (payload.new.paid_at && !payload.old?.paid_at)
+                           (payload.new.paid_at && !payload.old?.paid_at) ||
+                           (payload.new.is_paid && !payload.old?.is_paid)
             
             if (justPaid) {
               console.log('🎉 Payment completed! Triggering heart animation for:', payload.new.id)
@@ -159,6 +162,13 @@ function MyLinksContent() {
                 const existingLink = prev.find(link => link.id === currentLink.id);
                 
                 // Check if payment status changed to paid
+                console.log('🔍 POLLING: Checking payment status for link:', currentLink.id, {
+                  existing_is_paid: existingLink?.is_paid,
+                  current_is_paid: currentLink.is_paid,
+                  existing_payment_status: existingLink?.payment_status,
+                  current_payment_status: currentLink.payment_status
+                });
+                
                 if (existingLink && !existingLink.is_paid && currentLink.is_paid) {
                   console.log('🎉 POLLING: Payment completed! Triggering heart animation for:', currentLink.id);
                   
