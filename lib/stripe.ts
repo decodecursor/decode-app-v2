@@ -66,8 +66,8 @@ class StripeService {
     }
 
     // Validate key formats
-    const secretKeyPattern = /^sk_(test|live)_[a-zA-Z0-9]+$/;
-    const publishableKeyPattern = /^pk_(test|live)_[a-zA-Z0-9]+$/;
+    const secretKeyPattern = /^sk_(test|live)_[a-zA-Z0-9_]+$/;
+    const publishableKeyPattern = /^pk_(test|live)_[a-zA-Z0-9_]+$/;
 
     if (!secretKeyPattern.test(this.config.secretKey)) {
       console.warn('❌ Invalid Stripe secret key format. Expected format: sk_test_... or sk_live_...');
