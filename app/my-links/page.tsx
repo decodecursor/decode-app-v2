@@ -1015,7 +1015,7 @@ function MyLinksContent() {
                       {/* PAID Overlay */}
                       {isPaid && (
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                          <span className="text-emerald-400 font-bold tracking-wider opacity-56 transform rotate-[-15deg]" 
+                          <span className="text-emerald-400 font-bold tracking-wider opacity-30 transform rotate-[-15deg]" 
                                 style={{ 
                                   fontSize: '3.2rem',
                                   WebkitTextStroke: '1px rgba(16,185,129,0.4)'
