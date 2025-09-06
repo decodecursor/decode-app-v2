@@ -1002,9 +1002,8 @@ function MyLinksContent() {
                       {/* Heart Animation Effect */}
                       <HeartAnimation isActive={isHeartAnimating} />
                       {/* Status Ribbon */}
-                      {(isPaid || isInactive) && (
+                      {(isInactive) && (
                         <div className={`ribbon ${
-                          isPaid ? 'ribbon-paid' : 
                           status === 'Expired' ? 'ribbon-expired' : 
                           'ribbon-deactivated'
                         }`}>
