@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
         }, {} as Record<string, number>)
 
         for (const [status, count] of Object.entries(statusCounts)) {
-          collector.gauge('decode_transactions_by_status', count, { status })
+          collector.gauge('decode_transactions_by_status', count as number, { status })
         }
       }
 
