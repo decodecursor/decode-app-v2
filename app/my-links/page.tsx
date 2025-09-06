@@ -885,6 +885,11 @@ function MyLinksContent() {
       setQrCodeDataURL(qrDataURL)
       setShowQRModal(true)
       
+      // Auto-close QR modal after 20 seconds
+      setTimeout(() => {
+        closeQRModal()
+      }, 20000)
+      
     } catch (error) {
       console.error('Error generating QR code:', error)
       setCopyMessage('Failed to generate QR code. Please try again.')
