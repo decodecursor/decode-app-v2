@@ -2,16 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
 // Helper function to add CORS headers
-function corsHeaders() {
+function corsHeaders(request?: NextRequest) {
+  const origin = request?.headers.get('origin') || 'http://localhost:3000'
   return {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cookie',
+    'Access-Control-Allow-Credentials': 'true',
   }
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, { status: 200, headers: corsHeaders() })
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, { status: 200, headers: corsHeaders(request) })
 }
 
 export async function GET(request: NextRequest) {
@@ -22,7 +24,7 @@ export async function GET(request: NextRequest) {
     if (!query || query.length < 3) {
       return NextResponse.json(
         { suggestions: [] },
-        { headers: corsHeaders() }
+        { headers: corsHeaders(request) }
       )
     }
 
@@ -39,12 +41,12 @@ export async function GET(request: NextRequest) {
       if (error.message?.includes('column') && error.message?.includes('company_name')) {
         return NextResponse.json(
           { suggestions: [] },
-          { headers: corsHeaders() }
+          { headers: corsHeaders(request) }
         )
       }
       return NextResponse.json(
         { error: 'Failed to fetch suggestions' }, 
-        { status: 500, headers: corsHeaders() }
+        { status: 500, headers: corsHeaders(request) }
       )
     }
 
@@ -55,13 +57,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       { suggestions: uniqueCompanies },
-      { headers: corsHeaders() }
+      { headers: corsHeaders(request) }
     )
   } catch (error) {
     console.error('Company suggestions API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' }, 
-      { status: 500, headers: corsHeaders() }
+      { status: 500, headers: corsHeaders(request) }
     )
   }
 }

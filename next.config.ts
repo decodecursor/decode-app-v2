@@ -55,7 +55,9 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Access-Control-Allow-Origin',
-            value: '*', // Allow all origins to fix Firefox issues
+            value: process.env.NODE_ENV === 'production' 
+              ? 'https://decode.beauty' 
+              : 'http://localhost:3000',
           },
           {
             key: 'Access-Control-Allow-Methods',
@@ -63,11 +65,15 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Access-Control-Allow-Headers',
-            value: 'Content-Type, Authorization, X-Requested-With',
+            value: 'Content-Type, Authorization, X-Requested-With, Cookie',
           },
           {
             key: 'Access-Control-Allow-Credentials',
             value: 'true',
+          },
+          {
+            key: 'Access-Control-Max-Age',
+            value: '86400',
           },
         ],
       },

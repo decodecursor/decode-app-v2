@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import RoleSelectionModal from '@/components/RoleSelectionModal'
 import PasswordInput from '@/components/PasswordInput'
 
 export default function AuthPage() {
+  const router = useRouter()
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -40,6 +42,7 @@ export default function AuthPage() {
             headers: {
               'Content-Type': 'application/json',
             },
+            credentials: 'include',
           })
           
           if (response.ok) {
@@ -96,7 +99,7 @@ export default function AuthPage() {
         })
         if (error) throw error
         console.log('User logged in:', data.user)
-        window.location.href = '/dashboard'
+        router.push('/dashboard')
         return // Don't set loading to false for login - let redirect happen
       } else {
         const { data, error } = await supabase.auth.signUp({
@@ -110,7 +113,7 @@ export default function AuthPage() {
           setShowRoleModal(true)
         } else {
           // No user object means email confirmation required
-          window.location.href = `/verify-email?email=${encodeURIComponent(email)}`
+          router.push(`/verify-email?email=${encodeURIComponent(email)}`)
         }
         console.log('User signed up:', data.user)
       }
@@ -125,13 +128,13 @@ export default function AuthPage() {
   const handleRoleModalClose = () => {
     setShowRoleModal(false)
     // Redirect to verification page even if user closes modal
-    window.location.href = `/verify-email?email=${encodeURIComponent(email)}`
+    router.push(`/verify-email?email=${encodeURIComponent(email)}`)
   }
 
   const handleRoleModalComplete = () => {
     setShowRoleModal(false)
     // Redirect to email verification page
-    window.location.href = `/verify-email?email=${encodeURIComponent(email)}`
+    router.push(`/verify-email?email=${encodeURIComponent(email)}`)
   }
 
   return (

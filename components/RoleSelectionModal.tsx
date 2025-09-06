@@ -32,6 +32,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
             headers: {
               'Content-Type': 'application/json',
             },
+            credentials: 'include',
           })
           
           if (response.ok) {
