@@ -35,16 +35,28 @@ export default function AuthPage() {
       if (!isLogin && email && email.includes('@')) {
         setCheckingEmail(true)
         try {
-          const response = await fetch(`/api/auth/check-email?email=${encodeURIComponent(email)}`)
-          const data = await response.json()
+          const response = await fetch(`/api/auth/check-email?email=${encodeURIComponent(email)}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
           
-          if (data.exists) {
-            setEmailError('This email is already registered')
+          if (response.ok) {
+            const data = await response.json()
+            if (data.exists) {
+              setEmailError('This email is already registered')
+            } else {
+              setEmailError('')
+            }
           } else {
+            // Don't show error for network issues, just skip validation
             setEmailError('')
           }
         } catch (error) {
+          // Network error - don't block user, just skip validation
           console.error('Error checking email:', error)
+          setEmailError('')
         } finally {
           setCheckingEmail(false)
         }

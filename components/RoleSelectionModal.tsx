@@ -27,14 +27,29 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
     const fetchCompanySuggestions = async () => {
       if (companyName.length >= 3 && !hasSelectedSuggestion) {
         try {
-          const response = await fetch(`/api/companies/suggestions?q=${encodeURIComponent(companyName)}`)
-          const data = await response.json()
-          if (data.suggestions) {
-            setCompanySuggestions(data.suggestions)
-            setShowSuggestions(data.suggestions.length > 0)
+          const response = await fetch(`/api/companies/suggestions?q=${encodeURIComponent(companyName)}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+          
+          if (response.ok) {
+            const data = await response.json()
+            if (data.suggestions) {
+              setCompanySuggestions(data.suggestions)
+              setShowSuggestions(data.suggestions.length > 0)
+            }
+          } else {
+            // Don't show error for network issues, just hide suggestions
+            setShowSuggestions(false)
+            setCompanySuggestions([])
           }
         } catch (error) {
+          // Network error - don't block user, just hide suggestions
           console.error('Error fetching company suggestions:', error)
+          setShowSuggestions(false)
+          setCompanySuggestions([])
         }
       } else {
         setShowSuggestions(false)
