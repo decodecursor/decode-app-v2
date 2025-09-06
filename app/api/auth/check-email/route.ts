@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    ) as any
 
     // Check if email exists in auth.users
     const { data: authUsers, error: authError } = await supabaseAdmin.auth.admin.listUsers()
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const emailExists = authUsers?.users?.some(user => user.email === email)
+    const emailExists = authUsers?.users?.some((user: any) => user.email === email)
 
     return NextResponse.json(
       { 

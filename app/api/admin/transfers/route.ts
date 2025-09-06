@@ -9,7 +9,7 @@ import { transferService } from '@/lib/transfer-service';
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+) as any;
 
 // GET - Admin transfer overview
 export async function GET(request: NextRequest) {

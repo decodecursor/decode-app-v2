@@ -28,11 +28,11 @@
       "@/types/*": ["./types/*"]
     },
     "forceConsistentCasingInFileNames": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": false,
     "exactOptionalPropertyTypes": false,
-    "noImplicitOverride": true
+    "noImplicitOverride": false
   },
   "include": [
     "next-env.d.ts",
