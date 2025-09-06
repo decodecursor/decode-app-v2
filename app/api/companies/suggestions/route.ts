@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 
     // Get unique company names
     const uniqueCompanies = [...new Set((companies || []).map((c: any) => c.company_name))]
-      .filter(name => name && name.trim())
+      .filter((name: any) => name && typeof name === 'string' && name.trim())
       .slice(0, 3)
 
     return NextResponse.json(
