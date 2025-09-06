@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
         .not('status', 'is', null)
 
       if (transactionsByStatus) {
-        const statusCounts = transactionsByStatus.reduce((acc, tx) => {
+        const statusCounts = transactionsByStatus.reduce((acc: Record<string, number>, tx: any) => {
           acc[tx.status] = (acc[tx.status] || 0) + 1
           return acc
         }, {} as Record<string, number>)
