@@ -1012,7 +1012,18 @@ function MyLinksContent() {
                         </div>
                       )}
                       
-                      <div className="flex flex-col gap-3">
+                      {/* PAID Overlay */}
+                      {isPaid && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                          <div className="bg-black/40 backdrop-blur-sm rounded-lg px-6 py-3">
+                            <span className="text-emerald-400 text-4xl font-bold tracking-wider opacity-90 drop-shadow-lg">
+                              PAID
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className={`flex flex-col gap-3 ${isPaid ? 'opacity-60 filter grayscale-[0.2]' : ''}`}>
                         {/* Top Row: Title, Amount, Status */}
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                           <div className="flex-1">
@@ -1058,7 +1069,7 @@ function MyLinksContent() {
                                 AED {formatAmount(link.service_amount_aed || (link.amount_aed / 1.09))}
                               </div>
                             </div>
-                            <div className="flex gap-2 ml-4">
+                            <div className={`flex gap-2 ml-4 ${isPaid ? 'opacity-50' : ''}`}>
                             <button
                               onClick={() => copyToClipboard(link.id)}
                               disabled={copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
