@@ -66,10 +66,21 @@ export function RevenueChart({
     }
   }
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
+  const CustomTooltip = ({ active, payload, label, coordinate }: any) => {
+    if (active && payload && payload.length && coordinate) {
+      // Calculate tooltip position with offset to avoid cursor overlap
+      const offsetX = 15
+      const offsetY = -10
+      
       return (
-        <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
+        <div 
+          className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg pointer-events-none"
+          style={{
+            position: 'absolute',
+            transform: `translate(${coordinate.x + offsetX}px, ${coordinate.y + offsetY}px)`,
+            zIndex: 1000
+          }}
+        >
           <p className="font-medium text-gray-900 mb-2">
             {format(parseISO(label), 'MMM dd, yyyy')}
           </p>
@@ -113,8 +124,8 @@ export function RevenueChart({
             <Tooltip 
               content={<CustomTooltip />} 
               cursor={{ strokeDasharray: '3 3' }}
-              position={{ x: 0, y: 0 }}
               allowEscapeViewBox={{ x: true, y: true }}
+              wrapperStyle={{ pointerEvents: 'none' }}
             />
             <Legend />
             <Bar 
@@ -168,8 +179,8 @@ export function RevenueChart({
           <Tooltip 
             content={<CustomTooltip />} 
             cursor={{ strokeDasharray: '3 3' }}
-            position={{ x: 0, y: 0 }}
             allowEscapeViewBox={{ x: true, y: true }}
+            wrapperStyle={{ pointerEvents: 'none' }}
           />
           <Legend />
           <Line 
