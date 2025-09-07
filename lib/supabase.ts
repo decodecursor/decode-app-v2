@@ -10,12 +10,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
     flowType: 'pkce',
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    storageKey: 'supabase.auth.token',
-    cookieOptions: {
-      domain: typeof window !== 'undefined' ? window.location.hostname : undefined,
-      path: '/',
-      sameSite: 'lax',
-      secure: typeof window !== 'undefined' ? window.location.protocol === 'https:' : false,
-    }
+    storageKey: 'supabase.auth.token'
   }
 }) as any
