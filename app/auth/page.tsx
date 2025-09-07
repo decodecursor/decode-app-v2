@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import RoleSelectionModal from '@/components/RoleSelectionModal'
 import PasswordInput from '@/components/PasswordInput'
 
@@ -93,6 +93,7 @@ export default function AuthPage() {
     
     try {
       if (isLogin) {
+        const supabase = getSupabaseClient()
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password
@@ -102,6 +103,7 @@ export default function AuthPage() {
         router.push('/dashboard')
         return // Don't set loading to false for login - let redirect happen
       } else {
+        const supabase = getSupabaseClient()
         const { data, error } = await supabase.auth.signUp({
           email,
           password
