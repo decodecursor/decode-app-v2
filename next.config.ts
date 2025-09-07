@@ -55,9 +55,13 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Access-Control-Allow-Origin',
-            value: process.env.NODE_ENV === 'production' 
-              ? 'https://decode.beauty' 
-              : 'http://localhost:3000',
+            value: (() => {
+              if (process.env.NODE_ENV === 'production') {
+                return 'https://decode.beauty';
+              }
+              // Development: allow localhost on any port, 127.0.0.1, and Vercel preview URLs
+              return '*';
+            })(),
           },
           {
             key: 'Access-Control-Allow-Methods',
