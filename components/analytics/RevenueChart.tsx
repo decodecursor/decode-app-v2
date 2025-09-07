@@ -71,24 +71,57 @@ export function RevenueChart({
     }
   }
 
-  // Custom mouse event handlers for precise tooltip positioning
-  const handleChartMouseMove = (state: any, event: React.MouseEvent) => {
-    if (state && state.isTooltipActive && chartContainerRef.current) {
-      const rect = chartContainerRef.current.getBoundingClientRect()
-      const x = event.clientX - rect.left
-      const y = event.clientY - rect.top
-      
-      setMousePosition({ x, y })
-      setActiveData(state.activePayload?.[0] || null)
-      setIsTooltipVisible(true)
-    } else {
+  // Native DOM mouse event handlers with smart data point detection
+  const handleContainerMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!chartContainerRef.current) return
+
+    const rect = chartContainerRef.current.getBoundingClientRect()
+    const x = event.clientX - rect.left
+    const y = event.clientY - rect.top
+    
+    // Calculate chart area (accounting for margins)
+    const margins = { top: 5, right: 30, left: 20, bottom: 5 }
+    const chartWidth = rect.width - margins.left - margins.right
+    const chartHeight = rect.height - margins.top - margins.bottom
+    
+    // Check if mouse is within chart area
+    if (x < margins.left || x > rect.width - margins.right || 
+        y < margins.top || y > rect.height - margins.bottom) {
       setIsTooltipVisible(false)
       setMousePosition(null)
       setActiveData(null)
+      return
     }
+    
+    // Calculate which data point we're hovering over
+    const relativeX = x - margins.left
+    const dataPointIndex = Math.round((relativeX / chartWidth) * (data.length - 1))
+    
+    // Ensure index is within bounds
+    if (dataPointIndex < 0 || dataPointIndex >= data.length) {
+      setIsTooltipVisible(false)
+      setMousePosition(null)
+      setActiveData(null)
+      return
+    }
+    
+    const hoveredData = data[dataPointIndex]
+    
+    // Only show tooltip if there's actual revenue data (not zero or null)
+    if (!hoveredData || hoveredData.revenue === 0 || hoveredData.revenue == null) {
+      setIsTooltipVisible(false)
+      setMousePosition(null)
+      setActiveData(null)
+      return
+    }
+    
+    // Set tooltip state
+    setMousePosition({ x, y })
+    setActiveData({ payload: hoveredData })
+    setIsTooltipVisible(true)
   }
 
-  const handleChartMouseLeave = () => {
+  const handleContainerMouseLeave = () => {
     setIsTooltipVisible(false)
     setMousePosition(null)
     setActiveData(null)
@@ -155,13 +188,16 @@ export function RevenueChart({
 
   if (chartType === 'bar') {
     return (
-      <div className="w-full h-80 relative" ref={chartContainerRef}>
+      <div 
+        className="w-full h-80 relative" 
+        ref={chartContainerRef}
+        onMouseMove={handleContainerMouseMove}
+        onMouseLeave={handleContainerMouseLeave}
+      >
         <ResponsiveContainer width="100%" height="100%">
           <BarChart 
             data={data} 
             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-            onMouseMove={handleChartMouseMove}
-            onMouseLeave={handleChartMouseLeave}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis 
@@ -184,8 +220,6 @@ export function RevenueChart({
                 stroke="#6b7280"
               />
             )}
-            {/* Invisible tooltip to maintain Recharts hover functionality */}
-            <Tooltip content={() => null} cursor={{ strokeDasharray: '3 3' }} />
             <Legend />
             <Bar 
               yAxisId="left"
@@ -211,13 +245,16 @@ export function RevenueChart({
   }
 
   return (
-    <div className="w-full h-80 relative" ref={chartContainerRef}>
+    <div 
+      className="w-full h-80 relative" 
+      ref={chartContainerRef}
+      onMouseMove={handleContainerMouseMove}
+      onMouseLeave={handleContainerMouseLeave}
+    >
       <ResponsiveContainer width="100%" height="100%">
         <LineChart 
           data={data} 
           margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-          onMouseMove={handleChartMouseMove}
-          onMouseLeave={handleChartMouseLeave}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis 
@@ -241,8 +278,6 @@ export function RevenueChart({
               tickFormatter={(value) => showSuccessRate ? `${value}%` : value.toString()}
             />
           )}
-          {/* Invisible tooltip to maintain Recharts hover functionality */}
-          <Tooltip content={() => null} cursor={{ strokeDasharray: '3 3' }} />
           <Legend />
           <Line 
             yAxisId="left"
