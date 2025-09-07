@@ -582,20 +582,16 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                                     height: `${heightPercent}%`, 
                                     minHeight: '4px'
                                   }}
-                                  title={`${dayDate.toLocaleDateString('en-US', { 
-                                    weekday: 'short', 
-                                    month: 'short', 
-                                    day: 'numeric' 
-                                  })}: ${formatCurrency(day.revenue)} (${day.transactions} transactions)`}
                                 ></div>
                               </div>
                               
-                              {/* Enhanced Tooltip on Hover - positioned relative to bar */}
-                              <div className="absolute hidden group-hover:block bg-black/90 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10"
+                              {/* Enhanced Tooltip on Hover - positioned directly above bar */}
+                              <div className="absolute hidden group-hover:block bg-black/90 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-20 shadow-lg"
                                    style={{
-                                     bottom: `${heightPercent + 5}%`,
+                                     bottom: '100%',
                                      left: '50%',
-                                     transform: 'translateX(-50%)'
+                                     transform: 'translateX(-50%) translateY(-8px)',
+                                     marginBottom: '4px'
                                    }}>
                                 <div className="font-semibold">{dayDate.toLocaleDateString('en-US', { 
                                   weekday: 'short', 
@@ -604,6 +600,10 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                                 })}</div>
                                 <div>Revenue: {formatCurrency(day.revenue)}</div>
                                 <div>Transactions: {day.transactions}</div>
+                                {/* Tooltip Arrow */}
+                                <div className="absolute top-full left-1/2 transform -translate-x-1/2">
+                                  <div className="border-4 border-transparent border-t-black/90"></div>
+                                </div>
                               </div>
                             </div>
                           )
