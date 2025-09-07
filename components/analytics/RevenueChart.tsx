@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useRef } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import { format, parseISO } from 'date-fns'
 import type { RevenueByDay } from '@/lib/analytics'
@@ -20,6 +20,11 @@ export function RevenueChart({
   showTransactions = true,
   showSuccessRate = false
 }: RevenueChartProps) {
+  // Mouse tracking state for custom tooltip positioning
+  const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null)
+  const [activeData, setActiveData] = useState<any>(null)
+  const [isTooltipVisible, setIsTooltipVisible] = useState(false)
+  const chartContainerRef = useRef<HTMLDivElement>(null)
   if (loading) {
     return (
       <div className="w-full h-80 bg-gray-50 rounded-lg flex items-center justify-center">
@@ -66,29 +71,98 @@ export function RevenueChart({
     }
   }
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-medium text-gray-900 mb-2">
-            {format(parseISO(label), 'MMM dd, yyyy')}
-          </p>
-          {payload.map((pld: any, index: number) => (
-            <p key={index} className="text-sm" style={{ color: pld.color }}>
-              {`${pld.name}: ${formatTooltipValue(pld.value, pld.dataKey)[0]}`}
-            </p>
-          ))}
-        </div>
-      )
+  // Custom mouse event handlers for precise tooltip positioning
+  const handleChartMouseMove = (state: any, event: React.MouseEvent) => {
+    if (state && state.isTooltipActive && chartContainerRef.current) {
+      const rect = chartContainerRef.current.getBoundingClientRect()
+      const x = event.clientX - rect.left
+      const y = event.clientY - rect.top
+      
+      setMousePosition({ x, y })
+      setActiveData(state.activePayload?.[0] || null)
+      setIsTooltipVisible(true)
+    } else {
+      setIsTooltipVisible(false)
+      setMousePosition(null)
+      setActiveData(null)
     }
-    return null
+  }
+
+  const handleChartMouseLeave = () => {
+    setIsTooltipVisible(false)
+    setMousePosition(null)
+    setActiveData(null)
+  }
+
+  // Custom positioned tooltip component
+  const CustomPositionedTooltip = () => {
+    if (!isTooltipVisible || !mousePosition || !activeData) return null
+
+    // Smart positioning logic to keep tooltip in view
+    const tooltipWidth = 200
+    const tooltipHeight = 100
+    const padding = 15
+    const containerRect = chartContainerRef.current?.getBoundingClientRect()
+    
+    if (!containerRect) return null
+
+    let x = mousePosition.x + padding
+    let y = mousePosition.y - tooltipHeight - padding
+
+    // Adjust if tooltip goes off right edge
+    if (x + tooltipWidth > containerRect.width) {
+      x = mousePosition.x - tooltipWidth - padding
+    }
+
+    // Adjust if tooltip goes off top edge
+    if (y < 0) {
+      y = mousePosition.y + padding
+    }
+
+    // Adjust if tooltip goes off bottom edge
+    if (y + tooltipHeight > containerRect.height) {
+      y = mousePosition.y - tooltipHeight - padding
+    }
+
+    return (
+      <div 
+        className="absolute bg-white p-4 border border-gray-200 rounded-lg shadow-lg pointer-events-none z-50"
+        style={{ 
+          left: `${x}px`,
+          top: `${y}px`,
+          width: `${tooltipWidth}px`
+        }}
+      >
+        <p className="font-medium text-gray-900 mb-2">
+          {format(parseISO(activeData.payload.date), 'MMM dd, yyyy')}
+        </p>
+        <p className="text-sm text-purple-600">
+          Revenue: {formatTooltipValue(activeData.payload.revenue, 'revenue')[0]}
+        </p>
+        {showTransactions && activeData.payload.transactions && (
+          <p className="text-sm text-cyan-600">
+            Transactions: {formatTooltipValue(activeData.payload.transactions, 'transactions')[0]}
+          </p>
+        )}
+        {showSuccessRate && activeData.payload.successRate && (
+          <p className="text-sm text-green-600">
+            Success Rate: {formatTooltipValue(activeData.payload.successRate, 'successRate')[0]}
+          </p>
+        )}
+      </div>
+    )
   }
 
   if (chartType === 'bar') {
     return (
-      <div className="w-full h-80">
+      <div className="w-full h-80 relative" ref={chartContainerRef}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+          <BarChart 
+            data={data} 
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            onMouseMove={handleChartMouseMove}
+            onMouseLeave={handleChartMouseLeave}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis 
               dataKey="date" 
@@ -110,13 +184,8 @@ export function RevenueChart({
                 stroke="#6b7280"
               />
             )}
-            <Tooltip 
-              content={<CustomTooltip />} 
-              cursor={{ strokeDasharray: '3 3' }}
-              isAnimationActive={false}
-              offset={10}
-              allowEscapeViewBox={{ x: true, y: true }}
-            />
+            {/* Invisible tooltip to maintain Recharts hover functionality */}
+            <Tooltip content={() => null} cursor={{ strokeDasharray: '3 3' }} />
             <Legend />
             <Bar 
               yAxisId="left"
@@ -136,14 +205,20 @@ export function RevenueChart({
             )}
           </BarChart>
         </ResponsiveContainer>
+        <CustomPositionedTooltip />
       </div>
     )
   }
 
   return (
-    <div className="w-full h-80">
+    <div className="w-full h-80 relative" ref={chartContainerRef}>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+        <LineChart 
+          data={data} 
+          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          onMouseMove={handleChartMouseMove}
+          onMouseLeave={handleChartMouseLeave}
+        >
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis 
             dataKey="date" 
@@ -166,13 +241,8 @@ export function RevenueChart({
               tickFormatter={(value) => showSuccessRate ? `${value}%` : value.toString()}
             />
           )}
-          <Tooltip 
-            content={<CustomTooltip />} 
-            cursor={{ strokeDasharray: '3 3' }}
-            isAnimationActive={false}
-            offset={10}
-            allowEscapeViewBox={{ x: true, y: true }}
-          />
+          {/* Invisible tooltip to maintain Recharts hover functionality */}
+          <Tooltip content={() => null} cursor={{ strokeDasharray: '3 3' }} />
           <Legend />
           <Line 
             yAxisId="left"
@@ -208,6 +278,7 @@ export function RevenueChart({
           )}
         </LineChart>
       </ResponsiveContainer>
+      <CustomPositionedTooltip />
     </div>
   )
 }
