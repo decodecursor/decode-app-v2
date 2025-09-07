@@ -789,12 +789,20 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
               color: white !important;
             }
           `}</style>
-          <h3 className="text-lg font-semibold mb-4 text-white">Select Date Range</h3>
+          <div className="relative mb-4">
+            <h3 className="text-lg font-semibold text-white">Select Date Range</h3>
+            <button
+              onClick={() => setCustomDateRange(undefined)}
+              className="absolute top-0 right-0 bg-gray-700 hover:bg-gray-600 text-white text-xs px-2 py-1 rounded transition-colors"
+            >
+              Clear
+            </button>
+          </div>
           <DayPicker
             mode="range"
             numberOfMonths={2}
             pagedNavigation={false}
-            showOutsideDays={true}
+            showOutsideDays={false}
             selected={customDateRange}
             onSelect={setCustomDateRange}
             className="mb-4 date-picker-custom"
