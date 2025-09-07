@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         )
       `)
       .eq('id', paymentLinkId)
-      .single();
+      .single() as any;
 
     if (fetchError || !paymentLink) {
       console.error('❌ Payment link not found:', fetchError);
