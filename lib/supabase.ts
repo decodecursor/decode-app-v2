@@ -3,6 +3,19 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-// Temporarily remove type safety to fix build issues
-// TODO: Generate correct types from Supabase database
-export const supabase = createClient(supabaseUrl, supabaseAnonKey) as any
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce',
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    storageKey: 'supabase.auth.token',
+    cookieOptions: {
+      domain: typeof window !== 'undefined' ? window.location.hostname : undefined,
+      path: '/',
+      sameSite: 'lax',
+      secure: typeof window !== 'undefined' ? window.location.protocol === 'https:' : false,
+    }
+  }
+}) as any
