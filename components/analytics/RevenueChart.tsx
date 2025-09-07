@@ -110,7 +110,12 @@ export function RevenueChart({
                 stroke="#6b7280"
               />
             )}
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip 
+              content={<CustomTooltip />} 
+              cursor={{ strokeDasharray: '3 3' }}
+              position={{ x: 0, y: 0 }}
+              allowEscapeViewBox={{ x: true, y: true }}
+            />
             <Legend />
             <Bar 
               yAxisId="left"
@@ -160,7 +165,12 @@ export function RevenueChart({
               tickFormatter={(value) => showSuccessRate ? `${value}%` : value.toString()}
             />
           )}
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip 
+            content={<CustomTooltip />} 
+            cursor={{ strokeDasharray: '3 3' }}
+            position={{ x: 0, y: 0 }}
+            allowEscapeViewBox={{ x: true, y: true }}
+          />
           <Legend />
           <Line 
             yAxisId="left"
