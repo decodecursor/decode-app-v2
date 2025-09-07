@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   experimental: {
     // Enable server actions for form handling
     serverActions: {
-      allowedOrigins: ["localhost:3000", "decode.beauty"],
+      allowedOrigins: ["localhost:3000", "app.welovedecode.com"],
     },
     // Optimize for production builds
     optimizePackageImports: ["@supabase/supabase-js", "date-fns", "recharts"],
@@ -57,7 +57,7 @@ const nextConfig: NextConfig = {
             key: 'Access-Control-Allow-Origin',
             value: (() => {
               if (process.env.NODE_ENV === 'production') {
-                return 'https://decode.beauty';
+                return 'https://app.welovedecode.com';
               }
               // Development: allow localhost on any port, 127.0.0.1, and Vercel preview URLs
               return '*';

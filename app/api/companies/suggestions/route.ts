@@ -3,9 +3,25 @@ import { supabase } from '@/lib/supabase'
 
 // Helper function to add CORS headers
 function corsHeaders(request?: NextRequest) {
-  const origin = request?.headers.get('origin') || 'http://localhost:3000'
+  const origin = request?.headers.get('origin') || ''
+  
+  // Allow specific origins
+  const allowedOrigins = [
+    'https://app.welovedecode.com',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3000'
+  ]
+  
+  // Check if origin is allowed, or use default for production
+  const corsOrigin = allowedOrigins.includes(origin) 
+    ? origin 
+    : process.env.NODE_ENV === 'production' 
+      ? 'https://app.welovedecode.com'
+      : '*'
+  
   return {
-    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Origin': corsOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cookie',
     'Access-Control-Allow-Credentials': 'true',
