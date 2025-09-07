@@ -68,6 +68,14 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
     revenueByDay: []
   })
 
+  // Tooltip hover state for revenue chart
+  const [hoveredDayData, setHoveredDayData] = useState<{
+    date: string
+    dayNumber: number
+    revenue: number
+    transactions: number
+  } | null>(null)
+
   // Use stable date reference to prevent infinite re-renders
   const now = useMemo(() => new Date(), [dateRange])
 
@@ -568,7 +576,12 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                           const isToday = dayDate.toDateString() === new Date().toDateString()
                           
                           return (
-                            <div key={day.date} className="flex-1 h-full flex flex-col items-center group cursor-pointer">
+                            <div 
+                              key={day.date} 
+                              className="flex-1 h-full flex flex-col items-center group cursor-pointer"
+                              onMouseEnter={() => setHoveredDayData(day)}
+                              onMouseLeave={() => setHoveredDayData(null)}
+                            >
                               <div className="relative flex-1 w-full h-full flex items-end">
                                 <div 
                                   className={`w-full rounded-t-sm transition-all duration-300 ${
@@ -583,27 +596,6 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                                     minHeight: '4px'
                                   }}
                                 ></div>
-                              </div>
-                              
-                              {/* Enhanced Tooltip on Hover - positioned directly above bar */}
-                              <div className="absolute hidden group-hover:block bg-black/90 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-20 shadow-lg"
-                                   style={{
-                                     bottom: '100%',
-                                     left: '50%',
-                                     transform: 'translateX(-50%) translateY(-8px)',
-                                     marginBottom: '4px'
-                                   }}>
-                                <div className="font-semibold">{dayDate.toLocaleDateString('en-US', { 
-                                  weekday: 'short', 
-                                  month: 'short', 
-                                  day: 'numeric' 
-                                })}</div>
-                                <div>Revenue: {formatCurrency(day.revenue)}</div>
-                                <div>Transactions: {day.transactions}</div>
-                                {/* Tooltip Arrow */}
-                                <div className="absolute top-full left-1/2 transform -translate-x-1/2">
-                                  <div className="border-4 border-transparent border-t-black/90"></div>
-                                </div>
                               </div>
                             </div>
                           )
@@ -625,6 +617,21 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
                       )
                     })}
                   </div>
+                  
+                  {/* Shared Tooltip - positioned in upper right corner */}
+                  {hoveredDayData && (
+                    <div className="absolute top-4 right-4 bg-black/90 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-30 shadow-lg">
+                      <div className="font-semibold">
+                        {new Date(hoveredDayData.date).toLocaleDateString('en-US', { 
+                          weekday: 'short', 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })}
+                      </div>
+                      <div>Revenue: {formatCurrency(hoveredDayData.revenue)}</div>
+                      <div>Transactions: {hoveredDayData.transactions}</div>
+                    </div>
+                  )}
                 </div>
               )
             })()}
