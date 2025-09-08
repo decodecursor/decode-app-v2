@@ -22,7 +22,13 @@ export async function updateSession(request: NextRequest) {
             request,
           })
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, {
+              ...options,
+              // Ensure cookies are properly configured for development
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              httpOnly: false, // Allow client-side access for session management
+            })
           )
         },
       },
@@ -30,7 +36,14 @@ export async function updateSession(request: NextRequest) {
   )
 
   // This will refresh session if expired - required for Server Components
-  await supabase.auth.getUser()
+  try {
+    await supabase.auth.getUser()
+  } catch (error) {
+    // In development, don't fail hard on auth errors
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Auth refresh failed in development mode:', error)
+    }
+  }
 
   return supabaseResponse
 }

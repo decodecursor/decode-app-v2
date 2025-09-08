@@ -2,11 +2,12 @@
 
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 
 export default function Navigation() {
   const router = useRouter()
   const pathname = usePathname()
+  const supabase = createClient()
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
