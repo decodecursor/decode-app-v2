@@ -67,6 +67,16 @@ export interface PaymentReceiptData {
   receiptNumber: string
 }
 
+export interface UserInvitationData {
+  recipientEmail: string
+  recipientName: string
+  inviterName: string
+  companyName: string
+  role: string
+  signupUrl: string
+  inviteDate: string
+}
+
 export interface EmailResult {
   success: boolean
   messageId?: string
@@ -210,6 +220,44 @@ class EmailService {
       return result
     } catch (error) {
       console.error('Error sending payment receipt:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    }
+  }
+
+  /**
+   * Send user invitation email
+   */
+  async sendUserInvitation(data: UserInvitationData): Promise<EmailResult> {
+    try {
+      console.log(`📧 Sending user invitation to ${data.recipientEmail}`)
+
+      const subject = `You're invited to join ${data.companyName} on DECODE`
+      
+      const emailContent = await this.renderUserInvitationEmail(data)
+      
+      const result = await this.sendEmail({
+        to: data.recipientEmail,
+        subject,
+        html: emailContent.html,
+        text: emailContent.text
+      })
+
+      // Log email attempt
+      await this.logEmail({
+        recipientEmail: data.recipientEmail,
+        emailType: 'user_invitation',
+        subject,
+        status: result.success ? 'sent' : 'failed',
+        emailServiceId: result.messageId,
+        errorMessage: result.error
+      })
+
+      return result
+    } catch (error) {
+      console.error('Error sending user invitation:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -939,6 +987,118 @@ The payment has been processed successfully and will be deposited according to y
 ---
 DECODE Beauty Platform
 Manage your payment settings in your dashboard.
+`
+
+    return { html, text }
+  }
+
+  /**
+   * Render user invitation email
+   */
+  private async renderUserInvitationEmail(data: UserInvitationData): Promise<{
+    html: string
+    text: string
+  }> {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join ${data.companyName} on DECODE</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #34d399 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+        .invite-icon { font-size: 48px; color: #34d399; margin-bottom: 20px; }
+        .company-name { font-size: 24px; font-weight: bold; color: #059669; margin: 20px 0; }
+        .details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .detail-row:last-child { border-bottom: none; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+        .button { display: inline-block; background: #34d399; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
+        .button:hover { background: #059669; }
+        .expiry-notice { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 5px; padding: 15px; margin: 20px 0; color: #92400e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>DECODE</h1>
+            <h2>🎉 You're Invited!</h2>
+        </div>
+        <div class="content">
+            <div style="text-align: center;">
+                <div class="invite-icon">✉️</div>
+                <h3>Hello ${data.recipientName}!</h3>
+                <div class="company-name">${data.companyName}</div>
+                <p>You've been invited to join <strong>${data.companyName}</strong> on the DECODE Beauty Platform.</p>
+            </div>
+            
+            <div class="details">
+                <h4>Invitation Details</h4>
+                <div class="detail-row">
+                    <span><strong>Company:</strong></span>
+                    <span>${data.companyName}</span>
+                </div>
+                <div class="detail-row">
+                    <span><strong>Role:</strong></span>
+                    <span>${data.role}</span>
+                </div>
+                <div class="detail-row">
+                    <span><strong>Invited by:</strong></span>
+                    <span>${data.inviterName}</span>
+                </div>
+                <div class="detail-row">
+                    <span><strong>Date:</strong></span>
+                    <span>${new Date(data.inviteDate).toLocaleDateString()}</span>
+                </div>
+            </div>
+            
+            <div class="expiry-notice">
+                ⏰ <strong>Important:</strong> This invitation will expire in 48 hours. Please accept it soon to join your team.
+            </div>
+            
+            <div style="text-align: center;">
+                <p>Click the button below to create your account and join ${data.companyName}.</p>
+                <a href="${data.signupUrl}" class="button">Accept Invitation & Sign Up</a>
+                <p style="font-size: 14px; color: #666;">
+                    If the button doesn't work, copy and paste this link into your browser:<br>
+                    <a href="${data.signupUrl}" style="color: #059669; word-break: break-all;">${data.signupUrl}</a>
+                </p>
+            </div>
+        </div>
+        <div class="footer">
+            <p>This invitation was sent by DECODE Beauty Platform</p>
+            <p>If you didn't expect this invitation, you can safely ignore this email.</p>
+        </div>
+    </div>
+</body>
+</html>`
+
+    const text = `
+DECODE - You're Invited to Join ${data.companyName}!
+
+Hello ${data.recipientName}!
+
+You've been invited to join ${data.companyName} on the DECODE Beauty Platform.
+
+INVITATION DETAILS
+Company: ${data.companyName}
+Role: ${data.role}
+Invited by: ${data.inviterName}
+Date: ${new Date(data.inviteDate).toLocaleDateString()}
+
+IMPORTANT: This invitation will expire in 48 hours.
+
+To accept this invitation and create your account, visit:
+${data.signupUrl}
+
+If you didn't expect this invitation, you can safely ignore this email.
+
+---
+DECODE Beauty Platform
 `
 
     return { html, text }

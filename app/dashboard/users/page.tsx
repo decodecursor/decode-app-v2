@@ -50,6 +50,10 @@ export default function UsersManagement() {
   const [showAddUserModal, setShowAddUserModal] = useState(false)
   const [selectedBranch, setSelectedBranch] = useState('')
   const [pendingAssignments, setPendingAssignments] = useState<Record<string, string[]>>({})
+  const [showInviteModal, setShowInviteModal] = useState(false)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState('User')
+  const [inviteLoading, setInviteLoading] = useState(false)
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -327,6 +331,45 @@ export default function UsersManagement() {
     }
   }
 
+  const handleInviteUser = async () => {
+    if (!inviteEmail.trim() || !adminCompany) return
+    
+    try {
+      setInviteLoading(true)
+      
+      const response = await fetch('/api/users/invite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: inviteEmail.trim(),
+          role: inviteRole,
+          companyName: adminCompany
+        }),
+      })
+
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send invitation')
+      }
+
+      setMessage(`Invitation sent successfully to ${inviteEmail}`)
+      setTimeout(() => setMessage(''), 3000)
+      setShowInviteModal(false)
+      setInviteEmail('')
+      setInviteRole('User')
+      
+    } catch (error) {
+      console.error('Error sending invitation:', error)
+      setMessage(error instanceof Error ? error.message : 'Failed to send invitation')
+      setTimeout(() => setMessage(''), 3000)
+    } finally {
+      setInviteLoading(false)
+    }
+  }
+
 
   const pendingUsers = users.filter(u => u.approval_status === 'pending')
   const approvedUsers = users.filter(u => u.approval_status === 'approved')
@@ -374,6 +417,12 @@ export default function UsersManagement() {
                     className="bg-gradient-to-br from-purple-600 to-purple-800 text-white border-none rounded-lg text-[15px] font-medium px-5 py-2.5 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-purple-500 hover:to-purple-700 hover:shadow-[0_4px_12px_rgba(168,85,247,0.4)]"
                   >
                     Create Branch
+                  </button>
+                  <button
+                    onClick={() => setShowInviteModal(true)}
+                    className="bg-gradient-to-br from-green-600 to-green-800 text-white border-none rounded-lg text-[15px] font-medium px-5 py-2.5 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-green-500 hover:to-green-700 hover:shadow-[0_4px_12px_rgba(34,197,94,0.4)]"
+                  >
+                    Invite New User
                   </button>
                   <Link 
                     href="/payment/create"
@@ -783,7 +832,7 @@ export default function UsersManagement() {
                   type="text"
                   value={newBranchName}
                   onChange={(e) => setNewBranchName(e.target.value)}
-                  placeholder="e.g., Dubai Marina"
+                  placeholder="Al Wasl Branch"
                   className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
                   autoFocus
                 />
@@ -804,6 +853,66 @@ export default function UsersManagement() {
                   className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Create Branch
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Invite User Modal */}
+        {showInviteModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="cosmic-card max-w-md w-full">
+              <h3 className="cosmic-heading mb-4 text-white">Invite New User</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="user@example.com"
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                    Role
+                  </label>
+                  <select
+                    value={inviteRole}
+                    onChange={(e) => setInviteRole(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                  >
+                    <option value="User">User</option>
+                    <option value="Admin">Admin</option>
+                  </select>
+                </div>
+                <div className="text-sm text-gray-400">
+                  <p>Inviting to: <span className="text-white font-medium">{adminCompany}</span></p>
+                </div>
+              </div>
+              <div className="flex space-x-4 mt-6">
+                <button
+                  onClick={() => {
+                    setShowInviteModal(false)
+                    setInviteEmail('')
+                    setInviteRole('User')
+                  }}
+                  className="cosmic-button-secondary flex-1 py-3 border border-white/30 rounded-lg"
+                  disabled={inviteLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleInviteUser}
+                  disabled={!inviteEmail.trim() || inviteLoading}
+                  className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {inviteLoading ? 'Sending...' : 'Send Invitation'}
                 </button>
               </div>
             </div>
