@@ -838,7 +838,7 @@ export default function UsersManagement() {
                   type="text"
                   value={newBranchName}
                   onChange={(e) => setNewBranchName(e.target.value)}
-                  placeholder="e.g., Al Wasl Branch"
+                  placeholder={branches.length === 0 ? "Main Branch" : "e.g., Al Wasl Branch"}
                   className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
                   autoFocus
                 />

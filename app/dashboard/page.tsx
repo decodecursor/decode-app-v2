@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [userBranch, setUserBranch] = useState<string | null>(null)
   const [pendingUsersCount, setPendingUsersCount] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -140,12 +141,26 @@ export default function Dashboard() {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        window.location.href = '/auth'
-        return
-      }
-      setUser(user)
+      try {
+        console.log('🔍 Dashboard: Checking user authentication...')
+        const { data: { user }, error } = await supabase.auth.getUser()
+        
+        if (error) {
+          console.error('❌ Dashboard: Auth error:', error)
+          setAuthLoading(false)
+          router.push('/auth')
+          return
+        }
+        
+        if (!user) {
+          console.log('🚪 Dashboard: No user found, redirecting to auth')
+          setAuthLoading(false)
+          router.push('/auth')
+          return
+        }
+        
+        console.log('✅ Dashboard: User authenticated:', user.id)
+        setUser(user)
       
       // Fetch user role, professional center name, and profile photo from users table
       const { data: userData } = await supabase
@@ -215,6 +230,12 @@ export default function Dashboard() {
       
       
       setLoading(false)
+      setAuthLoading(false)
+    } catch (error) {
+      console.error('💥 Dashboard: Failed to load user data:', error)
+      setAuthLoading(false)
+      router.push('/auth')
+    }
     }
     
     getUser()
@@ -284,13 +305,25 @@ export default function Dashboard() {
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut()
-      window.location.href = '/auth'
+      router.push('/auth')
     } catch (error) {
       console.error('Error signing out:', error)
     }
   }
 
-  // Loading state removed - show content immediately
+  // Show loading spinner while checking authentication
+  if (authLoading) {
+    return (
+      <div className="cosmic-bg">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-gray-300">Loading...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="cosmic-bg">

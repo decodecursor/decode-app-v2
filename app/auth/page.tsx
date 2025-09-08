@@ -147,12 +147,25 @@ export default function AuthPage() {
             throw error
           }
           
-          if (data.user) {
+          if (data.user && data.session) {
             console.log('✅ User logged in successfully:', data.user.id)
-            router.push('/dashboard')
-            return data // Don't set loading to false for login - let redirect happen
+            console.log('✅ Session established:', data.session.access_token.substring(0, 20) + '...')
+            
+            // Wait for session to be properly stored before redirect
+            await new Promise(resolve => setTimeout(resolve, 100))
+            
+            // Verify session is accessible
+            const { data: sessionCheck } = await supabase.auth.getSession()
+            if (sessionCheck.session) {
+              console.log('✅ Session verified, redirecting to dashboard')
+              router.push('/dashboard')
+            } else {
+              console.error('❌ Session not found after login')
+              throw new Error('Session was not properly established')
+            }
+            return data
           } else {
-            throw new Error('Login failed - no user data returned')
+            throw new Error('Login failed - no user or session data returned')
           }
         } else {
           console.log('📝 Attempting signup for:', email)
@@ -181,17 +194,31 @@ export default function AuthPage() {
       })
     } catch (error: any) {
       console.error('💥 Authentication error:', error)
+      console.error('💥 Error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        supabaseError: error.supabaseError || 'none'
+      })
       
-      // Handle specific error types
+      // Handle specific error types with more detailed logging
       if (error.message?.includes('Invalid login credentials')) {
+        console.log('🔐 Login failed: Invalid credentials')
         setMessage('Invalid email or password. Please check and try again.')
       } else if (error.message?.includes('Email not confirmed')) {
+        console.log('📧 Login failed: Email not confirmed')
         setMessage('Please check your email and click the verification link.')
+      } else if (error.message?.includes('Session was not properly established')) {
+        console.log('🎫 Login failed: Session establishment issue')
+        setMessage('Login session failed to establish. Please try again.')
       } else if (error.message?.includes('network') || error.name === 'NetworkError') {
+        console.log('🌐 Login failed: Network error')
         setMessage('Connection error. Please check your internet and try again.')
       } else if (error.message?.includes('fetch')) {
+        console.log('🌐 Login failed: Fetch error')
         setMessage('Network error. Please try again in a moment.')
       } else {
+        console.log('❓ Login failed: Unknown error -', error.message)
         setMessage(error.message || 'An unexpected error occurred. Please try again.')
       }
     } finally {
