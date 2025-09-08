@@ -9,11 +9,12 @@ interface RoleSelectionModalProps {
   userEmail: string
   userId?: string  // User ID passed from signup
   termsAcceptedAt: string
+  inviteData?: any  // Invite data for pre-population
   onClose: () => void
   onComplete: () => void
 }
 
-export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcceptedAt, onClose, onComplete }: RoleSelectionModalProps) {
+export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcceptedAt, inviteData, onClose, onComplete }: RoleSelectionModalProps) {
   const [role, setRole] = useState('')
   const [companyName, setCompanyName] = useState('')
   const [userName, setUserName] = useState('')
@@ -22,6 +23,15 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
   const [companySuggestions, setCompanySuggestions] = useState<string[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [hasSelectedSuggestion, setHasSelectedSuggestion] = useState(false)
+
+  // Pre-populate form with invite data
+  useEffect(() => {
+    if (inviteData) {
+      setRole(inviteData.role || '')
+      setCompanyName(inviteData.companyName || '')
+      setHasSelectedSuggestion(true) // Prevent company suggestions for invited users
+    }
+  }, [inviteData])
 
   useEffect(() => {
     const fetchCompanySuggestions = async () => {
@@ -126,7 +136,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
           role: role,
           company_name: companyName.trim(),
           branch_name: null,  // No branch assignment during registration - admin will assign later
-          approval_status: role === 'Admin' ? 'approved' : 'pending',
+          approval_status: (role === 'Admin' || inviteData) ? 'approved' : 'pending',
           terms_accepted_at: termsAcceptedAt
         })
 
@@ -179,9 +189,12 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               className="cosmic-input"
               required
-              disabled={loading}
+              disabled={loading || !!inviteData}
               autoComplete="off"
             />
+            {inviteData && (
+              <p className="text-xs text-green-400 mt-1">✓ Pre-filled from invitation</p>
+            )}
             
             {showSuggestions && companySuggestions.length > 0 && (
               <div className="absolute top-full left-0 right-0 bg-gray-800 border border-gray-600 rounded-lg mt-1 z-10 max-h-32 overflow-y-auto">
@@ -217,8 +230,11 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
 
           <div className="space-y-3">
             <label className="block text-sm font-medium text-gray-300">
-              Select your role
+              {inviteData ? 'Your assigned role' : 'Select your role'}
             </label>
+            {inviteData && (
+              <p className="text-xs text-green-400">✓ Role assigned from invitation</p>
+            )}
             <div className="space-y-3">
               <label className={`flex items-center space-x-3 cursor-pointer p-3 rounded-lg border transition-colors ${
                 role === 'Admin' 
@@ -232,7 +248,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
                   checked={role === 'Admin'}
                   onChange={(e) => setRole(e.target.value)}
                   className="w-4 h-4 text-purple-500 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2"
-                  disabled={loading}
+                  disabled={loading || !!inviteData}
                 />
                 <div className="flex-1">
                   <div className="text-white font-medium">Admin</div>
@@ -252,7 +268,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
                   checked={role === 'User'}
                   onChange={(e) => setRole(e.target.value)}
                   className="w-4 h-4 text-purple-500 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2"
-                  disabled={loading}
+                  disabled={loading || !!inviteData}
                 />
                 <div className="flex-1">
                   <div className="text-white font-medium">User</div>

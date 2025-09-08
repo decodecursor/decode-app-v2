@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import RoleSelectionModal from '@/components/RoleSelectionModal'
 import PasswordInput from '@/components/PasswordInput'
 
 export default function AuthPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -20,6 +21,7 @@ export default function AuthPage() {
   const [checkingEmail, setCheckingEmail] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
   const [isRetrying, setIsRetrying] = useState(false)
+  const [inviteData, setInviteData] = useState<any>(null)
   const supabase = createClient()
   
   // Auto-hide error messages after 5 seconds
@@ -33,6 +35,23 @@ export default function AuthPage() {
     }
     return undefined
   }, [message])
+
+  // Handle invite parameter from URL
+  useEffect(() => {
+    const inviteParam = searchParams?.get('invite')
+    if (inviteParam) {
+      try {
+        const decodedData = JSON.parse(Buffer.from(inviteParam, 'base64').toString())
+        setInviteData(decodedData)
+        setEmail(decodedData.email || '')
+        setIsLogin(false) // Force signup mode for invitations
+        setMessage(`Welcome! You've been invited to join ${decodedData.companyName}`)
+      } catch (error) {
+        console.error('Invalid invite link:', error)
+        setMessage('Invalid invitation link')
+      }
+    }
+  }, [searchParams])
 
   // Real-time email validation
   useEffect(() => {
@@ -340,6 +359,7 @@ export default function AuthPage() {
         userEmail={email}
         userId={signedUpUser?.id}  // Pass the user ID directly
         termsAcceptedAt={new Date().toISOString()}
+        inviteData={inviteData}  // Pass invite data for pre-population
         onClose={handleRoleModalClose}
         onComplete={handleRoleModalComplete}
       />
