@@ -414,15 +414,15 @@ export default function UsersManagement() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowCreateBranchModal(true)}
-                    className="bg-gradient-to-br from-purple-600 to-purple-800 text-white border-none rounded-lg text-[15px] font-medium px-5 py-2.5 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-purple-500 hover:to-purple-700 hover:shadow-[0_4px_12px_rgba(168,85,247,0.4)]"
+                    className="cosmic-button-secondary text-white border border-white/30 rounded-lg text-[15px] font-medium px-5 py-2.5 cursor-pointer transition-all duration-200 ease-in-out hover:border-white/80 hover:bg-white/10"
                   >
                     Create Branch
                   </button>
                   <button
                     onClick={() => setShowInviteModal(true)}
-                    className="bg-gradient-to-br from-green-600 to-green-800 text-white border-none rounded-lg text-[15px] font-medium px-5 py-2.5 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-green-500 hover:to-green-700 hover:shadow-[0_4px_12px_rgba(34,197,94,0.4)]"
+                    className="cosmic-button-secondary text-white border border-white/30 rounded-lg text-[15px] font-medium px-5 py-2.5 cursor-pointer transition-all duration-200 ease-in-out hover:border-white/80 hover:bg-white/10"
                   >
-                    Invite New User
+                    Invite User
                   </button>
                   <Link 
                     href="/payment/create"
