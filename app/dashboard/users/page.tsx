@@ -124,8 +124,8 @@ export default function UsersManagement() {
       if (action === 'approved' && assignedBranches.length > 0) {
         updateData.branch_name = assignedBranches.join(',')
       } else if (action === 'approved' && assignedBranches.length === 0) {
-        // If approving without branch selection, assign to Downtown Branch by default
-        updateData.branch_name = 'Downtown Branch'
+        // If approving without branch selection, assign to first available branch or null if no branches exist
+        updateData.branch_name = branches.length > 0 ? branches[0] : null
       }
 
       const { error } = await supabase
@@ -198,14 +198,6 @@ export default function UsersManagement() {
         return
       }
       
-      // Don't allow deleting Downtown Branch
-      if (branchToDelete === 'Downtown Branch') {
-        setMessage('Cannot delete the default Downtown Branch')
-        setTimeout(() => setMessage(''), 3000)
-        setShowDeleteBranchModal(false)
-        setBranchToDelete('')
-        return
-      }
       
       // Remove from local branches state
       const updatedBranches = branches.filter(b => b !== branchToDelete)

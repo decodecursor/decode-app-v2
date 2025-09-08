@@ -218,7 +218,7 @@ export default function BankAccountPage() {
             <div className="cosmic-card text-center py-12 max-w-md w-full">
             
             <h2 className="text-2xl font-bold text-white mb-8">
-              {userRole === 'User' ? 'Add Your Personal Bank Account' : 'Add Business Bank Account'}
+              {userRole === 'User' ? 'Add Your Personal Bank Account' : 'Add Company Bank Account'}
             </h2>
             
             <div className="w-24 h-24 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-8">

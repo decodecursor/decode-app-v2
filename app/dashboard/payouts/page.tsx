@@ -315,8 +315,16 @@ export default function PayoutsPage() {
               <div className="flex flex-col md:flex-row gap-4">
                 {/* My Next Payout Card */}
                 <div className="flex-1 cosmic-card">
-                  <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-white mb-2">My Next Payout</h3>
+                  <div className="mb-4 flex justify-between items-start">
+                    <h3 className="text-lg font-semibold text-white">My Next Payout</h3>
+                    {!payoutInProcess && payoutSummary?.bankConnected && (
+                      <button 
+                        onClick={handleRequestPayoutClick}
+                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
+                      >
+                        Request Payout
+                      </button>
+                    )}
                   </div>
                   
                   <div className="space-y-3">
@@ -327,11 +335,12 @@ export default function PayoutsPage() {
                       </p>
                     </div>
                     
-                    {payoutInProcess ? (
+                    {payoutInProcess && (
                       <div className="w-full text-center py-3 px-4 bg-blue-600/20 border border-blue-500/30 rounded-lg">
                         <p className="text-blue-100 font-medium">Payout in process</p>
                       </div>
-                    ) : !payoutSummary?.bankConnected ? (
+                    )}
+                    {!payoutSummary?.bankConnected && (
                       <div className="w-full text-center py-3 px-4 bg-yellow-600/20 border border-yellow-500/30 rounded-lg">
                         <Link 
                           href="/bank-account" 
@@ -340,13 +349,6 @@ export default function PayoutsPage() {
                           Connect Bank Account
                         </Link>
                       </div>
-                    ) : (
-                      <button 
-                        onClick={handleRequestPayoutClick}
-                        className="w-full cosmic-button-primary"
-                      >
-                        Request Payout
-                      </button>
                     )}
                   </div>
                 </div>
