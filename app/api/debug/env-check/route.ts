@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getSupabaseClient } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/server'
 
 export async function GET() {
   try {
@@ -38,7 +38,7 @@ export async function GET() {
     // Test Supabase client initialization
     let supabaseStatus = 'NOT_TESTED'
     try {
-      const supabase = getSupabaseClient()
+      const supabase = await createClient()
       // Try a simple query to test connection
       const { error } = await supabase.from('users').select('id').limit(1)
       if (error) {
