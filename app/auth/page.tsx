@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import RoleSelectionModal from '@/components/RoleSelectionModal'
 import PasswordInput from '@/components/PasswordInput'
 
-export default function AuthPage() {
+function AuthPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isLogin, setIsLogin] = useState(true)
@@ -364,5 +364,27 @@ export default function AuthPage() {
         onComplete={handleRoleModalComplete}
       />
     </div>
+  )
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={
+      <div className="cosmic-bg">
+        <div className="min-h-screen flex items-center justify-center px-4 py-8">
+          <div className="cosmic-card-login">
+            <div className="text-center mb-16">
+              <img src="/logo.png" alt="DECODE" className="mx-auto mb-2" style={{height: '40px', filter: 'brightness(0) invert(1)'}} />
+              <p className="cosmic-body opacity-70">Make Girls More Beautiful</p>
+            </div>
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <AuthPageContent />
+    </Suspense>
   )
 }
