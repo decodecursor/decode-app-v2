@@ -53,14 +53,16 @@ export function createSupabaseClient(): SupabaseClient {
     const originalSignUp = client.auth.signUp.bind(client.auth)
     
     client.auth.signInWithPassword = async (credentials) => {
-      console.log('🔐 Auth: signInWithPassword called for:', credentials.email)
+      const identifier = 'email' in credentials ? credentials.email : credentials.phone
+      console.log('🔐 Auth: signInWithPassword called for:', identifier)
       const result = await originalSignIn(credentials)
       console.log('🔐 Auth: signInWithPassword result:', result.error ? '❌ Error' : '✅ Success')
       return result
     }
     
     client.auth.signUp = async (credentials) => {
-      console.log('📝 Auth: signUp called for:', credentials.email)
+      const identifier = 'email' in credentials ? credentials.email : credentials.phone
+      console.log('📝 Auth: signUp called for:', identifier)
       const result = await originalSignUp(credentials)
       console.log('📝 Auth: signUp result:', result.error ? '❌ Error' : '✅ Success')
       return result
