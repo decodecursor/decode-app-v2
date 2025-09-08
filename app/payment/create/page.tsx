@@ -337,9 +337,8 @@ export default function CreatePayment() {
                     </svg>
                   </button>
                 ) : (
-                  <div className="text-sm text-gray-300">
-                    {selectedBranch}
-                  </div>
+                  // Show nothing when user has only one branch
+                  null
                 )}
               </div>
             </form>
