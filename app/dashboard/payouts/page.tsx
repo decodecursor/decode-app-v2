@@ -24,6 +24,7 @@ export default function PayoutsPage() {
   const [showRequestModal, setShowRequestModal] = useState(false)
   const [requestLoading, setRequestLoading] = useState(false)
   const [requestAmount, setRequestAmount] = useState('')
+  const [payoutInProcess, setPayoutInProcess] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -139,6 +140,7 @@ export default function PayoutsPage() {
       if (response.ok) {
         setShowRequestModal(false)
         setRequestAmount('')
+        setPayoutInProcess(true)
         // Refresh data
         await fetchPayoutSummary(user.id)
         alert('Payout request submitted successfully!')
@@ -215,20 +217,8 @@ export default function PayoutsPage() {
         <div className="flex justify-center mb-6">
           <div style={{width: '70vw'}}>
             <div className="cosmic-card">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h1 className="cosmic-heading mb-2">Payouts</h1>
-                  <p className="text-gray-400">Manage your earnings and payout requests</p>
-                </div>
-                <Link 
-                  href="/bank-account" 
-                  className="text-purple-400 hover:text-purple-300 transition-colors text-sm flex items-center"
-                >
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                  Bank Account
-                </Link>
+              <div>
+                <h1 className="cosmic-heading mb-2">Payouts</h1>
               </div>
             </div>
           </div>
@@ -255,7 +245,7 @@ export default function PayoutsPage() {
               <div className="flex flex-col md:flex-row gap-4">
                 {/* My Next Payout Card */}
                 <div className="flex-1 cosmic-card">
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="mb-4">
                     <div>
                       <h3 className="text-lg font-semibold text-white mb-2">My Next Payout</h3>
                       {payoutSummary?.bankConnected ? (
@@ -274,11 +264,6 @@ export default function PayoutsPage() {
                         </div>
                       )}
                     </div>
-                    <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v2a2 2 0 002 2z" />
-                      </svg>
-                    </div>
                   </div>
                   
                   <div className="space-y-3">
@@ -289,7 +274,18 @@ export default function PayoutsPage() {
                       </p>
                     </div>
                     
-                    {payoutSummary?.bankConnected && payoutSummary?.availableBalance > 0 ? (
+                    {payoutInProcess ? (
+                      <div className="w-full text-center py-3 px-4 bg-blue-600/20 border border-blue-500/30 rounded-lg">
+                        <p className="text-blue-100 font-medium">Payout in process</p>
+                      </div>
+                    ) : !payoutSummary?.bankConnected ? (
+                      <Link 
+                        href="/bank-account" 
+                        className="block w-full text-center cosmic-button-secondary"
+                      >
+                        Connect Bank Account
+                      </Link>
+                    ) : payoutSummary?.availableBalance > 0 ? (
                       <button 
                         onClick={() => setShowRequestModal(true)}
                         className="w-full cosmic-button-primary"
@@ -297,30 +293,22 @@ export default function PayoutsPage() {
                         Request Payout
                       </button>
                     ) : (
-                      <Link 
-                        href="/bank-account" 
-                        className="block w-full text-center cosmic-button-secondary"
-                      >
-                        {payoutSummary?.bankConnected ? 'No Balance to Payout' : 'Connect Bank Account First'}
-                      </Link>
+                      <div className="w-full text-center py-3 px-4 bg-gray-600/20 border border-gray-500/30 rounded-lg">
+                        <p className="text-gray-400">No Balance to Payout</p>
+                      </div>
                     )}
                   </div>
                 </div>
 
                 {/* Earnings Overview Card */}
                 <div className="flex-1 cosmic-card">
-                  <div className="flex items-start justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-white">Earnings Overview</h3>
-                    <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                      </svg>
-                    </div>
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold text-white">Payouts Overview</h3>
                   </div>
                   
                   <div className="space-y-4">
                     <div>
-                      <p className="text-gray-400 text-sm">Total Earnings</p>
+                      <p className="text-gray-400 text-sm">Total Payouts</p>
                       <p className="text-xl font-bold text-white">
                         {formatCurrency(payoutSummary?.totalEarnings || 0)}
                       </p>
