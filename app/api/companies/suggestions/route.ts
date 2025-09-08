@@ -1,35 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
-// Helper function to add CORS headers
-function corsHeaders(request?: NextRequest) {
-  const origin = request?.headers.get('origin') || ''
-  
-  // Allow specific origins
-  const allowedOrigins = [
-    'https://app.welovedecode.com',
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://127.0.0.1:3000'
-  ]
-  
-  // Check if origin is allowed, or use default for production
-  const corsOrigin = allowedOrigins.includes(origin) 
-    ? origin 
-    : process.env.NODE_ENV === 'production' 
-      ? 'https://app.welovedecode.com'
-      : '*'
-  
-  return {
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cookie',
-    'Access-Control-Allow-Credentials': 'true',
-  }
-}
-
 export async function OPTIONS(request: NextRequest) {
-  return new NextResponse(null, { status: 200, headers: corsHeaders(request) })
+  return new NextResponse(null, { status: 200 })
 }
 
 export async function GET(request: NextRequest) {
@@ -38,10 +11,7 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get('q')
 
     if (!query || query.length < 3) {
-      return NextResponse.json(
-        { suggestions: [] },
-        { headers: corsHeaders(request) }
-      )
+      return NextResponse.json({ suggestions: [] })
     }
 
     const { data: companies, error } = await supabase
@@ -55,14 +25,11 @@ export async function GET(request: NextRequest) {
       console.error('Error fetching company suggestions:', error)
       // Return empty suggestions if column doesn't exist yet
       if (error.message?.includes('column') && error.message?.includes('company_name')) {
-        return NextResponse.json(
-          { suggestions: [] },
-          { headers: corsHeaders(request) }
-        )
+        return NextResponse.json({ suggestions: [] })
       }
       return NextResponse.json(
         { error: 'Failed to fetch suggestions' }, 
-        { status: 500, headers: corsHeaders(request) }
+        { status: 500 }
       )
     }
 
@@ -71,15 +38,12 @@ export async function GET(request: NextRequest) {
       .filter((name: any) => name && typeof name === 'string' && name.trim())
       .slice(0, 3)
 
-    return NextResponse.json(
-      { suggestions: uniqueCompanies },
-      { headers: corsHeaders(request) }
-    )
+    return NextResponse.json({ suggestions: uniqueCompanies })
   } catch (error) {
     console.error('Company suggestions API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' }, 
-      { status: 500, headers: corsHeaders(request) }
+      { status: 500 }
     )
   }
 }

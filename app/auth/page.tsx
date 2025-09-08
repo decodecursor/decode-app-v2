@@ -18,6 +18,8 @@ export default function AuthPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(true)
   const [emailError, setEmailError] = useState('')
   const [checkingEmail, setCheckingEmail] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
+  const [isRetrying, setIsRetrying] = useState(false)
   
   // Auto-hide error messages after 5 seconds
   useEffect(() => {
@@ -41,8 +43,11 @@ export default function AuthPage() {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
+              'Accept': 'application/json',
             },
             credentials: 'include',
+            // Add timeout and better error handling
+            signal: AbortSignal.timeout(5000), // 5 second timeout
           })
           
           if (response.ok) {
@@ -52,13 +57,23 @@ export default function AuthPage() {
             } else {
               setEmailError('')
             }
+          } else if (response.status === 429) {
+            // Rate limited - skip validation
+            setEmailError('')
           } else {
             // Don't show error for network issues, just skip validation
+            console.warn('Email check failed with status:', response.status)
             setEmailError('')
           }
-        } catch (error) {
+        } catch (error: any) {
           // Network error - don't block user, just skip validation
-          console.error('Error checking email:', error)
+          if (error.name === 'TimeoutError') {
+            console.warn('Email check timeout - proceeding without validation')
+          } else if (error.name === 'AbortError') {
+            console.warn('Email check aborted - proceeding without validation')
+          } else {
+            console.warn('Email check error:', error.message)
+          }
           setEmailError('')
         } finally {
           setCheckingEmail(false)
@@ -71,6 +86,29 @@ export default function AuthPage() {
     const debounceTimer = setTimeout(checkEmailExists, 500)
     return () => clearTimeout(debounceTimer)
   }, [email, isLogin])
+
+  // Retry mechanism for network failures
+  const retryWithDelay = async (fn: () => Promise<any>, maxRetries = 2, delay = 1000): Promise<any> => {
+    for (let i = 0; i <= maxRetries; i++) {
+      try {
+        return await fn()
+      } catch (error: any) {
+        const isNetworkError = error.message?.includes('fetch') || 
+                               error.name === 'NetworkError' || 
+                               error.message?.includes('Failed to fetch') ||
+                               error.code === 'NETWORK_ERROR'
+        
+        if (i === maxRetries || !isNetworkError) {
+          throw error
+        }
+        
+        console.log(`🔄 Retry attempt ${i + 1}/${maxRetries} after ${delay}ms delay`)
+        setIsRetrying(true)
+        await new Promise(resolve => setTimeout(resolve, delay))
+        delay *= 1.5 // Exponential backoff
+      }
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -92,38 +130,81 @@ export default function AuthPage() {
     }
     
     try {
-      if (isLogin) {
-        const supabase = getSupabaseClient()
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        })
-        if (error) throw error
-        console.log('User logged in:', data.user)
-        router.push('/dashboard')
-        return // Don't set loading to false for login - let redirect happen
-      } else {
-        const supabase = getSupabaseClient()
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password
-        })
-        if (error) throw error
-        
-        if (data.user) {
-          setSignedUpUser(data.user)  // Store the user data
-          setShowRoleModal(true)
-        } else {
-          // No user object means email confirmation required
-          router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+      setIsRetrying(false)
+      
+      // Execute auth flow with retry logic
+      await retryWithDelay(async () => {
+        // Create Supabase client with error handling
+        let supabase
+        try {
+          supabase = getSupabaseClient()
+        } catch (clientError) {
+          console.error('❌ Supabase client initialization failed:', clientError)
+          throw new Error('Configuration error. Please try again or contact support.')
         }
-        console.log('User signed up:', data.user)
+        
+        if (isLogin) {
+          console.log('🔐 Attempting login for:', email)
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+          })
+          
+          if (error) {
+            console.error('❌ Login error:', error)
+            throw error
+          }
+          
+          if (data.user) {
+            console.log('✅ User logged in successfully:', data.user.id)
+            router.push('/dashboard')
+            return data // Don't set loading to false for login - let redirect happen
+          } else {
+            throw new Error('Login failed - no user data returned')
+          }
+        } else {
+          console.log('📝 Attempting signup for:', email)
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password
+          })
+          
+          if (error) {
+            console.error('❌ Signup error:', error)
+            throw error
+          }
+          
+          if (data.user) {
+            console.log('✅ User signed up successfully:', data.user.id)
+            setSignedUpUser(data.user)  // Store the user data
+            setShowRoleModal(true)
+            return data
+          } else {
+            // No user object means email confirmation required
+            console.log('📧 Email confirmation required')
+            router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+            return data
+          }
+        }
+      })
+    } catch (error: any) {
+      console.error('💥 Authentication error:', error)
+      
+      // Handle specific error types
+      if (error.message?.includes('Invalid login credentials')) {
+        setMessage('Invalid email or password. Please check and try again.')
+      } else if (error.message?.includes('Email not confirmed')) {
+        setMessage('Please check your email and click the verification link.')
+      } else if (error.message?.includes('network') || error.name === 'NetworkError') {
+        setMessage('Connection error. Please check your internet and try again.')
+      } else if (error.message?.includes('fetch')) {
+        setMessage('Network error. Please try again in a moment.')
+      } else {
+        setMessage(error.message || 'An unexpected error occurred. Please try again.')
       }
-    } catch (error) {
-      setMessage((error as Error).message || 'An error occurred')
-      console.error('Auth error:', error)
     } finally {
       setLoading(false)
+      setIsRetrying(false)
     }
   }
 
@@ -209,7 +290,7 @@ export default function AuthPage() {
               disabled={loading}
               className="cosmic-button-primary w-full"
             >
-              {loading ? 'Loading...' : (isLogin ? 'Login' : 'Register')}
+              {loading ? (isRetrying ? 'Retrying...' : 'Loading...') : (isLogin ? 'Login' : 'Register')}
             </button>
             
             {message && (

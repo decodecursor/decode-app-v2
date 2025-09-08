@@ -26,9 +26,13 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60,
   },
 
-  // Security headers
+  // Security and CORS headers
   async headers() {
+    const isDevelopment = process.env.NODE_ENV === 'development'
+    const isProduction = process.env.NODE_ENV === 'production'
+    
     return [
+      // Security headers for all routes
       {
         source: '/(.*)',
         headers: [
@@ -48,28 +52,32 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
           },
+          // Add CSP for additional security
+          {
+            key: 'Content-Security-Policy',
+            value: isDevelopment 
+              ? "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: *;"
+              : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://api.stripe.com https://*.crossmint.com;",
+          },
         ],
       },
+      // Enhanced CORS headers for API routes
       {
         source: '/api/(.*)',
         headers: [
           {
             key: 'Access-Control-Allow-Origin',
-            value: (() => {
-              if (process.env.NODE_ENV === 'production') {
-                return 'https://app.welovedecode.com';
-              }
-              // Development: allow localhost on any port, 127.0.0.1, and Vercel preview URLs
-              return '*';
-            })(),
+            value: isDevelopment 
+              ? '*' // Allow all origins in development
+              : 'https://app.welovedecode.com', // Specific origin in production
           },
           {
             key: 'Access-Control-Allow-Methods',
-            value: 'GET, POST, PUT, DELETE, OPTIONS',
+            value: 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
           },
           {
             key: 'Access-Control-Allow-Headers',
-            value: 'Content-Type, Authorization, X-Requested-With, Cookie',
+            value: 'Content-Type, Authorization, X-Requested-With, Cookie, Accept, User-Agent, Referer, x-client-info',
           },
           {
             key: 'Access-Control-Allow-Credentials',
@@ -77,7 +85,49 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Access-Control-Max-Age',
-            value: '86400',
+            value: '86400', // 24 hours
+          },
+          // Additional headers for better compatibility
+          {
+            key: 'Vary',
+            value: 'Origin, Accept-Encoding',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+        ],
+      },
+      // Special CORS handling for auth routes
+      {
+        source: '/api/auth/(.*)',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: isDevelopment 
+              ? '*'
+              : 'https://app.welovedecode.com',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization, Cookie, Accept',
+          },
+          {
+            key: 'Access-Control-Allow-Credentials',
+            value: 'true',
+          },
+          {
+            key: 'Access-Control-Max-Age',
+            value: '3600', // 1 hour for auth routes
+          },
+          // Firefox-specific headers
+          {
+            key: 'Set-Cookie',
+            value: 'SameSite=Lax; Secure=' + (isProduction ? 'true' : 'false'),
           },
         ],
       },
