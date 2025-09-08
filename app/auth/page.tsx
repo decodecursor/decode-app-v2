@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { getSupabaseClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import RoleSelectionModal from '@/components/RoleSelectionModal'
 import PasswordInput from '@/components/PasswordInput'
 
@@ -133,16 +133,7 @@ export default function AuthPage() {
       setIsRetrying(false)
       
       // Execute auth flow with retry logic
-      await retryWithDelay(async () => {
-        // Create Supabase client with error handling
-        let supabase
-        try {
-          supabase = getSupabaseClient()
-        } catch (clientError) {
-          console.error('❌ Supabase client initialization failed:', clientError)
-          throw new Error('Configuration error. Please try again or contact support.')
-        }
-        
+      await retryWithDelay(async () => {        
         if (isLogin) {
           console.log('🔐 Attempting login for:', email)
           const { data, error } = await supabase.auth.signInWithPassword({

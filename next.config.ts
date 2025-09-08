@@ -222,12 +222,24 @@ const nextConfig: NextConfig = {
 
   // Development configuration
   ...(process.env.NODE_ENV === 'development' && {
-    // Hot reload optimizations for development
+    // Hot reload optimizations for development - reduced sensitivity
     webpack: (config: any) => {
       config.watchOptions = {
-        poll: 1000,
-        aggregateTimeout: 300,
+        poll: 2000, // Increased from 1000ms to reduce rebuild frequency
+        aggregateTimeout: 500, // Increased from 300ms to batch changes better
+        ignored: [
+          '**/node_modules/**',
+          '**/.git/**',
+          '**/.next/**',
+          '**/dist/**'
+        ],
       };
+      
+      // Preserve module state for auth-related modules
+      config.optimization = config.optimization || {};
+      config.optimization.providedExports = false;
+      config.optimization.usedExports = false;
+      
       return config;
     },
   }),
