@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { VerificationBadge } from '@/components/stripe/VerificationBadge'
 import type { User } from '@supabase/supabase-js'
 
 export default function BankAccountPage() {
@@ -12,33 +11,80 @@ export default function BankAccountPage() {
   const [user, setUser] = useState<User | null>(null)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const [stripeAccountId, setStripeAccountId] = useState<string | null>(null)
-  const [accountStatus, setAccountStatus] = useState<'not_connected' | 'pending' | 'active' | 'restricted'>('not_connected')
   const [message, setMessage] = useState<{ type: 'info' | 'success' | 'error'; text: string } | null>(null)
-  const [balance, setBalance] = useState<{ available: number; pending: number; currency: string }>({ 
-    available: 0, 
-    pending: 0, 
-    currency: 'AED' 
-  })
-  const [nextPayoutDate, setNextPayoutDate] = useState<string | null>(null)
-  const [onboardingUrl, setOnboardingUrl] = useState<string | null>(null)
+  const [isConnected, setIsConnected] = useState(false)
+  
+  // Form fields for simplified bank account entry
+  const [beneficiary, setBeneficiary] = useState('')
+  const [iban, setIban] = useState('')
+  const [bank, setBank] = useState('')
+  
+  // Track saved values for comparison
+  const [savedBeneficiary, setSavedBeneficiary] = useState('')
+  const [savedIban, setSavedIban] = useState('')
+  const [savedBank, setSavedBank] = useState('')
+
+  const handleSaveBankAccount = async () => {
+    if (!beneficiary.trim() || !iban.trim() || !bank.trim()) {
+      setMessage({ type: 'error', text: 'Please fill in all fields' })
+      return
+    }
+
+    if (!user?.id) {
+      setMessage({ type: 'error', text: 'User not authenticated' })
+      return
+    }
+
+    setLoading(true)
+    
+    try {
+      // Try to insert into user_bank_accounts table
+      const { error } = await supabase
+        .from('user_bank_accounts')
+        .insert({
+          user_id: user.id,
+          beneficiary_name: beneficiary.trim(),
+          iban_number: iban.trim(),
+          bank_name: bank.trim(),
+          is_primary: true,
+          status: 'pending'
+        })
+
+      if (error) {
+        // If table doesn't exist, show a helpful message
+        if (error.message.includes('relation "user_bank_accounts" does not exist')) {
+          setMessage({ 
+            type: 'error', 
+            text: 'Bank account table not set up yet. Please contact support to enable this feature.' 
+          })
+          return
+        }
+        console.error('Supabase insert error:', error)
+        throw error
+      }
+      
+      setIsConnected(true)
+      setMessage({ type: 'success', text: 'Bank account saved successfully!' })
+      
+      // Update saved values to current form values
+      setSavedBeneficiary(beneficiary.trim())
+      setSavedIban(iban.trim())
+      setSavedBank(bank.trim())
+      
+    } catch (error) {
+      console.error('Error saving bank account:', error)
+      setMessage({ 
+        type: 'error', 
+        text: error instanceof Error ? error.message : 'Failed to save bank account' 
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     checkUser()
   }, [])
-
-  useEffect(() => {
-    // Handle return from Stripe onboarding
-    const urlParams = new URLSearchParams(window.location.search)
-    if (urlParams.get('success') === 'true') {
-      setMessage({ type: 'success', text: 'Onboarding completed successfully! Loading your account details...' })
-      if (user) {
-        loadAccountData(user.id)
-      }
-    } else if (urlParams.get('refresh') === 'true') {
-      setMessage({ type: 'info', text: 'Onboarding session expired. Please try again.' })
-    }
-  }, [user])
 
   const checkUser = async () => {
     try {
@@ -58,125 +104,66 @@ export default function BankAccountPage() {
 
   const loadAccountData = async (userId: string) => {
     try {
-      setLoading(true)
-      
-      // Fetch user data including Stripe Connect info
+      // Fetch user data including role
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('id, role, stripe_connect_account_id, stripe_connect_status, stripe_onboarding_completed')
+        .select('id, role')
         .eq('id', userId)
         .single()
 
       if (userError) {
-        console.error('Database error:', userError.message)
+        console.error('🔴 Database error:', userError.message)
         setMessage({ type: 'error', text: `Database error: ${userError.message}` })
         setLoading(false)
         return
       }
 
       if (userData) {
+        // Set user role
         setUserRole(userData.role)
         
-        if (userData.stripe_connect_account_id) {
-          setStripeAccountId(userData.stripe_connect_account_id)
-          setAccountStatus((userData.stripe_connect_status as 'not_connected' | 'pending' | 'active' | 'restricted') || 'pending')
-
-          // Load balance if account is active
-          if (userData.stripe_connect_status === 'active') {
-            try {
-              const balanceResponse = await fetch(`/api/stripe/account-balance?userId=${userId}`)
-              if (balanceResponse.ok) {
-                const balanceData = await balanceResponse.json()
-                setBalance({
-                  available: balanceData.available || 0,
-                  pending: balanceData.pending || 0,
-                  currency: balanceData.currency || 'AED'
-                })
-              }
-            } catch (error) {
-              console.error('Error loading balance:', error)
+        // Try to load existing bank account data
+        try {
+          const { data: bankAccounts, error: bankError } = await supabase
+            .from('user_bank_accounts')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+          
+          // If table doesn't exist, just continue without data
+          if (bankError && bankError.message.includes('relation "user_bank_accounts" does not exist')) {
+            console.log('Bank accounts table not yet created - showing empty form')
+          } else if (bankError) {
+            console.error('Error loading bank accounts:', bankError)
+          } else if (bankAccounts && bankAccounts.length > 0) {
+            const account = bankAccounts[0]
+            if (account) {
+              // Populate form fields with saved data
+              setBeneficiary(account.beneficiary_name || '')
+              setIban(account.iban_number || '')
+              setBank(account.bank_name || '')
+              
+              // Update saved values for comparison
+              setSavedBeneficiary(account.beneficiary_name || '')
+              setSavedIban(account.iban_number || '')
+              setSavedBank(account.bank_name || '')
+              
+              // Set connected status
+              setIsConnected(true)
             }
-
-            // Calculate next Monday for payout date
-            const today = new Date()
-            const daysUntilMonday = (8 - today.getDay()) % 7 || 7
-            const nextMonday = new Date(today)
-            nextMonday.setDate(today.getDate() + daysUntilMonday)
-            setNextPayoutDate(nextMonday.toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            }))
           }
+        } catch (error) {
+          console.error('Error loading bank account data:', error)
+          // Continue without bank account data
         }
+        
+        setLoading(false)
+        return
       }
     } catch (error) {
       console.error('Error loading account data:', error)
       setMessage({ type: 'error', text: 'Failed to load account information' })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const createStripeAccount = async () => {
-    try {
-      setLoading(true)
-      setMessage({ type: 'info', text: 'Creating your Stripe Connect account...' })
-      
-      const response = await fetch('/api/stripe/connect-account', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user?.id })
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error)
-      }
-
-      setStripeAccountId(result.accountId)
-      setMessage({ type: 'success', text: 'Account created! Starting onboarding process...' })
-      
-      // Start onboarding
-      await startOnboarding(result.accountId)
-    } catch (error) {
-      console.error('Error creating Stripe account:', error)
-      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to create account' })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const startOnboarding = async (accountId?: string) => {
-    try {
-      const idToUse = accountId || stripeAccountId
-      if (!idToUse) {
-        throw new Error('No Stripe account ID available')
-      }
-
-      setLoading(true)
-      setMessage({ type: 'info', text: 'Preparing onboarding...' })
-
-      const response = await fetch('/api/stripe/account-links', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accountId: idToUse })
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error)
-      }
-
-      // Redirect to Stripe onboarding
-      window.location.href = result.url
-    } catch (error) {
-      console.error('Error starting onboarding:', error)
-      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to start onboarding' })
-    } finally {
       setLoading(false)
     }
   }
@@ -227,157 +214,76 @@ export default function BankAccountPage() {
               </Link>
             </div>
             
-            {/* Not Connected State */}
-            {accountStatus === 'not_connected' && (
-              <div className="cosmic-card text-center py-12">
-                <h2 className="text-2xl font-bold text-white mb-8">
-                  {userRole === 'User' ? 'Connect Your Personal Bank Account' : 'Connect Business Bank Account'}
-                </h2>
-                
-                <div className="w-24 h-24 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-8">
-                  <svg className="w-12 h-12 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            {/* Bank Account Form */}
+            <div className="cosmic-card text-center py-12 max-w-md w-full">
+            
+            <h2 className="text-2xl font-bold text-white mb-8">
+              {userRole === 'User' ? 'Add Your Personal Bank Account' : 'Add Business Bank Account'}
+            </h2>
+            
+            <div className="w-24 h-24 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-8">
+              <svg className="w-12 h-12 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+            </div>
+            
+            <div className="space-y-4 text-left mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Beneficiary
+                </label>
+                <input
+                  type="text"
+                  value={beneficiary}
+                  onChange={(e) => setBeneficiary(e.target.value)}
+                  placeholder={userRole === 'User' ? 'John Smith' : 'Boho Beauty Salon'}
+                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">IBAN</label>
+                <input
+                  type="text"
+                  value={iban}
+                  onChange={(e) => setIban(e.target.value)}
+                  placeholder="AE 0700 3001 2769 3138 2000 1"
+                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Bank</label>
+                <input
+                  type="text"
+                  value={bank}
+                  onChange={(e) => setBank(e.target.value)}
+                  placeholder="RAK Bank"
+                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                />
+              </div>
+            </div>
+            
+            {isConnected && (
+              <div className="mb-6">
+                <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-600/20 text-green-400 border border-green-500/30">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                </div>
-                
-                <p className="text-gray-400 mb-8">
-                  Connect your bank account to receive weekly payouts from DECODE payments
-                </p>
-                
-                <button
-                  onClick={createStripeAccount}
-                  disabled={loading}
-                  className="cosmic-button-primary disabled:opacity-50 w-full"
-                >
-                  {loading ? 'Setting up...' : 'Connect Bank Account'}
-                </button>
-              </div>
-            )}
-
-            {/* Pending State */}
-            {accountStatus === 'pending' && (
-              <div className="cosmic-card text-center py-12">
-                <h2 className="text-2xl font-bold text-white mb-8">Bank Account Verification</h2>
-                
-                <div className="w-24 h-24 bg-yellow-600/20 rounded-full flex items-center justify-center mx-auto mb-8">
-                  <svg className="w-12 h-12 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                
-                <div className="mb-8">
-                  <VerificationBadge status="pending" size="lg" />
-                </div>
-                
-                <p className="text-gray-400 mb-8">
-                  Your bank account information is being verified. This usually takes 1-2 business days.
-                </p>
-                
-                <button
-                  onClick={() => startOnboarding()}
-                  disabled={loading}
-                  className="cosmic-button-primary disabled:opacity-50 w-full"
-                >
-                  {loading ? 'Loading...' : 'Complete Verification'}
-                </button>
-              </div>
-            )}
-
-            {/* Restricted State */}
-            {accountStatus === 'restricted' && (
-              <div className="cosmic-card text-center py-12">
-                <h2 className="text-2xl font-bold text-white mb-8">Action Required</h2>
-                
-                <div className="w-24 h-24 bg-red-600/20 rounded-full flex items-center justify-center mx-auto mb-8">
-                  <svg className="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                </div>
-                
-                <div className="mb-8">
-                  <VerificationBadge status="restricted" size="lg" />
-                </div>
-                
-                <p className="text-gray-400 mb-8">
-                  Additional information is required to complete your bank account setup.
-                </p>
-                
-                <button
-                  onClick={() => startOnboarding()}
-                  disabled={loading}
-                  className="cosmic-button-primary disabled:opacity-50 w-full"
-                >
-                  {loading ? 'Loading...' : 'Complete Setup'}
-                </button>
-              </div>
-            )}
-
-            {/* Active State */}
-            {accountStatus === 'active' && (
-              <div className="cosmic-card py-8">
-                <div className="text-center mb-8">
-                  <h2 className="text-2xl font-bold text-white mb-4">Bank Account Connected</h2>
-                  
-                  <div className="w-24 h-24 bg-green-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg className="w-12 h-12 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  
-                  <div className="mb-6">
-                    <VerificationBadge status="active" size="lg" />
-                  </div>
-                </div>
-
-                {/* Balance Information */}
-                <div className="space-y-6">
-                  <div className="bg-gray-800/50 rounded-lg p-6">
-                    <div className="text-center">
-                      <p className="text-gray-400 text-sm mb-2">Available Balance</p>
-                      <p className="text-3xl font-bold text-white">
-                        {balance.currency} {balance.available.toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {balance.pending > 0 && (
-                    <div className="bg-gray-800/50 rounded-lg p-6">
-                      <div className="text-center">
-                        <p className="text-gray-400 text-sm mb-2">Pending Balance</p>
-                        <p className="text-xl font-semibold text-yellow-400">
-                          {balance.currency} {balance.pending.toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {nextPayoutDate && (
-                    <div className="bg-gray-800/50 rounded-lg p-6">
-                      <div className="text-center">
-                        <p className="text-gray-400 text-sm mb-2">Next Automatic Payout</p>
-                        <p className="text-white font-medium">{nextPayoutDate}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex gap-3">
-                    <Link
-                      href="/dashboard/payouts"
-                      className="flex-1 text-center cosmic-button-secondary"
-                    >
-                      View Payouts
-                    </Link>
-                    <button
-                      onClick={() => startOnboarding()}
-                      disabled={loading}
-                      className="flex-1 cosmic-button-primary disabled:opacity-50"
-                    >
-                      Manage Account
-                    </button>
-                  </div>
+                  Added Successfully
                 </div>
               </div>
             )}
+            
+            <button
+              onClick={handleSaveBankAccount}
+              disabled={loading || (!beneficiary.trim() || !iban.trim() || !bank.trim() || 
+                (beneficiary.trim() === savedBeneficiary && iban.trim() === savedIban && bank.trim() === savedBank))}
+              className="cosmic-button-primary disabled:opacity-50 w-full"
+            >
+              {loading ? 'Saving...' : 'Save'}
+            </button>
+            </div>
           </div>
         </div>
 
