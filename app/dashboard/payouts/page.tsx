@@ -23,6 +23,7 @@ export default function PayoutsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showRequestModal, setShowRequestModal] = useState(false)
+  const [showMinimumBalanceModal, setShowMinimumBalanceModal] = useState(false)
   const [requestLoading, setRequestLoading] = useState(false)
   const [requestAmount, setRequestAmount] = useState('')
   const [payoutInProcess, setPayoutInProcess] = useState(false)
@@ -139,6 +140,19 @@ export default function PayoutsPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleRequestPayoutClick = () => {
+    if (!payoutSummary) return
+
+    // If balance is less than 50 AED, show minimum balance modal
+    if (payoutSummary.availableBalance < 50) {
+      setShowMinimumBalanceModal(true)
+      return
+    }
+
+    // If balance is sufficient, show request modal
+    setShowRequestModal(true)
   }
 
   const handleRequestPayout = async () => {
@@ -302,24 +316,7 @@ export default function PayoutsPage() {
                 {/* My Next Payout Card */}
                 <div className="flex-1 cosmic-card">
                   <div className="mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-white mb-2">My Next Payout</h3>
-                      {payoutSummary?.bankConnected ? (
-                        <div className="flex items-center text-green-400 text-sm">
-                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          Bank Connected
-                        </div>
-                      ) : (
-                        <div className="flex items-center text-yellow-400 text-sm">
-                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          Connect Bank Account
-                        </div>
-                      )}
-                    </div>
+                    <h3 className="text-lg font-semibold text-white mb-2">My Next Payout</h3>
                   </div>
                   
                   <div className="space-y-3">
@@ -343,22 +340,13 @@ export default function PayoutsPage() {
                           Connect Bank Account
                         </Link>
                       </div>
-                    ) : payoutSummary?.availableBalance >= 50 ? (
+                    ) : (
                       <button 
-                        onClick={() => setShowRequestModal(true)}
+                        onClick={handleRequestPayoutClick}
                         className="w-full cosmic-button-primary"
                       >
                         Request Payout
                       </button>
-                    ) : payoutSummary?.availableBalance > 0 ? (
-                      <div className="w-full text-center py-3 px-4 bg-gray-600/20 border border-gray-500/30 rounded-lg">
-                        <p className="text-gray-400 text-sm">Minimum payout: AED 50</p>
-                        <p className="text-gray-400 text-xs mt-1">Current: {formatCurrency(payoutSummary?.availableBalance || 0)}</p>
-                      </div>
-                    ) : (
-                      <div className="w-full text-center py-3 px-4 bg-gray-600/20 border border-gray-500/30 rounded-lg">
-                        <p className="text-gray-400">No Balance to Payout</p>
-                      </div>
                     )}
                   </div>
                 </div>
@@ -457,6 +445,40 @@ export default function PayoutsPage() {
                   className="flex-1 cosmic-button-primary"
                 >
                   {requestLoading ? 'Processing...' : 'Request Payout'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Minimum Balance Modal */}
+        {showMinimumBalanceModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-xl border border-gray-700 p-6 w-full max-w-md">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-4">Minimum Payout Required</h3>
+                <p className="text-gray-300 mb-2">
+                  Minimum payout shall be AED 50.
+                </p>
+                <p className="text-gray-300 mb-6">
+                  Below AED 50 is not possible.
+                </p>
+                <div className="mb-6">
+                  <p className="text-sm text-gray-400">Current Balance:</p>
+                  <p className="text-xl font-bold text-white">
+                    {formatCurrency(payoutSummary?.availableBalance || 0)}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowMinimumBalanceModal(false)}
+                  className="w-full cosmic-button-primary"
+                >
+                  OK
                 </button>
               </div>
             </div>
