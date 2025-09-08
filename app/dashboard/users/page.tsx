@@ -95,9 +95,9 @@ export default function UsersManagement() {
 
         // Get unique branches for this company - include all branches from comma-separated values
         const allUserBranches = companyUsers?.flatMap(u => 
-          (u.branch_name || 'Downtown Branch').split(',').map(b => b.trim())
+          (u.branch_name || '').split(',').map(b => b.trim()).filter(b => b !== '')
         ) || []
-        const uniqueBranches = [...new Set(['Downtown Branch', ...allUserBranches])]
+        const uniqueBranches = [...new Set(allUserBranches)]
         setBranches(uniqueBranches)
 
       } catch (error) {
@@ -190,7 +190,7 @@ export default function UsersManagement() {
     try {
       // Check if any users are in this branch (handle comma-separated branches)
       const usersInBranch = users.filter(u => {
-        const userBranches = (u.branch_name || 'Downtown Branch').split(',').map(b => b.trim())
+        const userBranches = (u.branch_name || '').split(',').map(b => b.trim()).filter(b => b !== '')
         return userBranches.includes(branchToDelete)
       })
       
@@ -230,7 +230,7 @@ export default function UsersManagement() {
     
     try {
       // Get current user's branches
-      const currentBranches = (userToDelete.branch_name || 'Downtown Branch').split(',').map(b => b.trim())
+      const currentBranches = (userToDelete.branch_name || '').split(',').map(b => b.trim()).filter(b => b !== '')
       
       // Remove the specific branch
       const remainingBranches = currentBranches.filter(b => b !== branchToRemoveFrom)
@@ -414,13 +414,13 @@ export default function UsersManagement() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowCreateBranchModal(true)}
-                    className="cosmic-button-secondary text-white border border-white/30 rounded-lg text-[15px] font-medium px-5 py-2.5 cursor-pointer transition-all duration-200 ease-in-out hover:border-white/80 hover:bg-white/10"
+                    className="text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[15px] font-medium px-5 py-2.5 cursor-pointer transition-colors"
                   >
                     Create Branch
                   </button>
                   <button
                     onClick={() => setShowInviteModal(true)}
-                    className="cosmic-button-secondary text-white border border-white/30 rounded-lg text-[15px] font-medium px-5 py-2.5 cursor-pointer transition-all duration-200 ease-in-out hover:border-white/80 hover:bg-white/10"
+                    className="text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[15px] font-medium px-5 py-2.5 cursor-pointer transition-colors"
                   >
                     Invite User
                   </button>
@@ -717,7 +717,7 @@ export default function UsersManagement() {
                 }
                 
                 {users.filter(u => {
-                  const userBranches = (u.branch_name || 'Downtown Branch').split(',').map(b => b.trim())
+                  const userBranches = (u.branch_name || '').split(',').map(b => b.trim()).filter(b => b !== '')
                   return !userBranches.includes(selectedBranch)
                 }).length === 0 && (
                   <div className="text-center text-gray-400 py-8">
@@ -750,7 +750,10 @@ export default function UsersManagement() {
                 Are you sure you want to delete the branch &ldquo;{branchToDelete}&rdquo;?
               </p>
               {(() => {
-                const usersInBranch = users.filter(u => (u.branch_name || 'Downtown Branch') === branchToDelete)
+                const usersInBranch = users.filter(u => {
+                  const userBranches = (u.branch_name || '').split(',').map(b => b.trim()).filter(b => b !== '')
+                  return userBranches.includes(branchToDelete)
+                })
                 if (usersInBranch.length > 0) {
                   return (
                     <p className="cosmic-body text-red-400 text-sm mb-6">
@@ -776,7 +779,10 @@ export default function UsersManagement() {
                 </button>
                 <button
                   onClick={handleDeleteBranch}
-                  disabled={users.filter(u => (u.branch_name || 'Downtown Branch') === branchToDelete).length > 0}
+                  disabled={users.filter(u => {
+                    const userBranches = (u.branch_name || '').split(',').map(b => b.trim()).filter(b => b !== '')
+                    return userBranches.includes(branchToDelete)
+                  }).length > 0}
                   className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Delete Branch

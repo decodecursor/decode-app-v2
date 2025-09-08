@@ -98,17 +98,17 @@ export default function CreatePayment() {
         } else if (userData?.branch_name) {
           const branches = userData.branch_name.split(',').map(b => b.trim()).filter(b => b !== '')
           setUserBranches(branches)
-          setSelectedBranch(branches[0] || 'Downtown Branch') // Default to first branch
+          setSelectedBranch(branches[0] || '') // Default to first branch or empty
         } else {
-          // Default to Downtown Branch if no branch assigned
-          setUserBranches(['Downtown Branch'])
-          setSelectedBranch('Downtown Branch')
+          // No branch assigned - leave empty
+          setUserBranches([])
+          setSelectedBranch('')
         }
       } catch (error) {
         console.error('Error fetching branches:', error)
-        // Fallback to default branch
-        setUserBranches(['Downtown Branch'])
-        setSelectedBranch('Downtown Branch')
+        // Fallback to empty - no hardcoded branch
+        setUserBranches([])
+        setSelectedBranch('')
       }
       
       setLoading(false)
