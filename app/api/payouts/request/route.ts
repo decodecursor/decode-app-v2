@@ -19,6 +19,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Enforce minimum payout amount of AED 50
+    if (amount < 50) {
+      return NextResponse.json(
+        { error: 'Minimum payout amount is AED 50. Below AED 50 payouts are not possible.' },
+        { status: 400 }
+      )
+    }
+
     // Verify user exists and has connected bank account
     const { data: userData, error: userError } = await supabaseAdmin
       .from('users')

@@ -25,6 +25,7 @@ export default function PayoutsPage() {
   const [requestLoading, setRequestLoading] = useState(false)
   const [requestAmount, setRequestAmount] = useState('')
   const [payoutInProcess, setPayoutInProcess] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
   const router = useRouter()
 
   useEffect(() => {
@@ -53,14 +54,34 @@ export default function PayoutsPage() {
       setLoading(true)
       setError('')
 
-      // Get user's bank connection status
+      // Get user's bank connection status from both systems
       const { data: userData } = await supabase
         .from('users')
         .select('stripe_connect_account_id, stripe_connect_status')
         .eq('id', userId)
         .single()
 
-      const bankConnected = userData?.stripe_connect_status === 'active'
+      // Check Stripe Connect status
+      const stripeConnected = userData?.stripe_connect_status === 'active'
+
+      // Check manual bank account entries
+      let manualBankConnected = false
+      try {
+        const { data: bankAccounts, error: bankError } = await supabase
+          .from('user_bank_accounts')
+          .select('id')
+          .eq('user_id', userId)
+          .limit(1)
+        
+        if (!bankError && bankAccounts && bankAccounts.length > 0) {
+          manualBankConnected = true
+        }
+      } catch (error) {
+        console.log('Manual bank account check failed, continuing...')
+      }
+
+      // Bank is connected if EITHER system shows connection
+      const bankConnected = stripeConnected || manualBankConnected
 
       // Get available balance if bank connected
       let availableBalance = 0
@@ -122,10 +143,22 @@ export default function PayoutsPage() {
   const handleRequestPayout = async () => {
     if (!user || !payoutSummary) return
 
+    const amount = parseFloat(requestAmount) || payoutSummary.availableBalance
+
+    // Validate minimum amount
+    if (amount < 50) {
+      alert('Minimum payout amount is AED 50')
+      return
+    }
+
+    // Validate maximum amount
+    if (amount > payoutSummary.availableBalance) {
+      alert('Amount cannot exceed available balance')
+      return
+    }
+
     setRequestLoading(true)
     try {
-      const amount = parseFloat(requestAmount) || payoutSummary.availableBalance
-
       const response = await fetch('/api/payouts/request', {
         method: 'POST',
         headers: {
@@ -141,9 +174,15 @@ export default function PayoutsPage() {
         setShowRequestModal(false)
         setRequestAmount('')
         setPayoutInProcess(true)
+        setSuccessMessage('Payout request submitted successfully!')
+        
+        // Auto-hide success message after 5 seconds
+        setTimeout(() => {
+          setSuccessMessage('')
+        }, 5000)
+        
         // Refresh data
         await fetchPayoutSummary(user.id)
-        alert('Payout request submitted successfully!')
       } else {
         const errorData = await response.json()
         alert(`Error: ${errorData.error || 'Failed to request payout'}`)
@@ -224,6 +263,22 @@ export default function PayoutsPage() {
           </div>
         </div>
 
+        {/* Success Message */}
+        {successMessage && (
+          <div className="flex justify-center mb-6">
+            <div style={{width: '70vw'}}>
+              <div className="bg-green-600/20 border border-green-500/30 rounded-lg p-4">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <p className="text-green-100 font-medium">{successMessage}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Main Content */}
         <div className="flex justify-center">
           <div style={{width: '70vw'}} className="space-y-6">
@@ -279,19 +334,26 @@ export default function PayoutsPage() {
                         <p className="text-blue-100 font-medium">Payout in process</p>
                       </div>
                     ) : !payoutSummary?.bankConnected ? (
-                      <Link 
-                        href="/bank-account" 
-                        className="block w-full text-center cosmic-button-secondary"
-                      >
-                        Connect Bank Account
-                      </Link>
-                    ) : payoutSummary?.availableBalance > 0 ? (
+                      <div className="w-full text-center py-3 px-4 bg-yellow-600/20 border border-yellow-500/30 rounded-lg">
+                        <Link 
+                          href="/bank-account" 
+                          className="text-yellow-400 hover:text-yellow-300 font-medium transition-colors"
+                        >
+                          Connect Bank Account
+                        </Link>
+                      </div>
+                    ) : payoutSummary?.availableBalance >= 50 ? (
                       <button 
                         onClick={() => setShowRequestModal(true)}
                         className="w-full cosmic-button-primary"
                       >
                         Request Payout
                       </button>
+                    ) : payoutSummary?.availableBalance > 0 ? (
+                      <div className="w-full text-center py-3 px-4 bg-gray-600/20 border border-gray-500/30 rounded-lg">
+                        <p className="text-gray-400 text-sm">Minimum payout: AED 50</p>
+                        <p className="text-gray-400 text-xs mt-1">Current: {formatCurrency(payoutSummary?.availableBalance || 0)}</p>
+                      </div>
                     ) : (
                       <div className="w-full text-center py-3 px-4 bg-gray-600/20 border border-gray-500/30 rounded-lg">
                         <p className="text-gray-400">No Balance to Payout</p>
@@ -358,10 +420,19 @@ export default function PayoutsPage() {
                     value={requestAmount}
                     onChange={(e) => setRequestAmount(e.target.value)}
                     placeholder={`${payoutSummary?.availableBalance || 0}`}
-                    min="1"
+                    min="50"
                     max={payoutSummary?.availableBalance || 0}
                     className="cosmic-input w-full"
                   />
+                </div>
+                
+                <div className="bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-3">
+                  <p className="text-yellow-100 text-sm font-medium">
+                    ⚠️ Minimum payout amount: AED 50
+                  </p>
+                  <p className="text-yellow-100 text-xs mt-1">
+                    Below AED 50 payouts are not possible.
+                  </p>
                 </div>
                 
                 <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-3">
