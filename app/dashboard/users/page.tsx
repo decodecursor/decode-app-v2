@@ -54,6 +54,7 @@ export default function UsersManagement() {
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('User')
   const [inviteLoading, setInviteLoading] = useState(false)
+  const [showRoleDropdown, setShowRoleDropdown] = useState(false)
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -207,8 +208,6 @@ export default function UsersManagement() {
       const updatedBranches = branches.filter(b => b !== branchToDelete)
       setBranches(updatedBranches)
       
-      setMessage(`Branch '${branchToDelete}' deleted successfully`)
-      setTimeout(() => setMessage(''), 3000)
       setShowDeleteBranchModal(false)
       setBranchToDelete('')
     } catch (error) {
@@ -360,6 +359,7 @@ export default function UsersManagement() {
       setShowInviteModal(false)
       setInviteEmail('')
       setInviteRole('User')
+      setShowRoleDropdown(false)
       
     } catch (error) {
       console.error('Error sending invitation:', error)
@@ -880,22 +880,50 @@ export default function UsersManagement() {
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
                     placeholder="user@example.com"
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
                     autoFocus
                   />
                 </div>
-                <div>
+                <div className="relative">
                   <label className="block text-gray-300 text-sm font-medium mb-2">
                     Role
                   </label>
-                  <select
-                    value={inviteRole}
-                    onChange={(e) => setInviteRole(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                  <button
+                    type="button"
+                    onClick={() => setShowRoleDropdown(!showRoleDropdown)}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500 text-left flex items-center justify-between"
                   >
-                    <option value="User">User</option>
-                    <option value="Admin">Admin</option>
-                  </select>
+                    <span>{inviteRole}</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {showRoleDropdown && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-10">
+                      {['User', 'Admin'].map((role) => (
+                        <button
+                          key={role}
+                          onClick={() => {
+                            setInviteRole(role)
+                            setShowRoleDropdown(false)
+                          }}
+                          className={`w-full text-left p-3 rounded-lg transition-colors ${
+                            inviteRole === role
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700'
+                          }`}
+                        >
+                          {role}
+                          {inviteRole === role && (
+                            <svg className="w-4 h-4 float-right mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="text-sm text-gray-400">
                   <p>Inviting to: <span className="text-white font-medium">{adminCompany}</span></p>
@@ -907,6 +935,7 @@ export default function UsersManagement() {
                     setShowInviteModal(false)
                     setInviteEmail('')
                     setInviteRole('User')
+                    setShowRoleDropdown(false)
                   }}
                   className="cosmic-button-secondary flex-1 py-3 border border-white/30 rounded-lg"
                   disabled={inviteLoading}
@@ -916,7 +945,7 @@ export default function UsersManagement() {
                 <button
                   onClick={handleInviteUser}
                   disabled={!inviteEmail.trim() || inviteLoading}
-                  className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {inviteLoading ? 'Sending...' : 'Send Invitation'}
                 </button>
