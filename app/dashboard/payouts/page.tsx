@@ -240,9 +240,9 @@ export default function PayoutsPage() {
             
             {/* Payout Summary Cards */}
             {loading ? (
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="flex flex-col md:flex-row gap-4">
                 {[1, 2].map(i => (
-                  <div key={i} className="cosmic-card">
+                  <div key={i} className="flex-1 cosmic-card">
                     <div className="animate-pulse">
                       <div className="h-4 w-32 bg-gray-700 rounded mb-4" />
                       <div className="h-8 w-24 bg-gray-700 rounded mb-2" />
@@ -252,9 +252,9 @@ export default function PayoutsPage() {
                 ))}
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="flex flex-col md:flex-row gap-4">
                 {/* My Next Payout Card */}
-                <div className="cosmic-card">
+                <div className="flex-1 cosmic-card">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="text-lg font-semibold text-white mb-2">My Next Payout</h3>
@@ -308,7 +308,7 @@ export default function PayoutsPage() {
                 </div>
 
                 {/* Earnings Overview Card */}
-                <div className="cosmic-card">
+                <div className="flex-1 cosmic-card">
                   <div className="flex items-start justify-between mb-4">
                     <h3 className="text-lg font-semibold text-white">Earnings Overview</h3>
                     <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
