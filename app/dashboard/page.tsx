@@ -3,11 +3,12 @@
 import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 import type { User } from '@supabase/supabase-js'
 
 
 export default function Dashboard() {
+  const supabase = createClient()
   const [user, setUser] = useState<User | null>(null)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [companyProfileImage, setCompanyProfileImage] = useState<string | null>(null)

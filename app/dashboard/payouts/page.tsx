@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 import { PayoutHistory } from '@/components/stripe/PayoutHistory'
 import type { User } from '@supabase/supabase-js'
 
@@ -17,6 +17,7 @@ interface PayoutSummary {
 }
 
 export default function PayoutsPage() {
+  const supabase = createClient()
   const [user, setUser] = useState<User | null>(null)
   const [payoutSummary, setPayoutSummary] = useState<PayoutSummary | null>(null)
   const [loading, setLoading] = useState(true)

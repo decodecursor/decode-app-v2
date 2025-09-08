@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 import Link from 'next/link'
 
 // Numbered Avatar Component
@@ -33,6 +33,7 @@ interface User {
 }
 
 export default function UsersManagement() {
+  const supabase = createClient()
   const [users, setUsers] = useState<User[]>([])
   const [adminCompany, setAdminCompany] = useState<string>('')
   const [companyProfileImage, setCompanyProfileImage] = useState<string | null>(null)

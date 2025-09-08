@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 
 // Cache-busting debug log to verify new code is loading
 console.log('🚀 PAYMENTS PAGE LOADED - VERSION 2024-01-05-16:30 - NEW CODE ACTIVE!')
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 import PaymentLinkCard from '@/components/dashboard/PaymentLinkCard'
@@ -55,6 +55,7 @@ interface PaymentStats {
 }
 
 export default function PaymentHistoryPage() {
+  const supabase = createClient()
   const [user, setUser] = useState<User | null>(null)
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([])
   const [transactions, setTransactions] = useState<PaymentTransaction[]>([])

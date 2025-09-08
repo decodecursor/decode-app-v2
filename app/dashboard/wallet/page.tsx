@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import { WalletDashboard } from '@/components/dashboard/WalletDashboard'
 import Link from 'next/link'
 
 export default function WalletPage() {
+  const supabase = createClient()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(false)
 

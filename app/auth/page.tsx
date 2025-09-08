@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 import RoleSelectionModal from '@/components/RoleSelectionModal'
 import PasswordInput from '@/components/PasswordInput'
 
@@ -20,6 +20,7 @@ export default function AuthPage() {
   const [checkingEmail, setCheckingEmail] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
   const [isRetrying, setIsRetrying] = useState(false)
+  const supabase = createClient()
   
   // Auto-hide error messages after 5 seconds
   useEffect(() => {

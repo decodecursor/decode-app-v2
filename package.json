@@ -18,6 +18,7 @@
     "@stripe/connect-js": "^3.3.25",
     "@stripe/react-stripe-js": "^3.8.1",
     "@stripe/stripe-js": "^7.7.0",
+    "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.50.0",
     "@types/qrcode": "^1.5.5",
     "autoprefixer": "^10.4.17",

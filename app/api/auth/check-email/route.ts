@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
 
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, { status: 200 })
@@ -16,20 +16,8 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       )
     }
-
-    // Create admin client with service role key - check env vars first
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     
-    if (!supabaseUrl || !serviceRoleKey) {
-      console.error('Missing Supabase environment variables')
-      return NextResponse.json(
-        { error: 'Configuration error' }, 
-        { status: 500 }
-      )
-    }
-    
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey) as any
+    const supabaseAdmin = createServiceRoleClient() as any
 
     // Check if email exists in auth.users
     const { data: authUsers, error: authError } = await supabaseAdmin.auth.admin.listUsers()
