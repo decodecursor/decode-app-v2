@@ -29,7 +29,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
   const loadExistingBankAccount = async () => {
     try {
       const { data, error } = await supabase
-        .from('user_bank_accounts')
+        .from('user_bank_account')
         .select('*')
         .eq('user_id', userId)
         .eq('is_primary', true)
@@ -68,15 +68,32 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
         status: 'pending'
       }
 
-      const { error } = await supabase
-        .from('user_bank_accounts')
-        .upsert(bankAccountData, { 
-          onConflict: 'user_id',
-          ignoreDuplicates: false 
-        })
+      // Check if user already has a bank account
+      const { data: existingAccount } = await supabase
+        .from('user_bank_account')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('is_primary', true)
+        .single()
+
+      let error
+      if (existingAccount) {
+        // Update existing account
+        const { error: updateError } = await supabase
+          .from('user_bank_account')
+          .update(bankAccountData)
+          .eq('id', existingAccount.id)
+        error = updateError
+      } else {
+        // Insert new account
+        const { error: insertError } = await supabase
+          .from('user_bank_account')
+          .insert(bankAccountData)
+        error = insertError
+      }
 
       if (error) {
-        if (error.message.includes('relation "user_bank_accounts" does not exist')) {
+        if (error.message.includes('relation "user_bank_account" does not exist')) {
           setMessage({ 
             type: 'error', 
             text: 'Bank account table not set up yet. Please contact support to enable this feature.' 
@@ -98,6 +115,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
 
     } catch (error) {
       console.error('Error saving bank account:', error)
+      console.error('Full error object:', JSON.stringify(error, null, 2))
       setMessage({ 
         type: 'error', 
         text: error instanceof Error ? error.message : 'Failed to save bank account' 

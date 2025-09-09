@@ -29,7 +29,7 @@ export function BankAccountSubcard({ userId, onClick }: BankAccountSubcardProps)
     try {
       // Try loading from user_bank_accounts table
       const { data, error } = await supabase
-        .from('user_bank_accounts')
+        .from('user_bank_account')
         .select('*')
         .eq('user_id', userId)
         .eq('is_primary', true)

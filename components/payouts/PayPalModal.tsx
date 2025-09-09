@@ -90,6 +90,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
 
     } catch (error) {
       console.error('Error saving PayPal account:', error)
+      console.error('Full error object:', JSON.stringify(error, null, 2))
       setMessage({ 
         type: 'error', 
         text: error instanceof Error ? error.message : 'Failed to connect PayPal account' 
