@@ -57,6 +57,14 @@ export default function UsersManagement() {
   const [showRoleDropdown, setShowRoleDropdown] = useState(false)
   const [inviteStatus, setInviteStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [inviteMessage, setInviteMessage] = useState('')
+  const [newUserCount, setNewUserCount] = useState(0)
+  const [lastCheckedTime, setLastCheckedTime] = useState<Date>(new Date())
+
+  // Function to reset new user notifications
+  const resetNewUserNotifications = () => {
+    setNewUserCount(0)
+    setLastCheckedTime(new Date())
+  }
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -102,6 +110,56 @@ export default function UsersManagement() {
         ) || []
         const uniqueBranches = [...new Set(allUserBranches)]
         setBranches(uniqueBranches)
+
+        // Set up real-time subscription for new user registrations
+        console.log('🔄 Setting up real-time subscription for new users in company:', adminData.company_name)
+        const subscription = supabase
+          .channel('new_users_notifications')
+          .on('postgres_changes', 
+            { 
+              event: 'INSERT', 
+              schema: 'public', 
+              table: 'users'
+            }, 
+            (payload) => {
+              // Only process new users for this admin's company
+              if (payload.new?.company_name !== adminData.company_name) {
+                return; // Skip updates for other companies
+              }
+              
+              console.log('👤 New user registered:', payload.new)
+              
+              // Update users list in real-time
+              const newUser = payload.new as User
+              setUsers(prevUsers => [newUser, ...prevUsers])
+              
+              // Update branches if the new user has a new branch
+              if (newUser.branch_name) {
+                const newUserBranches = newUser.branch_name.split(',').map(b => b.trim()).filter(b => b !== '')
+                setBranches(prevBranches => {
+                  const updatedBranches = [...new Set([...prevBranches, ...newUserBranches])]
+                  return updatedBranches
+                })
+              }
+              
+              // Increment new user count for notification
+              setNewUserCount(prevCount => prevCount + 1)
+            }
+          )
+          .subscribe((status) => {
+            console.log('📡 New users subscription status:', status)
+            if (status === 'SUBSCRIBED') {
+              console.log('✅ Successfully subscribed to new user notifications')
+            } else {
+              console.warn('⚠️ New users subscription status:', status)
+            }
+          })
+
+        // Cleanup subscription on component unmount
+        return () => {
+          console.log('🧹 Cleaning up new users subscription')
+          subscription.unsubscribe()
+        }
 
       } catch (error) {
         console.error('Error loading users:', error)
@@ -412,7 +470,7 @@ export default function UsersManagement() {
   }, {} as Record<string, User[]>)
 
   return (
-    <div className="cosmic-bg min-h-screen">
+    <div className="cosmic-bg min-h-screen" onClick={resetNewUserNotifications}>
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Link */}
         <div className="flex justify-center mb-8">
@@ -443,9 +501,14 @@ export default function UsersManagement() {
                   </button>
                   <button
                     onClick={() => setShowInviteModal(true)}
-                    className="text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[15px] font-medium px-5 py-2.5 cursor-pointer transition-colors"
+                    className="relative text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[15px] font-medium px-5 py-2.5 cursor-pointer transition-colors"
                   >
                     Invite User
+                    {newUserCount > 0 && (
+                      <div className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                        {newUserCount > 9 ? '9+' : newUserCount}
+                      </div>
+                    )}
                   </button>
                   <Link 
                     href="/payment/create"
