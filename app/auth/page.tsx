@@ -238,10 +238,7 @@ function AuthPageContent() {
           const { data, error } = await Promise.race([
             supabase.auth.signUp({
               email,
-              password,
-              options: {
-                emailRedirectTo: 'https://app.welovedecode.com/auth'
-              }
+              password
             }),
             new Promise<never>((_, reject) => 
               setTimeout(() => reject(new Error('Signup timeout after 10 seconds')), 10000)
