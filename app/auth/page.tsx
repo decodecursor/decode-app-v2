@@ -57,18 +57,25 @@ function AuthPageContent() {
   useEffect(() => {
     const checkAuthState = async () => {
       try {
-        const { data: { user }, error } = await supabase.auth.getUser()
+        // Add timeout to prevent auth state check from hanging
+        const { data: { user }, error } = await Promise.race([
+          supabase.auth.getUser(),
+          new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error('Auth state check timeout')), 3000)
+          )
+        ])
         
         if (user && user.email_confirmed_at) {
           console.log('✅ [AUTH] Found verified user on page load:', user.id)
           console.log('✅ [AUTH] Email confirmed at:', user.email_confirmed_at)
           
-          // Check if user already has a profile in database
-          const { data: profileData, error: profileError } = await supabase
-            .from('users')
-            .select('id')
-            .eq('id', user.id)
-            .single()
+          // Check if user already has a profile in database with timeout
+          const { data: profileData, error: profileError } = await Promise.race([
+            supabase.from('users').select('id').eq('id', user.id).single(),
+            new Promise<never>((_, reject) => 
+              setTimeout(() => reject(new Error('Profile check timeout')), 3000)
+            )
+          ])
           
           if (profileError && profileError.code === 'PGRST116') {
             // User doesn't have profile yet - show role modal to complete registration
@@ -85,10 +92,13 @@ function AuthPageContent() {
         }
       } catch (error) {
         console.error('Error checking auth state:', error)
+        // Continue with normal flow if auth state check fails
       }
     }
     
-    checkAuthState()
+    // Add delay to prevent immediate auth checks that might interfere with normal flow
+    const timer = setTimeout(checkAuthState, 1000)
+    return () => clearTimeout(timer)
   }, [router, supabase])
 
   // Real-time email validation
