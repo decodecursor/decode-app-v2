@@ -75,7 +75,7 @@ function PaymentPendingContent() {
     const checkPaymentStatus = async () => {
       try {
         // Check if transaction exists in database
-        const { data, error } = await supabase
+        const { data, error } = await createClient()
           .from('transactions')
           .select('status, processor_transaction_id')
           .eq('id', pendingDetails.id)
