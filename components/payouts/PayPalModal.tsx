@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
 interface PayPalModalProps {
@@ -15,6 +15,31 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
   const [email, setEmail] = useState('')
   const [confirmEmail, setConfirmEmail] = useState('')
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  // Load existing PayPal account data when modal opens
+  useEffect(() => {
+    if (isOpen && userId) {
+      loadExistingPayPalAccount()
+    }
+  }, [isOpen, userId])
+
+  const loadExistingPayPalAccount = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_paypal_account')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_primary', true)
+        .single()
+
+      if (!error && data) {
+        setEmail(data.email || '')
+        setConfirmEmail(data.email || '')
+      }
+    } catch (error) {
+      console.error('Error loading existing PayPal account:', error)
+    }
+  }
 
   if (!isOpen) return null
 
@@ -101,8 +126,11 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
   }
 
   const handleClose = () => {
-    setEmail('')
-    setConfirmEmail('')
+    // Only clear form if no existing account, otherwise keep the loaded data
+    if (!email) {
+      setEmail('')
+      setConfirmEmail('')
+    }
     setMessage(null)
     onClose()
   }

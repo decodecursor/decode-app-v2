@@ -52,7 +52,7 @@ export function PayPalSubcard({ userId, onClick }: PayPalSubcardProps) {
   }
 
   const getStatusIcon = () => {
-    if (paypalAccount?.is_verified || paypalAccount?.status === 'active') {
+    if (paypalAccount) {
       return (
         <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
           <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,26 +85,23 @@ export function PayPalSubcard({ userId, onClick }: PayPalSubcardProps) {
       className="flex-1 bg-white/5 rounded-lg p-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group"
     >
       <div className="flex items-center justify-between mb-2">
-        <div className="w-7 h-7 bg-blue-600/20 rounded-lg flex items-center justify-center">
-          {/* PayPal P logo */}
-          <div className="w-4 h-4 text-blue-400 font-bold text-xs flex items-center justify-center">
-            P
+        <h4 className="text-white font-medium text-sm">PayPal</h4>
+        <div className="flex items-center gap-2">
+          {getStatusIcon()}
+          <div className="w-7 h-7 bg-purple-600/20 rounded-lg flex items-center justify-center">
+            {/* PayPal P logo */}
+            <div className="w-4 h-4 text-purple-400 font-bold text-xs flex items-center justify-center">
+              P
+            </div>
           </div>
         </div>
-        {getStatusIcon()}
       </div>
       
       <div>
-        <h4 className="text-white font-medium text-sm mb-1">PayPal</h4>
         {paypalAccount ? (
-          <div className="space-y-1">
-            <p className="text-gray-400 text-xs font-mono">
-              {maskEmail(paypalAccount.email)}
-            </p>
-            <p className="text-gray-500 text-xs">
-              {paypalAccount.is_verified ? 'Verified' : 'Pending verification'}
-            </p>
-          </div>
+          <p className="text-gray-400 text-xs font-mono">
+            {maskEmail(paypalAccount.email)}
+          </p>
         ) : (
           <p className="text-gray-400 text-xs">Not connected</p>
         )}

@@ -51,7 +51,7 @@ export function BankAccountSubcard({ userId, onClick }: BankAccountSubcardProps)
   }
 
   const getStatusIcon = () => {
-    if (bankAccount?.is_verified || bankAccount?.status === 'active') {
+    if (bankAccount) {
       return (
         <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
           <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,25 +84,22 @@ export function BankAccountSubcard({ userId, onClick }: BankAccountSubcardProps)
       className="flex-1 bg-white/5 rounded-lg p-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group"
     >
       <div className="flex items-center justify-between mb-2">
-        <div className="w-7 h-7 bg-blue-600/20 rounded-lg flex items-center justify-center">
-          <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-          </svg>
+        <h4 className="text-white font-medium text-sm">Bank Account</h4>
+        <div className="flex items-center gap-2">
+          {getStatusIcon()}
+          <div className="w-7 h-7 bg-purple-600/20 rounded-lg flex items-center justify-center">
+            <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+          </div>
         </div>
-        {getStatusIcon()}
       </div>
       
       <div>
-        <h4 className="text-white font-medium text-sm mb-1">Bank Account</h4>
         {bankAccount ? (
-          <div className="space-y-1">
-            <p className="text-gray-400 text-xs font-mono">
-              {maskIban(bankAccount.iban_number)}
-            </p>
-            <p className="text-gray-500 text-xs truncate">
-              {bankAccount.bank_name}
-            </p>
-          </div>
+          <p className="text-gray-400 text-xs font-mono">
+            {maskIban(bankAccount.iban_number)} • {bankAccount.bank_name}
+          </p>
         ) : (
           <p className="text-gray-400 text-xs">Not connected</p>
         )}
