@@ -391,6 +391,7 @@ export interface Database {
           id: string
           user_id: string
           stripe_payout_id: string
+          payout_request_id: string | null
           amount_aed: number
           currency: string
           status: string
@@ -408,6 +409,7 @@ export interface Database {
           id?: string
           user_id: string
           stripe_payout_id: string
+          payout_request_id?: string | null
           amount_aed: number
           currency?: string
           status?: string
@@ -425,6 +427,7 @@ export interface Database {
           id?: string
           user_id?: string
           stripe_payout_id?: string
+          payout_request_id?: string | null
           amount_aed?: number
           currency?: string
           status?: string

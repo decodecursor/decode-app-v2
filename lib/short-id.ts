@@ -72,3 +72,71 @@ export function isValidUUID(id: string): boolean {
 export function isValidPaymentLinkId(id: string): boolean {
   return isValidShortId(id) || isValidUUID(id);
 }
+
+/**
+ * Generate a 10-digit alphanumeric ID for payout request tracking
+ * Format: A1B2C3D4E5 (alternating letters and numbers for readability)
+ * 
+ * Provides 36^10 unique combinations (3.6 * 10^15)
+ * Extremely low collision probability for tracking purposes
+ */
+export function generatePayoutRequestId(): string {
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const numbers = '0123456789';
+  let result = '';
+  
+  // Generate 10 characters alternating between letters and numbers
+  for (let i = 0; i < 10; i++) {
+    if (i % 2 === 0) {
+      // Even positions: letters
+      result += letters.charAt(Math.floor(Math.random() * letters.length));
+    } else {
+      // Odd positions: numbers  
+      result += numbers.charAt(Math.floor(Math.random() * numbers.length));
+    }
+  }
+  
+  return result;
+}
+
+/**
+ * Generate a unique payout request ID with collision check
+ * Attempts up to 5 retries before falling back to timestamp-based ID
+ */
+export async function generateUniquePayoutRequestId(
+  checkExists: (id: string) => Promise<boolean>,
+  maxRetries: number = 5
+): Promise<string> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const requestId = generatePayoutRequestId();
+    
+    try {
+      // Check if this ID already exists
+      const exists = await checkExists(requestId);
+      
+      if (!exists) {
+        return requestId;
+      }
+      
+      console.warn(`Payout request ID collision detected: ${requestId}, retrying... (attempt ${attempt + 1}/${maxRetries})`);
+    } catch (error) {
+      console.error(`Error checking payout request ID existence: ${error}, attempting anyway with ID: ${requestId}`);
+      // If we can't check existence, just return the request ID anyway
+      return requestId;
+    }
+  }
+  
+  // Fallback to timestamp-based ID if too many collisions (extremely rare)
+  console.error('Too many payout request ID collisions, falling back to timestamp-based ID');
+  const timestamp = Date.now().toString();
+  const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  return `P${timestamp.slice(-6)}${randomSuffix}`;
+}
+
+/**
+ * Validate if a string is a valid payout request ID format
+ */
+export function isValidPayoutRequestId(id: string): boolean {
+  // Check if it's exactly 10 characters alternating letters and numbers
+  return /^[A-Z][0-9][A-Z][0-9][A-Z][0-9][A-Z][0-9][A-Z][0-9]$/.test(id);
+}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { generateUniquePayoutRequestId } from '@/lib/short-id'
 
 export async function POST(request: NextRequest) {
   try {
@@ -76,10 +77,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Generate unique payout request ID
+    const payoutRequestId = await generateUniquePayoutRequestId(async (id) => {
+      const { data } = await supabaseAdmin
+        .from('payouts')
+        .select('payout_request_id')
+        .eq('payout_request_id', id)
+        .single()
+      return data !== null
+    })
+
     // Create payout request in database
     const payoutData = {
       user_id: userId,
       amount_aed: amount,
+      payout_request_id: payoutRequestId,
       status: 'pending',
       period_start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // Last week
       period_end: new Date().toISOString(), // Today
@@ -119,6 +131,7 @@ export async function POST(request: NextRequest) {
       success: true,
       payout: {
         id: payout.id,
+        requestId: payoutRequestId,
         amount: amount,
         status: 'pending',
         scheduledFor: payoutData.scheduled_for

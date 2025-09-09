@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 
 interface Payout {
   id: string
+  payout_request_id: string | null
   amount_aed: number
   status: string
   period_start: string | null
@@ -75,8 +76,9 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
       if (error) throw error
 
       // Create CSV content
-      const headers = ['Date', 'Amount (AED)', 'Status', 'Period Start', 'Period End', 'Paid Date']
+      const headers = ['Request ID', 'Date', 'Amount (AED)', 'Status', 'Period Start', 'Period End', 'Paid Date']
       const rows = (data || []).map(payout => [
+        payout.payout_request_id || 'N/A',
         formatDate(payout.created_at),
         payout.amount_aed.toFixed(2),
         payout.status,
@@ -158,9 +160,16 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
                       {status.label}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-400">
-                    Period: {payout.period_start ? formatDate(payout.period_start) : 'N/A'} - {payout.period_end ? formatDate(payout.period_end) : 'N/A'}
-                  </p>
+                  <div className="space-y-1">
+                    {payout.payout_request_id && (
+                      <p className="text-sm text-gray-400">
+                        Request ID: <span className="font-mono text-purple-400">{payout.payout_request_id}</span>
+                      </p>
+                    )}
+                    <p className="text-sm text-gray-400">
+                      Period: {payout.period_start ? formatDate(payout.period_start) : 'N/A'} - {payout.period_end ? formatDate(payout.period_end) : 'N/A'}
+                    </p>
+                  </div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-400">

@@ -1,5 +1,27 @@
 # Email Verification Customization Guide
 
+## Quick Fix: Update Email Subject Line
+
+**To change from "Confirm your Registration with DECODE" to "Verify your email address with DECODE":**
+
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
+2. Select your project
+3. Navigate to **Authentication** → **Settings** → **Email Templates**
+4. Click on **"Confirm signup"** template
+5. Change the **Subject** field from:
+   ```
+   Confirm your Registration with DECODE
+   ```
+   to:
+   ```
+   Verify your email address with DECODE
+   ```
+6. Click **Save** to apply the changes
+
+**Note**: This change affects the email that users receive when they register for a new account.
+
+---
+
 ## Customizing Supabase Email Templates
 
 ### 1. Access Supabase Dashboard
@@ -20,7 +42,7 @@
 1. Click on **"Confirm signup"** template
 2. Edit the **Subject** field:
    ```
-   Verify your DECODE account
+   Verify your email address with DECODE
    ```
 
 3. Edit the **Body** template (HTML):
@@ -112,7 +134,7 @@
 ## Quick Changes Summary
 
 **Most Important Customizations:**
-1. ✅ Email subject: `"Verify your DECODE account"`
+1. ✅ Email subject: `"Verify your email address with DECODE"`
 2. ✅ Welcome message: `"Welcome to DECODE!"`
 3. ✅ Button text: `"Verify Email Address"`
 4. ✅ Expiry notice: `"This link expires in 24 hours"`

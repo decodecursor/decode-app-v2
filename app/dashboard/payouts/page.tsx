@@ -356,12 +356,12 @@ export default function PayoutsPage() {
                 {/* Earnings Overview Card */}
                 <div className="flex-1 cosmic-card">
                   <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-white">Payouts Overview</h3>
+                    <h3 className="text-lg font-semibold text-white">My Total Payouts</h3>
                   </div>
                   
                   <div className="space-y-4">
                     <div>
-                      <p className="text-gray-400 text-sm">Total Payouts</p>
+                      <p className="text-gray-400 text-sm">Paid Amount</p>
                       <p className="text-xl font-bold text-white">
                         {formatCurrency(payoutSummary?.totalEarnings || 0)}
                       </p>
