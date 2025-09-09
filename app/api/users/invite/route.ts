@@ -32,7 +32,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Get current user and verify admin permissions
-    const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
@@ -42,7 +41,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify user is admin of the specified company
+    // Verify user is admin of the specified company  
     const { data: adminData, error: adminError } = await supabase
       .from('users')
       .select('role, company_name')
