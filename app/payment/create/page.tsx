@@ -80,6 +80,7 @@ export default function CreatePayment() {
 
   useEffect(() => {
     const getUser = async () => {
+      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         router.push('/auth')
