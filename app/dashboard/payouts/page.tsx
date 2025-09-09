@@ -71,7 +71,7 @@ export default function PayoutsPage() {
       let manualBankConnected = false
       try {
         const { data: bankAccounts, error: bankError } = await supabase
-          .from('user_bank_accounts')
+          .from('user_bank_account')
           .select('id')
           .eq('user_id', userId)
           .limit(1)

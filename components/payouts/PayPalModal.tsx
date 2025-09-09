@@ -42,7 +42,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
     try {
       // Check if PayPal email already exists for this user
       const { data: existing } = await supabase
-        .from('user_paypal_accounts')
+        .from('user_paypal_account')
         .select('id')
         .eq('user_id', userId)
         .eq('email', email.trim())
@@ -55,7 +55,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
 
       // Insert new PayPal account
       const { error } = await supabase
-        .from('user_paypal_accounts')
+        .from('user_paypal_account')
         .insert({
           user_id: userId,
           email: email.trim(),
@@ -65,7 +65,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
         })
 
       if (error) {
-        if (error.message.includes('relation "user_paypal_accounts" does not exist')) {
+        if (error.message.includes('relation "user_paypal_account" does not exist')) {
           setMessage({ 
             type: 'error', 
             text: 'PayPal accounts table not set up yet. Please contact support to enable this feature.' 
@@ -153,7 +153,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your.email@example.com"
-              className="cosmic-input w-full"
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
               disabled={loading}
             />
           </div>
@@ -167,7 +167,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
               value={confirmEmail}
               onChange={(e) => setConfirmEmail(e.target.value)}
               placeholder="your.email@example.com"
-              className="cosmic-input w-full"
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
               disabled={loading}
             />
           </div>
@@ -202,7 +202,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
           <button
             onClick={handleSavePayPal}
             disabled={loading || !email || !confirmEmail}
-            className="flex-1 cosmic-button-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Connecting...' : 'Connect PayPal'}
           </button>

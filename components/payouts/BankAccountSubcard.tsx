@@ -27,7 +27,7 @@ export function BankAccountSubcard({ userId, onClick }: BankAccountSubcardProps)
 
   const loadBankAccount = async () => {
     try {
-      // Try loading from user_bank_accounts table
+      // Try loading from user_bank_account table
       const { data, error } = await supabase
         .from('user_bank_account')
         .select('*')

@@ -28,7 +28,7 @@ export function PayPalSubcard({ userId, onClick }: PayPalSubcardProps) {
     try {
       // Try loading from user_paypal_accounts table
       const { data, error } = await supabase
-        .from('user_paypal_accounts')
+        .from('user_paypal_account')
         .select('*')
         .eq('user_id', userId)
         .eq('is_primary', true)

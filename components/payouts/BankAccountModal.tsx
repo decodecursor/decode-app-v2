@@ -195,7 +195,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
               value={beneficiary}
               onChange={(e) => setBeneficiary(e.target.value)}
               placeholder={userRole === 'User' ? 'John Smith' : 'Boho Beauty Salon'}
-              className="cosmic-input w-full"
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
               disabled={loading}
             />
           </div>
@@ -209,7 +209,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
               value={iban}
               onChange={(e) => setIban(e.target.value)}
               placeholder="AE 0700 3001 2769 3138 2000 1"
-              className="cosmic-input w-full"
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
               disabled={loading}
             />
           </div>
@@ -223,7 +223,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
               value={bank}
               onChange={(e) => setBank(e.target.value)}
               placeholder="RAK Bank"
-              className="cosmic-input w-full"
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
               disabled={loading}
             />
           </div>
@@ -258,7 +258,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
           <button
             onClick={handleSaveBankAccount}
             disabled={loading || !beneficiary || !iban || !bank}
-            className="flex-1 cosmic-button-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Saving...' : isConnected ? 'Update Account' : 'Connect Bank Account'}
           </button>

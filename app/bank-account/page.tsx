@@ -38,9 +38,9 @@ export default function BankAccountPage() {
     setLoading(true)
     
     try {
-      // Try to insert into user_bank_accounts table
+      // Try to insert into user_bank_account table
       const { error } = await supabase
-        .from('user_bank_accounts')
+        .from('user_bank_account')
         .insert({
           user_id: user.id,
           beneficiary_name: beneficiary.trim(),
@@ -52,7 +52,7 @@ export default function BankAccountPage() {
 
       if (error) {
         // If table doesn't exist, show a helpful message
-        if (error.message.includes('relation "user_bank_accounts" does not exist')) {
+        if (error.message.includes('relation "user_bank_account" does not exist')) {
           setMessage({ 
             type: 'error', 
             text: 'Bank account table not set up yet. Please contact support to enable this feature.' 
@@ -125,14 +125,14 @@ export default function BankAccountPage() {
         // Try to load existing bank account data
         try {
           const { data: bankAccounts, error: bankError } = await supabase
-            .from('user_bank_accounts')
+            .from('user_bank_account')
             .select('*')
             .eq('user_id', userId)
             .order('created_at', { ascending: false })
             .limit(1)
           
           // If table doesn't exist, just continue without data
-          if (bankError && bankError.message.includes('relation "user_bank_accounts" does not exist')) {
+          if (bankError && bankError.message.includes('relation "user_bank_account" does not exist')) {
             console.log('Bank accounts table not yet created - showing empty form')
           } else if (bankError) {
             console.error('Error loading bank accounts:', bankError)
