@@ -89,7 +89,7 @@ export function PayPalSubcard({ userId, onClick }: PayPalSubcardProps) {
           {getStatusIcon()}
         </div>
       )}
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-1">
         <h4 className="text-white font-medium text-sm">PayPal</h4>
         <div className="w-7 h-7 bg-purple-600/20 rounded-lg flex items-center justify-center">
           {/* PayPal P logo */}

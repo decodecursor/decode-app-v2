@@ -88,7 +88,7 @@ export function BankAccountSubcard({ userId, onClick }: BankAccountSubcardProps)
           {getStatusIcon()}
         </div>
       )}
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-1">
         <h4 className="text-white font-medium text-sm">Bank Account</h4>
         <div className="w-7 h-7 bg-purple-600/20 rounded-lg flex items-center justify-center">
           <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

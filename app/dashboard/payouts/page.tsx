@@ -316,36 +316,41 @@ export default function PayoutsPage() {
               <div className="flex flex-col lg:flex-row gap-4">
                 {/* My Next Payout Card */}
                 <div className="flex-1 cosmic-card">
-                  <div className="mb-4 flex justify-between items-start">
+                  <div className="mb-4">
                     <h3 className="text-lg font-semibold text-white">My Next Payout</h3>
-                    {!payoutInProcess && payoutSummary?.bankConnected && (
-                      <button 
-                        onClick={handleRequestPayoutClick}
-                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
-                      >
-                        Request Payout
-                      </button>
-                    )}
                   </div>
                   
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-gray-400 text-sm">Available Balance</p>
-                      <p className="text-2xl font-bold text-white">
-                        {formatCurrency(payoutSummary?.availableBalance || 0)}
-                      </p>
+                  <div className="flex flex-col h-full">
+                    <div className="flex-grow space-y-3">
+                      <div>
+                        <p className="text-gray-400 text-sm">Available Balance</p>
+                        <p className="text-2xl font-bold text-white">
+                          {formatCurrency(payoutSummary?.availableBalance || 0)}
+                        </p>
+                      </div>
+                      
+                      {payoutInProcess && (
+                        <div className="w-full text-center py-3 px-4 bg-blue-600/20 border border-blue-500/30 rounded-lg">
+                          <p className="text-blue-100 font-medium">Payout in process</p>
+                        </div>
+                      )}
+                      {!payoutSummary?.bankConnected && (
+                        <div className="w-full text-center py-3 px-4 bg-yellow-600/20 border border-yellow-500/30 rounded-lg">
+                          <p className="text-yellow-400 font-medium">
+                            Connect your bank account using the payment methods section
+                          </p>
+                        </div>
+                      )}
                     </div>
                     
-                    {payoutInProcess && (
-                      <div className="w-full text-center py-3 px-4 bg-blue-600/20 border border-blue-500/30 rounded-lg">
-                        <p className="text-blue-100 font-medium">Payout in process</p>
-                      </div>
-                    )}
-                    {!payoutSummary?.bankConnected && (
-                      <div className="w-full text-center py-3 px-4 bg-yellow-600/20 border border-yellow-500/30 rounded-lg">
-                        <p className="text-yellow-400 font-medium">
-                          Connect your bank account using the payment methods section
-                        </p>
+                    {!payoutInProcess && payoutSummary?.bankConnected && (
+                      <div className="mt-4">
+                        <button 
+                          onClick={handleRequestPayoutClick}
+                          className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors"
+                        >
+                          Request Payout
+                        </button>
                       </div>
                     )}
                   </div>
