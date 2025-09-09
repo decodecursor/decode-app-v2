@@ -59,6 +59,8 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
     setMessage(null)
 
     try {
+      const supabase = createClient()
+      
       // Try to insert or update bank account
       const bankAccountData = {
         user_id: userId,

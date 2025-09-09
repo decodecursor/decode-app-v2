@@ -68,6 +68,8 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
     setMessage(null)
 
     try {
+      const supabase = createClient()
+      
       // Check if user already has a PayPal account
       const { data: existingAccount } = await supabase
         .from('user_paypal_account')
