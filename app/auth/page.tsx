@@ -192,26 +192,63 @@ function AuthPageContent() {
       // Execute auth flow directly without retry wrapper
       if (isLogin) {
           console.log('🔐 Attempting login for:', email)
-          console.log('🔧 Supabase client URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-          console.log('🔧 Supabase key present:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'YES' : 'NO')
-          console.log('🔧 Current domain:', window.location.origin)
           
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password
-          })
+          // Try direct Supabase login first
+          let loginSuccess = false
+          let loginData: any = null
+          let loginError: any = null
           
-          console.log('🔍 Login response data:', data)
-          console.log('🔍 Login response error:', error)
-          
-          if (error) {
-            console.error('❌ Login error:', error)
-            throw error
+          try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+              email,
+              password
+            })
+            
+            if (!error && data.user && data.session) {
+              loginSuccess = true
+              loginData = data
+            } else {
+              loginError = error || new Error('Login failed')
+            }
+          } catch (error: any) {
+            console.log('Direct login failed, trying proxy...', error.message)
+            loginError = error
           }
           
-          if (data.user && data.session) {
-            console.log('✅ User logged in successfully:', data.user.id)
-            console.log('✅ Session established:', data.session.access_token.substring(0, 20) + '...')
+          // If direct login failed, try proxy
+          if (!loginSuccess) {
+            console.log('🔄 Using proxy for login due to connection issues')
+            try {
+              const proxyResponse = await fetch('/api/auth/proxy-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+              })
+              
+              const proxyData = await proxyResponse.json()
+              
+              if (proxyResponse.ok && proxyData.success) {
+                console.log('✅ Proxy login successful')
+                // Set the session manually
+                if (proxyData.session) {
+                  await supabase.auth.setSession({
+                    access_token: proxyData.session.access_token,
+                    refresh_token: proxyData.session.refresh_token
+                  })
+                }
+                loginSuccess = true
+                loginData = proxyData
+              } else {
+                throw new Error(proxyData.error || 'Proxy login failed')
+              }
+            } catch (proxyError: any) {
+              console.error('Both direct and proxy login failed')
+              throw loginError || proxyError
+            }
+          }
+          
+          if (loginSuccess && loginData) {
+            console.log('✅ User logged in successfully')
             
             // Wait for session to be properly stored before redirect
             await new Promise(resolve => setTimeout(resolve, 200))
@@ -237,7 +274,7 @@ function AuthPageContent() {
               console.error('❌ Session not found after multiple attempts')
               throw new Error('Session was not properly established after multiple attempts')
             }
-            return data
+            return loginData
           } else {
             throw new Error('Login failed - no user or session data returned')
           }
