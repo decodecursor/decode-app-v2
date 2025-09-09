@@ -337,15 +337,6 @@ function PaymentForm({
                 onLoaderStart={() => {
                   console.log('🔄 PaymentElement loading...');
                 }}
-                onChange={(event) => {
-                  if (event.error) {
-                    console.log('❌ Payment element error:', event.error);
-                    setError(event.error.message);
-                  } else if (event.complete) {
-                    console.log('✅ Payment details complete');
-                    setError(null);
-                  }
-                }}
               />
             </div>
           </div>
