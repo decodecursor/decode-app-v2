@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
+import { supabase } from '@/lib/supabase'
 
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, { status: 200 })
@@ -14,7 +14,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ suggestions: [] })
     }
 
-    const supabase = await createClient()
     const { data: companies, error } = await supabase
       .from('users')
       .select('company_name')

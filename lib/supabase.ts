@@ -1,6 +1,16 @@
-// DEPRECATED FILE - DO NOT USE
-// This file has been deprecated to fix authentication issues
-// Use createClient() from @/utils/supabase/client instead for client-side operations
-// Use createClient() from @/utils/supabase/server instead for server-side operations
+// DEPRECATED FOR CLIENT-SIDE USE - Use @/utils/supabase/client for client components
+// This file is kept for server-side API routes that haven't been migrated yet
+// TODO: Migrate all API routes to use @/utils/supabase/server instead
 
-throw new Error('This file is deprecated. Use createClient() from @/utils/supabase/client or @/utils/supabase/server instead')
+import { createClient } from '@supabase/supabase-js'
+
+export const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
