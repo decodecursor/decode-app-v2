@@ -1,23 +1,44 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import { BankAccountSubcard } from './BankAccountSubcard'
 import { PayPalSubcard } from './PayPalSubcard'
 import { PayPalModal } from './PayPalModal'
+import { BankAccountModal } from './BankAccountModal'
+import { supabase } from '@/lib/supabase'
 
 interface PayoutMethodsCardProps {
   userId: string
 }
 
 export function PayoutMethodsCard({ userId }: PayoutMethodsCardProps) {
-  const router = useRouter()
   const [showPayPalModal, setShowPayPalModal] = useState(false)
+  const [showBankAccountModal, setShowBankAccountModal] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [userRole, setUserRole] = useState<string>('User')
+
+  useEffect(() => {
+    loadUserRole()
+  }, [userId])
+
+  const loadUserRole = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', userId)
+        .single()
+
+      if (!error && data) {
+        setUserRole(data.role || 'User')
+      }
+    } catch (error) {
+      console.error('Error loading user role:', error)
+    }
+  }
 
   const handleBankAccountClick = () => {
-    // Navigate to the existing bank account page
-    router.push('/bank-account')
+    setShowBankAccountModal(true)
   }
 
   const handlePayPalClick = () => {
@@ -26,6 +47,11 @@ export function PayoutMethodsCard({ userId }: PayoutMethodsCardProps) {
 
   const handlePayPalSuccess = () => {
     // Trigger refresh of PayPal subcard
+    setRefreshKey(prev => prev + 1)
+  }
+
+  const handleBankAccountSuccess = () => {
+    // Trigger refresh of Bank Account subcard
     setRefreshKey(prev => prev + 1)
   }
 
@@ -39,27 +65,15 @@ export function PayoutMethodsCard({ userId }: PayoutMethodsCardProps) {
         
         <div className="flex gap-3">
           <BankAccountSubcard 
+            key={`bank-${refreshKey}`}
             userId={userId} 
             onClick={handleBankAccountClick}
           />
           <PayPalSubcard 
-            key={refreshKey}
+            key={`paypal-${refreshKey}`}
             userId={userId} 
             onClick={handlePayPalClick}
           />
-        </div>
-
-        {/* Professional footer info */}
-        <div className="mt-4 pt-4 border-t border-gray-800">
-          <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>Secure & encrypted</span>
-            <div className="flex items-center space-x-1">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              <span>SSL Protected</span>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -69,6 +83,15 @@ export function PayoutMethodsCard({ userId }: PayoutMethodsCardProps) {
         onClose={() => setShowPayPalModal(false)}
         userId={userId}
         onSuccess={handlePayPalSuccess}
+      />
+
+      {/* Bank Account Modal */}
+      <BankAccountModal
+        isOpen={showBankAccountModal}
+        onClose={() => setShowBankAccountModal(false)}
+        userId={userId}
+        userRole={userRole}
+        onSuccess={handleBankAccountSuccess}
       />
     </>
   )
