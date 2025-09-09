@@ -18,7 +18,6 @@ interface PayoutSummary {
 }
 
 export default function PayoutsPage() {
-  const supabase = createClient()
   const [user, setUser] = useState<User | null>(null)
   const [payoutSummary, setPayoutSummary] = useState<PayoutSummary | null>(null)
   const [loading, setLoading] = useState(true)
@@ -30,58 +29,63 @@ export default function PayoutsPage() {
   const [payoutInProcess, setPayoutInProcess] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const router = useRouter()
+  const supabase = createClient()
 
   useEffect(() => {
+    let mounted = true
+    
     const getUser = async () => {
       try {
-        // Try direct first, then proxy
-        let userData = null
-        let userError = null
-        
+        // Always use proxy first for reliability
         try {
-          const { data: { user }, error } = await supabase.auth.getUser()
-          if (user) {
-            userData = user
-          } else {
-            userError = error
-          }
-        } catch (directError) {
-          console.log('Direct user fetch failed, trying proxy...')
-          userError = directError
-        }
-        
-        // If direct failed, use proxy
-        if (!userData) {
-          try {
-            const proxyResponse = await fetch('/api/auth/proxy-user')
-            const proxyData = await proxyResponse.json()
-            
-            if (proxyResponse.ok && proxyData.user) {
-              userData = proxyData.user
-            } else {
-              throw new Error(proxyData.error || 'Failed to get user')
-            }
-          } catch (proxyError) {
-            console.error('Both direct and proxy user fetch failed')
-            router.push('/auth')
+          const proxyResponse = await fetch('/api/auth/proxy-user')
+          const proxyData = await proxyResponse.json()
+          
+          if (!mounted) return
+          
+          if (proxyResponse.ok && proxyData.user) {
+            setUser(proxyData.user)
+            await fetchPayoutSummary(proxyData.user.id)
             return
           }
+        } catch (proxyError) {
+          console.log('Proxy failed, trying direct...')
         }
         
-        if (!userData) {
-          router.push('/auth')
-          return
+        // Fallback to direct
+        try {
+          const { data: { user }, error } = await supabase.auth.getUser()
+          
+          if (!mounted) return
+          
+          if (user) {
+            setUser(user)
+            await fetchPayoutSummary(user.id)
+          } else {
+            console.log('No user found, redirecting to auth')
+            router.push('/auth')
+          }
+        } catch (directError) {
+          console.error('Both methods failed:', directError)
+          if (mounted) {
+            setError('Unable to load user data. Please try refreshing the page.')
+            setLoading(false)
+          }
         }
-        
-        setUser(userData)
-        await fetchPayoutSummary(userData.id)
       } catch (error: any) {
         console.error('Authentication error:', error)
-        setError('Authentication failed. Please try logging in again.')
+        if (mounted) {
+          setError('Authentication failed. Please try logging in again.')
+          setLoading(false)
+        }
       }
     }
     
     getUser()
+    
+    return () => {
+      mounted = false
+    }
   }, [router])
 
   const fetchPayoutSummary = async (userId: string) => {
@@ -272,7 +276,26 @@ export default function PayoutsPage() {
     })
   }
 
-  if (error) {
+  // Always render something, even while loading
+  if (loading && !user && !error) {
+    return (
+      <div className="cosmic-bg min-h-screen">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <div className="cosmic-card">
+            <div className="animate-pulse">
+              <div className="h-8 w-32 bg-gray-700 rounded mb-4" />
+              <div className="space-y-3">
+                <div className="h-4 w-48 bg-gray-700 rounded" />
+                <div className="h-4 w-64 bg-gray-700 rounded" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error && !user) {
     return (
       <div className="cosmic-bg min-h-screen">
         <div className="max-w-6xl mx-auto px-4 py-8">
@@ -285,10 +308,10 @@ export default function PayoutsPage() {
             <h2 className="cosmic-heading text-white mb-2">Error Loading Payouts</h2>
             <p className="cosmic-body text-white/70 mb-4">{error}</p>
             <button 
-              onClick={() => user && fetchPayoutSummary(user.id)}
+              onClick={() => window.location.reload()}
               className="cosmic-button-primary"
             >
-              Try Again
+              Refresh Page
             </button>
           </div>
         </div>
