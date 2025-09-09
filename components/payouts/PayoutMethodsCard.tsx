@@ -60,20 +60,24 @@ export function PayoutMethodsCard({ userId }: PayoutMethodsCardProps) {
       <div className="flex-1 cosmic-card">
         <div className="mb-4">
           <h3 className="text-lg font-semibold text-white">My Payout Methods</h3>
-          <p className="text-gray-400 text-sm">Manage your payout preferences</p>
         </div>
         
-        <div className="flex gap-3">
-          <BankAccountSubcard 
-            key={`bank-${refreshKey}`}
-            userId={userId} 
-            onClick={handleBankAccountClick}
-          />
-          <PayPalSubcard 
-            key={`paypal-${refreshKey}`}
-            userId={userId} 
-            onClick={handlePayPalClick}
-          />
+        <div className="space-y-4">
+          <div>
+            <p className="text-gray-400 text-sm">Manage your payout preferences</p>
+          </div>
+          <div className="flex gap-3">
+            <BankAccountSubcard 
+              key={`bank-${refreshKey}`}
+              userId={userId} 
+              onClick={handleBankAccountClick}
+            />
+            <PayPalSubcard 
+              key={`paypal-${refreshKey}`}
+              userId={userId} 
+              onClick={handlePayPalClick}
+            />
+          </div>
         </div>
       </div>
 

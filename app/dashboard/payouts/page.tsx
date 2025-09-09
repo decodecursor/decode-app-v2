@@ -343,12 +343,9 @@ export default function PayoutsPage() {
                     )}
                     {!payoutSummary?.bankConnected && (
                       <div className="w-full text-center py-3 px-4 bg-yellow-600/20 border border-yellow-500/30 rounded-lg">
-                        <Link 
-                          href="/bank-account" 
-                          className="text-yellow-400 hover:text-yellow-300 font-medium transition-colors"
-                        >
-                          Connect Bank Account
-                        </Link>
+                        <p className="text-yellow-400 font-medium">
+                          Connect your bank account using the payment methods section
+                        </p>
                       </div>
                     )}
                   </div>
@@ -363,7 +360,7 @@ export default function PayoutsPage() {
                   <div className="space-y-4">
                     <div>
                       <p className="text-gray-400 text-sm">Paid Amount</p>
-                      <p className="text-xl font-bold text-white">
+                      <p className="text-2xl font-bold text-white">
                         {formatCurrency(payoutSummary?.totalEarnings || 0)}
                       </p>
                     </div>
@@ -482,7 +479,7 @@ export default function PayoutsPage() {
                 </div>
                 <button
                   onClick={() => setShowMinimumBalanceModal(false)}
-                  className="w-full cosmic-button-primary"
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
                 >
                   OK
                 </button>
