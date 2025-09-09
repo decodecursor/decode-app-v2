@@ -211,7 +211,9 @@ export async function GET(request: NextRequest) {
         creator: creator ? {
           id: creator.id,
           name: creator.user_name,
-          professionalCenter: creator.professional_center_name
+          email: creator.email,
+          professionalCenter: creator.professional_center_name,
+          company_name: creator.professional_center_name || creator.company_name // Ensure company_name is included
         } : null,
         qrCodeUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/qr?url=${encodeURIComponent(paymentUrl)}`
       }

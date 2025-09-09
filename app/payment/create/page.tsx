@@ -23,6 +23,18 @@ export default function CreatePayment() {
     amount: ''
   })
   
+  // Client suggestions states
+  const [clientSuggestions, setClientSuggestions] = useState<Array<{name: string, count: number}>>([])
+  const [showClientSuggestions, setShowClientSuggestions] = useState(false)
+  const [selectedClientSuggestionIndex, setSelectedClientSuggestionIndex] = useState(-1)
+  const [isLoadingClientSuggestions, setIsLoadingClientSuggestions] = useState(false)
+  
+  // Service suggestions states
+  const [serviceSuggestions, setServiceSuggestions] = useState<Array<{name: string, count: number}>>([])
+  const [showServiceSuggestions, setShowServiceSuggestions] = useState(false)
+  const [selectedServiceSuggestionIndex, setSelectedServiceSuggestionIndex] = useState(-1)
+  const [isLoadingServiceSuggestions, setIsLoadingServiceSuggestions] = useState(false)
+  
   // Branch management states
   const [userBranches, setUserBranches] = useState<string[]>([])
   const [selectedBranch, setSelectedBranch] = useState<string>('')
@@ -78,6 +90,88 @@ export default function CreatePayment() {
     }
   }
 
+  // Fetch client suggestions
+  useEffect(() => {
+    const fetchClientSuggestions = async () => {
+      if (formData.client.length >= 2) {
+        setIsLoadingClientSuggestions(true)
+        try {
+          const response = await fetch(`/api/payment/client-suggestions?q=${encodeURIComponent(formData.client)}`)
+          if (response.ok) {
+            const data = await response.json()
+            setClientSuggestions(data.suggestions || [])
+            setShowClientSuggestions(data.suggestions && data.suggestions.length > 0)
+          } else {
+            setClientSuggestions([])
+            setShowClientSuggestions(false)
+          }
+        } catch (error) {
+          console.error('Error fetching client suggestions:', error)
+          setClientSuggestions([])
+          setShowClientSuggestions(false)
+        } finally {
+          setIsLoadingClientSuggestions(false)
+        }
+      } else {
+        setClientSuggestions([])
+        setShowClientSuggestions(false)
+      }
+    }
+
+    const debounceTimer = setTimeout(fetchClientSuggestions, 300)
+    return () => clearTimeout(debounceTimer)
+  }, [formData.client])
+
+  // Fetch service suggestions
+  useEffect(() => {
+    const fetchServiceSuggestions = async () => {
+      if (formData.title.length >= 2) {
+        setIsLoadingServiceSuggestions(true)
+        try {
+          const response = await fetch(`/api/payment/service-suggestions?q=${encodeURIComponent(formData.title)}`)
+          if (response.ok) {
+            const data = await response.json()
+            setServiceSuggestions(data.suggestions || [])
+            setShowServiceSuggestions(data.suggestions && data.suggestions.length > 0)
+          } else {
+            setServiceSuggestions([])
+            setShowServiceSuggestions(false)
+          }
+        } catch (error) {
+          console.error('Error fetching service suggestions:', error)
+          setServiceSuggestions([])
+          setShowServiceSuggestions(false)
+        } finally {
+          setIsLoadingServiceSuggestions(false)
+        }
+      } else {
+        setServiceSuggestions([])
+        setShowServiceSuggestions(false)
+      }
+    }
+
+    const debounceTimer = setTimeout(fetchServiceSuggestions, 300)
+    return () => clearTimeout(debounceTimer)
+  }, [formData.title])
+
+  // Handle click outside to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('.client-input-wrapper')) {
+        setShowClientSuggestions(false)
+        setSelectedClientSuggestionIndex(-1)
+      }
+      if (!target.closest('.service-input-wrapper')) {
+        setShowServiceSuggestions(false)
+        setSelectedServiceSuggestionIndex(-1)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   useEffect(() => {
     const getUser = async () => {
       const supabase = createClient()
@@ -127,6 +221,89 @@ export default function CreatePayment() {
     // Clear errors when user starts typing
     if (errors[name as keyof typeof errors]) {
       setErrors(prev => ({ ...prev, [name]: '' }))
+    }
+    
+    // Reset suggestion selection when typing
+    if (name === 'client') {
+      setSelectedClientSuggestionIndex(-1)
+    } else if (name === 'title') {
+      setSelectedServiceSuggestionIndex(-1)
+    }
+  }
+
+  const handleClientKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showClientSuggestions || clientSuggestions.length === 0) return
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setSelectedClientSuggestionIndex(prev => 
+          prev < clientSuggestions.length - 1 ? prev + 1 : prev
+        )
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setSelectedClientSuggestionIndex(prev => prev > 0 ? prev - 1 : -1)
+        break
+      case 'Enter':
+        if (selectedClientSuggestionIndex >= 0) {
+          e.preventDefault()
+          selectClientSuggestion(clientSuggestions[selectedClientSuggestionIndex].name)
+        }
+        break
+      case 'Escape':
+        e.preventDefault()
+        setShowClientSuggestions(false)
+        setSelectedClientSuggestionIndex(-1)
+        break
+    }
+  }
+
+  const selectClientSuggestion = (clientName: string) => {
+    setFormData(prev => ({ ...prev, client: clientName }))
+    setShowClientSuggestions(false)
+    setSelectedClientSuggestionIndex(-1)
+    // Clear error if there was one
+    if (errors.client) {
+      setErrors(prev => ({ ...prev, client: '' }))
+    }
+  }
+
+  const handleServiceKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showServiceSuggestions || serviceSuggestions.length === 0) return
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setSelectedServiceSuggestionIndex(prev => 
+          prev < serviceSuggestions.length - 1 ? prev + 1 : prev
+        )
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setSelectedServiceSuggestionIndex(prev => prev > 0 ? prev - 1 : -1)
+        break
+      case 'Enter':
+        if (selectedServiceSuggestionIndex >= 0) {
+          e.preventDefault()
+          selectServiceSuggestion(serviceSuggestions[selectedServiceSuggestionIndex].name)
+        }
+        break
+      case 'Escape':
+        e.preventDefault()
+        setShowServiceSuggestions(false)
+        setSelectedServiceSuggestionIndex(-1)
+        break
+    }
+  }
+
+  const selectServiceSuggestion = (serviceName: string) => {
+    setFormData(prev => ({ ...prev, title: serviceName }))
+    setShowServiceSuggestions(false)
+    setSelectedServiceSuggestionIndex(-1)
+    // Clear error if there was one
+    if (errors.title) {
+      setErrors(prev => ({ ...prev, title: '' }))
     }
   }
 
@@ -260,33 +437,95 @@ export default function CreatePayment() {
             <h1 className="cosmic-heading text-center mb-8">Create PayLink</h1>
 
             <form onSubmit={generatePaymentLink} className="space-y-6">
-              <div>
+              <div className="client-input-wrapper relative">
                 <label className="cosmic-label block mb-2">Client</label>
                 <input
                   type="text"
                   name="client"
                   value={formData.client}
                   onChange={handleInputChange}
+                  onKeyDown={handleClientKeyDown}
+                  onFocus={() => {
+                    if (clientSuggestions.length > 0) {
+                      setShowClientSuggestions(true)
+                    }
+                  }}
                   placeholder="Sarah Johnson"
                   className={`cosmic-input ${errors.client ? 'border-red-500' : ''}`}
                   disabled={creating}
+                  autoComplete="off"
                 />
+                
+                {/* Client Suggestions Dropdown */}
+                {showClientSuggestions && clientSuggestions.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-gray-900 border border-purple-500/50 rounded-lg shadow-2xl overflow-hidden">
+                    {clientSuggestions.map((suggestion, index) => (
+                      <div
+                        key={suggestion.name}
+                        onClick={() => selectClientSuggestion(suggestion.name)}
+                        onMouseEnter={() => setSelectedClientSuggestionIndex(index)}
+                        className={`px-4 py-3 cursor-pointer flex justify-between items-center transition-all ${
+                          index === selectedClientSuggestionIndex
+                            ? 'bg-purple-600/30 text-white'
+                            : 'hover:bg-purple-600/20 text-gray-300 hover:text-white'
+                        }`}
+                      >
+                        <span className="font-medium">{suggestion.name}</span>
+                        <span className="text-xs text-purple-400">
+                          Used {suggestion.count} times
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
                 {errors.client && (
                   <p className="mt-2 text-sm text-red-400">{errors.client}</p>
                 )}
               </div>
 
-              <div>
+              <div className="service-input-wrapper relative">
                 <label className="cosmic-label block mb-2">Service</label>
                 <input
                   type="text"
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
+                  onKeyDown={handleServiceKeyDown}
+                  onFocus={() => {
+                    if (serviceSuggestions.length > 0) {
+                      setShowServiceSuggestions(true)
+                    }
+                  }}
                   placeholder="Haircut"
                   className={`cosmic-input ${errors.title ? 'border-red-500' : ''}`}
                   disabled={creating}
+                  autoComplete="off"
                 />
+                
+                {/* Service Suggestions Dropdown */}
+                {showServiceSuggestions && serviceSuggestions.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-gray-900 border border-purple-500/50 rounded-lg shadow-2xl overflow-hidden">
+                    {serviceSuggestions.map((suggestion, index) => (
+                      <div
+                        key={suggestion.name}
+                        onClick={() => selectServiceSuggestion(suggestion.name)}
+                        onMouseEnter={() => setSelectedServiceSuggestionIndex(index)}
+                        className={`px-4 py-3 cursor-pointer flex justify-between items-center transition-all ${
+                          index === selectedServiceSuggestionIndex
+                            ? 'bg-purple-600/30 text-white'
+                            : 'hover:bg-purple-600/20 text-gray-300 hover:text-white'
+                        }`}
+                      >
+                        <span className="font-medium">{suggestion.name}</span>
+                        <span className="text-xs text-purple-400">
+                          Used {suggestion.count} times
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
                 {errors.title && (
                   <p className="mt-2 text-sm text-red-400">{errors.title}</p>
                 )}

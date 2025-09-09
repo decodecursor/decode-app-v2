@@ -26,8 +26,12 @@ interface PaymentFormProps extends CustomPaymentFormProps {
   clientSecret: string;
 }
 
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+// Initialize Stripe with fallback
+const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_51Rpnj8BCENH8RexyycBntN40xSM7w5MbstofjrV5tAROxMI71UDw0AKAwFFlwGN6OaMlDa62A4BukU4yZxmQ4Euz00X3NoqUYG';
+
+console.log('🔍 Stripe Publishable Key:', STRIPE_PUBLISHABLE_KEY ? 'Available' : 'Missing');
+
+const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
 
 function PaymentForm({ 
   paymentLinkId,
@@ -125,6 +129,14 @@ function PaymentForm({
           </div>
         </div>
 
+        {/* Debug information */}
+        {!stripe && (
+          <div className="text-yellow-400 text-xs mb-2 text-center">⚠️ Stripe SDK loading...</div>
+        )}
+        {!elements && stripe && (
+          <div className="text-yellow-400 text-xs mb-2 text-center">⚠️ Payment elements initializing...</div>
+        )}
+        
         {/* Only render payment elements when clientSecret is ready */}
         {clientSecret ? (
           <>
@@ -300,7 +312,11 @@ function PaymentForm({
 
           {/* Payment Element */}
           <div className="space-y-2">
-            <div style={{ fontSize: '14px', overflow: 'hidden' }}>
+            <div style={{ 
+              fontSize: '14px', 
+              minHeight: '250px',
+              position: 'relative'
+            }}>
               <PaymentElement 
                 options={{
                   layout: 'tabs',
@@ -314,7 +330,22 @@ function PaymentForm({
                       email: 'auto'
                     }
                   }
-                }} 
+                }}
+                onReady={() => {
+                  console.log('✅ PaymentElement ready and visible');
+                }}
+                onLoaderStart={() => {
+                  console.log('🔄 PaymentElement loading...');
+                }}
+                onChange={(event) => {
+                  if (event.error) {
+                    console.log('❌ Payment element error:', event.error);
+                    setError(event.error.message);
+                  } else if (event.complete) {
+                    console.log('✅ Payment details complete');
+                    setError(null);
+                  }
+                }}
               />
             </div>
           </div>

@@ -49,10 +49,20 @@ export function hasProperDisplayName(user: UserDisplayInfo): boolean {
  * Get user identifier for business contexts (shows company name if available)
  */
 export function getBusinessDisplayName(user: UserDisplayInfo): string {
+  // Debug logging
+  console.log('🏢 getBusinessDisplayName called with:', {
+    company_name: user.company_name,
+    user_name: user.user_name,
+    email: user.email
+  })
+  
   if (user.company_name?.trim()) {
+    console.log('✅ Using company_name:', user.company_name.trim())
     return user.company_name.trim()
   }
   
   // For business contexts, show user name or email as fallback
-  return user.user_name?.trim() || user.email?.split('@')[0] || 'Business'
+  const fallback = user.user_name?.trim() || user.email?.split('@')[0] || 'Business'
+  console.log('⚠️ No company_name, using fallback:', fallback)
+  return fallback
 }

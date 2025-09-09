@@ -95,9 +95,17 @@ export default function PaymentPageClient() {
             id: creator.id, 
             user_name: creator.name, 
             email: creator.email || 'creator@example.com',
-            company_name: creator.professionalCenter 
+            company_name: creator.company_name || creator.professionalCenter // Use company_name first, then professionalCenter as fallback
           }
         }
+        
+        // Debug logging to verify data
+        console.log('🔍 Creator data received:', {
+          name: creator.name,
+          professionalCenter: creator.professionalCenter,
+          company_name: creator.company_name,
+          final_company_name: transformedData.creator.company_name
+        })
 
         setPaymentData(transformedData)
         console.log('✅ Payment data loaded successfully')
