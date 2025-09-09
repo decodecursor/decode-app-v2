@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 
 interface BankAccountSubcardProps {
   userId: string
@@ -27,6 +27,7 @@ export function BankAccountSubcard({ userId, onClick }: BankAccountSubcardProps)
 
   const loadBankAccount = async () => {
     try {
+      const supabase = createClient()
       // Try loading from user_bank_account table
       const { data, error } = await supabase
         .from('user_bank_account')

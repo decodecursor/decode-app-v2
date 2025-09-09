@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 
 interface PayPalModalProps {
   isOpen: boolean
@@ -26,6 +26,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
 
   const loadExistingPayPalAccount = async () => {
     try {
+      const supabase = createClient()
       const { data, error } = await supabase
         .from('user_paypal_account')
         .select('*')

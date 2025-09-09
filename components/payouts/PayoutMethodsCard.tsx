@@ -5,7 +5,7 @@ import { BankAccountSubcard } from './BankAccountSubcard'
 import { PayPalSubcard } from './PayPalSubcard'
 import { PayPalModal } from './PayPalModal'
 import { BankAccountModal } from './BankAccountModal'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 
 interface PayoutMethodsCardProps {
   userId: string
@@ -23,6 +23,7 @@ export function PayoutMethodsCard({ userId }: PayoutMethodsCardProps) {
 
   const loadUserRole = async () => {
     try {
+      const supabase = createClient()
       const { data, error } = await supabase
         .from('users')
         .select('role')

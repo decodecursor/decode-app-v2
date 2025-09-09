@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 
 export default function VerifyEmailPage() {
   const [loading, setLoading] = useState(false)
@@ -16,6 +16,7 @@ export default function VerifyEmailPage() {
 
     setLoading(true)
     try {
+      const supabase = createClient()
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: email

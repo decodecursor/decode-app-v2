@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 
 interface BankAccountModalProps {
   isOpen: boolean
@@ -28,6 +28,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
 
   const loadExistingBankAccount = async () => {
     try {
+      const supabase = createClient()
       const { data, error } = await supabase
         .from('user_bank_account')
         .select('*')

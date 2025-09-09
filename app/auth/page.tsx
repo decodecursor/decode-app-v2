@@ -214,16 +214,28 @@ function AuthPageContent() {
             console.log('✅ Session established:', data.session.access_token.substring(0, 20) + '...')
             
             // Wait for session to be properly stored before redirect
-            await new Promise(resolve => setTimeout(resolve, 100))
+            await new Promise(resolve => setTimeout(resolve, 200))
             
-            // Verify session is accessible
-            const { data: sessionCheck } = await supabase.auth.getSession()
-            if (sessionCheck.session) {
-              console.log('✅ Session verified, redirecting to dashboard')
+            // Verify session is accessible with retry logic
+            let sessionVerified = false
+            for (let i = 0; i < 3; i++) {
+              const { data: sessionCheck } = await supabase.auth.getSession()
+              if (sessionCheck.session) {
+                console.log('✅ Session verified, redirecting to dashboard')
+                sessionVerified = true
+                break
+              }
+              if (i < 2) {
+                console.log(`⏳ Session not found yet, retrying... (${i + 1}/3)`)
+                await new Promise(resolve => setTimeout(resolve, 300))
+              }
+            }
+            
+            if (sessionVerified) {
               router.push('/dashboard')
             } else {
-              console.error('❌ Session not found after login')
-              throw new Error('Session was not properly established')
+              console.error('❌ Session not found after multiple attempts')
+              throw new Error('Session was not properly established after multiple attempts')
             }
             return data
           } else {

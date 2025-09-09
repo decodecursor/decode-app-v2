@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 
 interface PayPalSubcardProps {
   userId: string
@@ -26,6 +26,7 @@ export function PayPalSubcard({ userId, onClick }: PayPalSubcardProps) {
 
   const loadPayPalAccount = async () => {
     try {
+      const supabase = createClient()
       // Try loading from user_paypal_accounts table
       const { data, error } = await supabase
         .from('user_paypal_account')
