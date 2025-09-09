@@ -53,6 +53,44 @@ function AuthPageContent() {
     }
   }, [searchParams])
 
+  // Check for authenticated user on page load (handles email verification returns)
+  useEffect(() => {
+    const checkAuthState = async () => {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser()
+        
+        if (user && user.email_confirmed_at) {
+          console.log('✅ [AUTH] Found verified user on page load:', user.id)
+          console.log('✅ [AUTH] Email confirmed at:', user.email_confirmed_at)
+          
+          // Check if user already has a profile in database
+          const { data: profileData, error: profileError } = await supabase
+            .from('users')
+            .select('id')
+            .eq('id', user.id)
+            .single()
+          
+          if (profileError && profileError.code === 'PGRST116') {
+            // User doesn't have profile yet - show role modal to complete registration
+            console.log('✅ [AUTH] Verified user needs to complete profile')
+            setEmail(user.email || '')
+            setSignedUpUser(user)
+            setShowRoleModal(true)
+            setMessage('Please complete your profile to finish registration')
+          } else if (profileData) {
+            // User already has profile - redirect to dashboard
+            console.log('✅ [AUTH] User already has profile - redirecting to dashboard')
+            router.push('/dashboard')
+          }
+        }
+      } catch (error) {
+        console.error('Error checking auth state:', error)
+      }
+    }
+    
+    checkAuthState()
+  }, [router, supabase])
+
   // Real-time email validation
   useEffect(() => {
     const checkEmailExists = async () => {
@@ -200,7 +238,10 @@ function AuthPageContent() {
           const { data, error } = await Promise.race([
             supabase.auth.signUp({
               email,
-              password
+              password,
+              options: {
+                emailRedirectTo: 'https://app.welovedecode.com/auth'
+              }
             }),
             new Promise<never>((_, reject) => 
               setTimeout(() => reject(new Error('Signup timeout after 10 seconds')), 10000)
