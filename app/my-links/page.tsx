@@ -61,7 +61,7 @@ function MyLinksContent() {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user } } = await createClient().auth.getUser()
       if (!user) {
         router.push('/auth')
         return
@@ -70,7 +70,7 @@ function MyLinksContent() {
       
       // Set up real-time subscription for payment status changes
       console.log('🔄 Setting up real-time subscription for user:', user.id); // Force deployment
-      const subscription = supabase
+      const subscription = createClient()
         .channel('payment_links_changes')
         .on('postgres_changes', 
           { 
@@ -180,7 +180,7 @@ function MyLinksContent() {
           console.log('🔍 Enhanced polling for payment status changes...');
           
           // Fetch current payment links with all payment-related fields
-          const { data: currentLinks, error } = await (supabase as any)
+          const { data: currentLinks, error } = await (createClient() as any)
             .from('payment_links')
             .select('id, is_paid, is_active, payment_status, paid_at')
             .eq('creator_id', user.id);
@@ -368,7 +368,7 @@ function MyLinksContent() {
       try {
         // Try to get payment_status and paid_at columns (from migration) + transaction data as backup
         console.log('🔍 Attempting to fetch with payment_status, paid_at, and transaction data...')
-        const result = await (supabase as any)
+        const result = await (createClient() as any)
           .from('payment_links')
           .select(`
             id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
@@ -397,7 +397,7 @@ function MyLinksContent() {
         console.log('⚠️ Primary query failed, trying fallback with is_paid field...', primaryError)
         try {
           // Fallback to is_paid column (older migration) + transaction data
-          const result = await (supabase as any)
+          const result = await (createClient() as any)
             .from('payment_links')
             .select(`
               id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
@@ -424,7 +424,7 @@ function MyLinksContent() {
         } catch (fallbackError) {
           console.log('⚠️ is_paid fallback failed, using basic query...', fallbackError)
           // Final fallback without payment status fields but with transaction data
-          const result = await supabase
+          const result = await createClient()
             .from('payment_links')
             .select(`
               id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
@@ -699,7 +699,7 @@ function MyLinksContent() {
       setDeactivatingId(linkToDeactivate.id)
       setShowConfirmDialog(false)
 
-      const { error: updateError } = await supabase
+      const { error: updateError } = await createClient()
         .from('payment_links')
         .update({ is_active: false })
         .eq('id', linkToDeactivate.id)
@@ -759,7 +759,7 @@ function MyLinksContent() {
       setDeletingId(linkToDelete.id)
       setShowDeleteConfirmDialog(false)
 
-      const { error: deleteError } = await supabase
+      const { error: deleteError } = await createClient()
         .from('payment_links')
         .delete()
         .eq('id', linkToDelete.id)
@@ -802,7 +802,7 @@ function MyLinksContent() {
       setDeactivatingId(linkToDelete.id)
       setShowDeactivateFirstDialog(false)
 
-      const { error: updateError } = await supabase
+      const { error: updateError } = await createClient()
         .from('payment_links')
         .update({ is_active: false })
         .eq('id', linkToDelete.id)
@@ -851,11 +851,11 @@ function MyLinksContent() {
       const paymentUrl = generatePaymentUrl(link.id)
       
       // Fetch user profile for company name
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user } } = await createClient().auth.getUser()
       let companyName = 'Our Business'
       
       if (user) {
-        const { data: profileData } = await supabase
+        const { data: profileData } = await createClient()
           .from('users')
           .select('professional_center_name')
           .eq('id', user.id)

@@ -9,6 +9,7 @@ export default function PendingApproval() {
 
   useEffect(() => {
     const getUserInfo = async () => {
+      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         window.location.href = '/auth'
@@ -36,6 +37,7 @@ export default function PendingApproval() {
 
   const handleSignOut = async () => {
     try {
+      const supabase = createClient()
       await supabase.auth.signOut()
       window.location.href = '/auth'
     } catch (error) {
