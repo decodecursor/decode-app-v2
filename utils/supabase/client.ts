@@ -20,8 +20,8 @@ export function createClient() {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: false, // Disable to prevent URL parsing delays
-        flowType: 'implicit', // Use simpler flow for better performance
+        detectSessionInUrl: true, // Required for proper session handling
+        flowType: 'pkce', // Required by modern Supabase projects
         // Use a consistent storage key across all instances
         storageKey: 'sb-auth-token',
         // Ensure proper storage configuration for development
