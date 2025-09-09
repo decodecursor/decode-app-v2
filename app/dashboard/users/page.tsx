@@ -55,6 +55,8 @@ export default function UsersManagement() {
   const [inviteRole, setInviteRole] = useState('User')
   const [inviteLoading, setInviteLoading] = useState(false)
   const [showRoleDropdown, setShowRoleDropdown] = useState(false)
+  const [inviteStatus, setInviteStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+  const [inviteMessage, setInviteMessage] = useState('')
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -334,6 +336,7 @@ export default function UsersManagement() {
     if (!inviteEmail.trim() || !adminCompany) return
     
     try {
+      setInviteStatus('sending')
       setInviteLoading(true)
       
       const response = await fetch('/api/users/invite', {
@@ -354,17 +357,37 @@ export default function UsersManagement() {
         throw new Error(result.error || 'Failed to send invitation')
       }
 
-      setMessage(`Invitation sent successfully to ${inviteEmail}`)
-      setTimeout(() => setMessage(''), 3000)
-      setShowInviteModal(false)
-      setInviteEmail('')
-      setInviteRole('User')
-      setShowRoleDropdown(false)
+      // Success - show in-modal confirmation
+      setInviteStatus('success')
+      setInviteMessage(`Invitation sent successfully to ${inviteEmail}!`)
+      
+      // Auto-close modal after 5 seconds
+      setTimeout(() => {
+        setShowInviteModal(false)
+        setInviteEmail('')
+        setInviteRole('User')
+        setShowRoleDropdown(false)
+        setInviteStatus('idle')
+        setInviteMessage('')
+      }, 5000)
       
     } catch (error) {
       console.error('Error sending invitation:', error)
-      setMessage(error instanceof Error ? error.message : 'Failed to send invitation')
-      setTimeout(() => setMessage(''), 3000)
+      
+      // Map technical errors to user-friendly messages
+      let userFriendlyMessage = 'Failed to send invitation. Please try again.'
+      const errorMessage = error instanceof Error ? error.message : ''
+      
+      if (errorMessage.includes('Authentication required')) {
+        userFriendlyMessage = 'Please refresh the page and try again.'
+      } else if (errorMessage.includes('Admin access required')) {
+        userFriendlyMessage = 'You need admin permissions to send invitations.'
+      } else if (errorMessage.includes('already exists')) {
+        userFriendlyMessage = 'This email is already registered in the system.'
+      }
+      
+      setInviteStatus('error')
+      setInviteMessage(userFriendlyMessage)
     } finally {
       setInviteLoading(false)
     }
@@ -929,6 +952,41 @@ export default function UsersManagement() {
                   <p>Inviting to: <span className="text-white font-medium">{adminCompany}</span></p>
                 </div>
               </div>
+              
+              {/* Status Display */}
+              {inviteStatus === 'success' && (
+                <div className="mt-6 p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+                  <div className="flex items-center">
+                    <svg className="w-6 h-6 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <div>
+                      <p className="text-green-400 font-medium">{inviteMessage}</p>
+                      <p className="text-green-300 text-sm mt-1">This modal will close automatically in 5 seconds</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {inviteStatus === 'error' && (
+                <div className="mt-6 p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
+                  <div className="flex items-center">
+                    <svg className="w-6 h-6 text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <p className="text-red-400 font-medium">{inviteMessage}</p>
+                  </div>
+                </div>
+              )}
+              
+              {inviteStatus === 'sending' && (
+                <div className="mt-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400 mr-3"></div>
+                    <p className="text-blue-400 font-medium">Sending invitation email...</p>
+                  </div>
+                </div>
+              )}
               <div className="flex space-x-4 mt-6">
                 <button
                   onClick={() => {
@@ -936,18 +994,36 @@ export default function UsersManagement() {
                     setInviteEmail('')
                     setInviteRole('User')
                     setShowRoleDropdown(false)
+                    setInviteStatus('idle')
+                    setInviteMessage('')
                   }}
                   className="cosmic-button-secondary flex-1 py-3 border border-white/30 rounded-lg"
-                  disabled={inviteLoading}
+                  disabled={inviteStatus === 'sending' || inviteStatus === 'success'}
                 >
-                  Cancel
+                  {inviteStatus === 'success' ? 'Closing...' : 'Cancel'}
                 </button>
                 <button
                   onClick={handleInviteUser}
-                  disabled={!inviteEmail.trim() || inviteLoading}
+                  disabled={!inviteEmail.trim() || inviteStatus === 'sending' || inviteStatus === 'success'}
                   className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {inviteLoading ? 'Sending...' : 'Send Invitation'}
+                  {inviteStatus === 'sending' ? (
+                    <span className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Sending...
+                    </span>
+                  ) : inviteStatus === 'success' ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Sent!
+                    </span>
+                  ) : inviteStatus === 'error' ? (
+                    'Try Again'
+                  ) : (
+                    'Send Invitation'
+                  )}
                 </button>
               </div>
             </div>

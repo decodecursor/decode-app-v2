@@ -90,6 +90,12 @@ export async function POST(request: NextRequest) {
     const signupUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth?invite=${encodedData}`
 
     // Send invitation email
+    console.log(`🔗 [INVITE API] Preparing to send invitation email...`)
+    console.log(`🔗 [INVITE API] Email: ${email}`)
+    console.log(`🔗 [INVITE API] Company: ${companyName}`)
+    console.log(`🔗 [INVITE API] Role: ${role}`)
+    console.log(`🔗 [INVITE API] Signup URL: ${signupUrl}`)
+    
     const emailResult = await emailService.sendUserInvitation({
       recipientEmail: email,
       recipientName: email.split('@')[0],
@@ -100,14 +106,17 @@ export async function POST(request: NextRequest) {
       inviteDate: new Date().toISOString()
     })
 
+    console.log(`🔗 [INVITE API] Email service result:`, emailResult)
+
     if (!emailResult.success) {
-      console.error('Failed to send invitation email:', emailResult.error)
+      console.error(`🔗 [INVITE API] Failed to send invitation email:`, emailResult.error)
       return NextResponse.json(
         { error: 'Failed to send invitation email. Please try again.' },
         { status: 500 }
       )
     }
 
+    console.log(`🔗 [INVITE API] SUCCESS: Invitation sent to ${email}`)
     return NextResponse.json({
       success: true,
       message: `Invitation sent to ${email}`,

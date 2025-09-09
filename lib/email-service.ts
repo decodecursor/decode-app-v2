@@ -108,6 +108,11 @@ class EmailService {
     // Log configuration for debugging (without API key)
     console.log(`📧 Email service initialized with provider: ${this.config.provider}`)
     console.log(`📧 From email: ${this.config.fromEmail}`)
+    console.log(`📧 API key present: ${this.config.apiKey ? 'YES (length: ' + this.config.apiKey.length + ')' : 'NO'}`)
+    console.log(`📧 Environment variables loaded:`)
+    console.log(`   - EMAIL_PROVIDER: ${process.env.EMAIL_PROVIDER}`)
+    console.log(`   - EMAIL_FROM: ${process.env.EMAIL_FROM}`)
+    console.log(`   - RESEND_API_KEY present: ${process.env.RESEND_API_KEY ? 'YES' : 'NO'}`)
   }
 
   /**
@@ -345,9 +350,25 @@ class EmailService {
     text: string
   }): Promise<EmailResult> {
     try {
+      console.log(`📧 [RESEND] Starting email send process...`)
+      console.log(`📧 [RESEND] To: ${params.to}`)
+      console.log(`📧 [RESEND] Subject: ${params.subject}`)
+      
       if (!this.config.apiKey) {
+        console.error(`📧 [RESEND] ERROR: API key not configured`)
         throw new Error('Resend API key not configured')
       }
+
+      const emailPayload = {
+        from: `${this.config.fromName} <${this.config.fromEmail}>`,
+        to: [params.to],
+        subject: params.subject,
+        html: params.html,
+        text: params.text
+      }
+      
+      console.log(`📧 [RESEND] From: ${emailPayload.from}`)
+      console.log(`📧 [RESEND] Making API call to Resend...`)
 
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -355,27 +376,27 @@ class EmailService {
           'Authorization': `Bearer ${this.config.apiKey}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          from: `${this.config.fromName} <${this.config.fromEmail}>`,
-          to: [params.to],
-          subject: params.subject,
-          html: params.html,
-          text: params.text
-        })
+        body: JSON.stringify(emailPayload)
       })
 
+      console.log(`📧 [RESEND] Response status: ${response.status} ${response.statusText}`)
+      
       const result = await response.json()
+      console.log(`📧 [RESEND] Response body:`, result)
 
       if (!response.ok) {
+        console.error(`📧 [RESEND] API Error:`, result)
         throw new Error(result.message || 'Failed to send email')
       }
 
+      console.log(`📧 [RESEND] SUCCESS: Email sent with ID ${result.id}`)
       return {
         success: true,
         messageId: result.id,
         provider: 'resend'
       }
     } catch (error) {
+      console.error(`📧 [RESEND] EXCEPTION:`, error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
