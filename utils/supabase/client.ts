@@ -27,6 +27,20 @@ export function createClient() {
         storageKey: 'sb-auth-token',
         // Ensure proper storage configuration for development
         storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      },
+      cookies: {
+        // Firefox-specific cookie settings
+        domain: undefined, // Let browser handle domain
+        path: '/',
+        sameSite: 'lax', // Firefox-friendly setting
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 60 * 60 * 24 * 7, // 1 week
+      },
+      global: {
+        headers: {
+          // Add cache control for Firefox
+          'Cache-Control': 'no-cache',
+        }
       }
     }
   )

@@ -14,9 +14,16 @@ export async function createClient() {
         },
         setAll(cookiesToSet) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
+            cookiesToSet.forEach(({ name, value, options }) => {
+              // Ensure Firefox-compatible cookie settings
+              const firefoxOptions = {
+                ...options,
+                sameSite: 'lax' as const, // Firefox-friendly
+                secure: process.env.NODE_ENV === 'production',
+                path: '/',
+              }
+              cookieStore.set(name, value, firefoxOptions)
+            })
           } catch {
             // The `setAll` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing
