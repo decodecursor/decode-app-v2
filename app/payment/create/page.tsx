@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
@@ -32,6 +32,8 @@ export default function CreatePayment() {
 
   const ensureUserHasWallet = async (user: User) => {
     try {
+      const supabase = createClient()
+      
       // Check if user already has a wallet
       const { data: userData, error: userError } = await supabase
         .from('users')

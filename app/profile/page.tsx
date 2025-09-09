@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 import PasswordInput from '@/components/PasswordInput'
 // Removed ReactCrop - using custom Instagram-style interface
 
@@ -60,6 +60,7 @@ export default function ProfilePage() {
     if (typeof window === 'undefined') return
     
     try {
+      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         router.push('/auth')
@@ -100,6 +101,7 @@ export default function ProfilePage() {
 
     setSaving(true)
     try {
+      const supabase = createClient()
       const { error } = await supabase
         .from('users')
         .update({ professional_center_name: professionalCenterName.trim() })
@@ -180,6 +182,8 @@ export default function ProfilePage() {
       const fileName = `${profile.id}-${Date.now()}.${fileExt}`
       const filePath = `profile-photos/${fileName}`
 
+      const supabase = createClient()
+      
       // Upload to Supabase storage
       const { error: uploadError } = await supabase.storage
         .from('user-uploads')
@@ -326,6 +330,7 @@ export default function ProfilePage() {
 
     setPasswordChanging(true)
     try {
+      const supabase = createClient()
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       })

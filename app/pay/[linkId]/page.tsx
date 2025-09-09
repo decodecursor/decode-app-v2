@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 import { getBusinessDisplayName } from '@/lib/user-display'
 import PaymentPageClient from '@/components/payment/PaymentPageClient'
 
