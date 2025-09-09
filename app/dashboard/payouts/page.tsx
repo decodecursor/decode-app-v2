@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import { PayoutHistory } from '@/components/stripe/PayoutHistory'
+import { PayoutMethodsCard } from '@/components/payouts/PayoutMethodsCard'
 import type { User } from '@supabase/supabase-js'
 
 interface PayoutSummary {
@@ -312,7 +313,7 @@ export default function PayoutsPage() {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex flex-col lg:flex-row gap-4">
                 {/* My Next Payout Card */}
                 <div className="flex-1 cosmic-card">
                   <div className="mb-4 flex justify-between items-start">
@@ -353,7 +354,7 @@ export default function PayoutsPage() {
                   </div>
                 </div>
 
-                {/* Earnings Overview Card */}
+                {/* My Total Payouts Card */}
                 <div className="flex-1 cosmic-card">
                   <div className="mb-4">
                     <h3 className="text-lg font-semibold text-white">My Total Payouts</h3>
@@ -377,6 +378,9 @@ export default function PayoutsPage() {
                     )}
                   </div>
                 </div>
+
+                {/* My Payout Methods Card */}
+                {user && <PayoutMethodsCard userId={user.id} />}
               </div>
             )}
 

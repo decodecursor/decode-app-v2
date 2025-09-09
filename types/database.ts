@@ -451,6 +451,50 @@ export interface Database {
           }
         ]
       }
+      user_paypal_accounts: {
+        Row: {
+          id: string
+          user_id: string
+          email: string
+          paypal_account_id: string | null
+          is_verified: boolean
+          is_primary: boolean
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          email: string
+          paypal_account_id?: string | null
+          is_verified?: boolean
+          is_primary?: boolean
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          email?: string
+          paypal_account_id?: string | null
+          is_verified?: boolean
+          is_primary?: boolean
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_paypal_accounts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       transfers: {
         Row: {
           id: string
@@ -546,6 +590,10 @@ export type PayoutUpdate = Database['public']['Tables']['payouts']['Update']
 export type TransferRow = Database['public']['Tables']['transfers']['Row']
 export type TransferInsert = Database['public']['Tables']['transfers']['Insert']
 export type TransferUpdate = Database['public']['Tables']['transfers']['Update']
+
+export type UserPayPalAccountRow = Database['public']['Tables']['user_paypal_accounts']['Row']
+export type UserPayPalAccountInsert = Database['public']['Tables']['user_paypal_accounts']['Insert']
+export type UserPayPalAccountUpdate = Database['public']['Tables']['user_paypal_accounts']['Update']
 
 // Extended types for queries with relations
 export type PaymentLinkWithCreator = PaymentLinkRow & {
