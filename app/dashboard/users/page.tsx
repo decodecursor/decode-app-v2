@@ -359,7 +359,7 @@ export default function UsersManagement() {
 
       // Success - show in-modal confirmation
       setInviteStatus('success')
-      setInviteMessage(`Invitation sent successfully to ${inviteEmail}!`)
+      setInviteMessage('Invitation sent')
       
       // Auto-close modal after 5 seconds
       setTimeout(() => {
@@ -960,10 +960,7 @@ export default function UsersManagement() {
                     <svg className="w-6 h-6 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    <div>
-                      <p className="text-green-400 font-medium">{inviteMessage}</p>
-                      <p className="text-green-300 text-sm mt-1">This modal will close automatically in 5 seconds</p>
-                    </div>
+                    <p className="text-green-400 font-medium">{inviteMessage}</p>
                   </div>
                 </div>
               )}

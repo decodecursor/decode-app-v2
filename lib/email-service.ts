@@ -99,8 +99,8 @@ class EmailService {
     }
     
     // Clean up fromEmail format
-    const fromEmailRaw = process.env.EMAIL_FROM || 'DECODE Beauty <noreply@welovedecode.com>'
-    const fromName = process.env.EMAIL_FROM_NAME || 'DECODE Beauty'
+    const fromEmailRaw = process.env.EMAIL_FROM || 'DECODE <noreply@welovedecode.com>'
+    const fromName = process.env.EMAIL_FROM_NAME || 'DECODE'
     
     this.config = {
       provider,
@@ -1142,28 +1142,9 @@ Manage your payment settings in your dashboard.
                 <div class="invite-icon">✉️</div>
                 <h3>Hello ${data.recipientName}!</h3>
                 <div class="company-name">${data.companyName}</div>
-                <p>You've been invited to join <strong>${data.companyName}</strong> on the DECODE Beauty Platform.</p>
+                <p>You've been invited to join <strong>${data.companyName}</strong> on DECODE.</p>
             </div>
             
-            <div class="details">
-                <h4>Invitation Details</h4>
-                <div class="detail-row">
-                    <span><strong>Company:</strong></span>
-                    <span>${data.companyName}</span>
-                </div>
-                <div class="detail-row">
-                    <span><strong>Role:</strong></span>
-                    <span>${data.role}</span>
-                </div>
-                <div class="detail-row">
-                    <span><strong>Invited by:</strong></span>
-                    <span>${data.inviterName}</span>
-                </div>
-                <div class="detail-row">
-                    <span><strong>Date:</strong></span>
-                    <span>${new Date(data.inviteDate).toLocaleDateString()}</span>
-                </div>
-            </div>
             
             <div class="expiry-notice">
                 ⏰ <strong>Important:</strong> This invitation will expire in 48 hours. Please accept it soon to join your team.
@@ -1179,7 +1160,7 @@ Manage your payment settings in your dashboard.
             </div>
         </div>
         <div class="footer">
-            <p>This invitation was sent by DECODE Beauty Platform</p>
+            <p>This invitation was sent by DECODE</p>
             <p>If you didn't expect this invitation, you can safely ignore this email.</p>
         </div>
     </div>
@@ -1191,13 +1172,7 @@ DECODE - You're Invited to Join ${data.companyName}!
 
 Hello ${data.recipientName}!
 
-You've been invited to join ${data.companyName} on the DECODE Beauty Platform.
-
-INVITATION DETAILS
-Company: ${data.companyName}
-Role: ${data.role}
-Invited by: ${data.inviterName}
-Date: ${new Date(data.inviteDate).toLocaleDateString()}
+You've been invited to join ${data.companyName} on DECODE.
 
 IMPORTANT: This invitation will expire in 48 hours.
 
@@ -1207,7 +1182,7 @@ ${data.signupUrl}
 If you didn't expect this invitation, you can safely ignore this email.
 
 ---
-DECODE Beauty Platform
+DECODE
 `
 
     return { html, text }

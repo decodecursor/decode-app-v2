@@ -88,7 +88,8 @@ export async function POST(request: NextRequest) {
 
     // Encode the invite data for the signup URL
     const encodedData = Buffer.from(JSON.stringify(inviteData)).toString('base64')
-    const signupUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth?invite=${encodedData}`
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://app.welovedecode.com'
+    const signupUrl = `${baseUrl}/auth?invite=${encodedData}`
 
     // Send invitation email
     console.log(`🔗 [INVITE API] Preparing to send invitation email...`)
