@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/server'
 
 export async function GET(request: NextRequest) {
   try {
     // Check database connectivity
+    const supabase = await createClient()
     const { data, error } = await supabase
       .from('users')
       .select('count')

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripeService } from '@/lib/stripe';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { stripeTransferService } from '@/lib/stripe-transfer-service';
 import type Stripe from 'stripe';

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/server';
 import { stripeService } from '@/lib/stripe';
 import type { PaymentLinkWithCreator } from '@/types/database';
 

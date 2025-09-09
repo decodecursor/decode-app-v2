@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/server'
 
 export async function POST(request: NextRequest) {
   console.log('🔍 DEBUG: Starting create-crossmint-order API call')
