@@ -24,9 +24,9 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, {
               ...options,
-              // Ensure cookies are properly configured for development
+              // Ensure cookies are properly configured for cross-browser compatibility
               secure: process.env.NODE_ENV === 'production',
-              sameSite: 'lax',
+              sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
               httpOnly: false, // Allow client-side access for session management
             })
           )
