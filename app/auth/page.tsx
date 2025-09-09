@@ -190,7 +190,10 @@ function AuthPageContent() {
           console.log('📝 Attempting signup for:', email)
           const { data, error } = await supabase.auth.signUp({
             email,
-            password
+            password,
+            options: {
+              emailRedirectTo: 'https://app.welovedecode.com/auth'
+            }
           })
           
           if (error) {
