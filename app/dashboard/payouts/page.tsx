@@ -34,15 +34,47 @@ export default function PayoutsPage() {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const { data: { user }, error } = await supabase.auth.getUser()
+        // Try direct first, then proxy
+        let userData = null
+        let userError = null
         
-        if (!user) {
+        try {
+          const { data: { user }, error } = await supabase.auth.getUser()
+          if (user) {
+            userData = user
+          } else {
+            userError = error
+          }
+        } catch (directError) {
+          console.log('Direct user fetch failed, trying proxy...')
+          userError = directError
+        }
+        
+        // If direct failed, use proxy
+        if (!userData) {
+          try {
+            const proxyResponse = await fetch('/api/auth/proxy-user')
+            const proxyData = await proxyResponse.json()
+            
+            if (proxyResponse.ok && proxyData.user) {
+              userData = proxyData.user
+            } else {
+              throw new Error(proxyData.error || 'Failed to get user')
+            }
+          } catch (proxyError) {
+            console.error('Both direct and proxy user fetch failed')
+            router.push('/auth')
+            return
+          }
+        }
+        
+        if (!userData) {
           router.push('/auth')
           return
         }
         
-        setUser(user)
-        await fetchPayoutSummary(user.id)
+        setUser(userData)
+        await fetchPayoutSummary(userData.id)
       } catch (error: any) {
         console.error('Authentication error:', error)
         setError('Authentication failed. Please try logging in again.')
@@ -57,7 +89,21 @@ export default function PayoutsPage() {
       setLoading(true)
       setError('')
 
-      // Get user's bank connection status from both systems
+      // Try using proxy for payout summary
+      try {
+        const proxyResponse = await fetch('/api/payouts/proxy-summary')
+        const proxyData = await proxyResponse.json()
+        
+        if (proxyResponse.ok && proxyData.success) {
+          setPayoutSummary(proxyData.payoutSummary)
+          setLoading(false)
+          return
+        }
+      } catch (proxyError) {
+        console.log('Proxy payout fetch failed, trying direct...')
+      }
+
+      // Fallback to direct if proxy fails
       const { data: userData } = await supabase
         .from('users')
         .select('stripe_connect_account_id, stripe_connect_status')
