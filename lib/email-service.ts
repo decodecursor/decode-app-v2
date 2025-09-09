@@ -5,7 +5,7 @@
  * receipts, failure notifications, and other system emails.
  */
 
-import { supabase } from './supabase'
+// Database logging temporarily disabled - no supabase import needed for now
 
 // Email service configuration
 interface EmailConfig {
@@ -98,21 +98,52 @@ class EmailService {
       apiKey = process.env.SENDGRID_API_KEY || ''
     }
     
+    // Clean up fromEmail format
+    const fromEmailRaw = process.env.EMAIL_FROM || 'DECODE Beauty <noreply@welovedecode.com>'
+    const fromName = process.env.EMAIL_FROM_NAME || 'DECODE Beauty'
+    
     this.config = {
       provider,
       apiKey,
-      fromEmail: process.env.EMAIL_FROM || 'DECODE Beauty <noreply@decode.beauty>',
-      fromName: process.env.EMAIL_FROM_NAME || 'DECODE Beauty'
+      fromEmail: fromEmailRaw,
+      fromName
     }
     
-    // Log configuration for debugging (without API key)
-    console.log(`📧 Email service initialized with provider: ${this.config.provider}`)
-    console.log(`📧 From email: ${this.config.fromEmail}`)
-    console.log(`📧 API key present: ${this.config.apiKey ? 'YES (length: ' + this.config.apiKey.length + ')' : 'NO'}`)
-    console.log(`📧 Environment variables loaded:`)
+    // Enhanced logging for debugging
+    console.log(`📧 [EMAIL SERVICE INIT] Email service initialized with provider: ${this.config.provider}`)
+    console.log(`📧 [EMAIL SERVICE INIT] From email: ${this.config.fromEmail}`)
+    console.log(`📧 [EMAIL SERVICE INIT] From name: ${this.config.fromName}`)
+    console.log(`📧 [EMAIL SERVICE INIT] API key present: ${this.config.apiKey ? 'YES (length: ' + this.config.apiKey.length + ')' : 'NO'}`)
+    console.log(`📧 [EMAIL SERVICE INIT] Environment variables:`)
     console.log(`   - EMAIL_PROVIDER: ${process.env.EMAIL_PROVIDER}`)
     console.log(`   - EMAIL_FROM: ${process.env.EMAIL_FROM}`)
+    console.log(`   - EMAIL_FROM_NAME: ${process.env.EMAIL_FROM_NAME}`)
     console.log(`   - RESEND_API_KEY present: ${process.env.RESEND_API_KEY ? 'YES' : 'NO'}`)
+    console.log(`   - NEXT_PUBLIC_SITE_URL: ${process.env.NEXT_PUBLIC_SITE_URL}`)
+    
+    // Validate API key format for Resend
+    if (this.config.provider === 'resend' && this.config.apiKey) {
+      if (!this.config.apiKey.startsWith('re_')) {
+        console.error(`📧 [EMAIL SERVICE INIT] ❌ CRITICAL: Resend API key format is invalid!`)
+        console.error(`📧 [EMAIL SERVICE INIT] Expected to start with 're_' but got: ${this.config.apiKey.substring(0, 10)}...`)
+        console.error(`📧 [EMAIL SERVICE INIT] This will cause all email sending to fail.`)
+      } else {
+        console.log(`📧 [EMAIL SERVICE INIT] ✅ Resend API key format is valid`)
+      }
+    }
+    
+    // Validate fromEmail format
+    if (this.config.fromEmail) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      const extractedEmail = this.config.fromEmail.match(/<(.+?)>/) ? 
+        this.config.fromEmail.match(/<(.+?)>/)![1] : this.config.fromEmail
+      
+      if (!emailRegex.test(extractedEmail)) {
+        console.error(`📧 [EMAIL SERVICE INIT] ❌ CRITICAL: fromEmail format is invalid: ${this.config.fromEmail}`)
+      } else {
+        console.log(`📧 [EMAIL SERVICE INIT] ✅ fromEmail format is valid: ${extractedEmail}`)
+      }
+    }
   }
 
   /**
@@ -350,17 +381,47 @@ class EmailService {
     text: string
   }): Promise<EmailResult> {
     try {
-      console.log(`📧 [RESEND] Starting email send process...`)
+      console.log(`📧 [RESEND] ====== Starting email send process ======`)
       console.log(`📧 [RESEND] To: ${params.to}`)
       console.log(`📧 [RESEND] Subject: ${params.subject}`)
+      console.log(`📧 [RESEND] HTML length: ${params.html.length} chars`)
+      console.log(`📧 [RESEND] Text length: ${params.text.length} chars`)
       
+      // Validate API key
       if (!this.config.apiKey) {
-        console.error(`📧 [RESEND] ERROR: API key not configured`)
+        console.error(`📧 [RESEND] ❌ CRITICAL: API key not configured`)
         throw new Error('Resend API key not configured')
       }
+      
+      if (!this.config.apiKey.startsWith('re_')) {
+        console.error(`📧 [RESEND] ❌ CRITICAL: API key format invalid (should start with 're_')`)
+        console.error(`📧 [RESEND] Current API key starts with: ${this.config.apiKey.substring(0, 10)}...`)
+        throw new Error('Resend API key format is invalid')
+      }
 
+      // Format the from email properly
+      let fromEmailFormatted: string
+      if (this.config.fromEmail.includes('<')) {
+        fromEmailFormatted = this.config.fromEmail
+      } else {
+        // Extract email if it's just the email address
+        const emailMatch = this.config.fromEmail.match(/([^\s@]+@[^\s@]+\.[^\s@]+)/)
+        if (emailMatch) {
+          fromEmailFormatted = `${this.config.fromName} <${emailMatch[1]}>`
+        } else {
+          fromEmailFormatted = `${this.config.fromName} <${this.config.fromEmail}>`
+        }
+      }
+      
+      // Validate recipient email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(params.to)) {
+        console.error(`📧 [RESEND] ❌ CRITICAL: Recipient email format is invalid: ${params.to}`)
+        throw new Error(`Invalid recipient email format: ${params.to}`)
+      }
+      
       const emailPayload = {
-        from: `${this.config.fromName} <${this.config.fromEmail}>`,
+        from: fromEmailFormatted,
         to: [params.to],
         subject: params.subject,
         html: params.html,
@@ -368,7 +429,9 @@ class EmailService {
       }
       
       console.log(`📧 [RESEND] From: ${emailPayload.from}`)
-      console.log(`📧 [RESEND] Making API call to Resend...`)
+      console.log(`📧 [RESEND] Payload prepared, making API call to Resend...`)
+      console.log(`📧 [RESEND] API URL: https://api.resend.com/emails`)
+      console.log(`📧 [RESEND] Auth header: Bearer ${this.config.apiKey.substring(0, 10)}...`)
 
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -379,24 +442,49 @@ class EmailService {
         body: JSON.stringify(emailPayload)
       })
 
-      console.log(`📧 [RESEND] Response status: ${response.status} ${response.statusText}`)
+      console.log(`📧 [RESEND] Response received - Status: ${response.status} ${response.statusText}`)
+      console.log(`📧 [RESEND] Response headers:`, Object.fromEntries(response.headers.entries()))
       
-      const result = await response.json()
-      console.log(`📧 [RESEND] Response body:`, result)
-
-      if (!response.ok) {
-        console.error(`📧 [RESEND] API Error:`, result)
-        throw new Error(result.message || 'Failed to send email')
+      let result: any
+      try {
+        result = await response.json()
+        console.log(`📧 [RESEND] Response body:`, JSON.stringify(result, null, 2))
+      } catch (parseError) {
+        console.error(`📧 [RESEND] ❌ Failed to parse response JSON:`, parseError)
+        const textResult = await response.text()
+        console.log(`📧 [RESEND] Raw response text:`, textResult)
+        throw new Error(`Invalid JSON response from Resend API: ${textResult}`)
       }
 
-      console.log(`📧 [RESEND] SUCCESS: Email sent with ID ${result.id}`)
+      if (!response.ok) {
+        console.error(`📧 [RESEND] ❌ API Error - Status ${response.status}:`, result)
+        
+        // Provide specific error messages based on common Resend errors
+        let errorMessage = result.message || `Resend API error (${response.status})`
+        
+        if (response.status === 401) {
+          errorMessage = 'Invalid or expired Resend API key'
+        } else if (response.status === 403) {
+          errorMessage = 'Domain not verified or sending not allowed'
+        } else if (response.status === 422) {
+          errorMessage = 'Invalid email data or format'
+        } else if (response.status === 429) {
+          errorMessage = 'Rate limit exceeded - try again later'
+        }
+        
+        throw new Error(errorMessage)
+      }
+
+      console.log(`📧 [RESEND] ✅ SUCCESS: Email sent with ID ${result.id}`)
+      console.log(`📧 [RESEND] ====== Email send completed ======`)
       return {
         success: true,
         messageId: result.id,
         provider: 'resend'
       }
     } catch (error) {
-      console.error(`📧 [RESEND] EXCEPTION:`, error)
+      console.error(`📧 [RESEND] ❌ EXCEPTION occurred:`, error)
+      console.error(`📧 [RESEND] Error stack:`, error instanceof Error ? error.stack : 'No stack trace')
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
