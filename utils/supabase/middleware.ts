@@ -35,13 +35,19 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // This will refresh session if expired - required for Server Components
-  try {
-    await supabase.auth.getUser()
-  } catch (error) {
-    // In development, don't fail hard on auth errors
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('Auth refresh failed in development mode:', error)
+  // Skip expensive auth refresh for auth routes and API routes to improve performance
+  const isAuthRoute = request.nextUrl.pathname.startsWith('/auth')
+  const isApiRoute = request.nextUrl.pathname.startsWith('/api/')
+  
+  if (!isAuthRoute && !isApiRoute) {
+    // This will refresh session if expired - required for Server Components
+    try {
+      await supabase.auth.getUser()
+    } catch (error) {
+      // In development, don't fail hard on auth errors
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Auth refresh failed in development mode:', error)
+      }
     }
   }
 

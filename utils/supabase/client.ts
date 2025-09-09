@@ -20,8 +20,8 @@ export function createClient() {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true,
-        flowType: 'pkce',
+        detectSessionInUrl: false, // Disable to prevent URL parsing delays
+        flowType: 'implicit', // Use simpler flow for better performance
         // Use a consistent storage key across all instances
         storageKey: 'sb-auth-token',
         // Ensure proper storage configuration for development

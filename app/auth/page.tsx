@@ -200,10 +200,7 @@ function AuthPageContent() {
           const { data, error } = await Promise.race([
             supabase.auth.signUp({
               email,
-              password,
-              options: {
-                emailRedirectTo: 'https://app.welovedecode.com/auth'
-              }
+              password
             }),
             new Promise<never>((_, reject) => 
               setTimeout(() => reject(new Error('Signup timeout after 10 seconds')), 10000)
@@ -222,10 +219,27 @@ function AuthPageContent() {
             console.log('✅ [AUTH] User signed up successfully:', data.user.id)
             console.log('✅ [AUTH] User confirmed status:', data.user.email_confirmed_at ? 'CONFIRMED' : 'NOT CONFIRMED')
             console.log('✅ [AUTH] Session created:', !!data.session)
+            console.log('✅ [AUTH] Is invited user:', !!inviteData)
             
-            setSignedUpUser(data.user)  // Store the user data
-            setShowRoleModal(true)
-            return data
+            // For invited users, skip email verification and go straight to role modal
+            if (inviteData) {
+              console.log('✅ [AUTH] Invited user - skipping email verification')
+              setSignedUpUser(data.user)
+              setShowRoleModal(true)
+              return data
+            }
+            
+            // For regular users, check if email is confirmed
+            if (data.user.email_confirmed_at || data.session) {
+              console.log('✅ [AUTH] Email confirmed or session active - showing role modal')
+              setSignedUpUser(data.user)
+              setShowRoleModal(true)
+              return data
+            } else {
+              console.log('📧 [AUTH] Email confirmation required for regular user')
+              router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+              return data
+            }
           } else {
             // No user object means email confirmation required
             console.log('📧 [AUTH] No user object - email confirmation required')
