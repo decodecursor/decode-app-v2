@@ -1152,7 +1152,7 @@ Manage your payment settings in your dashboard.
             
             <div style="text-align: center;">
                 <p>Click the button below to create your account and join ${data.companyName}.</p>
-                <a href="${data.signupUrl}" class="button">Accept Invitation & Sign Up</a>
+                <a href="${data.signupUrl}" class="button">Accept Invitation & Register</a>
                 <p style="font-size: 14px; color: #666;">
                     If the button doesn't work, copy and paste this link into your browser:<br>
                     <a href="${data.signupUrl}" style="color: #059669; word-break: break-all;">${data.signupUrl}</a>

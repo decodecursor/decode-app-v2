@@ -156,10 +156,17 @@ function AuthPageContent() {
       await retryWithDelay(async () => {        
         if (isLogin) {
           console.log('🔐 Attempting login for:', email)
+          console.log('🔧 Supabase client URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+          console.log('🔧 Supabase key present:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'YES' : 'NO')
+          console.log('🔧 Current domain:', window.location.origin)
+          
           const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password
           })
+          
+          console.log('🔍 Login response data:', data)
+          console.log('🔍 Login response error:', error)
           
           if (error) {
             console.error('❌ Login error:', error)
@@ -187,28 +194,41 @@ function AuthPageContent() {
             throw new Error('Login failed - no user or session data returned')
           }
         } else {
-          console.log('📝 Attempting signup for:', email)
-          const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              emailRedirectTo: 'https://app.welovedecode.com/auth'
-            }
-          })
+          console.log('📝 [AUTH] Attempting signup for:', email)
+          console.log('📝 [AUTH] Has invite data:', !!inviteData)
+          
+          const { data, error } = await Promise.race([
+            supabase.auth.signUp({
+              email,
+              password,
+              options: {
+                emailRedirectTo: 'https://app.welovedecode.com/auth'
+              }
+            }),
+            new Promise<never>((_, reject) => 
+              setTimeout(() => reject(new Error('Signup timeout after 10 seconds')), 10000)
+            )
+          ])
+          
+          console.log('📝 [AUTH] Signup response data:', data)
+          console.log('📝 [AUTH] Signup response error:', error)
           
           if (error) {
-            console.error('❌ Signup error:', error)
+            console.error('❌ [AUTH] Signup error:', error)
             throw error
           }
           
           if (data.user) {
-            console.log('✅ User signed up successfully:', data.user.id)
+            console.log('✅ [AUTH] User signed up successfully:', data.user.id)
+            console.log('✅ [AUTH] User confirmed status:', data.user.email_confirmed_at ? 'CONFIRMED' : 'NOT CONFIRMED')
+            console.log('✅ [AUTH] Session created:', !!data.session)
+            
             setSignedUpUser(data.user)  // Store the user data
             setShowRoleModal(true)
             return data
           } else {
             // No user object means email confirmation required
-            console.log('📧 Email confirmation required')
+            console.log('📧 [AUTH] No user object - email confirmation required')
             router.push(`/verify-email?email=${encodeURIComponent(email)}`)
             return data
           }
@@ -233,14 +253,20 @@ function AuthPageContent() {
       } else if (error.message?.includes('Session was not properly established')) {
         console.log('🎫 Login failed: Session establishment issue')
         setMessage('Login session failed to establish. Please try again.')
+      } else if (error.message?.includes('timeout') || error.message?.includes('Timeout')) {
+        console.log('⏰ Authentication failed: Timeout error')
+        setMessage('Request timed out. Please check your connection and try again.')
       } else if (error.message?.includes('network') || error.name === 'NetworkError') {
-        console.log('🌐 Login failed: Network error')
+        console.log('🌐 Authentication failed: Network error')
         setMessage('Connection error. Please check your internet and try again.')
       } else if (error.message?.includes('fetch')) {
-        console.log('🌐 Login failed: Fetch error')
+        console.log('🌐 Authentication failed: Fetch error')
         setMessage('Network error. Please try again in a moment.')
+      } else if (error.message?.includes('Database operation timeout')) {
+        console.log('🗄️ Authentication failed: Database timeout')
+        setMessage('Registration is taking longer than expected. Please try again.')
       } else {
-        console.log('❓ Login failed: Unknown error -', error.message)
+        console.log('❓ Authentication failed: Unknown error -', error.message)
         setMessage(error.message || 'An unexpected error occurred. Please try again.')
       }
     } finally {

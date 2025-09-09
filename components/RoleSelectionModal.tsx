@@ -2,7 +2,7 @@
 
 // Force cache clear for TypeScript fix
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 
 interface RoleSelectionModalProps {
   isOpen: boolean
@@ -23,6 +23,8 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
   const [companySuggestions, setCompanySuggestions] = useState<string[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [hasSelectedSuggestion, setHasSelectedSuggestion] = useState(false)
+  
+  const supabase = createClient()
 
   // Pre-populate form with invite data
   useEffect(() => {
@@ -116,32 +118,65 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
     setMessage('')
     
     try {
+      console.log('🔄 [ROLE MODAL] Starting profile creation...')
+      console.log('🔄 [ROLE MODAL] User ID provided:', userId)
+      console.log('🔄 [ROLE MODAL] Email:', userEmail)
+      console.log('🔄 [ROLE MODAL] Role:', role)
+      console.log('🔄 [ROLE MODAL] Company:', companyName.trim())
+      console.log('🔄 [ROLE MODAL] Has invite data:', !!inviteData)
+      
       // Use the userId passed from signup, or try to get from session as fallback
       let userIdToUse = userId
       
       if (!userIdToUse) {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) {
+        console.log('🔄 [ROLE MODAL] No userId provided, getting from session...')
+        const { data: { user }, error: userError } = await Promise.race([
+          supabase.auth.getUser(),
+          new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout getting user')), 5000)
+          )
+        ])
+        
+        if (userError) {
+          console.error('❌ [ROLE MODAL] Error getting user:', userError)
           throw new Error('Unable to get user information. Please try logging in again.')
         }
+        
+        if (!user) {
+          console.error('❌ [ROLE MODAL] No user found in session')
+          throw new Error('Unable to get user information. Please try logging in again.')
+        }
+        
         userIdToUse = user.id
+        console.log('✅ [ROLE MODAL] Got user ID from session:', userIdToUse)
       }
 
-      const { error } = await supabase
-        .from('users')
-        .insert({
-          id: userIdToUse,
-          email: userEmail,
-          user_name: userName.trim(),
-          role: role,
-          company_name: companyName.trim(),
-          branch_name: null,  // No branch assignment during registration - admin will assign later
-          approval_status: (role === 'Admin' || inviteData) ? 'approved' : 'pending',
-          terms_accepted_at: termsAcceptedAt
-        })
+      const profileData = {
+        id: userIdToUse,
+        email: userEmail,
+        user_name: userName.trim(),
+        role: role,
+        company_name: companyName.trim(),
+        branch_name: null,  // No branch assignment during registration - admin will assign later
+        approval_status: (role === 'Admin' || inviteData) ? 'approved' : 'pending',
+        terms_accepted_at: termsAcceptedAt
+      }
+      
+      console.log('🔄 [ROLE MODAL] Inserting profile data:', profileData)
 
-      if (error) throw error
+      const { error } = await Promise.race([
+        supabase.from('users').insert(profileData),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Database operation timeout')), 10000)
+        )
+      ])
 
+      if (error) {
+        console.error('❌ [ROLE MODAL] Database error:', error)
+        throw error
+      }
+
+      console.log('✅ [ROLE MODAL] Profile created successfully')
       onComplete()
     } catch (error) {
       console.error('Profile creation error:', error)
