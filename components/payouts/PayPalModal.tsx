@@ -14,6 +14,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
   const [confirmEmail, setConfirmEmail] = useState('')
+  const [isConnected, setIsConnected] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   // Load existing PayPal account data when modal opens
@@ -35,6 +36,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
       if (!error && data) {
         setEmail(data.email || '')
         setConfirmEmail(data.email || '')
+        setIsConnected(true)
       }
     } catch (error) {
       console.error('Error loading existing PayPal account:', error)
@@ -65,29 +67,37 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
     setMessage(null)
 
     try {
-      // Check if PayPal email already exists for this user
-      const { data: existing } = await supabase
+      // Check if user already has a PayPal account
+      const { data: existingAccount } = await supabase
         .from('user_paypal_account')
         .select('id')
         .eq('user_id', userId)
-        .eq('email', email.trim())
+        .eq('is_primary', true)
         .single()
 
-      if (existing) {
-        setMessage({ type: 'error', text: 'This PayPal account is already connected' })
-        return
+      const paypalAccountData = {
+        user_id: userId,
+        email: email.trim(),
+        is_primary: true,
+        is_verified: false,
+        status: 'pending'
       }
 
-      // Insert new PayPal account
-      const { error } = await supabase
-        .from('user_paypal_account')
-        .insert({
-          user_id: userId,
-          email: email.trim(),
-          is_primary: true,
-          is_verified: false,
-          status: 'pending'
-        })
+      let error
+      if (existingAccount) {
+        // Update existing account
+        const { error: updateError } = await supabase
+          .from('user_paypal_account')
+          .update(paypalAccountData)
+          .eq('id', existingAccount.id)
+        error = updateError
+      } else {
+        // Insert new account
+        const { error: insertError } = await supabase
+          .from('user_paypal_account')
+          .insert(paypalAccountData)
+        error = insertError
+      }
 
       if (error) {
         if (error.message.includes('relation "user_paypal_account" does not exist')) {
@@ -100,11 +110,14 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
         throw error
       }
 
-      setMessage({ type: 'success', text: 'PayPal account connected successfully!' })
+      setIsConnected(true)
+      setMessage({ type: 'success', text: 'PayPal account saved successfully!' })
       
-      // Clear form
-      setEmail('')
-      setConfirmEmail('')
+      // Don't clear form when updating existing account
+      if (!isConnected) {
+        setEmail('')
+        setConfirmEmail('')
+      }
       
       // Call success callback and close modal after a brief delay
       setTimeout(() => {
@@ -126,8 +139,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
   }
 
   const handleClose = () => {
-    // Only clear form if no existing account, otherwise keep the loaded data
-    if (!email) {
+    if (!isConnected) {
       setEmail('')
       setConfirmEmail('')
     }
@@ -167,6 +179,18 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
               : 'bg-red-600/20 text-red-100 border border-red-500/30'
           }`}>
             {message.text}
+          </div>
+        )}
+
+        {/* Success indicator */}
+        {isConnected && (
+          <div className="mb-6 flex justify-center">
+            <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-600/20 text-green-400 border border-green-500/30">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              PayPal Account Connected
+            </div>
           </div>
         )}
 
@@ -232,7 +256,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
             disabled={loading || !email || !confirmEmail}
             className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Connecting...' : 'Connect PayPal'}
+            {loading ? 'Saving...' : isConnected ? 'Update PayPal' : 'Connect PayPal'}
           </button>
         </div>
       </div>

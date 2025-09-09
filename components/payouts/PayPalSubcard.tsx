@@ -82,17 +82,19 @@ export function PayPalSubcard({ userId, onClick }: PayPalSubcardProps) {
   return (
     <div 
       onClick={onClick}
-      className="flex-1 bg-white/5 rounded-lg p-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group"
+      className="flex-1 bg-white/5 rounded-lg p-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group relative"
     >
+      {getStatusIcon() && (
+        <div className="absolute -top-2 -right-2 z-10">
+          {getStatusIcon()}
+        </div>
+      )}
       <div className="flex items-center justify-between mb-2">
         <h4 className="text-white font-medium text-sm">PayPal</h4>
-        <div className="flex items-center gap-2">
-          {getStatusIcon()}
-          <div className="w-7 h-7 bg-purple-600/20 rounded-lg flex items-center justify-center">
-            {/* PayPal P logo */}
-            <div className="w-4 h-4 text-purple-400 font-bold text-xs flex items-center justify-center">
-              P
-            </div>
+        <div className="w-7 h-7 bg-purple-600/20 rounded-lg flex items-center justify-center">
+          {/* PayPal P logo */}
+          <div className="w-4 h-4 text-purple-400 font-bold text-xs flex items-center justify-center">
+            P
           </div>
         </div>
       </div>

@@ -448,7 +448,7 @@ export default function PayoutsPage() {
                 <button
                   onClick={handleRequestPayout}
                   disabled={requestLoading}
-                  className="flex-1 cosmic-button-primary"
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {requestLoading ? 'Processing...' : 'Request Payout'}
                 </button>
