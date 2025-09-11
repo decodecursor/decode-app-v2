@@ -91,11 +91,11 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
 
   // Default metadata
   const defaultMetadata: Metadata = {
-    title: 'A special beauty treatment awaits you',
-    description: 'It\'s Pamper Time',
+    title: 'It\'s Pamper Time',
+    description: 'A special beauty treatment awaits you',
     openGraph: {
-      title: 'A special beauty treatment awaits you',
-      description: 'It\'s Pamper Time',
+      title: 'It\'s Pamper Time',
+      description: 'A special beauty treatment awaits you',
       type: 'website',
       url: `https://app.welovedecode.com/pay/${linkId}`,
       images: [
@@ -109,8 +109,8 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'A special beauty treatment awaits you',
-      description: 'It\'s Pamper Time',
+      title: 'It\'s Pamper Time',
+      description: 'A special beauty treatment awaits you',
       images: ['https://app.welovedecode.com/logonew.png'],
     },
   }
@@ -120,8 +120,8 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
     const clientName = paymentData.client_name || 'you'
     const companyName = getBusinessDisplayName(paymentData.creator) || 'our salon'
     
-    const personalizedTitle = `Spoil ${clientName} with a Beauty Service at ${companyName}`
-    const personalizedDescription = 'It\'s Pamper Time'
+    const personalizedTitle = 'It\'s Pamper Time'
+    const personalizedDescription = `Spoil ${clientName} with a Beauty Service at ${companyName}`
 
     return {
       title: personalizedTitle,
