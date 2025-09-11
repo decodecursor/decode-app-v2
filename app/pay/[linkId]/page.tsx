@@ -91,16 +91,16 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
 
   // Default metadata
   const defaultMetadata: Metadata = {
-    title: 'It\'s Pamper Time',
-    description: 'A special beauty treatment awaits you',
+    title: 'A special beauty treatment awaits you',
+    description: 'It\'s Pamper Time',
     openGraph: {
-      title: 'It\'s Pamper Time',
-      description: 'A special beauty treatment awaits you',
+      title: 'A special beauty treatment awaits you',
+      description: 'It\'s Pamper Time',
       type: 'website',
       url: `https://app.welovedecode.com/pay/${linkId}`,
       images: [
         {
-          url: 'https://app.welovedecode.com/logo.png',
+          url: 'https://app.welovedecode.com/logonew.png',
           width: 1200,
           height: 630,
           alt: 'DECODE - Make Girls More Beautiful',
@@ -109,9 +109,9 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'It\'s Pamper Time',
-      description: 'A special beauty treatment awaits you',
-      images: ['https://app.welovedecode.com/logo.png'],
+      title: 'A special beauty treatment awaits you',
+      description: 'It\'s Pamper Time',
+      images: ['https://app.welovedecode.com/logonew.png'],
     },
   }
 
@@ -120,8 +120,8 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
     const clientName = paymentData.client_name || 'you'
     const companyName = getBusinessDisplayName(paymentData.creator) || 'our salon'
     
-    const personalizedTitle = 'It\'s Pamper Time'
-    const personalizedDescription = `Spoil ${clientName} with a Beauty Service at ${companyName}`
+    const personalizedTitle = `Spoil ${clientName} with a Beauty Service at ${companyName}`
+    const personalizedDescription = 'It\'s Pamper Time'
 
     return {
       title: personalizedTitle,
@@ -133,7 +133,7 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
         url: `https://app.welovedecode.com/pay/${linkId}`,
         images: [
           {
-            url: 'https://app.welovedecode.com/logo.png',
+            url: 'https://app.welovedecode.com/logonew.png',
             width: 1200,
             height: 630,
             alt: 'DECODE - Make Girls More Beautiful',
@@ -144,7 +144,7 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
         card: 'summary_large_image',
         title: personalizedTitle,
         description: personalizedDescription,
-        images: ['https://app.welovedecode.com/logo.png'],
+        images: ['https://app.welovedecode.com/logonew.png'],
       },
     }
   }
