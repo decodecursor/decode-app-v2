@@ -41,7 +41,7 @@ async function fetchPaymentDataForMetadata(linkId: string): Promise<PaymentLinkD
     // Fetch creator data
     const { data: creator, error: creatorError } = await supabase
       .from('users')
-      .select('id, user_name, email, professional_center_name')
+      .select('id, user_name, email, professional_center_name, company_name')
       .eq('id', paymentLink.creator_id)
       .single()
 
@@ -71,7 +71,7 @@ async function fetchPaymentDataForMetadata(linkId: string): Promise<PaymentLinkD
         id: creator.id, 
         user_name: creator.user_name, 
         email: creator.email || 'creator@example.com',
-        company_name: creator.professional_center_name
+        company_name: creator.company_name || creator.professional_center_name
       }
     }
 
@@ -98,22 +98,30 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
       description: 'A special beauty treatment awaits you',
       type: 'website',
       url: `https://app.welovedecode.com/pay/${linkId}`,
+      images: [
+        {
+          url: 'https://app.welovedecode.com/logo.png',
+          width: 1200,
+          height: 630,
+          alt: 'DECODE - Make Girls More Beautiful',
+        }
+      ],
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title: 'It\'s Pamper Time',
       description: 'A special beauty treatment awaits you',
+      images: ['https://app.welovedecode.com/logo.png'],
     },
   }
 
   // If we have payment data, create personalized metadata
   if (paymentData) {
     const clientName = paymentData.client_name || 'you'
-    const serviceName = paymentData.title || 'a beauty service'
     const companyName = getBusinessDisplayName(paymentData.creator) || 'our salon'
     
     const personalizedTitle = 'It\'s Pamper Time'
-    const personalizedDescription = `Spoil ${clientName} with a ${serviceName} at ${companyName}:`
+    const personalizedDescription = `Spoil ${clientName} with a Beauty Service at ${companyName}`
 
     return {
       title: personalizedTitle,
@@ -123,11 +131,20 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
         description: personalizedDescription,
         type: 'website',
         url: `https://app.welovedecode.com/pay/${linkId}`,
+        images: [
+          {
+            url: 'https://app.welovedecode.com/logo.png',
+            width: 1200,
+            height: 630,
+            alt: 'DECODE - Make Girls More Beautiful',
+          }
+        ],
       },
       twitter: {
-        card: 'summary',
+        card: 'summary_large_image',
         title: personalizedTitle,
         description: personalizedDescription,
+        images: ['https://app.welovedecode.com/logo.png'],
       },
     }
   }
