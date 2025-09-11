@@ -95,8 +95,8 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
     description: 'A special beauty treatment awaits you',
     openGraph: {
       title: 'It\'s Pamper Time',
-      description: 'A special beauty treatment awaits you',
       type: 'website',
+      description: 'A special beauty treatment awaits you',
       url: `https://app.welovedecode.com/pay/${linkId}`,
       images: [
         {
@@ -128,8 +128,8 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
       description: personalizedDescription,
       openGraph: {
         title: personalizedTitle,
-        description: personalizedDescription,
         type: 'website',
+        description: personalizedDescription,
         url: `https://app.welovedecode.com/pay/${linkId}`,
         images: [
           {
