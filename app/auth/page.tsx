@@ -410,7 +410,9 @@ function AuthPageContent() {
             }
           } catch (proxyError) {
             console.error('❌ [AUTH] Both direct and proxy signup failed')
-            throw signupError || proxyError
+            console.error('❌ [AUTH] Direct error:', signupError?.message)
+            console.error('❌ [AUTH] Proxy error:', proxyError?.message)
+            throw new Error(`Signup failed. Direct: ${signupError?.message || 'unknown'}. Proxy: ${proxyError?.message || 'unknown'}`)
           }
         }
         
@@ -476,7 +478,8 @@ function AuthPageContent() {
           timestamp: new Date().toISOString(),
           retriesLeft: 'Check retry logs above'
         })
-        setMessage('Connection issue. Please try again or check your internet connection.')
+        // Show the actual error message for debugging
+        setMessage(`Connection issue: ${error.message}. Check console for details.`)
       } else if (error.message?.includes('network') || error.name === 'NetworkError') {
         console.log('🌐 Authentication failed: Network error')
         setMessage('Connection error. Retrying automatically...')
