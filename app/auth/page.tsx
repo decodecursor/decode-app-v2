@@ -264,18 +264,11 @@ function AuthPageContent() {
           if (!loginSuccess) {
             console.log('🔄 Using proxy for login due to connection issues')
             try {
-              // Add timeout to prevent hanging requests
-              const controller = new AbortController()
-              const timeoutId = setTimeout(() => controller.abort(), 20000) // 20 second timeout for VPN
-              
               const proxyResponse = await fetch('/api/auth/proxy-login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
-                signal: controller.signal
+                body: JSON.stringify({ email, password })
               })
-              
-              clearTimeout(timeoutId)
               
               const proxyData = await proxyResponse.json()
               
@@ -371,18 +364,13 @@ function AuthPageContent() {
             try {
               console.log('🔄 [PROXY] Making fetch request to /api/auth/proxy-signup')
               
-              // Add timeout to prevent hanging requests
-              const controller = new AbortController()
-              const timeoutId = setTimeout(() => controller.abort(), 20000) // 20 second timeout for VPN
+              console.log('🔄 [PROXY] Making simple fetch request without timeout...')
               
               const proxyResponse = await fetch('/api/auth/proxy-signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
-                signal: controller.signal
+                body: JSON.stringify({ email, password })
               })
-              
-              clearTimeout(timeoutId)
               
               console.log('📝 [PROXY] Response status:', proxyResponse.status)
               console.log('📝 [PROXY] Response ok:', proxyResponse.ok)
@@ -520,7 +508,7 @@ function AuthPageContent() {
           timestamp: new Date().toISOString(),
           retriesLeft: 'Check retry logs above'
         })
-        setMessage('Network connection issue. After 3 retries failed. Check console for debug details.')
+        setMessage('Network connection issue. Check console for debug details.')
       } else if (error.message?.includes('network') || error.name === 'NetworkError') {
         console.log('🌐 Authentication failed: Network error')
         setMessage('Connection error. Retrying automatically...')
