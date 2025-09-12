@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    const matchingUser = authUsers?.users?.find(u => u.email === email)
+    const matchingUser = authUsers?.users?.find((u: any) => u.email === email)
     
     if (matchingUser) {
       console.log('✅ [PROXY-USER-LOOKUP] Found user:', matchingUser.id)
