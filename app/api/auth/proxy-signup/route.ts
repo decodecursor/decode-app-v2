@@ -3,9 +3,15 @@ import { createClient } from '@supabase/supabase-js'
 
 // Direct auth proxy that runs on Vercel servers (avoiding VPN/network issues)
 export async function POST(request: NextRequest) {
+  console.log('🔄 [PROXY-SIGNUP] === PROXY SIGNUP ROUTE CALLED ===')
+  console.log('🔄 [PROXY-SIGNUP] Timestamp:', new Date().toISOString())
+  console.log('🔄 [PROXY-SIGNUP] Node version:', process.version)
+  console.log('🔄 [PROXY-SIGNUP] Environment:', process.env.NODE_ENV)
+  
   try {
     console.log('🔄 [PROXY-SIGNUP] Request received')
     console.log('🔄 [PROXY-SIGNUP] Request method:', request.method)
+    console.log('🔄 [PROXY-SIGNUP] Request URL:', request.url)
     console.log('🔄 [PROXY-SIGNUP] Request headers:', Object.fromEntries(request.headers.entries()))
     
     // Parse request body
@@ -75,20 +81,31 @@ export async function POST(request: NextRequest) {
     
     console.log('📧 Attempting signup for email:', email.substring(0, 3) + '***@' + email.split('@')[1])
     
-    // Check environment variables
+    // Check environment variables with detailed logging
+    console.log('🔍 [PROXY-SIGNUP] Checking environment variables...')
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     
-    console.log('🔍 Environment check:', {
+    console.log('🔍 [PROXY-SIGNUP] Environment check:', {
       hasSupabaseUrl: !!supabaseUrl,
       hasServiceRoleKey: !!serviceRoleKey,
-      supabaseUrlPrefix: supabaseUrl?.substring(0, 20) || 'missing'
+      supabaseUrlPrefix: supabaseUrl?.substring(0, 30) || 'missing',
+      serviceRoleKeyPrefix: serviceRoleKey?.substring(0, 20) || 'missing',
+      allEnvKeys: Object.keys(process.env).filter(key => key.includes('SUPABASE')).sort()
     })
 
-    if (!supabaseUrl || !serviceRoleKey) {
-      console.error('❌ Missing environment variables')
+    if (!supabaseUrl) {
+      console.error('❌ [PROXY-SIGNUP] Missing NEXT_PUBLIC_SUPABASE_URL')
       return NextResponse.json(
-        { error: 'Server configuration error - missing environment variables' },
+        { error: 'Server configuration error - missing Supabase URL' },
+        { status: 500 }
+      )
+    }
+
+    if (!serviceRoleKey) {
+      console.error('❌ [PROXY-SIGNUP] Missing SUPABASE_SERVICE_ROLE_KEY')
+      return NextResponse.json(
+        { error: 'Server configuration error - missing service role key' },
         { status: 500 }
       )
     }
@@ -164,14 +181,29 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (error: any) {
-    console.error('💥 Proxy signup error:', {
+    console.error('💥 [PROXY-SIGNUP] TOP LEVEL ERROR CAUGHT:', {
       message: error.message,
       name: error.name,
-      stack: error.stack?.substring(0, 200) || 'no stack'
+      stack: error.stack?.substring(0, 500) || 'no stack',
+      cause: error.cause || 'no cause',
+      toString: error.toString(),
+      typeof: typeof error
     })
-    return NextResponse.json(
-      { error: 'Server error during signup', details: error.message },
-      { status: 500 }
-    )
+    
+    // Try to return a proper error response even if something is very wrong
+    try {
+      return NextResponse.json(
+        { 
+          error: 'Server error during signup', 
+          details: error.message || 'Unknown error',
+          errorType: error.name || 'UnknownError'
+        },
+        { status: 500 }
+      )
+    } catch (responseError) {
+      console.error('💥 [PROXY-SIGNUP] FAILED TO RETURN ERROR RESPONSE:', responseError)
+      // Last resort - return a basic response
+      return new Response('Internal Server Error', { status: 500 })
+    }
   }
 }
