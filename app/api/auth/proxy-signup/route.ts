@@ -7,6 +7,9 @@ export async function POST(request: NextRequest) {
   console.log('🔄 [PROXY-SIGNUP] Timestamp:', new Date().toISOString())
   console.log('🔄 [PROXY-SIGNUP] Node version:', process.version)
   console.log('🔄 [PROXY-SIGNUP] Environment:', process.env.NODE_ENV)
+  console.log('🔄 [PROXY-SIGNUP] Route URL:', request.url)
+  console.log('🔄 [PROXY-SIGNUP] User agent:', request.headers.get('user-agent'))
+  console.log('🔄 [PROXY-SIGNUP] Vercel region:', process.env.VERCEL_REGION || 'unknown')
   
   try {
     console.log('🔄 [PROXY-SIGNUP] Request received')
@@ -187,7 +190,19 @@ export async function POST(request: NextRequest) {
       stack: error.stack?.substring(0, 500) || 'no stack',
       cause: error.cause || 'no cause',
       toString: error.toString(),
-      typeof: typeof error
+      typeof: typeof error,
+      timestamp: new Date().toISOString(),
+      nodeEnv: process.env.NODE_ENV,
+      vercelRegion: process.env.VERCEL_REGION,
+      requestUrl: request?.url || 'unknown'
+    })
+    
+    // Log environment status for debugging
+    console.error('🔍 [PROXY-SIGNUP] Environment debug:', {
+      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      supabaseUrlLen: process.env.NEXT_PUBLIC_SUPABASE_URL?.length || 0,
+      anonKeyLen: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length || 0
     })
     
     // Try to return a proper error response even if something is very wrong

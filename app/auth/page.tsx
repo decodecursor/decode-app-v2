@@ -190,7 +190,7 @@ function AuthPageContent() {
   }, [email, isLogin])
 
   // Retry mechanism for network failures
-  const retryWithDelay = async (fn: () => Promise<any>, maxRetries = 2, delay = 1000): Promise<any> => {
+  const retryWithDelay = async (fn: () => Promise<any>, maxRetries = 3, delay = 2000): Promise<any> => {
     for (let i = 0; i <= maxRetries; i++) {
       try {
         return await fn()
@@ -267,7 +267,7 @@ function AuthPageContent() {
             try {
               // Add timeout to prevent hanging requests
               const controller = new AbortController()
-              const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+              const timeoutId = setTimeout(() => controller.abort(), 20000) // 20 second timeout for VPN
               
               const proxyResponse = await fetch('/api/auth/proxy-login', {
                 method: 'POST',
@@ -374,7 +374,7 @@ function AuthPageContent() {
               
               // Add timeout to prevent hanging requests
               const controller = new AbortController()
-              const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+              const timeoutId = setTimeout(() => controller.abort(), 20000) // 20 second timeout for VPN
               
               const proxyResponse = await fetch('/api/auth/proxy-signup', {
                 method: 'POST',
@@ -420,8 +420,27 @@ function AuthPageContent() {
               console.error('💥 [PROXY] Proxy signup exception:', {
                 message: proxyError.message,
                 name: proxyError.name,
-                stack: proxyError.stack?.substring(0, 200)
+                stack: proxyError.stack?.substring(0, 200),
+                code: proxyError.code,
+                cause: proxyError.cause
               })
+              
+              // Enhanced error details for debugging
+              if (proxyError.name === 'TypeError' && proxyError.message?.includes('fetch')) {
+                console.error('🌐 [PROXY] Fetch-specific error details:', {
+                  url: '/api/auth/proxy-signup',
+                  method: 'POST',
+                  timeout: '10000ms',
+                  possibleCauses: [
+                    'API route not found (404)',
+                    'API route crashed (500)',
+                    'Network connectivity blocked by VPN',
+                    'CORS issues',
+                    'Server not responding'
+                  ]
+                })
+              }
+              
               console.error('💥 [PROXY] Both direct and proxy signup failed')
               throw signupError || proxyError
             }
@@ -497,7 +516,17 @@ function AuthPageContent() {
         setMessage('Request timed out. Retrying automatically...')
       } else if (error.message?.includes('Failed to fetch') || error.name === 'TypeError' && error.message?.includes('fetch')) {
         console.log('🌐 Authentication failed: Failed to fetch')
-        setMessage('Network connection issue. Retrying automatically...')
+        console.log('🔍 DEBUG: Check browser console and server logs for details')
+        // Enhanced debug info for persistent fetch failures
+        console.log('🔍 DEBUG INFO:', {
+          errorName: error.name,
+          errorMessage: error.message,
+          currentUrl: window.location.href,
+          userAgent: navigator.userAgent,
+          timestamp: new Date().toISOString(),
+          retriesLeft: 'Check retry logs above'
+        })
+        setMessage('Network connection issue. After 3 retries failed. Check console for debug details.')
       } else if (error.message?.includes('network') || error.name === 'NetworkError') {
         console.log('🌐 Authentication failed: Network error')
         setMessage('Connection error. Retrying automatically...')
