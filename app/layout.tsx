@@ -3,7 +3,6 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "WeLoveDecode",
-  description: "Streamlined payment solutions for beauty professionals",
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
