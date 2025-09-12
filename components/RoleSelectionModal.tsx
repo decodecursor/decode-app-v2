@@ -125,211 +125,44 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
       console.log('🔄 [ROLE MODAL] Company:', companyName.trim())
       console.log('🔄 [ROLE MODAL] Has invite data:', !!inviteData)
       
-      // Use the userId passed from signup, or try to get from session as fallback
+      // Use the userId passed from signup, or get from current session
       let userIdToUse = userId
-      let authUser = null
       
       if (!userIdToUse) {
         console.log('🔄 [ROLE MODAL] No userId provided, trying to get from session...')
-        
-        // Try multiple approaches to get user ID
-        const getUserAttempts = [
-          // Attempt 1: Direct getUser with short timeout
-          async () => {
-            console.log('🔄 [ROLE MODAL] Attempt 1: Direct getUser...')
-            const { data, error } = await Promise.race([
-              supabase.auth.getUser(),
-              new Promise<never>((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout')), 2000)
-              )
-            ])
-            
-            if (!error && data?.user) {
-              console.log('✅ [ROLE MODAL] Got user from direct getUser:', data.user.id)
-              return data.user
-            }
-            throw error || new Error('No user from direct getUser')
-          },
-          
-          // Attempt 2: Get from existing session
-          async () => {
-            console.log('🔄 [ROLE MODAL] Attempt 2: Get from session...')
-            const { data: sessionData } = await supabase.auth.getSession()
-            if (sessionData.session?.user) {
-              console.log('✅ [ROLE MODAL] Got user from session:', sessionData.session.user.id)
-              return sessionData.session.user
-            }
-            throw new Error('No user in session')
-          },
-          
-          // Attempt 3: Proxy user route (if we have session token)
-          async () => {
-            console.log('🔄 [ROLE MODAL] Attempt 3: Proxy user route...')
-            const { data: sessionData } = await supabase.auth.getSession()
-            
-            if (!sessionData.session?.access_token) {
-              throw new Error('No access token for proxy request')
-            }
-            
-            const proxyResponse = await fetch('/api/auth/proxy-user', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ access_token: sessionData.session.access_token })
-            })
-            
-            const proxyData = await proxyResponse.json()
-            
-            if (proxyResponse.ok && proxyData.success && proxyData.user) {
-              console.log('✅ [ROLE MODAL] Got user from proxy:', proxyData.user.id)
-              return proxyData.user
-            }
-            throw new Error(proxyData.error || 'Proxy user request failed')
-          }
-        ]
-        
-        // Try each method in sequence
-        for (let i = 0; i < getUserAttempts.length; i++) {
-          try {
-            authUser = await getUserAttempts[i]()
-            userIdToUse = authUser.id
-            break
-          } catch (error: any) {
-            console.log(`⚠️ [ROLE MODAL] User retrieval attempt ${i + 1} failed:`, error.message)
-            if (i === getUserAttempts.length - 1) {
-              console.log('⚠️ [ROLE MODAL] All user retrieval attempts failed - will use email-based profile creation')
-              userIdToUse = null
-            }
-          }
-        }
-        
-        console.log('🔍 [ROLE MODAL] Final user ID determination:', {
-          userIdToUse,
-          hasAuthUser: !!authUser,
-          willUseEmailBased: !userIdToUse
-        })
-      }
-
-      // Create profile data with improved error handling
-      console.log('🔄 [ROLE MODAL] Preparing profile data...')
-      
-      let profileData: any
-      let insertMethod = 'with-user-id'
-      
-      if (userIdToUse) {
-        // Standard case: we have a user ID from auth
-        console.log('✅ [ROLE MODAL] Creating profile with user ID:', userIdToUse)
-        profileData = {
-          id: userIdToUse,
-          email: userEmail,
-          user_name: userName.trim(),
-          role: role,
-          company_name: companyName.trim(),
-          branch_name: role === 'Admin' ? 'Main Branch' : null,
-          approval_status: (role === 'Admin' || inviteData) ? 'approved' : 'pending',
-          terms_accepted_at: termsAcceptedAt
-        }
-      } else {
-        // Fallback: create profile without user ID and let the database RLS handle it
-        console.log('⚠️ [ROLE MODAL] Creating profile using email-based method for:', userEmail)
-        insertMethod = 'email-based'
-        
-        // Fallback: create profile without ID - let RLS policy handle it
-        console.log('⚠️ [ROLE MODAL] Using email-based profile creation (auth.uid() will be resolved by RLS)')
-        profileData = {
-          email: userEmail,
-          user_name: userName.trim(),
-          role: role,
-          company_name: companyName.trim(),
-          branch_name: role === 'Admin' ? 'Main Branch' : null,
-          approval_status: (role === 'Admin' || inviteData) ? 'approved' : 'pending',
-          terms_accepted_at: termsAcceptedAt
-        }
-      }
-      
-      console.log('🔄 [ROLE MODAL] Profile creation details:', {
-        method: insertMethod,
-        hasId: !!profileData.id,
-        email: profileData.email,
-        role: profileData.role,
-        company: profileData.company_name
-      })
-
-      // Attempt profile insertion with timeout and retry
-      let insertError: any = null
-      const maxRetries = 3
-      
-      for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-          console.log(`🔄 [ROLE MODAL] Profile insert attempt ${attempt}/${maxRetries}`)
-          
-          const { error } = await Promise.race([
-            supabase.from('users').insert(profileData),
-            new Promise<never>((_, reject) => 
-              setTimeout(() => reject(new Error(`Database timeout on attempt ${attempt}`)), 8000)
-            )
-          ])
-          
-          if (error) {
-            insertError = error
-            console.error(`❌ [ROLE MODAL] Insert attempt ${attempt} failed:`, error)
-            
-            // If it's a duplicate key error and we don't have an ID, try to update instead
-            if (error.code === '23505' && !profileData.id && attempt === 1) {
-              console.log('🔄 [ROLE MODAL] Duplicate error - attempting update instead')
-              const { error: updateError } = await supabase
-                .from('users')
-                .update({
-                  user_name: userName.trim(),
-                  role: role,
-                  company_name: companyName.trim(),
-                  branch_name: role === 'Admin' ? 'Main Branch' : null,
-                  approval_status: (role === 'Admin' || inviteData) ? 'approved' : 'pending',
-                  terms_accepted_at: termsAcceptedAt
-                })
-                .eq('email', userEmail)
-              
-              if (!updateError) {
-                console.log('✅ [ROLE MODAL] Profile updated successfully instead of insert')
-                break
-              } else {
-                console.error('❌ [ROLE MODAL] Update also failed:', updateError)
-                insertError = updateError
-              }
-            }
-            
-            // Don't retry on certain errors
-            if (error.code === '42501' || error.message?.includes('permission')) {
-              console.log('❌ [ROLE MODAL] Permission error - not retrying')
-              throw error
-            }
-            
-            // Wait before retry (exponential backoff)
-            if (attempt < maxRetries) {
-              const delay = Math.pow(2, attempt) * 1000
-              console.log(`⏳ [ROLE MODAL] Waiting ${delay}ms before retry...`)
-              await new Promise(resolve => setTimeout(resolve, delay))
-            }
-          } else {
-            console.log('✅ [ROLE MODAL] Profile created successfully')
-            insertError = null
-            break
+          const { data: { user } } = await supabase.auth.getUser()
+          if (user) {
+            userIdToUse = user.id
+            console.log('✅ [ROLE MODAL] Got user from session:', user.id)
           }
-        } catch (timeoutError: any) {
-          console.error(`⏰ [ROLE MODAL] Timeout on attempt ${attempt}:`, timeoutError.message)
-          insertError = timeoutError
-          
-          if (attempt === maxRetries) {
-            throw new Error('Profile creation timed out after multiple attempts')
-          }
+        } catch (error) {
+          console.log('⚠️ [ROLE MODAL] Could not get user from session')
         }
       }
+
+      // Create profile data - simple approach
+      const profileData = {
+        id: userIdToUse,
+        email: userEmail,
+        user_name: userName.trim(),
+        role: role,
+        company_name: companyName.trim(),
+        branch_name: role === 'Admin' ? 'Main Branch' : null,
+        approval_status: (role === 'Admin' || inviteData) ? 'approved' : 'pending',
+        terms_accepted_at: termsAcceptedAt
+      }
       
-      if (insertError) {
-        console.error('❌ [ROLE MODAL] Final database error after all retries:', insertError)
-        throw insertError
+      console.log('🔄 [ROLE MODAL] Creating profile:', profileData)
+
+      const { error } = await supabase.from('users').insert(profileData)
+      
+      if (error) {
+        console.error('❌ [ROLE MODAL] Profile creation error:', error)
+        throw error
       }
 
-      console.log('✅ [ROLE MODAL] Profile creation completed successfully')
+      console.log('✅ [ROLE MODAL] Profile created successfully')
       onComplete()
     } catch (error) {
       console.error('Profile creation error:', error)

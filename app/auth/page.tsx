@@ -278,9 +278,8 @@ function AuthPageContent() {
       setIsRetrying(false)
       setRetryCount(0)
       
-      // Execute auth flow with retry mechanism for network issues
-      const authResult = await retryWithDelay(async () => {
-        if (isLogin) {
+      // Execute auth flow - simplified approach
+      if (isLogin) {
           console.log('🔐 Attempting login for:', email)
           
           // Try direct Supabase login first
@@ -368,156 +367,42 @@ function AuthPageContent() {
           } else {
             throw new Error('Login failed - no user or session data returned')
           }
-        } else {
-          console.log('📝 [AUTH] Attempting signup for:', email)
-          console.log('📝 [AUTH] Has invite data:', !!inviteData)
-          
-          // Try direct Supabase signup first
-          let signupSuccess = false
-          let signupData: any = null
-          let signupError: any = null
-          
-          try {
-            console.log('📝 [AUTH] Attempting direct signup...')
-            const { data, error } = await supabase.auth.signUp({
-              email,
-              password
-            })
-            
-            console.log('📝 [AUTH] Direct signup response data:', !!data)
-            console.log('📝 [AUTH] Direct signup response error:', error?.message)
-            
-            if (!error && data) {
-              signupSuccess = true
-              signupData = data
-              console.log('✅ [AUTH] Direct signup successful')
-            } else {
-              signupError = error || new Error('Signup failed')
-              console.log('⚠️ [AUTH] Direct signup failed:', error?.message)
-            }
-          } catch (error: any) {
-            console.log('📝 [AUTH] Direct signup exception, will try proxy...', error.message)
-            signupError = error
-            // Don't throw here - let it fall through to proxy attempt
-          }
-          
-          // If direct signup failed, try proxy
-          if (!signupSuccess) {
-            console.log('🔄 [PROXY] Starting proxy signup attempt')
-            console.log('🔄 [PROXY] Email length:', email?.length || 0)
-            console.log('🔄 [PROXY] Password length:', password?.length || 0)
-            try {
-              console.log('🔄 [PROXY] Making fetch request to /api/auth/proxy-signup')
-              
-              console.log('🔄 [PROXY] Making simple fetch request without timeout...')
-              
-              const proxyResponse = await fetch('/api/auth/proxy-signup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-              })
-              
-              console.log('📝 [PROXY] Response status:', proxyResponse.status)
-              console.log('📝 [PROXY] Response ok:', proxyResponse.ok)
-              console.log('📝 [PROXY] Response headers:', Object.fromEntries(proxyResponse.headers.entries()))
-              
-              let proxyData
-              try {
-                proxyData = await proxyResponse.json()
-                console.log('📝 [PROXY] Response JSON:', {
-                  success: proxyData.success,
-                  hasUser: !!proxyData.user,
-                  hasSession: !!proxyData.session,
-                  error: proxyData.error,
-                  code: proxyData.code
-                })
-              } catch (jsonError) {
-                console.error('❌ [PROXY] Failed to parse response JSON:', jsonError)
-                throw new Error(`Proxy response parsing failed: ${jsonError.message}`)
-              }
-              
-              if (proxyResponse.ok && proxyData.success) {
-                console.log('✅ [PROXY] Proxy signup successful')
-                signupSuccess = true
-                signupData = proxyData
-              } else {
-                console.error('❌ [PROXY] Proxy signup failed:', {
-                  status: proxyResponse.status,
-                  error: proxyData.error,
-                  code: proxyData.code
-                })
-                throw new Error(proxyData.error || `Proxy signup failed with status ${proxyResponse.status}`)
-              }
-            } catch (proxyError: any) {
-              console.error('💥 [PROXY] Proxy signup exception:', {
-                message: proxyError.message,
-                name: proxyError.name,
-                stack: proxyError.stack?.substring(0, 200),
-                code: proxyError.code,
-                cause: proxyError.cause
-              })
-              
-              // Enhanced error details for debugging
-              if (proxyError.name === 'TypeError' && proxyError.message?.includes('fetch')) {
-                console.error('🌐 [PROXY] Fetch-specific error details:', {
-                  url: '/api/auth/proxy-signup',
-                  method: 'POST',
-                  timeout: '10000ms',
-                  possibleCauses: [
-                    'API route not found (404)',
-                    'API route crashed (500)',
-                    'Network connectivity blocked by VPN',
-                    'CORS issues',
-                    'Server not responding'
-                  ]
-                })
-              }
-              
-              console.error('💥 [PROXY] Both direct and proxy signup failed')
-              throw signupError || proxyError
-            }
-          }
-          
-          if (!signupSuccess || !signupData) {
-            console.error('❌ [AUTH] Signup failed - no data returned')
-            throw signupError || new Error('Signup failed - no data returned')
-          }
-          
-          if (signupData.user) {
-            console.log('✅ [AUTH] User signed up successfully:', signupData.user.id)
-            console.log('✅ [AUTH] User confirmed status:', signupData.user.email_confirmed_at ? 'CONFIRMED' : 'NOT CONFIRMED')
-            console.log('✅ [AUTH] Session created:', !!signupData.session)
-            console.log('✅ [AUTH] Is invited user:', !!inviteData)
-            
-            // For invited users, skip email verification and go straight to role modal
-            if (inviteData) {
-              console.log('✅ [AUTH] Invited user - skipping email verification')
-              setSignedUpUser(signupData.user)
-              setShowRoleModal(true)
-              return signupData
-            }
-            
-            // For regular users, check if email is confirmed
-            if (signupData.user.email_confirmed_at || signupData.session) {
-              console.log('✅ [AUTH] Email confirmed or session active - showing role modal')
-              setSignedUpUser(signupData.user)
-              setShowRoleModal(true)
-              return signupData
-            } else {
-              console.log('📧 [AUTH] Email confirmation required for regular user')
-              router.push(`/verify-email?email=${encodeURIComponent(email)}`)
-              return signupData
-            }
-          } else {
-            // No user object means email confirmation required
-            console.log('📧 [AUTH] No user object - email confirmation required')
-            router.push(`/verify-email?email=${encodeURIComponent(email)}`)
-            return signupData
-          }
+      } else {
+        console.log('📝 [AUTH] Attempting signup for:', email)
+        
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password
+        })
+        
+        if (error) {
+          throw error
         }
-      }, 3, 1500, isLogin ? 'login' : 'signup') // Close the retryWithDelay wrapper
-      
-      console.log('✅ [AUTH] Authentication completed successfully with retries')
+        
+        if (data.user) {
+          console.log('✅ [AUTH] User signed up successfully:', data.user.id)
+          
+          // For invited users, skip email verification and go straight to role modal
+          if (inviteData) {
+            console.log('✅ [AUTH] Invited user - skipping email verification')
+            setSignedUpUser(data.user)
+            setShowRoleModal(true)
+            return
+          }
+          
+          // For regular users, check if email is confirmed
+          if (data.user.email_confirmed_at || data.session) {
+            console.log('✅ [AUTH] Email confirmed or session active - showing role modal')
+            setSignedUpUser(data.user)
+            setShowRoleModal(true)
+          } else {
+            console.log('📧 [AUTH] Email confirmation required for regular user')
+            router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+          }
+        } else {
+          router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+        }
+      }
       
     } catch (error: any) {
       console.error('💥 Authentication error:', error)
