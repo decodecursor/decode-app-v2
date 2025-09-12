@@ -92,7 +92,6 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
   // Default metadata
   const defaultMetadata: Metadata = {
     title: 'It\'s Pamper Time',
-    description: 'A special beauty treatment awaits you',
     openGraph: {
       title: 'It\'s Pamper Time',
       type: 'website',
@@ -125,7 +124,6 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
 
     return {
       title: personalizedTitle,
-      description: personalizedDescription,
       openGraph: {
         title: personalizedTitle,
         type: 'website',
