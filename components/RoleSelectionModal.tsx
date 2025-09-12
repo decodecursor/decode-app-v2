@@ -233,45 +233,16 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
         console.log('⚠️ [ROLE MODAL] Creating profile using email-based method for:', userEmail)
         insertMethod = 'email-based'
         
-        // Try to get user ID from auth via proxy
-        try {
-          console.log('🔄 [ROLE MODAL] Attempting to find user ID via proxy...')
-          const proxyResponse = await fetch('/api/auth/proxy-user-lookup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: userEmail })
-          })
-          
-          const proxyData = await proxyResponse.json()
-          
-          if (proxyResponse.ok && proxyData.success && proxyData.userId) {
-            console.log('✅ [ROLE MODAL] Found user ID via proxy:', proxyData.userId)
-            profileData = {
-              id: proxyData.userId,
-              email: userEmail,
-              user_name: userName.trim(),
-              role: role,
-              company_name: companyName.trim(),
-              branch_name: role === 'Admin' ? 'Main Branch' : null,
-              approval_status: (role === 'Admin' || inviteData) ? 'approved' : 'pending',
-              terms_accepted_at: termsAcceptedAt
-            }
-            insertMethod = 'found-by-proxy'
-          } else {
-            throw new Error('Proxy lookup failed')
-          }
-        } catch (proxyError) {
-          // Last resort: create without ID - database will handle auth.uid() lookup
-          console.log('⚠️ [ROLE MODAL] Proxy lookup failed, using email-only profile creation')
-          profileData = {
-            email: userEmail,
-            user_name: userName.trim(),
-            role: role,
-            company_name: companyName.trim(),
-            branch_name: role === 'Admin' ? 'Main Branch' : null,
-            approval_status: (role === 'Admin' || inviteData) ? 'approved' : 'pending',
-            terms_accepted_at: termsAcceptedAt
-          }
+        // Fallback: create profile without ID - let RLS policy handle it
+        console.log('⚠️ [ROLE MODAL] Using email-based profile creation (auth.uid() will be resolved by RLS)')
+        profileData = {
+          email: userEmail,
+          user_name: userName.trim(),
+          role: role,
+          company_name: companyName.trim(),
+          branch_name: role === 'Admin' ? 'Main Branch' : null,
+          approval_status: (role === 'Admin' || inviteData) ? 'approved' : 'pending',
+          terms_accepted_at: termsAcceptedAt
         }
       }
       

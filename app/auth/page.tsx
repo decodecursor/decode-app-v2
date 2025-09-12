@@ -556,7 +556,7 @@ function AuthPageContent() {
           timestamp: new Date().toISOString(),
           retriesLeft: 'Check retry logs above'
         })
-        setMessage('Network connection issue. Check console for debug details.')
+        setMessage('Connection issue. Please try again or check your internet connection.')
       } else if (error.message?.includes('network') || error.name === 'NetworkError') {
         console.log('🌐 Authentication failed: Network error')
         setMessage('Connection error. Retrying automatically...')

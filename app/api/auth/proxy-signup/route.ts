@@ -136,10 +136,6 @@ export async function POST(request: NextRequest) {
       )
       console.log('✅ [PROXY-SIGNUP] Supabase anon client created successfully')
       
-      // Test the client connection
-      const healthCheck = await supabase.from('users').select('count').limit(1)
-      console.log('✅ [PROXY-SIGNUP] Database connection verified:', !healthCheck.error)
-      
     } catch (clientError) {
       console.error('❌ [PROXY-SIGNUP] Failed to create Supabase anon client:', clientError)
       return NextResponse.json(
