@@ -157,7 +157,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
         user_name: userName.trim(),
         role: role,
         company_name: companyName.trim(),
-        branch_name: null,  // No branch assignment during registration - admin will assign later
+        branch_name: role === 'Admin' ? 'Main Branch' : null,  // Auto-assign Admin to Main Branch, others wait for assignment
         approval_status: (role === 'Admin' || inviteData) ? 'approved' : 'pending',
         terms_accepted_at: termsAcceptedAt
       }
