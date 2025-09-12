@@ -513,6 +513,7 @@ function AuthPageContent() {
             console.log('📧 [AUTH] No user object - email confirmation required')
             router.push(`/verify-email?email=${encodeURIComponent(email)}`)
             return signupData
+          }
         }
       }, 3, 1500, isLogin ? 'login' : 'signup') // Close the retryWithDelay wrapper
       
