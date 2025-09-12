@@ -130,19 +130,10 @@ export async function POST(request: NextRequest) {
             headers: {
               'x-proxy-signup': 'true',
               'x-request-id': `proxy-signup-${Date.now()}`,
-              'apikey': anonKey
-            },
-            fetch: (url, options = {}) => {
-              console.log('🌐 [PROXY-SIGNUP] Making fetch request to:', url)
-              return fetch(url, {
-                ...options,
-                headers: {
-                  ...(options.headers || {}),
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/json',
-                  'User-Agent': 'decode-app-proxy/1.0'
-                }
-              })
+              'apikey': anonKey,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'User-Agent': 'decode-app-proxy/1.0'
             }
           }
         }
