@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 // Direct auth proxy that runs on Vercel servers (avoiding VPN/network issues)
 export async function POST(request: NextRequest) {
@@ -90,8 +91,7 @@ export async function POST(request: NextRequest) {
     // Use service role Supabase client for server-side signup (bypasses RLS)
     let supabase
     try {
-      const { createClient: createServiceClient } = await import('@supabase/supabase-js')
-      supabase = createServiceClient(
+      supabase = createClient(
         supabaseUrl,
         serviceRoleKey,
         {
