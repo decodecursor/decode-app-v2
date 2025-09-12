@@ -234,9 +234,8 @@ function AuthPageContent() {
     try {
       setIsRetrying(false)
       
-      // Execute auth flow with retry wrapper for network failures
-      const authResult = await retryWithDelay(async () => {
-        if (isLogin) {
+      // Execute auth flow directly without retry wrapper
+      if (isLogin) {
           console.log('🔐 Attempting login for:', email)
           
           // Try direct Supabase login first
@@ -483,11 +482,6 @@ function AuthPageContent() {
             return signupData
         }
       }
-      })
-      
-      // Handle the auth result
-      console.log('✅ [AUTH] Auth operation completed successfully')
-      return authResult
       
     } catch (error: any) {
       console.error('💥 Authentication error:', error)
