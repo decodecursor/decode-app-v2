@@ -167,6 +167,22 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
     const previousAverage = previousCount > 0 ? previousRevenue / previousCount : 0
     const previousSuccessRate = 100
 
+    // Calculate user's personal commission from their own payment links only
+    const currentMyLinks = currentPeriodLinks.filter(link => link.creator_id === user?.id)
+    const previousMyLinks = previousPeriodLinks.filter(link => link.creator_id === user?.id)
+    
+    const currentMyRevenue = currentMyLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0)
+    const previousMyRevenue = previousMyLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0)
+    
+    // Commission is 1% of user's own service revenue
+    const currentMyCommission = currentMyRevenue * 0.01
+    const previousMyCommission = previousMyRevenue * 0.01
+
+    console.log(`💰 Commission Debug for User ${user?.id}:`)
+    console.log(`💰 Current period: ${currentMyLinks.length} my links, Revenue: ${currentMyRevenue}, Commission: ${currentMyCommission}`)
+    console.log(`💰 Previous period: ${previousMyLinks.length} my links, Revenue: ${previousMyRevenue}, Commission: ${previousMyCommission}`)
+    console.log(`💰 Total company revenue: ${currentRevenue} (current), ${previousRevenue} (previous)`)
+
     // Calculate popular payment amounts
     const amountCounts = new Map<number, number>()
     paymentLinks.forEach(link => {
@@ -439,17 +455,17 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
             <div className="flex justify-between items-start mb-2">
               <h3 className="cosmic-label text-white/70">My Commission</h3>
               {dateRange !== 'custom' && (
-                <span className={`text-xs font-medium ${getChangeColor(current.revenue * 0.01, previous.revenue * 0.01)}`}>
-                  {formatPercentageChange(current.revenue * 0.01, previous.revenue * 0.01)}
+                <span className={`text-xs font-medium ${getChangeColor(currentMyCommission, previousMyCommission)}`}>
+                  {formatPercentageChange(currentMyCommission, previousMyCommission)}
                 </span>
               )}
             </div>
             <p className="text-2xl font-bold text-white mb-1">
-              {formatCurrency(current.revenue * 0.01)}
+              {formatCurrency(currentMyCommission)}
             </p>
             {dateRange !== 'custom' && (
               <p className="text-xs text-white/50">
-                vs {formatCurrency(previous.revenue * 0.01)} previous period
+                vs {formatCurrency(previousMyCommission)} previous period
               </p>
             )}
           </div>
@@ -458,17 +474,17 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
             <div className="flex justify-between items-start mb-2">
               <h3 className="cosmic-label text-white/70">My Next Payout</h3>
               {dateRange !== 'custom' && (
-                <span className={`text-xs font-medium ${getChangeColor(current.revenue * 0.1, previous.revenue * 0.1)}`}>
-                  {formatPercentageChange(current.revenue * 0.1, previous.revenue * 0.1)}
+                <span className={`text-xs font-medium ${getChangeColor(currentMyCommission, previousMyCommission)}`}>
+                  {formatPercentageChange(currentMyCommission, previousMyCommission)}
                 </span>
               )}
             </div>
             <p className="text-2xl font-bold text-white mb-1">
-              {formatCurrency(current.revenue * 0.1)}
+              {formatCurrency(currentMyCommission)}
             </p>
             {dateRange !== 'custom' && (
               <p className="text-xs text-white/50">
-                vs {formatCurrency(previous.revenue * 0.1)} previous period
+                vs {formatCurrency(previousMyCommission)} previous period
               </p>
             )}
           </div>
