@@ -867,8 +867,9 @@ function MyLinksContent() {
       }
       
       // Create WhatsApp share URL with new format
-      // Generate QR code for the plain payment URL (same as Copy Link)
-      const qrDataURL = await QRCode.toDataURL(paymentUrl, {
+      // Generate QR code for WhatsApp URL with just the payment link (no descriptive text)
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(paymentUrl)}`
+      const qrDataURL = await QRCode.toDataURL(whatsappUrl, {
         width: 300,
         margin: 2,
         color: {
