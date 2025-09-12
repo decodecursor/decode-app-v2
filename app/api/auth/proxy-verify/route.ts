@@ -20,8 +20,18 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Use server-side Supabase client (runs on Vercel, not affected by network issues)
-    const supabase = await createClient()
+    // Use service role Supabase client for server-side verification (bypasses RLS)
+    const { createClient: createServiceClient } = await import('@supabase/supabase-js')
+    const supabase = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
     
     // Attempt email verification
     const { data, error } = await supabase.auth.verifyOtp({
