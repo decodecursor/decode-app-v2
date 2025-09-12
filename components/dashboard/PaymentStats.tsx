@@ -25,6 +25,7 @@ interface PaymentStatsProps {
     amount_aed: number
     service_amount_aed: number | null
     client_name: string | null
+    creator_id: string
     created_at: string
     paid_at: string | null
     transaction_count: number
