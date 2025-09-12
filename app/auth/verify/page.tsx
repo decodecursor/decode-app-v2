@@ -86,7 +86,7 @@ function VerifyContent() {
               console.log('✅ Email verified successfully for user:', verificationData.user.id)
               setEmail(verificationData.user.email || '')
               setSuccess(true)
-              setMessage('Email verified successfully! Redirecting to complete your profile...')
+              setMessage('Email verified successfully! Checking your profile...')
               
               // If we have session data from proxy verification, set it explicitly
               if (verificationData.session) {
@@ -102,10 +102,55 @@ function VerifyContent() {
                 }
               }
               
-              // Wait a moment then redirect to auth page to complete registration
-              setTimeout(() => {
-                router.push('/auth')
-              }, 2000)
+              // Check if user has completed their profile to determine redirect destination
+              try {
+                console.log('🔍 Checking user profile status...')
+                const { data: userProfile, error: profileError } = await supabase
+                  .from('users')
+                  .select('id, role, company_name, approval_status')
+                  .eq('id', verificationData.user.id)
+                  .single()
+
+                if (profileError && profileError.code !== 'PGRST116') {
+                  console.error('Error checking profile:', profileError)
+                  setMessage('Verification successful! Please complete your profile.')
+                  setTimeout(() => {
+                    router.push('/auth')
+                  }, 2000)
+                  return
+                }
+
+                if (!userProfile) {
+                  // No profile exists - user needs to complete role selection
+                  console.log('📝 No profile found - redirecting to role selection')
+                  setMessage('Email verified! Please complete your profile.')
+                  setTimeout(() => {
+                    router.push('/auth')
+                  }, 2000)
+                } else {
+                  // Profile exists - check approval status and redirect accordingly
+                  console.log('👤 Profile found:', { role: userProfile.role, status: userProfile.approval_status })
+                  
+                  if (userProfile.approval_status === 'pending' && userProfile.role !== 'Admin') {
+                    setMessage('Email verified! Please wait for admin approval.')
+                    setTimeout(() => {
+                      router.push('/pending-approval')
+                    }, 2000)
+                  } else {
+                    // User is approved or is admin - go directly to dashboard
+                    setMessage('Email verified! Welcome back!')
+                    setTimeout(() => {
+                      router.push('/dashboard')
+                    }, 2000)
+                  }
+                }
+              } catch (profileCheckError) {
+                console.error('Profile check failed:', profileCheckError)
+                setMessage('Verification successful! Please complete your profile.')
+                setTimeout(() => {
+                  router.push('/auth')
+                }, 2000)
+              }
             } else {
               setMessage('Verification completed but no user data returned. Please try logging in.')
             }
