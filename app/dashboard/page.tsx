@@ -143,13 +143,54 @@ export default function Dashboard() {
     const getUser = async () => {
       try {
         console.log('🔍 Dashboard: Checking user authentication...')
-        const { data: { user }, error } = await supabase.auth.getUser()
         
-        if (error) {
-          console.error('❌ Dashboard: Auth error:', error)
-          setAuthLoading(false)
-          router.push('/auth')
-          return
+        let user = null
+        let authError = null
+        
+        // Try direct auth check first
+        try {
+          console.log('🔄 Dashboard: Trying direct auth check...')
+          const { data, error } = await supabase.auth.getUser()
+          
+          if (!error && data?.user) {
+            user = data.user
+            console.log('✅ Dashboard: Direct auth successful')
+          } else {
+            authError = error
+            throw error || new Error('No user from direct auth')
+          }
+        } catch (directError) {
+          console.log('⚠️ Dashboard: Direct auth failed, trying proxy...', directError.message)
+          
+          // Try proxy auth check
+          try {
+            console.log('🔄 Dashboard: Using proxy auth check...')
+            const session = await supabase.auth.getSession()
+            
+            if (session.data.session?.access_token) {
+              const proxyResponse = await fetch('/api/auth/proxy-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ access_token: session.data.session.access_token })
+              })
+              
+              const proxyData = await proxyResponse.json()
+              
+              if (proxyResponse.ok && proxyData.success && proxyData.user) {
+                user = proxyData.user
+                console.log('✅ Dashboard: Proxy auth successful')
+              } else {
+                throw new Error('Proxy auth failed')
+              }
+            } else {
+              throw new Error('No session for proxy auth')
+            }
+          } catch (proxyError) {
+            console.error('❌ Dashboard: Both direct and proxy auth failed')
+            setAuthLoading(false)
+            router.push('/auth')
+            return
+          }
         }
         
         if (!user) {
