@@ -1,0 +1,65 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+
+export async function POST(request: NextRequest) {
+  console.log('🔄 [CREATE-PROFILE] === Profile creation proxy called ===')
+  
+  try {
+    const profileData = await request.json()
+    
+    console.log('📝 [CREATE-PROFILE] Creating profile:', profileData)
+    
+    // Check environment variables
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    
+    if (!supabaseUrl || !anonKey) {
+      console.error('❌ [CREATE-PROFILE] Missing environment variables')
+      return NextResponse.json(
+        { success: false, error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+    
+    // Create supabase client
+    const supabase = createClient(supabaseUrl, anonKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+    
+    // Insert profile
+    const { data, error } = await supabase.from('users').insert(profileData)
+    
+    if (error) {
+      console.error('❌ [CREATE-PROFILE] Database error:', error)
+      return NextResponse.json(
+        { 
+          success: false,
+          error: error.message,
+          code: error.code
+        },
+        { status: 400 }
+      )
+    }
+    
+    console.log('✅ [CREATE-PROFILE] Profile created successfully')
+    
+    return NextResponse.json({
+      success: true,
+      data
+    })
+    
+  } catch (error: any) {
+    console.error('💥 [CREATE-PROFILE] Error:', error)
+    return NextResponse.json(
+      { 
+        success: false,
+        error: 'Internal server error',
+        details: error.message
+      },
+      { status: 500 }
+    )
+  }
+}
