@@ -129,7 +129,20 @@ export async function POST(request: NextRequest) {
           global: {
             headers: {
               'x-proxy-signup': 'true',
-              'x-request-id': `proxy-signup-${Date.now()}`
+              'x-request-id': `proxy-signup-${Date.now()}`,
+              'apikey': anonKey
+            },
+            fetch: (url, options = {}) => {
+              console.log('🌐 [PROXY-SIGNUP] Making fetch request to:', url)
+              return fetch(url, {
+                ...options,
+                headers: {
+                  ...options.headers,
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  'User-Agent': 'decode-app-proxy/1.0'
+                }
+              })
             }
           }
         }
@@ -148,31 +161,59 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Attempt signup with timeout and retry logic
+    // Attempt signup with enhanced error handling
     console.log('🚀 [PROXY-SIGNUP] Starting Supabase signup...')
     
     let signupResult
-    try {
-      signupResult = await Promise.race([
-        supabase.auth.signUp({
-          email,
-          password,
-        }),
-        new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error('Signup timeout after 15 seconds')), 15000)
-        )
-      ])
-    } catch (timeoutError) {
-      console.error('⏰ [PROXY-SIGNUP] Signup timeout:', timeoutError.message)
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'Signup request timed out',
-          code: 'TIMEOUT_ERROR',
-          details: 'The signup request took too long to process'
-        },
-        { status: 408 }
-      )
+    const maxRetries = 2
+    let lastError
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`🔄 [PROXY-SIGNUP] Signup attempt ${attempt}/${maxRetries}`)
+        
+        signupResult = await Promise.race([
+          supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                email_confirm: true
+              }
+            }
+          }),
+          new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error('Signup timeout after 20 seconds')), 20000)
+          )
+        ])
+        
+        console.log(`✅ [PROXY-SIGNUP] Signup attempt ${attempt} successful`)
+        break // Success, exit retry loop
+        
+      } catch (attemptError: any) {
+        lastError = attemptError
+        console.error(`❌ [PROXY-SIGNUP] Signup attempt ${attempt} failed:`, {
+          message: attemptError.message,
+          name: attemptError.name,
+          cause: attemptError.cause
+        })
+        
+        // If this is the last attempt or a non-retryable error, don't retry
+        if (attempt === maxRetries || attemptError.message?.includes('User already registered')) {
+          break
+        }
+        
+        // Wait before retry (exponential backoff)
+        const waitTime = attempt * 1000
+        console.log(`⏳ [PROXY-SIGNUP] Waiting ${waitTime}ms before retry...`)
+        await new Promise(resolve => setTimeout(resolve, waitTime))
+      }
+    }
+    
+    // If we still don't have a result, throw the last error
+    if (!signupResult && lastError) {
+      console.error('💥 [PROXY-SIGNUP] All signup attempts failed, throwing last error')
+      throw lastError
     }
     
     const { data, error } = signupResult
