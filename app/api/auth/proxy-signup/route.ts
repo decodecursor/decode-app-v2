@@ -84,13 +84,13 @@ export async function POST(request: NextRequest) {
     // Check environment variables with detailed logging
     console.log('🔍 [PROXY-SIGNUP] Checking environment variables...')
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     
     console.log('🔍 [PROXY-SIGNUP] Environment check:', {
       hasSupabaseUrl: !!supabaseUrl,
-      hasServiceRoleKey: !!serviceRoleKey,
+      hasAnonKey: !!anonKey,
       supabaseUrlPrefix: supabaseUrl?.substring(0, 30) || 'missing',
-      serviceRoleKeyPrefix: serviceRoleKey?.substring(0, 20) || 'missing',
+      anonKeyPrefix: anonKey?.substring(0, 20) || 'missing',
       allEnvKeys: Object.keys(process.env).filter(key => key.includes('SUPABASE')).sort()
     })
 
@@ -102,20 +102,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!serviceRoleKey) {
-      console.error('❌ [PROXY-SIGNUP] Missing SUPABASE_SERVICE_ROLE_KEY')
+    if (!anonKey) {
+      console.error('❌ [PROXY-SIGNUP] Missing NEXT_PUBLIC_SUPABASE_ANON_KEY')
       return NextResponse.json(
-        { error: 'Server configuration error - missing service role key' },
+        { error: 'Server configuration error - missing anon key' },
         { status: 500 }
       )
     }
     
-    // Use service role Supabase client for server-side signup (bypasses RLS)
+    // Use anon key Supabase client for server-side signup (correct for user auth operations)
     let supabase
     try {
       supabase = createClient(
         supabaseUrl,
-        serviceRoleKey,
+        anonKey,
         {
           auth: {
             autoRefreshToken: false,
@@ -123,9 +123,9 @@ export async function POST(request: NextRequest) {
           }
         }
       )
-      console.log('✅ Supabase service client created successfully')
+      console.log('✅ Supabase anon client created successfully')
     } catch (clientError) {
-      console.error('❌ Failed to create Supabase service client:', clientError)
+      console.error('❌ Failed to create Supabase anon client:', clientError)
       return NextResponse.json(
         { error: 'Failed to initialize authentication service' },
         { status: 500 }

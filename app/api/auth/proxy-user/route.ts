@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Use service role Supabase client
+    // Use service role Supabase client (service role IS needed for getUser with access token)
     const supabase = createClient(
       supabaseUrl,
       serviceRoleKey,

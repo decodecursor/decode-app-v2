@@ -20,10 +20,10 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Use service role Supabase client for server-side verification (bypasses RLS)
+    // Use anon key Supabase client for server-side verification (correct for user auth operations)
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         auth: {
           autoRefreshToken: false,
