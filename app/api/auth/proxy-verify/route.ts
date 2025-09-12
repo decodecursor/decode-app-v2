@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       verifyResult = await Promise.race([
         supabase.auth.verifyOtp({
           token_hash: token,
-          type: type as 'signup' | 'recovery' | 'invite' | 'email_change' | 'phone_change'
+          type: type as 'signup' | 'recovery' | 'invite' | 'email_change'
         }),
         new Promise<never>((_, reject) => 
           setTimeout(() => reject(new Error('Verification timeout after 15 seconds')), 15000)
