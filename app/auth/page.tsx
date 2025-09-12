@@ -327,11 +327,34 @@ function AuthPageContent() {
           console.log('📝 [AUTH] Attempting signup for:', email)
           console.log('📝 [AUTH] Has invite data:', !!inviteData)
           
-          // TEMPORARY: Skip direct signup and go straight to proxy for debugging
-          console.log('🚨 [DEBUG] BYPASSING direct signup - going straight to proxy')
+          // Try direct Supabase signup first
           let signupSuccess = false
           let signupData: any = null
-          let signupError: any = new Error('Bypassed direct signup for debugging')
+          let signupError: any = null
+          
+          try {
+            console.log('📝 [AUTH] Attempting direct signup...')
+            const { data, error } = await supabase.auth.signUp({
+              email,
+              password
+            })
+            
+            console.log('📝 [AUTH] Direct signup response data:', !!data)
+            console.log('📝 [AUTH] Direct signup response error:', error?.message)
+            
+            if (!error && data) {
+              signupSuccess = true
+              signupData = data
+              console.log('✅ [AUTH] Direct signup successful')
+            } else {
+              signupError = error || new Error('Signup failed')
+              console.log('⚠️ [AUTH] Direct signup failed:', error?.message)
+            }
+          } catch (error: any) {
+            console.log('📝 [AUTH] Direct signup exception, will try proxy...', error.message)
+            signupError = error
+            // Don't throw here - let it fall through to proxy attempt
+          }
           
           // If direct signup failed, try proxy
           if (!signupSuccess) {
