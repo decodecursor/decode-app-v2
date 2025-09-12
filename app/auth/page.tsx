@@ -451,7 +451,10 @@ function AuthPageContent() {
       })
       
       // Handle specific error types with more detailed logging
-      if (error.message?.includes('Invalid login credentials')) {
+      if (error.message?.includes('Email rate limit') || error.message?.includes('rate limit') || error.code === 'RATE_LIMIT_ERROR') {
+        console.log('⚠️ Rate limit reached:', error.message)
+        setMessage('Email rate limit reached. Please wait 10-15 minutes before trying again, or try logging in if you already have an account.')
+      } else if (error.message?.includes('Invalid login credentials')) {
         console.log('🔐 Login failed: Invalid credentials')
         setMessage('Invalid email or password. Please check and try again.')
       } else if (error.message?.includes('Email not confirmed')) {

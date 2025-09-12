@@ -161,59 +161,36 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Attempt signup with enhanced error handling
+    // Attempt signup with timeout (no retries to avoid rate limit exhaustion)
     console.log('🚀 [PROXY-SIGNUP] Starting Supabase signup...')
     
     let signupResult
-    const maxRetries = 2
-    let lastError
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        console.log(`🔄 [PROXY-SIGNUP] Signup attempt ${attempt}/${maxRetries}`)
-        
-        signupResult = await Promise.race([
-          supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              data: {
-                email_confirm: true
-              }
+    try {
+      signupResult = await Promise.race([
+        supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              email_confirm: true
             }
-          }),
-          new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error('Signup timeout after 20 seconds')), 20000)
-          )
-        ])
-        
-        console.log(`✅ [PROXY-SIGNUP] Signup attempt ${attempt} successful`)
-        break // Success, exit retry loop
-        
-      } catch (attemptError: any) {
-        lastError = attemptError
-        console.error(`❌ [PROXY-SIGNUP] Signup attempt ${attempt} failed:`, {
-          message: attemptError.message,
-          name: attemptError.name,
-          cause: attemptError.cause
-        })
-        
-        // If this is the last attempt or a non-retryable error, don't retry
-        if (attempt === maxRetries || attemptError.message?.includes('User already registered')) {
-          break
-        }
-        
-        // Wait before retry (exponential backoff)
-        const waitTime = attempt * 1000
-        console.log(`⏳ [PROXY-SIGNUP] Waiting ${waitTime}ms before retry...`)
-        await new Promise(resolve => setTimeout(resolve, waitTime))
-      }
-    }
-    
-    // If we still don't have a result, throw the last error
-    if (!signupResult && lastError) {
-      console.error('💥 [PROXY-SIGNUP] All signup attempts failed, throwing last error')
-      throw lastError
+          }
+        }),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Signup timeout after 20 seconds')), 20000)
+        )
+      ])
+      
+      console.log('✅ [PROXY-SIGNUP] Signup successful')
+    } catch (signupError: any) {
+      console.error('❌ [PROXY-SIGNUP] Signup failed:', {
+        message: signupError.message,
+        name: signupError.name,
+        cause: signupError.cause
+      })
+      
+      // Don't retry - just throw the error to handle it properly
+      throw signupError
     }
     
     const { data, error } = signupResult
@@ -236,20 +213,29 @@ export async function POST(request: NextRequest) {
       
       // Map common errors to user-friendly messages
       let userMessage = error.message
-      if (error.message?.includes('Email rate limit exceeded')) {
-        userMessage = 'Too many signup attempts. Please wait a moment and try again.'
+      let errorCode = error.code || 'SIGNUP_ERROR'
+      
+      if (error.message?.includes('Email rate limit exceeded') || error.message?.includes('rate limit') || error.status === 429) {
+        userMessage = 'Email rate limit reached. Please wait 10-15 minutes before trying again, or try logging in if you already have an account.'
+        errorCode = 'RATE_LIMIT_ERROR'
       } else if (error.message?.includes('User already registered')) {
         userMessage = 'This email is already registered. Try logging in instead.'
+        errorCode = 'USER_EXISTS'
       } else if (error.message?.includes('Invalid email')) {
         userMessage = 'Please provide a valid email address.'
+        errorCode = 'INVALID_EMAIL'
+      } else if (error.message?.includes('weak password') || error.message?.includes('Password')) {
+        userMessage = 'Password must be at least 6 characters long.'
+        errorCode = 'WEAK_PASSWORD'
       }
       
       return NextResponse.json(
         { 
           success: false,
           error: userMessage,
-          code: error.code || 'SIGNUP_ERROR',
-          originalError: error.message
+          code: errorCode,
+          originalError: error.message,
+          retryAfter: errorCode === 'RATE_LIMIT_ERROR' ? '15 minutes' : undefined
         },
         { status: error.status || 400 }
       )
@@ -314,7 +300,10 @@ export async function POST(request: NextRequest) {
     let userMessage = 'Server error during signup'
     let errorCode = 'SERVER_ERROR'
     
-    if (error.message?.includes('fetch')) {
+    if (error.message?.includes('Email rate limit exceeded') || error.message?.includes('rate limit') || error.status === 429) {
+      userMessage = 'Email rate limit reached. Please wait 10-15 minutes before trying again, or try logging in if you already have an account.'
+      errorCode = 'RATE_LIMIT_ERROR'
+    } else if (error.message?.includes('fetch')) {
       userMessage = 'Network connection error. Please check your internet connection and try again.'
       errorCode = 'NETWORK_ERROR'
     } else if (error.message?.includes('timeout')) {
@@ -334,9 +323,10 @@ export async function POST(request: NextRequest) {
           code: errorCode,
           details: error.message || 'Unknown error',
           errorType: error.name || 'UnknownError',
-          processingTimeMs: processingTime
+          processingTimeMs: processingTime,
+          retryAfter: errorCode === 'RATE_LIMIT_ERROR' ? '15 minutes' : undefined
         },
-        { status: 500 }
+        { status: errorCode === 'RATE_LIMIT_ERROR' ? 429 : 500 }
       )
     } catch (responseError) {
       console.error('💥 [PROXY-SIGNUP] FAILED TO RETURN ERROR RESPONSE:', responseError)
