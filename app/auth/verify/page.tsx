@@ -88,6 +88,20 @@ function VerifyContent() {
               setSuccess(true)
               setMessage('Email verified successfully! Redirecting to complete your profile...')
               
+              // If we have session data from proxy verification, set it explicitly
+              if (verificationData.session) {
+                console.log('🔄 Setting session from proxy verification...')
+                try {
+                  await supabase.auth.setSession({
+                    access_token: verificationData.session.access_token,
+                    refresh_token: verificationData.session.refresh_token
+                  })
+                  console.log('✅ Session set successfully')
+                } catch (sessionError) {
+                  console.warn('⚠️ Failed to set session, but verification succeeded:', sessionError)
+                }
+              }
+              
               // Wait a moment then redirect to auth page to complete registration
               setTimeout(() => {
                 router.push('/auth')
