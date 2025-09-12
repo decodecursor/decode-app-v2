@@ -111,19 +111,36 @@ function VerifyContent() {
               // Check if user has completed their profile to determine redirect destination
               try {
                 console.log('🔍 Checking user profile status...')
-                const { data: userProfile, error: profileError } = await supabase
+                
+                // Add timeout to profile check to avoid hanging due to VPN issues
+                const profileCheckPromise = supabase
                   .from('users')
                   .select('id, role, company_name, approval_status')
                   .eq('id', verificationData.user.id)
                   .single()
+                
+                const timeoutPromise = new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Profile check timeout - assuming new user')), 5000)
+                )
+                
+                const { data: userProfile, error: profileError } = await Promise.race([
+                  profileCheckPromise,
+                  timeoutPromise
+                ])
 
                 if (profileError && profileError.code !== 'PGRST116') {
-                  console.error('Error checking profile:', profileError)
-                  setMessage('Verification successful! Please complete your profile.')
-                  setTimeout(() => {
-                    router.push('/auth?verified=true')
-                  }, 2000)
-                  return
+                  // Handle timeout as "no profile found" since new users won't have profiles anyway
+                  if (profileError.message?.includes('timeout') || profileError.message?.includes('Profile check timeout')) {
+                    console.log('⏰ Profile check timed out - assuming new user needs profile')
+                    // Treat as no profile found, continue to role selection
+                  } else {
+                    console.error('Error checking profile:', profileError)
+                    setMessage('Verification successful! Please complete your profile.')
+                    setTimeout(() => {
+                      router.push('/auth?verified=true')
+                    }, 2000)
+                    return
+                  }
                 }
 
                 if (!userProfile) {
@@ -150,12 +167,22 @@ function VerifyContent() {
                     }, 2000)
                   }
                 }
-              } catch (profileCheckError) {
+              } catch (profileCheckError: any) {
                 console.error('Profile check failed:', profileCheckError)
-                setMessage('Verification successful! Please complete your profile.')
-                setTimeout(() => {
-                  router.push('/auth?verified=true')
-                }, 2000)
+                
+                // Handle timeout as "no profile found" since new users won't have profiles anyway
+                if (profileCheckError.message?.includes('timeout') || profileCheckError.message?.includes('Profile check timeout')) {
+                  console.log('⏰ Profile check timed out - assuming new user needs profile')
+                  setMessage('Email verified! Please complete your profile.')
+                  setTimeout(() => {
+                    router.push('/auth?verified=true')
+                  }, 2000)
+                } else {
+                  setMessage('Verification successful! Please complete your profile.')
+                  setTimeout(() => {
+                    router.push('/auth?verified=true')
+                  }, 2000)
+                }
               }
             } else {
               setMessage('Verification completed but no user data returned. Please try logging in.')
