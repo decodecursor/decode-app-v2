@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     // Attempt email verification
     const { data, error } = await supabase.auth.verifyOtp({
       token_hash: token,
-      type: type as 'signup' | 'email_change' | 'sms' | 'phone_change'
+      type: type as 'signup' | 'email_change'
     })
     
     if (error) {
