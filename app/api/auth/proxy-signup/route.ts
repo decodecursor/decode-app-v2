@@ -4,19 +4,24 @@ import { createClient } from '@supabase/supabase-js'
 // Direct auth proxy that runs on Vercel servers (avoiding VPN/network issues)
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔄 Proxy signup request received')
+    console.log('🔄 [PROXY-SIGNUP] Request received')
+    console.log('🔄 [PROXY-SIGNUP] Request method:', request.method)
+    console.log('🔄 [PROXY-SIGNUP] Request headers:', Object.fromEntries(request.headers.entries()))
     
     // Parse request body
     let requestData
     try {
       requestData = await request.json()
-      console.log('📝 Request data parsed:', { 
+      console.log('📝 [PROXY-SIGNUP] Request data parsed successfully:', { 
         hasEmail: !!requestData.email, 
         hasPassword: !!requestData.password,
-        emailLength: requestData.email?.length || 0
+        emailLength: requestData.email?.length || 0,
+        passwordLength: requestData.password?.length || 0,
+        emailType: typeof requestData.email,
+        passwordType: typeof requestData.password
       })
     } catch (parseError) {
-      console.error('❌ Failed to parse request JSON:', parseError)
+      console.error('❌ [PROXY-SIGNUP] Failed to parse request JSON:', parseError)
       return NextResponse.json(
         { error: 'Invalid JSON in request body' },
         { status: 400 }

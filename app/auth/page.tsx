@@ -327,56 +327,63 @@ function AuthPageContent() {
           console.log('📝 [AUTH] Attempting signup for:', email)
           console.log('📝 [AUTH] Has invite data:', !!inviteData)
           
-          // Try direct Supabase signup first
+          // TEMPORARY: Skip direct signup and go straight to proxy for debugging
+          console.log('🚨 [DEBUG] BYPASSING direct signup - going straight to proxy')
           let signupSuccess = false
           let signupData: any = null
-          let signupError: any = null
-          
-          try {
-            console.log('📝 [AUTH] Attempting direct signup...')
-            const { data, error } = await supabase.auth.signUp({
-              email,
-              password
-            })
-            
-            console.log('📝 [AUTH] Direct signup response data:', !!data)
-            console.log('📝 [AUTH] Direct signup response error:', error?.message)
-            
-            if (!error && data) {
-              signupSuccess = true
-              signupData = data
-              console.log('✅ [AUTH] Direct signup successful')
-            } else {
-              signupError = error || new Error('Signup failed')
-              console.log('⚠️ [AUTH] Direct signup failed:', error?.message)
-            }
-          } catch (error: any) {
-            console.log('📝 [AUTH] Direct signup exception, will try proxy...', error.message)
-            signupError = error
-            // Don't throw here - let it fall through to proxy attempt
-          }
+          let signupError: any = new Error('Bypassed direct signup for debugging')
           
           // If direct signup failed, try proxy
           if (!signupSuccess) {
-            console.log('🔄 Using proxy for signup due to connection issues')
+            console.log('🔄 [PROXY] Starting proxy signup attempt')
+            console.log('🔄 [PROXY] Email length:', email?.length || 0)
+            console.log('🔄 [PROXY] Password length:', password?.length || 0)
             try {
+              console.log('🔄 [PROXY] Making fetch request to /api/auth/proxy-signup')
               const proxyResponse = await fetch('/api/auth/proxy-signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
               })
               
-              const proxyData = await proxyResponse.json()
+              console.log('📝 [PROXY] Response status:', proxyResponse.status)
+              console.log('📝 [PROXY] Response ok:', proxyResponse.ok)
+              console.log('📝 [PROXY] Response headers:', Object.fromEntries(proxyResponse.headers.entries()))
+              
+              let proxyData
+              try {
+                proxyData = await proxyResponse.json()
+                console.log('📝 [PROXY] Response JSON:', {
+                  success: proxyData.success,
+                  hasUser: !!proxyData.user,
+                  hasSession: !!proxyData.session,
+                  error: proxyData.error,
+                  code: proxyData.code
+                })
+              } catch (jsonError) {
+                console.error('❌ [PROXY] Failed to parse response JSON:', jsonError)
+                throw new Error(`Proxy response parsing failed: ${jsonError.message}`)
+              }
               
               if (proxyResponse.ok && proxyData.success) {
-                console.log('✅ Proxy signup successful')
+                console.log('✅ [PROXY] Proxy signup successful')
                 signupSuccess = true
                 signupData = proxyData
               } else {
-                throw new Error(proxyData.error || 'Proxy signup failed')
+                console.error('❌ [PROXY] Proxy signup failed:', {
+                  status: proxyResponse.status,
+                  error: proxyData.error,
+                  code: proxyData.code
+                })
+                throw new Error(proxyData.error || `Proxy signup failed with status ${proxyResponse.status}`)
               }
             } catch (proxyError: any) {
-              console.error('Both direct and proxy signup failed')
+              console.error('💥 [PROXY] Proxy signup exception:', {
+                message: proxyError.message,
+                name: proxyError.name,
+                stack: proxyError.stack?.substring(0, 200)
+              })
+              console.error('💥 [PROXY] Both direct and proxy signup failed')
               throw signupError || proxyError
             }
           }
