@@ -109,7 +109,6 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
     twitter: {
       card: 'summary_large_image',
       title: 'It\'s Pamper Time',
-      description: 'A special beauty treatment awaits you',
       images: ['https://app.welovedecode.com/logonew.png'],
     },
   }
@@ -141,7 +140,6 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
       twitter: {
         card: 'summary_large_image',
         title: personalizedTitle,
-        description: personalizedDescription,
         images: ['https://app.welovedecode.com/logonew.png'],
       },
     }
