@@ -129,7 +129,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
       let userIdToUse = userId
       
       if (!userIdToUse) {
-        console.log('🔄 [ROLE MODAL] No userId provided, getting from session...')
+        console.log('🔄 [ROLE MODAL] No userId provided, trying to get from session...')
         
         // Try direct session first, then proxy fallback
         let user = null
@@ -186,23 +186,44 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
         }
         
         if (!user) {
-          console.error('❌ [ROLE MODAL] Unable to get user from any method')
-          throw new Error('Unable to get user information. Please try logging in again.')
+          console.log('⚠️ [ROLE MODAL] Unable to get user from session - will create profile using email')
+          console.log('⚠️ [ROLE MODAL] This can happen when session is not fully established after verification')
+          // Don't throw error - we'll use email-based profile creation instead
+          userIdToUse = null
+        } else {
+          userIdToUse = user.id
+          console.log('✅ [ROLE MODAL] Final user ID to use:', userIdToUse)
         }
-        
-        userIdToUse = user.id
-        console.log('✅ [ROLE MODAL] Final user ID to use:', userIdToUse)
       }
 
-      const profileData = {
-        id: userIdToUse,
-        email: userEmail,
-        user_name: userName.trim(),
-        role: role,
-        company_name: companyName.trim(),
-        branch_name: role === 'Admin' ? 'Main Branch' : null,  // Auto-assign Admin to Main Branch, others wait for assignment
-        approval_status: (role === 'Admin' || inviteData) ? 'approved' : 'pending',
-        terms_accepted_at: termsAcceptedAt
+      // Create profile data - handle case where userIdToUse might be null
+      let profileData: any
+      
+      if (userIdToUse) {
+        // Normal case: we have a user ID
+        console.log('✅ [ROLE MODAL] Creating profile with user ID:', userIdToUse)
+        profileData = {
+          id: userIdToUse,
+          email: userEmail,
+          user_name: userName.trim(),
+          role: role,
+          company_name: companyName.trim(),
+          branch_name: role === 'Admin' ? 'Main Branch' : null,
+          approval_status: (role === 'Admin' || inviteData) ? 'approved' : 'pending',
+          terms_accepted_at: termsAcceptedAt
+        }
+      } else {
+        // Fallback case: no user ID available, use email-based creation
+        console.log('⚠️ [ROLE MODAL] Creating profile without user ID - using email:', userEmail)
+        profileData = {
+          email: userEmail,  // Don't set id - let database handle user lookup by email
+          user_name: userName.trim(),
+          role: role,
+          company_name: companyName.trim(),
+          branch_name: role === 'Admin' ? 'Main Branch' : null,
+          approval_status: (role === 'Admin' || inviteData) ? 'approved' : 'pending',
+          terms_accepted_at: termsAcceptedAt
+        }
       }
       
       console.log('🔄 [ROLE MODAL] Inserting profile data:', profileData)
