@@ -21,6 +21,8 @@ interface PaymentLink {
   payment_status: 'unpaid' | 'paid' | 'failed' | 'refunded'
   paid_at: string | null
   is_paid?: boolean
+  branch_name?: string | null
+  creator_name?: string | null
   created_at: string
 }
 
@@ -28,6 +30,9 @@ function MyLinksContent() {
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([])
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
+  const [userRole, setUserRole] = useState<string | null>(null)
+  const [companyName, setCompanyName] = useState<string | null>(null)
+  const [companyBranchCount, setCompanyBranchCount] = useState<number>(0)
 
   // Format amount with thousands separators 
   const formatAmount = (amount: number): string => {
@@ -67,6 +72,7 @@ function MyLinksContent() {
         return
       }
       await fetchPaymentLinks(user.id)
+      await fetchUserRoleAndBranchCount(user.id)
       
       // Set up real-time subscription for payment status changes
       console.log('🔄 Setting up real-time subscription for user:', user.id); // Force deployment
@@ -363,25 +369,74 @@ function MyLinksContent() {
       setLoading(true)
       setError('')
 
+      // First get user info to determine if admin
+      const { data: currentUser, error: currentUserError } = await createClient()
+        .from('users')
+        .select('role, company_name')
+        .eq('id', userId)
+        .single()
+
+      if (currentUserError || !currentUser) {
+        throw new Error('Failed to get user information')
+      }
+
+      const isAdmin = currentUser.role === 'Admin'
+      const companyName = currentUser.company_name
+
       // Fetch payment links with backwards compatible is_paid and paid_at columns
       let paymentLinksData, fetchError
       try {
         // Try to get payment_status and paid_at columns (from migration) + transaction data as backup
         console.log('🔍 Attempting to fetch with payment_status, paid_at, and transaction data...')
-        const result = await (createClient() as any)
-          .from('payment_links')
-          .select(`
-            id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
-            expiration_date, is_active, created_at, payment_status, paid_at,
-            transactions (
-              id,
-              status,
-              created_at,
-              completed_at
-            )
-          `)
-          .eq('creator_id', userId)
-          .order('created_at', { ascending: false })
+        
+        let result
+        if (isAdmin) {
+          // For admin users, fetch all payment links from company users
+          console.log('🔍 Admin user detected, fetching all company payment links...')
+          
+          // First get all user IDs from the company
+          const { data: companyUsers, error: companyUsersError } = await createClient()
+            .from('users')
+            .select('id')
+            .eq('company_name', companyName)
+
+          if (companyUsersError || !companyUsers) {
+            throw companyUsersError || new Error('Failed to get company users')
+          }
+
+          const companyUserIds = companyUsers.map(u => u.id)
+          
+          result = await (createClient() as any)
+            .from('payment_links')
+            .select(`
+              id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
+              expiration_date, is_active, created_at, payment_status, paid_at, branch_name, creator_name, creator_id,
+              transactions (
+                id,
+                status,
+                created_at,
+                completed_at
+              )
+            `)
+            .in('creator_id', companyUserIds)
+            .order('created_at', { ascending: false })
+        } else {
+          // For regular users, fetch only their own payment links
+          result = await (createClient() as any)
+            .from('payment_links')
+            .select(`
+              id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
+              expiration_date, is_active, created_at, payment_status, paid_at, branch_name, creator_name,
+              transactions (
+                id,
+                status,
+                created_at,
+                completed_at
+              )
+            `)
+            .eq('creator_id', userId)
+            .order('created_at', { ascending: false })
+        }
         
         paymentLinksData = result.data
         fetchError = result.error
@@ -397,20 +452,46 @@ function MyLinksContent() {
         console.log('⚠️ Primary query failed, trying fallback with is_paid field...', primaryError)
         try {
           // Fallback to is_paid column (older migration) + transaction data
-          const result = await (createClient() as any)
-            .from('payment_links')
-            .select(`
-              id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
-              expiration_date, is_active, created_at, is_paid,
-              transactions (
-                id,
-                status,
-                created_at,
-                completed_at
-              )
-            `)
-            .eq('creator_id', userId)
-            .order('created_at', { ascending: false })
+          let result
+          if (isAdmin) {
+            // Get company user IDs again for fallback
+            const { data: companyUsers } = await createClient()
+              .from('users')
+              .select('id')
+              .eq('company_name', companyName)
+            
+            const companyUserIds = companyUsers?.map(u => u.id) || []
+            
+            result = await (createClient() as any)
+              .from('payment_links')
+              .select(`
+                id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
+                expiration_date, is_active, created_at, is_paid, branch_name, creator_name, creator_id,
+                transactions (
+                  id,
+                  status,
+                  created_at,
+                  completed_at
+                )
+              `)
+              .in('creator_id', companyUserIds)
+              .order('created_at', { ascending: false })
+          } else {
+            result = await (createClient() as any)
+              .from('payment_links')
+              .select(`
+                id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
+                expiration_date, is_active, created_at, is_paid, branch_name, creator_name,
+                transactions (
+                  id,
+                  status,
+                  created_at,
+                  completed_at
+                )
+              `)
+              .eq('creator_id', userId)
+              .order('created_at', { ascending: false })
+          }
           
           paymentLinksData = result.data
           fetchError = result.error
@@ -424,20 +505,46 @@ function MyLinksContent() {
         } catch (fallbackError) {
           console.log('⚠️ is_paid fallback failed, using basic query...', fallbackError)
           // Final fallback without payment status fields but with transaction data
-          const result = await createClient()
-            .from('payment_links')
-            .select(`
-              id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
-              expiration_date, is_active, created_at,
-              transactions (
-                id,
-                status,
-                created_at,
-                completed_at
-              )
-            `)
-            .eq('creator_id', userId)
-            .order('created_at', { ascending: false })
+          let result
+          if (isAdmin) {
+            // Get company user IDs again for final fallback
+            const { data: companyUsers } = await createClient()
+              .from('users')
+              .select('id')
+              .eq('company_name', companyName)
+            
+            const companyUserIds = companyUsers?.map(u => u.id) || []
+            
+            result = await createClient()
+              .from('payment_links')
+              .select(`
+                id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
+                expiration_date, is_active, created_at, branch_name, creator_name, creator_id,
+                transactions (
+                  id,
+                  status,
+                  created_at,
+                  completed_at
+                )
+              `)
+              .in('creator_id', companyUserIds)
+              .order('created_at', { ascending: false })
+          } else {
+            result = await createClient()
+              .from('payment_links')
+              .select(`
+                id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
+                expiration_date, is_active, created_at, branch_name, creator_name,
+                transactions (
+                  id,
+                  status,
+                  created_at,
+                  completed_at
+                )
+              `)
+              .eq('creator_id', userId)
+              .order('created_at', { ascending: false })
+          }
           
           paymentLinksData = result.data
           fetchError = result.error
@@ -533,7 +640,9 @@ function MyLinksContent() {
           description: link?.description,
           is_paid: isPaid,
           payment_status: paymentStatus,
-          paid_at: actualPaidAt
+          paid_at: actualPaidAt,
+          branch_name: link?.branch_name,
+          creator_name: link?.creator_name
         }
       })
       
@@ -556,6 +665,43 @@ function MyLinksContent() {
     } finally {
       setLoading(false)
       setInitialLoading(false)
+    }
+  }
+
+  const fetchUserRoleAndBranchCount = async (userId: string) => {
+    try {
+      // Fetch current user's role and company info
+      const { data: userData, error: userError } = await createClient()
+        .from('users')
+        .select('role, company_name')
+        .eq('id', userId)
+        .single()
+
+      if (userError || !userData) {
+        console.error('Error fetching user data:', userError)
+        return
+      }
+
+      setUserRole(userData.role)
+      setCompanyName(userData.company_name)
+
+      // For admin accounts, fetch all payment links from the company to show creator names
+      // For user accounts, only count branches if company has 2+ branches
+      const { data: companyUsers, error: branchError } = await createClient()
+        .from('users')
+        .select('branch_name')
+        .eq('company_name', userData.company_name)
+        .not('branch_name', 'is', null)
+
+      if (!branchError && companyUsers) {
+        // Get unique branches from all users in the company
+        const allBranches = companyUsers
+          .flatMap(user => (user.branch_name || '').split(',').map(b => b.trim()).filter(b => b !== ''))
+        const uniqueBranches = [...new Set(allBranches)]
+        setCompanyBranchCount(uniqueBranches.length)
+      }
+    } catch (error) {
+      console.error('Error fetching user role and branch count:', error)
     }
   }
 
@@ -1071,6 +1217,25 @@ function MyLinksContent() {
                                 AED {formatAmount(link.service_amount_aed || (link.amount_aed / 1.09))}
                               </div>
                             </div>
+                            {/* Branch Name and Creator Name Display */}
+                            <div className="flex items-center gap-4 text-sm text-gray-400">
+                              {/* For Admin accounts: Always show creator_name, show branch_name if company has 2+ branches */}
+                              {userRole === 'Admin' && link.creator_name && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-purple-400">Creator:</span>
+                                  <span>{link.creator_name}</span>
+                                </div>
+                              )}
+                              
+                              {/* Show branch_name when company has multiple branches (for both user and admin) */}
+                              {companyBranchCount >= 2 && link.branch_name && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-blue-400">Branch:</span>
+                                  <span>{link.branch_name}</span>
+                                </div>
+                              )}
+                            </div>
+                            
                             <div className={`flex gap-2 ml-4 ${isPaid ? 'opacity-50' : ''}`}>
                             <button
                               onClick={() => copyToClipboard(link.id)}

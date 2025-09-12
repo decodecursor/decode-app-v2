@@ -107,6 +107,8 @@ export interface Database {
           client_name: string | null
           payment_status: 'unpaid' | 'paid' | 'failed' | 'refunded'
           paid_at: string | null
+          branch_name: string | null
+          creator_name: string | null
         }
         Insert: {
           id?: string
@@ -121,6 +123,8 @@ export interface Database {
           client_name?: string | null
           payment_status?: 'unpaid' | 'paid' | 'failed' | 'refunded'
           paid_at?: string | null
+          branch_name?: string | null
+          creator_name?: string | null
         }
         Update: {
           id?: string
@@ -135,6 +139,8 @@ export interface Database {
           client_name?: string | null
           payment_status?: 'unpaid' | 'paid' | 'failed' | 'refunded'
           paid_at?: string | null
+          branch_name?: string | null
+          creator_name?: string | null
           updated_at?: string
         }
         Relationships: [

@@ -29,6 +29,8 @@ export interface CrossmintPaymentLink {
   creator_id: string;
   linked_user_id: string | null;
   is_active: boolean;
+  branch_name?: string | null; // Branch name of creator at time of creation
+  creator_name?: string | null; // Creator name at time of creation
   created_at: string;
   updated_at?: string;
 }
@@ -176,6 +178,8 @@ export interface CreatePaymentLinkRequest {
   original_amount_aed: number; // The service amount (what professional receives)
   creator_id: string;
   linked_user_id?: string;
+  branch_name?: string; // Branch name from creator
+  creator_name?: string; // Creator name
 }
 
 export interface CreatePaymentLinkResponse extends CrossmintPaymentLink {

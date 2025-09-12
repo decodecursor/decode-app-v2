@@ -137,6 +137,8 @@ export class CrossmintDatabaseService {
       expiration_date: expirationDate.toISOString(),
       creator_id: request.creator_id,
       linked_user_id: request.linked_user_id,
+      branch_name: request.branch_name,
+      creator_name: request.creator_name,
       is_active: true
     };
 
