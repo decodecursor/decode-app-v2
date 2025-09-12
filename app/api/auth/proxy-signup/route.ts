@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
               return fetch(url, {
                 ...options,
                 headers: {
-                  ...options.headers,
+                  ...(options.headers || {}),
                   'Content-Type': 'application/json',
                   'Accept': 'application/json',
                   'User-Agent': 'decode-app-proxy/1.0'
