@@ -1,0 +1,54 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/utils/supabase/server'
+
+// Direct auth verification proxy that runs on Vercel servers (avoiding VPN/network issues)
+export async function POST(request: NextRequest) {
+  try {
+    const { token, type } = await request.json()
+    
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Token required' },
+        { status: 400 }
+      )
+    }
+    
+    if (!type) {
+      return NextResponse.json(
+        { error: 'Type required (e.g., "signup")' },
+        { status: 400 }
+      )
+    }
+    
+    // Use server-side Supabase client (runs on Vercel, not affected by network issues)
+    const supabase = await createClient()
+    
+    // Attempt email verification
+    const { data, error } = await supabase.auth.verifyOtp({
+      token_hash: token,
+      type: type as 'signup' | 'email_change' | 'sms' | 'phone_change'
+    })
+    
+    if (error) {
+      console.error('Verification error:', error)
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      )
+    }
+    
+    // Return success with user and session data (matches client-side verifyOtp response)
+    return NextResponse.json({
+      user: data.user,
+      session: data.session,
+      success: true
+    })
+    
+  } catch (error: any) {
+    console.error('Proxy verification error:', error)
+    return NextResponse.json(
+      { error: 'Server error during verification', details: error.message },
+      { status: 500 }
+    )
+  }
+}

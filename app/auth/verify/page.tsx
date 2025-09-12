@@ -26,44 +26,90 @@ function VerifyContent() {
 
         console.log('🔍 Processing verification:', { token: token?.substring(0, 20) + '...', type })
 
-        const supabase = createClient()
-
         // For signup verification, use verifyOtp
         if (type === 'signup') {
-          const { data, error } = await supabase.auth.verifyOtp({
-            token_hash: token,
-            type: 'signup'
-          })
+          const supabase = createClient()
 
-          console.log('📝 Verification result:', { data: !!data, error })
+          // Try direct Supabase verification first
+          let verificationSuccess = false
+          let verificationData: any = null
+          let verificationError: any = null
 
-          if (error) {
-            console.error('❌ Verification error:', error)
+          try {
+            console.log('📝 Attempting direct verification...')
+            const { data, error } = await supabase.auth.verifyOtp({
+              token_hash: token,
+              type: 'signup'
+            })
+
+            console.log('📝 Direct verification result:', { data: !!data, error })
+
+            if (!error && data) {
+              verificationSuccess = true
+              verificationData = data
+            } else {
+              verificationError = error || new Error('Verification failed')
+            }
+          } catch (error: any) {
+            console.log('Direct verification failed, trying proxy...', error.message)
+            verificationError = error
+          }
+
+          // If direct verification failed, try proxy
+          if (!verificationSuccess) {
+            console.log('🔄 Using proxy for verification due to connection issues')
+            try {
+              const proxyResponse = await fetch('/api/auth/proxy-verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, type })
+              })
+
+              const proxyData = await proxyResponse.json()
+
+              if (proxyResponse.ok && proxyData.success) {
+                console.log('✅ Proxy verification successful')
+                verificationSuccess = true
+                verificationData = proxyData
+              } else {
+                throw new Error(proxyData.error || 'Proxy verification failed')
+              }
+            } catch (proxyError: any) {
+              console.error('Both direct and proxy verification failed')
+              verificationError = verificationError || proxyError
+            }
+          }
+
+          // Handle verification result
+          if (verificationSuccess && verificationData) {
+            if (verificationData.user) {
+              console.log('✅ Email verified successfully for user:', verificationData.user.id)
+              setEmail(verificationData.user.email || '')
+              setSuccess(true)
+              setMessage('Email verified successfully! Redirecting to complete your profile...')
+              
+              // Wait a moment then redirect to auth page to complete registration
+              setTimeout(() => {
+                router.push('/auth')
+              }, 2000)
+            } else {
+              setMessage('Verification completed but no user data returned. Please try logging in.')
+            }
+          } else {
+            console.error('❌ Verification error:', verificationError)
             
             // Handle specific error cases
-            if (error.message?.includes('expired')) {
+            if (verificationError.message?.includes('expired')) {
               setMessage('Verification link has expired. Please request a new one.')
-            } else if (error.message?.includes('invalid')) {
+            } else if (verificationError.message?.includes('invalid')) {
               setMessage('Invalid verification link. Please try registering again.')
+            } else if (verificationError.message?.includes('network') || verificationError.name === 'NetworkError') {
+              setMessage('Connection error during verification. Please check your network and try again.')
             } else {
-              setMessage(`Verification failed: ${error.message}`)
+              setMessage(`Verification failed: ${verificationError.message}`)
             }
             setLoading(false)
             return
-          }
-
-          if (data.user) {
-            console.log('✅ Email verified successfully for user:', data.user.id)
-            setEmail(data.user.email || '')
-            setSuccess(true)
-            setMessage('Email verified successfully! Redirecting to complete your profile...')
-            
-            // Wait a moment then redirect to auth page to complete registration
-            setTimeout(() => {
-              router.push('/auth')
-            }, 2000)
-          } else {
-            setMessage('Verification completed but no user data returned. Please try logging in.')
           }
         } else {
           setMessage('Unsupported verification type')
