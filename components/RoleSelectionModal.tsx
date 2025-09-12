@@ -130,25 +130,68 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
       
       if (!userIdToUse) {
         console.log('🔄 [ROLE MODAL] No userId provided, getting from session...')
-        const { data: { user }, error: userError } = await Promise.race([
-          supabase.auth.getUser(),
-          new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout getting user')), 5000)
-          )
-        ])
         
-        if (userError) {
-          console.error('❌ [ROLE MODAL] Error getting user:', userError)
-          throw new Error('Unable to get user information. Please try logging in again.')
+        // Try direct session first, then proxy fallback
+        let user = null
+        let userError = null
+        
+        try {
+          console.log('🔄 [ROLE MODAL] Attempting direct getUser...')
+          const { data, error } = await Promise.race([
+            supabase.auth.getUser(),
+            new Promise<never>((_, reject) => 
+              setTimeout(() => reject(new Error('Direct getUser timeout - will try proxy')), 3000)
+            )
+          ])
+          
+          if (!error && data?.user) {
+            user = data.user
+            console.log('✅ [ROLE MODAL] Got user from direct session:', user.id)
+          } else {
+            userError = error || new Error('No user in direct session')
+          }
+        } catch (directError: any) {
+          console.log('📝 [ROLE MODAL] Direct getUser failed, trying proxy...', directError.message)
+          userError = directError
+        }
+        
+        // If direct failed, try proxy
+        if (!user) {
+          try {
+            console.log('🔄 [ROLE MODAL] Trying proxy user route...')
+            const session = await supabase.auth.getSession()
+            
+            if (!session.data.session?.access_token) {
+              throw new Error('No access token available for proxy request')
+            }
+            
+            const proxyResponse = await fetch('/api/auth/proxy-user', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ access_token: session.data.session.access_token })
+            })
+            
+            const proxyData = await proxyResponse.json()
+            
+            if (proxyResponse.ok && proxyData.success) {
+              user = proxyData.user
+              console.log('✅ [ROLE MODAL] Got user from proxy:', user.id)
+            } else {
+              throw new Error(proxyData.error || 'Proxy user request failed')
+            }
+          } catch (proxyError: any) {
+            console.error('💥 [ROLE MODAL] Both direct and proxy user requests failed:', proxyError.message)
+            userError = userError || proxyError
+          }
         }
         
         if (!user) {
-          console.error('❌ [ROLE MODAL] No user found in session')
+          console.error('❌ [ROLE MODAL] Unable to get user from any method')
           throw new Error('Unable to get user information. Please try logging in again.')
         }
         
         userIdToUse = user.id
-        console.log('✅ [ROLE MODAL] Got user ID from session:', userIdToUse)
+        console.log('✅ [ROLE MODAL] Final user ID to use:', userIdToUse)
       }
 
       const profileData = {
