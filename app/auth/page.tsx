@@ -463,6 +463,7 @@ function AuthPageContent() {
             router.push(`/verify-email?email=${encodeURIComponent(email)}`)
             return signupData
         }
+      }
       })
       
       // Handle the auth result
