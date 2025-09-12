@@ -22,6 +22,7 @@ function AuthPageContent() {
   const [retryCount, setRetryCount] = useState(0)
   const [isRetrying, setIsRetrying] = useState(false)
   const [inviteData, setInviteData] = useState<any>(null)
+  const [fallbackTriggered, setFallbackTriggered] = useState(false)
   const supabase = createClient()
   
   // Auto-hide error messages after 5 seconds
@@ -56,23 +57,43 @@ function AuthPageContent() {
   // Check for authenticated user on page load (handles email verification returns)
   useEffect(() => {
     const checkAuthState = async () => {
+      console.log('🔍 [AUTH] Starting auth state check...')
       try {
         const { data: { user }, error } = await supabase.auth.getUser()
         const justVerified = searchParams?.get('verified') === 'true'
         
+        console.log('🔍 [AUTH] Auth state details:', {
+          hasUser: !!user,
+          userId: user?.id,
+          userEmail: user?.email,
+          emailConfirmed: !!user?.email_confirmed_at,
+          justVerified,
+          error: error?.message
+        })
+        
         if (user && (user.email_confirmed_at || justVerified)) {
-          console.log('✅ [AUTH] Found verified user on page load:', user.id, { justVerified })
+          console.log('✅ [AUTH] Found verified user on page load:', user.id, { 
+            justVerified,
+            emailConfirmed: !!user.email_confirmed_at 
+          })
           
           // Quick check if user already has a profile
+          console.log('🔍 [AUTH] Checking user profile...')
           const { data: profileData, error: profileError } = await supabase
             .from('users')
             .select('id')
             .eq('id', user.id)
             .single()
           
+          console.log('🔍 [AUTH] Profile check result:', {
+            hasProfile: !!profileData,
+            profileError: profileError?.code,
+            profileErrorMessage: profileError?.message
+          })
+          
           if (profileError && profileError.code === 'PGRST116') {
             // User doesn't have profile yet - show role modal to complete registration
-            console.log('✅ [AUTH] Verified user needs to complete profile')
+            console.log('✅ [AUTH] Verified user needs to complete profile - SHOWING ROLE MODAL')
             setEmail(user.email || '')
             setSignedUpUser(user)
             setShowRoleModal(true)
@@ -86,14 +107,28 @@ function AuthPageContent() {
           // User has verified=true parameter but no authenticated user yet
           // This can happen if session setting failed - try to recover
           console.log('⚠️ [AUTH] Verification parameter present but no user session - waiting for session')
+          console.log('⚠️ [AUTH] Will retry in 1 second...')
           setTimeout(() => {
             // Retry after a delay to allow session to be established
+            console.log('🔄 [AUTH] Retrying auth state check...')
             checkAuthState()
           }, 1000)
+          
+          // Also set a backup timer to force role modal if session never appears
+          if (!fallbackTriggered) {
+            setTimeout(() => {
+              console.log('🚨 [AUTH] FALLBACK: Session still not available after retries - forcing role modal')
+              setFallbackTriggered(true)
+              setShowRoleModal(true)
+              setMessage('Please complete your profile to finish registration')
+            }, 3000)
+          }
+        } else {
+          console.log('ℹ️ [AUTH] No verified user found, showing normal auth flow')
         }
       } catch (error) {
         // Silently continue - don't block normal auth flow
-        console.warn('Auth state check error:', error)
+        console.error('❌ [AUTH] Auth state check error:', error)
       }
     }
     
