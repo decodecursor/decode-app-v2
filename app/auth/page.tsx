@@ -333,28 +333,27 @@ function AuthPageContent() {
           let signupError: any = null
           
           try {
-            const { data, error } = await Promise.race([
-              supabase.auth.signUp({
-                email,
-                password
-              }),
-              new Promise<never>((_, reject) => 
-                setTimeout(() => reject(new Error('Signup timeout after 10 seconds')), 10000)
-              )
-            ])
+            console.log('📝 [AUTH] Attempting direct signup...')
+            const { data, error } = await supabase.auth.signUp({
+              email,
+              password
+            })
             
-            console.log('📝 [AUTH] Direct signup response data:', data)
-            console.log('📝 [AUTH] Direct signup response error:', error)
+            console.log('📝 [AUTH] Direct signup response data:', !!data)
+            console.log('📝 [AUTH] Direct signup response error:', error?.message)
             
             if (!error && data) {
               signupSuccess = true
               signupData = data
+              console.log('✅ [AUTH] Direct signup successful')
             } else {
               signupError = error || new Error('Signup failed')
+              console.log('⚠️ [AUTH] Direct signup failed:', error?.message)
             }
           } catch (error: any) {
-            console.log('Direct signup failed, trying proxy...', error.message)
+            console.log('📝 [AUTH] Direct signup exception, will try proxy...', error.message)
             signupError = error
+            // Don't throw here - let it fall through to proxy attempt
           }
           
           // If direct signup failed, try proxy
