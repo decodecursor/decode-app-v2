@@ -370,30 +370,65 @@ function AuthPageContent() {
       } else {
         console.log('📝 [AUTH] Attempting signup for:', email)
         
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password
-        })
+        let signupData = null
+        let signupError = null
         
-        if (error) {
-          throw error
+        // Try direct signup first
+        try {
+          console.log('🔄 [AUTH] Trying direct signup...')
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password
+          })
+          
+          if (!error && data) {
+            signupData = data
+            console.log('✅ [AUTH] Direct signup successful')
+          } else {
+            signupError = error
+            throw error || new Error('Direct signup failed')
+          }
+        } catch (directError) {
+          console.log('⚠️ [AUTH] Direct signup failed, trying proxy...', directError.message)
+          
+          // Try proxy signup
+          try {
+            console.log('🔄 [AUTH] Using proxy signup...')
+            const proxyResponse = await fetch('/api/auth/proxy-signup', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, password })
+            })
+            
+            const proxyData = await proxyResponse.json()
+            
+            if (proxyResponse.ok && proxyData.success) {
+              console.log('✅ [AUTH] Proxy signup successful')
+              signupData = proxyData
+            } else {
+              throw new Error(proxyData.error || 'Proxy signup failed')
+            }
+          } catch (proxyError) {
+            console.error('❌ [AUTH] Both direct and proxy signup failed')
+            throw signupError || proxyError
+          }
         }
         
-        if (data.user) {
-          console.log('✅ [AUTH] User signed up successfully:', data.user.id)
+        if (signupData && signupData.user) {
+          console.log('✅ [AUTH] User signed up successfully:', signupData.user.id)
           
           // For invited users, skip email verification and go straight to role modal
           if (inviteData) {
             console.log('✅ [AUTH] Invited user - skipping email verification')
-            setSignedUpUser(data.user)
+            setSignedUpUser(signupData.user)
             setShowRoleModal(true)
             return
           }
           
           // For regular users, check if email is confirmed
-          if (data.user.email_confirmed_at || data.session) {
+          if (signupData.user.email_confirmed_at || signupData.session) {
             console.log('✅ [AUTH] Email confirmed or session active - showing role modal')
-            setSignedUpUser(data.user)
+            setSignedUpUser(signupData.user)
             setShowRoleModal(true)
           } else {
             console.log('📧 [AUTH] Email confirmation required for regular user')
