@@ -11,7 +11,7 @@ interface RoleSelectionModalProps {
   termsAcceptedAt: string
   inviteData?: any  // Invite data for pre-population
   onClose: () => void
-  onComplete: () => void
+  onComplete: (role: string) => void
 }
 
 export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcceptedAt, inviteData, onClose, onComplete }: RoleSelectionModalProps) {
@@ -192,7 +192,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
           throw profileError || proxyError
         }
       }
-      onComplete()
+      onComplete(role)
     } catch (error) {
       console.error('Profile creation error:', error)
       

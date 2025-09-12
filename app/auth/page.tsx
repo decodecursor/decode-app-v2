@@ -502,10 +502,18 @@ function AuthPageContent() {
     router.push(`/verify-email?email=${encodeURIComponent(email)}`)
   }
 
-  const handleRoleModalComplete = () => {
+  const handleRoleModalComplete = (role: string) => {
     setShowRoleModal(false)
-    // Redirect to email verification page
-    router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+    
+    console.log('✅ [AUTH] Profile creation completed for role:', role)
+    
+    if (role === 'Admin') {
+      console.log('✅ [AUTH] Admin user registered - redirecting to dashboard')
+      router.push('/dashboard')
+    } else {
+      console.log('✅ [AUTH] Staff user registered - redirecting to pending approval')
+      router.push('/pending-approval')
+    }
   }
 
   return (
