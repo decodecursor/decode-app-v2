@@ -58,9 +58,10 @@ function AuthPageContent() {
     const checkAuthState = async () => {
       try {
         const { data: { user }, error } = await supabase.auth.getUser()
+        const justVerified = searchParams?.get('verified') === 'true'
         
-        if (user && user.email_confirmed_at) {
-          console.log('✅ [AUTH] Found verified user on page load:', user.id)
+        if (user && (user.email_confirmed_at || justVerified)) {
+          console.log('✅ [AUTH] Found verified user on page load:', user.id, { justVerified })
           
           // Quick check if user already has a profile
           const { data: profileData, error: profileError } = await supabase
@@ -81,14 +82,23 @@ function AuthPageContent() {
             console.log('✅ [AUTH] User already has profile - redirecting to dashboard')
             router.push('/dashboard')
           }
+        } else if (justVerified) {
+          // User has verified=true parameter but no authenticated user yet
+          // This can happen if session setting failed - try to recover
+          console.log('⚠️ [AUTH] Verification parameter present but no user session - waiting for session')
+          setTimeout(() => {
+            // Retry after a delay to allow session to be established
+            checkAuthState()
+          }, 1000)
         }
       } catch (error) {
         // Silently continue - don't block normal auth flow
+        console.warn('Auth state check error:', error)
       }
     }
     
     checkAuthState()
-  }, [router, supabase])
+  }, [searchParams, router, supabase])
 
   // Real-time email validation
   useEffect(() => {

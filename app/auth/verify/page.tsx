@@ -92,11 +92,17 @@ function VerifyContent() {
               if (verificationData.session) {
                 console.log('🔄 Setting session from proxy verification...')
                 try {
-                  await supabase.auth.setSession({
+                  const { error: sessionError } = await supabase.auth.setSession({
                     access_token: verificationData.session.access_token,
                     refresh_token: verificationData.session.refresh_token
                   })
-                  console.log('✅ Session set successfully')
+                  if (sessionError) {
+                    console.warn('⚠️ Session error:', sessionError)
+                  } else {
+                    console.log('✅ Session set successfully')
+                    // Wait a moment for session to be fully established
+                    await new Promise(resolve => setTimeout(resolve, 500))
+                  }
                 } catch (sessionError) {
                   console.warn('⚠️ Failed to set session, but verification succeeded:', sessionError)
                 }
@@ -115,7 +121,7 @@ function VerifyContent() {
                   console.error('Error checking profile:', profileError)
                   setMessage('Verification successful! Please complete your profile.')
                   setTimeout(() => {
-                    router.push('/auth')
+                    router.push('/auth?verified=true')
                   }, 2000)
                   return
                 }
@@ -125,7 +131,7 @@ function VerifyContent() {
                   console.log('📝 No profile found - redirecting to role selection')
                   setMessage('Email verified! Please complete your profile.')
                   setTimeout(() => {
-                    router.push('/auth')
+                    router.push('/auth?verified=true')
                   }, 2000)
                 } else {
                   // Profile exists - check approval status and redirect accordingly
@@ -148,7 +154,7 @@ function VerifyContent() {
                 console.error('Profile check failed:', profileCheckError)
                 setMessage('Verification successful! Please complete your profile.')
                 setTimeout(() => {
-                  router.push('/auth')
+                  router.push('/auth?verified=true')
                 }, 2000)
               }
             } else {
