@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 
 // Direct auth proxy that runs on Vercel servers (avoiding VPN/network issues)
 export async function POST(request: NextRequest) {
+  const startTime = Date.now()
   console.log('🔄 [PROXY-SIGNUP] === PROXY SIGNUP ROUTE CALLED ===')
   console.log('🔄 [PROXY-SIGNUP] Timestamp:', new Date().toISOString())
   console.log('🔄 [PROXY-SIGNUP] Node version:', process.version)
@@ -122,68 +123,134 @@ export async function POST(request: NextRequest) {
         {
           auth: {
             autoRefreshToken: false,
-            persistSession: false
+            persistSession: false,
+            detectSessionInUrl: false
+          },
+          global: {
+            headers: {
+              'x-proxy-signup': 'true',
+              'x-request-id': `proxy-signup-${Date.now()}`
+            }
           }
         }
       )
-      console.log('✅ Supabase anon client created successfully')
+      console.log('✅ [PROXY-SIGNUP] Supabase anon client created successfully')
+      
+      // Test the client connection
+      const healthCheck = await supabase.from('users').select('count').limit(1)
+      console.log('✅ [PROXY-SIGNUP] Database connection verified:', !healthCheck.error)
+      
     } catch (clientError) {
-      console.error('❌ Failed to create Supabase anon client:', clientError)
+      console.error('❌ [PROXY-SIGNUP] Failed to create Supabase anon client:', clientError)
       return NextResponse.json(
-        { error: 'Failed to initialize authentication service' },
+        { 
+          success: false,
+          error: 'Failed to initialize authentication service',
+          details: clientError.message
+        },
         { status: 500 }
       )
     }
     
-    // Attempt signup
-    console.log('🚀 Starting Supabase signup...')
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    })
+    // Attempt signup with timeout and retry logic
+    console.log('🚀 [PROXY-SIGNUP] Starting Supabase signup...')
     
-    console.log('📝 Signup result:', { 
+    let signupResult
+    try {
+      signupResult = await Promise.race([
+        supabase.auth.signUp({
+          email,
+          password,
+        }),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Signup timeout after 15 seconds')), 15000)
+        )
+      ])
+    } catch (timeoutError) {
+      console.error('⏰ [PROXY-SIGNUP] Signup timeout:', timeoutError.message)
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Signup request timed out',
+          code: 'TIMEOUT_ERROR',
+          details: 'The signup request took too long to process'
+        },
+        { status: 408 }
+      )
+    }
+    
+    const { data, error } = signupResult
+    
+    console.log('📝 [PROXY-SIGNUP] Signup result:', { 
       hasData: !!data, 
       hasUser: !!data?.user,
       hasSession: !!data?.session,
       hasError: !!error,
-      errorMessage: error?.message
+      errorMessage: error?.message,
+      processingTimeMs: Date.now() - startTime
     })
     
     if (error) {
-      console.error('❌ Supabase signup error:', {
+      console.error('❌ [PROXY-SIGNUP] Supabase signup error:', {
         message: error.message,
         status: error.status,
         code: error.code || 'no_code'
       })
+      
+      // Map common errors to user-friendly messages
+      let userMessage = error.message
+      if (error.message?.includes('Email rate limit exceeded')) {
+        userMessage = 'Too many signup attempts. Please wait a moment and try again.'
+      } else if (error.message?.includes('User already registered')) {
+        userMessage = 'This email is already registered. Try logging in instead.'
+      } else if (error.message?.includes('Invalid email')) {
+        userMessage = 'Please provide a valid email address.'
+      }
+      
       return NextResponse.json(
-        { error: error.message, code: error.code },
-        { status: 400 }
+        { 
+          success: false,
+          error: userMessage,
+          code: error.code || 'SIGNUP_ERROR',
+          originalError: error.message
+        },
+        { status: error.status || 400 }
       )
     }
     
     if (!data) {
-      console.error('❌ No data returned from signup')
+      console.error('❌ [PROXY-SIGNUP] No data returned from signup')
       return NextResponse.json(
-        { error: 'No data returned from signup' },
+        { 
+          success: false,
+          error: 'No data returned from signup',
+          code: 'NO_DATA_ERROR'
+        },
         { status: 500 }
       )
     }
 
-    console.log('✅ Signup successful:', {
+    console.log('✅ [PROXY-SIGNUP] Signup successful:', {
       userId: data.user?.id,
       userEmail: data.user?.email,
-      hasSession: !!data.session
+      emailConfirmed: !!data.user?.email_confirmed_at,
+      hasSession: !!data.session,
+      processingTimeMs: Date.now() - startTime
     })
     
-    // Return success with user and session data (matches client-side signUp response)
-    return NextResponse.json({
+    // Return success with user and session data (matches client-side signUp response format)
+    const response = {
+      success: true,
       user: data.user,
       session: data.session,
-      success: true
-    })
+      processingTimeMs: Date.now() - startTime
+    }
+    
+    console.log('📤 [PROXY-SIGNUP] Returning successful response')
+    return NextResponse.json(response)
     
   } catch (error: any) {
+    const processingTime = Date.now() - startTime
     console.error('💥 [PROXY-SIGNUP] TOP LEVEL ERROR CAUGHT:', {
       message: error.message,
       name: error.name,
@@ -192,6 +259,7 @@ export async function POST(request: NextRequest) {
       toString: error.toString(),
       typeof: typeof error,
       timestamp: new Date().toISOString(),
+      processingTimeMs: processingTime,
       nodeEnv: process.env.NODE_ENV,
       vercelRegion: process.env.VERCEL_REGION,
       requestUrl: request?.url || 'unknown'
@@ -205,20 +273,45 @@ export async function POST(request: NextRequest) {
       anonKeyLen: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length || 0
     })
     
+    // Map errors to user-friendly messages
+    let userMessage = 'Server error during signup'
+    let errorCode = 'SERVER_ERROR'
+    
+    if (error.message?.includes('fetch')) {
+      userMessage = 'Network connection error. Please check your internet connection and try again.'
+      errorCode = 'NETWORK_ERROR'
+    } else if (error.message?.includes('timeout')) {
+      userMessage = 'Request timed out. Please try again.'
+      errorCode = 'TIMEOUT_ERROR'
+    } else if (error.name === 'TypeError') {
+      userMessage = 'Configuration error. Please try again or contact support.'
+      errorCode = 'CONFIG_ERROR'
+    }
+    
     // Try to return a proper error response even if something is very wrong
     try {
       return NextResponse.json(
         { 
-          error: 'Server error during signup', 
+          success: false,
+          error: userMessage,
+          code: errorCode,
           details: error.message || 'Unknown error',
-          errorType: error.name || 'UnknownError'
+          errorType: error.name || 'UnknownError',
+          processingTimeMs: processingTime
         },
         { status: 500 }
       )
     } catch (responseError) {
       console.error('💥 [PROXY-SIGNUP] FAILED TO RETURN ERROR RESPONSE:', responseError)
-      // Last resort - return a basic response
-      return new Response('Internal Server Error', { status: 500 })
+      // Last resort - return a basic response that matches expected format
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Internal server error',
+        code: 'RESPONSE_ERROR'
+      }), { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      })
     }
   }
 }

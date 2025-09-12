@@ -189,27 +189,70 @@ function AuthPageContent() {
     return () => clearTimeout(debounceTimer)
   }, [email, isLogin])
 
-  // Retry mechanism for network failures
-  const retryWithDelay = async (fn: () => Promise<any>, maxRetries = 3, delay = 2000): Promise<any> => {
-    for (let i = 0; i <= maxRetries; i++) {
+  // Enhanced retry mechanism for network failures with better error detection
+  const retryWithDelay = async (fn: () => Promise<any>, maxRetries = 3, baseDelay = 1500, operationName = 'operation'): Promise<any> => {
+    let lastError: any = null
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        return await fn()
-      } catch (error: any) {
-        const isNetworkError = error.message?.includes('fetch') || 
-                               error.name === 'NetworkError' || 
-                               error.message?.includes('Failed to fetch') ||
-                               error.code === 'NETWORK_ERROR'
+        console.log(`🔄 [AUTH-RETRY] Attempt ${attempt + 1}/${maxRetries + 1} for ${operationName}`)
         
-        if (i === maxRetries || !isNetworkError) {
+        // Add timeout wrapper for each attempt
+        const result = await Promise.race([
+          fn(),
+          new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error(`Timeout for ${operationName} after 10 seconds`)), 10000)
+          )
+        ])
+        
+        console.log(`✅ [AUTH-RETRY] ${operationName} succeeded on attempt ${attempt + 1}`)
+        return result
+        
+      } catch (error: any) {
+        lastError = error
+        console.log(`⚠️ [AUTH-RETRY] Attempt ${attempt + 1} failed for ${operationName}:`, error.message)
+        
+        const isRetryableError = 
+          error.message?.includes('fetch') || 
+          error.name === 'NetworkError' || 
+          error.message?.includes('Failed to fetch') ||
+          error.message?.includes('timeout') ||
+          error.message?.includes('Timeout') ||
+          error.code === 'NETWORK_ERROR' ||
+          error.code === 'TIMEOUT_ERROR' ||
+          error.name === 'TypeError' && error.message?.includes('fetch')
+        
+        // Don't retry on authentication errors
+        const isAuthError = 
+          error.message?.includes('Invalid login credentials') ||
+          error.message?.includes('Email not confirmed') ||
+          error.message?.includes('User already registered') ||
+          error.message?.includes('Invalid email')
+        
+        if (attempt === maxRetries || !isRetryableError || isAuthError) {
+          console.log(`❌ [AUTH-RETRY] ${operationName} failed permanently:`, {
+            finalAttempt: attempt === maxRetries,
+            isRetryable: isRetryableError,
+            isAuthError,
+            errorMessage: error.message
+          })
           throw error
         }
         
-        console.log(`🔄 Retry attempt ${i + 1}/${maxRetries} after ${delay}ms delay`)
+        // Calculate delay with exponential backoff and jitter
+        const jitter = Math.random() * 500 // Add some randomness
+        const delay = Math.min(baseDelay * Math.pow(1.5, attempt) + jitter, 8000) // Cap at 8 seconds
+        
+        console.log(`⏳ [AUTH-RETRY] Waiting ${Math.round(delay)}ms before retry ${attempt + 2}/${maxRetries + 1}`)
         setIsRetrying(true)
+        setRetryCount(attempt + 1)
+        
         await new Promise(resolve => setTimeout(resolve, delay))
-        delay *= 1.5 // Exponential backoff
       }
     }
+    
+    // This shouldn't be reached, but just in case
+    throw lastError
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -233,9 +276,11 @@ function AuthPageContent() {
     
     try {
       setIsRetrying(false)
+      setRetryCount(0)
       
-      // Execute auth flow directly without retry wrapper
-      if (isLogin) {
+      // Execute auth flow with retry mechanism for network issues
+      const authResult = await retryWithDelay(async () => {
+        if (isLogin) {
           console.log('🔐 Attempting login for:', email)
           
           // Try direct Supabase login first
@@ -469,7 +514,9 @@ function AuthPageContent() {
             router.push(`/verify-email?email=${encodeURIComponent(email)}`)
             return signupData
         }
-      }
+      }, 3, 1500, isLogin ? 'login' : 'signup') // Close the retryWithDelay wrapper
+      
+      console.log('✅ [AUTH] Authentication completed successfully with retries')
       
     } catch (error: any) {
       console.error('💥 Authentication error:', error)
