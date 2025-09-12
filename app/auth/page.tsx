@@ -234,8 +234,9 @@ function AuthPageContent() {
     try {
       setIsRetrying(false)
       
-      // Execute auth flow directly without retry wrapper
-      if (isLogin) {
+      // Execute auth flow with retry wrapper for network failures
+      const authResult = await retryWithDelay(async () => {
+        if (isLogin) {
           console.log('🔐 Attempting login for:', email)
           
           // Try direct Supabase login first
@@ -264,11 +265,18 @@ function AuthPageContent() {
           if (!loginSuccess) {
             console.log('🔄 Using proxy for login due to connection issues')
             try {
+              // Add timeout to prevent hanging requests
+              const controller = new AbortController()
+              const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+              
               const proxyResponse = await fetch('/api/auth/proxy-login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ email, password }),
+                signal: controller.signal
               })
+              
+              clearTimeout(timeoutId)
               
               const proxyData = await proxyResponse.json()
               
@@ -363,11 +371,19 @@ function AuthPageContent() {
             console.log('🔄 [PROXY] Password length:', password?.length || 0)
             try {
               console.log('🔄 [PROXY] Making fetch request to /api/auth/proxy-signup')
+              
+              // Add timeout to prevent hanging requests
+              const controller = new AbortController()
+              const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+              
               const proxyResponse = await fetch('/api/auth/proxy-signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ email, password }),
+                signal: controller.signal
               })
+              
+              clearTimeout(timeoutId)
               
               console.log('📝 [PROXY] Response status:', proxyResponse.status)
               console.log('📝 [PROXY] Response ok:', proxyResponse.ok)
@@ -447,7 +463,12 @@ function AuthPageContent() {
             router.push(`/verify-email?email=${encodeURIComponent(email)}`)
             return signupData
         }
-      }
+      })
+      
+      // Handle the auth result
+      console.log('✅ [AUTH] Auth operation completed successfully')
+      return authResult
+      
     } catch (error: any) {
       console.error('💥 Authentication error:', error)
       console.error('💥 Error details:', {
@@ -470,12 +491,18 @@ function AuthPageContent() {
       } else if (error.message?.includes('timeout') || error.message?.includes('Timeout')) {
         console.log('⏰ Authentication failed: Timeout error')
         setMessage('Request timed out. Please check your connection and try again.')
+      } else if (error.name === 'AbortError') {
+        console.log('⏰ Authentication failed: Request timeout')
+        setMessage('Request timed out. Retrying automatically...')
+      } else if (error.message?.includes('Failed to fetch') || error.name === 'TypeError' && error.message?.includes('fetch')) {
+        console.log('🌐 Authentication failed: Failed to fetch')
+        setMessage('Network connection issue. Retrying automatically...')
       } else if (error.message?.includes('network') || error.name === 'NetworkError') {
         console.log('🌐 Authentication failed: Network error')
-        setMessage('Connection error. Please check your internet and try again.')
+        setMessage('Connection error. Retrying automatically...')
       } else if (error.message?.includes('fetch')) {
         console.log('🌐 Authentication failed: Fetch error')
-        setMessage('Network error. Please try again in a moment.')
+        setMessage('Network error. Retrying automatically...')
       } else if (error.message?.includes('Database operation timeout')) {
         console.log('🗄️ Authentication failed: Database timeout')
         setMessage('Registration is taking longer than expected. Please try again.')
