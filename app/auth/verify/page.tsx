@@ -113,20 +113,31 @@ function VerifyContent() {
                 console.log('🔍 Checking user profile status...')
                 
                 // Add timeout to profile check to avoid hanging due to VPN issues
-                const profileCheckPromise = supabase
-                  .from('users')
-                  .select('id, role, company_name, approval_status')
-                  .eq('id', verificationData.user.id)
-                  .single()
+                let userProfile: any = null
+                let profileError: any = null
                 
-                const timeoutPromise = new Promise((_, reject) =>
-                  setTimeout(() => reject(new Error('Profile check timeout - assuming new user')), 5000)
-                )
-                
-                const { data: userProfile, error: profileError } = await Promise.race([
-                  profileCheckPromise,
-                  timeoutPromise
-                ])
+                try {
+                  const profileCheckPromise = supabase
+                    .from('users')
+                    .select('id, role, company_name, approval_status')
+                    .eq('id', verificationData.user.id)
+                    .single()
+                  
+                  const timeoutPromise = new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error('Profile check timeout - assuming new user')), 5000)
+                  )
+                  
+                  const result = await Promise.race([
+                    profileCheckPromise,
+                    timeoutPromise
+                  ])
+                  
+                  userProfile = result.data
+                  profileError = result.error
+                } catch (timeoutError: any) {
+                  // Handle timeout or other errors
+                  profileError = timeoutError
+                }
 
                 if (profileError && profileError.code !== 'PGRST116') {
                   // Handle timeout as "no profile found" since new users won't have profiles anyway
