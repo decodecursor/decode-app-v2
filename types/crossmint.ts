@@ -10,6 +10,7 @@ export interface CrossmintUser {
   crossmint_wallet_id: string | null;
   wallet_created_at: string | null;
   role: string;
+  branch_name: string | null;
   created_at: string;
 }
 
