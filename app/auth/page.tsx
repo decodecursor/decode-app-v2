@@ -23,6 +23,7 @@ function AuthPageContent() {
   const [isRetrying, setIsRetrying] = useState(false)
   const [inviteData, setInviteData] = useState<any>(null)
   const [fallbackTriggered, setFallbackTriggered] = useState(false)
+  const [isPostVerificationFlow, setIsPostVerificationFlow] = useState(false)
   const supabase = createClient()
   
   // Add submission guard to prevent concurrent submissions
@@ -101,6 +102,7 @@ function AuthPageContent() {
             setEmail(user.email || '')
             setSignedUpUser(user)
             setShowRoleModal(true)
+            setIsPostVerificationFlow(true) // Track that this is after email verification
             setMessage('Please complete your profile to finish registration')
           } else if (profileData) {
             // User already has profile - redirect to dashboard
@@ -477,6 +479,11 @@ function AuthPageContent() {
       if (error.message?.includes('Email rate limit') || error.message?.includes('rate limit') || error.code === 'RATE_LIMIT_ERROR') {
         console.log('⚠️ Rate limit reached:', error.message)
         setMessage('Email rate limit reached. Please wait 10-15 minutes before trying again, or try logging in if you already have an account.')
+      } else if (error.message?.includes('User already registered') || error.message?.includes('already exists') || error.message?.includes('already been registered')) {
+        console.log('👤 User already exists')
+        setMessage('This email is already registered. Please log in instead.')
+        setIsLogin(true) // Switch to login mode
+        setPassword('') // Clear password field
       } else if (error.message?.includes('Invalid login credentials')) {
         console.log('🔐 Login failed: Invalid credentials')
         setMessage('Invalid email or password. Please check and try again.')
@@ -541,12 +548,20 @@ function AuthPageContent() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
-        console.log('⚠️ [AUTH] No session found after profile creation, refreshing...')
-        // Try to refresh the session
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) {
-          console.log('❌ [AUTH] No user found, staying on auth page')
-          setMessage('Please log in to continue')
+        console.log('⚠️ [AUTH] No session found after profile creation')
+        
+        if (isPostVerificationFlow) {
+          // This is expected for post-verification flow - show login form
+          console.log('✅ [AUTH] Post-verification flow: Profile created, switching to login')
+          setMessage('Profile created successfully! Please log in to continue.')
+          setIsLogin(true) // Switch to login mode
+          setShowRoleModal(false) // Close modal
+          setPassword('') // Clear password field
+          return
+        } else {
+          // This shouldn't happen in normal flow
+          console.log('❌ [AUTH] Unexpected: No session in normal flow')
+          setMessage('Session error. Please log in again.')
           return
         }
       }
