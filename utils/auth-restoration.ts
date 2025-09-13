@@ -20,10 +20,10 @@ export async function restoreAuthFromBackup(): Promise<{ user: any, session: any
     const supabase = createClient()
     
     try {
-      const { data: { user, session } } = await supabase.auth.getSession()
-      if (user && session) {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session && session.user) {
         console.log('✅ Auth Restoration: Direct session available')
-        return { user, session }
+        return { user: session.user, session }
       }
     } catch (directError) {
       console.log('⚠️ Auth Restoration: Direct session failed, checking backup...')
