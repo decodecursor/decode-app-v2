@@ -79,6 +79,7 @@ export default function ProfilePage() {
       // Fetch user profile using available database fields
       let profileData = null
       try {
+        const supabase = createClient()
         // Type casting to bypass Supabase type checking for profile_photo_url column
         const { data, error } = await supabase
           .from('users')
