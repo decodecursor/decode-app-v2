@@ -105,7 +105,7 @@ export default function UsersManagement() {
         setUsers(companyUsers || [])
 
         // Get unique branches for this company - include all branches from comma-separated values
-        const allUserBranches = companyUsers?.flatMap(u => 
+        const allUserBranches: string[] = companyUsers?.flatMap(u =>
           (u.branch_name || '').split(',').map(b => b.trim()).filter(b => b !== '')
         ) || []
         const uniqueBranches = [...new Set(allUserBranches)]
