@@ -318,8 +318,9 @@ function AuthPageContent() {
               email,
               password
             })
-            
+
             if (!error && data.user && data.session) {
+              console.log('✅ Direct login successful')
               loginSuccess = true
               loginData = data
             } else {
@@ -345,43 +346,17 @@ function AuthPageContent() {
               
               if (proxyResponse.ok && proxyData.success) {
                 console.log('✅ Proxy login successful')
-                // ALWAYS store backup tokens first (since dashboard will need them)
+
+                // Set session from proxy data
                 if (proxyData.session) {
-                  try {
-                    // Store backup session tokens for fallback
-                    localStorage.setItem('supabase_backup_session', JSON.stringify({
-                      access_token: proxyData.session.access_token,
-                      refresh_token: proxyData.session.refresh_token,
-                      user: proxyData.user,
-                      expires_at: proxyData.session.expires_at,
-                      stored_at: Date.now()
-                    }))
-                    console.log('✅ Backup session tokens stored')
-                    
-                    // ALSO store in Supabase's native storage format for middleware compatibility
-                    const supabaseNativeSession = {
-                      access_token: proxyData.session.access_token,
-                      refresh_token: proxyData.session.refresh_token,
-                      expires_at: proxyData.session.expires_at,
-                      expires_in: Math.floor((proxyData.session.expires_at - Date.now() / 1000)),
-                      token_type: 'bearer',
-                      user: proxyData.user
-                    }
-                    localStorage.setItem('sb-auth-token', JSON.stringify(supabaseNativeSession))
-                    console.log('✅ Native Supabase session stored for middleware compatibility')
-                  } catch (storageError) {
-                    console.error('❌ Failed to store session tokens:', storageError)
-                  }
-                  
-                  // Also try to set the session normally (but don't fail if it doesn't work)
                   try {
                     await supabase.auth.setSession({
                       access_token: proxyData.session.access_token,
                       refresh_token: proxyData.session.refresh_token
                     })
-                    console.log('✅ Session set successfully')
+                    console.log('✅ Session set from proxy data')
                   } catch (sessionError) {
-                    console.log('⚠️ Session setting failed, but backup tokens already stored:', sessionError.message)
+                    console.log('⚠️ Could not set session, but cookies should be set:', sessionError.message)
                   }
                 }
                 loginSuccess = true
@@ -397,42 +372,12 @@ function AuthPageContent() {
           
           if (loginSuccess && loginData) {
             console.log('✅ User logged in successfully')
-            
-            // If we used proxy login, skip session verification (direct calls are failing)
-            if (usedProxy) {
-              // Proxy login success - trust it and redirect immediately
-              console.log('✅ Proxy login verified, redirecting to dashboard immediately')
-              router.push('/dashboard')
-            } else {
-              // This was direct login success, verify session normally
-              console.log('🔍 Direct login success, verifying session...')
-              
-              // Verify session is accessible with retry logic
-              let sessionVerified = false
-              for (let i = 0; i < 3; i++) {
-                try {
-                  const { data: sessionCheck } = await supabase.auth.getSession()
-                  if (sessionCheck.session) {
-                    console.log('✅ Session verified, redirecting to dashboard')
-                    sessionVerified = true
-                    break
-                  }
-                } catch (sessionError) {
-                  console.log(`⚠️ Session check failed (${i + 1}/3):`, sessionError.message)
-                }
-                if (i < 2) {
-                  console.log(`⏳ Session not found yet, retrying... (${i + 1}/3)`)
-                  await new Promise(resolve => setTimeout(resolve, 300))
-                }
-              }
-              
-              if (sessionVerified) {
-                router.push('/dashboard')
-              } else {
-                console.error('❌ Session not found after multiple attempts')
-                throw new Error('Session was not properly established after multiple attempts')
-              }
-            }
+
+            // Small delay to ensure session is propagated
+            await new Promise(resolve => setTimeout(resolve, 500))
+
+            console.log('✅ Redirecting to dashboard')
+            router.push('/dashboard')
             return loginData
           } else {
             throw new Error('Login failed - no user or session data returned')

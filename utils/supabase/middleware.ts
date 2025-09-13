@@ -36,41 +36,23 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Skip auth refresh for auth routes to improve performance
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/auth')
-  
-  if (!isAuthRoute) {
-    // Check if we have a proxy session first (to avoid interfering with it)
-    let hasProxySession = false
+  // Skip auth operations for public and static routes
+  const pathname = request.nextUrl.pathname
+  const isPublicRoute =
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api/auth') ||
+    pathname === '/favicon.ico' ||
+    pathname.endsWith('.png') ||
+    pathname.endsWith('.jpg') ||
+    pathname.endsWith('.svg')
+
+  if (!isPublicRoute) {
+    // Only try to get the user, don't force refresh
     try {
-      const cookies = request.cookies.getAll()
-      const authCookie = cookies.find(c => c.name.startsWith('sb-auth-token'))
-      
-      if (authCookie?.value) {
-        const sessionData = JSON.parse(authCookie.value)
-        // Check if this looks like a proxy session (has our specific structure)
-        if (sessionData.access_token && sessionData.user && sessionData.expires_at) {
-          const expiresAt = sessionData.expires_at * 1000 // Convert to milliseconds
-          if (expiresAt > Date.now()) {
-            hasProxySession = true
-            console.log('🔍 Middleware: Found valid proxy session, preserving it')
-          }
-        }
-      }
-    } catch (cookieError) {
-      // Cookie parsing failed, continue with normal flow
-    }
-    
-    // Only attempt auth refresh if we don't have a valid proxy session
-    if (!hasProxySession) {
-      try {
-        await supabase.auth.getUser()
-      } catch (error) {
-        // In development, don't fail hard on auth errors
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('Auth refresh failed in development mode:', error)
-        }
-      }
+      await supabase.auth.getUser()
+    } catch (error) {
+      // Silent fail - let the client handle auth state
+      console.log('Middleware: Auth check skipped due to error')
     }
   }
 

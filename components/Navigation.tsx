@@ -10,8 +10,20 @@ export default function Navigation() {
   const supabase = createClient()
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/auth')
+    try {
+      // Clear all session data
+      localStorage.removeItem('supabase_backup_session')
+      localStorage.removeItem('sb-auth-token')
+      console.log('🗑️ Cleared all session data')
+
+      // Sign out from Supabase
+      await supabase.auth.signOut()
+      console.log('✅ Signed out successfully')
+    } catch (error) {
+      console.error('Error during sign out:', error)
+    } finally {
+      router.push('/auth')
+    }
   }
 
   const navItems = [

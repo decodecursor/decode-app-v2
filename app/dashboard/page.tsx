@@ -169,10 +169,11 @@ export default function Dashboard() {
           .single() as { data: any, error: any }
         
         if (error) {
-          console.log('⚠️ Dashboard: Database query failed, checking backup data:', error.message)
-          // If database query fails and we're using backup, try to use cached data
+          console.log('⚠️ Dashboard: Database query failed:', error.message)
+
+          // If database query fails, use fallback data but don't redirect immediately
           const backupSession = localStorage.getItem('supabase_backup_session')
-          if (backupSession) {
+          if (isFromBackup && backupSession) {
             const parsed = JSON.parse(backupSession)
             // Use basic user info from backup if available
             userData = {
@@ -181,7 +182,49 @@ export default function Dashboard() {
               company_name: 'Unknown Company',
               approval_status: 'approved' // Assume approved if they can log in
             }
-            console.log('✅ Dashboard: Using backup user data')
+            console.log('✅ Dashboard: Using backup user data due to database query failure')
+          } else {
+            // If it's not a backup session and DB query fails, try a few more times
+            let retryCount = 0
+            const maxRetries = 3
+
+            const retryQuery = async () => {
+              retryCount++
+              console.log(`🔄 Dashboard: Retrying database query (${retryCount}/${maxRetries})`)
+
+              try {
+                const { data: retryData, error: retryError } = await supabase
+                  .from('users')
+                  .select('role, professional_center_name, user_name, company_name, approval_status, branch_name')
+                  .eq('id', user.id)
+                  .single() as { data: any, error: any }
+
+                if (!retryError && retryData) {
+                  userData = retryData
+                  console.log('✅ Dashboard: Database query succeeded on retry')
+                  return true
+                }
+              } catch (retryQueryError) {
+                console.log(`⚠️ Dashboard: Retry ${retryCount} failed:`, retryQueryError)
+              }
+
+              if (retryCount < maxRetries) {
+                setTimeout(() => retryQuery(), 1000 * retryCount) // Increasing delay
+                return false
+              } else {
+                // Final fallback after all retries
+                userData = {
+                  role: 'User',
+                  user_name: user.email?.split('@')[0] || 'User',
+                  company_name: 'Unknown Company',
+                  approval_status: 'approved'
+                }
+                console.log('⚠️ Dashboard: Using fallback data after all retries failed')
+                return true
+              }
+            }
+
+            await retryQuery()
           }
         } else {
           userData = data
@@ -331,10 +374,19 @@ export default function Dashboard() {
 
   const handleSignOut = async () => {
     try {
+      // Clear all session data
+      localStorage.removeItem('supabase_backup_session')
+      localStorage.removeItem('sb-auth-token')
+      console.log('🗑️ Cleared all session data')
+
+      // Sign out from Supabase
       await supabase.auth.signOut()
+      console.log('✅ Signed out successfully')
       router.push('/auth')
     } catch (error) {
       console.error('Error signing out:', error)
+      // Still redirect even if sign out fails
+      router.push('/auth')
     }
   }
 
