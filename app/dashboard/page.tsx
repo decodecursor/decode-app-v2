@@ -186,10 +186,32 @@ export default function Dashboard() {
               throw new Error('No session for proxy auth')
             }
           } catch (proxyError) {
-            console.error('❌ Dashboard: Both direct and proxy auth failed')
-            setAuthLoading(false)
-            router.push('/auth')
-            return
+            console.log('⚠️ Dashboard: Both direct and proxy auth failed, checking backup session...')
+            
+            // Check for backup session tokens in localStorage
+            try {
+              const backupSession = localStorage.getItem('supabase_backup_session')
+              if (backupSession) {
+                const parsed = JSON.parse(backupSession)
+                console.log('✅ Dashboard: Found backup session, using backup user data')
+                user = parsed.user
+                
+                // Check if backup is still valid (not older than 24 hours)
+                const ageHours = (Date.now() - parsed.stored_at) / (1000 * 60 * 60)
+                if (ageHours > 24) {
+                  console.log('⚠️ Dashboard: Backup session expired, clearing it')
+                  localStorage.removeItem('supabase_backup_session')
+                  throw new Error('Backup session expired')
+                }
+              } else {
+                throw new Error('No backup session found')
+              }
+            } catch (backupError) {
+              console.error('❌ Dashboard: All auth methods failed, redirecting to auth')
+              setAuthLoading(false)
+              router.push('/auth')
+              return
+            }
           }
         }
         

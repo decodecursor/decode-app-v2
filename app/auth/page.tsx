@@ -345,7 +345,7 @@ function AuthPageContent() {
               
               if (proxyResponse.ok && proxyData.success) {
                 console.log('✅ Proxy login successful')
-                // Try to set the session, but don't fail if it doesn't work
+                // MUST set the session for dashboard to work
                 if (proxyData.session) {
                   try {
                     await supabase.auth.setSession({
@@ -354,7 +354,20 @@ function AuthPageContent() {
                     })
                     console.log('✅ Session set successfully')
                   } catch (sessionError) {
-                    console.log('⚠️ Session setting failed, but continuing (proxy login worked):', sessionError.message)
+                    console.log('⚠️ Session setting failed, storing backup tokens:', sessionError.message)
+                    // Store session tokens as backup in localStorage
+                    try {
+                      localStorage.setItem('supabase_backup_session', JSON.stringify({
+                        access_token: proxyData.session.access_token,
+                        refresh_token: proxyData.session.refresh_token,
+                        user: proxyData.user,
+                        expires_at: proxyData.session.expires_at,
+                        stored_at: Date.now()
+                      }))
+                      console.log('✅ Backup session tokens stored')
+                    } catch (storageError) {
+                      console.error('❌ Failed to store backup tokens:', storageError)
+                    }
                   }
                 }
                 loginSuccess = true
@@ -499,9 +512,7 @@ function AuthPageContent() {
         setMessage('Email rate limit reached. Please wait 10-15 minutes before trying again, or try logging in if you already have an account.')
       } else if (error.message?.includes('User already registered') || error.message?.includes('already exists') || error.message?.includes('already been registered')) {
         console.log('👤 User already exists')
-        setMessage('This email is already registered. Please log in instead.')
-        setIsLogin(true) // Switch to login mode
-        setPassword('') // Clear password field
+        setMessage('This email is already registered. Click "Switch to Login" below to log in instead.')
       } else if (error.message?.includes('Invalid login credentials')) {
         console.log('🔐 Login failed: Invalid credentials')
         setMessage('Invalid email or password. Please check and try again.')
