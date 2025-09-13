@@ -319,15 +319,18 @@ function AuthPageContent() {
               password
             })
 
-            if (!error && data.user && data.session) {
+            if (error) {
+              console.log('Direct login error:', error.message)
+              loginError = error
+            } else if (data?.user && data?.session) {
               console.log('✅ Direct login successful')
               loginSuccess = true
               loginData = data
             } else {
-              loginError = error || new Error('Login failed')
+              loginError = new Error('Login failed - no session created')
             }
           } catch (error: any) {
-            console.log('Direct login failed, trying proxy...', error.message)
+            console.log('Direct login exception:', error.message)
             loginError = error
           }
           
@@ -347,17 +350,20 @@ function AuthPageContent() {
               if (proxyResponse.ok && proxyData.success) {
                 console.log('✅ Proxy login successful')
 
-                // Set session from proxy data
+                // Set session from proxy data - THIS IS CRITICAL
                 if (proxyData.session) {
-                  try {
-                    await supabase.auth.setSession({
-                      access_token: proxyData.session.access_token,
-                      refresh_token: proxyData.session.refresh_token
-                    })
-                    console.log('✅ Session set from proxy data')
-                  } catch (sessionError) {
-                    console.log('⚠️ Could not set session, but cookies should be set:', sessionError.message)
+                  const { error: sessionError } = await supabase.auth.setSession({
+                    access_token: proxyData.session.access_token,
+                    refresh_token: proxyData.session.refresh_token
+                  })
+
+                  if (sessionError) {
+                    console.error('❌ Failed to set session:', sessionError.message)
+                    throw new Error('Failed to establish session after login')
                   }
+                  console.log('✅ Session set from proxy data')
+                } else {
+                  throw new Error('No session returned from proxy login')
                 }
                 loginSuccess = true
                 loginData = proxyData
