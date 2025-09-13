@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import { ensureAuthSession } from '@/utils/auth-restoration'
+import { useAuth } from '@/providers/AuthProvider'
 import PasswordInput from '@/components/PasswordInput'
 // Removed ReactCrop - using custom Instagram-style interface
 
@@ -18,7 +18,7 @@ interface UserProfile {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const { user, loading: authLoading } = useAuth()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -49,32 +49,17 @@ export default function ProfilePage() {
   // Feedback states
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
 
+  // Load profile data when user is available
   useEffect(() => {
-    // Only run on client-side
-    if (typeof window !== 'undefined') {
-      checkUser()
-    }
-  }, [])
-
-  const checkUser = async () => {
-    // Additional client-side guard
-    if (typeof window === 'undefined') return
-    
-    try {
-      console.log('🔍 Profile: Checking user authentication...')
-      
-      // Use the new auth restoration utility
-      const authResult = await ensureAuthSession()
-      
-      if (!authResult) {
-        console.log('🚪 Profile: No valid session found, redirecting to auth')
-        router.push('/auth')
+    const loadProfile = async () => {
+      if (!user) {
+        console.log('🚪 Profile: No user, waiting for auth...')
         return
       }
-      
-      const { user, isFromBackup } = authResult
-      console.log(`✅ Profile: User authenticated (${isFromBackup ? 'from backup' : 'direct'}):`, user.id)
-      setUser(user)
+
+      try {
+        console.log('🔍 Profile: Loading profile for user:', user.id)
+        setLoading(true)
 
       // Fetch user profile using available database fields
       let profileData = null
@@ -122,12 +107,23 @@ export default function ProfilePage() {
         setMessage({ type: 'error', text: 'No profile data found' })
       }
     } catch (error) {
-      console.error('Auth error:', error)
-      router.push('/auth')
+      console.error('Profile loading error:', error)
+      setMessage({ type: 'error', text: 'Failed to load profile data' })
     } finally {
       setLoading(false)
     }
-  }
+    }
+
+    loadProfile()
+  }, [user, router])
+
+  // Handle authentication redirect
+  useEffect(() => {
+    if (!authLoading && !user) {
+      console.log('🚪 Profile: No user after auth loaded, redirecting to auth')
+      router.push('/auth')
+    }
+  }, [user, authLoading, router])
 
   const updateProfessionalCenterName = async () => {
     if (!profile || !professionalCenterName.trim()) return
@@ -384,7 +380,24 @@ export default function ProfilePage() {
     }
   }
 
-  // Loading state removed - show content immediately
+  // Show loading spinner while checking authentication or loading profile
+  if (authLoading || loading) {
+    return (
+      <div className="cosmic-bg">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-gray-300">{authLoading ? 'Authenticating...' : 'Loading profile...'}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Ensure user exists before rendering
+  if (!user) {
+    return null
+  }
 
   return (
     <div className="cosmic-bg">

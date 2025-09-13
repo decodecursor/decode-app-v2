@@ -1,16 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import { ensureAuthSession } from '@/utils/auth-restoration'
-import type { User } from '@supabase/supabase-js'
+import { useAuth } from '@/providers/AuthProvider'
 
 
 export default function Dashboard() {
   const supabase = createClient()
-  const [user, setUser] = useState<User | null>(null)
+  const { user, loading: authLoading, signOut } = useAuth()
   const [userRole, setUserRole] = useState<string | null>(null)
   const [companyProfileImage, setCompanyProfileImage] = useState<string | null>(null)
   const [companyName, setCompanyName] = useState<string | null>(null)
@@ -18,7 +17,6 @@ export default function Dashboard() {
   const [userBranch, setUserBranch] = useState<string | null>(null)
   const [pendingUsersCount, setPendingUsersCount] = useState(0)
   const [loading, setLoading] = useState(false)
-  const [authLoading, setAuthLoading] = useState(true)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -140,24 +138,17 @@ export default function Dashboard() {
   }
 
 
+  // Load user data when user is available
   useEffect(() => {
-    const getUser = async () => {
+    const loadUserData = async () => {
+      if (!user) {
+        console.log('🚪 Dashboard: No user, waiting for auth...')
+        return
+      }
+
       try {
-        console.log('🔍 Dashboard: Checking user authentication...')
-        
-        // Use the new auth restoration utility
-        const authResult = await ensureAuthSession()
-        
-        if (!authResult) {
-          console.log('🚪 Dashboard: No valid session found, redirecting to auth')
-          setAuthLoading(false)
-          router.push('/auth')
-          return
-        }
-        
-        const { user, isFromBackup } = authResult
-        console.log(`✅ Dashboard: User authenticated (${isFromBackup ? 'from backup' : 'direct'}):`, user.id)
-        setUser(user)
+        console.log('🔍 Dashboard: Loading user data for:', user.id)
+        setLoading(true)
       
       // Fetch user role, professional center name, and profile photo from users table
       let userData = null
@@ -300,16 +291,14 @@ export default function Dashboard() {
       
       
       setLoading(false)
-      setAuthLoading(false)
     } catch (error) {
       console.error('💥 Dashboard: Failed to load user data:', error)
-      setAuthLoading(false)
-      router.push('/auth')
+      setLoading(false)
     }
     }
-    
-    getUser()
-  }, [])
+
+    loadUserData()
+  }, [user, router, supabase])
 
   // Set up polling-based real-time updates for pending users
   useEffect(() => {
@@ -371,37 +360,42 @@ export default function Dashboard() {
     }
   }, [])
 
-
   const handleSignOut = async () => {
     try {
-      // Clear all session data
-      localStorage.removeItem('supabase_backup_session')
-      localStorage.removeItem('sb-auth-token')
-      console.log('🗑️ Cleared all session data')
-
-      // Sign out from Supabase
-      await supabase.auth.signOut()
+      await signOut()
       console.log('✅ Signed out successfully')
       router.push('/auth')
     } catch (error) {
       console.error('Error signing out:', error)
-      // Still redirect even if sign out fails
       router.push('/auth')
     }
   }
 
-  // Show loading spinner while checking authentication
-  if (authLoading) {
+  // Handle authentication states
+  useEffect(() => {
+    if (!authLoading && !user) {
+      console.log('🚪 Dashboard: No user after auth loaded, redirecting to auth')
+      router.push('/auth')
+    }
+  }, [user, authLoading, router])
+
+  // Show loading spinner while checking authentication or loading data
+  if (authLoading || loading) {
     return (
       <div className="cosmic-bg">
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-gray-300">Loading...</p>
+            <p className="text-gray-300">{authLoading ? 'Authenticating...' : 'Loading dashboard...'}</p>
           </div>
         </div>
       </div>
     )
+  }
+
+  // Ensure user exists before rendering
+  if (!user) {
+    return null
   }
 
   return (
