@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, Suspense, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import RoleSelectionModal from '@/components/RoleSelectionModal'
@@ -24,6 +24,10 @@ function AuthPageContent() {
   const [inviteData, setInviteData] = useState<any>(null)
   const [fallbackTriggered, setFallbackTriggered] = useState(false)
   const supabase = createClient()
+  
+  // Add submission guard to prevent concurrent submissions
+  const isSubmitting = useRef(false)
+  const lastSubmissionTime = useRef(0)
   
   // Auto-hide error messages after 5 seconds
   useEffect(() => {
@@ -257,6 +261,23 @@ function AuthPageContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Prevent concurrent submissions
+    if (isSubmitting.current) {
+      console.log('🚫 [AUTH] Submission already in progress, ignoring')
+      return
+    }
+    
+    // Debounce: prevent rapid successive submissions
+    const now = Date.now()
+    if (now - lastSubmissionTime.current < 2000) { // 2 second debounce
+      console.log('🚫 [AUTH] Submission too rapid, ignoring')
+      return
+    }
+    
+    // Set guards
+    isSubmitting.current = true
+    lastSubmissionTime.current = now
     setLoading(true)
     setMessage('')
     
@@ -264,6 +285,7 @@ function AuthPageContent() {
     if (!isLogin && !agreedToTerms) {
       setMessage('Please agree to the Terms of Service and Privacy Policy')
       setLoading(false)
+      isSubmitting.current = false
       return
     }
     
@@ -271,6 +293,7 @@ function AuthPageContent() {
     if (!isLogin && emailError) {
       setMessage(emailError)
       setLoading(false)
+      isSubmitting.current = false
       return
     }
     
@@ -499,6 +522,7 @@ function AuthPageContent() {
     } finally {
       setLoading(false)
       setIsRetrying(false)
+      isSubmitting.current = false
     }
   }
 
@@ -589,7 +613,7 @@ function AuthPageContent() {
             
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || isSubmitting.current}
               className="cosmic-button-primary w-full"
             >
               {loading ? (isRetrying ? 'Retrying...' : 'Loading...') : (isLogin ? 'Login' : 'Register')}
