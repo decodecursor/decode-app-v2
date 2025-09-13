@@ -1189,6 +1189,593 @@ DECODE
   }
 }
 
+  /**
+   * Send admin notification for new user registration
+   */
+  async sendAdminUserRegistrationNotification(userData: {
+    id: string
+    email: string
+    user_name: string
+    role: string
+    company_name?: string
+    branch_name?: string
+    approval_status?: string
+    invited_by?: string
+    created_at: string
+  }): Promise<EmailResult> {
+    try {
+      const adminEmail = 'sebastian@welovedecode.com'
+      const subject = `🆕 New Registration - ${userData.role} - ${userData.user_name}`
+
+      const emailContent = await this.renderAdminUserRegistrationEmail(userData)
+
+      const result = await this.sendEmail({
+        to: adminEmail,
+        subject,
+        html: emailContent.html,
+        text: emailContent.text
+      })
+
+      // Log email attempt
+      await this.logEmail({
+        recipientEmail: adminEmail,
+        emailType: 'admin_user_registration',
+        subject,
+        status: result.success ? 'sent' : 'failed',
+        emailServiceId: result.messageId,
+        errorMessage: result.error
+      })
+
+      return result
+    } catch (error) {
+      console.error('Error sending admin user registration notification:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    }
+  }
+
+  /**
+   * Send admin notification for successful payment
+   */
+  async sendAdminPaymentNotification(paymentData: {
+    payment_link_id: string
+    transaction_id: string
+    service_amount_aed: number
+    total_amount_aed: number
+    platform_fee?: number
+    company_name: string
+    staff_name?: string
+    branch_name?: string
+    client_name: string
+    client_email?: string
+    client_phone?: string
+    service_name?: string
+    service_description?: string
+    payment_method?: string
+    payment_processor?: string
+    processor_transaction_id?: string
+    completed_at: string
+  }): Promise<EmailResult> {
+    try {
+      const adminEmail = 'sebastian@welovedecode.com'
+      const subject = `💰 Payment Received - ${paymentData.company_name} - ${paymentData.total_amount_aed} AED`
+
+      const emailContent = await this.renderAdminPaymentNotificationEmail(paymentData)
+
+      const result = await this.sendEmail({
+        to: adminEmail,
+        subject,
+        html: emailContent.html,
+        text: emailContent.text
+      })
+
+      // Log email attempt
+      await this.logEmail({
+        recipientEmail: adminEmail,
+        emailType: 'admin_payment_notification',
+        transactionId: paymentData.transaction_id,
+        paymentLinkId: paymentData.payment_link_id,
+        subject,
+        status: result.success ? 'sent' : 'failed',
+        emailServiceId: result.messageId,
+        errorMessage: result.error
+      })
+
+      return result
+    } catch (error) {
+      console.error('Error sending admin payment notification:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    }
+  }
+
+  /**
+   * Send admin notification for payout request
+   */
+  async sendAdminPayoutRequestNotification(payoutData: {
+    payout_request_id?: string
+    user_name: string
+    user_email: string
+    user_role: string
+    user_id: string
+    company_name: string
+    branch_name?: string
+    amount: number
+    total_earnings?: number
+    available_balance?: number
+    previous_payouts_count?: number
+    account_holder_name?: string
+    bank_name?: string
+    account_type?: string
+    account_last4?: string
+    stripe_connect_account_id?: string
+    last_payout_date?: string
+    last_payout_amount?: number
+    request_date: string
+  }): Promise<EmailResult> {
+    try {
+      const adminEmail = 'sebastian@welovedecode.com'
+      const subject = `💸 Payout Request - ${payoutData.company_name} - ${payoutData.amount} AED`
+
+      const emailContent = await this.renderAdminPayoutRequestEmail(payoutData)
+
+      const result = await this.sendEmail({
+        to: adminEmail,
+        subject,
+        html: emailContent.html,
+        text: emailContent.text
+      })
+
+      // Log email attempt
+      await this.logEmail({
+        recipientEmail: adminEmail,
+        emailType: 'admin_payout_request',
+        subject,
+        status: result.success ? 'sent' : 'failed',
+        emailServiceId: result.messageId,
+        errorMessage: result.error
+      })
+
+      return result
+    } catch (error) {
+      console.error('Error sending admin payout request notification:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    }
+  }
+
+  /**
+   * Render admin user registration notification email
+   */
+  private async renderAdminUserRegistrationEmail(userData: {
+    id: string
+    email: string
+    user_name: string
+    role: string
+    company_name?: string
+    branch_name?: string
+    approval_status?: string
+    invited_by?: string
+    created_at: string
+  }): Promise<{
+    html: string
+    text: string
+  }> {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New User Registration</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e0e0e0; }
+        .header h1 { color: #6366f1; margin: 0; }
+        .content { margin-bottom: 30px; }
+        .details { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; }
+        .details h3 { margin-top: 0; color: #495057; }
+        .footer { text-align: center; font-size: 12px; color: #666; padding-top: 20px; border-top: 1px solid #e0e0e0; }
+        .action-btn { display: inline-block; background: #6366f1; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>DECODE Beauty Platform</h1>
+            <p>Administrative Notification</p>
+        </div>
+        <div class="content">
+            <h2>🆕 New User Registration</h2>
+            <p>A new user has registered on the DECODE Beauty Platform:</p>
+
+            <div class="details">
+                <h3>👤 User Details</h3>
+                <p><strong>Name:</strong> ${userData.user_name}</p>
+                <p><strong>Email:</strong> ${userData.email}</p>
+                <p><strong>Role:</strong> ${userData.role}</p>
+                <p><strong>Company:</strong> ${userData.company_name || 'Not specified'}</p>
+                <p><strong>Branch:</strong> ${userData.branch_name || 'Not specified'}</p>
+                <p><strong>Registration Date:</strong> ${new Date(userData.created_at).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}</p>
+                <p><strong>Approval Status:</strong> ${userData.approval_status || 'Pending'}</p>
+            </div>
+
+            <div class="details">
+                <h3>📋 Additional Information</h3>
+                <p><strong>User ID:</strong> ${userData.id}</p>
+                <p><strong>Invited By:</strong> ${userData.invited_by || 'Direct registration'}</p>
+            </div>
+
+            ${userData.approval_status === 'pending' ? `
+                <div class="details">
+                    <h3>⚡ Action Required</h3>
+                    <p>This user requires approval before they can access the platform.</p>
+                    <a href="https://decode-app.vercel.app/dashboard/users" class="action-btn">Review Users →</a>
+                </div>
+            ` : ''}
+        </div>
+        <div class="footer">
+            <p>This is an automated notification from DECODE Beauty Platform</p>
+            <p>Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} UAE Time</p>
+        </div>
+    </div>
+</body>
+</html>`
+
+    const text = `
+DECODE Beauty Platform - New User Registration
+
+A new user has registered:
+
+USER DETAILS
+Name: ${userData.user_name}
+Email: ${userData.email}
+Role: ${userData.role}
+Company: ${userData.company_name || 'Not specified'}
+Branch: ${userData.branch_name || 'Not specified'}
+Registration Date: ${new Date(userData.created_at).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}
+Approval Status: ${userData.approval_status || 'Pending'}
+
+ADDITIONAL INFORMATION
+User ID: ${userData.id}
+Invited By: ${userData.invited_by || 'Direct registration'}
+
+${userData.approval_status === 'pending' ? 'ACTION REQUIRED: This user requires approval - Review at: https://decode-app.vercel.app/dashboard/users' : ''}
+
+---
+DECODE Beauty Platform
+Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} UAE Time
+`
+
+    return { html, text }
+  }
+
+  /**
+   * Render admin payment notification email
+   */
+  private async renderAdminPaymentNotificationEmail(paymentData: {
+    payment_link_id: string
+    transaction_id: string
+    service_amount_aed: number
+    total_amount_aed: number
+    platform_fee?: number
+    company_name: string
+    staff_name?: string
+    branch_name?: string
+    client_name: string
+    client_email?: string
+    client_phone?: string
+    service_name?: string
+    service_description?: string
+    payment_method?: string
+    payment_processor?: string
+    processor_transaction_id?: string
+    completed_at: string
+  }): Promise<{
+    html: string
+    text: string
+  }> {
+    const netAmount = paymentData.total_amount_aed - (paymentData.platform_fee || 0)
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Received</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e0e0e0; }
+        .header h1 { color: #6366f1; margin: 0; }
+        .content { margin-bottom: 30px; }
+        .details { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; }
+        .details h3 { margin-top: 0; color: #495057; }
+        .footer { text-align: center; font-size: 12px; color: #666; padding-top: 20px; border-top: 1px solid #e0e0e0; }
+        .action-btn { display: inline-block; background: #6366f1; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>DECODE Beauty Platform</h1>
+            <p>Administrative Notification</p>
+        </div>
+        <div class="content">
+            <h2>💰 Payment Successfully Processed</h2>
+            <p>A payment has been successfully processed on the DECODE Beauty Platform:</p>
+
+            <div class="details">
+                <h3>💳 Transaction Details</h3>
+                <p><strong>Payment Link ID:</strong> ${paymentData.payment_link_id}</p>
+                <p><strong>Transaction ID:</strong> ${paymentData.transaction_id}</p>
+                <p><strong>Service Amount:</strong> ${paymentData.service_amount_aed} AED</p>
+                <p><strong>Total Amount:</strong> ${paymentData.total_amount_aed} AED</p>
+                <p><strong>Platform Fee:</strong> ${paymentData.platform_fee || 0} AED</p>
+                <p><strong>Net Amount:</strong> ${netAmount} AED</p>
+            </div>
+
+            <div class="details">
+                <h3>🏢 Business Details</h3>
+                <p><strong>Company:</strong> ${paymentData.company_name}</p>
+                <p><strong>Staff Member:</strong> ${paymentData.staff_name || 'Not specified'}</p>
+                <p><strong>Branch:</strong> ${paymentData.branch_name || 'Not specified'}</p>
+            </div>
+
+            <div class="details">
+                <h3>👤 Client Details</h3>
+                <p><strong>Client Name:</strong> ${paymentData.client_name}</p>
+                <p><strong>Client Email:</strong> ${paymentData.client_email || 'Not provided'}</p>
+                <p><strong>Client Phone:</strong> ${paymentData.client_phone || 'Not provided'}</p>
+            </div>
+
+            <div class="details">
+                <h3>💼 Service Details</h3>
+                <p><strong>Service:</strong> ${paymentData.service_name || 'Not specified'}</p>
+                <p><strong>Description:</strong> ${paymentData.service_description || 'Not provided'}</p>
+            </div>
+
+            <div class="details">
+                <h3>💳 Payment Information</h3>
+                <p><strong>Payment Method:</strong> ${paymentData.payment_method || 'Not specified'}</p>
+                <p><strong>Payment Date:</strong> ${new Date(paymentData.completed_at).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}</p>
+                <p><strong>Payment Processor:</strong> ${paymentData.payment_processor || 'Unknown'}</p>
+                <p><strong>Processor Transaction ID:</strong> ${paymentData.processor_transaction_id || 'Not available'}</p>
+            </div>
+
+            <a href="https://decode-app.vercel.app/dashboard/payments" class="action-btn">View All Payments →</a>
+        </div>
+        <div class="footer">
+            <p>This is an automated notification from DECODE Beauty Platform</p>
+            <p>Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} UAE Time</p>
+        </div>
+    </div>
+</body>
+</html>`
+
+    const text = `
+DECODE Beauty Platform - Payment Received
+
+A payment has been successfully processed:
+
+TRANSACTION DETAILS
+Payment Link ID: ${paymentData.payment_link_id}
+Transaction ID: ${paymentData.transaction_id}
+Service Amount: ${paymentData.service_amount_aed} AED
+Total Amount: ${paymentData.total_amount_aed} AED
+Platform Fee: ${paymentData.platform_fee || 0} AED
+Net Amount: ${netAmount} AED
+
+BUSINESS DETAILS
+Company: ${paymentData.company_name}
+Staff Member: ${paymentData.staff_name || 'Not specified'}
+Branch: ${paymentData.branch_name || 'Not specified'}
+
+CLIENT DETAILS
+Client Name: ${paymentData.client_name}
+Client Email: ${paymentData.client_email || 'Not provided'}
+Client Phone: ${paymentData.client_phone || 'Not provided'}
+
+SERVICE DETAILS
+Service: ${paymentData.service_name || 'Not specified'}
+Description: ${paymentData.service_description || 'Not provided'}
+
+PAYMENT INFORMATION
+Payment Method: ${paymentData.payment_method || 'Not specified'}
+Payment Date: ${new Date(paymentData.completed_at).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}
+Payment Processor: ${paymentData.payment_processor || 'Unknown'}
+Processor Transaction ID: ${paymentData.processor_transaction_id || 'Not available'}
+
+View all payments: https://decode-app.vercel.app/dashboard/payments
+
+---
+DECODE Beauty Platform
+Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} UAE Time
+`
+
+    return { html, text }
+  }
+
+  /**
+   * Render admin payout request notification email
+   */
+  private async renderAdminPayoutRequestEmail(payoutData: {
+    payout_request_id?: string
+    user_name: string
+    user_email: string
+    user_role: string
+    user_id: string
+    company_name: string
+    branch_name?: string
+    amount: number
+    total_earnings?: number
+    available_balance?: number
+    previous_payouts_count?: number
+    account_holder_name?: string
+    bank_name?: string
+    account_type?: string
+    account_last4?: string
+    stripe_connect_account_id?: string
+    last_payout_date?: string
+    last_payout_amount?: number
+    request_date: string
+  }): Promise<{
+    html: string
+    text: string
+  }> {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payout Request</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e0e0e0; }
+        .header h1 { color: #6366f1; margin: 0; }
+        .content { margin-bottom: 30px; }
+        .details { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; }
+        .details h3 { margin-top: 0; color: #495057; }
+        .footer { text-align: center; font-size: 12px; color: #666; padding-top: 20px; border-top: 1px solid #e0e0e0; }
+        .action-btn { display: inline-block; background: #6366f1; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>DECODE Beauty Platform</h1>
+            <p>Administrative Notification</p>
+        </div>
+        <div class="content">
+            <h2>💸 New Payout Request</h2>
+            <p>A payout request has been submitted on the DECODE Beauty Platform:</p>
+
+            <div class="details">
+                <h3>📋 Request Details</h3>
+                <p><strong>Request ID:</strong> ${payoutData.payout_request_id || 'Pending'}</p>
+                <p><strong>Amount Requested:</strong> ${payoutData.amount} AED</p>
+                <p><strong>Request Date:</strong> ${new Date(payoutData.request_date).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}</p>
+            </div>
+
+            <div class="details">
+                <h3>👤 User Details</h3>
+                <p><strong>Name:</strong> ${payoutData.user_name}</p>
+                <p><strong>Email:</strong> ${payoutData.user_email}</p>
+                <p><strong>Role:</strong> ${payoutData.user_role}</p>
+                <p><strong>User ID:</strong> ${payoutData.user_id}</p>
+            </div>
+
+            <div class="details">
+                <h3>🏢 Company Details</h3>
+                <p><strong>Company:</strong> ${payoutData.company_name}</p>
+                <p><strong>Branch:</strong> ${payoutData.branch_name || 'Not specified'}</p>
+                <p><strong>Total Earnings:</strong> ${payoutData.total_earnings || 'Unknown'} AED</p>
+                <p><strong>Available Balance:</strong> ${payoutData.available_balance || 'Unknown'} AED</p>
+                <p><strong>Previous Payouts:</strong> ${payoutData.previous_payouts_count || 0}</p>
+            </div>
+
+            ${payoutData.account_holder_name ? `
+                <div class="details">
+                    <h3>🏦 Bank Account Details</h3>
+                    <p><strong>Account Holder:</strong> ${payoutData.account_holder_name}</p>
+                    <p><strong>Bank Name:</strong> ${payoutData.bank_name || 'Not specified'}</p>
+                    <p><strong>Account Type:</strong> ${payoutData.account_type || 'Not specified'}</p>
+                    <p><strong>Last 4 Digits:</strong> ****${payoutData.account_last4 || 'N/A'}</p>
+                    <p><strong>Stripe Connect ID:</strong> ${payoutData.stripe_connect_account_id || 'Not connected'}</p>
+                </div>
+            ` : ''}
+
+            ${payoutData.last_payout_date ? `
+                <div class="details">
+                    <h3>📊 Payout History</h3>
+                    <p><strong>Last Payout Date:</strong> ${new Date(payoutData.last_payout_date).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}</p>
+                    <p><strong>Last Payout Amount:</strong> ${payoutData.last_payout_amount || 0} AED</p>
+                </div>
+            ` : ''}
+
+            <div class="details">
+                <h3>⚡ Action Required</h3>
+                <p>Review and process this payout request:</p>
+                <ul>
+                    <li>Verify available balance</li>
+                    <li>Check account details</li>
+                    <li>Approve or reject request</li>
+                </ul>
+                <a href="https://decode-app.vercel.app/dashboard/payouts" class="action-btn">Review Payout →</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>This is an automated notification from DECODE Beauty Platform</p>
+            <p>Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} UAE Time</p>
+        </div>
+    </div>
+</body>
+</html>`
+
+    const text = `
+DECODE Beauty Platform - Payout Request
+
+A payout request has been submitted:
+
+REQUEST DETAILS
+Request ID: ${payoutData.payout_request_id || 'Pending'}
+Amount Requested: ${payoutData.amount} AED
+Request Date: ${new Date(payoutData.request_date).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}
+
+USER DETAILS
+Name: ${payoutData.user_name}
+Email: ${payoutData.user_email}
+Role: ${payoutData.user_role}
+User ID: ${payoutData.user_id}
+
+COMPANY DETAILS
+Company: ${payoutData.company_name}
+Branch: ${payoutData.branch_name || 'Not specified'}
+Total Earnings: ${payoutData.total_earnings || 'Unknown'} AED
+Available Balance: ${payoutData.available_balance || 'Unknown'} AED
+Previous Payouts: ${payoutData.previous_payouts_count || 0}
+
+${payoutData.account_holder_name ? `
+BANK ACCOUNT DETAILS
+Account Holder: ${payoutData.account_holder_name}
+Bank Name: ${payoutData.bank_name || 'Not specified'}
+Account Type: ${payoutData.account_type || 'Not specified'}
+Last 4 Digits: ****${payoutData.account_last4 || 'N/A'}
+Stripe Connect ID: ${payoutData.stripe_connect_account_id || 'Not connected'}
+` : ''}
+
+${payoutData.last_payout_date ? `
+PAYOUT HISTORY
+Last Payout Date: ${new Date(payoutData.last_payout_date).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}
+Last Payout Amount: ${payoutData.last_payout_amount || 0} AED
+` : ''}
+
+ACTION REQUIRED:
+- Verify available balance
+- Check account details
+- Approve or reject request
+
+Review payout: https://decode-app.vercel.app/dashboard/payouts
+
+---
+DECODE Beauty Platform
+Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} UAE Time
+`
+
+    return { html, text }
+  }
+}
+
 // Export singleton instance
 export const emailService = new EmailService()
 

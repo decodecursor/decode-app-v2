@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripeTransferService } from '@/lib/stripe-transfer-service'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { emailService } from '@/lib/email-service'
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,10 +19,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get user's connected account ID
+    // Get user's connected account ID and details for notification
     const { data: userData, error: userError } = await supabaseAdmin
       .from('users')
-      .select('stripe_connect_account_id')
+      .select('stripe_connect_account_id, user_name, email, role, company_name, branch_name')
       .eq('id', userId)
       .single()
 
@@ -40,6 +41,26 @@ export async function POST(request: NextRequest) {
       paymentId,
       userId
     })
+
+    // Send admin notification for payout request
+    try {
+      await emailService.sendAdminPayoutRequestNotification({
+        payout_request_id: result.transferId,
+        user_name: userData.user_name,
+        user_email: userData.email,
+        user_role: userData.role,
+        user_id: userId,
+        company_name: userData.company_name,
+        branch_name: userData.branch_name,
+        amount: amountAed,
+        stripe_connect_account_id: userData.stripe_connect_account_id,
+        request_date: new Date().toISOString()
+      })
+      console.log('✅ PAYOUT: Admin payout notification sent')
+    } catch (emailError) {
+      console.error('⚠️ PAYOUT: Failed to send admin notification:', emailError)
+      // Don't fail the payout if email fails
+    }
 
     return NextResponse.json({
       success: true,

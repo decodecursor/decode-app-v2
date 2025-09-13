@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { emailService } from '@/lib/email-service'
 
 export async function POST(request: NextRequest) {
   console.log('🔄 [CREATE-PROFILE] === Profile creation proxy called ===')
@@ -45,7 +46,25 @@ export async function POST(request: NextRequest) {
     }
     
     console.log('✅ [CREATE-PROFILE] Profile created successfully')
-    
+
+    // Send admin notification email for new user registration
+    try {
+      await emailService.sendAdminUserRegistrationNotification({
+        id: profileData.id,
+        email: profileData.email,
+        user_name: profileData.user_name,
+        role: profileData.role,
+        company_name: profileData.company_name,
+        branch_name: profileData.branch_name,
+        approval_status: profileData.approval_status || 'approved',
+        created_at: new Date().toISOString()
+      })
+      console.log('✅ [CREATE-PROFILE] Admin registration notification sent')
+    } catch (emailError) {
+      console.error('⚠️ [CREATE-PROFILE] Failed to send admin notification:', emailError)
+      // Don't fail the registration if email fails
+    }
+
     return NextResponse.json({
       success: true,
       data

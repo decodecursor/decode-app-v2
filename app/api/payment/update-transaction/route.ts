@@ -1,5 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { emailService } from '@/lib/email-service';
+
+// Helper function to send payment notification
+async function sendPaymentNotification(transaction: any, paymentLink: any) {
+  try {
+    // Get user details
+    const { data: creator } = await supabaseAdmin
+      .from('users')
+      .select('user_name, company_name, branch_name')
+      .eq('id', paymentLink.creator_id)
+      .single();
+
+    await emailService.sendAdminPaymentNotification({
+      payment_link_id: paymentLink.id,
+      transaction_id: transaction.id,
+      service_amount_aed: paymentLink.amount_aed || 0,
+      total_amount_aed: transaction.amount_aed || paymentLink.amount_aed || 0,
+      platform_fee: 0, // Add platform fee calculation if needed
+      company_name: creator?.company_name || 'Unknown Company',
+      staff_name: creator?.user_name || 'Unknown Staff',
+      branch_name: creator?.branch_name,
+      client_name: paymentLink.client_name || 'Unknown Client',
+      client_email: paymentLink.client_email,
+      client_phone: paymentLink.client_phone,
+      service_name: paymentLink.title || 'Service Payment',
+      service_description: paymentLink.description,
+      payment_method: transaction.payment_method_type || 'Unknown',
+      payment_processor: transaction.payment_processor || 'stripe',
+      processor_transaction_id: transaction.processor_transaction_id,
+      completed_at: transaction.completed_at || new Date().toISOString()
+    });
+    console.log('✅ PAYMENT: Admin payment notification sent');
+  } catch (emailError) {
+    console.error('⚠️ PAYMENT: Failed to send admin notification:', emailError);
+    // Don't fail the payment if email fails
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -68,7 +105,10 @@ export async function POST(request: NextRequest) {
       }
       
       console.log('✅ Created new completed transaction:', createdTx.id);
-      
+
+      // Send payment notification email
+      await sendPaymentNotification(createdTx, paymentLink);
+
       // Also directly update payment_links to trigger real-time subscription
       console.log('🔄 API: Updating payment_links for real-time subscription...');
       const { error: linkErrorCreate } = await supabaseAdmin
@@ -121,6 +161,17 @@ export async function POST(request: NextRequest) {
       } else {
         console.log('✅ API: Successfully updated transaction:', transaction.id);
         updatedTransactions.push(updated);
+
+        // Send payment notification email for this updated transaction
+        const { data: paymentLinkForNotification } = await supabaseAdmin
+          .from('payment_links')
+          .select('*')
+          .eq('id', paymentLinkId)
+          .single();
+
+        if (paymentLinkForNotification) {
+          await sendPaymentNotification(updated, paymentLinkForNotification);
+        }
       }
     }
     
