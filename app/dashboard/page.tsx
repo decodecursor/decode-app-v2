@@ -3,13 +3,11 @@
 import Link from 'next/link'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
 import { useAuth } from '@/providers/AuthProvider'
 
 
 export default function Dashboard() {
-  const supabase = createClient()
-  const { user, loading: authLoading, signOut } = useAuth()
+  const { user, loading: authLoading, signOut, supabase } = useAuth()
   const [userRole, setUserRole] = useState<string | null>(null)
   const [companyProfileImage, setCompanyProfileImage] = useState<string | null>(null)
   const [companyName, setCompanyName] = useState<string | null>(null)
@@ -149,85 +147,23 @@ export default function Dashboard() {
       try {
         console.log('🔍 Dashboard: Loading user data for:', user.id)
         setLoading(true)
-      
+
       // Fetch user role, professional center name, and profile photo from users table
-      let userData = null
-      try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('role, professional_center_name, user_name, company_name, approval_status, branch_name')
-          .eq('id', user.id)
-          .single() as { data: any, error: any }
-        
-        if (error) {
-          console.log('⚠️ Dashboard: Database query failed:', error.message)
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('role, professional_center_name, user_name, company_name, approval_status, branch_name')
+        .eq('id', user.id)
+        .single()
 
-          // If database query fails, use fallback data but don't redirect immediately
-          const backupSession = localStorage.getItem('supabase_backup_session')
-          if (backupSession) {
-            const parsed = JSON.parse(backupSession)
-            // Use basic user info from backup if available
-            userData = {
-              role: 'User', // Default role
-              user_name: parsed.user?.user_metadata?.name || parsed.user?.email?.split('@')[0] || 'User',
-              company_name: 'Unknown Company',
-              approval_status: 'approved' // Assume approved if they can log in
-            }
-            console.log('✅ Dashboard: Using backup user data due to database query failure')
-          } else {
-            // If it's not a backup session and DB query fails, try a few more times
-            let retryCount = 0
-            const maxRetries = 3
-
-            const retryQuery = async () => {
-              retryCount++
-              console.log(`🔄 Dashboard: Retrying database query (${retryCount}/${maxRetries})`)
-
-              try {
-                const { data: retryData, error: retryError } = await supabase
-                  .from('users')
-                  .select('role, professional_center_name, user_name, company_name, approval_status, branch_name')
-                  .eq('id', user.id)
-                  .single() as { data: any, error: any }
-
-                if (!retryError && retryData) {
-                  userData = retryData
-                  console.log('✅ Dashboard: Database query succeeded on retry')
-                  return true
-                }
-              } catch (retryQueryError) {
-                console.log(`⚠️ Dashboard: Retry ${retryCount} failed:`, retryQueryError)
-              }
-
-              if (retryCount < maxRetries) {
-                setTimeout(() => retryQuery(), 1000 * retryCount) // Increasing delay
-                return false
-              } else {
-                // Final fallback after all retries
-                userData = {
-                  role: 'User',
-                  user_name: user.email?.split('@')[0] || 'User',
-                  company_name: 'Unknown Company',
-                  approval_status: 'approved'
-                }
-                console.log('⚠️ Dashboard: Using fallback data after all retries failed')
-                return true
-              }
-            }
-
-            await retryQuery()
-          }
-        } else {
-          userData = data
+      if (error) {
+        console.error('⚠️ Dashboard: Database query failed:', error.message)
+        // If user is logged in but no profile exists, redirect to profile setup
+        if (error.code === 'PGRST116') {
+          router.push('/profile')
+          return
         }
-      } catch (queryError) {
-        console.log('⚠️ Dashboard: Query failed, using fallback user data')
-        userData = {
-          role: 'User',
-          user_name: user.email?.split('@')[0] || 'User',
-          company_name: 'Unknown Company',
-          approval_status: 'approved'
-        }
+        setLoading(false)
+        return
       }
       
       if (userData) {
@@ -371,11 +307,16 @@ export default function Dashboard() {
     }
   }
 
-  // Handle authentication states
+  // Handle authentication states - only redirect after auth is fully loaded
   useEffect(() => {
+    // Wait for auth to be fully loaded before making decisions
     if (!authLoading && !user) {
       console.log('🚪 Dashboard: No user after auth loaded, redirecting to auth')
-      router.push('/auth')
+      // Small delay to prevent race conditions
+      const timer = setTimeout(() => {
+        router.push('/auth')
+      }, 100)
+      return () => clearTimeout(timer)
     }
   }, [user, authLoading, router])
 

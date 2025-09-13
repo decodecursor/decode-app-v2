@@ -1,22 +1,18 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { User } from '@supabase/supabase-js'
+import { User, SupabaseClient } from '@supabase/supabase-js'
 
 interface AuthContextType {
   user: User | null
   loading: boolean
   signOut: () => Promise<void>
   refreshSession: () => Promise<void>
+  supabase: SupabaseClient
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: true,
-  signOut: async () => {},
-  refreshSession: async () => {}
-})
+const AuthContext = createContext<AuthContextType | null>(null)
 
 export function useAuth() {
   const context = useContext(AuthContext)
@@ -29,7 +25,8 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
+  // Create supabase client once and share it
+  const supabase = useMemo(() => createClient(), [])
 
   const refreshSession = async () => {
     try {
@@ -82,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut, refreshSession }}>
+    <AuthContext.Provider value={{ user, loading, signOut, refreshSession, supabase }}>
       {children}
     </AuthContext.Provider>
   )
