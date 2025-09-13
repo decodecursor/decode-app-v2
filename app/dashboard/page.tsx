@@ -164,7 +164,7 @@ export default function Dashboard() {
 
           // If database query fails, use fallback data but don't redirect immediately
           const backupSession = localStorage.getItem('supabase_backup_session')
-          if (isFromBackup && backupSession) {
+          if (backupSession) {
             const parsed = JSON.parse(backupSession)
             // Use basic user info from backup if available
             userData = {
