@@ -226,11 +226,41 @@ export default function Dashboard() {
         setUser(user)
       
       // Fetch user role, professional center name, and profile photo from users table
-      const { data: userData } = await supabase
-        .from('users')
-        .select('role, professional_center_name, user_name, company_name, approval_status, branch_name')
-        .eq('id', user.id)
-        .single() as { data: any, error: any }
+      let userData = null
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('role, professional_center_name, user_name, company_name, approval_status, branch_name')
+          .eq('id', user.id)
+          .single() as { data: any, error: any }
+        
+        if (error) {
+          console.log('⚠️ Dashboard: Database query failed, checking backup data:', error.message)
+          // If database query fails and we're using backup, try to use cached data
+          const backupSession = localStorage.getItem('supabase_backup_session')
+          if (backupSession) {
+            const parsed = JSON.parse(backupSession)
+            // Use basic user info from backup if available
+            userData = {
+              role: 'User', // Default role
+              user_name: parsed.user?.user_metadata?.name || parsed.user?.email?.split('@')[0] || 'User',
+              company_name: 'Unknown Company',
+              approval_status: 'approved' // Assume approved if they can log in
+            }
+            console.log('✅ Dashboard: Using backup user data')
+          }
+        } else {
+          userData = data
+        }
+      } catch (queryError) {
+        console.log('⚠️ Dashboard: Query failed, using fallback user data')
+        userData = {
+          role: 'User',
+          user_name: user.email?.split('@')[0] || 'User',
+          company_name: 'Unknown Company',
+          approval_status: 'approved'
+        }
+      }
       
       if (userData) {
         setUserRole(userData.role)

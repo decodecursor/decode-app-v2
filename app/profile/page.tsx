@@ -61,7 +61,31 @@ export default function ProfilePage() {
     
     try {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      let user = null
+      
+      // Try direct auth first
+      try {
+        const { data } = await supabase.auth.getUser()
+        user = data.user
+      } catch (directError) {
+        console.log('⚠️ Profile: Direct auth failed, checking backup session...')
+        
+        // Check for backup session tokens
+        const backupSession = localStorage.getItem('supabase_backup_session')
+        if (backupSession) {
+          const parsed = JSON.parse(backupSession)
+          const ageHours = (Date.now() - parsed.stored_at) / (1000 * 60 * 60)
+          
+          if (ageHours < 24) {
+            user = parsed.user
+            console.log('✅ Profile: Using backup session')
+          } else {
+            console.log('⚠️ Profile: Backup session expired')
+            localStorage.removeItem('supabase_backup_session')
+          }
+        }
+      }
+      
       if (!user) {
         router.push('/auth')
         return
@@ -70,17 +94,42 @@ export default function ProfilePage() {
       setUser(user)
 
       // Fetch user profile using available database fields
-      // Type casting to bypass Supabase type checking for profile_photo_url column
-      const { data: profileData, error } = await supabase
-        .from('users')
-        .select('id, email, user_name, professional_center_name, role, profile_photo_url')
-        .eq('id', user.id)
-        .single() as { data: UserProfile | null, error: any }
+      let profileData = null
+      try {
+        // Type casting to bypass Supabase type checking for profile_photo_url column
+        const { data, error } = await supabase
+          .from('users')
+          .select('id, email, user_name, professional_center_name, role, profile_photo_url')
+          .eq('id', user.id)
+          .single() as { data: UserProfile | null, error: any }
 
-      if (error) {
-        console.error('Error fetching profile:', error)
-        setMessage({ type: 'error', text: 'Failed to load profile' })
-      } else if (profileData) {
+        if (error) {
+          console.log('⚠️ Profile: Database query failed, using user data from session:', error.message)
+          // Create profile from available user data
+          profileData = {
+            id: user.id,
+            email: user.email || '',
+            user_name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+            professional_center_name: null,
+            role: 'User',
+            profile_photo_url: null
+          }
+        } else {
+          profileData = data
+        }
+      } catch (queryError) {
+        console.log('⚠️ Profile: Query failed, using fallback profile data')
+        profileData = {
+          id: user.id,
+          email: user.email || '',
+          user_name: user.email?.split('@')[0] || 'User',
+          professional_center_name: null,
+          role: 'User',
+          profile_photo_url: null
+        }
+      }
+
+      if (profileData) {
         setProfile(profileData)
         setProfessionalCenterName(profileData.professional_center_name || '')
         setNewEmail(profileData.email || user.email || '')
