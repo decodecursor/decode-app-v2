@@ -12,16 +12,6 @@ export function createClient() {
 
   return createBrowserClient(
     supabaseUrl,
-    supabaseAnonKey,
-    {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-        flowType: 'pkce',
-        storageKey: 'sb-auth-token',
-        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-      }
-    }
+    supabaseAnonKey
   )
 }

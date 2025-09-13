@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useAuth } from '@/providers/AuthProvider'
+import { createClient } from '@/utils/supabase/client'
 import RoleSelectionModal from '@/components/RoleSelectionModal'
 import PasswordInput from '@/components/PasswordInput'
 
@@ -24,7 +24,7 @@ function AuthPageContent() {
   const [inviteData, setInviteData] = useState<any>(null)
   const [fallbackTriggered, setFallbackTriggered] = useState(false)
   const [isPostVerificationFlow, setIsPostVerificationFlow] = useState(false)
-  const { supabase, refreshSession } = useAuth()
+  const supabase = createClient()
   
   // Add submission guard to prevent concurrent submissions
   const isSubmitting = useRef(false)
@@ -373,10 +373,7 @@ function AuthPageContent() {
           if (loginSuccess && loginData) {
             console.log('✅ User logged in successfully')
 
-            // Refresh the session in AuthProvider to ensure it's synchronized
-            await refreshSession()
-
-            // Small delay to ensure session is propagated
+            // Small delay to ensure session cookies are set
             await new Promise(resolve => setTimeout(resolve, 500))
 
             console.log('✅ Redirecting to dashboard')

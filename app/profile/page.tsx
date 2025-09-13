@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import { useAuth } from '@/providers/AuthProvider'
+import { User } from '@supabase/supabase-js'
 import PasswordInput from '@/components/PasswordInput'
 // Removed ReactCrop - using custom Instagram-style interface
 
@@ -18,7 +18,9 @@ interface UserProfile {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const { user, loading: authLoading } = useAuth()
+  const supabase = createClient()
+  const [user, setUser] = useState<User | null>(null)
+  const [authLoading, setAuthLoading] = useState(true)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -50,6 +52,28 @@ export default function ProfilePage() {
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
 
   // Load profile data when user is available
+  // Check auth on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        if (!authUser) {
+          console.log('🚪 Profile: No authenticated user, redirecting to auth')
+          router.push('/auth')
+          return
+        }
+        setUser(authUser)
+      } catch (error) {
+        console.error('Auth check failed:', error)
+        router.push('/auth')
+      } finally {
+        setAuthLoading(false)
+      }
+    }
+
+    checkAuth()
+  }, [router, supabase])
+
   useEffect(() => {
     const loadProfile = async () => {
       if (!user) {
@@ -64,7 +88,6 @@ export default function ProfilePage() {
       // Fetch user profile using available database fields
       let profileData = null
       try {
-        const supabase = createClient()
         // Type casting to bypass Supabase type checking for profile_photo_url column
         const { data, error } = await supabase
           .from('users')
@@ -118,12 +141,6 @@ export default function ProfilePage() {
   }, [user, router])
 
   // Handle authentication redirect
-  useEffect(() => {
-    if (!authLoading && !user) {
-      console.log('🚪 Profile: No user after auth loaded, redirecting to auth')
-      router.push('/auth')
-    }
-  }, [user, authLoading, router])
 
   const updateProfessionalCenterName = async () => {
     if (!profile || !professionalCenterName.trim()) return

@@ -3,11 +3,14 @@
 import Link from 'next/link'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/providers/AuthProvider'
+import { createClient } from '@/utils/supabase/client'
+import { User } from '@supabase/supabase-js'
 
 
 export default function Dashboard() {
-  const { user, loading: authLoading, signOut, supabase } = useAuth()
+  const supabase = createClient()
+  const [user, setUser] = useState<User | null>(null)
+  const [authLoading, setAuthLoading] = useState(true)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [companyProfileImage, setCompanyProfileImage] = useState<string | null>(null)
   const [companyName, setCompanyName] = useState<string | null>(null)
@@ -298,7 +301,7 @@ export default function Dashboard() {
 
   const handleSignOut = async () => {
     try {
-      await signOut()
+      await supabase.auth.signOut()
       console.log('✅ Signed out successfully')
       router.push('/auth')
     } catch (error) {
@@ -307,18 +310,40 @@ export default function Dashboard() {
     }
   }
 
-  // Handle authentication states - only redirect after auth is fully loaded
+  // Check authentication on mount
   useEffect(() => {
-    // Wait for auth to be fully loaded before making decisions
-    if (!authLoading && !user) {
-      console.log('🚪 Dashboard: No user after auth loaded, redirecting to auth')
-      // Small delay to prevent race conditions
-      const timer = setTimeout(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        if (!authUser) {
+          console.log('🚪 Dashboard: No authenticated user, redirecting to auth')
+          router.push('/auth')
+          return
+        }
+        setUser(authUser)
+      } catch (error) {
+        console.error('Auth check failed:', error)
         router.push('/auth')
-      }, 100)
-      return () => clearTimeout(timer)
+      } finally {
+        setAuthLoading(false)
+      }
     }
-  }, [user, authLoading, router])
+
+    checkAuth()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user) {
+        router.push('/auth')
+      } else {
+        setUser(session.user)
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [router, supabase])
 
   // Show loading spinner while checking authentication or loading data
   if (authLoading || loading) {
