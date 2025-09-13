@@ -532,10 +532,30 @@ function AuthPageContent() {
     router.push(`/verify-email?email=${encodeURIComponent(email)}`)
   }
 
-  const handleRoleModalComplete = (role: string) => {
+  const handleRoleModalComplete = async (role: string) => {
     setShowRoleModal(false)
     
     console.log('✅ [AUTH] Profile creation completed for role:', role)
+    
+    // Verify session exists before redirecting
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        console.log('⚠️ [AUTH] No session found after profile creation, refreshing...')
+        // Try to refresh the session
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          console.log('❌ [AUTH] No user found, staying on auth page')
+          setMessage('Please log in to continue')
+          return
+        }
+      }
+      console.log('✅ [AUTH] Session verified, proceeding with redirect')
+    } catch (error) {
+      console.error('❌ [AUTH] Session verification failed:', error)
+      setMessage('Session error. Please log in again.')
+      return
+    }
     
     if (role === 'Admin') {
       console.log('✅ [AUTH] Admin user registered - redirecting to dashboard')
