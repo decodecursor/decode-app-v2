@@ -345,8 +345,22 @@ function AuthPageContent() {
               
               if (proxyResponse.ok && proxyData.success) {
                 console.log('✅ Proxy login successful')
-                // MUST set the session for dashboard to work
+                // ALWAYS store backup tokens first (since dashboard will need them)
                 if (proxyData.session) {
+                  try {
+                    localStorage.setItem('supabase_backup_session', JSON.stringify({
+                      access_token: proxyData.session.access_token,
+                      refresh_token: proxyData.session.refresh_token,
+                      user: proxyData.user,
+                      expires_at: proxyData.session.expires_at,
+                      stored_at: Date.now()
+                    }))
+                    console.log('✅ Backup session tokens stored')
+                  } catch (storageError) {
+                    console.error('❌ Failed to store backup tokens:', storageError)
+                  }
+                  
+                  // Also try to set the session normally (but don't fail if it doesn't work)
                   try {
                     await supabase.auth.setSession({
                       access_token: proxyData.session.access_token,
@@ -354,20 +368,7 @@ function AuthPageContent() {
                     })
                     console.log('✅ Session set successfully')
                   } catch (sessionError) {
-                    console.log('⚠️ Session setting failed, storing backup tokens:', sessionError.message)
-                    // Store session tokens as backup in localStorage
-                    try {
-                      localStorage.setItem('supabase_backup_session', JSON.stringify({
-                        access_token: proxyData.session.access_token,
-                        refresh_token: proxyData.session.refresh_token,
-                        user: proxyData.user,
-                        expires_at: proxyData.session.expires_at,
-                        stored_at: Date.now()
-                      }))
-                      console.log('✅ Backup session tokens stored')
-                    } catch (storageError) {
-                      console.error('❌ Failed to store backup tokens:', storageError)
-                    }
+                    console.log('⚠️ Session setting failed, but backup tokens already stored:', sessionError.message)
                   }
                 }
                 loginSuccess = true
