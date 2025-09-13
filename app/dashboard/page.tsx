@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { ensureAuthSession } from '@/utils/auth-restoration'
 import type { User } from '@supabase/supabase-js'
 
 
@@ -144,85 +145,18 @@ export default function Dashboard() {
       try {
         console.log('🔍 Dashboard: Checking user authentication...')
         
-        let user = null
-        let authError = null
+        // Use the new auth restoration utility
+        const authResult = await ensureAuthSession()
         
-        // Try direct auth check first
-        try {
-          console.log('🔄 Dashboard: Trying direct auth check...')
-          const { data, error } = await supabase.auth.getUser()
-          
-          if (!error && data?.user) {
-            user = data.user
-            console.log('✅ Dashboard: Direct auth successful')
-          } else {
-            authError = error
-            throw error || new Error('No user from direct auth')
-          }
-        } catch (directError) {
-          console.log('⚠️ Dashboard: Direct auth failed, trying proxy...', directError.message)
-          
-          // Try proxy auth check
-          try {
-            console.log('🔄 Dashboard: Using proxy auth check...')
-            const session = await supabase.auth.getSession()
-            
-            if (session.data.session?.access_token) {
-              const proxyResponse = await fetch('/api/auth/proxy-user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ access_token: session.data.session.access_token })
-              })
-              
-              const proxyData = await proxyResponse.json()
-              
-              if (proxyResponse.ok && proxyData.success && proxyData.user) {
-                user = proxyData.user
-                console.log('✅ Dashboard: Proxy auth successful')
-              } else {
-                throw new Error('Proxy auth failed')
-              }
-            } else {
-              throw new Error('No session for proxy auth')
-            }
-          } catch (proxyError) {
-            console.log('⚠️ Dashboard: Both direct and proxy auth failed, checking backup session...')
-            
-            // Check for backup session tokens in localStorage
-            try {
-              const backupSession = localStorage.getItem('supabase_backup_session')
-              if (backupSession) {
-                const parsed = JSON.parse(backupSession)
-                console.log('✅ Dashboard: Found backup session, using backup user data')
-                user = parsed.user
-                
-                // Check if backup is still valid (not older than 24 hours)
-                const ageHours = (Date.now() - parsed.stored_at) / (1000 * 60 * 60)
-                if (ageHours > 24) {
-                  console.log('⚠️ Dashboard: Backup session expired, clearing it')
-                  localStorage.removeItem('supabase_backup_session')
-                  throw new Error('Backup session expired')
-                }
-              } else {
-                throw new Error('No backup session found')
-              }
-            } catch (backupError) {
-              console.error('❌ Dashboard: All auth methods failed, redirecting to auth')
-              setAuthLoading(false)
-              router.push('/auth')
-              return
-            }
-          }
-        }
-        
-        if (!user) {
-          console.log('🚪 Dashboard: No user found, redirecting to auth')
+        if (!authResult) {
+          console.log('🚪 Dashboard: No valid session found, redirecting to auth')
           setAuthLoading(false)
           router.push('/auth')
           return
         }
         
-        console.log('✅ Dashboard: User authenticated:', user.id)
+        const { user, isFromBackup } = authResult
+        console.log(`✅ Dashboard: User authenticated (${isFromBackup ? 'from backup' : 'direct'}):`, user.id)
         setUser(user)
       
       // Fetch user role, professional center name, and profile photo from users table

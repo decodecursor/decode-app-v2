@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { ensureAuthSession } from '@/utils/auth-restoration'
 import PasswordInput from '@/components/PasswordInput'
 // Removed ReactCrop - using custom Instagram-style interface
 
@@ -60,37 +61,19 @@ export default function ProfilePage() {
     if (typeof window === 'undefined') return
     
     try {
-      const supabase = createClient()
-      let user = null
+      console.log('🔍 Profile: Checking user authentication...')
       
-      // Try direct auth first
-      try {
-        const { data } = await supabase.auth.getUser()
-        user = data.user
-      } catch (directError) {
-        console.log('⚠️ Profile: Direct auth failed, checking backup session...')
-        
-        // Check for backup session tokens
-        const backupSession = localStorage.getItem('supabase_backup_session')
-        if (backupSession) {
-          const parsed = JSON.parse(backupSession)
-          const ageHours = (Date.now() - parsed.stored_at) / (1000 * 60 * 60)
-          
-          if (ageHours < 24) {
-            user = parsed.user
-            console.log('✅ Profile: Using backup session')
-          } else {
-            console.log('⚠️ Profile: Backup session expired')
-            localStorage.removeItem('supabase_backup_session')
-          }
-        }
-      }
+      // Use the new auth restoration utility
+      const authResult = await ensureAuthSession()
       
-      if (!user) {
+      if (!authResult) {
+        console.log('🚪 Profile: No valid session found, redirecting to auth')
         router.push('/auth')
         return
       }
-
+      
+      const { user, isFromBackup } = authResult
+      console.log(`✅ Profile: User authenticated (${isFromBackup ? 'from backup' : 'direct'}):`, user.id)
       setUser(user)
 
       // Fetch user profile using available database fields

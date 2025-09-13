@@ -348,6 +348,7 @@ function AuthPageContent() {
                 // ALWAYS store backup tokens first (since dashboard will need them)
                 if (proxyData.session) {
                   try {
+                    // Store backup session tokens for fallback
                     localStorage.setItem('supabase_backup_session', JSON.stringify({
                       access_token: proxyData.session.access_token,
                       refresh_token: proxyData.session.refresh_token,
@@ -356,8 +357,20 @@ function AuthPageContent() {
                       stored_at: Date.now()
                     }))
                     console.log('✅ Backup session tokens stored')
+                    
+                    // ALSO store in Supabase's native storage format for middleware compatibility
+                    const supabaseNativeSession = {
+                      access_token: proxyData.session.access_token,
+                      refresh_token: proxyData.session.refresh_token,
+                      expires_at: proxyData.session.expires_at,
+                      expires_in: Math.floor((proxyData.session.expires_at - Date.now() / 1000)),
+                      token_type: 'bearer',
+                      user: proxyData.user
+                    }
+                    localStorage.setItem('sb-auth-token', JSON.stringify(supabaseNativeSession))
+                    console.log('✅ Native Supabase session stored for middleware compatibility')
                   } catch (storageError) {
-                    console.error('❌ Failed to store backup tokens:', storageError)
+                    console.error('❌ Failed to store session tokens:', storageError)
                   }
                   
                   // Also try to set the session normally (but don't fail if it doesn't work)
