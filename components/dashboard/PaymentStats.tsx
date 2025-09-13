@@ -45,6 +45,7 @@ interface DateRangeStats {
   transactions: number
   averagePayment: number
   successRate: number
+  myCommission: number
 }
 
 interface PopularAmount {
@@ -63,8 +64,8 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
     popularAmounts: PopularAmount[]
     revenueByDay: Array<{ date: string; dayNumber: number; revenue: number; transactions: number }>
   }>({
-    current: { revenue: 0, transactions: 0, averagePayment: 0, successRate: 0 },
-    previous: { revenue: 0, transactions: 0, averagePayment: 0, successRate: 0 },
+    current: { revenue: 0, transactions: 0, averagePayment: 0, successRate: 0, myCommission: 0 },
+    previous: { revenue: 0, transactions: 0, averagePayment: 0, successRate: 0, myCommission: 0 },
     popularAmounts: [],
     revenueByDay: []
   })
@@ -273,13 +274,15 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
         revenue: currentRevenue,
         transactions: currentCount,
         averagePayment: currentAverage,
-        successRate: currentSuccessRate
+        successRate: currentSuccessRate,
+        myCommission: currentMyCommission
       },
       previous: {
         revenue: previousRevenue,
         transactions: previousCount,
         averagePayment: previousAverage,
-        successRate: previousSuccessRate
+        successRate: previousSuccessRate,
+        myCommission: previousMyCommission
       },
       popularAmounts,
       revenueByDay
@@ -456,17 +459,17 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
             <div className="flex justify-between items-start mb-2">
               <h3 className="cosmic-label text-white/70">My Commission</h3>
               {dateRange !== 'custom' && (
-                <span className={`text-xs font-medium ${getChangeColor(currentMyCommission, previousMyCommission)}`}>
-                  {formatPercentageChange(currentMyCommission, previousMyCommission)}
+                <span className={`text-xs font-medium ${getChangeColor(current.myCommission, previous.myCommission)}`}>
+                  {formatPercentageChange(current.myCommission, previous.myCommission)}
                 </span>
               )}
             </div>
             <p className="text-2xl font-bold text-white mb-1">
-              {formatCurrency(currentMyCommission)}
+              {formatCurrency(current.myCommission)}
             </p>
             {dateRange !== 'custom' && (
               <p className="text-xs text-white/50">
-                vs {formatCurrency(previousMyCommission)} previous period
+                vs {formatCurrency(previous.myCommission)} previous period
               </p>
             )}
           </div>
@@ -475,17 +478,17 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
             <div className="flex justify-between items-start mb-2">
               <h3 className="cosmic-label text-white/70">My Next Payout</h3>
               {dateRange !== 'custom' && (
-                <span className={`text-xs font-medium ${getChangeColor(currentMyCommission, previousMyCommission)}`}>
-                  {formatPercentageChange(currentMyCommission, previousMyCommission)}
+                <span className={`text-xs font-medium ${getChangeColor(current.myCommission, previous.myCommission)}`}>
+                  {formatPercentageChange(current.myCommission, previous.myCommission)}
                 </span>
               )}
             </div>
             <p className="text-2xl font-bold text-white mb-1">
-              {formatCurrency(currentMyCommission)}
+              {formatCurrency(current.myCommission)}
             </p>
             {dateRange !== 'custom' && (
               <p className="text-xs text-white/50">
-                vs {formatCurrency(previousMyCommission)} previous period
+                vs {formatCurrency(previous.myCommission)} previous period
               </p>
             )}
           </div>
