@@ -108,18 +108,76 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST method - legacy endpoint for backward compatibility
-// New code should use GET method instead
+// POST method - same implementation as GET for consistency
 export async function POST(request: NextRequest) {
   try {
     console.log('🔄 [PROXY-USER POST] Request received')
 
-    // For POST requests, we still use the server client
-    // This maintains backward compatibility but uses the same approach as GET
-    const supabase = await createClient()
+    // Get access token from cookies - manually parse since we manually set them
+    const cookieStore = await cookies()
+    const allCookies = cookieStore.getAll()
+    let sessionData: any = null
 
-    // Get user - this automatically reads the session cookies
-    const { data: { user }, error } = await supabase.auth.getUser()
+    // Look for Supabase session cookies
+    for (const cookie of allCookies) {
+      if (cookie.name.includes('auth-token')) {
+        try {
+          // Supabase splits the session into multiple cookies
+          if (cookie.name.endsWith('.0')) {
+            // First part contains the base64 encoded session
+            const decoded = Buffer.from(cookie.value, 'base64').toString('utf-8')
+            sessionData = JSON.parse(decoded)
+            break
+          }
+        } catch (e) {
+          console.log('Failed to parse cookie:', cookie.name, e)
+        }
+      }
+    }
+
+    if (!sessionData) {
+      console.log('❌ [PROXY-USER POST] No auth session found in cookies')
+      return NextResponse.json(
+        { error: 'No authentication session found' },
+        { status: 401 }
+      )
+    }
+
+    const access_token = sessionData.access_token
+
+    if (!access_token) {
+      console.error('❌ [PROXY-USER POST] Could not extract access token from cookie')
+      return NextResponse.json(
+        { error: 'Invalid authentication token format' },
+        { status: 401 }
+      )
+    }
+
+    // Use service role to get user with access token
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error('❌ [PROXY-USER POST] Missing environment variables')
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
+    const supabase = createClient(
+      supabaseUrl,
+      serviceRoleKey,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
+
+    // Get user info using the access token
+    const { data: { user }, error } = await supabase.auth.getUser(access_token)
 
     if (error) {
       console.error('❌ [PROXY-USER POST] Error getting user:', error)
@@ -130,9 +188,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (!user) {
-      console.log('❌ [PROXY-USER POST] No authenticated user found')
+      console.log('❌ [PROXY-USER POST] No user found')
       return NextResponse.json(
-        { error: 'No authenticated user' },
+        { error: 'No user found' },
         { status: 401 }
       )
     }
