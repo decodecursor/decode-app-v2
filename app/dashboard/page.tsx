@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { getUserWithProxy } from '@/utils/auth-helper'
 import { User } from '@supabase/supabase-js'
 
 
@@ -314,12 +315,15 @@ export default function Dashboard() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const { data: { user: authUser } } = await supabase.auth.getUser()
+        const { user: authUser, error } = await getUserWithProxy()
+
         if (!authUser) {
           console.log('🚪 Dashboard: No authenticated user, redirecting to auth')
           router.push('/auth')
           return
         }
+
+        console.log('✅ Dashboard: User authenticated:', authUser.id)
         setUser(authUser)
       } catch (error) {
         console.error('Auth check failed:', error)
