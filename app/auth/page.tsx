@@ -49,6 +49,13 @@ function AuthPageContent() {
     const roleParam = searchParams?.get('role')
     const modeParam = searchParams?.get('mode')
 
+    // Handle mode parameter for login/register
+    if (modeParam === 'login') {
+      setIsLogin(true)
+    } else if (modeParam === 'register') {
+      setIsLogin(false)
+    }
+
     // Handle pre-selected role for direct registration links
     if (roleParam && modeParam === 'register') {
       // Map URL roles to database roles
