@@ -62,14 +62,6 @@ function AuthPageContent() {
       if (mappedRole) {
         setPreselectedRole(mappedRole)
         setIsLogin(false) // Force signup mode
-
-        // Set welcome message based on role
-        const roleMessages: { [key: string]: string } = {
-          'Admin': 'Welcome! Create your Admin account to manage your beauty business.',
-          'Beauty Professional': 'Welcome! Create your Beauty Professional account to start accepting payments.',
-          'Beauty Model': 'Welcome! Create your Beauty Model account to showcase your work.'
-        }
-        setMessage(roleMessages[mappedRole] || 'Welcome! Create your account.')
       }
     }
 
