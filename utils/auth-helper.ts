@@ -14,11 +14,12 @@ export async function getUserWithProxy(): Promise<{ user: User | null, error: st
       return { user, error: null }
     }
 
-    // If direct connection failed with network error, try proxy
-    if (error?.message?.includes('NetworkError') ||
+    // If no user found OR there's a network error, try proxy
+    // This ensures proxy is used when cookies aren't readable by client
+    if (!user || error?.message?.includes('NetworkError') ||
         error?.message?.includes('fetch') ||
         error?.message?.includes('Failed to fetch')) {
-      console.log('🔄 [AUTH-HELPER] Direct connection failed, trying proxy...')
+      console.log('🔄 [AUTH-HELPER] No user from direct connection, trying proxy...')
 
       try {
         const proxyResponse = await fetch('/api/auth/proxy-user', {
@@ -36,7 +37,7 @@ export async function getUserWithProxy(): Promise<{ user: User | null, error: st
             return { user: proxyData.user, error: null }
           }
         } else if (proxyResponse.status === 401) {
-          console.log('❌ [AUTH-HELPER] No authenticated user found')
+          console.log('❌ [AUTH-HELPER] No authenticated user found via proxy')
           return { user: null, error: null }
         } else {
           const errorData = await proxyResponse.json()
