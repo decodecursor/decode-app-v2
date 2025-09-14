@@ -236,7 +236,8 @@ input[type="number"] {
 
 .cosmic-input:focus {
   outline: none;
-  border-color: var(--cosmic-border-focus);
+  border-color: #a855f7;
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
 }
 
 /* Cosmic Primary Button */

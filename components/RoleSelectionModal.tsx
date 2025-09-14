@@ -295,7 +295,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
             <div className="space-y-3">
               <label className={`flex items-center space-x-3 cursor-pointer p-3 rounded-lg border transition-colors ${
                 role === 'Admin'
-                  ? 'border-purple-500 bg-purple-500/10'
+                  ? 'border-purple-500 bg-slate-800'
                   : 'border-gray-700 hover:border-purple-500'
               }`}>
                 <input
@@ -309,47 +309,47 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
                 />
                 <div className="flex-1">
                   <div className="text-white font-medium">Admin</div>
-                  <div className="text-gray-300 text-xs">Manage company data and approve users</div>
+                  <div className="text-gray-300 text-xs">Manage bank accounts and approve staff</div>
                 </div>
               </label>
 
               <label className={`flex items-center space-x-3 cursor-pointer p-3 rounded-lg border transition-colors ${
-                role === 'Beauty Professional'
-                  ? 'border-purple-500 bg-purple-500/10'
+                role === 'Staff'
+                  ? 'border-purple-500 bg-slate-800'
                   : 'border-gray-700 hover:border-purple-500'
               }`}>
                 <input
                   type="radio"
                   name="role"
-                  value="Beauty Professional"
-                  checked={role === 'Beauty Professional'}
+                  value="Staff"
+                  checked={role === 'Staff'}
                   onChange={(e) => setRole(e.target.value)}
                   className="w-4 h-4 text-purple-500 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2"
                   disabled={loading || !!inviteData || !!preselectedRole}
                 />
                 <div className="flex-1">
-                  <div className="text-white font-medium">Beauty Professional</div>
-                  <div className="text-gray-300 text-xs">Provide beauty services and accept payments</div>
+                  <div className="text-white font-medium">Staff</div>
+                  <div className="text-gray-300 text-xs">Create payment links</div>
                 </div>
               </label>
 
               <label className={`flex items-center space-x-3 cursor-pointer p-3 rounded-lg border transition-colors ${
-                role === 'Beauty Model'
-                  ? 'border-purple-500 bg-purple-500/10'
+                role === 'Model'
+                  ? 'border-purple-500 bg-slate-800'
                   : 'border-gray-700 hover:border-purple-500'
               }`}>
                 <input
                   type="radio"
                   name="role"
-                  value="Beauty Model"
-                  checked={role === 'Beauty Model'}
+                  value="Model"
+                  checked={role === 'Model'}
                   onChange={(e) => setRole(e.target.value)}
                   className="w-4 h-4 text-purple-500 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2"
                   disabled={loading || !!inviteData || !!preselectedRole}
                 />
                 <div className="flex-1">
-                  <div className="text-white font-medium">Beauty Model</div>
-                  <div className="text-gray-300 text-xs">Showcase beauty work and collaborate with professionals</div>
+                  <div className="text-white font-medium">Model</div>
+                  <div className="text-gray-300 text-xs">Create beauty service auctions and refer beauty businesses</div>
                 </div>
               </label>
             </div>

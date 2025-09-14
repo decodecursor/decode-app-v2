@@ -61,14 +61,16 @@ function AuthPageContent() {
       // Map URL roles to database roles
       const roleMapping: { [key: string]: string } = {
         'admin': 'Admin',
-        'user': 'Beauty Professional', // Default user to Beauty Professional
-        'model': 'Beauty Model'
+        'user': 'Staff', // Default user to Staff
+        'model': 'Model'
       }
 
       const mappedRole = roleMapping[roleParam.toLowerCase()]
       if (mappedRole) {
         setPreselectedRole(mappedRole)
         setIsLogin(false) // Force signup mode
+        // Store preselected role in sessionStorage to persist through email verification
+        sessionStorage.setItem('preselectedRole', mappedRole)
       }
     }
 
@@ -129,6 +131,15 @@ function AuthPageContent() {
             console.log('✅ [AUTH] Verified user needs to complete profile - SHOWING ROLE MODAL')
             setEmail(user.email || '')
             setSignedUpUser(user)
+
+            // Retrieve preselected role from sessionStorage if available
+            const storedPreselectedRole = sessionStorage.getItem('preselectedRole')
+            if (storedPreselectedRole) {
+              setPreselectedRole(storedPreselectedRole)
+              // Clear it after use
+              sessionStorage.removeItem('preselectedRole')
+            }
+
             setShowRoleModal(true)
             setIsPostVerificationFlow(true) // Track that this is after email verification
             setMessage('Please complete your profile to finish registration')
