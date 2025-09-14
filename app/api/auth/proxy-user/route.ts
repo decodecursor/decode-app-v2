@@ -18,37 +18,47 @@ export async function GET(request: NextRequest) {
     console.log('🍪 [PROXY-USER] All cookies:', allCookies.map(c => c.name))
 
     // Look for Supabase session cookies
-    // First, find the marker cookie to know how many chunks there are
     const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL!.split('//')[1].split('.')[0]
-    console.log('🔍 [PROXY-USER] Looking for cookies with prefix:', `sb-${projectRef}-auth-token`)
-    const markerCookie = allCookies.find(c => c.name === `sb-${projectRef}-auth-token`)
+    const cookieName = `sb-${projectRef}-auth-token`
+    console.log('🔍 [PROXY-USER] Looking for cookies with name:', cookieName)
 
-    if (markerCookie && markerCookie.value.startsWith('base64-')) {
-      // Extract number of chunks from marker cookie
-      const numChunks = parseInt(markerCookie.value.replace('base64-', ''))
-      console.log(`✅ [PROXY-USER] Found marker cookie with ${numChunks} chunks to reconstruct`)
+    // Check if it's a single cookie or chunked
+    const singleCookie = allCookies.find(c => c.name === cookieName)
 
-      // Reconstruct the session from all chunks
-      let fullBase64 = ''
-      for (let i = 0; i < numChunks; i++) {
-        const chunkCookie = allCookies.find(c => c.name === `sb-${projectRef}-auth-token.${i}`)
-        if (chunkCookie) {
-          fullBase64 += chunkCookie.value
-        }
+    if (singleCookie) {
+      // Single cookie - parse directly
+      console.log('✅ [PROXY-USER] Found single session cookie')
+      try {
+        sessionData = JSON.parse(singleCookie.value)
+        console.log('Successfully parsed session from single cookie')
+      } catch (e) {
+        console.log('Failed to parse session:', e)
+      }
+    } else {
+      // Look for chunked cookies
+      const chunks: string[] = []
+      let chunkIndex = 0
+
+      while (true) {
+        const chunkCookie = allCookies.find(c => c.name === `${cookieName}.${chunkIndex}`)
+        if (!chunkCookie) break
+        chunks.push(chunkCookie.value)
+        chunkIndex++
       }
 
-      if (fullBase64) {
+      if (chunks.length > 0) {
+        console.log(`✅ [PROXY-USER] Found ${chunks.length} cookie chunks to reconstruct`)
         try {
-          // Decode from base64url (URL-safe) format
-          const decoded = Buffer.from(fullBase64, 'base64url').toString('utf-8')
-          sessionData = JSON.parse(decoded)
+          // Combine chunks and parse
+          const fullSession = chunks.join('')
+          sessionData = JSON.parse(fullSession)
           console.log('Successfully reconstructed session from chunked cookies')
         } catch (e) {
           console.log('Failed to parse reconstructed session:', e)
         }
+      } else {
+        console.log('❌ [PROXY-USER] No session cookies found')
       }
-    } else {
-      console.log('❌ [PROXY-USER] No marker cookie found. Marker cookie name:', `sb-${projectRef}-auth-token`)
     }
 
     if (!sessionData) {
@@ -142,37 +152,47 @@ export async function POST(request: NextRequest) {
     console.log('🍪 [PROXY-USER] All cookies:', allCookies.map(c => c.name))
 
     // Look for Supabase session cookies
-    // First, find the marker cookie to know how many chunks there are
     const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL!.split('//')[1].split('.')[0]
-    console.log('🔍 [PROXY-USER] Looking for cookies with prefix:', `sb-${projectRef}-auth-token`)
-    const markerCookie = allCookies.find(c => c.name === `sb-${projectRef}-auth-token`)
+    const cookieName = `sb-${projectRef}-auth-token`
+    console.log('🔍 [PROXY-USER] Looking for cookies with name:', cookieName)
 
-    if (markerCookie && markerCookie.value.startsWith('base64-')) {
-      // Extract number of chunks from marker cookie
-      const numChunks = parseInt(markerCookie.value.replace('base64-', ''))
-      console.log(`✅ [PROXY-USER] Found marker cookie with ${numChunks} chunks to reconstruct`)
+    // Check if it's a single cookie or chunked
+    const singleCookie = allCookies.find(c => c.name === cookieName)
 
-      // Reconstruct the session from all chunks
-      let fullBase64 = ''
-      for (let i = 0; i < numChunks; i++) {
-        const chunkCookie = allCookies.find(c => c.name === `sb-${projectRef}-auth-token.${i}`)
-        if (chunkCookie) {
-          fullBase64 += chunkCookie.value
-        }
+    if (singleCookie) {
+      // Single cookie - parse directly
+      console.log('✅ [PROXY-USER] Found single session cookie')
+      try {
+        sessionData = JSON.parse(singleCookie.value)
+        console.log('Successfully parsed session from single cookie')
+      } catch (e) {
+        console.log('Failed to parse session:', e)
+      }
+    } else {
+      // Look for chunked cookies
+      const chunks: string[] = []
+      let chunkIndex = 0
+
+      while (true) {
+        const chunkCookie = allCookies.find(c => c.name === `${cookieName}.${chunkIndex}`)
+        if (!chunkCookie) break
+        chunks.push(chunkCookie.value)
+        chunkIndex++
       }
 
-      if (fullBase64) {
+      if (chunks.length > 0) {
+        console.log(`✅ [PROXY-USER] Found ${chunks.length} cookie chunks to reconstruct`)
         try {
-          // Decode from base64url (URL-safe) format
-          const decoded = Buffer.from(fullBase64, 'base64url').toString('utf-8')
-          sessionData = JSON.parse(decoded)
+          // Combine chunks and parse
+          const fullSession = chunks.join('')
+          sessionData = JSON.parse(fullSession)
           console.log('Successfully reconstructed session from chunked cookies')
         } catch (e) {
           console.log('Failed to parse reconstructed session:', e)
         }
+      } else {
+        console.log('❌ [PROXY-USER] No session cookies found')
       }
-    } else {
-      console.log('❌ [PROXY-USER] No marker cookie found. Marker cookie name:', `sb-${projectRef}-auth-token`)
     }
 
     if (!sessionData) {

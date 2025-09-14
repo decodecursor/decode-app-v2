@@ -57,10 +57,8 @@ export async function POST(request: NextRequest) {
       user: data.user
     }
 
-    // Set the session cookies in the format Supabase expects
+    // Set the session cookies in the format Supabase SSR expects
     const sessionString = JSON.stringify(sessionData)
-    // Use base64url encoding (URL-safe) as Supabase SSR expects
-    const sessionBase64 = Buffer.from(sessionString).toString('base64url')
 
     // Cookie options matching Supabase SSR defaults
     const cookieOptions = {
@@ -68,37 +66,48 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax' as const,
       path: '/',
-      maxAge: 60 * 60 * 24 * 400, // 400 days (Supabase default)
+      maxAge: 60 * 60 * 24 * 365, // 1 year
     }
 
-    // Set the auth token cookies (Supabase uses chunked cookies)
-    const chunkSize = 3180 // Supabase SSR standard chunk size
-    const chunks = []
+    // Chunk the raw JSON string using URL encoding like Supabase SSR does
+    const MAX_CHUNK_SIZE = 3180
+    const cookieName = `sb-${projectRef}-auth-token`
 
-    for (let i = 0; i < sessionBase64.length; i += chunkSize) {
-      chunks.push(sessionBase64.slice(i, i + chunkSize))
+    // URL encode the value for chunking
+    let encodedValue = encodeURIComponent(sessionString)
+
+    if (encodedValue.length <= MAX_CHUNK_SIZE) {
+      // Single cookie if it fits
+      console.log(`📝 [PROXY-LOGIN] Setting single cookie: ${cookieName}`)
+      response.cookies.set(cookieName, sessionString, cookieOptions)
+    } else {
+      // Multiple chunks needed
+      const chunks: string[] = []
+
+      while (encodedValue.length > 0) {
+        let encodedChunkHead = encodedValue.slice(0, MAX_CHUNK_SIZE)
+        const lastEscapePos = encodedChunkHead.lastIndexOf('%')
+
+        // Check if we're splitting in the middle of an escape sequence
+        if (lastEscapePos > MAX_CHUNK_SIZE - 3) {
+          encodedChunkHead = encodedChunkHead.slice(0, lastEscapePos)
+        }
+
+        // Decode back to get the actual chunk value
+        const chunkValue = decodeURIComponent(encodedChunkHead)
+        chunks.push(chunkValue)
+
+        // Remove processed part from encodedValue
+        encodedValue = encodedValue.slice(encodedChunkHead.length)
+      }
+
+      console.log(`📝 [PROXY-LOGIN] Setting ${chunks.length} cookie chunks for project: ${projectRef}`)
+      chunks.forEach((chunk, index) => {
+        const chunkName = `${cookieName}.${index}`
+        console.log(`  - Setting cookie: ${chunkName} (${chunk.length} chars)`)
+        response.cookies.set(chunkName, chunk, cookieOptions)
+      })
     }
-
-    // Set each chunk as a separate cookie on the response
-    console.log(`📝 [PROXY-LOGIN] Setting ${chunks.length} cookie chunks for project: ${projectRef}`)
-    chunks.forEach((chunk, index) => {
-      const cookieName = `sb-${projectRef}-auth-token.${index}`
-      console.log(`  - Setting cookie: ${cookieName} (${chunk.length} chars)`)
-      response.cookies.set(
-        cookieName,
-        chunk,
-        cookieOptions
-      )
-    })
-
-    // Also set a marker cookie on the response
-    const markerName = `sb-${projectRef}-auth-token`
-    console.log(`  - Setting marker cookie: ${markerName} = base64-${chunks.length}`)
-    response.cookies.set(
-      markerName,
-      'base64-' + chunks.length,
-      cookieOptions
-    )
 
     console.log('✅ Proxy login successful for user:', data.user.email)
 
