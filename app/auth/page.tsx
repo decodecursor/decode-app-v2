@@ -389,8 +389,15 @@ function AuthPageContent() {
               if (proxyResponse.ok && proxyData.success) {
                 console.log('✅ Proxy login successful - session established via cookies')
                 // No need to call setSession - cookies are already set server-side
-                loginSuccess = true
-                loginData = { user: { email }, session: true } // Minimal data for redirect
+
+                // Small delay to ensure session cookies are set
+                await new Promise(resolve => setTimeout(resolve, 500))
+
+                console.log('✅ Redirecting to dashboard after proxy login')
+                router.push('/dashboard')
+
+                // Return early to avoid any error handling
+                return
               } else {
                 throw new Error(proxyData.error || 'Proxy login failed')
               }
@@ -399,16 +406,17 @@ function AuthPageContent() {
               throw loginError || proxyError
             }
           }
-          
+
+          // Only reach here if direct login was successful
           if (loginSuccess && loginData) {
-            console.log('✅ User logged in successfully')
+            console.log('✅ User logged in successfully via direct connection')
 
             // Small delay to ensure session cookies are set
             await new Promise(resolve => setTimeout(resolve, 500))
 
             console.log('✅ Redirecting to dashboard')
             router.push('/dashboard')
-            return loginData
+            return
           } else {
             throw new Error('Login failed - no user or session data returned')
           }
