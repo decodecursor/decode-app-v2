@@ -7,7 +7,7 @@ import { cookies } from 'next/headers'
 // GET method - reads manually-set cookies and retrieves user
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔄 [PROXY-USER GET] Request received')
+    console.log('🔄 [PROXY-USER GET] Request received from:', request.headers.get('referer') || 'unknown')
 
     // Get access token from cookies - manually parse since we manually set them
     const cookieStore = await cookies()
