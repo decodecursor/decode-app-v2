@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { getUserWithProxy } from '@/utils/auth-helper'
 import RoleSelectionModal from '@/components/RoleSelectionModal'
 import PasswordInput from '@/components/PasswordInput'
 
@@ -94,16 +95,17 @@ function AuthPageContent() {
     const checkAuthState = async () => {
       console.log('🔍 [AUTH] Starting auth state check...')
       try {
-        const { data: { user }, error } = await supabase.auth.getUser()
+        // Use getUserWithProxy to handle both direct and proxy auth
+        const { user, error } = await getUserWithProxy()
         const justVerified = searchParams?.get('verified') === 'true'
-        
+
         console.log('🔍 [AUTH] Auth state details:', {
           hasUser: !!user,
           userId: user?.id,
           userEmail: user?.email,
           emailConfirmed: !!user?.email_confirmed_at,
           justVerified,
-          error: error?.message
+          error: error
         })
         
         if (user && (user.email_confirmed_at || justVerified)) {
