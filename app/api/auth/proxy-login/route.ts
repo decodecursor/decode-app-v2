@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
 
 // Direct auth proxy that runs on Vercel servers (avoiding network issues)
 export async function POST(request: NextRequest) {
@@ -38,8 +37,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Manually set session cookies to ensure they're available for subsequent requests
-    const cookieStore = await cookies()
+    // Prepare response with success message
+    const response = NextResponse.json({
+      success: true,
+      message: 'Login successful'
+    })
+
+    // Manually set session cookies on the response
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const projectRef = supabaseUrl.split('//')[1].split('.')[0]
 
@@ -74,9 +78,9 @@ export async function POST(request: NextRequest) {
       chunks.push(sessionBase64.slice(i, i + chunkSize))
     }
 
-    // Set each chunk as a separate cookie
+    // Set each chunk as a separate cookie on the response
     chunks.forEach((chunk, index) => {
-      cookieStore.set(
+      response.cookies.set(
         `sb-${projectRef}-auth-token.${index}`,
         chunk,
         cookieOptions
@@ -84,7 +88,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Also set a marker cookie
-    cookieStore.set(
+    response.cookies.set(
       `sb-${projectRef}-auth-token`,
       'base64-' + chunks.length,
       cookieOptions
@@ -92,11 +96,8 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Proxy login successful for user:', data.user.email)
 
-    // Return success
-    return NextResponse.json({
-      success: true,
-      message: 'Login successful'
-    })
+    // Return response with cookies
+    return response
 
   } catch (error: any) {
     console.error('Proxy login server error:', error)
