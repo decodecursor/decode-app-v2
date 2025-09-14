@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { getUserWithProxy } from '@/utils/auth-helper'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import QRCode from 'qrcode'
@@ -66,7 +67,7 @@ function MyLinksContent() {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await createClient().auth.getUser()
+      const { user } = await getUserWithProxy()
       if (!user) {
         router.push('/auth')
         return
