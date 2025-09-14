@@ -24,6 +24,7 @@ function AuthPageContent() {
   const [inviteData, setInviteData] = useState<any>(null)
   const [fallbackTriggered, setFallbackTriggered] = useState(false)
   const [isPostVerificationFlow, setIsPostVerificationFlow] = useState(false)
+  const [preselectedRole, setPreselectedRole] = useState<string | null>(null)
   const supabase = createClient()
   
   // Add submission guard to prevent concurrent submissions
@@ -42,9 +43,37 @@ function AuthPageContent() {
     return undefined
   }, [message])
 
-  // Handle invite parameter from URL
+  // Handle invite parameter and pre-selected role from URL
   useEffect(() => {
     const inviteParam = searchParams?.get('invite')
+    const roleParam = searchParams?.get('role')
+    const modeParam = searchParams?.get('mode')
+
+    // Handle pre-selected role for direct registration links
+    if (roleParam && modeParam === 'register') {
+      // Map URL roles to database roles
+      const roleMapping: { [key: string]: string } = {
+        'admin': 'Admin',
+        'user': 'Beauty Professional', // Default user to Beauty Professional
+        'model': 'Beauty Model'
+      }
+
+      const mappedRole = roleMapping[roleParam.toLowerCase()]
+      if (mappedRole) {
+        setPreselectedRole(mappedRole)
+        setIsLogin(false) // Force signup mode
+
+        // Set welcome message based on role
+        const roleMessages: { [key: string]: string } = {
+          'Admin': 'Welcome! Create your Admin account to manage your beauty business.',
+          'Beauty Professional': 'Welcome! Create your Beauty Professional account to start accepting payments.',
+          'Beauty Model': 'Welcome! Create your Beauty Model account to showcase your work.'
+        }
+        setMessage(roleMessages[mappedRole] || 'Welcome! Create your account.')
+      }
+    }
+
+    // Handle invitation parameter (existing functionality)
     if (inviteParam) {
       try {
         const decodedData = JSON.parse(Buffer.from(inviteParam, 'base64').toString())
@@ -686,6 +715,7 @@ function AuthPageContent() {
         userId={signedUpUser?.id}  // Pass the user ID directly
         termsAcceptedAt={new Date().toISOString()}
         inviteData={inviteData}  // Pass invite data for pre-population
+        preselectedRole={preselectedRole}  // Pass pre-selected role from URL
         onClose={handleRoleModalClose}
         onComplete={handleRoleModalComplete}
       />

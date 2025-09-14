@@ -10,11 +10,12 @@ interface RoleSelectionModalProps {
   userId?: string  // User ID passed from signup
   termsAcceptedAt: string
   inviteData?: any  // Invite data for pre-population
+  preselectedRole?: string | null  // Pre-selected role from URL
   onClose: () => void
   onComplete: (role: string) => void
 }
 
-export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcceptedAt, inviteData, onClose, onComplete }: RoleSelectionModalProps) {
+export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcceptedAt, inviteData, preselectedRole, onClose, onComplete }: RoleSelectionModalProps) {
   const [role, setRole] = useState('')
   const [companyName, setCompanyName] = useState('')
   const [userName, setUserName] = useState('')
@@ -26,14 +27,16 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
   
   const supabase = createClient()
 
-  // Pre-populate form with invite data
+  // Pre-populate form with invite data or pre-selected role
   useEffect(() => {
     if (inviteData) {
       setRole(inviteData.role || '')
       setCompanyName(inviteData.companyName || '')
       setHasSelectedSuggestion(true) // Prevent company suggestions for invited users
+    } else if (preselectedRole) {
+      setRole(preselectedRole)
     }
-  }, [inviteData])
+  }, [inviteData, preselectedRole])
 
   useEffect(() => {
     const fetchCompanySuggestions = async () => {
@@ -280,15 +283,19 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
 
           <div className="space-y-3">
             <label className="block text-sm font-medium text-gray-300">
-              {inviteData ? 'Your assigned role' : 'Select your role'}
+              {inviteData ? 'Your assigned role' :
+               preselectedRole ? 'Your role' :
+               'Select your role'}
             </label>
-            {inviteData && (
-              <p className="text-xs text-green-400">✓ Role assigned from invitation</p>
+            {(inviteData || preselectedRole) && (
+              <p className="text-xs text-green-400">
+                ✓ {inviteData ? 'Role assigned from invitation' : 'Pre-selected role'}
+              </p>
             )}
             <div className="space-y-3">
               <label className={`flex items-center space-x-3 cursor-pointer p-3 rounded-lg border transition-colors ${
-                role === 'Admin' 
-                  ? 'border-purple-500 bg-purple-500/10' 
+                role === 'Admin'
+                  ? 'border-purple-500 bg-purple-500/10'
                   : 'border-gray-700 hover:border-purple-500'
               }`}>
                 <input
@@ -298,31 +305,51 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
                   checked={role === 'Admin'}
                   onChange={(e) => setRole(e.target.value)}
                   className="w-4 h-4 text-purple-500 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2"
-                  disabled={loading || !!inviteData}
+                  disabled={loading || !!inviteData || !!preselectedRole}
                 />
                 <div className="flex-1">
                   <div className="text-white font-medium">Admin</div>
                   <div className="text-gray-300 text-xs">Manage company data and approve users</div>
                 </div>
               </label>
-              
+
               <label className={`flex items-center space-x-3 cursor-pointer p-3 rounded-lg border transition-colors ${
-                role === 'User' 
-                  ? 'border-purple-500 bg-purple-500/10' 
+                role === 'Beauty Professional'
+                  ? 'border-purple-500 bg-purple-500/10'
                   : 'border-gray-700 hover:border-purple-500'
               }`}>
                 <input
                   type="radio"
                   name="role"
-                  value="User"
-                  checked={role === 'User'}
+                  value="Beauty Professional"
+                  checked={role === 'Beauty Professional'}
                   onChange={(e) => setRole(e.target.value)}
                   className="w-4 h-4 text-purple-500 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2"
-                  disabled={loading || !!inviteData}
+                  disabled={loading || !!inviteData || !!preselectedRole}
                 />
                 <div className="flex-1">
-                  <div className="text-white font-medium">User</div>
-                  <div className="text-gray-300 text-xs">Access features and use service</div>
+                  <div className="text-white font-medium">Beauty Professional</div>
+                  <div className="text-gray-300 text-xs">Provide beauty services and accept payments</div>
+                </div>
+              </label>
+
+              <label className={`flex items-center space-x-3 cursor-pointer p-3 rounded-lg border transition-colors ${
+                role === 'Beauty Model'
+                  ? 'border-purple-500 bg-purple-500/10'
+                  : 'border-gray-700 hover:border-purple-500'
+              }`}>
+                <input
+                  type="radio"
+                  name="role"
+                  value="Beauty Model"
+                  checked={role === 'Beauty Model'}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-4 h-4 text-purple-500 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2"
+                  disabled={loading || !!inviteData || !!preselectedRole}
+                />
+                <div className="flex-1">
+                  <div className="text-white font-medium">Beauty Model</div>
+                  <div className="text-gray-300 text-xs">Showcase beauty work and collaborate with professionals</div>
                 </div>
               </label>
             </div>
