@@ -15,18 +15,31 @@ export async function GET(request: NextRequest) {
     let sessionData: any = null
 
     // Look for Supabase session cookies
-    for (const cookie of allCookies) {
-      if (cookie.name.includes('auth-token')) {
+    // First, find the marker cookie to know how many chunks there are
+    const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL!.split('//')[1].split('.')[0]
+    const markerCookie = allCookies.find(c => c.name === `sb-${projectRef}-auth-token`)
+
+    if (markerCookie && markerCookie.value.startsWith('base64-')) {
+      // Extract number of chunks from marker cookie
+      const numChunks = parseInt(markerCookie.value.replace('base64-', ''))
+      console.log(`Found ${numChunks} cookie chunks to reconstruct`)
+
+      // Reconstruct the session from all chunks
+      let fullBase64 = ''
+      for (let i = 0; i < numChunks; i++) {
+        const chunkCookie = allCookies.find(c => c.name === `sb-${projectRef}-auth-token.${i}`)
+        if (chunkCookie) {
+          fullBase64 += chunkCookie.value
+        }
+      }
+
+      if (fullBase64) {
         try {
-          // Supabase splits the session into multiple cookies
-          if (cookie.name.endsWith('.0')) {
-            // First part contains the base64 encoded session
-            const decoded = Buffer.from(cookie.value, 'base64').toString('utf-8')
-            sessionData = JSON.parse(decoded)
-            break
-          }
+          const decoded = Buffer.from(fullBase64, 'base64').toString('utf-8')
+          sessionData = JSON.parse(decoded)
+          console.log('Successfully reconstructed session from chunked cookies')
         } catch (e) {
-          console.log('Failed to parse cookie:', cookie.name, e)
+          console.log('Failed to parse reconstructed session:', e)
         }
       }
     }
@@ -119,18 +132,31 @@ export async function POST(request: NextRequest) {
     let sessionData: any = null
 
     // Look for Supabase session cookies
-    for (const cookie of allCookies) {
-      if (cookie.name.includes('auth-token')) {
+    // First, find the marker cookie to know how many chunks there are
+    const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL!.split('//')[1].split('.')[0]
+    const markerCookie = allCookies.find(c => c.name === `sb-${projectRef}-auth-token`)
+
+    if (markerCookie && markerCookie.value.startsWith('base64-')) {
+      // Extract number of chunks from marker cookie
+      const numChunks = parseInt(markerCookie.value.replace('base64-', ''))
+      console.log(`Found ${numChunks} cookie chunks to reconstruct`)
+
+      // Reconstruct the session from all chunks
+      let fullBase64 = ''
+      for (let i = 0; i < numChunks; i++) {
+        const chunkCookie = allCookies.find(c => c.name === `sb-${projectRef}-auth-token.${i}`)
+        if (chunkCookie) {
+          fullBase64 += chunkCookie.value
+        }
+      }
+
+      if (fullBase64) {
         try {
-          // Supabase splits the session into multiple cookies
-          if (cookie.name.endsWith('.0')) {
-            // First part contains the base64 encoded session
-            const decoded = Buffer.from(cookie.value, 'base64').toString('utf-8')
-            sessionData = JSON.parse(decoded)
-            break
-          }
+          const decoded = Buffer.from(fullBase64, 'base64').toString('utf-8')
+          sessionData = JSON.parse(decoded)
+          console.log('Successfully reconstructed session from chunked cookies')
         } catch (e) {
-          console.log('Failed to parse cookie:', cookie.name, e)
+          console.log('Failed to parse reconstructed session:', e)
         }
       }
     }
