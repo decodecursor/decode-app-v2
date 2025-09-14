@@ -14,15 +14,19 @@ export async function GET(request: NextRequest) {
     const allCookies = cookieStore.getAll()
     let sessionData: any = null
 
+    // Debug: Log all cookies
+    console.log('🍪 [PROXY-USER] All cookies:', allCookies.map(c => c.name))
+
     // Look for Supabase session cookies
     // First, find the marker cookie to know how many chunks there are
     const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL!.split('//')[1].split('.')[0]
+    console.log('🔍 [PROXY-USER] Looking for cookies with prefix:', `sb-${projectRef}-auth-token`)
     const markerCookie = allCookies.find(c => c.name === `sb-${projectRef}-auth-token`)
 
     if (markerCookie && markerCookie.value.startsWith('base64-')) {
       // Extract number of chunks from marker cookie
       const numChunks = parseInt(markerCookie.value.replace('base64-', ''))
-      console.log(`Found ${numChunks} cookie chunks to reconstruct`)
+      console.log(`✅ [PROXY-USER] Found marker cookie with ${numChunks} chunks to reconstruct`)
 
       // Reconstruct the session from all chunks
       let fullBase64 = ''
@@ -43,6 +47,8 @@ export async function GET(request: NextRequest) {
           console.log('Failed to parse reconstructed session:', e)
         }
       }
+    } else {
+      console.log('❌ [PROXY-USER] No marker cookie found. Marker cookie name:', `sb-${projectRef}-auth-token`)
     }
 
     if (!sessionData) {
@@ -132,15 +138,19 @@ export async function POST(request: NextRequest) {
     const allCookies = cookieStore.getAll()
     let sessionData: any = null
 
+    // Debug: Log all cookies
+    console.log('🍪 [PROXY-USER] All cookies:', allCookies.map(c => c.name))
+
     // Look for Supabase session cookies
     // First, find the marker cookie to know how many chunks there are
     const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL!.split('//')[1].split('.')[0]
+    console.log('🔍 [PROXY-USER] Looking for cookies with prefix:', `sb-${projectRef}-auth-token`)
     const markerCookie = allCookies.find(c => c.name === `sb-${projectRef}-auth-token`)
 
     if (markerCookie && markerCookie.value.startsWith('base64-')) {
       // Extract number of chunks from marker cookie
       const numChunks = parseInt(markerCookie.value.replace('base64-', ''))
-      console.log(`Found ${numChunks} cookie chunks to reconstruct`)
+      console.log(`✅ [PROXY-USER] Found marker cookie with ${numChunks} chunks to reconstruct`)
 
       // Reconstruct the session from all chunks
       let fullBase64 = ''
@@ -161,6 +171,8 @@ export async function POST(request: NextRequest) {
           console.log('Failed to parse reconstructed session:', e)
         }
       }
+    } else {
+      console.log('❌ [PROXY-USER] No marker cookie found. Marker cookie name:', `sb-${projectRef}-auth-token`)
     }
 
     if (!sessionData) {

@@ -80,17 +80,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Set each chunk as a separate cookie on the response
+    console.log(`📝 [PROXY-LOGIN] Setting ${chunks.length} cookie chunks for project: ${projectRef}`)
     chunks.forEach((chunk, index) => {
+      const cookieName = `sb-${projectRef}-auth-token.${index}`
+      console.log(`  - Setting cookie: ${cookieName} (${chunk.length} chars)`)
       response.cookies.set(
-        `sb-${projectRef}-auth-token.${index}`,
+        cookieName,
         chunk,
         cookieOptions
       )
     })
 
     // Also set a marker cookie on the response
+    const markerName = `sb-${projectRef}-auth-token`
+    console.log(`  - Setting marker cookie: ${markerName} = base64-${chunks.length}`)
     response.cookies.set(
-      `sb-${projectRef}-auth-token`,
+      markerName,
       'base64-' + chunks.length,
       cookieOptions
     )
