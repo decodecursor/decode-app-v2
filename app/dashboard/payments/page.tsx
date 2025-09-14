@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 // Cache-busting debug log to verify new code is loading
 console.log('🚀 PAYMENTS PAGE LOADED - VERSION 2024-01-05-16:30 - NEW CODE ACTIVE!')
 import { createClient } from '@/utils/supabase/client'
+import { getUserWithProxy } from '@/utils/auth-helper'
 import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 import PaymentLinkCard from '@/components/dashboard/PaymentLinkCard'
@@ -120,9 +121,9 @@ export default function PaymentHistoryPage() {
     const getUser = async () => {
       console.log('🔐 Starting authentication check...')
       try {
-        const { data: { user }, error } = await supabase.auth.getUser()
+        const { user, error } = await getUserWithProxy()
         console.log('🔐 Auth response - user:', user?.id, 'error:', error)
-        
+
         if (!user) {
           console.log('❌ No authenticated user found - redirecting to /auth')
           window.location.href = '/auth'

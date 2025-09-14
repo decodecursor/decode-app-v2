@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { getUserWithProxy } from '@/utils/auth-helper'
 import type { User } from '@supabase/supabase-js'
 import { TransactionHistory } from '@/components/dashboard/TransactionHistory'
 import Link from 'next/link'
@@ -13,7 +14,7 @@ export default function TransactionsPage() {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { user } = await getUserWithProxy()
       if (!user) {
         window.location.href = '/auth'
         return

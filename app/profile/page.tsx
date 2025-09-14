@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { getUserWithProxy } from '@/utils/auth-helper'
 import { User } from '@supabase/supabase-js'
 import PasswordInput from '@/components/PasswordInput'
 // Removed ReactCrop - using custom Instagram-style interface
@@ -56,7 +57,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const { data: { user: authUser } } = await supabase.auth.getUser()
+        const { user: authUser } = await getUserWithProxy()
         if (!authUser) {
           console.log('🚪 Profile: No authenticated user, redirecting to auth')
           router.push('/auth')

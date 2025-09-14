@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
+import { getUserWithProxy } from '@/utils/auth-helper'
 import { PayoutHistory } from '@/components/stripe/PayoutHistory'
 import { PayoutMethodsCard } from '@/components/payouts/PayoutMethodsCard'
 import type { User } from '@supabase/supabase-js'
@@ -54,10 +55,10 @@ export default function PayoutsPage() {
         
         // Fallback to direct
         try {
-          const { data: { user }, error } = await supabase.auth.getUser()
-          
+          const { user, error } = await getUserWithProxy()
+
           if (!mounted) return
-          
+
           if (user) {
             setUser(user)
             await fetchPayoutSummary(user.id)

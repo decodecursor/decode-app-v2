@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { getUserWithProxy } from '@/utils/auth-helper'
 
 export default function PendingApproval() {
   const [companyName, setCompanyName] = useState('')
@@ -9,12 +10,12 @@ export default function PendingApproval() {
 
   useEffect(() => {
     const getUserInfo = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const { user } = await getUserWithProxy()
       if (!user) {
         window.location.href = '/auth'
         return
       }
+      const supabase = createClient()
 
       const { data: userData } = await supabase
         .from('users')

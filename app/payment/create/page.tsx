@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { getUserWithProxy } from '@/utils/auth-helper'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
@@ -174,13 +175,13 @@ export default function CreatePayment() {
 
   useEffect(() => {
     const getUser = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const { user } = await getUserWithProxy()
       if (!user) {
         router.push('/auth')
         return
       }
       setUser(user)
+      const supabase = createClient()
 
       // Fetch user's branch information
       try {

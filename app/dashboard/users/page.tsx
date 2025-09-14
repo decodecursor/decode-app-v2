@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { getUserWithProxy } from '@/utils/auth-helper'
 import Link from 'next/link'
 
 // Numbered Avatar Component
@@ -70,7 +71,7 @@ export default function UsersManagement() {
     const loadUsers = async () => {
       try {
         // Get current admin user
-        const { data: { user } } = await supabase.auth.getUser()
+        const { user } = await getUserWithProxy()
         if (!user) {
           window.location.href = '/auth'
           return
@@ -172,7 +173,7 @@ export default function UsersManagement() {
 
   const handleApproval = async (userId: string, action: 'approved' | 'rejected') => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { user } = await getUserWithProxy()
       if (!user) return
 
       // Get pending branch assignments for this user

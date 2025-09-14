@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { getUserWithProxy } from '@/utils/auth-helper'
 import type { User } from '@supabase/supabase-js'
 import { WalletDashboard } from '@/components/dashboard/WalletDashboard'
 import Link from 'next/link'
@@ -13,7 +14,7 @@ export default function WalletPage() {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { user } = await getUserWithProxy()
       if (!user) {
         window.location.href = '/auth'
         return
