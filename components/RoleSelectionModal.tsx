@@ -16,8 +16,8 @@ interface RoleSelectionModalProps {
 }
 
 export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcceptedAt, inviteData, preselectedRole, onClose, onComplete }: RoleSelectionModalProps) {
-  const [role, setRole] = useState('')
-  const [companyName, setCompanyName] = useState('')
+  const [role, setRole] = useState(preselectedRole || inviteData?.role || '')
+  const [companyName, setCompanyName] = useState(inviteData?.companyName || '')
   const [userName, setUserName] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
