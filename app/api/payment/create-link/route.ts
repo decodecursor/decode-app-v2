@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     // Verify creator exists and is a Beauty Professional using crossmintDB
     console.log('🔍 Looking for creator with ID:', creator_id);
-    
+
     const creator = await crossmintDB.getUserWithWallet(creator_id);
 
     if (!creator) {
@@ -51,6 +51,27 @@ export async function POST(request: NextRequest) {
         { error: 'Only authenticated users can create payment links' },
         { status: 403 }
       );
+    }
+
+    // Verify branch assignment - user must be assigned to at least one branch
+    if (!creator.branch_name) {
+      console.log('❌ Creator has no branch assignment');
+      return NextResponse.json(
+        { error: 'You are not assigned to any branch. Please contact your administrator to get branch access before creating payment links.' },
+        { status: 403 }
+      );
+    }
+
+    // If a specific branch is requested, verify the user has access to it
+    if (branch_name) {
+      const userBranches = creator.branch_name.split(',').map((b: string) => b.trim()).filter((b: string) => b !== '');
+      if (!userBranches.includes(branch_name)) {
+        console.log(`❌ Creator does not have access to branch: ${branch_name}. Available branches: ${userBranches.join(', ')}`);
+        return NextResponse.json(
+          { error: `You do not have access to the branch "${branch_name}". Please select a valid branch.` },
+          { status: 403 }
+        );
+      }
     }
 
     // Wallet creation removed - not needed for beauty business payment links

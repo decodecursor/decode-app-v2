@@ -181,7 +181,7 @@ export default function CreatePayment() {
         return
       }
       setUser(user)
-      
+
       // Fetch user's branch information
       try {
         const { data: userData, error } = await supabase
@@ -189,7 +189,7 @@ export default function CreatePayment() {
           .select('branch_name')
           .eq('id', user.id)
           .single()
-        
+
         if (error) {
           console.error('Error fetching user branches:', error)
         } else if (userData?.branch_name) {
@@ -201,13 +201,65 @@ export default function CreatePayment() {
           setUserBranches([])
           setSelectedBranch('')
         }
+
+        // Set up real-time subscription for branch changes
+        console.log('🔄 Setting up real-time subscription for branch changes for user:', user.id)
+        const subscription = supabase
+          .channel(`user_branch_changes_${user.id}`)
+          .on('postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'users',
+              filter: `id=eq.${user.id}`
+            },
+            (payload) => {
+              console.log('👤 User branch data updated:', payload)
+              const newBranchName = payload.new?.branch_name
+
+              if (newBranchName) {
+                const branches = newBranchName.split(',').map((b: string) => b.trim()).filter((b: string) => b !== '')
+                setUserBranches(branches)
+
+                // Update selected branch if current selection is no longer valid
+                setSelectedBranch(prevSelected => {
+                  if (prevSelected && !branches.includes(prevSelected)) {
+                    setError('Your branch assignment has been updated. Please review your selection.')
+                    return branches[0] || ''
+                  } else if (!prevSelected && branches.length > 0) {
+                    return branches[0]
+                  }
+                  return prevSelected
+                })
+              } else {
+                // User was removed from all branches
+                setUserBranches([])
+                setSelectedBranch('')
+                setError('You have been removed from all branches. Please contact your administrator to regain access.')
+              }
+            }
+          )
+          .subscribe((status) => {
+            console.log('📡 Branch changes subscription status:', status)
+            if (status === 'SUBSCRIBED') {
+              console.log('✅ Successfully subscribed to branch change notifications')
+            } else {
+              console.warn('⚠️ Branch changes subscription status:', status)
+            }
+          })
+
+        // Cleanup subscription on component unmount
+        return () => {
+          console.log('🧹 Cleaning up branch changes subscription')
+          subscription.unsubscribe()
+        }
       } catch (error) {
         console.error('Error fetching branches:', error)
         // Fallback to empty - no hardcoded branch
         setUserBranches([])
         setSelectedBranch('')
       }
-      
+
       setLoading(false)
     }
 
@@ -338,13 +390,25 @@ export default function CreatePayment() {
 
   const generatePaymentLink = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) {
       return
     }
 
     if (!user) {
       setError('User not authenticated')
+      return
+    }
+
+    // Check if user has any branch assignments
+    if (userBranches.length === 0) {
+      setError('You are not assigned to any branch. Please contact your administrator to get branch access before creating payment links.')
+      return
+    }
+
+    // Check if selected branch is still valid (in case of real-time removal)
+    if (selectedBranch && !userBranches.includes(selectedBranch)) {
+      setError('The selected branch is no longer available. Please refresh the page and try again.')
       return
     }
 
@@ -558,10 +622,12 @@ export default function CreatePayment() {
               <div className="flex justify-center">
                 <button
                   type="submit"
-                  disabled={creating}
+                  disabled={creating || userBranches.length === 0}
                   className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
-                  {creating ? 'Creating PayLink...' : 'Create PayLink'}
+                  {creating ? 'Creating PayLink...' :
+                   userBranches.length === 0 ? 'No Branch Access' :
+                   'Create PayLink'}
                 </button>
               </div>
 
@@ -578,9 +644,14 @@ export default function CreatePayment() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
+                ) : userBranches.length === 1 ? (
+                  <div className="text-sm text-gray-300">
+                    Branch: <span className="text-purple-400">{selectedBranch}</span>
+                  </div>
                 ) : (
-                  // Show nothing when user has only one branch
-                  null
+                  <div className="text-sm text-red-400">
+                    ⚠️ No branch assigned - Contact administrator
+                  </div>
                 )}
               </div>
             </form>
