@@ -59,19 +59,20 @@ export async function POST(request: NextRequest) {
 
     // Set the session cookies in the format Supabase expects
     const sessionString = JSON.stringify(sessionData)
-    const sessionBase64 = Buffer.from(sessionString).toString('base64')
+    // Use base64url encoding (URL-safe) as Supabase SSR expects
+    const sessionBase64 = Buffer.from(sessionString).toString('base64url')
 
-    // Cookie options
+    // Cookie options matching Supabase SSR defaults
     const cookieOptions = {
       httpOnly: false, // Supabase client needs to read these
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax' as const,
       path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 400, // 400 days (Supabase default)
     }
 
     // Set the auth token cookies (Supabase uses chunked cookies)
-    const chunkSize = 3900 // Max cookie size is ~4KB
+    const chunkSize = 3180 // Supabase SSR standard chunk size
     const chunks = []
 
     for (let i = 0; i < sessionBase64.length; i += chunkSize) {

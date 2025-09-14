@@ -35,7 +35,8 @@ export async function GET(request: NextRequest) {
 
       if (fullBase64) {
         try {
-          const decoded = Buffer.from(fullBase64, 'base64').toString('utf-8')
+          // Decode from base64url (URL-safe) format
+          const decoded = Buffer.from(fullBase64, 'base64url').toString('utf-8')
           sessionData = JSON.parse(decoded)
           console.log('Successfully reconstructed session from chunked cookies')
         } catch (e) {
@@ -152,7 +153,8 @@ export async function POST(request: NextRequest) {
 
       if (fullBase64) {
         try {
-          const decoded = Buffer.from(fullBase64, 'base64').toString('utf-8')
+          // Decode from base64url (URL-safe) format
+          const decoded = Buffer.from(fullBase64, 'base64url').toString('utf-8')
           sessionData = JSON.parse(decoded)
           console.log('Successfully reconstructed session from chunked cookies')
         } catch (e) {
