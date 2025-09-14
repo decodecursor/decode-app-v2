@@ -152,82 +152,57 @@ export default function Dashboard() {
         console.log('🔍 Dashboard: Loading user data for:', user.id)
         setLoading(true)
 
-      // Fetch user role, professional center name, and profile photo from users table
-      const { data: userData, error } = await supabase
-        .from('users')
-        .select('role, professional_center_name, user_name, company_name, approval_status, branch_name')
-        .eq('id', user.id)
-        .single()
+        // Use proxy endpoint to fetch user profile data
+        const response = await fetch('/api/user/profile', {
+          method: 'GET',
+          credentials: 'include'
+        })
 
-      if (error) {
-        console.error('⚠️ Dashboard: Database query failed:', error.message)
-        // If user is logged in but no profile exists, redirect to profile setup
-        if (error.code === 'PGRST116') {
-          router.push('/profile')
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('⚠️ Dashboard: Failed to fetch profile:', errorData.error)
+
+          // If no profile exists, redirect to profile setup
+          if (response.status === 404 || errorData.error === 'NO_PROFILE') {
+            router.push('/profile')
+            return
+          }
+          setLoading(false)
           return
         }
-        setLoading(false)
-        return
-      }
-      
-      if (userData) {
-        setUserRole(userData.role)
-        setCompanyName(userData.company_name || userData.professional_center_name) // prefer company_name
-        setUserName(userData.user_name)
-        
-        // Set user branch (first branch if multiple)
-        if (userData.branch_name) {
-          const branches = userData.branch_name.split(',').map((b: string) => b.trim()).filter((b: string) => b !== '')
-          setUserBranch(branches[0] || null)
-        } else {
-          setUserBranch(null)
-        }
-        
-        // Fetch company profile image from admin user in same company
-        const currentCompanyName = userData.company_name || userData.professional_center_name
-        if (currentCompanyName) {
-          try {
-            const { data: adminWithPhoto, error } = await supabase
-              .from('users')
-              .select('profile_photo_url')
-              .eq('company_name', currentCompanyName)
-              .eq('role', 'Admin')
-              .not('profile_photo_url', 'is', null)
-              .limit(1)
-              .maybeSingle() // Use maybeSingle instead of single to avoid errors when no rows found
-            
-            // Type guard with explicit casting to handle RLS/permissions issues
-            if (!error && adminWithPhoto && typeof adminWithPhoto === 'object') {
-              const photoData = adminWithPhoto as { profile_photo_url?: string }
-              if (photoData.profile_photo_url) {
-                setCompanyProfileImage(photoData.profile_photo_url)
-              }
-            }
-          } catch (error) {
-            console.log('Could not fetch company profile image:', error)
-            // Continue without company image - will show default avatar
+
+        const { userData } = await response.json()
+        console.log('✅ Dashboard: Profile data received:', userData)
+
+        if (userData) {
+          setUserRole(userData.role)
+          setCompanyName(userData.company_name || userData.professional_center_name)
+          setUserName(userData.user_name)
+
+          // Set user branch (first branch if multiple)
+          if (userData.branch_name) {
+            const branches = userData.branch_name.split(',').map((b: string) => b.trim()).filter((b: string) => b !== '')
+            setUserBranch(branches[0] || null)
+          } else {
+            setUserBranch(null)
+          }
+
+          // Set company profile image if available
+          if (userData.companyProfileImage) {
+            setCompanyProfileImage(userData.companyProfileImage)
+          }
+
+          // Check if user is approved (skip check for Admins)
+          if (userData.approval_status === 'pending' && userData.role !== 'Admin') {
+            window.location.href = '/pending-approval'
+            return
+          }
+
+          // Set pending users count for admins
+          if (userData.role === 'Admin' && userData.pendingUsersCount !== undefined) {
+            setPendingUsersCount(userData.pendingUsersCount)
           }
         }
-        
-        // Check if user is approved (skip check for Admins)
-        if (userData.approval_status === 'pending' && userData.role !== 'Admin') {
-          window.location.href = '/pending-approval'
-          return
-        }
-        
-        // If admin, get pending users count for notifications
-        if (userData.role === 'Admin' && userData.company_name) {
-          const fetchPendingCount = async () => {
-            const { count } = await supabase
-              .from('users')
-              .select('*', { count: 'exact', head: true })
-              .eq('company_name', userData.company_name)
-              .eq('approval_status', 'pending')
-            setPendingUsersCount(count || 0)
-          }
-          fetchPendingCount()
-        }
-      }
       
       
       setLoading(false)
@@ -245,12 +220,18 @@ export default function Dashboard() {
     if (userRole === 'Admin' && companyName) {
       const fetchPendingCount = async () => {
         try {
-          const { count } = await supabase
-            .from('users')
-            .select('*', { count: 'exact', head: true })
-            .eq('company_name', companyName)
-            .eq('approval_status', 'pending')
-          setPendingUsersCount(count || 0)
+          // Use proxy endpoint to get updated counts
+          const response = await fetch('/api/user/profile', {
+            method: 'GET',
+            credentials: 'include'
+          })
+
+          if (response.ok) {
+            const { userData } = await response.json()
+            if (userData && userData.pendingUsersCount !== undefined) {
+              setPendingUsersCount(userData.pendingUsersCount)
+            }
+          }
         } catch (error) {
           console.error('Error fetching pending users count:', error)
         }
