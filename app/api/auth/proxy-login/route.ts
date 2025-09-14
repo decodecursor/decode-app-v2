@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { cookies } from 'next/headers'
 
 // Direct auth proxy that runs on Vercel servers (avoiding UAE network issues)
 export async function POST(request: NextRequest) {
@@ -37,12 +38,65 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Return session data - let client-side handle the session
-    console.log('✅ Proxy login successful')
+    // Set session cookies server-side to avoid client-side network issues
+    const cookieStore = await cookies()
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const projectRef = supabaseUrl.split('//')[1].split('.')[0] // Extract project ref from URL
+
+    // Prepare session data for cookies
+    const sessionData = {
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+      expires_at: data.session.expires_at,
+      expires_in: data.session.expires_in,
+      token_type: data.session.token_type,
+      user: data.user
+    }
+
+    // Set the session cookies in the format Supabase expects
+    // Split the session into chunks for cookie size limits
+    const sessionString = JSON.stringify(sessionData)
+    const sessionBase64 = Buffer.from(sessionString).toString('base64')
+
+    // Cookie options
+    const cookieOptions = {
+      httpOnly: false, // Supabase client needs to read these
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    }
+
+    // Set the auth token cookies (Supabase uses chunked cookies)
+    const chunkSize = 3900 // Max cookie size is ~4KB, leave some buffer
+    const chunks = []
+
+    for (let i = 0; i < sessionBase64.length; i += chunkSize) {
+      chunks.push(sessionBase64.slice(i, i + chunkSize))
+    }
+
+    // Set each chunk as a separate cookie
+    chunks.forEach((chunk, index) => {
+      cookieStore.set(
+        `sb-${projectRef}-auth-token.${index}`,
+        chunk,
+        cookieOptions
+      )
+    })
+
+    // Also set a marker cookie to indicate how many chunks there are
+    cookieStore.set(
+      `sb-${projectRef}-auth-token`,
+      'base64-' + chunks.length,
+      cookieOptions
+    )
+
+    console.log('✅ Proxy login successful - cookies set server-side')
+
+    // Return success without session data (cookies are already set)
     return NextResponse.json({
-      user: data.user,
-      session: data.session,
-      success: true
+      success: true,
+      message: 'Login successful - session established via cookies'
     })
 
   } catch (error: any) {

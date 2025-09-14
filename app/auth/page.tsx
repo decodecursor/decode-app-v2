@@ -383,29 +383,14 @@ function AuthPageContent() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
               })
-              
+
               const proxyData = await proxyResponse.json()
-              
+
               if (proxyResponse.ok && proxyData.success) {
-                console.log('✅ Proxy login successful')
-
-                // Set session from proxy data - THIS IS CRITICAL
-                if (proxyData.session) {
-                  const { error: sessionError } = await supabase.auth.setSession({
-                    access_token: proxyData.session.access_token,
-                    refresh_token: proxyData.session.refresh_token
-                  })
-
-                  if (sessionError) {
-                    console.error('❌ Failed to set session:', sessionError.message)
-                    throw new Error('Failed to establish session after login')
-                  }
-                  console.log('✅ Session set from proxy data')
-                } else {
-                  throw new Error('No session returned from proxy login')
-                }
+                console.log('✅ Proxy login successful - session established via cookies')
+                // No need to call setSession - cookies are already set server-side
                 loginSuccess = true
-                loginData = proxyData
+                loginData = { user: { email }, session: true } // Minimal data for redirect
               } else {
                 throw new Error(proxyData.error || 'Proxy login failed')
               }
