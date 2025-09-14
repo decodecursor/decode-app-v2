@@ -1187,7 +1187,6 @@ DECODE
 
     return { html, text }
   }
-}
 
   /**
    * Send admin notification for new user registration
