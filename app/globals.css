@@ -240,6 +240,18 @@ input[type="number"] {
   box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
 }
 
+/* Input field with content - dark blue background */
+.cosmic-input.has-content {
+  background-color: #1e293b;
+}
+
+/* Ensure focus styling works with filled inputs */
+.cosmic-input.has-content:focus {
+  background-color: #1e293b;
+  border-color: #a855f7;
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+}
+
 /* Cosmic Primary Button */
 .cosmic-button-primary {
   background: linear-gradient(135deg, var(--cosmic-button-gradient-start) 0%, var(--cosmic-button-gradient-end) 100%);

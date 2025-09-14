@@ -29,14 +29,25 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
 
   // Pre-populate form with invite data or pre-selected role
   useEffect(() => {
+    console.log('🔄 [ROLE MODAL] Pre-population effect triggered:', { inviteData, preselectedRole })
+
     if (inviteData) {
+      console.log('✅ [ROLE MODAL] Using invite data:', inviteData.role)
       setRole(inviteData.role || '')
       setCompanyName(inviteData.companyName || '')
       setHasSelectedSuggestion(true) // Prevent company suggestions for invited users
     } else if (preselectedRole) {
+      console.log('✅ [ROLE MODAL] Using preselected role:', preselectedRole)
       setRole(preselectedRole)
+    } else {
+      console.log('⚠️ [ROLE MODAL] No preselected role or invite data')
     }
   }, [inviteData, preselectedRole])
+
+  // Debug effect to track role changes
+  useEffect(() => {
+    console.log('🔄 [ROLE MODAL] Current role state:', role)
+  }, [role])
 
   useEffect(() => {
     const fetchCompanySuggestions = async () => {
@@ -240,7 +251,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
               onChange={(e) => handleCompanyChange(e.target.value)}
               onFocus={() => !hasSelectedSuggestion && setShowSuggestions(companySuggestions.length > 0)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-              className="cosmic-input"
+              className={`cosmic-input ${companyName.trim() ? 'has-content' : ''}`}
               required
               disabled={loading || !!inviteData}
               autoComplete="off"
@@ -274,7 +285,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
               placeholder="Enter your full name"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
-              className="cosmic-input"
+              className={`cosmic-input ${userName.trim() ? 'has-content' : ''}`}
               required
               disabled={loading}
             />
