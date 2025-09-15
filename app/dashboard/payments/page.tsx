@@ -122,15 +122,21 @@ export default function PaymentHistoryPage() {
   // Simple authentication and data loading (like my-links)
   useEffect(() => {
     const getUser = async () => {
-      const { user } = await getUserWithProxy()
-      if (!user) {
-        router.push('/auth')
-        return
-      }
+      try {
+        const { user } = await getUserWithProxy()
+        if (!user) {
+          router.push('/auth')
+          return
+        }
 
-      console.log('✅ Payments: User authenticated:', user.id)
-      setUser(user)
-      await fetchPaymentData(user.id)
+        console.log('✅ Payments: User authenticated:', user.id)
+        setUser(user)
+        await fetchPaymentData(user.id)
+      } catch (error) {
+        console.error('❌ Authentication or data loading failed:', error)
+        setError('Failed to load payment data. Please try refreshing the page.')
+        setLoading(false)
+      }
     }
     getUser()
   }, [])
@@ -295,7 +301,7 @@ export default function PaymentHistoryPage() {
     return () => {
       subscription.unsubscribe()
     }
-  }, [user, paymentLinks])
+  }, [user])
 
   const filteredAndSortedLinks = paymentLinks
     .filter(link => {
