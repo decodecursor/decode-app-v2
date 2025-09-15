@@ -71,53 +71,8 @@ export default function PaymentHistoryPage() {
   const [sortBy, setSortBy] = useState<'created_at' | 'amount_aed' | 'total_revenue'>('created_at')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [heartAnimationLinks, setHeartAnimationLinks] = useState<Set<string>>(new Set())
-  const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'custom'>('today')
-  const [customDateRange, setCustomDateRange] = useState<{ from?: Date; to?: Date } | undefined>(undefined)
 
   console.log('🔄 PaymentHistoryPage render - user:', user?.id, 'paymentLinks:', paymentLinks.length, 'loading:', loading, 'error:', error)
-
-  // Load date range from localStorage on component mount
-  useEffect(() => {
-    try {
-      console.log('📱 Loading localStorage data...')
-      const savedDateRange = localStorage.getItem('paymentAnalyticsDateRange')
-      const savedCustomRange = localStorage.getItem('paymentAnalyticsCustomRange')
-      
-      if (savedDateRange) {
-        setDateRange(savedDateRange as 'today' | 'week' | 'month' | 'custom')
-      }
-      
-      if (savedCustomRange) {
-        const parsed = JSON.parse(savedCustomRange)
-        if (parsed.from) parsed.from = new Date(parsed.from)
-        if (parsed.to) parsed.to = new Date(parsed.to)
-        setCustomDateRange(parsed)
-      }
-      console.log('✅ localStorage data loaded successfully')
-    } catch (error) {
-      console.error('❌ Error loading localStorage data:', error)
-      // Clear corrupted data
-      localStorage.removeItem('paymentAnalyticsDateRange')
-      localStorage.removeItem('paymentAnalyticsCustomRange')
-    }
-  }, [])
-
-  // Save date range to localStorage whenever it changes
-  useEffect(() => {
-    try {
-      localStorage.setItem('paymentAnalyticsDateRange', dateRange)
-    } catch (error) {
-      console.error('❌ Error saving dateRange to localStorage:', error)
-    }
-  }, [dateRange])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('paymentAnalyticsCustomRange', JSON.stringify(customDateRange))
-    } catch (error) {
-      console.error('❌ Error saving customDateRange to localStorage:', error)
-    }
-  }, [customDateRange])
 
   const fetchPaymentData = async (userId: string) => {
     try {
@@ -243,7 +198,7 @@ export default function PaymentHistoryPage() {
           .subscribe()
       } catch (error) {
         console.error('❌ Authentication or data loading failed:', error)
-        setError('Failed to load payment data. Please try refreshing the page.')
+        // Don't set error state - just log it
         setLoading(false)
       }
     }
