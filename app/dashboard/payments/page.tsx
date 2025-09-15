@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 // Cache-busting debug log to verify new code is loading
 console.log('🚀 PAYMENTS PAGE LOADED - VERSION 2024-01-05-16:30 - NEW CODE ACTIVE!')
@@ -58,6 +59,7 @@ interface PaymentStats {
 
 export default function PaymentHistoryPage() {
   const supabase = createClient()
+  const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([])
   const [transactions, setTransactions] = useState<PaymentTransaction[]>([])
@@ -118,32 +120,43 @@ export default function PaymentHistoryPage() {
     }
   }, [customDateRange])
 
+  // Check authentication on mount
   useEffect(() => {
-    const getUser = async () => {
-      console.log('🔐 Starting authentication check...')
+    const checkAuth = async () => {
       try {
-        const { user, error } = await getUserWithProxy()
-        console.log('🔐 Auth response - user:', user?.id, 'error:', error)
+        const { user: authUser, error } = await getUserWithProxy()
 
-        if (!user) {
-          console.log('❌ No authenticated user found - redirecting to /auth')
-          setAuthLoading(false) // ✅ Critical fix: Set loading false before redirect
-          window.location.href = '/auth'
+        if (!authUser) {
+          console.log('🚪 Payments: No authenticated user, redirecting to auth')
+          router.push('/auth')
           return
         }
 
-        console.log('✅ User authenticated:', user.id)
-        setUser(user)
-      } catch (error: any) {
-        console.error('❌ Authentication error:', error)
-        setError('Authentication failed. Please try logging in again.')
+        console.log('✅ Payments: User authenticated:', authUser.id)
+        setUser(authUser)
+      } catch (error) {
+        console.error('Auth check failed:', error)
+        router.push('/auth')
       } finally {
         setAuthLoading(false)
       }
     }
 
-    getUser()
-  }, [])
+    checkAuth()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user) {
+        router.push('/auth')
+      } else {
+        setUser(session.user)
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [router, supabase])
 
   // Load payment data when user is available
   useEffect(() => {
@@ -361,12 +374,10 @@ export default function PaymentHistoryPage() {
     }
   }
 
-  console.log('🎯 ABOUT TO CHECK USER STATE - user:', user, 'typeof user:', typeof user)
-
-  // Show loading spinner while authenticating or loading data
+  // Show loading spinner while checking authentication or loading data
   if (authLoading || loading) {
     return (
-      <div className="cosmic-bg min-h-screen">
+      <div className="cosmic-bg">
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
@@ -377,19 +388,9 @@ export default function PaymentHistoryPage() {
     )
   }
 
-  // Ensure user exists before rendering main content
+  // Ensure user exists before rendering
   if (!user) {
-    console.log('🔄 No user state available, redirecting...')
-    return (
-      <div className="cosmic-bg min-h-screen">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-gray-300">Redirecting to login...</p>
-          </div>
-        </div>
-      </div>
-    )
+    return null
   }
 
   if (error) {
@@ -423,14 +424,9 @@ export default function PaymentHistoryPage() {
         {/* Back to Dashboard Button - Above Header */}
         <div className="flex justify-center mb-8">
           <div style={{width: '70vw'}}>
-            <Link 
-              href="/dashboard" 
+            <Link
+              href="/dashboard"
               className="inline-flex items-center text-gray-300 hover:text-white transition-colors payment-back-button"
-              onClick={(e) => {
-                console.log('Back to Dashboard clicked from analytics/payments page');
-                e.preventDefault();
-                window.location.href = '/dashboard';
-              }}
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
