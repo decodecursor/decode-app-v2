@@ -62,6 +62,7 @@ export default function UsersManagement() {
   const [inviteMessage, setInviteMessage] = useState('')
   const [newUserCount, setNewUserCount] = useState(0)
   const [lastCheckedTime, setLastCheckedTime] = useState<Date>(new Date())
+  const [isAuthorized, setIsAuthorized] = useState(false)
 
   // Function to reset new user notifications
   const resetNewUserNotifications = () => {
@@ -92,6 +93,7 @@ export default function UsersManagement() {
         }
 
         setAdminCompany(adminData.company_name)
+        setIsAuthorized(true)
 
         // TODO: Add profile_photo_url column to users table in database
         // For now, set to null - ProfileImage component will show user initials
@@ -471,6 +473,11 @@ export default function UsersManagement() {
     })
     return acc
   }, {} as Record<string, User[]>)
+
+  // Don't render until authorized
+  if (!isAuthorized) {
+    return null
+  }
 
   return (
     <div className="cosmic-bg min-h-screen" onClick={resetNewUserNotifications}>
