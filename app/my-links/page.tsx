@@ -370,194 +370,23 @@ function MyLinksContent() {
       setLoading(true)
       setError('')
 
-      // First get user info to determine if admin
-      const { data: currentUser, error: currentUserError } = await createClient()
-        .from('users')
-        .select('role, company_name')
-        .eq('id', userId)
-        .single()
+      // Fetch payment links via proxy endpoint
+      const response = await fetch('/api/payment-links/list', {
+        method: 'GET',
+        credentials: 'include'
+      })
 
-      if (currentUserError || !currentUser) {
-        throw new Error('Failed to get user information')
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to fetch payment links')
       }
 
-      const isAdmin = currentUser.role === 'Admin'
-      const companyName = currentUser.company_name
+      const data = await response.json()
+      const { paymentLinks: paymentLinksData, isAdmin } = data
 
-      // Fetch payment links with backwards compatible is_paid and paid_at columns
-      let paymentLinksData, fetchError
-      try {
-        // Try to get payment_status and paid_at columns (from migration) + transaction data as backup
-        console.log('🔍 Attempting to fetch with payment_status, paid_at, and transaction data...')
-        
-        let result
-        if (isAdmin) {
-          // For admin users, fetch all payment links from company users
-          console.log('🔍 Admin user detected, fetching all company payment links...')
-          
-          // First get all user IDs from the company
-          const { data: companyUsers, error: companyUsersError } = await createClient()
-            .from('users')
-            .select('id')
-            .eq('company_name', companyName)
-
-          if (companyUsersError || !companyUsers) {
-            throw companyUsersError || new Error('Failed to get company users')
-          }
-
-          const companyUserIds = companyUsers.map(u => u.id)
-          
-          result = await (createClient() as any)
-            .from('payment_links')
-            .select(`
-              id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
-              expiration_date, is_active, created_at, payment_status, paid_at, branch_name, creator_name, creator_id,
-              transactions (
-                id,
-                status,
-                created_at,
-                completed_at
-              )
-            `)
-            .in('creator_id', companyUserIds)
-            .order('created_at', { ascending: false })
-        } else {
-          // For regular users, fetch only their own payment links
-          result = await (createClient() as any)
-            .from('payment_links')
-            .select(`
-              id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
-              expiration_date, is_active, created_at, payment_status, paid_at, branch_name, creator_name,
-              transactions (
-                id,
-                status,
-                created_at,
-                completed_at
-              )
-            `)
-            .eq('creator_id', userId)
-            .order('created_at', { ascending: false })
-        }
-        
-        paymentLinksData = result.data
-        fetchError = result.error
-        
-        if (!fetchError) {
-          console.log('✅ Successfully fetched with payment_status and paid_at fields')
-          console.log('🔍 RAW DATABASE DATA:', JSON.stringify(paymentLinksData, null, 2))
-        } else {
-          console.log('❌ Error with payment_status query:', fetchError)
-          throw fetchError
-        }
-      } catch (primaryError) {
-        console.log('⚠️ Primary query failed, trying fallback with is_paid field...', primaryError)
-        try {
-          // Fallback to is_paid column (older migration) + transaction data
-          let result
-          if (isAdmin) {
-            // Get company user IDs again for fallback
-            const { data: companyUsers } = await createClient()
-              .from('users')
-              .select('id')
-              .eq('company_name', companyName)
-            
-            const companyUserIds = companyUsers?.map(u => u.id) || []
-            
-            result = await (createClient() as any)
-              .from('payment_links')
-              .select(`
-                id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
-                expiration_date, is_active, created_at, is_paid, branch_name, creator_name, creator_id,
-                transactions (
-                  id,
-                  status,
-                  created_at,
-                  completed_at
-                )
-              `)
-              .in('creator_id', companyUserIds)
-              .order('created_at', { ascending: false })
-          } else {
-            result = await (createClient() as any)
-              .from('payment_links')
-              .select(`
-                id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
-                expiration_date, is_active, created_at, is_paid, branch_name, creator_name,
-                transactions (
-                  id,
-                  status,
-                  created_at,
-                  completed_at
-                )
-              `)
-              .eq('creator_id', userId)
-              .order('created_at', { ascending: false })
-          }
-          
-          paymentLinksData = result.data
-          fetchError = result.error
-          
-          if (!fetchError) {
-            console.log('✅ Successfully fetched with is_paid field (fallback)')
-          } else {
-            console.log('❌ Error with is_paid fallback query:', fetchError)
-            throw fetchError
-          }
-        } catch (fallbackError) {
-          console.log('⚠️ is_paid fallback failed, using basic query...', fallbackError)
-          // Final fallback without payment status fields but with transaction data
-          let result
-          if (isAdmin) {
-            // Get company user IDs again for final fallback
-            const { data: companyUsers } = await createClient()
-              .from('users')
-              .select('id')
-              .eq('company_name', companyName)
-            
-            const companyUserIds = companyUsers?.map(u => u.id) || []
-            
-            result = await createClient()
-              .from('payment_links')
-              .select(`
-                id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
-                expiration_date, is_active, created_at, branch_name, creator_name, creator_id,
-                transactions (
-                  id,
-                  status,
-                  created_at,
-                  completed_at
-                )
-              `)
-              .in('creator_id', companyUserIds)
-              .order('created_at', { ascending: false })
-          } else {
-            result = await createClient()
-              .from('payment_links')
-              .select(`
-                id, client_name, title, description, amount_aed, service_amount_aed, decode_amount_aed, total_amount_aed, 
-                expiration_date, is_active, created_at, branch_name, creator_name,
-                transactions (
-                  id,
-                  status,
-                  created_at,
-                  completed_at
-                )
-              `)
-              .eq('creator_id', userId)
-              .order('created_at', { ascending: false })
-          }
-          
-          paymentLinksData = result.data
-          fetchError = result.error
-          
-          if (!fetchError) {
-            console.log('✅ Successfully fetched with basic query (final fallback)')
-          }
-        }
-      }
-
-      if (fetchError) {
-        throw fetchError
+      // Process the fetched payment links
+      if (!paymentLinksData) {
+        throw new Error('No payment links data received')
       }
 
       // Transform the data to include fields expected by PaymentLink interface
@@ -671,36 +500,21 @@ function MyLinksContent() {
 
   const fetchUserRoleAndBranchCount = async (userId: string) => {
     try {
-      // Fetch current user's role and company info
-      const { data: userData, error: userError } = await createClient()
-        .from('users')
-        .select('role, company_name')
-        .eq('id', userId)
-        .single()
+      // Fetch user role and branch info via proxy endpoint
+      const response = await fetch('/api/users/info', {
+        method: 'GET',
+        credentials: 'include'
+      })
 
-      if (userError || !userData) {
-        console.error('Error fetching user data:', userError)
+      if (!response.ok) {
+        console.error('Error fetching user info:', await response.text())
         return
       }
 
-      setUserRole(userData.role)
-      setCompanyName(userData.company_name)
-
-      // For admin accounts, fetch all payment links from the company to show creator names
-      // For user accounts, only count branches if company has 2+ branches
-      const { data: companyUsers, error: branchError } = await createClient()
-        .from('users')
-        .select('branch_name')
-        .eq('company_name', userData.company_name)
-        .not('branch_name', 'is', null)
-
-      if (!branchError && companyUsers) {
-        // Get unique branches from all users in the company
-        const allBranches = companyUsers
-          .flatMap(user => (user.branch_name || '').split(',').map(b => b.trim()).filter(b => b !== ''))
-        const uniqueBranches = [...new Set(allBranches)]
-        setCompanyBranchCount(uniqueBranches.length)
-      }
+      const data = await response.json()
+      setUserRole(data.role)
+      setCompanyName(data.companyName)
+      setCompanyBranchCount(data.branchCount)
     } catch (error) {
       console.error('Error fetching user role and branch count:', error)
     }
