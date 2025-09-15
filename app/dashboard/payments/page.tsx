@@ -119,57 +119,6 @@ export default function PaymentHistoryPage() {
     }
   }, [customDateRange])
 
-  // Simple authentication and data loading (like my-links)
-  useEffect(() => {
-    const getUser = async () => {
-      try {
-        const { user } = await getUserWithProxy()
-        if (!user) {
-          router.push('/auth')
-          return
-        }
-
-        console.log('✅ Payments: User authenticated:', user.id)
-        setUser(user)
-        await fetchPaymentData(user.id)
-
-        // Set up real-time subscription for payment completion events
-        console.log('🔄 Setting up real-time subscription for user:', user.id)
-        const subscription = supabase
-          .channel('payment-updates')
-          .on(
-            'postgres_changes',
-            {
-              event: 'UPDATE',
-              schema: 'public',
-              table: 'payment_links',
-              filter: `creator_id=eq.${user.id}`
-            },
-            async (payload) => {
-              console.log('✅ Payment link status updated in real-time:', payload)
-
-              const paymentLink = payload.new as any
-              const oldPaymentLink = payload.old as any
-
-              // Check if payment_status changed to 'paid'
-              if (paymentLink.payment_status === 'paid' && oldPaymentLink.payment_status !== 'paid') {
-                console.log('💖 Payment completed! Triggering update for:', paymentLink.id)
-
-                // Refresh payment data to show updated stats
-                await fetchPaymentData(user.id)
-              }
-            }
-          )
-          .subscribe()
-      } catch (error) {
-        console.error('❌ Authentication or data loading failed:', error)
-        setError('Failed to load payment data. Please try refreshing the page.')
-        setLoading(false)
-      }
-    }
-    getUser()
-  }, [])
-
   const fetchPaymentData = async (userId: string) => {
     try {
       console.log('🔍 Starting fetchPaymentData for user:', userId)
@@ -250,6 +199,56 @@ export default function PaymentHistoryPage() {
     }
   }
 
+  // Simple authentication and data loading (like my-links)
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const { user } = await getUserWithProxy()
+        if (!user) {
+          router.push('/auth')
+          return
+        }
+
+        console.log('✅ Payments: User authenticated:', user.id)
+        setUser(user)
+        await fetchPaymentData(user.id)
+
+        // Set up real-time subscription for payment completion events
+        console.log('🔄 Setting up real-time subscription for user:', user.id)
+        const subscription = supabase
+          .channel('payment-updates')
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'payment_links',
+              filter: `creator_id=eq.${user.id}`
+            },
+            async (payload) => {
+              console.log('✅ Payment link status updated in real-time:', payload)
+
+              const paymentLink = payload.new as any
+              const oldPaymentLink = payload.old as any
+
+              // Check if payment_status changed to 'paid'
+              if (paymentLink.payment_status === 'paid' && oldPaymentLink.payment_status !== 'paid') {
+                console.log('💖 Payment completed! Triggering update for:', paymentLink.id)
+
+                // Refresh payment data to show updated stats
+                await fetchPaymentData(user.id)
+              }
+            }
+          )
+          .subscribe()
+      } catch (error) {
+        console.error('❌ Authentication or data loading failed:', error)
+        setError('Failed to load payment data. Please try refreshing the page.')
+        setLoading(false)
+      }
+    }
+    getUser()
+  }, [])
 
   const filteredAndSortedLinks = paymentLinks
     .filter(link => {
