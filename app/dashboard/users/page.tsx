@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { getUserWithProxy } from '@/utils/auth-helper'
 import Link from 'next/link'
@@ -35,6 +36,7 @@ interface User {
 
 export default function UsersManagement() {
   const supabase = createClient()
+  const router = useRouter()
   const [users, setUsers] = useState<User[]>([])
   const [adminCompany, setAdminCompany] = useState<string>('')
   const [companyProfileImage, setCompanyProfileImage] = useState<string | null>(null)
@@ -73,7 +75,7 @@ export default function UsersManagement() {
         // Get current admin user
         const { user } = await getUserWithProxy()
         if (!user) {
-          window.location.href = '/auth'
+          router.push('/auth')
           return
         }
 
@@ -85,7 +87,7 @@ export default function UsersManagement() {
           .single()
 
         if (!adminData || adminData.role !== 'Admin') {
-          window.location.href = '/dashboard'
+          router.push('/dashboard')
           return
         }
 
