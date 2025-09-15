@@ -63,6 +63,7 @@ export default function PaymentHistoryPage() {
   const [transactions, setTransactions] = useState<PaymentTransaction[]>([])
   const [stats, setStats] = useState<PaymentStats | null>(null)
   const [loading, setLoading] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
@@ -129,18 +130,26 @@ export default function PaymentHistoryPage() {
           window.location.href = '/auth'
           return
         }
-        
+
         console.log('✅ User authenticated:', user.id)
         setUser(user)
-        await fetchPaymentData(user.id)
       } catch (error: any) {
         console.error('❌ Authentication error:', error)
         setError('Authentication failed. Please try logging in again.')
+      } finally {
+        setAuthLoading(false)
       }
     }
-    
+
     getUser()
   }, [])
+
+  // Load payment data when user is available
+  useEffect(() => {
+    if (user) {
+      fetchPaymentData(user.id)
+    }
+  }, [user])
 
   const fetchPaymentData = async (userId: string) => {
     try {
@@ -345,7 +354,25 @@ export default function PaymentHistoryPage() {
   }
 
   console.log('🎯 ABOUT TO CHECK USER STATE - user:', user, 'typeof user:', typeof user)
-  
+
+  // Show loading spinner while authenticating or loading data
+  if (authLoading || loading) {
+    return (
+      <div className="cosmic-bg min-h-screen">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-gray-300">{authLoading ? 'Authenticating...' : 'Loading payments...'}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Ensure user exists before rendering main content
+  if (!user) {
+    return null
+  }
 
   if (error) {
     return (
