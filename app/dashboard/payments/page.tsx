@@ -148,121 +148,59 @@ export default function PaymentHistoryPage() {
       setLoading(true)
       setError('')
 
-      // Simple query for payment links with paid_at column
-      console.log('🔍 Fetching payment links with paid_at field...')
-      
-      const { data: linksData, error: linksError } = await supabase
-        .from('payment_links')
-        .select(`
-          id,
-          title,
-          description,
-          amount_aed,
-          service_amount_aed,
-          client_name,
-          creator_id,
-          expiration_date,
-          is_active,
-          created_at,
-          paid_at,
-          creator:creator_id (
-            user_name,
-            email
-          ),
-          transactions (
-            id,
-            amount_aed,
-            status,
-            created_at,
-            completed_at
-          )
-        `)
-        .eq('creator_id', userId)
-        .not('paid_at', 'is', null) // Only get paid payment links
-        .order('paid_at', { ascending: false })
+      // Fetch payment history data via proxy endpoint
+      console.log('🔍 Fetching payment history via proxy...')
 
-      if (linksError) {
-        console.error('❌ Payment links query failed:', linksError)
-        throw linksError
+      const response = await fetch('/api/payment-history/data', {
+        method: 'GET',
+        credentials: 'include'
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('❌ Payment history fetch failed:', errorData)
+        throw new Error(errorData.error || 'Failed to fetch payment history')
       }
-      
-      console.log('💰 Found', linksData?.length || 0, 'paid payment links')
 
-      // Simple processing: if paid_at exists, it's paid
-      const processedLinks: PaymentLink[] = (linksData || [])
-        .map((link: any) => {
-          const transactions = link.transactions || []
-          const completedTransactions = transactions.filter((t: any) => t.status === 'completed')
-          
-          return {
-            ...link,
-            creator: Array.isArray(link.creator) ? (link.creator[0] || { user_name: null, email: '' }) : (link.creator || { user_name: null, email: '' }),
-            transaction_count: completedTransactions.length,
-            total_revenue: completedTransactions.reduce((sum: number, t: any) => sum + (t.amount_aed || 0), 0)
+      const data = await response.json()
+      const { paymentLinks: processedLinks, transactions: processedTransactions, stats: fetchedStats } = data
+
+      console.log('💰 Found', processedLinks?.length || 0, 'paid payment links')
+
+      setPaymentLinks(processedLinks || [])
+      setTransactions(processedTransactions || [])
+
+      // Use stats from proxy endpoint or calculate fallback
+      if (fetchedStats) {
+        setStats(fetchedStats)
+      } else {
+        // Fallback calculation if stats not provided
+        const totalRevenue = processedLinks.reduce((sum: any, link: any) => sum + link.total_revenue, 0)
+        const activeLinks = processedLinks.filter((link: any) => link.is_active).length
+        const totalTransactions = processedLinks.reduce((sum: any, link: any) => sum + link.transaction_count, 0)
+
+        // Get this month's data
+        const now = new Date()
+        const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+
+        const thisMonthLinks = processedLinks.filter((link: any) =>
+          new Date(link.created_at) >= thisMonthStart
+        )
+        const thisMonthRevenue = thisMonthLinks.reduce((sum: any, link: any) => sum + link.total_revenue, 0)
+        const thisMonthTransactions = thisMonthLinks.reduce((sum: any, link: any) => sum + link.transaction_count, 0)
+
+        setStats({
+          totalRevenue,
+          activeLinks,
+          totalTransactions,
+          successfulPayments: totalTransactions,
+          averagePayment: totalTransactions > 0 ? totalRevenue / totalTransactions : 0,
+          thisMonth: {
+            revenue: thisMonthRevenue,
+            transactions: thisMonthTransactions
           }
         })
-
-      setPaymentLinks(processedLinks)
-
-      // Fetch all transactions for paid payment links only
-      let transactionsData: any[] = []
-      if (processedLinks.length > 0) {
-        const { data } = await supabase
-          .from('transactions')
-          .select(`
-            id,
-            amount_aed,
-            status,
-            created_at,
-            completed_at,
-            payment_link:payment_link_id (
-              title,
-              amount_aed,
-              client_name
-            )
-          `)
-          .in('payment_link_id', processedLinks.map(link => link.id))
-          .eq('status', 'completed')
-          .order('completed_at', { ascending: false })
-        
-        transactionsData = data || []
       }
-
-      const processedTransactions: PaymentTransaction[] = (transactionsData || [])
-        .filter(t => t.payment_link)
-        .map(t => ({
-          ...t,
-          payment_link: Array.isArray(t.payment_link) ? (t.payment_link[0] || { title: '', amount_aed: 0 }) : (t.payment_link || { title: '', amount_aed: 0 })
-        }))
-
-      setTransactions(processedTransactions)
-
-      // Calculate stats
-      const totalRevenue = processedLinks.reduce((sum, link) => sum + link.total_revenue, 0)
-      const activeLinks = processedLinks.filter(link => link.is_active).length
-      const totalTransactions = processedLinks.reduce((sum, link) => sum + link.transaction_count, 0)
-      
-      // Get this month's data
-      const now = new Date()
-      const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-      
-      const thisMonthLinks = processedLinks.filter(link => 
-        new Date(link.created_at) >= thisMonthStart
-      )
-      const thisMonthRevenue = thisMonthLinks.reduce((sum, link) => sum + link.total_revenue, 0)
-      const thisMonthTransactions = thisMonthLinks.reduce((sum, link) => sum + link.transaction_count, 0)
-
-      setStats({
-        totalRevenue,
-        activeLinks,
-        totalTransactions,
-        successfulPayments: totalTransactions,
-        averagePayment: totalTransactions > 0 ? totalRevenue / totalTransactions : 0,
-        thisMonth: {
-          revenue: thisMonthRevenue,
-          transactions: thisMonthTransactions
-        }
-      })
 
     } catch (error: any) {
       console.error('❌ DETAILED ERROR in fetchPaymentData:')
