@@ -64,8 +64,7 @@ export default function PaymentHistoryPage() {
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([])
   const [transactions, setTransactions] = useState<PaymentTransaction[]>([])
   const [stats, setStats] = useState<PaymentStats | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [authLoading, setAuthLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
@@ -120,50 +119,21 @@ export default function PaymentHistoryPage() {
     }
   }, [customDateRange])
 
-  // Check authentication on mount
+  // Simple authentication and data loading (like my-links)
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { user: authUser, error } = await getUserWithProxy()
-
-        if (!authUser) {
-          console.log('🚪 Payments: No authenticated user, redirecting to auth')
-          router.push('/auth')
-          return
-        }
-
-        console.log('✅ Payments: User authenticated:', authUser.id)
-        setUser(authUser)
-      } catch (error) {
-        console.error('Auth check failed:', error)
+    const getUser = async () => {
+      const { user } = await getUserWithProxy()
+      if (!user) {
         router.push('/auth')
-      } finally {
-        setAuthLoading(false)
+        return
       }
+
+      console.log('✅ Payments: User authenticated:', user.id)
+      setUser(user)
+      await fetchPaymentData(user.id)
     }
-
-    checkAuth()
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session?.user) {
-        router.push('/auth')
-      } else {
-        setUser(session.user)
-      }
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [router, supabase])
-
-  // Load payment data when user is available
-  useEffect(() => {
-    if (user) {
-      fetchPaymentData(user.id)
-    }
-  }, [user])
+    getUser()
+  }, [])
 
   const fetchPaymentData = async (userId: string) => {
     try {
@@ -374,14 +344,14 @@ export default function PaymentHistoryPage() {
     }
   }
 
-  // Show loading spinner while checking authentication or loading data
-  if (authLoading || loading) {
+  // Show loading spinner while loading data
+  if (loading) {
     return (
       <div className="cosmic-bg">
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-gray-300">{authLoading ? 'Authenticating...' : 'Loading payments...'}</p>
+            <p className="text-gray-300">Loading payments...</p>
           </div>
         </div>
       </div>
