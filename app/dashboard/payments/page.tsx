@@ -127,6 +127,7 @@ export default function PaymentHistoryPage() {
 
         if (!user) {
           console.log('❌ No authenticated user found - redirecting to /auth')
+          setAuthLoading(false) // ✅ Critical fix: Set loading false before redirect
           window.location.href = '/auth'
           return
         }
@@ -168,13 +169,19 @@ export default function PaymentHistoryPage() {
       if (!response.ok) {
         const errorData = await response.json()
         console.error('❌ Payment history fetch failed:', errorData)
-        throw new Error(errorData.error || 'Failed to fetch payment history')
+        console.error('❌ Response status:', response.status)
+        console.error('❌ Response statusText:', response.statusText)
+        throw new Error(`API Error (${response.status}): ${errorData.error || 'Failed to fetch payment history'}`)
       }
 
       const data = await response.json()
+      console.log('✅ Payment history API response received:', data)
+
       const { paymentLinks: processedLinks, transactions: processedTransactions, stats: fetchedStats } = data
 
       console.log('💰 Found', processedLinks?.length || 0, 'paid payment links')
+      console.log('💳 Found', processedTransactions?.length || 0, 'transactions')
+      console.log('📊 Stats:', fetchedStats)
 
       setPaymentLinks(processedLinks || [])
       setTransactions(processedTransactions || [])
@@ -219,8 +226,9 @@ export default function PaymentHistoryPage() {
       console.error('Full error details:', JSON.stringify(error, null, 2))
       setError(`Database error: ${error?.message || 'Unknown error'}`)
     } finally {
-      console.log('✅ Finished fetchPaymentData')
+      console.log('✅ Finished fetchPaymentData - setting loading to false')
       setLoading(false)
+      console.log('✅ Loading state updated - component should render now')
     }
   }
 
@@ -371,7 +379,17 @@ export default function PaymentHistoryPage() {
 
   // Ensure user exists before rendering main content
   if (!user) {
-    return null
+    console.log('🔄 No user state available, redirecting...')
+    return (
+      <div className="cosmic-bg min-h-screen">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-gray-300">Redirecting to login...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (error) {
