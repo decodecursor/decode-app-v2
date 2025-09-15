@@ -64,7 +64,7 @@ export default function PaymentHistoryPage() {
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([])
   const [transactions, setTransactions] = useState<PaymentTransaction[]>([])
   const [stats, setStats] = useState<PaymentStats | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
@@ -348,20 +348,6 @@ export default function PaymentHistoryPage() {
     } catch (error) {
       console.error('Failed to copy link:', error)
     }
-  }
-
-  // Show loading spinner while loading data
-  if (loading) {
-    return (
-      <div className="cosmic-bg">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-gray-300">Loading payments...</p>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   // Ensure user exists before rendering
