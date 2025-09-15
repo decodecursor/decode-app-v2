@@ -45,21 +45,30 @@ export interface UserProfile {
   pendingUsersCount?: number
 }
 
-export function validateUserProfile(data: any): UserProfile | null {
+export function validateUserProfile(data: any): UserProfile {
   if (!data || typeof data !== 'object') {
-    console.error('Invalid user profile data: not an object')
-    return null
+    console.warn('Invalid user profile data: not an object, using defaults')
+    return {
+      id: '',
+      role: USER_ROLES.USER, // Default to User role
+      user_name: null,
+      company_name: null,
+      professional_center_name: null,
+      branch_name: null,
+      approval_status: 'pending',
+      companyProfileImage: null,
+      pendingUsersCount: 0
+    }
   }
 
   const normalizedRole = normalizeRole(data.role)
   if (!normalizedRole) {
-    console.error(`Invalid user role: "${data.role}". Expected: ${VALID_ROLES.join(' or ')}`)
-    return null
+    console.warn(`Invalid user role: "${data.role}". Defaulting to User role`)
   }
 
   return {
     id: data.id || '',
-    role: normalizedRole,
+    role: normalizedRole || USER_ROLES.USER, // Always provide a valid role
     user_name: data.user_name || null,
     company_name: data.company_name || null,
     professional_center_name: data.professional_center_name || null,

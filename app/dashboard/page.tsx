@@ -177,24 +177,11 @@ export default function Dashboard() {
 
         // Validate and normalize user profile data
         const validatedProfile = validateUserProfile(userData)
-        if (!validatedProfile) {
-          console.error('❌ Dashboard: Invalid user profile data received')
-          setLoading(false)
-          return
-        }
 
         console.log('✅ Dashboard: Validated role:', validatedProfile.role)
         console.log('🔍 Dashboard: Setting userRole state to:', validatedProfile.role)
         setUserRole(validatedProfile.role)
 
-        // Debug: Log state after setting
-        setTimeout(() => {
-          console.log('🔍 Dashboard: UserRole state after setting:', validatedProfile.role)
-          console.log('🔍 Dashboard: USER_ROLES.ADMIN:', USER_ROLES.ADMIN)
-          console.log('🔍 Dashboard: USER_ROLES.USER:', USER_ROLES.USER)
-          console.log('🔍 Dashboard: Will show Admin buttons?', validatedProfile.role === USER_ROLES.ADMIN)
-          console.log('🔍 Dashboard: Will show User buttons?', validatedProfile.role === USER_ROLES.USER)
-        }, 100)
         setCompanyName(validatedProfile.company_name || validatedProfile.professional_center_name)
         setUserName(validatedProfile.user_name)
 
@@ -366,6 +353,7 @@ export default function Dashboard() {
   if (!user) {
     return null
   }
+
 
   return (
     <div className="cosmic-bg">
