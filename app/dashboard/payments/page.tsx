@@ -132,6 +132,35 @@ export default function PaymentHistoryPage() {
         console.log('✅ Payments: User authenticated:', user.id)
         setUser(user)
         await fetchPaymentData(user.id)
+
+        // Set up real-time subscription for payment completion events
+        console.log('🔄 Setting up real-time subscription for user:', user.id)
+        const subscription = supabase
+          .channel('payment-updates')
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'payment_links',
+              filter: `creator_id=eq.${user.id}`
+            },
+            async (payload) => {
+              console.log('✅ Payment link status updated in real-time:', payload)
+
+              const paymentLink = payload.new as any
+              const oldPaymentLink = payload.old as any
+
+              // Check if payment_status changed to 'paid'
+              if (paymentLink.payment_status === 'paid' && oldPaymentLink.payment_status !== 'paid') {
+                console.log('💖 Payment completed! Triggering update for:', paymentLink.id)
+
+                // Refresh payment data to show updated stats
+                await fetchPaymentData(user.id)
+              }
+            }
+          )
+          .subscribe()
       } catch (error) {
         console.error('❌ Authentication or data loading failed:', error)
         setError('Failed to load payment data. Please try refreshing the page.')
@@ -221,87 +250,6 @@ export default function PaymentHistoryPage() {
     }
   }
 
-  // Set up real-time subscription for payment completion events
-  useEffect(() => {
-    if (!user) return
-
-    const subscription = supabase
-      .channel('payment-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'transactions',
-          filter: `status=eq.completed`
-        },
-        async (payload) => {
-          console.log('✅ Payment completed in real-time (transaction):', payload)
-          
-          const transaction = payload.new as any
-          const paymentLinkId = transaction.payment_link_id
-          
-          if (paymentLinkId) {
-            // Check if this payment link belongs to current user
-            const currentUserLinks = paymentLinks.map(link => link.id)
-            if (currentUserLinks.includes(paymentLinkId)) {
-              // Trigger heart animation for this payment link
-              setHeartAnimationLinks(prev => new Set([...prev, paymentLinkId]))
-              
-              // Remove animation after 3 seconds
-              setTimeout(() => {
-                setHeartAnimationLinks(prev => {
-                  const newSet = new Set(prev)
-                  newSet.delete(paymentLinkId)
-                  return newSet
-                })
-              }, 3000)
-              
-              // Refresh payment data to show updated stats
-              await fetchPaymentData(user.id)
-            }
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'payment_links',
-          filter: `creator_id=eq.${user.id}`
-        },
-        async (payload) => {
-          console.log('✅ Payment link status updated in real-time:', payload)
-          
-          const paymentLink = payload.new as any
-          const oldPaymentLink = payload.old as any
-          
-          // Check if payment_status changed to 'paid'
-          if (paymentLink.payment_status === 'paid' && oldPaymentLink.payment_status !== 'paid') {
-            // Trigger heart animation for this payment link
-            setHeartAnimationLinks(prev => new Set([...prev, paymentLink.id]))
-            
-            // Remove animation after 3 seconds
-            setTimeout(() => {
-              setHeartAnimationLinks(prev => {
-                const newSet = new Set(prev)
-                newSet.delete(paymentLink.id)
-                return newSet
-              })
-            }, 3000)
-            
-            // Refresh payment data to show updated stats
-            await fetchPaymentData(user.id)
-          }
-        }
-      )
-      .subscribe()
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [user])
 
   const filteredAndSortedLinks = paymentLinks
     .filter(link => {
@@ -348,11 +296,6 @@ export default function PaymentHistoryPage() {
     } catch (error) {
       console.error('Failed to copy link:', error)
     }
-  }
-
-  // Ensure user exists before rendering
-  if (!user) {
-    return null
   }
 
   if (error) {
