@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/client'
 import { User } from '@supabase/supabase-js'
+import { normalizeRole } from '@/types/user'
 
 export async function getUserWithProxy(): Promise<{ user: User | null, error: string | null }> {
   const supabase = createClient()
@@ -34,6 +35,7 @@ export async function getUserWithProxy(): Promise<{ user: User | null, error: st
           const proxyData = await proxyResponse.json()
           if (proxyData.user) {
             console.log('✅ [AUTH-HELPER] Proxy getUser successful:', proxyData.user.id)
+            console.log('🔍 [AUTH-HELPER] User data from proxy:', proxyData.user)
             return { user: proxyData.user, error: null }
           }
         } else if (proxyResponse.status === 401) {

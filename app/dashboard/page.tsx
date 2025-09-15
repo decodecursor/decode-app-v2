@@ -6,13 +6,14 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { getUserWithProxy } from '@/utils/auth-helper'
 import { User } from '@supabase/supabase-js'
+import { UserRole, USER_ROLES, validateUserProfile, normalizeRole } from '@/types/user'
 
 
 export default function Dashboard() {
   const supabase = createClient()
   const [user, setUser] = useState<User | null>(null)
   const [authLoading, setAuthLoading] = useState(true)
-  const [userRole, setUserRole] = useState<string | null>(null)
+  const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [companyProfileImage, setCompanyProfileImage] = useState<string | null>(null)
   const [companyName, setCompanyName] = useState<string | null>(null)
   const [userName, setUserName] = useState<string | null>(null)
@@ -174,34 +175,51 @@ export default function Dashboard() {
         const { userData } = await response.json()
         console.log('✅ Dashboard: Profile data received:', userData)
 
-        if (userData) {
-          setUserRole(userData.role)
-          setCompanyName(userData.company_name || userData.professional_center_name)
-          setUserName(userData.user_name)
+        // Validate and normalize user profile data
+        const validatedProfile = validateUserProfile(userData)
+        if (!validatedProfile) {
+          console.error('❌ Dashboard: Invalid user profile data received')
+          setLoading(false)
+          return
+        }
 
-          // Set user branch (first branch if multiple)
-          if (userData.branch_name) {
-            const branches = userData.branch_name.split(',').map((b: string) => b.trim()).filter((b: string) => b !== '')
-            setUserBranch(branches[0] || null)
-          } else {
-            setUserBranch(null)
-          }
+        console.log('✅ Dashboard: Validated role:', validatedProfile.role)
+        console.log('🔍 Dashboard: Setting userRole state to:', validatedProfile.role)
+        setUserRole(validatedProfile.role)
 
-          // Set company profile image if available
-          if (userData.companyProfileImage) {
-            setCompanyProfileImage(userData.companyProfileImage)
-          }
+        // Debug: Log state after setting
+        setTimeout(() => {
+          console.log('🔍 Dashboard: UserRole state after setting:', validatedProfile.role)
+          console.log('🔍 Dashboard: USER_ROLES.ADMIN:', USER_ROLES.ADMIN)
+          console.log('🔍 Dashboard: USER_ROLES.USER:', USER_ROLES.USER)
+          console.log('🔍 Dashboard: Will show Admin buttons?', validatedProfile.role === USER_ROLES.ADMIN)
+          console.log('🔍 Dashboard: Will show User buttons?', validatedProfile.role === USER_ROLES.USER)
+        }, 100)
+        setCompanyName(validatedProfile.company_name || validatedProfile.professional_center_name)
+        setUserName(validatedProfile.user_name)
 
-          // Check if user is approved (skip check for Admins)
-          if (userData.approval_status === 'pending' && userData.role !== 'Admin') {
-            window.location.href = '/pending-approval'
-            return
-          }
+        // Set user branch (first branch if multiple)
+        if (validatedProfile.branch_name) {
+          const branches = validatedProfile.branch_name.split(',').map((b: string) => b.trim()).filter((b: string) => b !== '')
+          setUserBranch(branches[0] || null)
+        } else {
+          setUserBranch(null)
+        }
 
-          // Set pending users count for admins
-          if (userData.role === 'Admin' && userData.pendingUsersCount !== undefined) {
-            setPendingUsersCount(userData.pendingUsersCount)
-          }
+        // Set company profile image if available
+        if (validatedProfile.companyProfileImage) {
+          setCompanyProfileImage(validatedProfile.companyProfileImage)
+        }
+
+        // Check if user is approved (skip check for Admins)
+        if (validatedProfile.approval_status === 'pending' && validatedProfile.role !== USER_ROLES.ADMIN) {
+          window.location.href = '/pending-approval'
+          return
+        }
+
+        // Set pending users count for admins
+        if (validatedProfile.role === USER_ROLES.ADMIN && validatedProfile.pendingUsersCount !== undefined) {
+          setPendingUsersCount(validatedProfile.pendingUsersCount)
         }
       
       
@@ -217,7 +235,7 @@ export default function Dashboard() {
 
   // Set up polling-based real-time updates for pending users
   useEffect(() => {
-    if (userRole === 'Admin' && companyName) {
+    if (userRole === USER_ROLES.ADMIN && companyName) {
       const fetchPendingCount = async () => {
         try {
           // Use proxy endpoint to get updated counts
@@ -391,7 +409,7 @@ export default function Dashboard() {
                       </Link>
 
                       {/* Bank Account - Admin Only */}
-                      {userRole === 'Admin' && (
+                      {userRole === USER_ROLES.ADMIN && (
                         <Link href="/bank-account" className="w-full flex items-center px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
                           <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -432,14 +450,14 @@ export default function Dashboard() {
                   </div>
                   {(userRole || userBranch) && (
                     <div className="text-xs text-gray-400">
-                      {userRole === 'Admin' ? userRole : (userBranch || userRole)}
+                      {userRole === USER_ROLES.ADMIN ? userRole : (userBranch || userRole)}
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Right side - Navigation Buttons */}
-              {userRole === 'Admin' && (
+              {userRole === USER_ROLES.ADMIN && (
                 <div className="flex gap-4 items-center">
                   {/* Users Management */}
                   <Link 
@@ -482,7 +500,7 @@ export default function Dashboard() {
               )}
 
               {/* User Navigation Buttons */}
-              {userRole === 'User' && (
+              {userRole === USER_ROLES.USER && (
                 <div className="flex gap-4 items-center">
                   {/* Payment History */}
                   <Link 
@@ -570,7 +588,7 @@ export default function Dashboard() {
                 <div className="border-t border-gray-700 pt-4">
                   <nav className="space-y-2">
                     
-                    {userRole === 'Admin' && (
+                    {userRole === USER_ROLES.ADMIN && (
                       <>
                         <button 
                           className="block w-full text-left bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] mb-2"
@@ -614,7 +632,7 @@ export default function Dashboard() {
                     </Link>
 
                     {/* Bank Account - Admin Only */}
-                    {userRole === 'Admin' && (
+                    {userRole === USER_ROLES.ADMIN && (
                       <Link
                         href="/bank-account"
                         className="block w-full text-left nav-button px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"

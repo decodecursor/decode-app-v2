@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { normalizeRole, USER_ROLES, isValidRole } from '@/types/user'
 
 // GET user profile data using server-side authentication
 export async function GET(request: NextRequest) {
@@ -97,6 +98,18 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Normalize and validate role
+    const normalizedRole = normalizeRole(userData.role)
+    if (!normalizedRole) {
+      console.error('❌ [PROXY-PROFILE] Invalid user role:', userData.role, 'for user:', userId)
+      // Set default role as User if role is invalid
+      userData.role = USER_ROLES.USER
+      console.log('✅ [PROXY-PROFILE] Set default role as User for:', userId)
+    } else {
+      userData.role = normalizedRole
+      console.log('✅ [PROXY-PROFILE] Normalized role:', userData.role, 'for user:', userId)
+    }
+
     // Fetch company profile image if company exists
     let companyProfileImage = null
     const currentCompanyName = userData.company_name || userData.professional_center_name
@@ -122,7 +135,7 @@ export async function GET(request: NextRequest) {
 
     // Get pending users count if admin
     let pendingUsersCount = 0
-    if (userData.role === 'Admin' && userData.company_name) {
+    if (userData.role === USER_ROLES.ADMIN && userData.company_name) {
       const { count } = await supabase
         .from('users')
         .select('*', { count: 'exact', head: true })
@@ -132,7 +145,7 @@ export async function GET(request: NextRequest) {
       pendingUsersCount = count || 0
     }
 
-    console.log('✅ [PROXY-PROFILE] Successfully fetched user profile')
+    console.log('✅ [PROXY-PROFILE] Successfully fetched user profile with role:', userData.role)
 
     return NextResponse.json({
       success: true,
