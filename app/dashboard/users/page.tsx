@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { getUserWithProxy } from '@/utils/auth-helper'
-import { normalizeRole, USER_ROLES } from '@/types/user'
+import { validateUserProfile, USER_ROLES } from '@/types/user'
 import Link from 'next/link'
 
 // Numbered Avatar Component
@@ -92,14 +92,14 @@ export default function UsersManagement() {
         console.log('🔍 Admin data:', adminData)
         console.log('🔍 Role check - adminData.role:', adminData?.role)
 
-        // Use normalizeRole like dashboard does
-        const normalizedRole = normalizeRole(adminData?.role)
-        console.log('🔍 Normalized role:', normalizedRole)
+        // Use validateUserProfile like dashboard does - this ensures role is never null
+        const validatedProfile = validateUserProfile(adminData)
+        console.log('🔍 Validated role:', validatedProfile.role)
 
-        if (!adminData || normalizedRole !== USER_ROLES.ADMIN) {
+        if (!adminData || validatedProfile.role !== USER_ROLES.ADMIN) {
           console.log('❌ Not admin, redirecting to /dashboard')
           console.log('Role value:', adminData?.role)
-          console.log('Normalized:', normalizedRole)
+          console.log('Validated role:', validatedProfile.role)
           console.log('Expected:', USER_ROLES.ADMIN)
           router.push('/dashboard')
           return
