@@ -185,22 +185,41 @@ export default function CreatePayment() {
 
       // Fetch user's branch information
       try {
+        console.log('🔍 [BRANCH DEBUG] Fetching branch info for user:', user.id)
         const { data: userData, error } = await supabase
           .from('users')
           .select('branch_name')
           .eq('id', user.id)
           .single()
 
+        console.log('🔍 [BRANCH DEBUG] Raw query result:', { userData, error })
+
         if (error) {
-          console.error('Error fetching user branches:', error)
-        } else if (userData?.branch_name) {
-          const branches = userData.branch_name.split(',').map(b => b.trim()).filter(b => b !== '')
-          setUserBranches(branches)
-          setSelectedBranch(branches[0] || '') // Default to first branch or empty
+          console.error('❌ [BRANCH DEBUG] Error fetching user branches:', error)
         } else {
-          // No branch assigned - leave empty
-          setUserBranches([])
-          setSelectedBranch('')
+          console.log('🔍 [BRANCH DEBUG] userData.branch_name value:', userData?.branch_name)
+          console.log('🔍 [BRANCH DEBUG] typeof branch_name:', typeof userData?.branch_name)
+          console.log('🔍 [BRANCH DEBUG] branch_name length:', userData?.branch_name?.length)
+
+          if (userData?.branch_name) {
+            console.log('🔍 [BRANCH DEBUG] Processing branch_name:', userData.branch_name)
+            const rawBranches = userData.branch_name.split(',')
+            console.log('🔍 [BRANCH DEBUG] After split:', rawBranches)
+            const trimmedBranches = rawBranches.map(b => b.trim())
+            console.log('🔍 [BRANCH DEBUG] After trim:', trimmedBranches)
+            const branches = trimmedBranches.filter(b => b !== '')
+            console.log('🔍 [BRANCH DEBUG] After filter:', branches)
+
+            setUserBranches(branches)
+            setSelectedBranch(branches[0] || '') // Default to first branch or empty
+            console.log('✅ [BRANCH DEBUG] Set userBranches:', branches)
+            console.log('✅ [BRANCH DEBUG] Set selectedBranch:', branches[0] || '')
+          } else {
+            // No branch assigned - leave empty
+            console.log('⚠️ [BRANCH DEBUG] No branch_name found, setting empty arrays')
+            setUserBranches([])
+            setSelectedBranch('')
+          }
         }
 
         // Set up real-time subscription for branch changes
@@ -215,25 +234,33 @@ export default function CreatePayment() {
               filter: `id=eq.${user.id}`
             },
             (payload) => {
-              console.log('👤 User branch data updated:', payload)
+              console.log('👤 [BRANCH DEBUG] User branch data updated via subscription:', payload)
               const newBranchName = payload.new?.branch_name
+              console.log('🔍 [BRANCH DEBUG] New branch name from subscription:', newBranchName)
 
               if (newBranchName) {
+                console.log('🔍 [BRANCH DEBUG] Processing subscription branch update:', newBranchName)
                 const branches = newBranchName.split(',').map((b: string) => b.trim()).filter((b: string) => b !== '')
+                console.log('✅ [BRANCH DEBUG] Subscription setting branches:', branches)
                 setUserBranches(branches)
 
                 // Update selected branch if current selection is no longer valid
                 setSelectedBranch(prevSelected => {
+                  console.log('🔍 [BRANCH DEBUG] Checking selected branch:', prevSelected, 'against branches:', branches)
                   if (prevSelected && !branches.includes(prevSelected)) {
+                    console.log('⚠️ [BRANCH DEBUG] Selected branch no longer valid, updating')
                     setError('Your branch assignment has been updated. Please review your selection.')
                     return branches[0] || ''
                   } else if (!prevSelected && branches.length > 0) {
+                    console.log('✅ [BRANCH DEBUG] Setting first branch as selected:', branches[0])
                     return branches[0]
                   }
+                  console.log('✅ [BRANCH DEBUG] Keeping previous selection:', prevSelected)
                   return prevSelected
                 })
               } else {
                 // User was removed from all branches
+                console.log('⚠️ [BRANCH DEBUG] Subscription cleared all branches')
                 setUserBranches([])
                 setSelectedBranch('')
                 setError('You have been removed from all branches. Please contact your administrator to regain access.')
@@ -652,6 +679,20 @@ export default function CreatePayment() {
                 ) : (
                   <div className="text-sm text-red-400">
                     ⚠️ No branch assigned - Contact administrator
+                  </div>
+                )}
+
+                {/* Debug Info - Remove this after debugging */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="mt-4 p-3 bg-gray-800/50 rounded-lg text-xs text-left">
+                    <div className="text-yellow-400 font-bold mb-2">🔍 Branch Debug Info:</div>
+                    <div className="text-gray-300">
+                      <div>userBranches.length: {userBranches.length}</div>
+                      <div>userBranches: {JSON.stringify(userBranches)}</div>
+                      <div>selectedBranch: "{selectedBranch}"</div>
+                      <div>User ID: {user?.id}</div>
+                      <div>Loading state: {loading.toString()}</div>
+                    </div>
                   </div>
                 )}
               </div>
