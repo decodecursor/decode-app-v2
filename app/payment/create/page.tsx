@@ -174,159 +174,51 @@ export default function CreatePayment() {
   }, [])
 
   useEffect(() => {
-    const getUser = async () => {
+    const loadUserData = async () => {
       const { user } = await getUserWithProxy()
       if (!user) {
         router.push('/auth')
         return
       }
       setUser(user)
-      const supabase = createClient()
 
-      // Fetch user's branch information using the same endpoint as dashboard
       try {
-        console.log('🔍 [BRANCH DEBUG] Fetching branch info for user:', user.id)
-        console.log('🔍 [BRANCH DEBUG] Request URL:', '/api/user/profile')
-        console.log('🔍 [BRANCH DEBUG] Request method: GET with credentials: include')
-
         const response = await fetch('/api/user/profile', {
           method: 'GET',
           credentials: 'include'
         })
 
-        console.log('🔍 [BRANCH DEBUG] Response status:', response.status)
-        console.log('🔍 [BRANCH DEBUG] Response ok:', response.ok)
-        console.log('🔍 [BRANCH DEBUG] Response headers:', Object.fromEntries(response.headers.entries()))
-
         if (!response.ok) {
-          console.error('❌ [BRANCH DEBUG] HTTP Error - Status:', response.status, 'StatusText:', response.statusText)
-          try {
-            const errorData = await response.json()
-            console.error('❌ [BRANCH DEBUG] Error response body:', errorData)
-          } catch (parseError) {
-            console.error('❌ [BRANCH DEBUG] Could not parse error response:', parseError)
-            const textError = await response.text()
-            console.error('❌ [BRANCH DEBUG] Raw error response:', textError)
-          }
-          // Leave branches empty if profile fetch fails
+          const errorData = await response.json()
+          console.error('Failed to fetch profile:', errorData.error)
           setUserBranches([])
           setSelectedBranch('')
           return
         }
 
-        const fullResponse = await response.json()
-        console.log('🔍 [BRANCH DEBUG] Full API response:', JSON.stringify(fullResponse, null, 2))
+        const { userData } = await response.json()
 
-        const { userData } = fullResponse
-        console.log('🔍 [BRANCH DEBUG] Extracted userData:', JSON.stringify(userData, null, 2))
-
-        console.log('🔍 [BRANCH DEBUG] userData.branch_name value:', userData?.branch_name)
-        console.log('🔍 [BRANCH DEBUG] typeof branch_name:', typeof userData?.branch_name)
-        console.log('🔍 [BRANCH DEBUG] branch_name length:', userData?.branch_name?.length)
-
+        // Set user branch data (copy dashboard logic exactly)
         if (userData?.branch_name) {
-          console.log('🔍 [BRANCH DEBUG] Processing branch_name:', userData.branch_name)
-          const rawBranches = userData.branch_name.split(',')
-          console.log('🔍 [BRANCH DEBUG] After split:', rawBranches)
-          const trimmedBranches = rawBranches.map(b => b.trim())
-          console.log('🔍 [BRANCH DEBUG] After trim:', trimmedBranches)
-          const branches = trimmedBranches.filter(b => b !== '')
-          console.log('🔍 [BRANCH DEBUG] After filter:', branches)
-
+          const branches = userData.branch_name.split(',').map((b: string) => b.trim()).filter((b: string) => b !== '')
           setUserBranches(branches)
-          setSelectedBranch(branches[0] || '') // Default to first branch or empty
-          console.log('✅ [BRANCH DEBUG] Set userBranches:', branches)
-          console.log('✅ [BRANCH DEBUG] Set selectedBranch:', branches[0] || '')
+          setSelectedBranch(branches[0] || '')
         } else {
-          // No branch assigned - leave empty
-          console.log('⚠️ [BRANCH DEBUG] No branch_name found, setting empty arrays')
           setUserBranches([])
           setSelectedBranch('')
         }
 
-        // Set up real-time subscription for branch changes
-        console.log('🔄 Setting up real-time subscription for branch changes for user:', user.id)
-        const subscription = supabase
-          .channel(`user_branch_changes_${user.id}`)
-          .on('postgres_changes',
-            {
-              event: 'UPDATE',
-              schema: 'public',
-              table: 'users',
-              filter: `id=eq.${user.id}`
-            },
-            (payload) => {
-              console.log('👤 [BRANCH DEBUG] User branch data updated via subscription:', payload)
-              const newBranchName = payload.new?.branch_name
-              console.log('🔍 [BRANCH DEBUG] New branch name from subscription:', newBranchName)
-
-              if (newBranchName) {
-                console.log('🔍 [BRANCH DEBUG] Processing subscription branch update:', newBranchName)
-                const branches = newBranchName.split(',').map((b: string) => b.trim()).filter((b: string) => b !== '')
-                console.log('✅ [BRANCH DEBUG] Subscription setting branches:', branches)
-                setUserBranches(branches)
-
-                // Update selected branch if current selection is no longer valid
-                setSelectedBranch(prevSelected => {
-                  console.log('🔍 [BRANCH DEBUG] Checking selected branch:', prevSelected, 'against branches:', branches)
-                  if (prevSelected && !branches.includes(prevSelected)) {
-                    console.log('⚠️ [BRANCH DEBUG] Selected branch no longer valid, updating')
-                    setError('Your branch assignment has been updated. Please review your selection.')
-                    return branches[0] || ''
-                  } else if (!prevSelected && branches.length > 0) {
-                    console.log('✅ [BRANCH DEBUG] Setting first branch as selected:', branches[0])
-                    return branches[0]
-                  }
-                  console.log('✅ [BRANCH DEBUG] Keeping previous selection:', prevSelected)
-                  return prevSelected
-                })
-              } else {
-                // User was removed from all branches
-                console.log('⚠️ [BRANCH DEBUG] Subscription cleared all branches')
-                setUserBranches([])
-                setSelectedBranch('')
-                setError('You have been removed from all branches. Please contact your administrator to regain access.')
-              }
-            }
-          )
-          .subscribe((status) => {
-            console.log('📡 Branch changes subscription status:', status)
-            if (status === 'SUBSCRIBED') {
-              console.log('✅ Successfully subscribed to branch change notifications')
-            } else {
-              console.warn('⚠️ Branch changes subscription status:', status)
-            }
-          })
-
-        // Cleanup subscription on component unmount
-        return () => {
-          console.log('🧹 Cleaning up branch changes subscription')
-          subscription.unsubscribe()
-        }
       } catch (error) {
-        console.error('💥 [BRANCH DEBUG] Critical error in branch fetching:', error)
-        console.error('💥 [BRANCH DEBUG] Error type:', typeof error)
-        console.error('💥 [BRANCH DEBUG] Error name:', error?.name)
-        console.error('💥 [BRANCH DEBUG] Error message:', error?.message)
-        console.error('💥 [BRANCH DEBUG] Error stack:', error?.stack)
-
-        // Check if it's a network error
-        if (error?.name === 'TypeError' && error?.message?.includes('fetch')) {
-          console.error('🌐 [BRANCH DEBUG] Network error detected - API might be unreachable')
-        }
-
-        // Clear state and show error on genuine API failures
-        console.log('🔄 [BRANCH DEBUG] Clearing state due to API error')
+        console.error('Error loading user data:', error)
         setUserBranches([])
         setSelectedBranch('')
-        setError('Failed to load branch information. Please refresh the page.')
       }
 
       setLoading(false)
     }
 
-    getUser()
-  }, []) // Empty dependency array - run only once on mount
+    loadUserData()
+  }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -686,26 +578,10 @@ export default function CreatePayment() {
                   type="submit"
                   disabled={creating || userBranches.length === 0}
                   className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                  onClick={() => {
-                    console.log('🔴 [UI DEBUG] Button clicked - userBranches.length:', userBranches.length);
-                    console.log('🔴 [UI DEBUG] Button clicked - userBranches:', userBranches);
-                    console.log('🔴 [UI DEBUG] Button clicked - selectedBranch:', selectedBranch);
-                    console.log('🔴 [UI DEBUG] Button clicked - creating:', creating);
-                  }}
                 >
-                  {(() => {
-                    console.log('🔴 [UI DEBUG] Button render - userBranches.length:', userBranches.length);
-                    console.log('🔴 [UI DEBUG] Button render - userBranches:', userBranches);
-                    console.log('🔴 [UI DEBUG] Button render - creating:', creating);
-
-                    if (creating) {
-                      return 'Creating PayLink...';
-                    } else if (userBranches.length === 0) {
-                      return 'No Branch Access';
-                    } else {
-                      return 'Create PayLink';
-                    }
-                  })()}
+                  {creating ? 'Creating PayLink...' :
+                   userBranches.length === 0 ? 'No Branch Access' :
+                   'Create PayLink'}
                 </button>
               </div>
 
@@ -732,25 +608,6 @@ export default function CreatePayment() {
                   </div>
                 )}
 
-                {/* Debug Info - Remove this after debugging */}
-                {(process.env.NODE_ENV === 'development' || true) && (
-                  <div className="mt-4 p-3 bg-red-900/50 border border-red-500 rounded-lg text-xs text-left">
-                    <div className="text-red-400 font-bold mb-2">🔴 CRITICAL DEBUG INFO:</div>
-                    <div className="text-white">
-                      <div>userBranches.length: <span className="text-yellow-400 font-bold">{userBranches.length}</span></div>
-                      <div>userBranches: <span className="text-green-400">{JSON.stringify(userBranches)}</span></div>
-                      <div>selectedBranch: "<span className="text-blue-400">{selectedBranch}</span>"</div>
-                      <div>User ID: <span className="text-purple-400">{user?.id}</span></div>
-                      <div>Loading state: <span className="text-orange-400">{loading.toString()}</span></div>
-                      <div>Button should show: <span className="text-pink-400">
-                        {creating ? 'Creating PayLink...' :
-                         userBranches.length === 0 ? 'No Branch Access' :
-                         'Create PayLink'}
-                      </span></div>
-                      <div>Button disabled: <span className="text-cyan-400">{(creating || userBranches.length === 0).toString()}</span></div>
-                    </div>
-                  </div>
-                )}
               </div>
             </form>
           </div>
