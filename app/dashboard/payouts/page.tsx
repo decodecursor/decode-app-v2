@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/utils/supabase/client'
 import { getUserWithProxy } from '@/utils/auth-helper'
 import { PayoutHistory } from '@/components/stripe/PayoutHistory'
 import { PayoutMethodsCard } from '@/components/payouts/PayoutMethodsCard'
@@ -30,165 +29,51 @@ export default function PayoutsPage() {
   const [payoutInProcess, setPayoutInProcess] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
-    let mounted = true
-    
     const getUser = async () => {
       try {
-        // Always use proxy first for reliability
-        try {
-          const proxyResponse = await fetch('/api/auth/proxy-user')
-          const proxyData = await proxyResponse.json()
-          
-          if (!mounted) return
-          
-          if (proxyResponse.ok && proxyData.user) {
-            setUser(proxyData.user)
-            await fetchPayoutSummary(proxyData.user.id)
-            return
-          }
-        } catch (proxyError) {
-          console.log('Proxy failed, trying direct...')
+        const { user } = await getUserWithProxy()
+        if (!user) {
+          router.push('/auth')
+          return
         }
-        
-        // Fallback to direct
-        try {
-          const { user, error } = await getUserWithProxy()
-
-          if (!mounted) return
-
-          if (user) {
-            setUser(user)
-            await fetchPayoutSummary(user.id)
-          } else {
-            console.log('No user found, redirecting to auth')
-            router.push('/auth')
-          }
-        } catch (directError) {
-          console.error('Both methods failed:', directError)
-          if (mounted) {
-            setError('Unable to load user data. Please try refreshing the page.')
-            setLoading(false)
-          }
-        }
-      } catch (error: any) {
-        console.error('Authentication error:', error)
-        if (mounted) {
-          setError('Authentication failed. Please try logging in again.')
-          setLoading(false)
-        }
+        setUser(user)
+        await fetchPayoutSummary(user.id)
+      } catch (error) {
+        console.error('Authentication failed:', error)
+        router.push('/auth')
       }
     }
-    
     getUser()
-    
-    return () => {
-      mounted = false
-    }
-  }, [router])
+  }, [])
 
   const fetchPayoutSummary = async (userId: string) => {
     try {
       setLoading(true)
       setError('')
 
-      // Try using proxy for payout summary
-      try {
-        const proxyResponse = await fetch('/api/payouts/proxy-summary')
-        const proxyData = await proxyResponse.json()
-        
-        if (proxyResponse.ok && proxyData.success) {
-          setPayoutSummary(proxyData.payoutSummary)
-          setLoading(false)
-          return
-        }
-      } catch (proxyError) {
-        console.log('Proxy payout fetch failed, trying direct...')
-      }
-
-      // Fallback to direct if proxy fails
-      const { data: userData } = await supabase
-        .from('users')
-        .select('stripe_connect_account_id, stripe_connect_status')
-        .eq('id', userId)
-        .single()
-
-      // Check Stripe Connect status
-      const stripeConnected = userData?.stripe_connect_status === 'active'
-
-      // Check manual bank account entries
-      let manualBankConnected = false
-      try {
-        const { data: bankAccounts, error: bankError } = await supabase
-          .from('user_bank_account')
-          .select('id')
-          .eq('user_id', userId)
-          .limit(1)
-        
-        if (!bankError && bankAccounts && bankAccounts.length > 0) {
-          manualBankConnected = true
-        }
-      } catch (error) {
-        console.log('Manual bank account check failed, continuing...')
-      }
-
-      // Bank is connected if EITHER system shows connection
-      const bankConnected = stripeConnected || manualBankConnected
-
-      // Get available balance if bank connected
-      let availableBalance = 0
-      if (bankConnected && userData?.stripe_connect_account_id) {
-        try {
-          const balanceResponse = await fetch(`/api/stripe/account-balance?userId=${userId}`)
-          if (balanceResponse.ok) {
-            const balanceData = await balanceResponse.json()
-            availableBalance = balanceData.available || 0
-          }
-        } catch (error) {
-          console.error('Error loading balance:', error)
-        }
-      }
-
-      // Get earnings from completed transactions
-      const { data: transactions } = await supabase
-        .from('transactions')
-        .select(`
-          amount_aed,
-          status,
-          completed_at,
-          payment_link:payment_link_id (
-            creator_id
-          )
-        `)
-        .eq('status', 'completed')
-        .eq('payment_link.creator_id', userId)
-
-      const totalEarnings = (transactions || []).reduce((sum, t) => sum + (t.amount_aed || 0), 0)
-
-      // Get last payout
-      const { data: lastPayout } = await supabase
-        .from('payouts')
-        .select('amount_aed, paid_at')
-        .eq('user_id', userId)
-        .eq('status', 'paid')
-        .order('paid_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-
-      setPayoutSummary({
-        availableBalance,
-        pendingBalance: availableBalance, // For simplicity, available = pending
-        totalEarnings,
-        lastPayoutAmount: lastPayout?.amount_aed || 0,
-        lastPayoutDate: lastPayout?.paid_at || null,
-        bankConnected
+      const response = await fetch('/api/payouts/proxy-summary', {
+        method: 'GET',
+        credentials: 'include'
       })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(`API Error (${response.status}): ${errorData.error || 'Failed to fetch payout summary'}`)
+      }
+
+      const data = await response.json()
+
+      if (data.success && data.payoutSummary) {
+        setPayoutSummary(data.payoutSummary)
+      } else {
+        throw new Error('Invalid response from payout summary API')
+      }
 
     } catch (error: any) {
       console.error('Error fetching payout summary:', error)
-      setError(`Error loading data: ${error?.message || 'Unknown error'}`)
+      setError(`Error Loading Payouts: ${error?.message || 'Unknown error'}`)
     } finally {
       setLoading(false)
     }
