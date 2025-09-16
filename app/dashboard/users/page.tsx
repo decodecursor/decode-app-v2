@@ -91,7 +91,10 @@ export default function UsersManagement() {
         console.log('🔍 Admin data:', adminData)
         console.log('🔍 Role check - adminData.role:', adminData?.role, '=== "Admin"?', adminData?.role === 'Admin')
 
-        if (!adminData || adminData.role !== 'Admin') {
+        // Check if user is admin - handle case variations
+        const isAdmin = adminData?.role && (adminData.role === 'Admin' || adminData.role.toLowerCase() === 'admin')
+
+        if (!adminData || !isAdmin) {
           console.log('❌ Not admin, redirecting to /dashboard')
           console.log('adminData:', adminData)
           console.log('role:', adminData?.role)
