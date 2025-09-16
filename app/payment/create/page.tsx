@@ -315,15 +315,11 @@ export default function CreatePayment() {
           console.error('🌐 [BRANCH DEBUG] Network error detected - API might be unreachable')
         }
 
-        // PROTECT STATE: Only clear branches if we don't already have successful data
-        if (userBranches.length === 0) {
-          console.log('🛡️ [BRANCH DEBUG] No existing branch data, clearing state')
-          setUserBranches([])
-          setSelectedBranch('')
-          setError('Failed to load branch information. Please refresh the page.')
-        } else {
-          console.log('🛡️ [BRANCH DEBUG] Preserving existing branch data:', userBranches)
-        }
+        // Clear state and show error on genuine API failures
+        console.log('🔄 [BRANCH DEBUG] Clearing state due to API error')
+        setUserBranches([])
+        setSelectedBranch('')
+        setError('Failed to load branch information. Please refresh the page.')
       }
 
       setLoading(false)
