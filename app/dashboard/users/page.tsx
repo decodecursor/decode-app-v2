@@ -92,15 +92,21 @@ export default function UsersManagement() {
         console.log('🔍 Admin data:', adminData)
         console.log('🔍 Role check - adminData.role:', adminData?.role)
 
-        // Use normalizeRole to handle all variations properly
-        const normalizedRole = normalizeRole(adminData?.role)
-        console.log('🔍 Normalized role:', normalizedRole, 'Expected:', USER_ROLES.ADMIN)
+        // COMMENTED OUT ROLE CHECK - Let any logged-in user access the page
+        // const normalizedRole = normalizeRole(adminData?.role)
+        // console.log('🔍 Normalized role:', normalizedRole, 'Expected:', USER_ROLES.ADMIN)
 
-        if (!adminData || normalizedRole !== USER_ROLES.ADMIN) {
-          console.log('❌ Not admin, redirecting to /dashboard')
-          console.log('adminData:', adminData)
-          console.log('role:', adminData?.role)
-          console.log('normalized:', normalizedRole)
+        // if (!adminData || normalizedRole !== USER_ROLES.ADMIN) {
+        //   console.log('❌ Not admin, redirecting to /dashboard')
+        //   console.log('adminData:', adminData)
+        //   console.log('role:', adminData?.role)
+        //   console.log('normalized:', normalizedRole)
+        //   router.push('/dashboard')
+        //   return
+        // }
+
+        if (!adminData) {
+          console.log('❌ No user data found')
           router.push('/dashboard')
           return
         }
