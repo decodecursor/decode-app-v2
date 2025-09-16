@@ -984,7 +984,7 @@ export default function UsersManagement() {
                   Cancel
                 </button>
                 <button
-                  onClick={handleCreateBranch}
+                  onClick={() => handleCreateBranch()}
                   disabled={!newBranchName.trim()}
                   className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
