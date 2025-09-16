@@ -273,39 +273,44 @@ export default function UsersManagement() {
     }
 
     try {
-      console.log('🔍 Attempting to insert branch into database...')
-      // Insert into branches table
-      const { data, error } = await supabase
-        .from('branches')
-        .insert({
+      console.log('🔍 Creating branch via proxy endpoint...')
+
+      const response = await fetch('/api/branches/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
           name: newBranchName.trim(),
           company_name: adminCompany
         })
-        .select()
+      })
 
-      console.log('🔍 Insert result:', { data, error })
+      console.log('🔍 Response status:', response.status)
 
-      if (error) {
-        console.error('❌ Database error details:', error)
-        console.error('❌ Error code:', error.code)
-        console.error('❌ Error message:', error.message)
-        console.error('❌ Error details:', error.details)
-        if (error.code === '23505') { // Unique constraint violation
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('❌ Branch creation failed:', errorData.error)
+
+        if (response.status === 409) {
           setMessage('Branch already exists')
         } else {
-          setMessage(`Database error: ${error.message}`)
-          return
+          setMessage(`Failed to create branch: ${errorData.error}`)
         }
         return
       }
 
-      console.log('✅ Branch created successfully')
+      const result = await response.json()
+      console.log('✅ Branch created successfully:', result)
+
       // Update local state
       const updatedBranches = [...new Set([...branches, newBranchName.trim()])]
       setBranches(updatedBranches)
 
       setNewBranchName('')
       setShowCreateBranchModal(false)
+      setMessage('Branch created successfully!')
     } catch (error: any) {
       console.error('❌ Error creating branch:', error)
       setMessage(error.message || 'Failed to create branch')
