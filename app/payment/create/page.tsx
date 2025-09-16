@@ -183,43 +183,48 @@ export default function CreatePayment() {
       setUser(user)
       const supabase = createClient()
 
-      // Fetch user's branch information
+      // Fetch user's branch information using the same endpoint as dashboard
       try {
         console.log('🔍 [BRANCH DEBUG] Fetching branch info for user:', user.id)
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('branch_name')
-          .eq('id', user.id)
-          .single()
+        const response = await fetch('/api/user/profile', {
+          method: 'GET',
+          credentials: 'include'
+        })
 
-        console.log('🔍 [BRANCH DEBUG] Raw query result:', { userData, error })
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('❌ [BRANCH DEBUG] Error fetching user profile:', errorData.error)
+          // Leave branches empty if profile fetch fails
+          setUserBranches([])
+          setSelectedBranch('')
+          return
+        }
 
-        if (error) {
-          console.error('❌ [BRANCH DEBUG] Error fetching user branches:', error)
+        const { userData } = await response.json()
+        console.log('🔍 [BRANCH DEBUG] Raw API result:', userData)
+
+        console.log('🔍 [BRANCH DEBUG] userData.branch_name value:', userData?.branch_name)
+        console.log('🔍 [BRANCH DEBUG] typeof branch_name:', typeof userData?.branch_name)
+        console.log('🔍 [BRANCH DEBUG] branch_name length:', userData?.branch_name?.length)
+
+        if (userData?.branch_name) {
+          console.log('🔍 [BRANCH DEBUG] Processing branch_name:', userData.branch_name)
+          const rawBranches = userData.branch_name.split(',')
+          console.log('🔍 [BRANCH DEBUG] After split:', rawBranches)
+          const trimmedBranches = rawBranches.map(b => b.trim())
+          console.log('🔍 [BRANCH DEBUG] After trim:', trimmedBranches)
+          const branches = trimmedBranches.filter(b => b !== '')
+          console.log('🔍 [BRANCH DEBUG] After filter:', branches)
+
+          setUserBranches(branches)
+          setSelectedBranch(branches[0] || '') // Default to first branch or empty
+          console.log('✅ [BRANCH DEBUG] Set userBranches:', branches)
+          console.log('✅ [BRANCH DEBUG] Set selectedBranch:', branches[0] || '')
         } else {
-          console.log('🔍 [BRANCH DEBUG] userData.branch_name value:', userData?.branch_name)
-          console.log('🔍 [BRANCH DEBUG] typeof branch_name:', typeof userData?.branch_name)
-          console.log('🔍 [BRANCH DEBUG] branch_name length:', userData?.branch_name?.length)
-
-          if (userData?.branch_name) {
-            console.log('🔍 [BRANCH DEBUG] Processing branch_name:', userData.branch_name)
-            const rawBranches = userData.branch_name.split(',')
-            console.log('🔍 [BRANCH DEBUG] After split:', rawBranches)
-            const trimmedBranches = rawBranches.map(b => b.trim())
-            console.log('🔍 [BRANCH DEBUG] After trim:', trimmedBranches)
-            const branches = trimmedBranches.filter(b => b !== '')
-            console.log('🔍 [BRANCH DEBUG] After filter:', branches)
-
-            setUserBranches(branches)
-            setSelectedBranch(branches[0] || '') // Default to first branch or empty
-            console.log('✅ [BRANCH DEBUG] Set userBranches:', branches)
-            console.log('✅ [BRANCH DEBUG] Set selectedBranch:', branches[0] || '')
-          } else {
-            // No branch assigned - leave empty
-            console.log('⚠️ [BRANCH DEBUG] No branch_name found, setting empty arrays')
-            setUserBranches([])
-            setSelectedBranch('')
-          }
+          // No branch assigned - leave empty
+          console.log('⚠️ [BRANCH DEBUG] No branch_name found, setting empty arrays')
+          setUserBranches([])
+          setSelectedBranch('')
         }
 
         // Set up real-time subscription for branch changes
