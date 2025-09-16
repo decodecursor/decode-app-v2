@@ -25,6 +25,7 @@ interface PaymentLink {
   branch_name?: string | null
   creator_name?: string | null
   created_at: string
+  updated_at: string
 }
 
 function MyLinksContent() {
@@ -942,6 +943,7 @@ function MyLinksContent() {
                   const isInactive = status === 'Expired' || status === 'Deactivated'
                   const isPaid = status === 'Paid'
                   const isExpired = status === 'Expired'
+                  const isDeactivated = status === 'Deactivated'
                   const isNewPayLink = highlightingId === link.id
                   const isHeartAnimating = heartAnimatingId === link.id
                   
@@ -965,12 +967,7 @@ function MyLinksContent() {
                       
                       {/* Heart Animation Effect */}
                       <HeartAnimation isActive={isHeartAnimating} />
-                      {/* Status Ribbon - Only for deactivated links (expired links use overlay) */}
-                      {(status === 'Deactivated') && (
-                        <div className="ribbon ribbon-deactivated">
-                          {status}
-                        </div>
-                      )}
+                      {/* Status Ribbon - No longer needed, all inactive states use overlays now */}
                       
                       {/* PAID Overlay */}
                       {isPaid && (
@@ -998,7 +995,20 @@ function MyLinksContent() {
                         </div>
                       )}
 
-                      <div className={`flex flex-col gap-3 ${isPaid || isExpired ? 'opacity-60 filter grayscale-[0.2]' : ''}`}>
+                      {/* DEACTIVATED Overlay */}
+                      {isDeactivated && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                          <span className="text-red-400 font-bold tracking-wider opacity-30 transform rotate-[-15deg]"
+                                style={{
+                                  fontSize: '3.2rem',
+                                  WebkitTextStroke: '1px rgba(239,68,68,0.4)'
+                                }}>
+                            DEACTIVATED
+                          </span>
+                        </div>
+                      )}
+
+                      <div className={`flex flex-col gap-3 ${isPaid || isExpired || isDeactivated ? 'opacity-60 filter grayscale-[0.2]' : ''}`}>
                         {/* Top Row: Title, Amount, Status */}
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                           <div className="flex-1">
@@ -1014,15 +1024,35 @@ function MyLinksContent() {
                           
                           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
                             <div className="text-right">
-                              <p className={`text-sm ${isPaid ? 'text-green-400' : getExpiryColor(link.expiration_date)}`}>
+                              <p className={`text-sm ${(() => {
+                                const now = new Date()
+                                const expirationDate = new Date(link.expiration_date)
+                                const isExpired = now > expirationDate
+
+                                if (isDeactivated) {
+                                  return 'text-red-400' // Deactivated takes priority
+                                } else if (isExpired) {
+                                  return 'text-red-400' // Expired takes priority
+                                } else if (isPaid) {
+                                  return 'text-green-400' // Paid but not expired
+                                } else {
+                                  return getExpiryColor(link.expiration_date) // Active/future dates
+                                }
+                              })()}`}>
                                 {(() => {
-                                  if (isPaid) {
-                                    return `Paid ${formatDate(link.paid_at || link.expiration_date)}`
-                                  }
                                   const now = new Date()
                                   const expirationDate = new Date(link.expiration_date)
                                   const isExpired = now > expirationDate
-                                  return `${isExpired ? 'Expired' : 'Expires'} ${formatDate(link.expiration_date)}`
+
+                                  if (isDeactivated) {
+                                    return `Deactivated ${formatDate(link.updated_at)}`
+                                  } else if (isExpired) {
+                                    return `Expired ${formatDate(link.expiration_date)}`
+                                  } else if (isPaid) {
+                                    return `Paid ${formatDate(link.paid_at || link.expiration_date)}`
+                                  } else {
+                                    return `Expires ${formatDate(link.expiration_date)}`
+                                  }
                                 })()}
                               </p>
                             </div>
@@ -1063,7 +1093,7 @@ function MyLinksContent() {
                               )}
                             </div>
                             
-                            <div className={`flex gap-2 ml-4 ${isPaid || isExpired ? 'opacity-50' : ''}`}>
+                            <div className={`flex gap-2 ml-4 ${isPaid || isExpired || isDeactivated ? 'opacity-50' : ''}`}>
                             <button
                               onClick={() => copyToClipboard(link.id)}
                               disabled={copyingId === link.id || deactivatingId === link.id || deletingId === link.id}

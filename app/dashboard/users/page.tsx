@@ -41,7 +41,7 @@ export default function UsersManagement() {
   const [users, setUsers] = useState<User[]>([])
   const [adminCompany, setAdminCompany] = useState<string>('')
   const [companyProfileImage, setCompanyProfileImage] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [showCreateBranchModal, setShowCreateBranchModal] = useState(false)
   const [newBranchName, setNewBranchName] = useState('')
@@ -78,6 +78,7 @@ export default function UsersManagement() {
         console.log('🔍 Users page - getUserWithProxy result:', user?.id)
         if (!user) {
           console.log('❌ No user from getUserWithProxy, redirecting to /auth')
+          setLoading(false)
           router.push('/auth')
           return
         }
@@ -94,6 +95,7 @@ export default function UsersManagement() {
           console.error('❌ Failed to fetch user profile, status:', response.status)
           const errorText = await response.text()
           console.error('❌ Error response:', errorText)
+          setLoading(false)
           router.push('/dashboard')
           return
         }
@@ -111,6 +113,7 @@ export default function UsersManagement() {
           console.log('Role value:', userData?.role)
           console.log('Validated role:', validatedProfile.role)
           console.log('Expected:', USER_ROLES.ADMIN)
+          setLoading(false)
           router.push('/dashboard')
           return
         }
@@ -133,6 +136,7 @@ export default function UsersManagement() {
         if (!companyResponse.ok) {
           const errorData = await companyResponse.json()
           console.error('❌ Failed to fetch company data:', errorData.error)
+          setLoading(false)
           return
         }
 
@@ -140,6 +144,7 @@ export default function UsersManagement() {
         console.log('🔍 Fetched users:', companyUsers?.length, 'branches:', branchNames?.length)
         setUsers(companyUsers || [])
         setBranches(branchNames || [])
+        setLoading(false)
 
         // Set up real-time subscription for new user registrations
         console.log('🔄 Setting up real-time subscription for new users in company:', userData.company_name)
@@ -193,6 +198,7 @@ export default function UsersManagement() {
 
       } catch (error) {
         console.error('Error loading users:', error)
+        setLoading(false)
       }
     }
 
@@ -836,7 +842,16 @@ export default function UsersManagement() {
               ))}
             </div>
 
-            {users.length === 0 && (
+            {loading && (
+              <div className="cosmic-card text-center py-12">
+                <div className="flex items-center justify-center gap-3">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-400"></div>
+                  <div className="text-gray-400 text-lg">Loading users...</div>
+                </div>
+              </div>
+            )}
+
+            {!loading && users.length === 0 && adminCompany && (
               <div className="cosmic-card text-center py-12">
                 <div className="text-gray-400 text-lg">No users found for {adminCompany}</div>
               </div>

@@ -13,6 +13,7 @@ interface PaymentLinkCardProps {
   is_active: boolean
   created_at: string
   paid_at: string | null
+  updated_at: string
   transaction_count: number
   total_revenue: number
   onCopyLink?: (linkId: string) => void
@@ -30,6 +31,7 @@ export default function PaymentLinkCard({
   is_active,
   created_at,
   paid_at,
+  updated_at,
   transaction_count,
   total_revenue,
   onCopyLink,
@@ -57,6 +59,10 @@ export default function PaymentLinkCard({
 
   const isExpired = () => {
     return new Date() > new Date(expiration_date)
+  }
+
+  const isDeactivated = () => {
+    return !is_active && !isExpired()
   }
 
   const getStatusColor = () => {
@@ -193,22 +199,50 @@ export default function PaymentLinkCard({
                       </>
                     ) : (
                       <>
-                        <span className="cosmic-label text-white/50">Expires</span>
-                        <p className={`cosmic-body ${(() => {
-                          const now = new Date()
-                          const expirationDate = new Date(expiration_date)
-                          const diffInMs = expirationDate.getTime() - now.getTime()
-                          const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24))
-
-                          if (diffInDays < 0) {
-                            return 'text-red-400' // Expired
-                          } else if (diffInDays === 0) {
-                            return 'text-yellow-400' // Expires today
+                        <span className={`cosmic-label ${(() => {
+                          if (isDeactivated()) {
+                            return 'text-red-400'
+                          } else if (isExpired()) {
+                            return 'text-red-400'
                           } else {
-                            return 'text-white' // Future dates
+                            return 'text-white/50'
                           }
                         })()}`}>
-                          {formatDate(expiration_date)}
+                          {(() => {
+                            if (isDeactivated()) {
+                              return 'Deactivated'
+                            } else if (isExpired()) {
+                              return 'Expired'
+                            } else {
+                              return 'Expires'
+                            }
+                          })()}
+                        </span>
+                        <p className={`cosmic-body ${(() => {
+                          if (isDeactivated()) {
+                            return 'text-red-400' // Deactivated
+                          } else if (isExpired()) {
+                            return 'text-red-400' // Expired
+                          } else {
+                            const now = new Date()
+                            const expirationDate = new Date(expiration_date)
+                            const diffInMs = expirationDate.getTime() - now.getTime()
+                            const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24))
+
+                            if (diffInDays === 0) {
+                              return 'text-yellow-400' // Expires today
+                            } else {
+                              return 'text-white' // Future dates
+                            }
+                          }
+                        })()}`}>
+                          {(() => {
+                            if (isDeactivated()) {
+                              return formatDate(updated_at)
+                            } else {
+                              return formatDate(expiration_date)
+                            }
+                          })()}
                         </p>
                       </>
                     )}
