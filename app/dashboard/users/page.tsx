@@ -133,7 +133,6 @@ export default function UsersManagement() {
         if (!companyResponse.ok) {
           const errorData = await companyResponse.json()
           console.error('❌ Failed to fetch company data:', errorData.error)
-          setMessage(`Failed to load users: ${errorData.error}`)
           return
         }
 
@@ -194,7 +193,6 @@ export default function UsersManagement() {
 
       } catch (error) {
         console.error('Error loading users:', error)
-        setMessage('Failed to load users')
       }
     }
 
