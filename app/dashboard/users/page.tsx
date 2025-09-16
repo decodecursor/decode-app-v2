@@ -84,7 +84,7 @@ export default function UsersManagement() {
 
         // Get admin's profile using the SAME proxy endpoint as dashboard
         console.log('🔍 Attempting to fetch user profile...')
-        const response = await fetch('/api/dashboard/user-profile', {
+        const response = await fetch('/api/user/profile', {
           method: 'GET',
           credentials: 'include'
         })
