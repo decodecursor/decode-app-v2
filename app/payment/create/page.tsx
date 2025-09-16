@@ -315,19 +315,22 @@ export default function CreatePayment() {
           console.error('🌐 [BRANCH DEBUG] Network error detected - API might be unreachable')
         }
 
-        // Fallback to empty - no hardcoded branch
-        setUserBranches([])
-        setSelectedBranch('')
-
-        // Set an error state to inform user
-        setError('Failed to load branch information. Please refresh the page.')
+        // PROTECT STATE: Only clear branches if we don't already have successful data
+        if (userBranches.length === 0) {
+          console.log('🛡️ [BRANCH DEBUG] No existing branch data, clearing state')
+          setUserBranches([])
+          setSelectedBranch('')
+          setError('Failed to load branch information. Please refresh the page.')
+        } else {
+          console.log('🛡️ [BRANCH DEBUG] Preserving existing branch data:', userBranches)
+        }
       }
 
       setLoading(false)
     }
 
     getUser()
-  }, [router])
+  }, []) // Empty dependency array - run only once on mount
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
