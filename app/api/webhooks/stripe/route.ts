@@ -339,7 +339,7 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
     }
 
     // Update transaction status to failed
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAdmin
       .from('transactions')
       .update({
         status: 'failed',

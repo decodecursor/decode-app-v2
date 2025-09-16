@@ -79,6 +79,7 @@ async function logWebhookEvent(
   error?: string
 ) {
   try {
+    const supabase = createServiceRoleClient();
     await supabase.from('webhook_events').insert({
       event_type: event.type,
       event_data: event.data,
