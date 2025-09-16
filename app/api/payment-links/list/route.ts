@@ -58,6 +58,7 @@ export async function GET(request: NextRequest) {
         branch_name,
         creator_name,
         created_at,
+        updated_at,
         users!payment_links_creator_id_fkey (
           user_name,
           email
