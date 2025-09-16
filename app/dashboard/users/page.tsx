@@ -92,21 +92,10 @@ export default function UsersManagement() {
         console.log('🔍 Admin data:', adminData)
         console.log('🔍 Role check - adminData.role:', adminData?.role)
 
-        // COMMENTED OUT ROLE CHECK - Let any logged-in user access the page
-        // const normalizedRole = normalizeRole(adminData?.role)
-        // console.log('🔍 Normalized role:', normalizedRole, 'Expected:', USER_ROLES.ADMIN)
-
-        // if (!adminData || normalizedRole !== USER_ROLES.ADMIN) {
-        //   console.log('❌ Not admin, redirecting to /dashboard')
-        //   console.log('adminData:', adminData)
-        //   console.log('role:', adminData?.role)
-        //   console.log('normalized:', normalizedRole)
-        //   router.push('/dashboard')
-        //   return
-        // }
-
-        if (!adminData) {
-          console.log('❌ No user data found')
+        // Check if user is admin - only 'admin' or 'Admin' allowed
+        if (!adminData || (adminData.role !== 'admin' && adminData.role !== 'Admin')) {
+          console.log('❌ Not admin, redirecting to /dashboard')
+          console.log('Role value:', adminData?.role)
           router.push('/dashboard')
           return
         }
@@ -255,8 +244,15 @@ export default function UsersManagement() {
     console.log('🔍 newBranchName:', newBranchName.trim())
     console.log('🔍 adminCompany:', adminCompany)
 
-    if (!newBranchName.trim() || !adminCompany) {
-      console.log('❌ Early return - missing data')
+    if (!newBranchName.trim()) {
+      console.log('❌ No branch name provided')
+      setMessage('Please enter a branch name')
+      return
+    }
+
+    if (!adminCompany) {
+      console.log('❌ No admin company found')
+      setMessage('Company information not found')
       return
     }
 
@@ -290,9 +286,9 @@ export default function UsersManagement() {
 
       setNewBranchName('')
       setShowCreateBranchModal(false)
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error creating branch:', error)
-      setMessage('Failed to create branch')
+      setMessage(error.message || 'Failed to create branch')
     }
   }
 
