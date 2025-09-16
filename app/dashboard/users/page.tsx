@@ -286,11 +286,15 @@ export default function UsersManagement() {
       console.log('🔍 Insert result:', { data, error })
 
       if (error) {
+        console.error('❌ Database error details:', error)
+        console.error('❌ Error code:', error.code)
+        console.error('❌ Error message:', error.message)
+        console.error('❌ Error details:', error.details)
         if (error.code === '23505') { // Unique constraint violation
           setMessage('Branch already exists')
         } else {
-          console.error('❌ Database error:', error)
-          throw error
+          setMessage(`Database error: ${error.message}`)
+          return
         }
         return
       }
