@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const supabase = await createClient();
     const { data: admin, error: adminError } = await supabase
       .from('users')
       .select('id, role')
@@ -202,6 +203,7 @@ function formatTransferForAdmin(transfer: any) {
 
 async function getMarketplaceStats() {
   try {
+    const supabase = await createClient();
     // Get marketplace revenue (fees collected)
     const { data: feeTransactions, error: feeError } = await supabase
       .from('wallet_transactions')
