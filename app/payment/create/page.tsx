@@ -687,10 +687,26 @@ export default function CreatePayment() {
                   type="submit"
                   disabled={creating || userBranches.length === 0}
                   className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  onClick={() => {
+                    console.log('🔴 [UI DEBUG] Button clicked - userBranches.length:', userBranches.length);
+                    console.log('🔴 [UI DEBUG] Button clicked - userBranches:', userBranches);
+                    console.log('🔴 [UI DEBUG] Button clicked - selectedBranch:', selectedBranch);
+                    console.log('🔴 [UI DEBUG] Button clicked - creating:', creating);
+                  }}
                 >
-                  {creating ? 'Creating PayLink...' :
-                   userBranches.length === 0 ? 'No Branch Access' :
-                   'Create PayLink'}
+                  {(() => {
+                    console.log('🔴 [UI DEBUG] Button render - userBranches.length:', userBranches.length);
+                    console.log('🔴 [UI DEBUG] Button render - userBranches:', userBranches);
+                    console.log('🔴 [UI DEBUG] Button render - creating:', creating);
+
+                    if (creating) {
+                      return 'Creating PayLink...';
+                    } else if (userBranches.length === 0) {
+                      return 'No Branch Access';
+                    } else {
+                      return 'Create PayLink';
+                    }
+                  })()}
                 </button>
               </div>
 
@@ -718,15 +734,21 @@ export default function CreatePayment() {
                 )}
 
                 {/* Debug Info - Remove this after debugging */}
-                {process.env.NODE_ENV === 'development' && (
-                  <div className="mt-4 p-3 bg-gray-800/50 rounded-lg text-xs text-left">
-                    <div className="text-yellow-400 font-bold mb-2">🔍 Branch Debug Info:</div>
-                    <div className="text-gray-300">
-                      <div>userBranches.length: {userBranches.length}</div>
-                      <div>userBranches: {JSON.stringify(userBranches)}</div>
-                      <div>selectedBranch: "{selectedBranch}"</div>
-                      <div>User ID: {user?.id}</div>
-                      <div>Loading state: {loading.toString()}</div>
+                {(process.env.NODE_ENV === 'development' || true) && (
+                  <div className="mt-4 p-3 bg-red-900/50 border border-red-500 rounded-lg text-xs text-left">
+                    <div className="text-red-400 font-bold mb-2">🔴 CRITICAL DEBUG INFO:</div>
+                    <div className="text-white">
+                      <div>userBranches.length: <span className="text-yellow-400 font-bold">{userBranches.length}</span></div>
+                      <div>userBranches: <span className="text-green-400">{JSON.stringify(userBranches)}</span></div>
+                      <div>selectedBranch: "<span className="text-blue-400">{selectedBranch}</span>"</div>
+                      <div>User ID: <span className="text-purple-400">{user?.id}</span></div>
+                      <div>Loading state: <span className="text-orange-400">{loading.toString()}</span></div>
+                      <div>Button should show: <span className="text-pink-400">
+                        {creating ? 'Creating PayLink...' :
+                         userBranches.length === 0 ? 'No Branch Access' :
+                         'Create PayLink'}
+                      </span></div>
+                      <div>Button disabled: <span className="text-cyan-400">{(creating || userBranches.length === 0).toString()}</span></div>
                     </div>
                   </div>
                 )}
