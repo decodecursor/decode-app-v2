@@ -5,7 +5,6 @@ import { BankAccountSubcard } from './BankAccountSubcard'
 import { PayPalSubcard } from './PayPalSubcard'
 import { PayPalModal } from './PayPalModal'
 import { BankAccountModal } from './BankAccountModal'
-import { createClient } from '@/utils/supabase/client'
 
 interface PayoutMethodsCardProps {
   userId: string
@@ -23,15 +22,14 @@ export function PayoutMethodsCard({ userId }: PayoutMethodsCardProps) {
 
   const loadUserRole = async () => {
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', userId)
-        .single()
+      const response = await fetch('/api/user/profile', {
+        method: 'GET',
+        credentials: 'include'
+      })
 
-      if (!error && data) {
-        setUserRole(data.role || 'User')
+      if (response.ok) {
+        const { userData } = await response.json()
+        setUserRole(userData.role || 'User')
       }
     } catch (error) {
       console.error('Error loading user role:', error)

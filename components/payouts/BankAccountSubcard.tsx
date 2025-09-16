@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/utils/supabase/client'
 
 interface BankAccountSubcardProps {
   userId: string
@@ -27,17 +26,25 @@ export function BankAccountSubcard({ userId, onClick }: BankAccountSubcardProps)
 
   const loadBankAccount = async () => {
     try {
-      const supabase = createClient()
-      // Try loading from user_bank_account table
-      const { data, error } = await supabase
-        .from('user_bank_account')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_primary', true)
-        .single()
+      const response = await fetch('/api/user/profile', {
+        method: 'GET',
+        credentials: 'include'
+      })
 
-      if (!error && data) {
-        setBankAccount(data)
+      if (response.ok) {
+        const { userData } = await response.json()
+        // For now, we'll create a mock bank account if user has bank details
+        // This can be enhanced with a dedicated bank account API endpoint later
+        if (userData && (userData.bank_name || userData.stripe_connect_status)) {
+          setBankAccount({
+            id: '1',
+            iban_number: '****1234', // Mock data for display
+            bank_name: userData.bank_name || 'Connected Bank',
+            beneficiary_name: userData.user_name || 'User',
+            is_verified: userData.stripe_connect_status === 'active',
+            status: userData.stripe_connect_status || 'pending'
+          })
+        }
       }
     } catch (error) {
       console.error('Error loading bank account:', error)

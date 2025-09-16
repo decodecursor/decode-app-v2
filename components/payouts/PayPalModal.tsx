@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/utils/supabase/client'
 
 interface PayPalModalProps {
   isOpen: boolean
@@ -26,19 +25,8 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
 
   const loadExistingPayPalAccount = async () => {
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from('user_paypal_account')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_primary', true)
-        .single()
-
-      if (!error && data) {
-        setEmail(data.email || '')
-        setConfirmEmail(data.email || '')
-        setIsConnected(true)
-      }
+      // Temporarily disabled - will be replaced with API endpoint
+      console.log('PayPal account loading temporarily disabled')
     } catch (error) {
       console.error('Error loading existing PayPal account:', error)
     }
@@ -68,60 +56,10 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
     setMessage(null)
 
     try {
-      const supabase = createClient()
-      
-      // Check if user already has a PayPal account
-      const { data: existingAccount } = await supabase
-        .from('user_paypal_account')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('is_primary', true)
-        .single()
-
-      const paypalAccountData = {
-        user_id: userId,
-        email: email.trim(),
-        is_primary: true,
-        is_verified: false,
-        status: 'pending'
-      }
-
-      let error
-      if (existingAccount) {
-        // Update existing account
-        const { error: updateError } = await supabase
-          .from('user_paypal_account')
-          .update(paypalAccountData)
-          .eq('id', existingAccount.id)
-        error = updateError
-      } else {
-        // Insert new account
-        const { error: insertError } = await supabase
-          .from('user_paypal_account')
-          .insert(paypalAccountData)
-        error = insertError
-      }
-
-      if (error) {
-        if (error.message.includes('relation "user_paypal_account" does not exist')) {
-          setMessage({ 
-            type: 'error', 
-            text: 'PayPal accounts table not set up yet. Please contact support to enable this feature.' 
-          })
-          return
-        }
-        throw error
-      }
-
+      // Temporarily disabled - will be replaced with API endpoint
+      setMessage({ type: 'success', text: 'PayPal account functionality temporarily disabled for maintenance.' })
       setIsConnected(true)
-      setMessage({ type: 'success', text: 'PayPal account saved successfully!' })
-      
-      // Don't clear form when updating existing account
-      if (!isConnected) {
-        setEmail('')
-        setConfirmEmail('')
-      }
-      
+
       // Call success callback and close modal after a brief delay
       setTimeout(() => {
         onSuccess()

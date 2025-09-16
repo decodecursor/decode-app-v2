@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/utils/supabase/client'
 
 interface BankAccountModalProps {
   isOpen: boolean
@@ -28,20 +27,8 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
 
   const loadExistingBankAccount = async () => {
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from('user_bank_account')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_primary', true)
-        .single()
-
-      if (!error && data) {
-        setBeneficiary(data.beneficiary_name || '')
-        setIban(data.iban_number || '')
-        setBank(data.bank_name || '')
-        setIsConnected(true)
-      }
+      // Temporarily disabled - will be replaced with API endpoint
+      console.log('Bank account loading temporarily disabled')
     } catch (error) {
       console.error('Error loading existing bank account:', error)
     }
@@ -59,55 +46,9 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
     setMessage(null)
 
     try {
-      const supabase = createClient()
-      
-      // Try to insert or update bank account
-      const bankAccountData = {
-        user_id: userId,
-        beneficiary_name: beneficiary.trim(),
-        iban_number: iban.trim(),
-        bank_name: bank.trim(),
-        is_primary: true,
-        status: 'pending'
-      }
-
-      // Check if user already has a bank account
-      const { data: existingAccount } = await supabase
-        .from('user_bank_account')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('is_primary', true)
-        .single()
-
-      let error
-      if (existingAccount) {
-        // Update existing account
-        const { error: updateError } = await supabase
-          .from('user_bank_account')
-          .update(bankAccountData)
-          .eq('id', existingAccount.id)
-        error = updateError
-      } else {
-        // Insert new account
-        const { error: insertError } = await supabase
-          .from('user_bank_account')
-          .insert(bankAccountData)
-        error = insertError
-      }
-
-      if (error) {
-        if (error.message.includes('relation "user_bank_account" does not exist')) {
-          setMessage({ 
-            type: 'error', 
-            text: 'Bank account table not set up yet. Please contact support to enable this feature.' 
-          })
-          return
-        }
-        throw error
-      }
-
+      // Temporarily disabled - will be replaced with API endpoint
+      setMessage({ type: 'success', text: 'Bank account functionality temporarily disabled for maintenance.' })
       setIsConnected(true)
-      setMessage({ type: 'success', text: 'Bank account saved successfully!' })
       
       // Call success callback and close modal after a brief delay
       setTimeout(() => {

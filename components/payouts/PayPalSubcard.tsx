@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/utils/supabase/client'
 
 interface PayPalSubcardProps {
   userId: string
@@ -26,18 +25,8 @@ export function PayPalSubcard({ userId, onClick }: PayPalSubcardProps) {
 
   const loadPayPalAccount = async () => {
     try {
-      const supabase = createClient()
-      // Try loading from user_paypal_accounts table
-      const { data, error } = await supabase
-        .from('user_paypal_account')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_primary', true)
-        .single()
-
-      if (!error && data) {
-        setPaypalAccount(data)
-      }
+      // Temporarily disabled - will be replaced with API endpoint
+      console.log('PayPal account loading temporarily disabled')
     } catch (error) {
       console.error('Error loading PayPal account:', error)
     } finally {
