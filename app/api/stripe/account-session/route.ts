@@ -13,6 +13,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const supabase = await createClient();
+
     // If userId is provided, verify the user owns this account
     if (userId) {
       const { data: userData, error: userError } = await supabase

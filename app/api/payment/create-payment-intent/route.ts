@@ -40,6 +40,8 @@ export async function POST(request: NextRequest) {
     console.log('- STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? 'SET' : 'MISSING');
     console.log('- NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:', process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? 'SET' : 'MISSING');
 
+    const supabase = await createClient();
+
     // Fetch payment link details from Supabase (using correct schema from working Crossmint API)
     const { data: paymentLink, error: fetchError } = await supabase
       .from('payment_links')

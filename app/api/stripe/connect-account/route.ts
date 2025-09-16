@@ -14,6 +14,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const supabase = await createClient();
+
     // Verify user exists (basic validation)
     const { data: userExists, error: userCheckError } = await supabase
       .from('users')

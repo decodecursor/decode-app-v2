@@ -21,9 +21,11 @@ export async function POST(request: NextRequest) {
     console.log('- CROSSMINT_API_KEY:', process.env.CROSSMINT_API_KEY ? 'SET' : 'MISSING')
     console.log('- NEXT_PUBLIC_CROSSMINT_PROJECT_ID:', process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID ? 'SET' : 'MISSING')
 
+    const supabase = await createClient();
+
     // Get payment link data using anon key (since service role key has issues)
     console.log('🔍 DEBUG: Querying payment_links table for ID:', paymentLinkId)
-    
+
     const { data: paymentLink, error: linkError } = await supabase
       .from('payment_links')
       .select(`

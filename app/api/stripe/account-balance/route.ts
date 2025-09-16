@@ -15,6 +15,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const supabase = await createClient();
+
     // Get user's connected account ID
     const { data: userData, error: userError } = await supabase
       .from('users')

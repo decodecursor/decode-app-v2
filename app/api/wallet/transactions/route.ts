@@ -16,6 +16,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const supabase = await createClient();
+
     // Verify user exists
     const { data: user, error: userError } = await supabase
       .from('users')

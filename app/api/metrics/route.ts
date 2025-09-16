@@ -56,6 +56,8 @@ export async function GET(request: NextRequest) {
 
     // Database metrics
     try {
+      const supabase = createServiceRoleClient()
+
       // Total users
       const { count: userCount } = await supabase
         .from('users')

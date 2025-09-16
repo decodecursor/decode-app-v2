@@ -15,6 +15,8 @@ export async function POST(request: NextRequest) {
 
     console.log('🔧 Manual payment completion for:', paymentLinkId);
 
+    const supabase = await createClient();
+
     // Update payment link status
     const { error: linkError } = await supabase
       .from('payment_links')
@@ -75,6 +77,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from('payment_links')
       .select('id, payment_status, paid_at, amount_aed, title')

@@ -22,6 +22,8 @@ export async function POST(request: NextRequest) {
 
     console.log('🔄 Creating Stripe payment session for payment link:', paymentLinkId);
 
+    const supabase = await createClient();
+
     // Fetch payment link details from Supabase
     const { data: paymentLink, error: fetchError } = await supabase
       .from('payment_links')
