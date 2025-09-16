@@ -92,10 +92,15 @@ export default function UsersManagement() {
         console.log('🔍 Admin data:', adminData)
         console.log('🔍 Role check - adminData.role:', adminData?.role)
 
-        // Check if user is admin - only 'admin' or 'Admin' allowed
-        if (!adminData || (adminData.role !== 'admin' && adminData.role !== 'Admin')) {
+        // Use normalizeRole like dashboard does
+        const normalizedRole = normalizeRole(adminData?.role)
+        console.log('🔍 Normalized role:', normalizedRole)
+
+        if (!adminData || normalizedRole !== USER_ROLES.ADMIN) {
           console.log('❌ Not admin, redirecting to /dashboard')
           console.log('Role value:', adminData?.role)
+          console.log('Normalized:', normalizedRole)
+          console.log('Expected:', USER_ROLES.ADMIN)
           router.push('/dashboard')
           return
         }
