@@ -27,10 +27,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey)
+    const supabaseService = createClient(supabaseUrl, serviceRoleKey)
 
     // First get user info to determine if admin
-    const { data: currentUser, error: userError } = await supabase
+    const { data: currentUser, error: userError } = await supabaseService
       .from('users')
       .select('role, company_name')
       .eq('id', userId)
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     const companyName = currentUser.company_name
 
     // Fetch payment links based on role
-    let query = supabase
+    let query = supabaseService
       .from('payment_links')
       .select(`
         id,
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
     // Admins see all company links, users see only their own
     if (isAdmin && companyName) {
       // Get all users from the company
-      const { data: companyUsers } = await supabase
+      const { data: companyUsers } = await supabaseService
         .from('users')
         .select('id')
         .eq('company_name', companyName)
