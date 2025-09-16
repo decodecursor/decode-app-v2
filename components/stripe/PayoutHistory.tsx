@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
 
 interface Payout {
   id: string
@@ -30,15 +29,22 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
 
   const loadPayouts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('payouts')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(10)
+      const response = await fetch('/api/payouts/history?limit=10', {
+        method: 'GET',
+        credentials: 'include'
+      })
 
-      if (error) throw error
-      setPayouts(data || [])
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(`API Error (${response.status}): ${errorData.error || 'Failed to fetch payouts'}`)
+      }
+
+      const data = await response.json()
+      if (data.success && data.payouts) {
+        setPayouts(data.payouts)
+      } else {
+        setPayouts([])
+      }
     } catch (error) {
       console.error('Error loading payouts:', error)
     } finally {
@@ -66,16 +72,23 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
   const exportToCSV = async () => {
     setExporting(true)
     try {
-      // Load all payouts for export
-      const { data, error } = await supabase
-        .from('payouts')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
+      const response = await fetch('/api/payouts/history?export=true', {
+        method: 'GET',
+        credentials: 'include'
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(`API Error (${response.status}): ${errorData.error || 'Failed to fetch payouts'}`)
+      }
 
-      // Create CSV content
+      const result = await response.json()
+      if (!result.success || !result.payouts) {
+        throw new Error('Invalid response from payouts API')
+      }
+
+      const data = result.payouts
+
       const headers = ['Request ID', 'Date', 'Amount (AED)', 'Status', 'Period Start', 'Period End', 'Paid Date']
       const rows = (data || []).map(payout => [
         payout.payout_request_id || 'N/A',
@@ -92,7 +105,6 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
         ...rows.map(row => row.join(','))
       ].join('\n')
 
-      // Download CSV file
       const blob = new Blob([csvContent], { type: 'text/csv' })
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
