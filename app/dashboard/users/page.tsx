@@ -122,25 +122,21 @@ export default function UsersManagement() {
         // For now, set to null - ProfileImage component will show user initials
         setCompanyProfileImage(null)
 
-        // Get all users in the same company (remove profile_photo_url from query)
-        const { data: companyUsers, error } = await supabase
-          .from('users')
-          .select('id, email, user_name, company_name, branch_name, role, approval_status, created_at')
-          .eq('company_name', userData.company_name)
-          .order('created_at', { ascending: false })
+        // Get company users and branches via proxy endpoint
+        const companyResponse = await fetch('/api/users/company', {
+          method: 'GET',
+          credentials: 'include'
+        })
 
-        if (error) throw error
+        if (!companyResponse.ok) {
+          const errorData = await companyResponse.json()
+          console.error('❌ Failed to fetch company data:', errorData.error)
+          throw new Error(errorData.error || 'Failed to fetch company data')
+        }
+
+        const { users: companyUsers, branches: branchNames } = await companyResponse.json()
         setUsers(companyUsers || [])
-
-        // Get branches from branches table
-        const { data: branchesData } = await supabase
-          .from('branches')
-          .select('name')
-          .eq('company_name', userData.company_name)
-          .order('name')
-
-        const branchNames = branchesData?.map(b => b.name) || []
-        setBranches(branchNames)
+        setBranches(branchNames || [])
 
         // Set up real-time subscription for new user registrations
         console.log('🔄 Setting up real-time subscription for new users in company:', userData.company_name)
@@ -310,7 +306,6 @@ export default function UsersManagement() {
 
       setNewBranchName('')
       setShowCreateBranchModal(false)
-      setMessage('Branch created successfully!')
     } catch (error: any) {
       console.error('❌ Error creating branch:', error)
       setMessage(error.message || 'Failed to create branch')
