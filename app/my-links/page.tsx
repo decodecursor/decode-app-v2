@@ -500,23 +500,24 @@ function MyLinksContent() {
 
   const fetchUserRoleAndBranchCount = async (userId: string) => {
     try {
-      // Fetch user role and branch info via proxy endpoint
-      const response = await fetch('/api/users/info', {
+      // Use the same working API endpoint as dashboard and paylink pages
+      const response = await fetch('/api/user/profile', {
         method: 'GET',
         credentials: 'include'
       })
 
       if (!response.ok) {
-        console.error('Error fetching user info:', await response.text())
+        console.error('Error fetching user profile:', await response.text())
         return
       }
 
-      const data = await response.json()
-      setUserRole(data.role)
-      setCompanyName(data.companyName)
-      setCompanyBranchCount(data.branchCount)
+      const { userData } = await response.json()
+      setUserRole(userData.role)
+      setCompanyName(userData.company_name || userData.professional_center_name)
+      // Note: branchCount not available in this endpoint, but not critical for my-links page
+      setCompanyBranchCount(1) // Default value
     } catch (error) {
-      console.error('Error fetching user role and branch count:', error)
+      console.error('Error fetching user profile:', error)
     }
   }
 
