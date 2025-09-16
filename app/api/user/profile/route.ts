@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
+import { createClient } from '@/utils/supabase/server'
 import { normalizeRole, USER_ROLES, isValidRole } from '@/types/user'
 
 // GET user profile data using server-side authentication
@@ -8,48 +7,11 @@ export async function GET(request: NextRequest) {
   try {
     console.log('🔄 [PROXY-PROFILE] Request received')
 
-    // Get user ID from cookies
-    const cookieStore = await cookies()
-    const allCookies = cookieStore.getAll()
-    let userId: string | null = null
+    // Use standard server client for authentication
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    // Look for Supabase session cookies and extract user ID
-    const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL!.split('//')[1].split('.')[0]
-    const cookieName = `sb-${projectRef}-auth-token`
-
-    // Check if it's a single cookie or chunked
-    const singleCookie = allCookies.find(c => c.name === cookieName)
-    let sessionData: any = null
-
-    if (singleCookie) {
-      try {
-        sessionData = JSON.parse(singleCookie.value)
-      } catch (e) {
-        console.log('Failed to parse single cookie')
-      }
-    } else {
-      // Look for chunked cookies
-      const chunks: string[] = []
-      let chunkIndex = 0
-
-      while (true) {
-        const chunkCookie = allCookies.find(c => c.name === `${cookieName}.${chunkIndex}`)
-        if (!chunkCookie) break
-        chunks.push(chunkCookie.value)
-        chunkIndex++
-      }
-
-      if (chunks.length > 0) {
-        try {
-          const fullSession = chunks.join('')
-          sessionData = JSON.parse(fullSession)
-        } catch (e) {
-          console.log('Failed to parse chunked cookies')
-        }
-      }
-    }
-
-    if (!sessionData || !sessionData.user) {
+    if (authError || !user) {
       console.log('❌ [PROXY-PROFILE] No authenticated user found')
       return NextResponse.json(
         { error: 'No authenticated user' },
@@ -57,28 +19,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    userId = sessionData.user.id
-    console.log('✅ [PROXY-PROFILE] Found user:', userId)
-
-    // Use service role to query user data
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-    if (!supabaseUrl || !serviceRoleKey) {
-      console.error('❌ [PROXY-PROFILE] Missing environment variables')
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      )
-    }
-
-    const supabase = createClient(supabaseUrl, serviceRoleKey)
+    console.log('✅ [PROXY-PROFILE] Found user:', user.id)
 
     // Fetch user profile data
     const { data: userData, error } = await supabase
       .from('users')
       .select('role, professional_center_name, user_name, company_name, approval_status, branch_name')
-      .eq('id', userId)
+      .eq('id', user.id)
       .single()
 
     if (error) {
