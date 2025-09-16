@@ -82,30 +82,36 @@ export default function UsersManagement() {
           return
         }
 
-        // Get admin's company
-        const { data: adminData } = await supabase
-          .from('users')
-          .select('company_name, role')
-          .eq('id', user.id)
-          .single()
+        // Get admin's profile using the SAME proxy endpoint as dashboard
+        const response = await fetch('/api/dashboard/user-profile', {
+          method: 'GET',
+          credentials: 'include'
+        })
 
-        console.log('🔍 Admin data:', adminData)
-        console.log('🔍 Role check - adminData.role:', adminData?.role)
+        if (!response.ok) {
+          console.error('❌ Failed to fetch user profile')
+          router.push('/dashboard')
+          return
+        }
+
+        const { userData } = await response.json()
+        console.log('🔍 Admin data:', userData)
+        console.log('🔍 Role check - userData.role:', userData?.role)
 
         // Use validateUserProfile like dashboard does - this ensures role is never null
-        const validatedProfile = validateUserProfile(adminData)
+        const validatedProfile = validateUserProfile(userData)
         console.log('🔍 Validated role:', validatedProfile.role)
 
-        if (!adminData || validatedProfile.role !== USER_ROLES.ADMIN) {
+        if (!userData || validatedProfile.role !== USER_ROLES.ADMIN) {
           console.log('❌ Not admin, redirecting to /dashboard')
-          console.log('Role value:', adminData?.role)
+          console.log('Role value:', userData?.role)
           console.log('Validated role:', validatedProfile.role)
           console.log('Expected:', USER_ROLES.ADMIN)
           router.push('/dashboard')
           return
         }
 
-        setAdminCompany(adminData.company_name)
+        setAdminCompany(userData.company_name)
 
         // TODO: Add profile_photo_url column to users table in database
         // For now, set to null - ProfileImage component will show user initials
@@ -115,7 +121,7 @@ export default function UsersManagement() {
         const { data: companyUsers, error } = await supabase
           .from('users')
           .select('id, email, user_name, company_name, branch_name, role, approval_status, created_at')
-          .eq('company_name', adminData.company_name)
+          .eq('company_name', userData.company_name)
           .order('created_at', { ascending: false })
 
         if (error) throw error
@@ -125,25 +131,25 @@ export default function UsersManagement() {
         const { data: branchesData } = await supabase
           .from('branches')
           .select('name')
-          .eq('company_name', adminData.company_name)
+          .eq('company_name', userData.company_name)
           .order('name')
 
         const branchNames = branchesData?.map(b => b.name) || []
         setBranches(branchNames)
 
         // Set up real-time subscription for new user registrations
-        console.log('🔄 Setting up real-time subscription for new users in company:', adminData.company_name)
+        console.log('🔄 Setting up real-time subscription for new users in company:', userData.company_name)
         const subscription = supabase
           .channel('new_users_notifications')
-          .on('postgres_changes', 
-            { 
-              event: 'INSERT', 
-              schema: 'public', 
+          .on('postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
               table: 'users'
-            }, 
+            },
             (payload) => {
               // Only process new users for this admin's company
-              if (payload.new?.company_name !== adminData.company_name) {
+              if (payload.new?.company_name !== userData.company_name) {
                 return; // Skip updates for other companies
               }
               
