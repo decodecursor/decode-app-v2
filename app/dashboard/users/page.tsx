@@ -83,13 +83,17 @@ export default function UsersManagement() {
         }
 
         // Get admin's profile using the SAME proxy endpoint as dashboard
+        console.log('🔍 Attempting to fetch user profile...')
         const response = await fetch('/api/dashboard/user-profile', {
           method: 'GET',
           credentials: 'include'
         })
 
+        console.log('🔍 Response status:', response.status)
         if (!response.ok) {
-          console.error('❌ Failed to fetch user profile')
+          console.error('❌ Failed to fetch user profile, status:', response.status)
+          const errorText = await response.text()
+          console.error('❌ Error response:', errorText)
           router.push('/dashboard')
           return
         }
@@ -111,6 +115,7 @@ export default function UsersManagement() {
           return
         }
 
+        console.log('🔍 Setting adminCompany to:', userData.company_name)
         setAdminCompany(userData.company_name)
 
         // TODO: Add profile_photo_url column to users table in database
