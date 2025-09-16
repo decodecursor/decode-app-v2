@@ -86,6 +86,9 @@ export default function UsersManagement() {
           .eq('id', user.id)
           .single()
 
+        console.log('🔍 Admin data from database:', adminData)
+        console.log('🔍 Role check:', adminData?.role, '!==', 'Admin', '=', adminData?.role !== 'Admin')
+
         if (!adminData || adminData.role !== 'Admin') {
           router.push('/dashboard')
           return
