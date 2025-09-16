@@ -74,7 +74,9 @@ export default function UsersManagement() {
       try {
         // Get current admin user
         const { user } = await getUserWithProxy()
+        console.log('🔍 Users page - getUserWithProxy result:', user?.id)
         if (!user) {
+          console.log('❌ No user from getUserWithProxy, redirecting to /auth')
           router.push('/auth')
           return
         }
@@ -86,7 +88,13 @@ export default function UsersManagement() {
           .eq('id', user.id)
           .single()
 
+        console.log('🔍 Admin data:', adminData)
+        console.log('🔍 Role check - adminData.role:', adminData?.role, '=== "Admin"?', adminData?.role === 'Admin')
+
         if (!adminData || adminData.role !== 'Admin') {
+          console.log('❌ Not admin, redirecting to /dashboard')
+          console.log('adminData:', adminData)
+          console.log('role:', adminData?.role)
           router.push('/dashboard')
           return
         }
