@@ -194,7 +194,20 @@ export default function PaymentLinkCard({
                     ) : (
                       <>
                         <span className="cosmic-label text-white/50">Expires</span>
-                        <p className={`cosmic-body ${isExpired() ? 'text-red-400' : 'text-white'}`}>
+                        <p className={`cosmic-body ${(() => {
+                          const now = new Date()
+                          const expirationDate = new Date(expiration_date)
+                          const diffInMs = expirationDate.getTime() - now.getTime()
+                          const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24))
+
+                          if (diffInDays < 0) {
+                            return 'text-red-400' // Expired
+                          } else if (diffInDays === 0) {
+                            return 'text-yellow-400' // Expires today
+                          } else {
+                            return 'text-white' // Future dates
+                          }
+                        })()}`}>
                           {formatDate(expiration_date)}
                         </p>
                       </>

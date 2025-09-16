@@ -581,8 +581,8 @@ function MyLinksContent() {
 
     if (diffInDays < 0) {
       return 'text-red-400' // Expired
-    } else if (diffInDays <= 1) {
-      return 'text-red-400' // Less than 1 day
+    } else if (diffInDays === 0) {
+      return 'text-yellow-400' // Expires today
     } else if (diffInDays <= 2) {
       return 'text-yellow-400' // 1-2 days
     } else {
@@ -941,6 +941,7 @@ function MyLinksContent() {
                   const statusColor = getStatusColor(status)
                   const isInactive = status === 'Expired' || status === 'Deactivated'
                   const isPaid = status === 'Paid'
+                  const isExpired = status === 'Expired'
                   const isNewPayLink = highlightingId === link.id
                   const isHeartAnimating = heartAnimatingId === link.id
                   
@@ -964,12 +965,9 @@ function MyLinksContent() {
                       
                       {/* Heart Animation Effect */}
                       <HeartAnimation isActive={isHeartAnimating} />
-                      {/* Status Ribbon */}
-                      {(isInactive) && (
-                        <div className={`ribbon ${
-                          status === 'Expired' ? 'ribbon-expired' : 
-                          'ribbon-deactivated'
-                        }`}>
+                      {/* Status Ribbon - Only for deactivated links (expired links use overlay) */}
+                      {(status === 'Deactivated') && (
+                        <div className="ribbon ribbon-deactivated">
                           {status}
                         </div>
                       )}
@@ -977,8 +975,8 @@ function MyLinksContent() {
                       {/* PAID Overlay */}
                       {isPaid && (
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                          <span className="text-emerald-400 font-bold tracking-wider opacity-30 transform rotate-[-15deg]" 
-                                style={{ 
+                          <span className="text-emerald-400 font-bold tracking-wider opacity-30 transform rotate-[-15deg]"
+                                style={{
                                   fontSize: '3.2rem',
                                   WebkitTextStroke: '1px rgba(16,185,129,0.4)'
                                 }}>
@@ -987,7 +985,20 @@ function MyLinksContent() {
                         </div>
                       )}
 
-                      <div className={`flex flex-col gap-3 ${isPaid ? 'opacity-60 filter grayscale-[0.2]' : ''}`}>
+                      {/* EXPIRED Overlay */}
+                      {isExpired && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                          <span className="text-red-400 font-bold tracking-wider opacity-30 transform rotate-[-15deg]"
+                                style={{
+                                  fontSize: '3.2rem',
+                                  WebkitTextStroke: '1px rgba(239,68,68,0.4)'
+                                }}>
+                            EXPIRED
+                          </span>
+                        </div>
+                      )}
+
+                      <div className={`flex flex-col gap-3 ${isPaid || isExpired ? 'opacity-60 filter grayscale-[0.2]' : ''}`}>
                         {/* Top Row: Title, Amount, Status */}
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                           <div className="flex-1">
@@ -1052,7 +1063,7 @@ function MyLinksContent() {
                               )}
                             </div>
                             
-                            <div className={`flex gap-2 ml-4 ${isPaid ? 'opacity-50' : ''}`}>
+                            <div className={`flex gap-2 ml-4 ${isPaid || isExpired ? 'opacity-50' : ''}`}>
                             <button
                               onClick={() => copyToClipboard(link.id)}
                               disabled={copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
