@@ -123,18 +123,22 @@ export default function UsersManagement() {
         setCompanyProfileImage(null)
 
         // Get company users and branches via proxy endpoint
+        console.log('🔍 Fetching company data via proxy...')
         const companyResponse = await fetch('/api/users/company', {
           method: 'GET',
           credentials: 'include'
         })
 
+        console.log('🔍 Company response status:', companyResponse.status)
         if (!companyResponse.ok) {
           const errorData = await companyResponse.json()
           console.error('❌ Failed to fetch company data:', errorData.error)
-          throw new Error(errorData.error || 'Failed to fetch company data')
+          setMessage(`Failed to load users: ${errorData.error}`)
+          return
         }
 
         const { users: companyUsers, branches: branchNames } = await companyResponse.json()
+        console.log('🔍 Fetched users:', companyUsers?.length, 'branches:', branchNames?.length)
         setUsers(companyUsers || [])
         setBranches(branchNames || [])
 
