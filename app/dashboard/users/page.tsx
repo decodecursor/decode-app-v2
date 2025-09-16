@@ -231,26 +231,39 @@ export default function UsersManagement() {
   }
 
   const handleCreateBranch = async () => {
-    if (!newBranchName.trim() || !adminCompany) return
+    console.log('🔍 handleCreateBranch called')
+    console.log('🔍 newBranchName:', newBranchName.trim())
+    console.log('🔍 adminCompany:', adminCompany)
+
+    if (!newBranchName.trim() || !adminCompany) {
+      console.log('❌ Early return - missing data')
+      return
+    }
 
     try {
+      console.log('🔍 Attempting to insert branch into database...')
       // Insert into branches table
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('branches')
         .insert({
           name: newBranchName.trim(),
           company_name: adminCompany
         })
+        .select()
+
+      console.log('🔍 Insert result:', { data, error })
 
       if (error) {
         if (error.code === '23505') { // Unique constraint violation
           setMessage('Branch already exists')
         } else {
+          console.error('❌ Database error:', error)
           throw error
         }
         return
       }
 
+      console.log('✅ Branch created successfully')
       // Update local state
       const updatedBranches = [...new Set([...branches, newBranchName.trim()])]
       setBranches(updatedBranches)
@@ -258,7 +271,7 @@ export default function UsersManagement() {
       setNewBranchName('')
       setShowCreateBranchModal(false)
     } catch (error) {
-      console.error('Error creating branch:', error)
+      console.error('❌ Error creating branch:', error)
       setMessage('Failed to create branch')
     }
   }
