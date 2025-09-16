@@ -86,9 +86,6 @@ export default function UsersManagement() {
           .eq('id', user.id)
           .single()
 
-        console.log('🔍 Admin data from database:', adminData)
-        console.log('🔍 Role check:', adminData?.role, '!==', 'Admin', '=', adminData?.role !== 'Admin')
-
         if (!adminData || adminData.role !== 'Admin') {
           router.push('/dashboard')
           return
@@ -110,12 +107,15 @@ export default function UsersManagement() {
         if (error) throw error
         setUsers(companyUsers || [])
 
-        // Get unique branches for this company - include all branches from comma-separated values
-        const allUserBranches: string[] = companyUsers?.flatMap(u =>
-          (u.branch_name || '').split(',').map(b => b.trim()).filter(b => b !== '')
-        ) || []
-        const uniqueBranches = [...new Set(allUserBranches)]
-        setBranches(uniqueBranches)
+        // Get branches from branches table
+        const { data: branchesData } = await supabase
+          .from('branches')
+          .select('name')
+          .eq('company_name', adminData.company_name)
+          .order('name')
+
+        const branchNames = branchesData?.map(b => b.name) || []
+        setBranches(branchNames)
 
         // Set up real-time subscription for new user registrations
         console.log('🔄 Setting up real-time subscription for new users in company:', adminData.company_name)
@@ -232,12 +232,29 @@ export default function UsersManagement() {
 
   const handleCreateBranch = async () => {
     if (!newBranchName.trim() || !adminCompany) return
-    
+
     try {
-      // Add to local branches state - persist all created branches
+      // Insert into branches table
+      const { error } = await supabase
+        .from('branches')
+        .insert({
+          name: newBranchName.trim(),
+          company_name: adminCompany
+        })
+
+      if (error) {
+        if (error.code === '23505') { // Unique constraint violation
+          setMessage('Branch already exists')
+        } else {
+          throw error
+        }
+        return
+      }
+
+      // Update local state
       const updatedBranches = [...new Set([...branches, newBranchName.trim()])]
       setBranches(updatedBranches)
-      
+
       setNewBranchName('')
       setShowCreateBranchModal(false)
     } catch (error) {
@@ -253,14 +270,14 @@ export default function UsersManagement() {
 
   const handleDeleteBranch = async () => {
     if (!branchToDelete) return
-    
+
     try {
       // Check if any users are in this branch (handle comma-separated branches)
       const usersInBranch = users.filter(u => {
         const userBranches = (u.branch_name || '').split(',').map(b => b.trim()).filter(b => b !== '')
         return userBranches.includes(branchToDelete)
       })
-      
+
       if (usersInBranch.length > 0) {
         setMessage(`Cannot delete '${branchToDelete}' - ${usersInBranch.length} user(s) still assigned to this branch`)
         setTimeout(() => setMessage(''), 3000)
@@ -268,12 +285,20 @@ export default function UsersManagement() {
         setBranchToDelete('')
         return
       }
-      
-      
+
+      // Delete from branches table
+      const { error } = await supabase
+        .from('branches')
+        .delete()
+        .eq('name', branchToDelete)
+        .eq('company_name', adminCompany)
+
+      if (error) throw error
+
       // Remove from local branches state
       const updatedBranches = branches.filter(b => b !== branchToDelete)
       setBranches(updatedBranches)
-      
+
       setShowDeleteBranchModal(false)
       setBranchToDelete('')
     } catch (error) {
