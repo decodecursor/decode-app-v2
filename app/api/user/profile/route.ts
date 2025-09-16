@@ -48,13 +48,13 @@ export async function GET(request: NextRequest) {
     // Normalize and validate role
     const normalizedRole = normalizeRole(userData.role)
     if (!normalizedRole) {
-      console.error('❌ [PROXY-PROFILE] Invalid user role:', userData.role, 'for user:', userId)
+      console.error('❌ [PROXY-PROFILE] Invalid user role:', userData.role, 'for user:', user.id)
       // Set default role as User if role is invalid
       userData.role = USER_ROLES.USER
-      console.log('✅ [PROXY-PROFILE] Set default role as User for:', userId)
+      console.log('✅ [PROXY-PROFILE] Set default role as User for:', user.id)
     } else {
       userData.role = normalizedRole
-      console.log('✅ [PROXY-PROFILE] Normalized role:', userData.role, 'for user:', userId)
+      console.log('✅ [PROXY-PROFILE] Normalized role:', userData.role, 'for user:', user.id)
     }
 
     // Fetch company profile image if company exists
