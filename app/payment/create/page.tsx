@@ -186,22 +186,39 @@ export default function CreatePayment() {
       // Fetch user's branch information using the same endpoint as dashboard
       try {
         console.log('🔍 [BRANCH DEBUG] Fetching branch info for user:', user.id)
+        console.log('🔍 [BRANCH DEBUG] Request URL:', '/api/user/profile')
+        console.log('🔍 [BRANCH DEBUG] Request method: GET with credentials: include')
+
         const response = await fetch('/api/user/profile', {
           method: 'GET',
           credentials: 'include'
         })
 
+        console.log('🔍 [BRANCH DEBUG] Response status:', response.status)
+        console.log('🔍 [BRANCH DEBUG] Response ok:', response.ok)
+        console.log('🔍 [BRANCH DEBUG] Response headers:', Object.fromEntries(response.headers.entries()))
+
         if (!response.ok) {
-          const errorData = await response.json()
-          console.error('❌ [BRANCH DEBUG] Error fetching user profile:', errorData.error)
+          console.error('❌ [BRANCH DEBUG] HTTP Error - Status:', response.status, 'StatusText:', response.statusText)
+          try {
+            const errorData = await response.json()
+            console.error('❌ [BRANCH DEBUG] Error response body:', errorData)
+          } catch (parseError) {
+            console.error('❌ [BRANCH DEBUG] Could not parse error response:', parseError)
+            const textError = await response.text()
+            console.error('❌ [BRANCH DEBUG] Raw error response:', textError)
+          }
           // Leave branches empty if profile fetch fails
           setUserBranches([])
           setSelectedBranch('')
           return
         }
 
-        const { userData } = await response.json()
-        console.log('🔍 [BRANCH DEBUG] Raw API result:', userData)
+        const fullResponse = await response.json()
+        console.log('🔍 [BRANCH DEBUG] Full API response:', JSON.stringify(fullResponse, null, 2))
+
+        const { userData } = fullResponse
+        console.log('🔍 [BRANCH DEBUG] Extracted userData:', JSON.stringify(userData, null, 2))
 
         console.log('🔍 [BRANCH DEBUG] userData.branch_name value:', userData?.branch_name)
         console.log('🔍 [BRANCH DEBUG] typeof branch_name:', typeof userData?.branch_name)
@@ -287,10 +304,23 @@ export default function CreatePayment() {
           subscription.unsubscribe()
         }
       } catch (error) {
-        console.error('Error fetching branches:', error)
+        console.error('💥 [BRANCH DEBUG] Critical error in branch fetching:', error)
+        console.error('💥 [BRANCH DEBUG] Error type:', typeof error)
+        console.error('💥 [BRANCH DEBUG] Error name:', error?.name)
+        console.error('💥 [BRANCH DEBUG] Error message:', error?.message)
+        console.error('💥 [BRANCH DEBUG] Error stack:', error?.stack)
+
+        // Check if it's a network error
+        if (error?.name === 'TypeError' && error?.message?.includes('fetch')) {
+          console.error('🌐 [BRANCH DEBUG] Network error detected - API might be unreachable')
+        }
+
         // Fallback to empty - no hardcoded branch
         setUserBranches([])
         setSelectedBranch('')
+
+        // Set an error state to inform user
+        setError('Failed to load branch information. Please refresh the page.')
       }
 
       setLoading(false)

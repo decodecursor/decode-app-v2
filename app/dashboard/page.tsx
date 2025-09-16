@@ -154,10 +154,14 @@ export default function Dashboard() {
         setLoading(true)
 
         // Use proxy endpoint to fetch user profile data
+        console.log('🔍 [DASHBOARD DEBUG] Fetching profile for user:', user.id)
         const response = await fetch('/api/user/profile', {
           method: 'GET',
           credentials: 'include'
         })
+
+        console.log('🔍 [DASHBOARD DEBUG] Response status:', response.status)
+        console.log('🔍 [DASHBOARD DEBUG] Response ok:', response.ok)
 
         if (!response.ok) {
           const errorData = await response.json()
@@ -172,8 +176,12 @@ export default function Dashboard() {
           return
         }
 
-        const { userData } = await response.json()
+        const fullDashboardResponse = await response.json()
+        console.log('🔍 [DASHBOARD DEBUG] Full API response:', JSON.stringify(fullDashboardResponse, null, 2))
+
+        const { userData } = fullDashboardResponse
         console.log('✅ Dashboard: Profile data received:', userData)
+        console.log('🔍 [DASHBOARD DEBUG] userData.branch_name:', userData?.branch_name)
 
         // Validate and normalize user profile data
         const validatedProfile = validateUserProfile(userData)
