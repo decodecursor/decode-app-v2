@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { emailService } from '@/lib/email-service'
 
 export async function POST(request: NextRequest) {
@@ -55,14 +56,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if email already exists in the users table instead of auth.users
-    const { data: existingUser, error: checkError } = await supabase
-      .from('users')
-      .select('email')
-      .eq('email', email)
-      .single()
+    // Check if email already exists in the system
+    const supabaseAdmin = createServiceRoleClient()
+    const { data: existingUsers, error: checkError } = await supabaseAdmin.auth.admin.listUsers()
 
-    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 means no rows found, which is fine
+    if (checkError) {
       console.error('Error checking existing users:', checkError)
       return NextResponse.json(
         { error: 'Failed to verify email availability' },
@@ -70,7 +68,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const emailExists = !!existingUser
+    const emailExists = existingUsers?.users?.some((existingUser: any) => existingUser.email === email)
     
     if (emailExists) {
       return NextResponse.json(
