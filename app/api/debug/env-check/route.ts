@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
 
 export async function GET() {
   try {
+    const supabase = createServiceRoleClient()
     // Get environment variables status
     const envCheck = {
       timestamp: new Date().toISOString(),

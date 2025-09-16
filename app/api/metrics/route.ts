@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
 
 // Simple metrics collector for Prometheus
 class MetricsCollector {

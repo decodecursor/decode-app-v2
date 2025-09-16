@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/server'
 import { v4 as uuidv4 } from 'uuid'
 import crypto from 'crypto'
 
@@ -15,9 +15,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Get current user from auth
-    const authHeader = req.headers.get('authorization')?.replace('Bearer ', '')
-    
-    // For now, we'll use a simple approach. In production, you'd want proper JWT validation
+    const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {

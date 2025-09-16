@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
 
 export async function GET(request: NextRequest) {
   try {
     // Check database connectivity
+    const supabase = createServiceRoleClient()
     const { data, error } = await supabase
       .from('users')
       .select('count')

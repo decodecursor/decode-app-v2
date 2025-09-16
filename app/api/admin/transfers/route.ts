@@ -3,13 +3,8 @@
 // POST /api/admin/transfers/retry - Retry failed transfers
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/utils/supabase/server';
 import { transferService } from '@/lib/transfer-service';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-) as any;
 
 // GET - Admin transfer overview
 export async function GET(request: NextRequest) {
@@ -25,6 +20,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const supabase = await createClient();
     const { data: admin, error: adminError } = await supabase
       .from('users')
       .select('id, role')

@@ -2,7 +2,7 @@
 // GET /api/wallet/transactions - Get user's crypto wallet transaction history
 
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/server';
 
 export async function GET(request: NextRequest) {
   try {

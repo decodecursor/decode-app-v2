@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import crypto from 'crypto'
-import { supabase } from '@/lib/supabase'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { processWebhookEvent } from '@/lib/webhook-handlers'
 
 /**

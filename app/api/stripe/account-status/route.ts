@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripeService } from '@/lib/stripe'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/server'
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     const account = await stripeService.stripe.accounts.retrieve(accountId)
 
     // Update database with latest status
+    const supabase = await createClient()
     await supabase
       .from('users')
       .update({
