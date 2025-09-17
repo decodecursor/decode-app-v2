@@ -59,19 +59,26 @@ function PaymentForm({
 
   // Simplified device detection for payment capabilities
   const detectPaymentCapabilities = () => {
-    // Use User Agent for more reliable detection
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isIOS = /iphone|ipad|ipod/.test(userAgent) && !/windows phone/.test(userAgent);
-    const isAndroid = /android/.test(userAgent);
-    const isMobile = /iphone|ipad|ipod|android|mobile/.test(userAgent);
-    const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent);
+    // Check multiple ways to detect iOS devices
+    const userAgent = navigator.userAgent;
+    const platform = navigator.platform || '';
+
+    // Check for iOS - don't lowercase as iPhone/iPad have capital letters
+    const isIOS = /iPhone|iPad|iPod/.test(userAgent) ||
+                   /iPhone|iPad|iPod/.test(platform) ||
+                   (platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPad Pro detection
+
+    const isAndroid = /Android/.test(userAgent);
+    const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(userAgent);
+    const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
 
     console.log('🔍 Device Detection:', {
       isIOS,
       isAndroid,
       isMobile,
       isSafari,
-      userAgent: navigator.userAgent
+      userAgent: navigator.userAgent,
+      platform: navigator.platform
     });
 
     return { isIOS, isAndroid, isMobile, isSafari };
@@ -93,14 +100,14 @@ function PaymentForm({
     };
 
     if (isIOS) {
-      console.log('📱 iOS device - showing Apple Pay and Google Pay as fallback');
+      console.log('📱 iOS device detected - showing Apple Pay only');
       return {
         ...baseConfig,
         paymentMethods: {
-          applePay: 'always' as const,  // Always show Apple Pay on iOS
-          googlePay: 'auto' as const    // Show Google Pay if available as fallback
+          applePay: 'always' as const,  // Force Apple Pay to show on iOS
+          googlePay: 'never' as const   // Don't show Google Pay on iOS
         },
-        paymentMethodOrder: ['applePay', 'googlePay']
+        paymentMethodOrder: ['applePay']
       };
     } else if (isAndroid) {
       console.log('🤖 Android device - showing Google Pay and Apple Pay as fallback');
