@@ -230,6 +230,8 @@ input[type="number"] {
   font-size: 14px;
   width: 100%;
   transition: border-color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .cosmic-input::placeholder {
@@ -572,7 +574,17 @@ body {
     padding: 14px 16px;
     font-size: 16px; /* Prevent zoom on iOS */
     border-radius: 12px;
-    min-height: 48px;
+    min-height: 48px; /* iOS recommended minimum touch target */
+    position: relative;
+    z-index: 10;
+    -webkit-appearance: none; /* Remove iOS default styling */
+    appearance: none;
+  }
+
+  /* Ensure inputs are always accessible on mobile */
+  .cosmic-input:focus {
+    position: relative;
+    z-index: 20;
   }
   
   .cosmic-button-primary {
@@ -760,7 +772,7 @@ body {
   background: #ffd700;
   border-radius: 50%;
   pointer-events: none;
-  z-index: 1000;
+  z-index: 50;
   animation: hoverSparkle 1s ease-out forwards;
 }
 
@@ -773,7 +785,7 @@ body {
 .click-star {
   position: absolute;
   pointer-events: none;
-  z-index: 1000;
+  z-index: 50;
 }
 
 .star-sparkle:before {

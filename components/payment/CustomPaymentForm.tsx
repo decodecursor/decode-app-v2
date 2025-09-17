@@ -273,19 +273,26 @@ function PaymentForm({
                   // Force vertical layout after Stripe renders
                   forceVerticalLayout();
 
-                  // Set up MutationObserver to maintain layout
-                  const observer = new MutationObserver(() => {
-                    forceVerticalLayout();
-                  });
+                  // Only set up MutationObserver on desktop to avoid mobile input issues
+                  const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+                                        ('ontouchstart' in window) ||
+                                        (navigator.maxTouchPoints > 0);
 
-                  const expressCheckout = document.querySelector('.express-checkout-expanded');
-                  if (expressCheckout) {
-                    observer.observe(expressCheckout, {
-                      childList: true,
-                      subtree: true,
-                      attributes: true,
-                      attributeFilter: ['style', 'class']
+                  if (!isMobileDevice) {
+                    // Set up MutationObserver to maintain layout (desktop only)
+                    const observer = new MutationObserver(() => {
+                      forceVerticalLayout();
                     });
+
+                    const expressCheckout = document.querySelector('.express-checkout-expanded');
+                    if (expressCheckout) {
+                      observer.observe(expressCheckout, {
+                        childList: true,
+                        subtree: true,
+                        attributes: true,
+                        attributeFilter: ['style', 'class']
+                      });
+                    }
                   }
                 }, 300);
 
