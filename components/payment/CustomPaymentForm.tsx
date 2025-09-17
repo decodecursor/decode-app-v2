@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { loadStripe, StripeElementsOptions } from '@stripe/stripe-js';
 import {
   Elements,
@@ -29,9 +29,22 @@ interface PaymentFormProps extends CustomPaymentFormProps {
 // Initialize Stripe with fallback
 const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_51Rpnj8BCENH8RexyycBntN40xSM7w5MbstofjrV5tAROxMI71UDw0AKAwFFlwGN6OaMlDa62A4BukU4yZxmQ4Euz00X3NoqUYG';
 
-console.log('🔍 Stripe Publishable Key:', STRIPE_PUBLISHABLE_KEY ? 'Available' : 'Missing');
+console.log('🔍 DEBUG: Stripe SDK Initialization');
+console.log('🔍 DEBUG: Stripe Publishable Key:', STRIPE_PUBLISHABLE_KEY ? 'Available' : 'Missing');
+console.log('🔍 DEBUG: Key prefix:', STRIPE_PUBLISHABLE_KEY ? STRIPE_PUBLISHABLE_KEY.substring(0, 20) + '...' : 'N/A');
 
-const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
+const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY).then(stripe => {
+  console.log('🔍 DEBUG: Stripe SDK Load Result:', stripe ? 'Success' : 'Failed');
+  if (stripe) {
+    console.log('✅ DEBUG: Stripe SDK loaded successfully');
+  } else {
+    console.error('❌ DEBUG: Failed to load Stripe SDK');
+  }
+  return stripe;
+}).catch(error => {
+  console.error('❌ DEBUG: Stripe SDK loading error:', error);
+  return null;
+});
 
 function PaymentForm({ 
   paymentLinkId,
@@ -53,6 +66,25 @@ function PaymentForm({
     name: customerName,
     email: customerEmail
   });
+
+  // Debug Stripe and Elements availability
+  React.useEffect(() => {
+    console.log('🔍 DEBUG: PaymentForm useEffect - Checking Stripe/Elements availability');
+    console.log('🔍 DEBUG: stripe object:', stripe ? 'Available' : 'null');
+    console.log('🔍 DEBUG: elements object:', elements ? 'Available' : 'null');
+
+    if (stripe) {
+      console.log('✅ DEBUG: Stripe object is ready');
+    } else {
+      console.log('⏳ DEBUG: Waiting for Stripe object...');
+    }
+
+    if (elements) {
+      console.log('✅ DEBUG: Elements object is ready');
+    } else {
+      console.log('⏳ DEBUG: Waiting for Elements object...');
+    }
+  }, [stripe, elements]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -127,16 +159,25 @@ function PaymentForm({
         </div>
 
         {/* Debug information */}
+        <div className="text-xs text-gray-400 mb-2 text-center bg-gray-900/30 p-2 rounded">
+          <div>🔍 DEBUG: Stripe Status</div>
+          <div>SDK: {stripe ? '✅ Ready' : '⏳ Loading...'}</div>
+          <div>Elements: {elements ? '✅ Ready' : '⏳ Loading...'}</div>
+          <div>ClientSecret: {clientSecret ? '✅ Available' : '❌ Missing'}</div>
+        </div>
+
         {!stripe && (
           <div className="text-yellow-400 text-xs mb-2 text-center">⚠️ Stripe SDK loading...</div>
         )}
         {!elements && stripe && (
           <div className="text-yellow-400 text-xs mb-2 text-center">⚠️ Payment elements initializing...</div>
         )}
-        
-        {/* Only render payment elements when clientSecret is ready */}
-        {clientSecret ? (
-          <>
+
+        {/* Always try to render Elements for debugging */}
+        <>
+          <div className="text-xs text-green-400 mb-2 text-center">
+            🔍 Attempting to render Elements (clientSecret: {clientSecret ? 'Available' : 'Missing'})
+          </div>
             {/* Express Checkout (Apple Pay, Google Pay) */}
             <div className="mb-4 express-checkout-expanded">
               <div className="cosmic-input express-checkout-no-border" style={{ minHeight: 'auto' }}>
@@ -156,8 +197,10 @@ function PaymentForm({
                     paymentMethodOrder: ['applePay', 'googlePay']
                   }}
               onReady={(event) => {
+                console.log('🍎 DEBUG: ExpressCheckoutElement onReady called');
                 console.log('🍎 DEBUG: Express Checkout ready event:', event);
                 console.log('🍎 DEBUG: Available payment methods:', event.availablePaymentMethods);
+                console.log('🍎 DEBUG: ExpressCheckoutElement successfully mounted and ready');
                 
                 // Function to force vertical layout
                 const forceVerticalLayout = () => {
@@ -329,10 +372,21 @@ function PaymentForm({
                   }
                 }}
                 onReady={() => {
-                  console.log('✅ PaymentElement ready and visible');
+                  console.log('💳 DEBUG: PaymentElement onReady called');
+                  console.log('✅ DEBUG: PaymentElement ready and visible');
                 }}
                 onLoaderStart={() => {
-                  console.log('🔄 PaymentElement loading...');
+                  console.log('🔄 DEBUG: PaymentElement onLoaderStart called');
+                  console.log('🔄 DEBUG: PaymentElement loading...');
+                }}
+                onLoadError={(error) => {
+                  console.error('❌ DEBUG: PaymentElement load error:', error);
+                }}
+                onFocus={() => {
+                  console.log('🔍 DEBUG: PaymentElement focused');
+                }}
+                onBlur={() => {
+                  console.log('🔍 DEBUG: PaymentElement blurred');
                 }}
               />
             </div>
@@ -354,10 +408,11 @@ function PaymentForm({
             {loading ? 'Processing...' : `Pay ${currency} ${amount.toFixed(2)}`}
           </button>
         </form>
-          </>
-        ) : (
+        </>
+
+        {!clientSecret && (
           <div className="text-center py-8">
-            <div className="cosmic-body text-white opacity-60">Loading payment form...</div>
+            <div className="cosmic-body text-white opacity-60">Client secret not available - Elements may not function</div>
           </div>
         )}
       </div>
