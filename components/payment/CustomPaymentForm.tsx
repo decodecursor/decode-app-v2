@@ -94,7 +94,7 @@ function PaymentForm({
         buttonTheme: {
           applePay: 'white-outline' as const
         },
-        paymentMethodOrder: ['applePay'] as const
+        paymentMethodOrder: ['applePay']
       };
     } else if (isAndroid) {
       console.log('✅ Android device - showing Google Pay only');
@@ -109,7 +109,7 @@ function PaymentForm({
         buttonType: {
           googlePay: 'plain' as const
         },
-        paymentMethodOrder: ['googlePay'] as const
+        paymentMethodOrder: ['googlePay']
       };
     } else if (isIOS && !hasApplePaySupport) {
       console.log('⚠️ iOS device without Apple Pay support - showing Google Pay');
@@ -124,7 +124,7 @@ function PaymentForm({
         buttonType: {
           googlePay: 'plain' as const
         },
-        paymentMethodOrder: ['googlePay'] as const
+        paymentMethodOrder: ['googlePay']
       };
     } else {
       console.log('🖥️ Desktop/other device - showing both with Apple Pay priority');
@@ -140,7 +140,7 @@ function PaymentForm({
         buttonType: {
           googlePay: 'plain' as const
         },
-        paymentMethodOrder: ['applePay', 'googlePay'] as const
+        paymentMethodOrder: ['applePay', 'googlePay']
       };
     }
   };
