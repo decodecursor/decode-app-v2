@@ -238,7 +238,7 @@ export default function PaymentLinkCard({
                         })()}`}>
                           {(() => {
                             if (isDeactivated()) {
-                              return formatDate(updated_at)
+                              return formatDate(updated_at || created_at)
                             } else {
                               return formatDate(expiration_date)
                             }

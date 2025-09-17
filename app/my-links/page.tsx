@@ -468,6 +468,7 @@ function MyLinksContent() {
           expiration_date: link?.expiration_date || '',
           is_active: link?.is_active || false,
           created_at: link?.created_at || '',
+          updated_at: link?.updated_at || '',
           description: link?.description,
           is_paid: isPaid,
           payment_status: paymentStatus,
@@ -1045,7 +1046,7 @@ function MyLinksContent() {
                                   const isExpired = now > expirationDate
 
                                   if (isDeactivated) {
-                                    return `Deactivated ${formatDate(link.updated_at)}`
+                                    return `Deactivated ${formatDate(link.updated_at || link.created_at)}`
                                   } else if (isExpired) {
                                     return `Expired ${formatDate(link.expiration_date)}`
                                   } else if (isPaid) {
