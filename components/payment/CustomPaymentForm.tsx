@@ -57,6 +57,94 @@ function PaymentForm({
     email: customerEmail
   });
 
+  // Enhanced device detection for payment capabilities
+  const detectPaymentCapabilities = () => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    // Check for Apple Pay support
+    const hasApplePaySupport = typeof window !== 'undefined' &&
+      window.ApplePaySession &&
+      ApplePaySession.canMakePayments &&
+      ApplePaySession.canMakePayments();
+
+    console.log('🔍 Device Detection:', {
+      isIOS,
+      isAndroid,
+      isMobile,
+      hasApplePaySupport,
+      userAgent: navigator.userAgent
+    });
+
+    return { isIOS, isAndroid, isMobile, hasApplePaySupport };
+  };
+
+  // Dynamic ExpressCheckout configuration based on device
+  const getExpressCheckoutOptions = () => {
+    const { isIOS, isAndroid, hasApplePaySupport } = detectPaymentCapabilities();
+
+    if (isIOS && hasApplePaySupport) {
+      console.log('✅ iOS device with Apple Pay support - showing Apple Pay only');
+      return {
+        paymentMethods: {
+          applePay: 'auto',
+          googlePay: 'never'
+        },
+        buttonTheme: {
+          applePay: 'white-outline'
+        },
+        paymentMethodOrder: ['applePay']
+      };
+    } else if (isAndroid) {
+      console.log('✅ Android device - showing Google Pay only');
+      return {
+        paymentMethods: {
+          applePay: 'never',
+          googlePay: 'auto'
+        },
+        buttonTheme: {
+          googlePay: 'white'
+        },
+        buttonType: {
+          googlePay: 'plain'
+        },
+        paymentMethodOrder: ['googlePay']
+      };
+    } else if (isIOS && !hasApplePaySupport) {
+      console.log('⚠️ iOS device without Apple Pay support - showing Google Pay');
+      return {
+        paymentMethods: {
+          applePay: 'never',
+          googlePay: 'auto'
+        },
+        buttonTheme: {
+          googlePay: 'white'
+        },
+        buttonType: {
+          googlePay: 'plain'
+        },
+        paymentMethodOrder: ['googlePay']
+      };
+    } else {
+      console.log('🖥️ Desktop/other device - showing both with Apple Pay priority');
+      return {
+        paymentMethods: {
+          applePay: 'auto',
+          googlePay: 'auto'
+        },
+        buttonTheme: {
+          applePay: 'white-outline',
+          googlePay: 'white'
+        },
+        buttonType: {
+          googlePay: 'plain'
+        },
+        paymentMethodOrder: ['applePay', 'googlePay']
+      };
+    }
+  };
+
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -136,49 +224,35 @@ function PaymentForm({
             <div className="mb-4 express-checkout-expanded">
               <div className="cosmic-input express-checkout-no-border" style={{ minHeight: 'auto' }}>
                 <ExpressCheckoutElement
-                  options={{
-                    paymentMethods: {
-                      applePay: 'always',
-                      googlePay: 'always'
-                    },
-                    buttonTheme: {
-                      applePay: 'white-outline',
-                      googlePay: 'white'
-                    },
-                    buttonType: {
-                      googlePay: 'plain'
-                    },
-                    paymentMethodOrder: ['applePay', 'googlePay']
-                  }}
+                  options={getExpressCheckoutOptions()}
               onReady={(event) => {
-                console.log('🍎 DEBUG: Express Checkout ready event:', event);
-                console.log('🍎 DEBUG: Available payment methods:', event.availablePaymentMethods);
-                
-                // Function to force vertical layout
+                const { isIOS, isAndroid, isMobile } = detectPaymentCapabilities();
+
+                console.log('🍎 Express Checkout ready - Device-specific configuration applied');
+                console.log('🍎 Available payment methods:', event.availablePaymentMethods);
+                console.log('🍎 Device info:', { isIOS, isAndroid, isMobile });
+
+                // Function to force vertical layout on mobile
                 const forceVerticalLayout = () => {
-                  // Check if we're on mobile
-                  const isMobile = window.innerWidth <= 768;
                   if (!isMobile) return;
-                  
-                  // Find all possible containers and buttons
+
                   const expressCheckout = document.querySelector('.express-checkout-expanded');
                   if (expressCheckout) {
-                    // Get all divs and buttons within express checkout
                     const allDivs = expressCheckout.querySelectorAll('div');
                     const allButtons = expressCheckout.querySelectorAll('button');
-                    
+
                     // Force vertical layout on all divs
                     allDivs.forEach((div) => {
                       if (div.style.display === 'flex' || getComputedStyle(div).display === 'flex') {
                         div.style.cssText += 'flex-direction: column !important; width: 100% !important;';
                       }
                     });
-                    
+
                     // Force full width on all buttons
                     allButtons.forEach((button) => {
                       button.style.cssText += 'width: 100% !important; max-width: 100% !important; margin-bottom: 8px !important; display: block !important;';
                     });
-                    
+
                     // Remove margin from last button
                     if (allButtons.length > 0) {
                       const lastButton = allButtons[allButtons.length - 1];
@@ -188,61 +262,51 @@ function PaymentForm({
                     }
                   }
                 };
-                
-                // Store Apple Pay availability before setTimeout (to avoid scope issues)
-                const hasApplePay = event.availablePaymentMethods?.applePay || false;
-                
-                // Auto-click Show More button and force layout
+
+                // Device-specific button handling
                 setTimeout(() => {
                   const showMoreButton = document.querySelector('button[aria-label*="Show more"], button[aria-label*="show more"], [class*="ShowMore"]') as HTMLButtonElement;
-                  const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                  
-                  if (showMoreButton) {
-                    // Check if Apple Pay is available and on mobile - if so, hide the button
-                    if (hasApplePay && isMobileDevice) {
-                      console.log('🍎 Hiding Show More button - Apple Pay available on mobile');
-                      showMoreButton.style.display = 'none';
-                    } else {
-                      console.log('🔄 Auto-clicking Show More button');
-                      showMoreButton.click();
-                    }
+
+                  // For single payment method devices, hide "Show More" button
+                  if (showMoreButton && (isIOS || isAndroid)) {
+                    console.log(`🔒 Hiding Show More button for ${isIOS ? 'iOS' : 'Android'} device`);
+                    showMoreButton.style.display = 'none';
+                  } else if (showMoreButton) {
+                    console.log('🔄 Auto-clicking Show More button for desktop');
+                    showMoreButton.click();
                   }
-                  
+
                   // Force vertical layout after Stripe renders
                   forceVerticalLayout();
-                  
+
                   // Set up MutationObserver to maintain layout
                   const observer = new MutationObserver(() => {
                     forceVerticalLayout();
                   });
-                  
+
                   const expressCheckout = document.querySelector('.express-checkout-expanded');
                   if (expressCheckout) {
-                    observer.observe(expressCheckout, { 
-                      childList: true, 
-                      subtree: true, 
+                    observer.observe(expressCheckout, {
+                      childList: true,
+                      subtree: true,
                       attributes: true,
                       attributeFilter: ['style', 'class']
                     });
                   }
                 }, 300);
-                
+
                 // Also force layout on window resize
                 window.addEventListener('resize', forceVerticalLayout);
-                
-                if (!event.availablePaymentMethods) {
-                  console.warn('⚠️ DEBUG: No payment methods available in Express Checkout');
-                } else {
-                  if (event.availablePaymentMethods.applePay) {
-                    console.log('✅ DEBUG: Apple Pay is available');
-                  } else {
-                    console.log('❌ DEBUG: Apple Pay is NOT available');
-                  }
-                  if (event.availablePaymentMethods.googlePay) {
-                    console.log('✅ DEBUG: Google Pay is available');
-                  } else {
-                    console.log('❌ DEBUG: Google Pay is NOT available');
-                  }
+
+                // Log available payment methods for debugging
+                if (event.availablePaymentMethods?.applePay) {
+                  console.log('✅ Apple Pay is available and configured');
+                }
+                if (event.availablePaymentMethods?.googlePay) {
+                  console.log('✅ Google Pay is available and configured');
+                }
+                if (!event.availablePaymentMethods?.applePay && !event.availablePaymentMethods?.googlePay) {
+                  console.warn('⚠️ No express payment methods available');
                 }
               }}
               onConfirm={async (event) => {
