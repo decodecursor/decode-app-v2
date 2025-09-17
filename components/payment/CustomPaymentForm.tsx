@@ -59,69 +59,66 @@ function PaymentForm({
 
   // Simplified device detection for payment capabilities
   const detectPaymentCapabilities = () => {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isAndroid = /Android/.test(navigator.userAgent);
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    // Use User Agent for more reliable detection
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isIOS = /iphone|ipad|ipod/.test(userAgent) && !window.MSStream;
+    const isAndroid = /android/.test(userAgent);
+    const isMobile = /iphone|ipad|ipod|android|mobile/.test(userAgent);
+    const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent);
 
     console.log('🔍 Device Detection:', {
       isIOS,
       isAndroid,
       isMobile,
+      isSafari,
       userAgent: navigator.userAgent
     });
 
-    return { isIOS, isAndroid, isMobile };
+    return { isIOS, isAndroid, isMobile, isSafari };
   };
 
   // Dynamic ExpressCheckout configuration based on device
   const getExpressCheckoutOptions = () => {
-    const { isIOS, isAndroid } = detectPaymentCapabilities();
+    const { isIOS, isAndroid, isMobile } = detectPaymentCapabilities();
+
+    // Base configuration
+    const baseConfig = {
+      buttonTheme: {
+        applePay: 'white-outline' as const,
+        googlePay: 'white' as const
+      },
+      buttonType: {
+        googlePay: 'plain' as const
+      }
+    };
 
     if (isIOS) {
-      console.log('📱 iOS device - prioritizing Apple Pay, allowing Google Pay');
+      console.log('📱 iOS device - configuring for Apple Pay');
       return {
+        ...baseConfig,
         paymentMethods: {
-          applePay: 'always' as const,  // Force show Apple Pay on iOS
-          googlePay: 'auto' as const     // Show Google Pay as fallback
+          applePay: 'auto' as const,   // Let Stripe detect availability
+          googlePay: 'never' as const  // Don't show Google Pay on iOS
         },
-        buttonTheme: {
-          applePay: 'white-outline' as const,
-          googlePay: 'white' as const
-        },
-        buttonType: {
-          googlePay: 'plain' as const
-        },
-        paymentMethodOrder: ['applePay', 'googlePay']
+        paymentMethodOrder: ['applePay']
       };
     } else if (isAndroid) {
-      console.log('🤖 Android device - prioritizing Google Pay, allowing Apple Pay');
+      console.log('🤖 Android device - configuring for Google Pay');
       return {
+        ...baseConfig,
         paymentMethods: {
-          applePay: 'auto' as const,     // Show Apple Pay if available
-          googlePay: 'always' as const   // Force show Google Pay on Android
+          applePay: 'never' as const,  // Don't show Apple Pay on Android
+          googlePay: 'auto' as const    // Let Stripe detect availability
         },
-        buttonTheme: {
-          applePay: 'white-outline' as const,
-          googlePay: 'white' as const
-        },
-        buttonType: {
-          googlePay: 'plain' as const
-        },
-        paymentMethodOrder: ['googlePay', 'applePay']
+        paymentMethodOrder: ['googlePay']
       };
     } else {
       console.log('🖥️ Desktop/other device - showing both payment methods');
       return {
+        ...baseConfig,
         paymentMethods: {
-          applePay: 'always' as const,  // Force show both on desktop
-          googlePay: 'always' as const
-        },
-        buttonTheme: {
-          applePay: 'white-outline' as const,
-          googlePay: 'white' as const
-        },
-        buttonType: {
-          googlePay: 'plain' as const
+          applePay: 'auto' as const,   // Show if available
+          googlePay: 'auto' as const   // Show if available
         },
         paymentMethodOrder: ['applePay', 'googlePay']
       };
@@ -204,16 +201,23 @@ function PaymentForm({
         {/* Render payment elements */}
         <>
             {/* Express Checkout (Apple Pay, Google Pay) */}
-            <div className="mb-4 express-checkout-expanded">
-              <div className="cosmic-input express-checkout-no-border" style={{ minHeight: 'auto' }}>
+            <div className="mb-4 express-checkout-expanded" style={{ minHeight: '60px' }}>
+              <div className="cosmic-input express-checkout-no-border" style={{ minHeight: '56px', display: 'block' }}>
                 <ExpressCheckoutElement
                   options={getExpressCheckoutOptions()}
               onReady={(event) => {
-                const { isIOS, isAndroid, isMobile } = detectPaymentCapabilities();
+                const { isIOS, isAndroid, isMobile, isSafari } = detectPaymentCapabilities();
 
                 console.log('🍎 Express Checkout ready - Device-specific configuration applied');
                 console.log('🍎 Available payment methods:', event.availablePaymentMethods);
-                console.log('🍎 Device info:', { isIOS, isAndroid, isMobile });
+                console.log('🍎 Device info:', { isIOS, isAndroid, isMobile, isSafari });
+
+                // Log if no payment methods are available
+                if (!event.availablePaymentMethods ||
+                    (!event.availablePaymentMethods.applePay && !event.availablePaymentMethods.googlePay)) {
+                  console.warn('⚠️ No express payment methods available on this device');
+                  console.log('Debug: Check if Stripe is properly initialized and payment methods are configured');
+                }
 
                 // Function to force vertical layout on mobile
                 const forceVerticalLayout = () => {

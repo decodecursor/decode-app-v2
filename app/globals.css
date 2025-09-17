@@ -21,6 +21,8 @@
   background: transparent !important;
   padding: 0 !important;
   width: 100% !important;
+  min-height: 56px !important;
+  display: block !important;
 }
 
 /* Target Stripe iframe if present */
@@ -615,6 +617,16 @@ body {
   /* Express checkout mobile-specific overrides with maximum specificity */
   .express-checkout-expanded {
     width: 100% !important;
+    min-height: 60px !important;
+    position: relative !important;
+  }
+
+  /* Ensure Stripe elements are visible on iOS Safari */
+  .express-checkout-expanded iframe,
+  .express-checkout-expanded > div {
+    min-height: 56px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   
   /* Target all nested divs and force vertical layout */
