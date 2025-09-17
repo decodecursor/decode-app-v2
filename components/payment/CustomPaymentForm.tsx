@@ -88,59 +88,59 @@ function PaymentForm({
       console.log('✅ iOS device with Apple Pay support - showing Apple Pay only');
       return {
         paymentMethods: {
-          applePay: 'auto',
-          googlePay: 'never'
+          applePay: 'auto' as const,
+          googlePay: 'never' as const
         },
         buttonTheme: {
-          applePay: 'white-outline'
+          applePay: 'white-outline' as const
         },
-        paymentMethodOrder: ['applePay']
+        paymentMethodOrder: ['applePay'] as const
       };
     } else if (isAndroid) {
       console.log('✅ Android device - showing Google Pay only');
       return {
         paymentMethods: {
-          applePay: 'never',
-          googlePay: 'auto'
+          applePay: 'never' as const,
+          googlePay: 'auto' as const
         },
         buttonTheme: {
-          googlePay: 'white'
+          googlePay: 'white' as const
         },
         buttonType: {
-          googlePay: 'plain'
+          googlePay: 'plain' as const
         },
-        paymentMethodOrder: ['googlePay']
+        paymentMethodOrder: ['googlePay'] as const
       };
     } else if (isIOS && !hasApplePaySupport) {
       console.log('⚠️ iOS device without Apple Pay support - showing Google Pay');
       return {
         paymentMethods: {
-          applePay: 'never',
-          googlePay: 'auto'
+          applePay: 'never' as const,
+          googlePay: 'auto' as const
         },
         buttonTheme: {
-          googlePay: 'white'
+          googlePay: 'white' as const
         },
         buttonType: {
-          googlePay: 'plain'
+          googlePay: 'plain' as const
         },
-        paymentMethodOrder: ['googlePay']
+        paymentMethodOrder: ['googlePay'] as const
       };
     } else {
       console.log('🖥️ Desktop/other device - showing both with Apple Pay priority');
       return {
         paymentMethods: {
-          applePay: 'auto',
-          googlePay: 'auto'
+          applePay: 'auto' as const,
+          googlePay: 'auto' as const
         },
         buttonTheme: {
-          applePay: 'white-outline',
-          googlePay: 'white'
+          applePay: 'white-outline' as const,
+          googlePay: 'white' as const
         },
         buttonType: {
-          googlePay: 'plain'
+          googlePay: 'plain' as const
         },
-        paymentMethodOrder: ['applePay', 'googlePay']
+        paymentMethodOrder: ['applePay', 'googlePay'] as const
       };
     }
   };
