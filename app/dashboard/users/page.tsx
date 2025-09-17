@@ -56,7 +56,7 @@ export default function UsersManagement() {
   const [pendingAssignments, setPendingAssignments] = useState<Record<string, string[]>>({})
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
-  const [inviteRole, setInviteRole] = useState('User')
+  const [inviteRole, setInviteRole] = useState('Staff')
   const [inviteLoading, setInviteLoading] = useState(false)
   const [showRoleDropdown, setShowRoleDropdown] = useState(false)
   const [inviteStatus, setInviteStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
@@ -511,7 +511,7 @@ export default function UsersManagement() {
       setTimeout(() => {
         setShowInviteModal(false)
         setInviteEmail('')
-        setInviteRole('User')
+        setInviteRole('Staff')
         setShowRoleDropdown(false)
         setInviteStatus('idle')
         setInviteMessage('')
@@ -1084,7 +1084,7 @@ export default function UsersManagement() {
                   
                   {showRoleDropdown && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-10">
-                      {['User', 'Admin'].map((role) => (
+                      {['Staff', 'Admin'].map((role) => (
                         <button
                           key={role}
                           onClick={() => {
@@ -1149,7 +1149,7 @@ export default function UsersManagement() {
                   onClick={() => {
                     setShowInviteModal(false)
                     setInviteEmail('')
-                    setInviteRole('User')
+                    setInviteRole('Staff')
                     setShowRoleDropdown(false)
                     setInviteStatus('idle')
                     setInviteMessage('')

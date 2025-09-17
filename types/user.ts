@@ -2,7 +2,7 @@
 
 export const USER_ROLES = {
   ADMIN: 'Admin',
-  USER: 'User'
+  STAFF: 'Staff'
 } as const
 
 export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES]
@@ -22,12 +22,12 @@ export function normalizeRole(role: any): UserRole | null {
 
   // Exact matches first
   if (normalizedRole === USER_ROLES.ADMIN) return USER_ROLES.ADMIN
-  if (normalizedRole === USER_ROLES.USER) return USER_ROLES.USER
+  if (normalizedRole === USER_ROLES.STAFF) return USER_ROLES.STAFF
 
   // Case-insensitive matches
   const lowerRole = normalizedRole.toLowerCase()
   if (lowerRole === 'admin' || lowerRole === 'administrator') return USER_ROLES.ADMIN
-  if (lowerRole === 'user' || lowerRole === 'employee' || lowerRole === 'member') return USER_ROLES.USER
+  if (lowerRole === 'user' || lowerRole === 'staff' || lowerRole === 'employee' || lowerRole === 'member') return USER_ROLES.STAFF
 
   console.warn(`Unknown role encountered: "${role}". Valid roles are: ${VALID_ROLES.join(', ')}`)
   return null
@@ -50,7 +50,7 @@ export function validateUserProfile(data: any): UserProfile {
     console.warn('Invalid user profile data: not an object, using defaults')
     return {
       id: '',
-      role: USER_ROLES.USER, // Default to User role
+      role: USER_ROLES.STAFF, // Default to Staff role
       user_name: null,
       company_name: null,
       professional_center_name: null,
@@ -63,12 +63,12 @@ export function validateUserProfile(data: any): UserProfile {
 
   const normalizedRole = normalizeRole(data.role)
   if (!normalizedRole) {
-    console.warn(`Invalid user role: "${data.role}". Defaulting to User role`)
+    console.warn(`Invalid user role: "${data.role}". Defaulting to Staff role`)
   }
 
   return {
     id: data.id || '',
-    role: normalizedRole || USER_ROLES.USER, // Always provide a valid role
+    role: normalizedRole || USER_ROLES.STAFF, // Always provide a valid role
     user_name: data.user_name || null,
     company_name: data.company_name || null,
     professional_center_name: data.professional_center_name || null,

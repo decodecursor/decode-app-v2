@@ -24,9 +24,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate role
-    if (!['User', 'Admin'].includes(role)) {
+    if (!['Staff', 'Admin'].includes(role)) {
       return NextResponse.json(
-        { error: 'Role must be either User or Admin' },
+        { error: 'Role must be either Staff or Admin' },
         { status: 400 }
       )
     }

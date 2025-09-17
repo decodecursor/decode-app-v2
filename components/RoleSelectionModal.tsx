@@ -30,11 +30,18 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
   // Pre-populate form with invite data or pre-selected role
   useEffect(() => {
     console.log('🔄 [ROLE MODAL] Pre-population effect triggered:', { inviteData, preselectedRole })
+    console.log('🔍 [ROLE MODAL] Full inviteData structure:', JSON.stringify(inviteData, null, 2))
 
     if (inviteData) {
-      console.log('✅ [ROLE MODAL] Using invite data:', inviteData.role)
-      setRole(inviteData.role || '')
-      setCompanyName(inviteData.companyName || '')
+      console.log('✅ [ROLE MODAL] Using invite data. Role found:', inviteData.role)
+      console.log('🔍 [ROLE MODAL] Available properties in inviteData:', Object.keys(inviteData))
+
+      // Handle different possible role property names in invite data
+      const inviteRole = inviteData.role || inviteData.user_role || inviteData.assignedRole || 'Staff'
+      console.log('🔍 [ROLE MODAL] Resolved invite role:', inviteRole)
+
+      setRole(inviteRole)
+      setCompanyName(inviteData.companyName || inviteData.company_name || '')
       setHasSelectedSuggestion(true) // Prevent company suggestions for invited users
     } else if (preselectedRole) {
       console.log('✅ [ROLE MODAL] Using preselected role:', preselectedRole)

@@ -623,4 +623,4 @@ export type TransactionWithPaymentLink = TransactionRow & {
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'cancelled' | 'refunded' | 'expired'
 export type PaymentProcessor = 'stripe' | 'crossmint'
 export type WebhookStatus = 'received' | 'processed' | 'failed' | 'unhandled'
-export type UserRole = 'Admin' | 'User'
+export type UserRole = 'Admin' | 'Staff'

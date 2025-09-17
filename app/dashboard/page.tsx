@@ -496,7 +496,7 @@ export default function Dashboard() {
               )}
 
               {/* User Navigation Buttons */}
-              {userRole === USER_ROLES.USER && (
+              {userRole === USER_ROLES.STAFF && (
                 <div className="flex gap-4 items-center">
                   {/* Payment History */}
                   <Link 
