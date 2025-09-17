@@ -128,10 +128,7 @@ export default function PaymentPageClient() {
     return (
       <div className="cosmic-bg">
         <div className="min-h-screen flex items-center justify-center px-4">
-          <div className="cosmic-card max-w-md w-full text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400 mx-auto mb-4"></div>
-            <p className="cosmic-body text-white opacity-80">Loading payment information...</p>
-          </div>
+          <p className="text-white text-lg">Loading...</p>
         </div>
       </div>
     )

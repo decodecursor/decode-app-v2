@@ -531,25 +531,11 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
     );
   }
 
-  // Show loading state with more details
+  // Show loading state
   if (loading || !clientSecret) {
     return (
       <div className="cosmic-bg min-h-screen flex items-center justify-center px-4">
-        <div className="cosmic-card-login max-w-md w-full text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400 mx-auto mb-4"></div>
-          <div className="cosmic-body text-white opacity-60 mb-2">
-            {loading ? 'Setting up payment...' : 'Initializing Stripe...'}
-          </div>
-          <div className="text-xs text-gray-400">
-            {loading ? 'Creating secure payment session' : 'Loading payment form'}
-          </div>
-          {loading && (
-            <div className="mt-4 text-xs text-gray-500 text-left bg-gray-900/30 p-3 rounded">
-              <p className="font-mono">Payment Link: {props.paymentLinkId}</p>
-              <p className="font-mono">Amount: {props.amount} AED</p>
-            </div>
-          )}
-        </div>
+        <p className="text-white text-lg">Loading...</p>
       </div>
     );
   }
