@@ -119,7 +119,7 @@ export async function generateMetadata({ params }: { params: { linkId: string } 
     const companyName = getBusinessDisplayName(paymentData.creator) || 'our salon'
     
     const personalizedTitle = 'It\'s Pamper Time'
-    const personalizedDescription = `Spoil ${clientName} with a Beauty Service at ${companyName}`
+    const personalizedDescription = `Gift ${clientName} with a Beauty Service at ${companyName}`
 
     return {
       title: personalizedTitle,

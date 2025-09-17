@@ -202,7 +202,7 @@ export default function PaymentPageClient() {
                 {paymentData.client_name || 'Client Name'}
               </p>
               <p className="cosmic-body text-white mt-2">
-                Service by {getBusinessDisplayName(paymentData.creator)}
+                Beauty Service at {getBusinessDisplayName(paymentData.creator)}
               </p>
             </div>
 
