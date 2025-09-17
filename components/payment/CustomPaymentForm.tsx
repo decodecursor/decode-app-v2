@@ -114,13 +114,13 @@ function PaymentForm({
         {/* Payment Information */}
         <div className="bg-black rounded-lg px-4 py-6 mb-6">
           <div className="text-center space-y-1">
-            <div className="cosmic-body text-xs text-white font-bold" style={{fontSize: '11px'}}>
+            <div className="cosmic-body text-xs text-white font-bold" style={{fontSize: '13px'}}>
               Beauty Service at {beautyProfessionalName}
             </div>
-            <div className="cosmic-body text-xs font-bold text-white" style={{fontSize: '11px'}}>
+            <div className="cosmic-body text-xs font-bold text-white" style={{fontSize: '13px'}}>
               {customerName || 'Client Name'}
             </div>
-            <div className="cosmic-body text-xs font-bold text-white mt-2" style={{fontSize: '11px'}}>
+            <div className="cosmic-body text-xs font-bold text-white mt-2" style={{fontSize: '13px'}}>
               {currency} {amount.toFixed(2)}
             </div>
           </div>
