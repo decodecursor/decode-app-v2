@@ -93,34 +93,34 @@ function PaymentForm({
     };
 
     if (isIOS) {
-      console.log('📱 iOS device - configuring for Apple Pay');
+      console.log('📱 iOS device - showing Apple Pay and Google Pay as fallback');
       return {
         ...baseConfig,
         paymentMethods: {
-          applePay: 'auto' as const,   // Let Stripe detect availability
-          googlePay: 'never' as const  // Don't show Google Pay on iOS
+          applePay: 'always' as const,  // Always show Apple Pay on iOS
+          googlePay: 'auto' as const    // Show Google Pay if available as fallback
         },
-        paymentMethodOrder: ['applePay']
+        paymentMethodOrder: ['applePay', 'googlePay']
       };
     } else if (isAndroid) {
-      console.log('🤖 Android device - configuring for Google Pay');
+      console.log('🤖 Android device - showing Google Pay and Apple Pay as fallback');
       return {
         ...baseConfig,
         paymentMethods: {
-          applePay: 'never' as const,  // Don't show Apple Pay on Android
-          googlePay: 'auto' as const    // Let Stripe detect availability
+          applePay: 'auto' as const,    // Show Apple Pay if available as fallback
+          googlePay: 'always' as const  // Always show Google Pay on Android
         },
-        paymentMethodOrder: ['googlePay']
+        paymentMethodOrder: ['googlePay', 'applePay']
       };
     } else {
       console.log('🖥️ Desktop/other device - showing both payment methods');
       return {
         ...baseConfig,
         paymentMethods: {
-          applePay: 'auto' as const,   // Show if available
-          googlePay: 'auto' as const   // Show if available
+          applePay: 'auto' as const,    // Show if available
+          googlePay: 'always' as const  // Always show Google Pay on desktop
         },
-        paymentMethodOrder: ['applePay', 'googlePay']
+        paymentMethodOrder: ['googlePay', 'applePay']
       };
     }
   };
