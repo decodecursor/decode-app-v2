@@ -61,7 +61,7 @@ function PaymentForm({
   const detectPaymentCapabilities = () => {
     // Use User Agent for more reliable detection
     const userAgent = navigator.userAgent.toLowerCase();
-    const isIOS = /iphone|ipad|ipod/.test(userAgent) && !window.MSStream;
+    const isIOS = /iphone|ipad|ipod/.test(userAgent) && !/windows phone/.test(userAgent);
     const isAndroid = /android/.test(userAgent);
     const isMobile = /iphone|ipad|ipod|android|mobile/.test(userAgent);
     const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent);
