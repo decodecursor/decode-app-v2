@@ -374,9 +374,19 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
   useEffect(() => {
     // Create payment intent when component mounts
     const createPaymentIntent = async () => {
+      setLoading(true);
+      setError(null);
+
       try {
         console.log('🔍 DEBUG: Creating payment intent for:', props.paymentLinkId);
-        
+        console.log('🔍 DEBUG: Request data:', {
+          paymentLinkId: props.paymentLinkId,
+          amount: props.amount,
+          currency: 'aed',
+          customerEmail: props.customerEmail,
+          customerName: props.customerName
+        });
+
         // Create payment intent directly (skip the stripe session API)
         const intentResponse = await fetch('/api/payment/create-payment-intent', {
           method: 'POST',
@@ -392,23 +402,39 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
           }),
         });
 
+        console.log('🔍 DEBUG: Payment intent response status:', intentResponse.status);
+        console.log('🔍 DEBUG: Payment intent response headers:', Object.fromEntries(intentResponse.headers.entries()));
+
         const intentData = await intentResponse.json();
-        
-        console.log('🔍 DEBUG: Payment intent response:', intentData);
-        
+
+        console.log('🔍 DEBUG: Payment intent response data:', intentData);
+
         if (!intentResponse.ok) {
-          console.error('❌ DEBUG: Payment intent failed:', intentData);
-          throw new Error(intentData.error || 'Failed to create payment intent');
+          console.error('❌ DEBUG: Payment intent failed with status:', intentResponse.status);
+          console.error('❌ DEBUG: Payment intent error data:', intentData);
+          throw new Error(intentData.error || `API Error: ${intentResponse.status} - Failed to create payment intent`);
         }
 
+        if (!intentData.clientSecret) {
+          console.error('❌ DEBUG: No clientSecret in response:', intentData);
+          throw new Error('Payment intent created but no client secret returned');
+        }
+
+        console.log('✅ DEBUG: Payment intent created successfully, setting clientSecret');
         setClientSecret(intentData.clientSecret);
-        
+
         // Extract the real client name from the payment details
         if (intentData.paymentDetails?.clientName) {
+          console.log('🔍 DEBUG: Setting client name from payment details:', intentData.paymentDetails.clientName);
           setRealClientName(intentData.paymentDetails.clientName);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to initialize payment';
+        console.error('❌ DEBUG: Payment intent creation failed:', err);
+        console.error('❌ DEBUG: Error details:', {
+          message: errorMessage,
+          stack: err instanceof Error ? err.stack : undefined
+        });
         setError(errorMessage);
         props.onError?.(errorMessage);
       } finally {
@@ -429,19 +455,43 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-white mb-4">Payment Error</h1>
-          <p className="cosmic-body text-white opacity-80">{error}</p>
+          <h1 className="text-2xl font-bold text-white mb-4">Payment Setup Error</h1>
+          <p className="cosmic-body text-white opacity-80 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="cosmic-button-primary"
+          >
+            Retry Payment Setup
+          </button>
+          <div className="mt-4 text-xs text-gray-400 text-left bg-gray-900/50 p-3 rounded">
+            <p className="font-mono">Debug Info:</p>
+            <p className="font-mono">Payment Link ID: {props.paymentLinkId}</p>
+            <p className="font-mono">Amount: {props.amount} AED</p>
+            <p className="font-mono">Error: {error}</p>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Only create Elements when we have a clientSecret
-  if (!clientSecret) {
+  // Show loading state with more details
+  if (loading || !clientSecret) {
     return (
       <div className="cosmic-bg min-h-screen flex items-center justify-center px-4">
         <div className="cosmic-card-login max-w-md w-full text-center">
-          <div className="cosmic-body text-white opacity-60">Loading...</div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400 mx-auto mb-4"></div>
+          <div className="cosmic-body text-white opacity-60 mb-2">
+            {loading ? 'Setting up payment...' : 'Initializing Stripe...'}
+          </div>
+          <div className="text-xs text-gray-400">
+            {loading ? 'Creating secure payment session' : 'Loading payment form'}
+          </div>
+          {loading && (
+            <div className="mt-4 text-xs text-gray-500 text-left bg-gray-900/30 p-3 rounded">
+              <p className="font-mono">Payment Link: {props.paymentLinkId}</p>
+              <p className="font-mono">Amount: {props.amount} AED</p>
+            </div>
+          )}
         </div>
       </div>
     );

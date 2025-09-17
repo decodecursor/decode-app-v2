@@ -13,11 +13,14 @@ interface CreatePaymentIntentRequest {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔍 DEBUG: Payment Intent API called');
-    
+    console.log('🔍 DEBUG: Payment Intent API called at:', new Date().toISOString());
+    console.log('🔍 DEBUG: Request URL:', request.url);
+    console.log('🔍 DEBUG: Request method:', request.method);
+    console.log('🔍 DEBUG: Request headers:', Object.fromEntries(request.headers.entries()));
+
     const body: CreatePaymentIntentRequest = await request.json();
-    console.log('🔍 DEBUG: Request body:', JSON.stringify(body, null, 2));
-    
+    console.log('🔍 DEBUG: Request body received:', JSON.stringify(body, null, 2));
+
     const { paymentLinkId, amount, currency, customerEmail, customerName } = body;
 
     console.log('🔍 DEBUG: Extracted parameters:', {
@@ -30,8 +33,17 @@ export async function POST(request: NextRequest) {
 
     if (!paymentLinkId || !amount || !currency) {
       console.log('❌ DEBUG: Missing required parameters');
+      console.log('❌ DEBUG: Validation failed - received:', { paymentLinkId, amount, currency });
       return NextResponse.json({
-        error: 'Payment link ID, amount, and currency are required'
+        error: 'Payment link ID, amount, and currency are required',
+        debug: {
+          received: { paymentLinkId, amount, currency },
+          missing: {
+            paymentLinkId: !paymentLinkId,
+            amount: !amount,
+            currency: !currency
+          }
+        }
       }, { status: 400 });
     }
 
@@ -202,15 +214,21 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const paymentIntentId = searchParams.get('paymentIntentId');
 
+  // If no paymentIntentId provided, return API status (for debugging)
   if (!paymentIntentId) {
     return NextResponse.json({
-      error: 'Payment Intent ID is required'
-    }, { status: 400 });
+      status: 'API endpoint accessible',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      stripeConfigured: !!(process.env.STRIPE_SECRET_KEY && process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY),
+      availableEndpoints: ['GET', 'POST'],
+      message: 'Payment Intent API is accessible. Add ?paymentIntentId=xxx to retrieve a specific payment intent.'
+    });
   }
 
   try {
     const paymentIntent = await stripeService.getPaymentIntent(paymentIntentId);
-    
+
     return NextResponse.json({
       success: true,
       paymentIntent: {
@@ -225,7 +243,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Failed to retrieve Stripe payment intent:', error);
-    
+
     return NextResponse.json({
       error: 'Failed to retrieve payment intent',
       details: error instanceof Error ? error.message : 'Unknown error'
