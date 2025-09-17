@@ -199,7 +199,7 @@ function PaymentForm({
             <div className="cosmic-body text-xs font-bold text-white" style={{fontSize: '14px'}}>
               {customerName || 'Client Name'}
             </div>
-            <div className="cosmic-body text-xs font-bold text-white mt-2" style={{fontSize: '14px'}}>
+            <div className="cosmic-body text-xs font-bold text-white mt-4" style={{fontSize: '14px'}}>
               {currency} {amount.toFixed(2)}
             </div>
           </div>
