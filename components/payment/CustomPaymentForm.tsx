@@ -57,81 +57,64 @@ function PaymentForm({
     email: customerEmail
   });
 
-  // Enhanced device detection for payment capabilities
+  // Simplified device detection for payment capabilities
   const detectPaymentCapabilities = () => {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-    // Check for Apple Pay support with safe property access
-    const hasApplePaySupport = typeof window !== 'undefined' &&
-      'ApplePaySession' in window &&
-      typeof (window as any).ApplePaySession?.canMakePayments === 'function' &&
-      (window as any).ApplePaySession.canMakePayments();
-
     console.log('🔍 Device Detection:', {
       isIOS,
       isAndroid,
       isMobile,
-      hasApplePaySupport,
       userAgent: navigator.userAgent
     });
 
-    return { isIOS, isAndroid, isMobile, hasApplePaySupport };
+    return { isIOS, isAndroid, isMobile };
   };
 
   // Dynamic ExpressCheckout configuration based on device
   const getExpressCheckoutOptions = () => {
-    const { isIOS, isAndroid, hasApplePaySupport } = detectPaymentCapabilities();
+    const { isIOS, isAndroid } = detectPaymentCapabilities();
 
-    if (isIOS && hasApplePaySupport) {
-      console.log('✅ iOS device with Apple Pay support - showing Apple Pay only');
+    if (isIOS) {
+      console.log('📱 iOS device - prioritizing Apple Pay, allowing Google Pay');
       return {
         paymentMethods: {
-          applePay: 'auto' as const,
-          googlePay: 'never' as const
+          applePay: 'always' as const,  // Force show Apple Pay on iOS
+          googlePay: 'auto' as const     // Show Google Pay as fallback
         },
         buttonTheme: {
-          applePay: 'white-outline' as const
+          applePay: 'white-outline' as const,
+          googlePay: 'white' as const
         },
-        paymentMethodOrder: ['applePay']
+        buttonType: {
+          googlePay: 'plain' as const
+        },
+        paymentMethodOrder: ['applePay', 'googlePay']
       };
     } else if (isAndroid) {
-      console.log('✅ Android device - showing Google Pay only');
+      console.log('🤖 Android device - prioritizing Google Pay, allowing Apple Pay');
       return {
         paymentMethods: {
-          applePay: 'never' as const,
-          googlePay: 'auto' as const
+          applePay: 'auto' as const,     // Show Apple Pay if available
+          googlePay: 'always' as const   // Force show Google Pay on Android
         },
         buttonTheme: {
+          applePay: 'white-outline' as const,
           googlePay: 'white' as const
         },
         buttonType: {
           googlePay: 'plain' as const
         },
-        paymentMethodOrder: ['googlePay']
-      };
-    } else if (isIOS && !hasApplePaySupport) {
-      console.log('⚠️ iOS device without Apple Pay support - showing Google Pay');
-      return {
-        paymentMethods: {
-          applePay: 'never' as const,
-          googlePay: 'auto' as const
-        },
-        buttonTheme: {
-          googlePay: 'white' as const
-        },
-        buttonType: {
-          googlePay: 'plain' as const
-        },
-        paymentMethodOrder: ['googlePay']
+        paymentMethodOrder: ['googlePay', 'applePay']
       };
     } else {
-      console.log('🖥️ Desktop/other device - showing both with Apple Pay priority');
+      console.log('🖥️ Desktop/other device - showing both payment methods');
       return {
         paymentMethods: {
-          applePay: 'auto' as const,
-          googlePay: 'auto' as const
+          applePay: 'always' as const,  // Force show both on desktop
+          googlePay: 'always' as const
         },
         buttonTheme: {
           applePay: 'white-outline' as const,
