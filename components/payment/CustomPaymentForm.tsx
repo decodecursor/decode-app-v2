@@ -63,11 +63,11 @@ function PaymentForm({
     const isAndroid = /Android/.test(navigator.userAgent);
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-    // Check for Apple Pay support
+    // Check for Apple Pay support with safe property access
     const hasApplePaySupport = typeof window !== 'undefined' &&
-      window.ApplePaySession &&
-      ApplePaySession.canMakePayments &&
-      ApplePaySession.canMakePayments();
+      'ApplePaySession' in window &&
+      typeof (window as any).ApplePaySession?.canMakePayments === 'function' &&
+      (window as any).ApplePaySession.canMakePayments();
 
     console.log('🔍 Device Detection:', {
       isIOS,
