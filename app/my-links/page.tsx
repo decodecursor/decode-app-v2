@@ -193,12 +193,20 @@ function MyLinksContent() {
             credentials: 'include'
           })
 
+          console.log('🔍 POLLING: API response status:', response.status, response.ok);
+
           if (!response.ok) {
-            console.error('❌ POLLING: Failed to fetch payment status via proxy')
+            console.error('❌ POLLING: Failed to fetch payment status via proxy', response.status, response.statusText)
             return
           }
 
-          const { paymentStatus: currentLinks } = await response.json()
+          const responseData = await response.json()
+          console.log('🔍 POLLING: API response data:', responseData);
+
+          const { paymentStatus: currentLinks } = responseData
+
+          console.log('🔍 POLLING: Current links from API:', currentLinks);
+          console.log('🔍 POLLING: Is array?', Array.isArray(currentLinks), 'Length:', currentLinks?.length);
 
           if (currentLinks && Array.isArray(currentLinks)) {
             const currentTime = Date.now();
@@ -218,7 +226,11 @@ function MyLinksContent() {
                 const isPaidIsTrue = currentLink.is_paid === true && existingLink.is_paid !== true
                 
                 const justPaid = statusChangedToPaid || paidAtWasSet || isPaidWasSet || statusExistsAndPaid || isPaidIsTrue
-                
+
+                // Also check if this is a paid link that hasn't been animated yet (for testing)
+                const isPaidAndNotAnimated = (currentLink.payment_status === 'paid' || currentLink.is_paid) &&
+                                           heartAnimatingId !== currentLink.id
+
                 console.log('🔍 POLLING: Enhanced payment check for link:', currentLink.id, {
                   existing_payment_status: existingLink.payment_status,
                   current_payment_status: currentLink.payment_status,
@@ -227,23 +239,30 @@ function MyLinksContent() {
                   existing_paid_at: existingLink.paid_at,
                   current_paid_at: currentLink.paid_at,
                   justPaid,
+                  isPaidAndNotAnimated,
                   statusChangedToPaid,
                   paidAtWasSet,
-                  isPaidWasSet
+                  isPaidWasSet,
+                  currentHeartAnimatingId: heartAnimatingId
                 });
                 
-                if (justPaid) {
-                  console.log('🎉 POLLING: Payment completed! Triggering heart animation for:', currentLink.id);
+                // Trigger animation for recently paid links OR paid links that haven't been animated
+                if (justPaid || (isPaidAndNotAnimated && Date.now() - currentTime < 30000)) {
+                  console.log('🎉 POLLING: Payment detected! Triggering heart animation for:', currentLink.id);
+                  console.log('🎉 POLLING: Reason:', justPaid ? 'just paid' : 'already paid but not animated');
                   console.log('🎉 POLLING: Timestamp:', new Date().toISOString());
                   
                   // Enhanced heart animation triggering (same as real-time)
+                  console.log('🎉 POLLING: Clearing any existing heart animation first...')
                   setHeartAnimatingId(null)
                   setTimeout(() => {
                     console.log('🎉 POLLING: Setting heart animation for:', currentLink.id)
                     setHeartAnimatingId(currentLink.id);
+                    console.log('🎉 POLLING: Heart animating ID state set to:', currentLink.id)
                     setTimeout(() => {
                       console.log('🎉 POLLING: Clearing heart animation for:', currentLink.id)
                       setHeartAnimatingId(null)
+                      console.log('🎉 POLLING: Heart animating ID state cleared')
                     }, 3000)
                   }, 50)
                   
@@ -297,7 +316,7 @@ function MyLinksContent() {
         } catch (pollingError) {
           console.error('❌ Enhanced polling error:', pollingError);
         }
-      }, 10000); // Check every 10 seconds via proxy API
+      }, 3000); // Check every 3 seconds via proxy API for testing
       
       // Cleanup subscription and polling
       return () => {
@@ -954,7 +973,12 @@ function MyLinksContent() {
                   const isDeactivated = status === 'Deactivated'
                   const isNewPayLink = highlightingId === link.id
                   const isHeartAnimating = heartAnimatingId === link.id
-                  
+
+                  // Debug logging for heart animation state
+                  if (heartAnimatingId !== null) {
+                    console.log('💖 RENDER: Heart animating ID:', heartAnimatingId, 'Current link:', link.id, 'Is animating?', isHeartAnimating)
+                  }
+
                   return (
                     <div 
                       key={link.id} 
@@ -1184,6 +1208,24 @@ function MyLinksContent() {
                                     Deactivate
                                   </span>
                                 )}
+                              </button>
+                            )}
+
+                            {/* Test Heart Animation Button - Only show in development */}
+                            {process.env.NODE_ENV === 'development' && (
+                              <button
+                                onClick={() => {
+                                  console.log('🧪 TEST: Manually triggering heart animation for:', link.id)
+                                  setHeartAnimatingId(link.id)
+                                  setTimeout(() => {
+                                    console.log('🧪 TEST: Clearing manual heart animation')
+                                    setHeartAnimatingId(null)
+                                  }, 3000)
+                                }}
+                                className="px-3 py-2 text-sm border border-pink-500/50 text-pink-400 hover:bg-pink-500/10 hover:border-pink-500 rounded-lg transition-colors"
+                                title="Test heart animation"
+                              >
+                                💖
                               </button>
                             )}
 
