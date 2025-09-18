@@ -186,14 +186,21 @@ function MyLinksContent() {
       const pollingInterval = setInterval(async () => {
         try {
           console.log('🔍 Enhanced polling for payment status changes...');
-          
-          // Fetch current payment links with all payment-related fields
-          const { data: currentLinks, error } = await (createClient() as any)
-            .from('payment_links')
-            .select('id, is_paid, is_active, payment_status, paid_at')
-            .eq('creator_id', user.id);
-            
-          if (!error && currentLinks) {
+
+          // Fetch current payment status via proxy API (compatible with proxy arrangement)
+          const response = await fetch('/api/payment-links/status-check', {
+            method: 'GET',
+            credentials: 'include'
+          })
+
+          if (!response.ok) {
+            console.error('❌ POLLING: Failed to fetch payment status via proxy')
+            return
+          }
+
+          const { paymentStatus: currentLinks } = await response.json()
+
+          if (currentLinks && Array.isArray(currentLinks)) {
             const currentTime = Date.now();
             
             currentLinks.forEach((currentLink: any) => {
@@ -290,7 +297,7 @@ function MyLinksContent() {
         } catch (pollingError) {
           console.error('❌ Enhanced polling error:', pollingError);
         }
-      }, 5000); // Check every 5 seconds for faster detection
+      }, 10000); // Check every 10 seconds via proxy API
       
       // Cleanup subscription and polling
       return () => {
