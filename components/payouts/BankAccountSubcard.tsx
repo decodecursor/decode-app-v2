@@ -28,7 +28,15 @@ export function BankAccountSubcard({ userId, onClick, refreshKey }: BankAccountS
 
   const loadBankAccount = async () => {
     try {
-      console.log('📤 [BANK-SUBCARD] Loading bank account data...')
+      console.log('📤 [BANK-SUBCARD] Loading bank account data...', {
+        timestamp: new Date().toISOString(),
+        userId,
+        refreshKey,
+        currentBankAccount: bankAccount ? {
+          id: bankAccount.id,
+          bank_name: bankAccount.bank_name
+        } : null
+      })
 
       // First check for manually added bank account
       const response = await fetch('/api/user/bank-account', {

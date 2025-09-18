@@ -33,12 +33,45 @@ export async function GET() {
 
     // Get user's bank account
     console.log('🔍 [BANK-ACCOUNT-API] GET Querying bank account for user:', user.id)
-    const { data: bankAccount, error } = await supabase
+    console.log('🔍 [BANK-ACCOUNT-API] GET User ID type:', typeof user.id, 'Length:', user.id.length)
+
+    // First, let's see if there are ANY bank accounts for this user (without is_primary filter)
+    const { data: allAccounts, error: allError } = await supabase
+      .from('user_bank_accounts')
+      .select('*')
+      .eq('user_id', user.id)
+
+    console.log('🔍 [BANK-ACCOUNT-API] GET All accounts for user:', {
+      count: allAccounts?.length || 0,
+      accounts: allAccounts,
+      error: allError
+    })
+
+    // Now get the primary account (use the most recent one if multiple exist)
+    const { data: bankAccounts, error } = await supabase
       .from('user_bank_accounts')
       .select('*')
       .eq('user_id', user.id)
       .eq('is_primary', true)
-      .single()
+      .order('created_at', { ascending: false })
+
+    const bankAccount = bankAccounts && bankAccounts.length > 0 ? bankAccounts[0] : null
+
+    console.log('🔍 [BANK-ACCOUNT-API] GET Multiple primary accounts check:', {
+      foundCount: bankAccounts?.length || 0,
+      selectedAccount: bankAccount ? {
+        id: bankAccount.id,
+        bank_name: bankAccount.bank_name,
+        created_at: bankAccount.created_at
+      } : null
+    })
+
+    console.log('🔍 [BANK-ACCOUNT-API] GET Primary account query result:', {
+      bankAccount,
+      error,
+      errorCode: error?.code,
+      errorMessage: error?.message
+    })
 
     if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
       console.error('❌ [BANK-ACCOUNT-API] GET Error fetching bank account:', {
@@ -121,17 +154,16 @@ export async function POST(request: Request) {
       )
     }
 
-    // Check if user already has a bank account
-    console.log('🔍 [BANK-ACCOUNT-API] Checking for existing bank account for user:', user.id)
-    const { data: existingAccount, error: checkError } = await supabase
+    // Check if user already has bank accounts and clean them up
+    console.log('🔍 [BANK-ACCOUNT-API] Checking for existing bank accounts for user:', user.id)
+    const { data: existingAccounts, error: checkError } = await supabase
       .from('user_bank_accounts')
-      .select('id')
+      .select('*')
       .eq('user_id', user.id)
       .eq('is_primary', true)
-      .single()
 
-    if (checkError && checkError.code !== 'PGRST116') {
-      console.error('❌ [BANK-ACCOUNT-API] Error checking existing account:', {
+    if (checkError) {
+      console.error('❌ [BANK-ACCOUNT-API] Error checking existing accounts:', {
         error: checkError,
         errorCode: checkError.code,
         errorMessage: checkError.message,
@@ -139,15 +171,24 @@ export async function POST(request: Request) {
       })
     }
 
-    if (existingAccount) {
-      console.log('⚠️ [BANK-ACCOUNT-API] User already has bank account:', existingAccount.id)
-      return NextResponse.json(
-        { error: 'Bank account already exists. Use PUT to update.' },
-        { status: 409 }
-      )
+    if (existingAccounts && existingAccounts.length > 0) {
+      console.log(`⚠️ [BANK-ACCOUNT-API] User has ${existingAccounts.length} existing bank account(s), will replace with new one`)
+
+      // Delete all existing primary accounts for this user to avoid duplicates
+      const { error: deleteError } = await supabase
+        .from('user_bank_accounts')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('is_primary', true)
+
+      if (deleteError) {
+        console.error('❌ [BANK-ACCOUNT-API] Error deleting old accounts:', deleteError)
+      } else {
+        console.log('✅ [BANK-ACCOUNT-API] Cleaned up old bank accounts')
+      }
     }
 
-    console.log('✅ [BANK-ACCOUNT-API] No existing account found, proceeding with insert')
+    console.log('✅ [BANK-ACCOUNT-API] Ready to insert new bank account')
 
     // Insert new bank account
     console.log('💾 [BANK-ACCOUNT-API] Attempting to insert:', {
@@ -196,7 +237,23 @@ export async function POST(request: Request) {
     console.log('✅ [BANK-ACCOUNT-API] Bank account created successfully:', {
       accountId: newAccount.id,
       userId: user.id,
-      userEmail: user.email
+      userEmail: user.email,
+      insertedData: newAccount
+    })
+
+    // Immediately verify the data can be retrieved
+    console.log('🔍 [BANK-ACCOUNT-API] POST Immediate verification - querying saved account...')
+    const { data: verifyAccount, error: verifyError } = await supabase
+      .from('user_bank_accounts')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_primary', true)
+      .single()
+
+    console.log('🔍 [BANK-ACCOUNT-API] POST Verification result:', {
+      found: !!verifyAccount,
+      account: verifyAccount,
+      error: verifyError
     })
 
     return NextResponse.json({

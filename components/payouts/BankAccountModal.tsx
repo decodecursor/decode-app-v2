@@ -99,11 +99,17 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
         console.log('🔄 [BANK-MODAL] Triggering refresh callback immediately')
         onSuccess()
 
+        // Add a small delay to ensure database consistency, then trigger another refresh
+        setTimeout(() => {
+          console.log('🔄 [BANK-MODAL] Triggering delayed refresh for database consistency')
+          onSuccess()
+        }, 500)
+
         // Close modal after a brief delay to show success message
         setTimeout(() => {
           onClose()
           setMessage(null)
-        }, 1000)
+        }, 1500)
       } else {
         console.error('❌ [BANK-MODAL] Failed to save bank account:', {
           status: response.status,
