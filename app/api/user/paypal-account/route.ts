@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { getUserWithProxy } from '@/utils/auth-helper'
 
 // Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -8,16 +7,17 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 // GET - Retrieve user's PayPal account information
 export async function GET() {
   try {
-    const { user } = await getUserWithProxy()
+    const supabase = await createClient()
 
-    if (!user) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: 'Not authenticated' },
         { status: 401 }
       )
     }
-
-    const supabase = await createClient()
 
     // Get user's PayPal account
     const { data: paypalAccount, error } = await supabase
@@ -52,11 +52,14 @@ export async function GET() {
 // POST - Save new PayPal account data
 export async function POST(request: Request) {
   try {
-    const { user } = await getUserWithProxy()
+    const supabase = await createClient()
 
-    if (!user) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: 'Not authenticated' },
         { status: 401 }
       )
     }
@@ -87,8 +90,6 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
-
-    const supabase = await createClient()
 
     // Check if user already has a PayPal account
     const { data: existingAccount } = await supabase
@@ -145,11 +146,14 @@ export async function POST(request: Request) {
 // PUT - Update existing PayPal account
 export async function PUT(request: Request) {
   try {
-    const { user } = await getUserWithProxy()
+    const supabase = await createClient()
 
-    if (!user) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: 'Not authenticated' },
         { status: 401 }
       )
     }
@@ -180,8 +184,6 @@ export async function PUT(request: Request) {
         { status: 400 }
       )
     }
-
-    const supabase = await createClient()
 
     // Update existing PayPal account
     const { data: updatedAccount, error: updateError } = await supabase
@@ -228,16 +230,17 @@ export async function PUT(request: Request) {
 // DELETE - Remove PayPal account
 export async function DELETE() {
   try {
-    const { user } = await getUserWithProxy()
+    const supabase = await createClient()
 
-    if (!user) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: 'Not authenticated' },
         { status: 401 }
       )
     }
-
-    const supabase = await createClient()
 
     // Delete PayPal account
     const { error: deleteError } = await supabase
