@@ -14,7 +14,7 @@ export async function GET() {
       )
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // Get user's bank account
     const { data: bankAccount, error } = await supabase
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // Check if user already has a bank account
     const { data: existingAccount } = await supabase
@@ -147,7 +147,7 @@ export async function PUT(request: Request) {
       )
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // Update existing bank account
     const { data: updatedAccount, error: updateError } = await supabase
@@ -205,7 +205,7 @@ export async function DELETE() {
       )
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // Delete bank account
     const { error: deleteError } = await supabase

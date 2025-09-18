@@ -17,7 +17,7 @@ export async function GET() {
       )
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // Get user's PayPal account
     const { data: paypalAccount, error } = await supabase
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // Check if user already has a PayPal account
     const { data: existingAccount } = await supabase
@@ -181,7 +181,7 @@ export async function PUT(request: Request) {
       )
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // Update existing PayPal account
     const { data: updatedAccount, error: updateError } = await supabase
@@ -237,7 +237,7 @@ export async function DELETE() {
       )
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // Delete PayPal account
     const { error: deleteError } = await supabase
