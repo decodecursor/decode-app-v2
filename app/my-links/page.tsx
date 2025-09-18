@@ -195,7 +195,8 @@ function MyLinksContent() {
       console.log('🔄 Setting up enhanced fallback polling for payment status changes...');
       const pollingInterval = setInterval(async () => {
         try {
-          console.log('🔍 Enhanced polling for payment status changes...');
+          const timestamp = new Date().toISOString();
+          console.log('🔍 POLLING CYCLE START:', timestamp);
 
           // Fetch current payment status via proxy API (compatible with proxy arrangement)
           const response = await fetch('/api/payment-links/status-check', {
@@ -211,12 +212,23 @@ function MyLinksContent() {
           }
 
           const responseData = await response.json()
-          console.log('🔍 POLLING: API response data:', responseData);
+          console.log('🔍 POLLING: RAW API RESPONSE:', JSON.stringify(responseData, null, 2));
 
           const { paymentStatus: currentLinks } = responseData
 
-          console.log('🔍 POLLING: Current links from API:', currentLinks);
-          console.log('🔍 POLLING: Is array?', Array.isArray(currentLinks), 'Length:', currentLinks?.length);
+          console.log('🔍 POLLING: PARSED LINKS:', currentLinks);
+          console.log('🔍 POLLING: Array check - Is array?', Array.isArray(currentLinks), 'Length:', currentLinks?.length);
+
+          if (currentLinks && currentLinks.length > 0) {
+            currentLinks.forEach((link: any, index: number) => {
+              console.log(`🔍 POLLING: Link ${index + 1}:`, {
+                id: link.id,
+                payment_status: link.payment_status,
+                is_paid: link.is_paid,
+                paid_at: link.paid_at
+              });
+            });
+          }
 
           if (currentLinks && Array.isArray(currentLinks)) {
             const currentTime = Date.now();
@@ -232,8 +244,11 @@ function MyLinksContent() {
               });
 
               // FORCE: If link is paid, add to animation list (bypass complex detection)
-              if (currentLink.payment_status === 'paid' || currentLink.is_paid === true) {
-                console.log('🎉 POLLING: Found paid link - FORCE ADDING TO ANIMATION:', currentLink.id);
+              const isPaid = currentLink.payment_status === 'paid' || currentLink.is_paid === true;
+              console.log(`🔍 POLLING: Link ${currentLink.id} paid status:`, isPaid);
+
+              if (isPaid) {
+                console.log('🎉 POLLING: 🚨 FOUND PAID LINK - FORCE ADDING TO ANIMATION:', currentLink.id);
                 newlyPaidLinks.push(currentLink.id);
               }
             });
