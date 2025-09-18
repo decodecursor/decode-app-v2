@@ -260,20 +260,10 @@ export default function Dashboard() {
           fetchPendingCount()
         }
       }, 30000) // 30 seconds
-      
-      // Refresh immediately when page becomes visible
-      const handleVisibilityChange = () => {
-        if (document.visibilityState === 'visible') {
-          fetchPendingCount()
-        }
-      }
-      
-      document.addEventListener('visibilitychange', handleVisibilityChange)
-      
+
       // Cleanup on component unmount
       return () => {
         clearInterval(pollInterval)
-        document.removeEventListener('visibilitychange', handleVisibilityChange)
       }
     }
     
