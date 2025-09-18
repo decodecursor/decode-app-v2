@@ -74,6 +74,7 @@ function MyLinksContent() {
   const [lastCheckedTimestamp, setLastCheckedTimestamp] = useState<number>(Date.now())
   const [visibleCount, setVisibleCount] = useState(6)
   const [initialLoadComplete, setInitialLoadComplete] = useState(false)
+  const [firstPollComplete, setFirstPollComplete] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -282,13 +283,16 @@ function MyLinksContent() {
               changedToPaid: !previousIsPaid && currentIsPaid
             });
 
-            // Only trigger animation if link changed from unpaid to paid AND initial load is complete
+            // Only trigger animation if link changed from unpaid to paid AND both initial load and first poll are complete
             if (!previousIsPaid && currentIsPaid) {
-              if (initialLoadComplete) {
+              if (initialLoadComplete && firstPollComplete) {
                 console.log('🎉 POLLING: 🚨 PAYMENT STATUS CHANGED! Link became paid:', currentLink.id);
                 newlyPaidLinks.push(currentLink.id);
               } else {
-                console.log('🔍 POLLING: Payment detected but initial load not complete, skipping animation:', currentLink.id);
+                console.log('🔍 POLLING: Payment detected but synchronization not complete, skipping animation:', currentLink.id, {
+                  initialLoadComplete,
+                  firstPollComplete
+                });
               }
             } else if (currentIsPaid) {
               console.log('🔍 POLLING: Link already paid, no animation needed:', currentLink.id);
@@ -364,6 +368,12 @@ function MyLinksContent() {
           }
 
           setLastCheckedTimestamp(currentTime);
+
+          // Mark first poll as complete after the first successful polling cycle
+          if (!firstPollComplete) {
+            console.log('✅ First polling cycle complete - enabling payment change detection');
+            setFirstPollComplete(true);
+          }
         }
       } catch (pollingError) {
         console.error('❌ Enhanced polling error:', pollingError);
@@ -375,28 +385,76 @@ function MyLinksContent() {
       console.log('🔍 POLLING SETUP: Cleaning up polling interval')
       clearInterval(pollingInterval)
     }
-  }, [userRole, companyName, heartAnimatingId, initialLoadComplete, paymentLinks]) // Dependencies: userRole, companyName, heartAnimatingId, initialLoadComplete, and paymentLinks for state comparison
+  }, [userRole, companyName, heartAnimatingId, initialLoadComplete, firstPollComplete, paymentLinks]) // Dependencies: userRole, companyName, heartAnimatingId, initialLoadComplete, firstPollComplete, and paymentLinks for state comparison
 
   // Detect new PayLink from URL parameter and trigger highlight effect
   useEffect(() => {
     const newId = searchParams.get('new')
+    console.log('🌟 NEW LINK: URL parameter detected:', newId)
+
     if (newId) {
       setNewPayLinkId(newId)
-      // Start highlighting effect after a short delay to ensure the page is loaded
-      setTimeout(() => {
-        setHighlightingId(newId)
-        // Remove highlight after 1.5 seconds
-        setTimeout(() => {
-          setHighlightingId(null)
-          setNewPayLinkId(null)
-          // Clean up URL parameter
-          const url = new URL(window.location.href)
-          url.searchParams.delete('new')
-          window.history.replaceState({}, '', url.toString())
-        }, 1500)
-      }, 500)
+      console.log('🌟 NEW LINK: Set newPayLinkId to:', newId)
+
+      // Only start highlighting if initial load is complete and payment links are loaded
+      if (initialLoadComplete && paymentLinks.length > 0) {
+        console.log('🌟 NEW LINK: Prerequisites met - starting highlight effect')
+        tryHighlightNewLink(newId)
+      } else {
+        console.log('🌟 NEW LINK: Waiting for prerequisites:', {
+          initialLoadComplete,
+          paymentLinksCount: paymentLinks.length
+        })
+      }
     }
-  }, [searchParams])
+  }, [searchParams, initialLoadComplete, paymentLinks])
+
+  // Function to try highlighting with retry logic
+  const tryHighlightNewLink = (linkId: string, attempt = 1, maxAttempts = 5) => {
+    console.log(`🌟 NEW LINK: Highlight attempt ${attempt}/${maxAttempts} for link:`, linkId)
+
+    // Check if the payment link exists in our state
+    const linkExists = paymentLinks.some(link => link.id === linkId)
+    if (!linkExists) {
+      console.log('🌟 NEW LINK: Link not found in payment links state:', linkId)
+      if (attempt < maxAttempts) {
+        setTimeout(() => tryHighlightNewLink(linkId, attempt + 1, maxAttempts), 500)
+        return
+      } else {
+        console.log('🌟 NEW LINK: Max attempts reached, giving up on highlighting')
+        return
+      }
+    }
+
+    // Check if the DOM element exists
+    const targetElement = document.getElementById(`payment-link-${linkId}`)
+    if (!targetElement) {
+      console.log('🌟 NEW LINK: DOM element not found, retrying...', `payment-link-${linkId}`)
+      if (attempt < maxAttempts) {
+        setTimeout(() => tryHighlightNewLink(linkId, attempt + 1, maxAttempts), 200)
+        return
+      } else {
+        console.log('🌟 NEW LINK: Max attempts reached, element not found in DOM')
+        return
+      }
+    }
+
+    // Successfully found element, start highlighting
+    console.log('🌟 NEW LINK: ✅ Element found, starting highlight effect')
+    setHighlightingId(linkId)
+
+    // Remove highlight after 1.5 seconds
+    setTimeout(() => {
+      console.log('🌟 NEW LINK: Clearing highlight effect')
+      setHighlightingId(null)
+      setNewPayLinkId(null)
+      // Clean up URL parameter
+      const url = new URL(window.location.href)
+      url.searchParams.delete('new')
+      window.history.replaceState({}, '', url.toString())
+      console.log('🌟 NEW LINK: URL parameter cleaned up')
+    }, 1500)
+  }
 
   // Create magical highlight effect for new PayLink
   const createNewPayLinkHighlight = (cardElement: HTMLElement) => {
