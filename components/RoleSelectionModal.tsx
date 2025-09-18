@@ -1,7 +1,7 @@
 'use client'
 
 // Force cache clear for TypeScript fix
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
 
 interface RoleSelectionModalProps {
@@ -24,7 +24,8 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
   const [companySuggestions, setCompanySuggestions] = useState<string[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [hasSelectedSuggestion, setHasSelectedSuggestion] = useState(false)
-  
+
+  const nameInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
 
   // Pre-populate form with invite data or pre-selected role
@@ -55,6 +56,17 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
   useEffect(() => {
     console.log('🔄 [ROLE MODAL] Current role state:', role)
   }, [role])
+
+  // Auto-focus name input when modal opens
+  useEffect(() => {
+    if (isOpen && nameInputRef.current) {
+      // Add a small delay to ensure modal is fully rendered
+      const timer = setTimeout(() => {
+        nameInputRef.current?.focus()
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [isOpen])
 
   useEffect(() => {
     const fetchCompanySuggestions = async () => {
@@ -288,6 +300,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
               Name
             </label>
             <input
+              ref={nameInputRef}
               type="text"
               placeholder="Enter your full name"
               value={userName}
@@ -322,7 +335,9 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
                   value="Admin"
                   checked={role === 'Admin'}
                   onChange={(e) => setRole(e.target.value)}
-                  className="w-4 h-4 text-purple-500 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2"
+                  className={`w-4 h-4 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2 ${
+                    role === 'Admin' ? 'text-purple-500 border-purple-500' : 'text-purple-500'
+                  }`}
                   disabled={loading || !!inviteData || !!preselectedRole}
                 />
                 <div className="flex-1">
@@ -342,7 +357,9 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
                   value="Staff"
                   checked={role === 'Staff'}
                   onChange={(e) => setRole(e.target.value)}
-                  className="w-4 h-4 text-purple-500 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2"
+                  className={`w-4 h-4 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2 ${
+                    role === 'Staff' ? 'text-purple-500 border-purple-500' : 'text-purple-500'
+                  }`}
                   disabled={loading || !!inviteData || !!preselectedRole}
                 />
                 <div className="flex-1">
@@ -362,7 +379,9 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
                   value="Model"
                   checked={role === 'Model'}
                   onChange={(e) => setRole(e.target.value)}
-                  className="w-4 h-4 text-purple-500 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2"
+                  className={`w-4 h-4 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2 ${
+                    role === 'Model' ? 'text-purple-500 border-purple-500' : 'text-purple-500'
+                  }`}
                   disabled={loading || !!inviteData || !!preselectedRole}
                 />
                 <div className="flex-1">
