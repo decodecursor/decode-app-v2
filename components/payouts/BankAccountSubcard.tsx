@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 interface BankAccountSubcardProps {
   userId: string
   onClick: () => void
+  refreshKey?: number
 }
 
 interface BankAccount {
@@ -16,14 +17,14 @@ interface BankAccount {
   status: string
 }
 
-export function BankAccountSubcard({ userId, onClick }: BankAccountSubcardProps) {
+export function BankAccountSubcard({ userId, onClick, refreshKey }: BankAccountSubcardProps) {
   const [loading, setLoading] = useState(true)
   const [bankAccount, setBankAccount] = useState<BankAccount | null>(null)
 
   useEffect(() => {
-    console.log('🔄 [BANK-SUBCARD] Component mounted/updated, loading bank account for userId:', userId)
+    console.log('🔄 [BANK-SUBCARD] Component mounted/updated, loading bank account for userId:', userId, 'refreshKey:', refreshKey)
     loadBankAccount()
-  }, [userId])
+  }, [userId, refreshKey])
 
   const loadBankAccount = async () => {
     try {

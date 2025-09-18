@@ -71,10 +71,11 @@ export function PayoutMethodsCard({ userId }: PayoutMethodsCardProps) {
             <p className="text-gray-400 text-sm">Manage your payout preferences</p>
           </div>
           <div className="flex gap-3">
-            <BankAccountSubcard 
+            <BankAccountSubcard
               key={`bank-${refreshKey}`}
-              userId={userId} 
+              userId={userId}
               onClick={handleBankAccountClick}
+              refreshKey={refreshKey}
             />
             <PayPalSubcard 
               key={`paypal-${refreshKey}`}
