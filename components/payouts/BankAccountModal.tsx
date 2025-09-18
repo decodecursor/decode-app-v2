@@ -60,22 +60,38 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
 
     try {
       const method = isConnected ? 'PUT' : 'POST'
+      const requestData = {
+        beneficiary_name: beneficiary.trim(),
+        iban_number: iban.trim(),
+        bank_name: bank.trim()
+      }
+
+      console.log('📤 [BANK-MODAL] Sending request:', {
+        method,
+        url: '/api/user/bank-account',
+        data: requestData
+      })
+
       const response = await fetch('/api/user/bank-account', {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({
-          beneficiary_name: beneficiary.trim(),
-          iban_number: iban.trim(),
-          bank_name: bank.trim()
-        })
+        body: JSON.stringify(requestData)
+      })
+
+      console.log('📥 [BANK-MODAL] Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
       })
 
       const result = await response.json()
+      console.log('📋 [BANK-MODAL] Response data:', result)
 
       if (response.ok && result.success) {
+        console.log('✅ [BANK-MODAL] Bank account saved successfully')
         setMessage({ type: 'success', text: result.message || 'Bank account saved successfully!' })
         setIsConnected(true)
 
@@ -86,17 +102,27 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
           setMessage(null)
         }, 1500)
       } else {
+        console.error('❌ [BANK-MODAL] Failed to save bank account:', {
+          status: response.status,
+          result
+        })
+
+        // Show detailed error message including API details if available
+        const errorMessage = result.details
+          ? `${result.error}: ${result.details}`
+          : result.error || 'Failed to save bank account'
+
         setMessage({
           type: 'error',
-          text: result.error || 'Failed to save bank account'
+          text: errorMessage
         })
       }
 
     } catch (error) {
-      console.error('Error saving bank account:', error)
+      console.error('❌ [BANK-MODAL] Network/request error:', error)
       setMessage({
         type: 'error',
-        text: error instanceof Error ? error.message : 'Failed to save bank account'
+        text: error instanceof Error ? error.message : 'Network error - please try again'
       })
     } finally {
       setLoading(false)

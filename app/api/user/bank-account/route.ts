@@ -49,17 +49,32 @@ export async function GET() {
 // POST - Save new bank account data
 export async function POST(request: Request) {
   try {
+    console.log('📥 [BANK-ACCOUNT-API] POST request received')
     const supabase = await createClient()
 
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (authError || !user) {
+    if (authError) {
+      console.error('❌ [BANK-ACCOUNT-API] Authentication error:', authError)
+      return NextResponse.json(
+        { error: 'Not authenticated', details: authError.message },
+        { status: 401 }
+      )
+    }
+
+    if (!user) {
+      console.error('❌ [BANK-ACCOUNT-API] No user found in session')
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
       )
     }
+
+    console.log('✅ [BANK-ACCOUNT-API] User authenticated:', {
+      userId: user.id,
+      userEmail: user.email
+    })
 
     const body = await request.json()
     const { beneficiary_name, iban_number, bank_name } = body
@@ -73,21 +88,43 @@ export async function POST(request: Request) {
     }
 
     // Check if user already has a bank account
-    const { data: existingAccount } = await supabase
+    console.log('🔍 [BANK-ACCOUNT-API] Checking for existing bank account for user:', user.id)
+    const { data: existingAccount, error: checkError } = await supabase
       .from('user_bank_accounts')
       .select('id')
       .eq('user_id', user.id)
       .eq('is_primary', true)
       .single()
 
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('❌ [BANK-ACCOUNT-API] Error checking existing account:', {
+        error: checkError,
+        errorCode: checkError.code,
+        errorMessage: checkError.message,
+        userId: user.id
+      })
+    }
+
     if (existingAccount) {
+      console.log('⚠️ [BANK-ACCOUNT-API] User already has bank account:', existingAccount.id)
       return NextResponse.json(
         { error: 'Bank account already exists. Use PUT to update.' },
         { status: 409 }
       )
     }
 
+    console.log('✅ [BANK-ACCOUNT-API] No existing account found, proceeding with insert')
+
     // Insert new bank account
+    console.log('💾 [BANK-ACCOUNT-API] Attempting to insert:', {
+      user_id: user.id,
+      beneficiary_name: beneficiary_name.trim(),
+      iban_number: iban_number.trim(),
+      bank_name: bank_name.trim(),
+      is_primary: true,
+      is_verified: false,
+      status: 'pending'
+    })
     const { data: newAccount, error: insertError } = await supabase
       .from('user_bank_accounts')
       .insert({
@@ -103,12 +140,30 @@ export async function POST(request: Request) {
       .single()
 
     if (insertError) {
-      console.error('Error inserting bank account:', insertError)
+      console.error('❌ [BANK-ACCOUNT-API] Error inserting bank account:', {
+        error: insertError,
+        errorCode: insertError.code,
+        errorMessage: insertError.message,
+        errorDetails: insertError.details,
+        userId: user.id,
+        userEmail: user.email,
+        requestData: { beneficiary_name, iban_number, bank_name }
+      })
       return NextResponse.json(
-        { error: 'Failed to save bank account' },
+        {
+          error: 'Failed to save bank account',
+          details: insertError.message,
+          code: insertError.code
+        },
         { status: 500 }
       )
     }
+
+    console.log('✅ [BANK-ACCOUNT-API] Bank account created successfully:', {
+      accountId: newAccount.id,
+      userId: user.id,
+      userEmail: user.email
+    })
 
     return NextResponse.json({
       success: true,
