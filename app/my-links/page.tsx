@@ -256,20 +256,39 @@ function MyLinksContent() {
           // Track which links just became paid - check BEFORE state update
           const newlyPaidLinks: string[] = [];
 
-          // SIMPLIFIED: Check for ANY paid link and force animation
+          // PROPER CHANGE DETECTION: Only animate links that changed from unpaid to paid
           currentLinks.forEach((currentLink: any) => {
             console.log('🔍 POLLING: Checking link:', currentLink.id, {
               payment_status: currentLink.payment_status,
               is_paid: currentLink.is_paid
             });
 
-            // FORCE: If link is paid, add to animation list (bypass complex detection)
-            const isPaid = currentLink.payment_status === 'paid' || currentLink.is_paid === true;
-            console.log(`🔍 POLLING: Link ${currentLink.id} paid status:`, isPaid);
+            // Find the existing link in our current state
+            const existingLink = paymentLinks.find(link => link.id === currentLink.id);
 
-            if (isPaid) {
-              console.log('🎉 POLLING: 🚨 FOUND PAID LINK - FORCE ADDING TO ANIMATION:', currentLink.id);
+            if (!existingLink) {
+              console.log('🔍 POLLING: Link not found in current state, skipping:', currentLink.id);
+              return;
+            }
+
+            // Check current payment status
+            const currentIsPaid = currentLink.payment_status === 'paid' || currentLink.is_paid === true;
+            const previousIsPaid = existingLink.payment_status === 'paid' || existingLink.is_paid === true;
+
+            console.log(`🔍 POLLING: Link ${currentLink.id} status change:`, {
+              previousIsPaid,
+              currentIsPaid,
+              changedToPaid: !previousIsPaid && currentIsPaid
+            });
+
+            // Only trigger animation if link changed from unpaid to paid
+            if (!previousIsPaid && currentIsPaid) {
+              console.log('🎉 POLLING: 🚨 PAYMENT STATUS CHANGED! Link became paid:', currentLink.id);
               newlyPaidLinks.push(currentLink.id);
+            } else if (currentIsPaid) {
+              console.log('🔍 POLLING: Link already paid, no animation needed:', currentLink.id);
+            } else {
+              console.log('🔍 POLLING: Link still unpaid:', currentLink.id);
             }
           });
 
