@@ -21,31 +21,52 @@ export function BankAccountSubcard({ userId, onClick }: BankAccountSubcardProps)
   const [bankAccount, setBankAccount] = useState<BankAccount | null>(null)
 
   useEffect(() => {
+    console.log('🔄 [BANK-SUBCARD] Component mounted/updated, loading bank account for userId:', userId)
     loadBankAccount()
   }, [userId])
 
   const loadBankAccount = async () => {
     try {
+      console.log('📤 [BANK-SUBCARD] Loading bank account data...')
+
       // First check for manually added bank account
       const response = await fetch('/api/user/bank-account', {
         method: 'GET',
         credentials: 'include'
       })
 
+      console.log('📥 [BANK-SUBCARD] API response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      })
+
       if (response.ok) {
         const result = await response.json()
+        console.log('📋 [BANK-SUBCARD] API response data:', result)
+
         if (result.success && result.data) {
-          setBankAccount({
+          const accountData = {
             id: result.data.id,
             iban_number: result.data.iban_number,
             bank_name: result.data.bank_name,
             beneficiary_name: result.data.beneficiary_name,
             is_verified: result.data.is_verified,
             status: result.data.status
-          })
+          }
+
+          console.log('✅ [BANK-SUBCARD] Setting bank account data:', accountData)
+          setBankAccount(accountData)
           setLoading(false)
           return
+        } else {
+          console.log('ℹ️ [BANK-SUBCARD] No bank account data in response')
         }
+      } else {
+        console.error('❌ [BANK-SUBCARD] API request failed:', {
+          status: response.status,
+          statusText: response.statusText
+        })
       }
 
       // Fallback to check Stripe Connect status
@@ -80,6 +101,7 @@ export function BankAccountSubcard({ userId, onClick }: BankAccountSubcardProps)
   }
 
   const getStatusIcon = () => {
+    console.log('🎨 [BANK-SUBCARD] getStatusIcon called, bankAccount:', bankAccount ? 'exists' : 'null')
     if (bankAccount) {
       return (
         <div className="w-5 h-5 bg-green-600/80 rounded-full flex items-center justify-center">
@@ -93,6 +115,7 @@ export function BankAccountSubcard({ userId, onClick }: BankAccountSubcardProps)
   }
 
   if (loading) {
+    console.log('⏳ [BANK-SUBCARD] Rendering loading state')
     return (
       <div className="flex-1 bg-white/5 rounded-lg p-4 border border-gray-700 cursor-pointer hover:bg-white/8 transition-colors">
         <div className="animate-pulse">
@@ -106,6 +129,15 @@ export function BankAccountSubcard({ userId, onClick }: BankAccountSubcardProps)
       </div>
     )
   }
+
+  console.log('🎨 [BANK-SUBCARD] Rendering main component, bankAccount:', {
+    hasAccount: !!bankAccount,
+    accountData: bankAccount ? {
+      id: bankAccount.id,
+      bankName: bankAccount.bank_name,
+      ibanMasked: maskIban(bankAccount.iban_number)
+    } : null
+  })
 
   return (
     <div 

@@ -95,12 +95,15 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
         setMessage({ type: 'success', text: result.message || 'Bank account saved successfully!' })
         setIsConnected(true)
 
-        // Call success callback and close modal after a brief delay
+        // Trigger refresh immediately to update the card
+        console.log('🔄 [BANK-MODAL] Triggering refresh callback immediately')
+        onSuccess()
+
+        // Close modal after a brief delay to show success message
         setTimeout(() => {
-          onSuccess()
           onClose()
           setMessage(null)
-        }, 1500)
+        }, 1000)
       } else {
         console.error('❌ [BANK-MODAL] Failed to save bank account:', {
           status: response.status,

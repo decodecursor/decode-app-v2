@@ -51,7 +51,12 @@ export function PayoutMethodsCard({ userId }: PayoutMethodsCardProps) {
 
   const handleBankAccountSuccess = () => {
     // Trigger refresh of Bank Account subcard
-    setRefreshKey(prev => prev + 1)
+    const newKey = refreshKey + 1
+    console.log('🔄 [PAYOUT-METHODS] Bank account success - updating refresh key:', {
+      oldKey: refreshKey,
+      newKey: newKey
+    })
+    setRefreshKey(newKey)
   }
 
   return (

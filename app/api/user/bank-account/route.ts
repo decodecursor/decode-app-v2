@@ -4,19 +4,35 @@ import { createClient } from '@/utils/supabase/server'
 // GET - Retrieve user's bank account information
 export async function GET() {
   try {
+    console.log('📥 [BANK-ACCOUNT-API] GET request received')
     const supabase = await createClient()
 
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (authError || !user) {
+    if (authError) {
+      console.error('❌ [BANK-ACCOUNT-API] GET Authentication error:', authError)
+      return NextResponse.json(
+        { error: 'Not authenticated', details: authError.message },
+        { status: 401 }
+      )
+    }
+
+    if (!user) {
+      console.error('❌ [BANK-ACCOUNT-API] GET No user found in session')
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
       )
     }
 
+    console.log('✅ [BANK-ACCOUNT-API] GET User authenticated:', {
+      userId: user.id,
+      userEmail: user.email
+    })
+
     // Get user's bank account
+    console.log('🔍 [BANK-ACCOUNT-API] GET Querying bank account for user:', user.id)
     const { data: bankAccount, error } = await supabase
       .from('user_bank_accounts')
       .select('*')
@@ -25,11 +41,29 @@ export async function GET() {
       .single()
 
     if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-      console.error('Error fetching bank account:', error)
+      console.error('❌ [BANK-ACCOUNT-API] GET Error fetching bank account:', {
+        error,
+        errorCode: error.code,
+        errorMessage: error.message,
+        userId: user.id
+      })
       return NextResponse.json(
-        { error: 'Failed to fetch bank account' },
+        { error: 'Failed to fetch bank account', details: error.message },
         { status: 500 }
       )
+    }
+
+    if (bankAccount) {
+      console.log('✅ [BANK-ACCOUNT-API] GET Bank account found:', {
+        accountId: bankAccount.id,
+        bankName: bankAccount.bank_name,
+        beneficiaryName: bankAccount.beneficiary_name,
+        isVerified: bankAccount.is_verified,
+        status: bankAccount.status,
+        userId: user.id
+      })
+    } else {
+      console.log('ℹ️ [BANK-ACCOUNT-API] GET No bank account found for user:', user.id)
     }
 
     return NextResponse.json({
