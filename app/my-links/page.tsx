@@ -224,31 +224,17 @@ function MyLinksContent() {
             // Track which links just became paid - check BEFORE state update
             const newlyPaidLinks: string[] = [];
 
-            // Check for newly paid links FIRST (before state update)
+            // SIMPLIFIED: Check for ANY paid link and force animation
             currentLinks.forEach((currentLink: any) => {
-              const existingLink = paymentLinks.find(link => link.id === currentLink.id);
+              console.log('🔍 POLLING: Checking link:', currentLink.id, {
+                payment_status: currentLink.payment_status,
+                is_paid: currentLink.is_paid
+              });
 
-              if (existingLink) {
-                // Enhanced payment detection logic
-                const statusChangedToPaid = currentLink.payment_status === 'paid' && existingLink.payment_status !== 'paid'
-                const paidAtWasSet = currentLink.paid_at && !existingLink.paid_at
-                const isPaidWasSet = currentLink.is_paid === true && !existingLink.is_paid
-                const isPaidIsTrue = currentLink.is_paid === true && existingLink.is_paid !== true
-
-                const justPaid = statusChangedToPaid || paidAtWasSet || isPaidWasSet || isPaidIsTrue
-
-                console.log('🔍 POLLING: Payment check for link:', currentLink.id, {
-                  existing_payment_status: existingLink.payment_status,
-                  current_payment_status: currentLink.payment_status,
-                  existing_is_paid: existingLink.is_paid,
-                  current_is_paid: currentLink.is_paid,
-                  justPaid
-                });
-
-                if (justPaid) {
-                  console.log('🎉 POLLING: Payment detected for link:', currentLink.id);
-                  newlyPaidLinks.push(currentLink.id);
-                }
+              // FORCE: If link is paid, add to animation list (bypass complex detection)
+              if (currentLink.payment_status === 'paid' || currentLink.is_paid === true) {
+                console.log('🎉 POLLING: Found paid link - FORCE ADDING TO ANIMATION:', currentLink.id);
+                newlyPaidLinks.push(currentLink.id);
               }
             });
 
