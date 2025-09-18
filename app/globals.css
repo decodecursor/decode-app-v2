@@ -3,6 +3,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Heart Animation Keyframes */
+@keyframes heartfade {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100px) scale(1.5);
+  }
+}
+
 /* Cosmic Design System - CSS Custom Properties */
 :root {
   /* Cosmic Color Palette */

@@ -896,6 +896,9 @@ function MyLinksContent() {
 
   return (
     <div className="cosmic-bg">
+      {/* Global Heart Animation - Renders above everything */}
+      <HeartAnimation isActive={heartAnimatingId !== null} />
+
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Link */}
         <div className="flex justify-center mb-8">
@@ -997,9 +1000,6 @@ function MyLinksContent() {
                               ? 'bg-blue-900/30 border-l-red-500 hover:border-red-400 hover:bg-blue-800/30 hover:shadow-2xl hover:shadow-red-400/60 hover:scale-[1.01]'
                               : 'bg-gray-900/80 border-l-purple-500 hover:border-purple-400 hover:bg-gray-800/80 hover:shadow-2xl hover:shadow-purple-400/60 hover:scale-[1.01]'
                       }`}>
-                      
-                      {/* Heart Animation Effect */}
-                      <HeartAnimation isActive={isHeartAnimating} />
                       {/* Status Ribbon - No longer needed, all inactive states use overlays now */}
                       
                       {/* PAID Overlay */}

@@ -52,42 +52,41 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
   const generateHeart = (x: number, y: number, xBound: number, xStart: number, scale: number): Heart => {
     const heartElement = document.createElement('div')
     heartElement.className = 'heart-floating'
+
+    // Create the heart shape using divs instead of pseudo-elements
+    const heartBefore = document.createElement('div')
+    const heartAfter = document.createElement('div')
+
+    // Style the main container
     heartElement.style.cssText = `
-      position: absolute;
+      position: fixed;
       left: ${x}px;
       top: ${y}px;
       transform: scale(${scale}, ${scale});
-      z-index: 999;
-      animation: heartfade 6s linear;
+      z-index: 99999;
       pointer-events: none;
+      width: 45px;
+      height: 40px;
     `
 
-    // Add heart shape using CSS pseudo-elements
-    heartElement.innerHTML = `
-      <style>
-        .heart-floating::before,
-        .heart-floating::after {
-          content: "";
-          background-color: #fc2a62;
-          position: absolute;
-          height: 30px;
-          width: 45px;
-          border-radius: 15px 0px 0px 15px;
-        }
-        .heart-floating::before {
-          transform: rotate(45deg);
-        }
-        .heart-floating::after {
-          left: 10.5px;
-          transform: rotate(135deg);
-        }
-        @keyframes heartfade {
-          0% { opacity: 1; }
-          50% { opacity: 0; }
-          100% { opacity: 1; }
-        }
-      </style>
+    // Style the heart parts
+    const heartPartStyle = `
+      position: absolute;
+      background-color: #fc2a62;
+      height: 30px;
+      width: 45px;
+      border-radius: 15px 0px 0px 15px;
     `
+
+    heartBefore.style.cssText = heartPartStyle + `transform: rotate(45deg);`
+    heartAfter.style.cssText = heartPartStyle + `left: 10.5px; transform: rotate(135deg);`
+
+    // Add animation
+    heartElement.style.animation = 'heartfade 4s linear'
+
+    // Append heart parts
+    heartElement.appendChild(heartBefore)
+    heartElement.appendChild(heartAfter)
 
     if (containerRef.current) {
       containerRef.current.appendChild(heartElement)
@@ -136,25 +135,26 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
   const generateRandomHeart = () => {
     if (!containerRef.current || !isActive) return
 
-    const container = containerRef.current
-    const rect = container.getBoundingClientRect()
-    
-    // Generate hearts in the center area of the container
-    const centerX = rect.width / 2
-    const centerY = rect.height / 2
-    
+    // Use window dimensions since we're using fixed positioning
+    const windowWidth = window.innerWidth
+    const windowHeight = window.innerHeight
+
+    // Generate hearts in the center area of the screen
+    const centerX = windowWidth / 2
+    const centerY = windowHeight / 2
+
     const start = 1 - Math.round(Math.random()) * 2
-    const scale = Math.random() * Math.random() * 0.8 + 0.2
+    const scale = Math.random() * Math.random() * 0.8 + 0.4
     const bound = 30 + Math.random() * 20
-    
+
     const heart = generateHeart(
-      centerX + (Math.random() - 0.5) * 300, // Random x around center
-      (rect.height / 2) + Math.random() * 150, // Start from vertical middle
+      centerX + (Math.random() - 0.5) * 400, // Random x around center
+      centerY + (Math.random() - 0.5) * 200, // Start from center area
       bound,
       start,
       scale
     )
-    
+
     heartsRef.current.push(heart)
   }
 
@@ -191,8 +191,8 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 pointer-events-none overflow-hidden"
-      style={{ zIndex: 999 }}
+      className="fixed inset-0 pointer-events-none"
+      style={{ zIndex: 99999 }}
     />
   )
 }
