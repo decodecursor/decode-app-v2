@@ -3,15 +3,13 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Heart Animation Keyframes */
+/* Heart Animation Keyframes - Using only opacity and top */
 @keyframes heartfade {
   0% {
     opacity: 1;
-    transform: translateY(0) scale(1);
   }
   100% {
     opacity: 0;
-    transform: translateY(-100px) scale(1.5);
   }
 }
 

@@ -61,44 +61,40 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
     const heartBefore = document.createElement('div')
     const heartAfter = document.createElement('div')
 
-    // Style the main container
+    // Style the main container - scale applied here
     heartElement.style.cssText = `
       position: fixed;
       left: ${x}px;
       top: ${y}px;
-      transform: scale(${scale}, ${scale});
+      transform: scale(${scale});
       z-index: 99999;
       pointer-events: none;
       width: 45px;
       height: 40px;
+      animation: heartfade 4s linear;
     `
 
-    // Style the heart parts
+    // Style the heart parts with transform-origin
     const heartPartStyle = `
       position: absolute;
       background-color: #fc2a62;
       height: 30px;
       width: 45px;
       border-radius: 15px 0px 0px 15px;
+      transform-origin: bottom right;
     `
 
     heartBefore.style.cssText = heartPartStyle + `transform: rotate(45deg);`
     heartAfter.style.cssText = heartPartStyle + `left: 10.5px; transform: rotate(135deg);`
 
-    // Add animation
-    heartElement.style.animation = 'heartfade 4s linear'
-
     // Append heart parts
     heartElement.appendChild(heartBefore)
     heartElement.appendChild(heartAfter)
 
-    if (containerRef.current) {
-      console.log('💖 HeartAnimation: Appending heart to container')
-      containerRef.current.appendChild(heartElement)
-      console.log('💖 HeartAnimation: Heart appended! Container children:', containerRef.current.children.length)
-    } else {
-      console.error('💖 HeartAnimation: No container ref!')
-    }
+    // Append directly to document.body for true fixed positioning
+    console.log('💖 HeartAnimation: Appending heart to document.body')
+    document.body.appendChild(heartElement)
+    console.log('💖 HeartAnimation: Heart appended! Body contains heart:', document.body.contains(heartElement))
 
     const heart: Heart = {
       id: heartIdCounter.current++,
@@ -116,7 +112,7 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
 
   const updateHearts = () => {
     const deltaTime = 16 // ~60fps
-    const speed = 0.5
+    const speed = 2 // Increased speed for visibility
 
     heartsRef.current = heartsRef.current.filter(heart => {
       heart.time -= deltaTime
@@ -125,9 +121,14 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
         heart.y -= speed
         heart.element.style.top = `${heart.y}px`
         heart.element.style.left = `${heart.x + heart.direction * heart.bound * Math.sin(heart.y * heart.scale / 30) / heart.y * 200}px`
+
+        // Update opacity based on time remaining
+        const opacity = heart.time / 4000
+        heart.element.style.opacity = `${opacity}`
+
         return true
       } else {
-        // Remove expired heart
+        // Remove expired heart from DOM
         if (heart.element.parentNode) {
           heart.element.parentNode.removeChild(heart.element)
         }
@@ -187,7 +188,7 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
   }
 
   const stopAnimation = () => {
-    // Clear existing hearts
+    // Clear existing hearts from document.body
     heartsRef.current.forEach(heart => {
       if (heart.element.parentNode) {
         heart.element.parentNode.removeChild(heart.element)
