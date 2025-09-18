@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
       .from('payment_links')
       .update({
         payment_status: 'paid',
+        is_paid: true,
         paid_at: new Date().toISOString()
       })
       .eq('id', paymentLinkId);

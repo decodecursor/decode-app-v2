@@ -113,8 +113,9 @@ export async function POST(request: NextRequest) {
       console.log('🔄 API: Updating payment_links for real-time subscription...');
       const { error: linkErrorCreate } = await supabaseAdmin
         .from('payment_links')
-        .update({ 
+        .update({
           payment_status: 'paid',
+          is_paid: true,
           paid_at: new Date().toISOString()
         })
         .eq('id', paymentLinkId);
@@ -181,8 +182,9 @@ export async function POST(request: NextRequest) {
       console.log('🔄 API: Updating payment_links for real-time subscription...');
       const { error: linkErrorUpdate } = await supabaseAdmin
         .from('payment_links')
-        .update({ 
+        .update({
           payment_status: 'paid',
+          is_paid: true,
           paid_at: new Date().toISOString()
         })
         .eq('id', paymentLinkId);
