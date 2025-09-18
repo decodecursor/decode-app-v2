@@ -598,15 +598,11 @@ export default function CreatePayment() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
-                ) : userBranches.length === 1 ? (
-                  <div className="text-sm text-gray-300">
-                    Branch: <span className="text-purple-400">{selectedBranch}</span>
-                  </div>
-                ) : (
+                ) : userBranches.length === 0 ? (
                   <div className="text-sm text-red-400">
                     ⚠️ No branch assigned - Contact administrator
                   </div>
-                )}
+                ) : null}
 
               </div>
             </form>

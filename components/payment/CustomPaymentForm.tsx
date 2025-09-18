@@ -362,6 +362,7 @@ function PaymentForm({
                 value={clientInfo.email}
                 onChange={(e) => setClientInfo(prev => ({ ...prev, email: e.target.value }))}
                 className="cosmic-input"
+                autoComplete="email"
                 required
               />
             </div>
@@ -374,7 +375,7 @@ function PaymentForm({
               minHeight: '250px',
               position: 'relative'
             }}>
-              <PaymentElement 
+              <PaymentElement
                 options={{
                   layout: 'tabs',
                   paymentMethodOrder: ['card'],
@@ -386,10 +387,22 @@ function PaymentForm({
                     billingDetails: {
                       email: 'auto'
                     }
+                  },
+                  defaultValues: {
+                    billingDetails: {
+                      email: clientInfo.email
+                    }
                   }
                 }}
                 onReady={() => {
                   console.log('✅ PaymentElement ready and visible');
+                  // Remove autofocus from payment element inputs
+                  setTimeout(() => {
+                    const activeElement = document.activeElement;
+                    if (activeElement && activeElement.tagName === 'INPUT') {
+                      (activeElement as HTMLElement).blur();
+                    }
+                  }, 100);
                 }}
                 onLoaderStart={() => {
                   console.log('🔄 PaymentElement loading...');

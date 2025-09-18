@@ -244,6 +244,25 @@ input[type="number"] {
   touch-action: manipulation;
 }
 
+/* Fix yellow background on autofilled inputs */
+.cosmic-input:-webkit-autofill,
+.cosmic-input:-webkit-autofill:hover,
+.cosmic-input:-webkit-autofill:focus,
+.cosmic-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+  -webkit-text-fill-color: var(--cosmic-text-primary) !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Additional autofill styling for other browsers */
+.cosmic-input:autofill {
+  background-color: transparent !important;
+  background-image: none !important;
+  color: var(--cosmic-text-primary) !important;
+}
+
 .cosmic-input::placeholder {
   color: var(--cosmic-text-secondary);
 }
