@@ -38,6 +38,7 @@ export interface Database {
           stripe_details_submitted: boolean | null
           stripe_capabilities: Json | null
           stripe_requirements: Json | null
+          preferred_payout_method: 'bank_account' | 'paypal' | null
         }
         Insert: {
           id?: string
@@ -64,6 +65,7 @@ export interface Database {
           stripe_details_submitted?: boolean | null
           stripe_capabilities?: Json | null
           stripe_requirements?: Json | null
+          preferred_payout_method?: 'bank_account' | 'paypal' | null
         }
         Update: {
           id?: string
@@ -90,6 +92,7 @@ export interface Database {
           stripe_details_submitted?: boolean | null
           stripe_capabilities?: Json | null
           stripe_requirements?: Json | null
+          preferred_payout_method?: 'bank_account' | 'paypal' | null
         }
         Relationships: []
       }

@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     // Fetch user profile data
     const { data: userData, error } = await supabase
       .from('users')
-      .select('role, professional_center_name, user_name, company_name, approval_status, branch_name')
+      .select('role, professional_center_name, user_name, company_name, approval_status, branch_name, preferred_payout_method')
       .eq('id', user.id)
       .single()
 
@@ -107,6 +107,85 @@ export async function GET(request: NextRequest) {
     console.error('💥 [PROXY-PROFILE] Server error:', error)
     return NextResponse.json(
       { error: 'Server error fetching profile', details: error.message },
+      { status: 500 }
+    )
+  }
+}
+
+// PATCH - Update user profile data (including preferred payout method)
+export async function PATCH(request: NextRequest) {
+  try {
+    console.log('🔄 [PROFILE-PATCH] Request received')
+
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      console.log('❌ [PROFILE-PATCH] No authenticated user found')
+      return NextResponse.json(
+        { error: 'No authenticated user' },
+        { status: 401 }
+      )
+    }
+
+    const body = await request.json()
+    const { preferred_payout_method } = body
+
+    console.log('📝 [PROFILE-PATCH] Update request:', {
+      userId: user.id,
+      preferred_payout_method
+    })
+
+    // Validate preferred_payout_method if provided
+    if (preferred_payout_method !== undefined &&
+        preferred_payout_method !== null &&
+        !['bank_account', 'paypal'].includes(preferred_payout_method)) {
+      return NextResponse.json(
+        { error: 'Invalid preferred_payout_method. Must be "bank_account", "paypal", or null' },
+        { status: 400 }
+      )
+    }
+
+    // Update user profile
+    const updateData: any = {}
+    if (preferred_payout_method !== undefined) {
+      updateData.preferred_payout_method = preferred_payout_method
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json(
+        { error: 'No valid fields to update' },
+        { status: 400 }
+      )
+    }
+
+    const { data: updatedUser, error: updateError } = await supabase
+      .from('users')
+      .update(updateData)
+      .eq('id', user.id)
+      .select()
+      .single()
+
+    if (updateError) {
+      console.error('❌ [PROFILE-PATCH] Update failed:', updateError)
+      return NextResponse.json(
+        { error: 'Failed to update profile', details: updateError.message },
+        { status: 500 }
+      )
+    }
+
+    console.log('✅ [PROFILE-PATCH] Profile updated successfully')
+
+    return NextResponse.json({
+      success: true,
+      message: 'Profile updated successfully',
+      userData: updatedUser
+    })
+
+  } catch (error: any) {
+    console.error('💥 [PROFILE-PATCH] Server error:', error)
+    return NextResponse.json(
+      { error: 'Server error updating profile', details: error.message },
       { status: 500 }
     )
   }
