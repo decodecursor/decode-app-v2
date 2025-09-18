@@ -891,13 +891,6 @@ function MyLinksContent() {
       {/* Global Heart Animation - Renders above everything */}
       <HeartAnimation isActive={heartAnimatingId !== null} />
 
-      {/* TEMPORARY: Debug hearts for ALL paid links */}
-      {process.env.NODE_ENV === 'development' && paymentLinks.some(link =>
-        link.payment_status === 'paid' || link.is_paid
-      ) && (
-        <HeartAnimation isActive={true} />
-      )}
-
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Link */}
         <div className="flex justify-center mb-8">
