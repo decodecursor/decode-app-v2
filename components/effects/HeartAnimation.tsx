@@ -25,8 +25,31 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
   const checkIntervalRef = useRef<NodeJS.Timeout>()
   const heartIdCounter = useRef(0)
 
+  // Global debug function - can be called from browser console
   useEffect(() => {
-    console.log('💖 HeartAnimation: isActive changed to:', isActive)
+    (window as any).testHearts = () => {
+      console.log('🧪 MANUAL TEST: Creating test hearts via window.testHearts()')
+
+      // Create 5 test hearts at different positions
+      for (let i = 0; i < 5; i++) {
+        const x = 200 + i * 100
+        const y = 200 + i * 50
+        const heart = generateHeart(x, y, 30, 1, 1)
+        heartsRef.current.push(heart)
+      }
+
+      // Start animation loop
+      updateHearts()
+
+      console.log('🧪 MANUAL TEST: Test hearts created! Check screen and DOM.')
+    }
+
+    console.log('💖 HeartAnimation: Global test function available - call window.testHearts()')
+  }, [])
+
+  useEffect(() => {
+    console.log('💖 HeartAnimation: isActive prop changed to:', isActive)
+    console.log('💖 HeartAnimation: Component is', isActive ? 'ACTIVE' : 'INACTIVE')
 
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current)
@@ -36,10 +59,10 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
     }
 
     if (isActive) {
-      console.log('💖 HeartAnimation: Starting animation!')
+      console.log('💖 HeartAnimation: ✅ STARTING ANIMATION!')
       startAnimation()
     } else {
-      console.log('💖 HeartAnimation: Stopping animation')
+      console.log('💖 HeartAnimation: ❌ STOPPING ANIMATION')
       stopAnimation()
     }
 
@@ -54,47 +77,40 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
   }, [isActive])
 
   const generateHeart = (x: number, y: number, xBound: number, xStart: number, scale: number): Heart => {
+    // SIMPLIFIED: Create basic red square for testing
     const heartElement = document.createElement('div')
     heartElement.className = 'heart-floating'
 
-    // Create the heart shape using divs instead of pseudo-elements
-    const heartBefore = document.createElement('div')
-    const heartAfter = document.createElement('div')
-
-    // Style the main container - scale applied here
+    // Style as simple red square - much more visible
     heartElement.style.cssText = `
       position: fixed;
       left: ${x}px;
       top: ${y}px;
-      transform: scale(${scale});
+      width: 50px;
+      height: 50px;
+      background-color: #ff0000;
+      border: 3px solid #ffffff;
+      border-radius: 10px;
       z-index: 99999;
       pointer-events: none;
-      width: 45px;
-      height: 40px;
+      transform: scale(${scale});
       animation: heartfade 4s linear;
+      box-shadow: 0 0 10px rgba(255,0,0,0.8);
     `
 
-    // Style the heart parts with transform-origin
-    const heartPartStyle = `
-      position: absolute;
-      background-color: #fc2a62;
-      height: 30px;
-      width: 45px;
-      border-radius: 15px 0px 0px 15px;
-      transform-origin: bottom right;
-    `
-
-    heartBefore.style.cssText = heartPartStyle + `transform: rotate(45deg);`
-    heartAfter.style.cssText = heartPartStyle + `left: 10.5px; transform: rotate(135deg);`
-
-    // Append heart parts
-    heartElement.appendChild(heartBefore)
-    heartElement.appendChild(heartAfter)
+    // Add text for debugging
+    heartElement.textContent = '❤️'
+    heartElement.style.display = 'flex'
+    heartElement.style.alignItems = 'center'
+    heartElement.style.justifyContent = 'center'
+    heartElement.style.fontSize = '20px'
 
     // Append directly to document.body for true fixed positioning
+    console.log('💖 HeartAnimation: Creating heart at position:', { x, y, scale })
     console.log('💖 HeartAnimation: Appending heart to document.body')
     document.body.appendChild(heartElement)
     console.log('💖 HeartAnimation: Heart appended! Body contains heart:', document.body.contains(heartElement))
+    console.log('💖 HeartAnimation: Heart element:', heartElement)
 
     const heart: Heart = {
       id: heartIdCounter.current++,

@@ -61,6 +61,16 @@ function MyLinksContent() {
   const [newPayLinkId, setNewPayLinkId] = useState<string | null>(null)
   const [highlightingId, setHighlightingId] = useState<string | null>(null)
   const [heartAnimatingId, setHeartAnimatingId] = useState<string | null>(null)
+
+  // Debug logging for heartAnimatingId changes
+  useEffect(() => {
+    console.log('💖 STATE: heartAnimatingId changed to:', heartAnimatingId)
+    if (heartAnimatingId) {
+      console.log('💖 STATE: 🔥 HEART ANIMATION IS NOW ACTIVE FOR:', heartAnimatingId)
+    } else {
+      console.log('💖 STATE: ❌ Heart animation is now INACTIVE')
+    }
+  }, [heartAnimatingId])
   const [lastCheckedTimestamp, setLastCheckedTimestamp] = useState<number>(Date.now())
   const [visibleCount, setVisibleCount] = useState(6)
   const router = useRouter()
@@ -276,27 +286,36 @@ function MyLinksContent() {
             });
 
             // Now trigger heart animations for newly paid links (outside state update)
+            console.log('🎉 POLLING: Final check - newlyPaidLinks array:', newlyPaidLinks);
+            console.log('🎉 POLLING: Array length:', newlyPaidLinks.length);
+
             if (newlyPaidLinks.length > 0) {
-              console.log('🎉 POLLING: Triggering heart animations for newly paid links:', newlyPaidLinks);
+              console.log('🎉 POLLING: 🚨 PAYMENT DETECTED! Triggering heart animations for:', newlyPaidLinks);
 
               // Trigger animation for the first newly paid link
               const linkToAnimate = newlyPaidLinks[0];
-              console.log('🎉 POLLING: Animating link:', linkToAnimate);
+              console.log('🎉 POLLING: 🎯 Will animate link:', linkToAnimate);
+              console.log('🎉 POLLING: Current heartAnimatingId before change:', heartAnimatingId);
 
               // Clear any existing animation
+              console.log('🎉 POLLING: Clearing existing heartAnimatingId...');
               setHeartAnimatingId(null);
 
               // Set new animation after a brief delay
               setTimeout(() => {
-                console.log('🎉 POLLING: Setting heart animation for:', linkToAnimate);
+                console.log('🎉 POLLING: 🔥 SETTING HEART ANIMATION FOR:', linkToAnimate);
+                console.log('🎉 POLLING: Calling setHeartAnimatingId with:', linkToAnimate);
                 setHeartAnimatingId(linkToAnimate);
 
+                console.log('🎉 POLLING: ⏰ Setting clear timer for 3 seconds...');
                 // Clear animation after 3 seconds
                 setTimeout(() => {
-                  console.log('🎉 POLLING: Clearing heart animation for:', linkToAnimate);
+                  console.log('🎉 POLLING: ⏰ TIME UP! Clearing heart animation for:', linkToAnimate);
                   setHeartAnimatingId(null);
                 }, 3000);
               }, 100);
+            } else {
+              console.log('🎉 POLLING: No newly paid links detected this cycle');
             }
             
             setLastCheckedTimestamp(currentTime);
@@ -885,6 +904,13 @@ function MyLinksContent() {
     <div className="cosmic-bg">
       {/* Global Heart Animation - Renders above everything */}
       <HeartAnimation isActive={heartAnimatingId !== null} />
+
+      {/* TEMPORARY: Debug hearts for ALL paid links */}
+      {process.env.NODE_ENV === 'development' && paymentLinks.some(link =>
+        link.payment_status === 'paid' || link.is_paid
+      ) && (
+        <HeartAnimation isActive={true} />
+      )}
 
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Link */}
