@@ -211,65 +211,52 @@ function MyLinksContent() {
           if (currentLinks && Array.isArray(currentLinks)) {
             const currentTime = Date.now();
 
-            // Track which links just became paid (outside state update)
+            // Track which links just became paid - check BEFORE state update
             const newlyPaidLinks: string[] = [];
 
-            // First, update the payment links state and detect changes
+            // Check for newly paid links FIRST (before state update)
+            currentLinks.forEach((currentLink: any) => {
+              const existingLink = paymentLinks.find(link => link.id === currentLink.id);
+
+              if (existingLink) {
+                // Enhanced payment detection logic
+                const statusChangedToPaid = currentLink.payment_status === 'paid' && existingLink.payment_status !== 'paid'
+                const paidAtWasSet = currentLink.paid_at && !existingLink.paid_at
+                const isPaidWasSet = currentLink.is_paid === true && !existingLink.is_paid
+                const isPaidIsTrue = currentLink.is_paid === true && existingLink.is_paid !== true
+
+                const justPaid = statusChangedToPaid || paidAtWasSet || isPaidWasSet || isPaidIsTrue
+
+                console.log('🔍 POLLING: Payment check for link:', currentLink.id, {
+                  existing_payment_status: existingLink.payment_status,
+                  current_payment_status: currentLink.payment_status,
+                  existing_is_paid: existingLink.is_paid,
+                  current_is_paid: currentLink.is_paid,
+                  justPaid
+                });
+
+                if (justPaid) {
+                  console.log('🎉 POLLING: Payment detected for link:', currentLink.id);
+                  newlyPaidLinks.push(currentLink.id);
+                }
+              }
+            });
+
+            // Now update the payment links state
             currentLinks.forEach((currentLink: any) => {
               setPaymentLinks(prev => {
                 const existingLink = prev.find(link => link.id === currentLink.id);
 
                 if (!existingLink) return prev; // Link not found in state
 
-                // Enhanced payment detection logic (same as real-time subscription)
-                const statusChangedToPaid = currentLink.payment_status === 'paid' && existingLink.payment_status !== 'paid'
-                const paidAtWasSet = currentLink.paid_at && !existingLink.paid_at
-                const isPaidWasSet = currentLink.is_paid && !existingLink.is_paid
-                const statusExistsAndPaid = currentLink.payment_status === 'paid' && existingLink.payment_status !== 'paid'
-                const isPaidIsTrue = currentLink.is_paid === true && existingLink.is_paid !== true
+                // Check if we need to update this link
+                const needsUpdate = existingLink.payment_status !== currentLink.payment_status ||
+                                   existingLink.is_paid !== currentLink.is_paid ||
+                                   existingLink.paid_at !== currentLink.paid_at ||
+                                   existingLink.is_active !== currentLink.is_active;
 
-                const justPaid = statusChangedToPaid || paidAtWasSet || isPaidWasSet || statusExistsAndPaid || isPaidIsTrue
-
-                console.log('🔍 POLLING: Enhanced payment check for link:', currentLink.id, {
-                  existing_payment_status: existingLink.payment_status,
-                  current_payment_status: currentLink.payment_status,
-                  existing_is_paid: existingLink.is_paid,
-                  current_is_paid: currentLink.is_paid,
-                  existing_paid_at: existingLink.paid_at,
-                  current_paid_at: currentLink.paid_at,
-                  justPaid,
-                  statusChangedToPaid,
-                  paidAtWasSet,
-                  isPaidWasSet
-                });
-
-                // Track newly paid links (but don't trigger animation here)
-                if (justPaid) {
-                  console.log('🎉 POLLING: Payment detected for link:', currentLink.id);
-                  newlyPaidLinks.push(currentLink.id);
-
-                  // Update this link to paid with all available fields
-                  return prev.map(link =>
-                    link.id === currentLink.id
-                      ? {
-                          ...link,
-                          is_paid: true,
-                          payment_status: 'paid' as 'paid',
-                          paid_at: currentLink.paid_at || new Date().toISOString()
-                        }
-                      : link
-                  );
-                }
-
-                // No payment change, but update other fields if they changed
-                const hasOtherChanges =
-                  existingLink.is_active !== currentLink.is_active ||
-                  existingLink.payment_status !== currentLink.payment_status ||
-                  existingLink.is_paid !== currentLink.is_paid ||
-                  existingLink.paid_at !== currentLink.paid_at
-
-                if (hasOtherChanges) {
-                  console.log('🔄 POLLING: Updating fields for:', currentLink.id)
+                if (needsUpdate) {
+                  console.log('🔄 POLLING: Updating link state for:', currentLink.id);
                   return prev.map(link =>
                     link.id === currentLink.id
                       ? {

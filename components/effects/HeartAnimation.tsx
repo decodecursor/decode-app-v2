@@ -26,6 +26,8 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
   const heartIdCounter = useRef(0)
 
   useEffect(() => {
+    console.log('💖 HeartAnimation: isActive changed to:', isActive)
+
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current)
     }
@@ -34,8 +36,10 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
     }
 
     if (isActive) {
+      console.log('💖 HeartAnimation: Starting animation!')
       startAnimation()
     } else {
+      console.log('💖 HeartAnimation: Stopping animation')
       stopAnimation()
     }
 
@@ -89,7 +93,11 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
     heartElement.appendChild(heartAfter)
 
     if (containerRef.current) {
+      console.log('💖 HeartAnimation: Appending heart to container')
       containerRef.current.appendChild(heartElement)
+      console.log('💖 HeartAnimation: Heart appended! Container children:', containerRef.current.children.length)
+    } else {
+      console.error('💖 HeartAnimation: No container ref!')
     }
 
     const heart: Heart = {
