@@ -190,151 +190,168 @@ function MyLinksContent() {
             console.warn('⚠️ Real-time subscription status:', status)
           }
         })
-        
-      // Enhanced fallback polling mechanism (every 5 seconds for faster detection)
-      console.log('🔄 Setting up enhanced fallback polling for payment status changes...');
-      const pollingInterval = setInterval(async () => {
-        try {
-          const timestamp = new Date().toISOString();
-          console.log('🔍 POLLING CYCLE START:', timestamp);
 
-          // Fetch current payment status via proxy API (compatible with proxy arrangement)
-          const response = await fetch('/api/payment-links/status-check', {
-            method: 'GET',
-            credentials: 'include'
-          })
-
-          console.log('🔍 POLLING: API response status:', response.status, response.ok);
-
-          if (!response.ok) {
-            console.error('❌ POLLING: Failed to fetch payment status via proxy', response.status, response.statusText)
-            return
-          }
-
-          const responseData = await response.json()
-          console.log('🔍 POLLING: RAW API RESPONSE:', JSON.stringify(responseData, null, 2));
-
-          const { paymentStatus: currentLinks } = responseData
-
-          console.log('🔍 POLLING: PARSED LINKS:', currentLinks);
-          console.log('🔍 POLLING: Array check - Is array?', Array.isArray(currentLinks), 'Length:', currentLinks?.length);
-
-          if (currentLinks && currentLinks.length > 0) {
-            currentLinks.forEach((link: any, index: number) => {
-              console.log(`🔍 POLLING: Link ${index + 1}:`, {
-                id: link.id,
-                payment_status: link.payment_status,
-                is_paid: link.is_paid,
-                paid_at: link.paid_at
-              });
-            });
-          }
-
-          if (currentLinks && Array.isArray(currentLinks)) {
-            const currentTime = Date.now();
-
-            // Track which links just became paid - check BEFORE state update
-            const newlyPaidLinks: string[] = [];
-
-            // SIMPLIFIED: Check for ANY paid link and force animation
-            currentLinks.forEach((currentLink: any) => {
-              console.log('🔍 POLLING: Checking link:', currentLink.id, {
-                payment_status: currentLink.payment_status,
-                is_paid: currentLink.is_paid
-              });
-
-              // FORCE: If link is paid, add to animation list (bypass complex detection)
-              const isPaid = currentLink.payment_status === 'paid' || currentLink.is_paid === true;
-              console.log(`🔍 POLLING: Link ${currentLink.id} paid status:`, isPaid);
-
-              if (isPaid) {
-                console.log('🎉 POLLING: 🚨 FOUND PAID LINK - FORCE ADDING TO ANIMATION:', currentLink.id);
-                newlyPaidLinks.push(currentLink.id);
-              }
-            });
-
-            // Now update the payment links state
-            currentLinks.forEach((currentLink: any) => {
-              setPaymentLinks(prev => {
-                const existingLink = prev.find(link => link.id === currentLink.id);
-
-                if (!existingLink) return prev; // Link not found in state
-
-                // Check if we need to update this link
-                const needsUpdate = existingLink.payment_status !== currentLink.payment_status ||
-                                   existingLink.is_paid !== currentLink.is_paid ||
-                                   existingLink.paid_at !== currentLink.paid_at ||
-                                   existingLink.is_active !== currentLink.is_active;
-
-                if (needsUpdate) {
-                  console.log('🔄 POLLING: Updating link state for:', currentLink.id);
-                  return prev.map(link =>
-                    link.id === currentLink.id
-                      ? {
-                          ...link,
-                          is_active: currentLink.is_active,
-                          payment_status: currentLink.payment_status || link.payment_status,
-                          is_paid: currentLink.is_paid || link.is_paid,
-                          paid_at: currentLink.paid_at || link.paid_at
-                        }
-                      : link
-                  );
-                }
-
-                // No changes needed
-                return prev;
-              });
-            });
-
-            // Now trigger heart animations for newly paid links (outside state update)
-            console.log('🎉 POLLING: Final check - newlyPaidLinks array:', newlyPaidLinks);
-            console.log('🎉 POLLING: Array length:', newlyPaidLinks.length);
-
-            if (newlyPaidLinks.length > 0) {
-              console.log('🎉 POLLING: 🚨 PAYMENT DETECTED! Triggering heart animations for:', newlyPaidLinks);
-
-              // Trigger animation for the first newly paid link
-              const linkToAnimate = newlyPaidLinks[0];
-              console.log('🎉 POLLING: 🎯 Will animate link:', linkToAnimate);
-              console.log('🎉 POLLING: Current heartAnimatingId before change:', heartAnimatingId);
-
-              // Clear any existing animation
-              console.log('🎉 POLLING: Clearing existing heartAnimatingId...');
-              setHeartAnimatingId(null);
-
-              // Set new animation after a brief delay
-              setTimeout(() => {
-                console.log('🎉 POLLING: 🔥 SETTING HEART ANIMATION FOR:', linkToAnimate);
-                console.log('🎉 POLLING: Calling setHeartAnimatingId with:', linkToAnimate);
-                setHeartAnimatingId(linkToAnimate);
-
-                console.log('🎉 POLLING: ⏰ Setting clear timer for 3 seconds...');
-                // Clear animation after 3 seconds
-                setTimeout(() => {
-                  console.log('🎉 POLLING: ⏰ TIME UP! Clearing heart animation for:', linkToAnimate);
-                  setHeartAnimatingId(null);
-                }, 3000);
-              }, 100);
-            } else {
-              console.log('🎉 POLLING: No newly paid links detected this cycle');
-            }
-            
-            setLastCheckedTimestamp(currentTime);
-          }
-        } catch (pollingError) {
-          console.error('❌ Enhanced polling error:', pollingError);
-        }
-      }, 3000); // Check every 3 seconds via proxy API for testing
-      
-      // Cleanup subscription and polling
+      // Cleanup subscription only
       return () => {
         subscription.unsubscribe()
-        clearInterval(pollingInterval)
       }
     }
     
     getUser()
   }, [router])
+
+  // Enhanced polling useEffect that depends on userRole and companyName being available
+  useEffect(() => {
+    console.log('🔍 POLLING SETUP: userRole:', userRole, 'companyName:', companyName)
+
+    // Only start polling when we have user role and company name
+    if (!userRole || !companyName) {
+      console.log('🔍 POLLING SETUP: Missing userRole or companyName, skipping polling setup')
+      return
+    }
+
+    console.log('🔍 POLLING SETUP: ✅ Starting enhanced polling with userRole:', userRole, 'companyName:', companyName)
+
+    // Enhanced fallback polling mechanism (every 3 seconds for faster detection)
+    const pollingInterval = setInterval(async () => {
+      try {
+        const timestamp = new Date().toISOString();
+        console.log('🔍 POLLING CYCLE START:', timestamp);
+
+        // Fetch current payment status via proxy API (compatible with proxy arrangement)
+        const response = await fetch('/api/payment-links/status-check', {
+          method: 'GET',
+          credentials: 'include'
+        })
+
+        console.log('🔍 POLLING: API response status:', response.status, response.ok);
+
+        if (!response.ok) {
+          console.error('❌ POLLING: Failed to fetch payment status via proxy', response.status, response.statusText)
+          return
+        }
+
+        const responseData = await response.json()
+        console.log('🔍 POLLING: RAW API RESPONSE:', JSON.stringify(responseData, null, 2));
+
+        const { paymentStatus: currentLinks } = responseData
+
+        console.log('🔍 POLLING: PARSED LINKS:', currentLinks);
+        console.log('🔍 POLLING: Array check - Is array?', Array.isArray(currentLinks), 'Length:', currentLinks?.length);
+
+        if (currentLinks && currentLinks.length > 0) {
+          currentLinks.forEach((link: any, index: number) => {
+            console.log(`🔍 POLLING: Link ${index + 1}:`, {
+              id: link.id,
+              payment_status: link.payment_status,
+              is_paid: link.is_paid,
+              paid_at: link.paid_at
+            });
+          });
+        }
+
+        if (currentLinks && Array.isArray(currentLinks)) {
+          const currentTime = Date.now();
+
+          // Track which links just became paid - check BEFORE state update
+          const newlyPaidLinks: string[] = [];
+
+          // SIMPLIFIED: Check for ANY paid link and force animation
+          currentLinks.forEach((currentLink: any) => {
+            console.log('🔍 POLLING: Checking link:', currentLink.id, {
+              payment_status: currentLink.payment_status,
+              is_paid: currentLink.is_paid
+            });
+
+            // FORCE: If link is paid, add to animation list (bypass complex detection)
+            const isPaid = currentLink.payment_status === 'paid' || currentLink.is_paid === true;
+            console.log(`🔍 POLLING: Link ${currentLink.id} paid status:`, isPaid);
+
+            if (isPaid) {
+              console.log('🎉 POLLING: 🚨 FOUND PAID LINK - FORCE ADDING TO ANIMATION:', currentLink.id);
+              newlyPaidLinks.push(currentLink.id);
+            }
+          });
+
+          // Now update the payment links state
+          currentLinks.forEach((currentLink: any) => {
+            setPaymentLinks(prev => {
+              const existingLink = prev.find(link => link.id === currentLink.id);
+
+              if (!existingLink) return prev; // Link not found in state
+
+              // Check if we need to update this link
+              const needsUpdate = existingLink.payment_status !== currentLink.payment_status ||
+                                 existingLink.is_paid !== currentLink.is_paid ||
+                                 existingLink.paid_at !== currentLink.paid_at ||
+                                 existingLink.is_active !== currentLink.is_active;
+
+              if (needsUpdate) {
+                console.log('🔄 POLLING: Updating link state for:', currentLink.id);
+                return prev.map(link =>
+                  link.id === currentLink.id
+                    ? {
+                        ...link,
+                        is_active: currentLink.is_active,
+                        payment_status: currentLink.payment_status || link.payment_status,
+                        is_paid: currentLink.is_paid || link.is_paid,
+                        paid_at: currentLink.paid_at || link.paid_at
+                      }
+                    : link
+                );
+              }
+
+              // No changes needed
+              return prev;
+            });
+          });
+
+          // Now trigger heart animations for newly paid links (outside state update)
+          console.log('🎉 POLLING: Final check - newlyPaidLinks array:', newlyPaidLinks);
+          console.log('🎉 POLLING: Array length:', newlyPaidLinks.length);
+
+          if (newlyPaidLinks.length > 0) {
+            console.log('🎉 POLLING: 🚨 PAYMENT DETECTED! Triggering heart animations for:', newlyPaidLinks);
+
+            // Trigger animation for the first newly paid link
+            const linkToAnimate = newlyPaidLinks[0];
+            console.log('🎉 POLLING: 🎯 Will animate link:', linkToAnimate);
+            console.log('🎉 POLLING: Current heartAnimatingId before change:', heartAnimatingId);
+
+            // Clear any existing animation
+            console.log('🎉 POLLING: Clearing existing heartAnimatingId...');
+            setHeartAnimatingId(null);
+
+            // Set new animation after a brief delay
+            setTimeout(() => {
+              console.log('🎉 POLLING: 🔥 SETTING HEART ANIMATION FOR:', linkToAnimate);
+              console.log('🎉 POLLING: Calling setHeartAnimatingId with:', linkToAnimate);
+              setHeartAnimatingId(linkToAnimate);
+
+              console.log('🎉 POLLING: ⏰ Setting clear timer for 3 seconds...');
+              // Clear animation after 3 seconds
+              setTimeout(() => {
+                console.log('🎉 POLLING: ⏰ TIME UP! Clearing heart animation for:', linkToAnimate);
+                setHeartAnimatingId(null);
+              }, 3000);
+            }, 100);
+          } else {
+            console.log('🎉 POLLING: No newly paid links detected this cycle');
+          }
+
+          setLastCheckedTimestamp(currentTime);
+        }
+      } catch (pollingError) {
+        console.error('❌ Enhanced polling error:', pollingError);
+      }
+    }, 3000); // Check every 3 seconds via proxy API
+
+    // Cleanup polling on unmount or dependency change
+    return () => {
+      console.log('🔍 POLLING SETUP: Cleaning up polling interval')
+      clearInterval(pollingInterval)
+    }
+  }, [userRole, companyName, heartAnimatingId]) // Dependencies: userRole, companyName, and heartAnimatingId for state updates
 
   // Detect new PayLink from URL parameter and trigger highlight effect
   useEffect(() => {
