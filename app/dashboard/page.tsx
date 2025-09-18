@@ -318,20 +318,7 @@ export default function Dashboard() {
     }
 
     checkAuth()
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session?.user) {
-        router.push('/auth')
-      } else {
-        setUser(session.user)
-      }
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [router, supabase])
+  }, [router])
 
   // Show loading spinner while checking authentication or loading data
   if (authLoading || loading) {
