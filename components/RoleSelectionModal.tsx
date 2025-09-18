@@ -335,7 +335,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
                   value="Admin"
                   checked={role === 'Admin'}
                   onChange={(e) => setRole(e.target.value)}
-                  className={`w-4 h-4 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2 ${
+                  className={`role-radio w-4 h-4 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2 ${
                     role === 'Admin' ? 'accent-purple-500 border-purple-500' : 'accent-purple-500'
                   }`}
                   disabled={loading || !!inviteData || !!preselectedRole}
@@ -357,7 +357,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
                   value="Staff"
                   checked={role === 'Staff'}
                   onChange={(e) => setRole(e.target.value)}
-                  className={`w-4 h-4 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2 ${
+                  className={`role-radio w-4 h-4 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2 ${
                     role === 'Staff' ? 'accent-purple-500 border-purple-500' : 'accent-purple-500'
                   }`}
                   disabled={loading || !!inviteData || !!preselectedRole}
@@ -379,7 +379,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
                   value="Model"
                   checked={role === 'Model'}
                   onChange={(e) => setRole(e.target.value)}
-                  className={`w-4 h-4 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2 ${
+                  className={`role-radio w-4 h-4 bg-gray-800 border-gray-600 focus:ring-purple-500 focus:ring-2 ${
                     role === 'Model' ? 'accent-purple-500 border-purple-500' : 'accent-purple-500'
                   }`}
                   disabled={loading || !!inviteData || !!preselectedRole}
