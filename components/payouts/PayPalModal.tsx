@@ -25,8 +25,20 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
 
   const loadExistingPayPalAccount = async () => {
     try {
-      // Temporarily disabled - will be replaced with API endpoint
-      console.log('PayPal account loading temporarily disabled')
+      const response = await fetch('/api/user/paypal-account', {
+        method: 'GET',
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success && result.data) {
+          const paypalAccount = result.data
+          setEmail(paypalAccount.email || '')
+          setConfirmEmail(paypalAccount.email || '')
+          setIsConnected(true)
+        }
+      }
     } catch (error) {
       console.error('Error loading existing PayPal account:', error)
     }
@@ -56,23 +68,43 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
     setMessage(null)
 
     try {
-      // Temporarily disabled - will be replaced with API endpoint
-      setMessage({ type: 'success', text: 'PayPal account functionality temporarily disabled for maintenance.' })
-      setIsConnected(true)
+      const method = isConnected ? 'PUT' : 'POST'
+      const response = await fetch('/api/user/paypal-account', {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: email.trim(),
+          confirm_email: confirmEmail.trim()
+        })
+      })
 
-      // Call success callback and close modal after a brief delay
-      setTimeout(() => {
-        onSuccess()
-        onClose()
-        setMessage(null)
-      }, 1500)
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        setMessage({ type: 'success', text: result.message || 'PayPal account saved successfully!' })
+        setIsConnected(true)
+
+        // Call success callback and close modal after a brief delay
+        setTimeout(() => {
+          onSuccess()
+          onClose()
+          setMessage(null)
+        }, 1500)
+      } else {
+        setMessage({
+          type: 'error',
+          text: result.error || 'Failed to save PayPal account'
+        })
+      }
 
     } catch (error) {
       console.error('Error saving PayPal account:', error)
-      console.error('Full error object:', JSON.stringify(error, null, 2))
-      setMessage({ 
-        type: 'error', 
-        text: error instanceof Error ? error.message : 'Failed to connect PayPal account' 
+      setMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Failed to connect PayPal account'
       })
     } finally {
       setLoading(false)

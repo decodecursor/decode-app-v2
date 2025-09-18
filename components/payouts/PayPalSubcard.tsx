@@ -25,8 +25,23 @@ export function PayPalSubcard({ userId, onClick }: PayPalSubcardProps) {
 
   const loadPayPalAccount = async () => {
     try {
-      // Temporarily disabled - will be replaced with API endpoint
-      console.log('PayPal account loading temporarily disabled')
+      const response = await fetch('/api/user/paypal-account', {
+        method: 'GET',
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success && result.data) {
+          setPaypalAccount({
+            id: result.data.id,
+            email: result.data.email,
+            paypal_account_id: result.data.paypal_account_id,
+            is_verified: result.data.is_verified,
+            status: result.data.status
+          })
+        }
+      }
     } catch (error) {
       console.error('Error loading PayPal account:', error)
     } finally {

@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     let manualBankConnected = false
     try {
       const { data: bankAccounts } = await supabase
-        .from('user_bank_account')
+        .from('user_bank_accounts')
         .select('id')
         .eq('user_id', userId)
         .limit(1)

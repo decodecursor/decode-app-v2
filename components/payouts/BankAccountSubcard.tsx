@@ -26,23 +26,44 @@ export function BankAccountSubcard({ userId, onClick }: BankAccountSubcardProps)
 
   const loadBankAccount = async () => {
     try {
-      const response = await fetch('/api/user/profile', {
+      // First check for manually added bank account
+      const response = await fetch('/api/user/bank-account', {
         method: 'GET',
         credentials: 'include'
       })
 
       if (response.ok) {
-        const { userData } = await response.json()
-        // For now, we'll create a mock bank account if user has bank details
-        // This can be enhanced with a dedicated bank account API endpoint later
-        if (userData && (userData.bank_name || userData.stripe_connect_status)) {
+        const result = await response.json()
+        if (result.success && result.data) {
           setBankAccount({
-            id: '1',
-            iban_number: '****1234', // Mock data for display
-            bank_name: userData.bank_name || 'Connected Bank',
+            id: result.data.id,
+            iban_number: result.data.iban_number,
+            bank_name: result.data.bank_name,
+            beneficiary_name: result.data.beneficiary_name,
+            is_verified: result.data.is_verified,
+            status: result.data.status
+          })
+          setLoading(false)
+          return
+        }
+      }
+
+      // Fallback to check Stripe Connect status
+      const profileResponse = await fetch('/api/user/profile', {
+        method: 'GET',
+        credentials: 'include'
+      })
+
+      if (profileResponse.ok) {
+        const { userData } = await profileResponse.json()
+        if (userData && userData.stripe_connect_status === 'active') {
+          setBankAccount({
+            id: 'stripe',
+            iban_number: '****connected',
+            bank_name: 'Stripe Connect',
             beneficiary_name: userData.user_name || 'User',
-            is_verified: userData.stripe_connect_status === 'active',
-            status: userData.stripe_connect_status || 'pending'
+            is_verified: true,
+            status: 'active'
           })
         }
       }

@@ -27,8 +27,21 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
 
   const loadExistingBankAccount = async () => {
     try {
-      // Temporarily disabled - will be replaced with API endpoint
-      console.log('Bank account loading temporarily disabled')
+      const response = await fetch('/api/user/bank-account', {
+        method: 'GET',
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success && result.data) {
+          const bankAccount = result.data
+          setBeneficiary(bankAccount.beneficiary_name || '')
+          setIban(bankAccount.iban_number || '')
+          setBank(bankAccount.bank_name || '')
+          setIsConnected(true)
+        }
+      }
     } catch (error) {
       console.error('Error loading existing bank account:', error)
     }
@@ -46,23 +59,44 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
     setMessage(null)
 
     try {
-      // Temporarily disabled - will be replaced with API endpoint
-      setMessage({ type: 'success', text: 'Bank account functionality temporarily disabled for maintenance.' })
-      setIsConnected(true)
-      
-      // Call success callback and close modal after a brief delay
-      setTimeout(() => {
-        onSuccess()
-        onClose()
-        setMessage(null)
-      }, 1500)
+      const method = isConnected ? 'PUT' : 'POST'
+      const response = await fetch('/api/user/bank-account', {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          beneficiary_name: beneficiary.trim(),
+          iban_number: iban.trim(),
+          bank_name: bank.trim()
+        })
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        setMessage({ type: 'success', text: result.message || 'Bank account saved successfully!' })
+        setIsConnected(true)
+
+        // Call success callback and close modal after a brief delay
+        setTimeout(() => {
+          onSuccess()
+          onClose()
+          setMessage(null)
+        }, 1500)
+      } else {
+        setMessage({
+          type: 'error',
+          text: result.error || 'Failed to save bank account'
+        })
+      }
 
     } catch (error) {
       console.error('Error saving bank account:', error)
-      console.error('Full error object:', JSON.stringify(error, null, 2))
-      setMessage({ 
-        type: 'error', 
-        text: error instanceof Error ? error.message : 'Failed to save bank account' 
+      setMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Failed to save bank account'
       })
     } finally {
       setLoading(false)
