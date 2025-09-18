@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 
 interface HeartAnimationProps {
   isActive: boolean
-  containerId?: string
+  targetElementId?: string
 }
 
 interface Heart {
@@ -18,7 +18,7 @@ interface Heart {
   element: HTMLDivElement
 }
 
-export default function HeartAnimation({ isActive, containerId }: HeartAnimationProps) {
+export default function HeartAnimation({ isActive, targetElementId }: HeartAnimationProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const heartsRef = useRef<Heart[]>([])
   const animationFrameRef = useRef<number>()
@@ -77,33 +77,27 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
   }, [isActive])
 
   const generateHeart = (x: number, y: number, xBound: number, xStart: number, scale: number): Heart => {
-    // SIMPLIFIED: Create basic red square for testing
+    // Create proper heart emoji element
     const heartElement = document.createElement('div')
     heartElement.className = 'heart-floating'
 
-    // Style as simple red square - much more visible
+    // Style as clean heart emoji
     heartElement.style.cssText = `
       position: fixed;
       left: ${x}px;
       top: ${y}px;
-      width: 50px;
-      height: 50px;
-      background-color: #ff0000;
-      border: 3px solid #ffffff;
-      border-radius: 10px;
+      width: auto;
+      height: auto;
       z-index: 99999;
       pointer-events: none;
       transform: scale(${scale});
       animation: heartfade 4s linear;
-      box-shadow: 0 0 10px rgba(255,0,0,0.8);
+      font-size: 24px;
+      line-height: 1;
     `
 
-    // Add text for debugging
+    // Simple heart emoji
     heartElement.textContent = '❤️'
-    heartElement.style.display = 'flex'
-    heartElement.style.alignItems = 'center'
-    heartElement.style.justifyContent = 'center'
-    heartElement.style.fontSize = '20px'
 
     // Append directly to document.body for true fixed positioning
     console.log('💖 HeartAnimation: Creating heart at position:', { x, y, scale })
@@ -158,23 +152,35 @@ export default function HeartAnimation({ isActive, containerId }: HeartAnimation
   }
 
   const generateRandomHeart = () => {
-    if (!containerRef.current || !isActive) return
+    if (!isActive) return
 
-    // Use window dimensions since we're using fixed positioning
-    const windowWidth = window.innerWidth
-    const windowHeight = window.innerHeight
+    let targetX = window.innerWidth / 2
+    let targetY = window.innerHeight / 2
+    let targetWidth = 400
+    let targetHeight = 200
 
-    // Generate hearts in the center area of the screen
-    const centerX = windowWidth / 2
-    const centerY = windowHeight / 2
+    // If we have a target element ID, use its position
+    if (targetElementId) {
+      const targetElement = document.getElementById(`payment-link-${targetElementId}`)
+      if (targetElement) {
+        const rect = targetElement.getBoundingClientRect()
+        targetX = rect.left + rect.width / 2
+        targetY = rect.top + rect.height / 2
+        targetWidth = rect.width
+        targetHeight = rect.height
+        console.log('💖 HeartAnimation: Using target element position:', { targetX, targetY, targetWidth, targetHeight })
+      } else {
+        console.log('💖 HeartAnimation: Target element not found, using screen center:', targetElementId)
+      }
+    }
 
     const start = 1 - Math.round(Math.random()) * 2
     const scale = Math.random() * Math.random() * 0.8 + 0.4
     const bound = 30 + Math.random() * 20
 
     const heart = generateHeart(
-      centerX + (Math.random() - 0.5) * 400, // Random x around center
-      centerY + (Math.random() - 0.5) * 200, // Start from center area
+      targetX + (Math.random() - 0.5) * targetWidth, // Random x around target
+      targetY + (Math.random() - 0.5) * targetHeight, // Random y around target
       bound,
       start,
       scale

@@ -73,6 +73,7 @@ function MyLinksContent() {
   }, [heartAnimatingId])
   const [lastCheckedTimestamp, setLastCheckedTimestamp] = useState<number>(Date.now())
   const [visibleCount, setVisibleCount] = useState(6)
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -281,10 +282,14 @@ function MyLinksContent() {
               changedToPaid: !previousIsPaid && currentIsPaid
             });
 
-            // Only trigger animation if link changed from unpaid to paid
+            // Only trigger animation if link changed from unpaid to paid AND initial load is complete
             if (!previousIsPaid && currentIsPaid) {
-              console.log('🎉 POLLING: 🚨 PAYMENT STATUS CHANGED! Link became paid:', currentLink.id);
-              newlyPaidLinks.push(currentLink.id);
+              if (initialLoadComplete) {
+                console.log('🎉 POLLING: 🚨 PAYMENT STATUS CHANGED! Link became paid:', currentLink.id);
+                newlyPaidLinks.push(currentLink.id);
+              } else {
+                console.log('🔍 POLLING: Payment detected but initial load not complete, skipping animation:', currentLink.id);
+              }
             } else if (currentIsPaid) {
               console.log('🔍 POLLING: Link already paid, no animation needed:', currentLink.id);
             } else {
@@ -370,7 +375,7 @@ function MyLinksContent() {
       console.log('🔍 POLLING SETUP: Cleaning up polling interval')
       clearInterval(pollingInterval)
     }
-  }, [userRole, companyName, heartAnimatingId]) // Dependencies: userRole, companyName, and heartAnimatingId for state updates
+  }, [userRole, companyName, heartAnimatingId, initialLoadComplete, paymentLinks]) // Dependencies: userRole, companyName, heartAnimatingId, initialLoadComplete, and paymentLinks for state comparison
 
   // Detect new PayLink from URL parameter and trigger highlight effect
   useEffect(() => {
@@ -549,6 +554,12 @@ function MyLinksContent() {
       })
       
       setPaymentLinks(paymentLinksWithStatus)
+
+      // Mark initial load as complete
+      setTimeout(() => {
+        console.log('✅ Initial payment links load complete - enabling heart animations')
+        setInitialLoadComplete(true)
+      }, 1000) // Wait 1 second for state to settle
     } catch (error) {
       console.error('❌ DETAILED ERROR in fetchPaymentLinks:')
       console.error('Error object:', error)
@@ -939,8 +950,11 @@ function MyLinksContent() {
 
   return (
     <div className="cosmic-bg">
-      {/* Global Heart Animation - Renders above everything */}
-      <HeartAnimation isActive={heartAnimatingId !== null} />
+      {/* Heart Animation - Positioned at specific payment link */}
+      <HeartAnimation
+        isActive={heartAnimatingId !== null}
+        targetElementId={heartAnimatingId || undefined}
+      />
 
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Link */}
@@ -1027,8 +1041,9 @@ function MyLinksContent() {
                   }
 
                   return (
-                    <div 
-                      key={link.id} 
+                    <div
+                      key={link.id}
+                      id={`payment-link-${link.id}`}
                       ref={(el) => {
                         if (el && isNewPayLink) {
                           createNewPayLinkHighlight(el)
