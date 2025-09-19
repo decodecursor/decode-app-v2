@@ -24,13 +24,16 @@ function PaymentSuccessContent() {
     const heartContainer = document.getElementById('heart-container')
     if (!heartContainer) return
 
-    // Create 5-7 hearts
-    const numHearts = Math.floor(Math.random() * 3) + 5
+    // Create 8-12 hearts
+    const numHearts = Math.floor(Math.random() * 5) + 8
+
+    // Heart variety for visual diversity
+    const heartTypes = ['❤️', '💜', '💖', '💕', '💝']
 
     for (let i = 0; i < numHearts; i++) {
       setTimeout(() => {
         const heart = document.createElement('div')
-        heart.innerHTML = '❤️'
+        heart.innerHTML = heartTypes[Math.floor(Math.random() * heartTypes.length)]
         heart.style.position = 'absolute'
         heart.style.fontSize = '20px'
         heart.style.userSelect = 'none'
@@ -42,8 +45,8 @@ function PaymentSuccessContent() {
         heart.style.left = `${leftPosition}%`
         heart.style.bottom = '0px'
 
-        // Add animation class
-        heart.style.animation = 'heartFloat 3s ease-out forwards'
+        // Add animation class with longer duration for higher flight
+        heart.style.animation = 'heartFloat 4s ease-out forwards'
 
         heartContainer.appendChild(heart)
 
@@ -52,8 +55,8 @@ function PaymentSuccessContent() {
           if (heart.parentNode) {
             heart.parentNode.removeChild(heart)
           }
-        }, 3000)
-      }, i * 200) // Stagger the hearts
+        }, 4000)
+      }, i * 150) // Faster staggering for more continuous flow
     }
   }
 
@@ -206,8 +209,8 @@ function PaymentSuccessContent() {
                 </svg>
               </div>
             </div>
-            <h1 className="cosmic-logo text-green-400 mb-2">Payment Completed</h1>
-            <p className="cosmic-body opacity-70 mb-4 text-xs">Your payment has been processed successfully</p>
+            <h1 className="cosmic-logo text-green-400 mb-2 font-bold text-[28px]">Payment Completed</h1>
+            <p className="cosmic-body opacity-70 mb-4 text-[6px]">Your payment has been processed successfully</p>
           </div>
 
           {/* Payment Details */}
@@ -217,7 +220,7 @@ function PaymentSuccessContent() {
               {paymentDetails.clientName || 'Client Name'}
             </p>
             <p className="cosmic-body text-white mt-2">
-              Service by Boho Beauty Salon
+              Boho Beauty Salon
             </p>
           </div>
 

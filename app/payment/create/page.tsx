@@ -303,8 +303,8 @@ export default function CreatePayment() {
         },
         body: JSON.stringify({
           client_name: formData.client.trim(),
-          title: 'Payment',
-          description: 'Payment request',
+          title: 'Beauty Service',
+          description: 'Beauty service payment',
           original_amount_aed: originalAmount,
           creator_id: user.id,
           branch_name: selectedBranch
