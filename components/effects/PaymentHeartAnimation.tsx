@@ -100,7 +100,7 @@ export default function PaymentHeartAnimation({ isActive, targetElementId }: Pay
 
   const updateHearts = () => {
     const deltaTime = 16 // ~60fps
-    const speed = 0.8 // Slower speed for payment hearts
+    const speed = 1.1 // Increased speed for higher flight (3cm more)
 
     heartsRef.current = heartsRef.current.filter(heart => {
       heart.time -= deltaTime
@@ -143,13 +143,13 @@ export default function PaymentHeartAnimation({ isActive, targetElementId }: Pay
       if (targetElement) {
         const rect = targetElement.getBoundingClientRect()
         targetX = rect.left + rect.width / 2
-        targetY = rect.top + rect.height / 2 + 113 // Start 3cm (113px) lower
+        targetY = rect.top + rect.height / 2 // Start at the text level
         targetWidth = rect.width
         targetHeight = rect.height
-        console.log('💖 PaymentHeartAnimation: Using target element position (3cm lower):', { targetX, targetY, targetWidth, targetHeight })
+        console.log('💖 PaymentHeartAnimation: Using target element position (at text level):', { targetX, targetY, targetWidth, targetHeight })
       } else {
         console.log('💖 PaymentHeartAnimation: Target element not found, using screen center:', targetElementId)
-        targetY += 113 // Add 3cm to screen center as well
+        // No offset needed for screen center
       }
     }
 

@@ -188,8 +188,8 @@ function PaymentSuccessContent() {
                 </svg>
               </div>
             </div>
-            <h1 className="text-white mb-2 font-bold text-[22px] font-light tracking-wide">Payment Completed</h1>
-            <p className="text-white opacity-70 mb-4 text-[10px] font-light">Your payment has been processed successfully</p>
+            <h1 className="text-white mb-2 font-bold text-[23px] font-light tracking-wide">Payment Completed</h1>
+            <p className="text-white opacity-70 mb-4 text-[11px] font-light">Your payment has been processed successfully</p>
           </div>
 
           {/* Payment Details */}
