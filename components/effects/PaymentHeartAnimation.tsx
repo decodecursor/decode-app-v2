@@ -90,7 +90,7 @@ export default function PaymentHeartAnimation({ isActive, targetElementId }: Pay
       bound: xBound,
       direction: xStart,
       scale,
-      time: 5000, // 5 second duration
+      time: 6000, // 6 second duration
       element: heartElement,
       color
     }
@@ -111,7 +111,7 @@ export default function PaymentHeartAnimation({ isActive, targetElementId }: Pay
         heart.element.style.left = `${heart.x + heart.direction * heart.bound * Math.sin(heart.y * heart.scale / 30) / heart.y * 200}px`
 
         // Update opacity based on time remaining
-        const opacity = heart.time / 5000
+        const opacity = heart.time / 6000
         heart.element.style.opacity = `${opacity}`
 
         return true
