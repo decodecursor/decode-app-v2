@@ -17,6 +17,7 @@ function AuthPageContent() {
   const [message, setMessage] = useState('')
   const [showRoleModal, setShowRoleModal] = useState(false)
   const [signedUpUser, setSignedUpUser] = useState<any>(null)
+  const [tempPassword, setTempPassword] = useState<string>('')
   const [agreedToTerms, setAgreedToTerms] = useState(true)
   const [emailError, setEmailError] = useState('')
   const [checkingEmail, setCheckingEmail] = useState(false)
@@ -478,6 +479,7 @@ function AuthPageContent() {
           if (inviteData) {
             console.log('✅ [AUTH] Invited user - skipping email verification')
             setSignedUpUser(signupData.user)
+            setTempPassword(password) // Store password for potential auto-login
             setShowRoleModal(true)
             return
           }
@@ -596,10 +598,52 @@ function AuthPageContent() {
           setPassword('') // Clear password field
           return
         } else {
-          // This shouldn't happen in normal flow
-          console.log('❌ [AUTH] Unexpected: No session in normal flow')
-          setMessage('Session error. Please log in again.')
-          return
+          // For invited users, attempt auto-login
+          if (inviteData && tempPassword && signedUpUser?.email) {
+            console.log('🔄 [AUTH] No session found for invited user, attempting auto-login...')
+            try {
+              const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+                email: signedUpUser.email,
+                password: tempPassword
+              })
+
+              if (loginError) {
+                console.error('❌ [AUTH] Auto-login failed:', loginError.message)
+                setMessage('Auto-login failed. Please log in manually.')
+                setIsLogin(true)
+                setPassword('')
+                setTempPassword('')
+                return
+              }
+
+              if (loginData?.session) {
+                console.log('✅ [AUTH] Auto-login successful for invited user')
+                setTempPassword('') // Clear stored password
+                // Continue with redirect logic below
+              } else {
+                console.error('❌ [AUTH] Auto-login succeeded but no session created')
+                setMessage('Login succeeded but session not established. Please try logging in again.')
+                setIsLogin(true)
+                setPassword('')
+                setTempPassword('')
+                return
+              }
+            } catch (error) {
+              console.error('❌ [AUTH] Auto-login exception:', error)
+              setMessage('Auto-login failed. Please log in manually.')
+              setIsLogin(true)
+              setPassword('')
+              setTempPassword('')
+              return
+            }
+          } else {
+            // This shouldn't happen in normal flow
+            console.log('❌ [AUTH] Unexpected: No session in normal flow')
+            setMessage('Session error. Please log in again.')
+            setIsLogin(true)
+            setPassword('')
+            return
+          }
         }
       }
       console.log('✅ [AUTH] Session verified, proceeding with redirect')

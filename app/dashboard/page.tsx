@@ -7,6 +7,7 @@ import { createClient } from '@/utils/supabase/client'
 import { getUserWithProxy } from '@/utils/auth-helper'
 import { User } from '@supabase/supabase-js'
 import { UserRole, USER_ROLES, validateUserProfile, normalizeRole } from '@/types/user'
+import { EmailVerificationGate } from '@/components/EmailVerificationGate'
 
 
 export default function Dashboard() {
@@ -341,8 +342,12 @@ export default function Dashboard() {
 
 
   return (
-    <div className="cosmic-bg">
-      <div className="min-h-screen px-4 py-8">
+    <EmailVerificationGate
+      userId={user?.id}
+      userEmail={user?.email}
+    >
+      <div className="cosmic-bg">
+        <div className="min-h-screen px-4 py-8">
 
         {/* Navigation Menu */}
         <div className="mx-auto mb-8" style={{maxWidth: '3000px'}}>
@@ -633,7 +638,8 @@ export default function Dashboard() {
         <div className="container mx-auto px-4 py-8 mt-[70vh]">
           {/* Dashboard content intentionally empty per user request */}
         </div>
+        </div>
       </div>
-    </div>
+    </EmailVerificationGate>
   )
 }

@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { getUserWithProxy } from '@/utils/auth-helper'
+import { EmailVerificationGate } from '@/components/EmailVerificationGate'
 
 export default function PendingApproval() {
   const [companyName, setCompanyName] = useState('')
   const [userName, setUserName] = useState('')
+  const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
     const getUserInfo = async () => {
@@ -15,6 +17,7 @@ export default function PendingApproval() {
         window.location.href = '/auth'
         return
       }
+      setUser(user)
       const supabase = createClient()
 
       const { data: userData } = await supabase
@@ -47,7 +50,11 @@ export default function PendingApproval() {
   }
 
   return (
-    <div className="cosmic-bg min-h-screen">
+    <EmailVerificationGate
+      userId={user?.id}
+      userEmail={user?.email}
+    >
+      <div className="cosmic-bg min-h-screen">
       <div className="min-h-screen flex items-center justify-center px-4 py-8">
         <div className="cosmic-card-login max-w-md">
           <div className="text-center mb-8">
@@ -78,6 +85,7 @@ export default function PendingApproval() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </EmailVerificationGate>
   )
 }
