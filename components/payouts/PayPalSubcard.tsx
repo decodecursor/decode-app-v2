@@ -5,9 +5,6 @@ import { useState, useEffect } from 'react'
 interface PayPalSubcardProps {
   userId: string
   onClick: () => void
-  isSelected?: boolean
-  isConnected?: boolean
-  onSelect?: () => void
 }
 
 interface PayPalAccount {
@@ -18,13 +15,7 @@ interface PayPalAccount {
   status: string
 }
 
-export function PayPalSubcard({
-  userId,
-  onClick,
-  isSelected = false,
-  isConnected = false,
-  onSelect
-}: PayPalSubcardProps) {
+export function PayPalSubcard({ userId, onClick }: PayPalSubcardProps) {
   const [loading, setLoading] = useState(true)
   const [paypalAccount, setPaypalAccount] = useState<PayPalAccount | null>(null)
 
@@ -93,28 +84,10 @@ export function PayPalSubcard({
     )
   }
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Prevent radio button clicks from triggering card click
-    if (e.target === e.currentTarget) {
-      onClick()
-    }
-  }
-
-  const handleRadioClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (onSelect && paypalAccount) {
-      onSelect()
-    }
-  }
-
   return (
     <div
-      onClick={handleCardClick}
-      className={`flex-1 bg-white/5 rounded-lg p-3 border cursor-pointer transition-all group relative ${
-        isSelected
-          ? 'border-purple-500 bg-purple-500/10'
-          : 'border-gray-700 hover:border-purple-500 hover:bg-white/8'
-      }`}
+      onClick={onClick}
+      className="flex-1 bg-white/5 rounded-lg p-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group relative"
     >
       {getStatusIcon() && (
         <div className="absolute -top-2 -right-2 z-10">
@@ -122,25 +95,7 @@ export function PayPalSubcard({
         </div>
       )}
       <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center space-x-2">
-          {/* Radio Button */}
-          <button
-            onClick={handleRadioClick}
-            disabled={!paypalAccount}
-            className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
-              paypalAccount
-                ? isSelected
-                  ? 'border-purple-500 bg-purple-500'
-                  : 'border-gray-400 hover:border-purple-400'
-                : 'border-gray-600 cursor-not-allowed'
-            }`}
-          >
-            {isSelected && paypalAccount && (
-              <div className="w-2 h-2 bg-white rounded-full" />
-            )}
-          </button>
-          <h4 className="text-white font-medium text-sm">PayPal</h4>
-        </div>
+        <h4 className="text-white font-medium text-sm">PayPal</h4>
         <div className="w-7 h-7 bg-purple-600/20 rounded-lg flex items-center justify-center">
           {/* PayPal P logo */}
           <div className="w-4 h-4 text-purple-400 font-bold text-xs flex items-center justify-center">

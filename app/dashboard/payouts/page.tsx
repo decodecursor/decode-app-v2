@@ -17,6 +17,12 @@ interface PayoutSummary {
   bankConnected: boolean
 }
 
+interface PayoutMethod {
+  type: 'bank_account' | 'paypal'
+  displayName: string
+  isConnected: boolean
+}
+
 export default function PayoutsPage() {
   const [user, setUser] = useState<User | null>(null)
   const [payoutSummary, setPayoutSummary] = useState<PayoutSummary | null>(null)
@@ -28,6 +34,9 @@ export default function PayoutsPage() {
   const [requestAmount, setRequestAmount] = useState('')
   const [payoutInProcess, setPayoutInProcess] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+  const [selectedPayoutMethod, setSelectedPayoutMethod] = useState<'bank_account' | 'paypal' | null>(null)
+  const [availablePayoutMethods, setAvailablePayoutMethods] = useState<PayoutMethod[]>([])
+  const [showSelectMethodModal, setShowSelectMethodModal] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -40,6 +49,7 @@ export default function PayoutsPage() {
         }
         setUser(user)
         await fetchPayoutSummary(user.id)
+        await loadPayoutMethods()
       } catch (error) {
         console.error('Authentication failed:', error)
         router.push('/auth')
@@ -77,6 +87,100 @@ export default function PayoutsPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const loadPayoutMethods = async () => {
+    try {
+      const methods: PayoutMethod[] = []
+
+      // Check bank account
+      const bankResponse = await fetch('/api/user/bank-account', {
+        method: 'GET',
+        credentials: 'include'
+      })
+
+      if (bankResponse.ok) {
+        const bankResult = await bankResponse.json()
+        if (bankResult.success && bankResult.data) {
+          methods.push({
+            type: 'bank_account',
+            displayName: 'Bank Account',
+            isConnected: true
+          })
+        }
+      }
+
+      // Check PayPal
+      const paypalResponse = await fetch('/api/user/paypal-account', {
+        method: 'GET',
+        credentials: 'include'
+      })
+
+      if (paypalResponse.ok) {
+        const paypalResult = await paypalResponse.json()
+        if (paypalResult.success && paypalResult.data) {
+          methods.push({
+            type: 'paypal',
+            displayName: 'PayPal',
+            isConnected: true
+          })
+        }
+      }
+
+      setAvailablePayoutMethods(methods)
+
+      // Load selected method from user profile
+      const profileResponse = await fetch('/api/user/profile', {
+        method: 'GET',
+        credentials: 'include'
+      })
+
+      if (profileResponse.ok) {
+        const { userData } = await profileResponse.json()
+        setSelectedPayoutMethod(userData.preferred_payout_method || null)
+
+        // Auto-select first available method if none selected
+        if (!userData.preferred_payout_method && methods.length > 0) {
+          setSelectedPayoutMethod(methods[0].type)
+          await savePayoutMethodSelection(methods[0].type)
+        }
+      }
+
+    } catch (error) {
+      console.error('Error loading payout methods:', error)
+    }
+  }
+
+  const savePayoutMethodSelection = async (method: 'bank_account' | 'paypal') => {
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          preferred_payout_method: method
+        })
+      })
+
+      if (response.ok) {
+        setSelectedPayoutMethod(method)
+        console.log('✅ Payout method selection saved:', method)
+      }
+    } catch (error) {
+      console.error('Error saving payout method selection:', error)
+    }
+  }
+
+  const handleSelectMethod = (method: 'bank_account' | 'paypal') => {
+    savePayoutMethodSelection(method)
+    setShowSelectMethodModal(false)
+  }
+
+  const getSelectedMethodDisplayName = () => {
+    if (!selectedPayoutMethod) return 'No method selected'
+    return selectedPayoutMethod === 'bank_account' ? 'Bank Account' : 'PayPal'
   }
 
   const handleRequestPayoutClick = () => {
@@ -274,38 +378,57 @@ export default function PayoutsPage() {
                   <div className="mb-4">
                     <h3 className="text-lg font-semibold text-white">My Next Payout</h3>
                   </div>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-gray-400 text-sm">Available Balance</p>
+
+                  {/* Two-Column Layout */}
+                  <div className="flex gap-4 mb-6">
+                    {/* Available Balance */}
+                    <div className="flex-1">
+                      <p className="text-gray-400 text-sm mb-1">Available Balance</p>
                       <p className="text-2xl font-bold text-white">
                         {formatCurrency(payoutSummary?.availableBalance || 0)}
                       </p>
                     </div>
-                    
-                    {payoutInProcess && (
-                      <div className="w-full text-center py-3 px-4 bg-blue-600/20 border border-blue-500/30 rounded-lg">
-                        <p className="text-blue-100 font-medium">Payout in process</p>
-                      </div>
-                    )}
-                    {!payoutSummary?.bankConnected && (
-                      <div className="w-full text-center py-3 px-4 bg-yellow-600/20 border border-yellow-500/30 rounded-lg">
-                        <p className="text-yellow-400 font-medium">
-                          Connect your bank account using the payment methods section
-                        </p>
-                      </div>
-                    )}
-                    
-                    {!payoutInProcess && payoutSummary?.bankConnected && (
-                      <div className="pt-2">
-                        <button 
-                          onClick={handleRequestPayoutClick}
-                          className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors"
-                        >
-                          Request Payout
-                        </button>
-                      </div>
-                    )}
+
+                    {/* Payout to */}
+                    <div className="flex-1">
+                      <p className="text-gray-400 text-sm mb-1">Payout to</p>
+                      <p className="text-white font-medium">
+                        {getSelectedMethodDisplayName()}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Status Messages */}
+                  {payoutInProcess && (
+                    <div className="w-full text-center py-3 px-4 bg-blue-600/20 border border-blue-500/30 rounded-lg mb-4">
+                      <p className="text-blue-100 font-medium">Payout in process</p>
+                    </div>
+                  )}
+                  {availablePayoutMethods.length === 0 && (
+                    <div className="w-full text-center py-3 px-4 bg-yellow-600/20 border border-yellow-500/30 rounded-lg mb-4">
+                      <p className="text-yellow-400 font-medium">
+                        Connect your payment methods using the section below
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleRequestPayoutClick}
+                      disabled={!selectedPayoutMethod || payoutInProcess || (payoutSummary?.availableBalance || 0) < 50}
+                      className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+                    >
+                      Request Payout
+                    </button>
+
+                    <button
+                      onClick={() => setShowSelectMethodModal(true)}
+                      disabled={availablePayoutMethods.length === 0}
+                      className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+                    >
+                      Select Method
+                    </button>
                   </div>
                 </div>
 
@@ -441,6 +564,69 @@ export default function PayoutsPage() {
                 >
                   OK
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Select Method Modal */}
+        {showSelectMethodModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-xl border border-gray-700 p-6 w-full max-w-md">
+              <h3 className="text-lg font-semibold text-white mb-4">Select Payout Method</h3>
+
+              <div className="space-y-3 mb-6">
+                {availablePayoutMethods.map((method) => (
+                  <button
+                    key={method.type}
+                    onClick={() => handleSelectMethod(method.type)}
+                    className={`w-full p-4 rounded-lg border transition-colors text-left ${
+                      selectedPayoutMethod === method.type
+                        ? 'border-purple-500 bg-purple-500/10'
+                        : 'border-gray-600 hover:border-gray-500 bg-gray-800/50 hover:bg-gray-800'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-white font-medium">{method.displayName}</p>
+                        <p className="text-gray-400 text-sm">Connected</p>
+                      </div>
+                      {selectedPayoutMethod === method.type && (
+                        <div className="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+
+                {availablePayoutMethods.length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400">No payment methods connected</p>
+                    <p className="text-gray-500 text-sm mt-1">
+                      Set up your payment methods using the section below
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowSelectMethodModal(false)}
+                  className="flex-1 cosmic-button-secondary"
+                >
+                  Cancel
+                </button>
+                {availablePayoutMethods.length > 0 && (
+                  <button
+                    onClick={() => setShowSelectMethodModal(false)}
+                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                  >
+                    Done
+                  </button>
+                )}
               </div>
             </div>
           </div>

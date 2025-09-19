@@ -6,9 +6,6 @@ interface BankAccountSubcardProps {
   userId: string
   onClick: () => void
   refreshKey?: number
-  isSelected?: boolean
-  isConnected?: boolean
-  onSelect?: () => void
 }
 
 interface BankAccount {
@@ -20,14 +17,7 @@ interface BankAccount {
   status: string
 }
 
-export function BankAccountSubcard({
-  userId,
-  onClick,
-  refreshKey,
-  isSelected = false,
-  isConnected = false,
-  onSelect
-}: BankAccountSubcardProps) {
+export function BankAccountSubcard({ userId, onClick, refreshKey }: BankAccountSubcardProps) {
   const [loading, setLoading] = useState(true)
   const [bankAccount, setBankAccount] = useState<BankAccount | null>(null)
 
@@ -158,28 +148,10 @@ export function BankAccountSubcard({
     } : null
   })
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Prevent radio button clicks from triggering card click
-    if (e.target === e.currentTarget) {
-      onClick()
-    }
-  }
-
-  const handleRadioClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (onSelect && bankAccount) {
-      onSelect()
-    }
-  }
-
   return (
     <div
-      onClick={handleCardClick}
-      className={`flex-1 bg-white/5 rounded-lg p-3 border cursor-pointer transition-all group relative ${
-        isSelected
-          ? 'border-purple-500 bg-purple-500/10'
-          : 'border-gray-700 hover:border-purple-500 hover:bg-white/8'
-      }`}
+      onClick={onClick}
+      className="flex-1 bg-white/5 rounded-lg p-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group relative"
     >
       {getStatusIcon() && (
         <div className="absolute -top-2 -right-2 z-10">
@@ -187,25 +159,7 @@ export function BankAccountSubcard({
         </div>
       )}
       <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center space-x-2">
-          {/* Radio Button */}
-          <button
-            onClick={handleRadioClick}
-            disabled={!bankAccount}
-            className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
-              bankAccount
-                ? isSelected
-                  ? 'border-purple-500 bg-purple-500'
-                  : 'border-gray-400 hover:border-purple-400'
-                : 'border-gray-600 cursor-not-allowed'
-            }`}
-          >
-            {isSelected && bankAccount && (
-              <div className="w-2 h-2 bg-white rounded-full" />
-            )}
-          </button>
-          <h4 className="text-white font-medium text-sm">Bank Account</h4>
-        </div>
+        <h4 className="text-white font-medium text-sm">Bank Account</h4>
         <div className="w-7 h-7 bg-purple-600/20 rounded-lg flex items-center justify-center">
           <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
