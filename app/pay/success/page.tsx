@@ -170,14 +170,14 @@ function PaymentSuccessContent() {
   }
 
   return (
-    <div className="cosmic-bg">
+    <div className="cosmic-bg h-screen overflow-hidden">
       {/* Payment Heart Animation Component */}
       <PaymentHeartAnimation
         isActive={heartAnimating}
         targetElementId="payment-success-message"
       />
-      <div className="h-screen flex items-end md:items-center justify-center px-4 overflow-hidden">
-        <div className="cosmic-card max-w-lg w-full text-center">
+      <div className="h-screen flex items-end justify-center px-4 overflow-hidden">
+        <div className="cosmic-card max-w-lg w-full text-center mb-16 md:mb-0 md:transform md:-translate-y-16">
           {/* Success Animation */}
           <div className="mb-12">
             <div className="relative w-14 h-14 mx-auto mb-4">
