@@ -76,6 +76,15 @@ export async function GET(request: NextRequest) {
 
     const totalEarnings = (transactions || []).reduce((sum, t) => sum + (t.amount_aed || 0), 0)
 
+    // Get all completed payouts to calculate total paid out
+    const { data: allPayouts } = await supabase
+      .from('payouts')
+      .select('amount_aed')
+      .eq('user_id', userId)
+      .eq('status', 'paid')
+
+    const totalPaidOut = (allPayouts || []).reduce((sum, p) => sum + (p.amount_aed || 0), 0)
+
     // Get last payout
     const { data: lastPayout } = await supabase
       .from('payouts')
@@ -90,6 +99,7 @@ export async function GET(request: NextRequest) {
       availableBalance,
       pendingBalance: availableBalance,
       totalEarnings,
+      totalPaidOut,
       lastPayoutAmount: lastPayout?.amount_aed || 0,
       lastPayoutDate: lastPayout?.paid_at || null,
       bankConnected

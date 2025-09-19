@@ -12,6 +12,7 @@ interface PayoutSummary {
   availableBalance: number
   pendingBalance: number
   totalEarnings: number
+  totalPaidOut: number
   lastPayoutAmount: number
   lastPayoutDate: string | null
   bankConnected: boolean
@@ -453,7 +454,7 @@ export default function PayoutsPage() {
                     <div>
                       <p className="text-gray-400 text-sm">Paid Amount</p>
                       <p className="text-2xl font-bold text-white">
-                        {formatCurrency(payoutSummary?.totalEarnings || 0)}
+                        {formatCurrency(payoutSummary?.totalPaidOut || 0)}
                       </p>
                     </div>
                     
