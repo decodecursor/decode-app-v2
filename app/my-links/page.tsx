@@ -1236,7 +1236,7 @@ function MyLinksContent() {
                               {/* Show branch_name when company has multiple branches (for both user and admin) */}
                               {companyBranchCount >= 2 && link.branch_name && (
                                 <div className="flex items-center gap-2">
-                                  <span className="text-blue-400">Branch:</span>
+                                  <span className="text-purple-400">Branch:</span>
                                   <span>{link.branch_name}</span>
                                 </div>
                               )}
