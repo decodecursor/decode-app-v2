@@ -404,7 +404,7 @@ export default function PayoutsPage() {
                         className="bg-white/5 rounded-lg p-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group"
                       >
                         <div className="flex items-center justify-between">
-                          <p className="text-white text-lg font-bold">
+                          <p className="text-white text-sm font-bold">
                             {getSelectedMethodDisplayName()}
                           </p>
                           <div className="w-6 h-6 text-gray-400 group-hover:text-purple-400 transition-colors">

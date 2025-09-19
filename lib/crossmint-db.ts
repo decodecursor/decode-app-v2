@@ -121,7 +121,7 @@ export class CrossmintDatabaseService {
    */
   async createPaymentLink(request: CreatePaymentLinkRequest): Promise<CreatePaymentLinkResponse> {
     const feeCalculation = calculateMarketplaceFee(request.original_amount_aed);
-    
+
     // Set expiration to 7 days from now
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 7);
@@ -142,6 +142,22 @@ export class CrossmintDatabaseService {
       is_active: true
     };
 
+    // Debug logging to track field population
+    console.log('🔍 [PAYMENT-LINK-CREATE] Request data:', {
+      branch_name: request.branch_name,
+      creator_name: request.creator_name,
+      creator_id: request.creator_id
+    });
+
+    console.log('🔍 [PAYMENT-LINK-CREATE] Data being inserted:', {
+      client_name: paymentLinkData.client_name,
+      title: paymentLinkData.title,
+      branch_name: paymentLinkData.branch_name,
+      creator_name: paymentLinkData.creator_name,
+      creator_id: paymentLinkData.creator_id,
+      amount_aed: paymentLinkData.amount_aed
+    });
+
     const { data, error } = await supabase
       .from('payment_links')
       .insert(paymentLinkData)
@@ -149,8 +165,16 @@ export class CrossmintDatabaseService {
       .single();
 
     if (error) {
+      console.error('❌ [PAYMENT-LINK-CREATE] Supabase insert error:', error);
       throw new Error(`Failed to create payment link: ${error.message}`);
     }
+
+    console.log('✅ [PAYMENT-LINK-CREATE] Created payment link:', {
+      id: data.id,
+      branch_name: data.branch_name,
+      creator_name: data.creator_name,
+      title: data.title
+    });
 
     return {
       ...data,

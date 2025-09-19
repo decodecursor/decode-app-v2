@@ -120,6 +120,16 @@ export async function POST(request: NextRequest) {
 
     console.log(`🔄 Creating payment link for ${creator.user_name} (${creator.email})`);
 
+    // Debug logging for field population
+    console.log('🔍 [API-CREATE-LINK] Creator data:', {
+      user_name: creator.user_name,
+      branch_name: creator.branch_name,
+      email: creator.email
+    });
+
+    console.log('🔍 [API-CREATE-LINK] Request branch_name:', branch_name);
+    console.log('🔍 [API-CREATE-LINK] Final branch_name:', branch_name || creator.branch_name);
+
     // Create payment link with marketplace fee calculation
     const paymentLink = await crossmintDB.createPaymentLink({
       client_name,
