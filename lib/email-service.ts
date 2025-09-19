@@ -1242,6 +1242,7 @@ DECODE
     payment_link_id: string
     transaction_id: string
     service_amount_aed: number
+    decode_amount_aed?: number
     total_amount_aed: number
     platform_fee?: number
     company_name: string
@@ -1463,6 +1464,7 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
     payment_link_id: string
     transaction_id: string
     service_amount_aed: number
+    decode_amount_aed?: number
     total_amount_aed: number
     platform_fee?: number
     company_name: string
@@ -1517,6 +1519,7 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
                 <p><strong>Payment Link ID:</strong> ${paymentData.payment_link_id}</p>
                 <p><strong>Transaction ID:</strong> ${paymentData.transaction_id}</p>
                 <p><strong>Service Amount:</strong> ${paymentData.service_amount_aed} AED</p>
+                <p><strong>DECODE Fee:</strong> ${paymentData.decode_amount_aed || 0} AED</p>
                 <p><strong>Total Amount:</strong> ${paymentData.total_amount_aed} AED</p>
                 <p><strong>Platform Fee:</strong> ${paymentData.platform_fee || 0} AED</p>
                 <p><strong>Net Amount:</strong> ${netAmount} AED</p>
@@ -1569,6 +1572,7 @@ TRANSACTION DETAILS
 Payment Link ID: ${paymentData.payment_link_id}
 Transaction ID: ${paymentData.transaction_id}
 Service Amount: ${paymentData.service_amount_aed} AED
+DECODE Fee: ${paymentData.decode_amount_aed || 0} AED
 Total Amount: ${paymentData.total_amount_aed} AED
 Platform Fee: ${paymentData.platform_fee || 0} AED
 Net Amount: ${netAmount} AED

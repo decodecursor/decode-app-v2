@@ -15,8 +15,9 @@ async function sendPaymentNotification(transaction: any, paymentLink: any) {
     await emailService.sendAdminPaymentNotification({
       payment_link_id: paymentLink.id,
       transaction_id: transaction.id,
-      service_amount_aed: paymentLink.amount_aed || 0,
-      total_amount_aed: transaction.amount_aed || paymentLink.amount_aed || 0,
+      service_amount_aed: paymentLink.service_amount_aed || 0,
+      decode_amount_aed: paymentLink.decode_amount_aed || 0,
+      total_amount_aed: paymentLink.total_amount_aed || 0,
       platform_fee: 0, // Add platform fee calculation if needed
       company_name: creator?.company_name || 'Unknown Company',
       staff_name: creator?.user_name || 'Unknown Staff',
