@@ -15,12 +15,10 @@ export default function CreatePayment() {
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
     client: '',
-    title: '',
     amount: ''
   })
   const [errors, setErrors] = useState({
     client: '',
-    title: '',
     amount: ''
   })
   
@@ -30,11 +28,6 @@ export default function CreatePayment() {
   const [selectedClientSuggestionIndex, setSelectedClientSuggestionIndex] = useState(-1)
   const [isLoadingClientSuggestions, setIsLoadingClientSuggestions] = useState(false)
   
-  // Service suggestions states
-  const [serviceSuggestions, setServiceSuggestions] = useState<Array<{name: string, count: number}>>([])
-  const [showServiceSuggestions, setShowServiceSuggestions] = useState(false)
-  const [selectedServiceSuggestionIndex, setSelectedServiceSuggestionIndex] = useState(-1)
-  const [isLoadingServiceSuggestions, setIsLoadingServiceSuggestions] = useState(false)
   
   // Branch management states
   const [userBranches, setUserBranches] = useState<string[]>([])
@@ -123,37 +116,6 @@ export default function CreatePayment() {
     return () => clearTimeout(debounceTimer)
   }, [formData.client])
 
-  // Fetch service suggestions
-  useEffect(() => {
-    const fetchServiceSuggestions = async () => {
-      if (formData.title.length >= 2) {
-        setIsLoadingServiceSuggestions(true)
-        try {
-          const response = await fetch(`/api/payment/service-suggestions?q=${encodeURIComponent(formData.title)}`)
-          if (response.ok) {
-            const data = await response.json()
-            setServiceSuggestions(data.suggestions || [])
-            setShowServiceSuggestions(data.suggestions && data.suggestions.length > 0)
-          } else {
-            setServiceSuggestions([])
-            setShowServiceSuggestions(false)
-          }
-        } catch (error) {
-          console.error('Error fetching service suggestions:', error)
-          setServiceSuggestions([])
-          setShowServiceSuggestions(false)
-        } finally {
-          setIsLoadingServiceSuggestions(false)
-        }
-      } else {
-        setServiceSuggestions([])
-        setShowServiceSuggestions(false)
-      }
-    }
-
-    const debounceTimer = setTimeout(fetchServiceSuggestions, 300)
-    return () => clearTimeout(debounceTimer)
-  }, [formData.title])
 
   // Handle click outside to close suggestions
   useEffect(() => {
@@ -162,10 +124,6 @@ export default function CreatePayment() {
       if (!target.closest('.client-input-wrapper')) {
         setShowClientSuggestions(false)
         setSelectedClientSuggestionIndex(-1)
-      }
-      if (!target.closest('.service-input-wrapper')) {
-        setShowServiceSuggestions(false)
-        setSelectedServiceSuggestionIndex(-1)
       }
     }
 
@@ -232,8 +190,6 @@ export default function CreatePayment() {
     // Reset suggestion selection when typing
     if (name === 'client') {
       setSelectedClientSuggestionIndex(-1)
-    } else if (name === 'title') {
-      setSelectedServiceSuggestionIndex(-1)
     }
   }
 
@@ -275,55 +231,13 @@ export default function CreatePayment() {
     }
   }
 
-  const handleServiceKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!showServiceSuggestions || serviceSuggestions.length === 0) return
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault()
-        setSelectedServiceSuggestionIndex(prev => 
-          prev < serviceSuggestions.length - 1 ? prev + 1 : prev
-        )
-        break
-      case 'ArrowUp':
-        e.preventDefault()
-        setSelectedServiceSuggestionIndex(prev => prev > 0 ? prev - 1 : -1)
-        break
-      case 'Enter':
-        if (selectedServiceSuggestionIndex >= 0) {
-          e.preventDefault()
-          selectServiceSuggestion(serviceSuggestions[selectedServiceSuggestionIndex].name)
-        }
-        break
-      case 'Escape':
-        e.preventDefault()
-        setShowServiceSuggestions(false)
-        setSelectedServiceSuggestionIndex(-1)
-        break
-    }
-  }
-
-  const selectServiceSuggestion = (serviceName: string) => {
-    setFormData(prev => ({ ...prev, title: serviceName }))
-    setShowServiceSuggestions(false)
-    setSelectedServiceSuggestionIndex(-1)
-    // Clear error if there was one
-    if (errors.title) {
-      setErrors(prev => ({ ...prev, title: '' }))
-    }
-  }
 
   const validateForm = () => {
-    const newErrors = { client: '', title: '', amount: '' }
+    const newErrors = { client: '', amount: '' }
     let isValid = true
 
     if (!formData.client.trim()) {
       newErrors.client = 'Client name is required'
-      isValid = false
-    }
-
-    if (!formData.title.trim()) {
-      newErrors.title = 'Service title is required'
       isValid = false
     }
 
@@ -389,8 +303,8 @@ export default function CreatePayment() {
         },
         body: JSON.stringify({
           client_name: formData.client.trim(),
-          title: formData.title.trim(),
-          description: `Beauty service: ${formData.title.trim()}`,
+          title: 'Payment',
+          description: 'Payment request',
           original_amount_aed: originalAmount,
           creator_id: user.id,
           branch_name: selectedBranch
@@ -419,8 +333,8 @@ export default function CreatePayment() {
   }
 
   const resetForm = () => {
-    setFormData({ client: '', title: '', amount: '' })
-    setErrors({ client: '', title: '', amount: '' })
+    setFormData({ client: '', amount: '' })
+    setErrors({ client: '', amount: '' })
     setError('')
   }
 
@@ -502,52 +416,6 @@ export default function CreatePayment() {
                 )}
               </div>
 
-              <div className="service-input-wrapper relative">
-                <label className="cosmic-label block mb-2">Service</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  onKeyDown={handleServiceKeyDown}
-                  onFocus={() => {
-                    if (serviceSuggestions.length > 0) {
-                      setShowServiceSuggestions(true)
-                    }
-                  }}
-                  placeholder="Haircut"
-                  className={`cosmic-input ${errors.title ? 'border-red-500' : ''}`}
-                  disabled={creating}
-                  autoComplete="off"
-                />
-                
-                {/* Service Suggestions Dropdown */}
-                {showServiceSuggestions && serviceSuggestions.length > 0 && (
-                  <div className="absolute z-50 w-full mt-1 bg-gray-900 border border-purple-500/50 rounded-lg shadow-2xl overflow-hidden">
-                    {serviceSuggestions.map((suggestion, index) => (
-                      <div
-                        key={suggestion.name}
-                        onClick={() => selectServiceSuggestion(suggestion.name)}
-                        onMouseEnter={() => setSelectedServiceSuggestionIndex(index)}
-                        className={`px-4 py-3 cursor-pointer flex justify-between items-center transition-all ${
-                          index === selectedServiceSuggestionIndex
-                            ? 'bg-purple-600/30 text-white'
-                            : 'hover:bg-purple-600/20 text-gray-300 hover:text-white'
-                        }`}
-                      >
-                        <span className="font-medium">{suggestion.name}</span>
-                        <span className="text-xs text-purple-400">
-                          Used {suggestion.count} times
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                
-                {errors.title && (
-                  <p className="mt-2 text-sm text-red-400">{errors.title}</p>
-                )}
-              </div>
 
               <div>
                 <label className="cosmic-label block mb-2">Amount in AED</label>
