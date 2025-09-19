@@ -609,6 +609,23 @@ function AuthPageContent() {
           return
         } else {
           // For invited users, attempt session restoration
+          console.log('🔍 [AUTH] Pre-condition check - Available state:', {
+            inviteData: inviteData ? 'EXISTS' : 'MISSING',
+            inviteDataContent: inviteData,
+            tempSession: tempSession ? 'EXISTS' : 'MISSING',
+            tempSessionContent: tempSession ? {
+              hasAccessToken: !!tempSession.access_token,
+              hasRefreshToken: !!tempSession.refresh_token,
+              sessionKeys: Object.keys(tempSession || {})
+            } : null,
+            signedUpUser: signedUpUser ? 'EXISTS' : 'MISSING',
+            signedUpUserContent: signedUpUser ? {
+              id: signedUpUser.id,
+              email: signedUpUser.email,
+              userKeys: Object.keys(signedUpUser || {})
+            } : null
+          })
+
           if (inviteData && tempSession && signedUpUser?.email) {
             console.log('🔄 [AUTH] No session found for invited user, attempting session restoration...')
             console.log('📝 [AUTH] Session restoration details:', {
@@ -657,14 +674,63 @@ function AuthPageContent() {
               return
             }
           } else {
-            // This shouldn't happen in normal flow
-            console.log('❌ [AUTH] Unexpected: No session in normal flow')
-            console.log('🔍 [AUTH] Debug info:', {
-              hasInviteData: !!inviteData,
-              hasTempSession: !!tempSession,
-              hasSignedUpUser: !!signedUpUser,
-              userEmail: signedUpUser?.email
+            // Condition failed - identify which value is missing
+            console.log('❌ [AUTH] Session restoration condition failed')
+            console.log('🔍 [AUTH] Condition failure analysis:', {
+              inviteData: {
+                exists: !!inviteData,
+                content: inviteData,
+                truthyCheck: !!inviteData
+              },
+              tempSession: {
+                exists: !!tempSession,
+                content: tempSession,
+                truthyCheck: !!tempSession
+              },
+              signedUpUser: {
+                exists: !!signedUpUser,
+                hasEmail: !!signedUpUser?.email,
+                email: signedUpUser?.email,
+                content: signedUpUser,
+                truthyCheck: !!signedUpUser?.email
+              },
+              overallCondition: !!(inviteData && tempSession && signedUpUser?.email)
             })
+
+            // Try alternative session restoration if we have session data
+            if (tempSession && tempSession.access_token && tempSession.refresh_token) {
+              console.log('🔄 [AUTH] Attempting fallback session restoration without full condition check...')
+              try {
+                const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+                  access_token: tempSession.access_token,
+                  refresh_token: tempSession.refresh_token
+                })
+
+                if (sessionError) {
+                  console.error('❌ [AUTH] Fallback session restoration failed:', sessionError.message)
+                } else if (sessionData?.session) {
+                  console.log('✅ [AUTH] Fallback session restoration successful!')
+                  setTempPassword('')
+                  setTempSession(null)
+                  // Continue with redirect logic
+                  if (role === 'Admin') {
+                    console.log('✅ [AUTH] Admin user registered - redirecting to dashboard')
+                    router.push('/dashboard')
+                    return
+                  } else {
+                    console.log('✅ [AUTH] Staff user registered - redirecting to pending approval')
+                    router.push('/pending-approval')
+                    return
+                  }
+                } else {
+                  console.error('❌ [AUTH] Fallback session restoration succeeded but no session created')
+                }
+              } catch (error) {
+                console.error('❌ [AUTH] Fallback session restoration exception:', error)
+              }
+            }
+
+            // If all restoration attempts fail
             setMessage('Session error. Please log in again.')
             setIsLogin(true)
             setPassword('')
