@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
+import HeartAnimation from '@/components/effects/HeartAnimation'
 
 interface PaymentDetails {
   id: string
@@ -17,47 +18,19 @@ interface PaymentDetails {
 function PaymentSuccessContent() {
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null)
   const [loading, setLoading] = useState(true)
+  const [heartAnimating, setHeartAnimating] = useState(false)
   const searchParams = useSearchParams()
 
-  // Heart animation function
+  // Heart animation trigger function
   const triggerHeartAnimation = () => {
-    const heartContainer = document.getElementById('heart-container')
-    if (!heartContainer) return
+    console.log('🎉 SUCCESS PAGE: Triggering heart animation')
+    setHeartAnimating(true)
 
-    // Create 8-12 hearts
-    const numHearts = Math.floor(Math.random() * 5) + 8
-
-    // Heart variety for visual diversity
-    const heartTypes = ['❤️', '💜', '💖', '💕', '💝']
-
-    for (let i = 0; i < numHearts; i++) {
-      setTimeout(() => {
-        const heart = document.createElement('div')
-        heart.innerHTML = heartTypes[Math.floor(Math.random() * heartTypes.length)]
-        heart.style.position = 'absolute'
-        heart.style.fontSize = '20px'
-        heart.style.userSelect = 'none'
-        heart.style.pointerEvents = 'none'
-        heart.style.zIndex = '20'
-
-        // Random horizontal position
-        const leftPosition = Math.random() * 80 + 10 // 10% to 90%
-        heart.style.left = `${leftPosition}%`
-        heart.style.bottom = '0px'
-
-        // Add animation class with longer duration for higher flight
-        heart.style.animation = 'heartFloat 4s ease-out forwards'
-
-        heartContainer.appendChild(heart)
-
-        // Remove heart after animation
-        setTimeout(() => {
-          if (heart.parentNode) {
-            heart.parentNode.removeChild(heart)
-          }
-        }, 4000)
-      }, i * 150) // Faster staggering for more continuous flow
-    }
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+      console.log('🎉 SUCCESS PAGE: Stopping heart animation')
+      setHeartAnimating(false)
+    }, 3000)
   }
 
   // Update transaction status to completed
@@ -145,6 +118,7 @@ function PaymentSuccessContent() {
     // Auto-trigger heart animation after 2 seconds
     if (id && amount && description && timestamp) {
       setTimeout(() => {
+        console.log('🎉 SUCCESS PAGE: Auto-triggering heart animation after 2 seconds')
         triggerHeartAnimation()
       }, 2000)
     }
@@ -197,6 +171,11 @@ function PaymentSuccessContent() {
 
   return (
     <div className="cosmic-bg">
+      {/* Heart Animation Component */}
+      <HeartAnimation
+        isActive={heartAnimating}
+        targetElementId="payment-success-message"
+      />
       <div className="min-h-screen flex items-center justify-center px-4 py-8">
         <div className="cosmic-card max-w-lg w-full text-center">
           {/* Success Animation */}
@@ -209,8 +188,8 @@ function PaymentSuccessContent() {
                 </svg>
               </div>
             </div>
-            <h1 className="cosmic-logo text-green-400 mb-2 font-bold text-[28px]">Payment Completed</h1>
-            <p className="cosmic-body opacity-70 mb-4 text-[6px]">Your payment has been processed successfully</p>
+            <h1 className="text-green-400 mb-2 font-bold text-[28px] font-light tracking-wide">Payment Completed</h1>
+            <p className="text-white opacity-70 mb-4 text-[6px] font-light">Your payment has been processed successfully</p>
           </div>
 
           {/* Payment Details */}
@@ -226,11 +205,10 @@ function PaymentSuccessContent() {
 
           {/* Personalized Thank You Message with Heart Animation */}
           <div className="relative">
-            <div id="heart-container" className="absolute inset-0 pointer-events-none overflow-hidden"></div>
             <p
               className="cosmic-body text-white text-lg cursor-pointer relative z-10"
               onClick={() => triggerHeartAnimation()}
-              id="thank-you-message"
+              id="payment-success-message"
             >
               💜 Thanks, Your {paymentDetails.clientName || 'Client'} 💜
             </p>

@@ -13,21 +13,6 @@
   }
 }
 
-/* Floating Heart Animation for Payment Success - Enhanced 7cm flight */
-@keyframes heartFloat {
-  0% {
-    opacity: 0;
-    transform: translateY(0) scale(0.5);
-  }
-  15% {
-    opacity: 1;
-    transform: translateY(-40px) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-265px) scale(0.7);
-  }
-}
 
 /* Cosmic Design System - CSS Custom Properties */
 :root {
