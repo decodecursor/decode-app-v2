@@ -18,6 +18,7 @@ function AuthPageContent() {
   const [showRoleModal, setShowRoleModal] = useState(false)
   const [signedUpUser, setSignedUpUser] = useState<any>(null)
   const [tempPassword, setTempPassword] = useState<string>('')
+  const [tempSession, setTempSession] = useState<any>(null)
   const [agreedToTerms, setAgreedToTerms] = useState(true)
   const [emailError, setEmailError] = useState('')
   const [checkingEmail, setCheckingEmail] = useState(false)
@@ -480,6 +481,12 @@ function AuthPageContent() {
             console.log('✅ [AUTH] Invited user - skipping email verification')
             setSignedUpUser(signupData.user)
             setTempPassword(password) // Store password for potential auto-login
+            setTempSession(signupData.session) // Store session for auto-login
+            console.log('📝 [AUTH] Stored session for invited user:', {
+              hasSession: !!signupData.session,
+              hasAccessToken: !!signupData.session?.access_token,
+              hasRefreshToken: !!signupData.session?.refresh_token
+            })
             setShowRoleModal(true)
             return
           }
@@ -574,6 +581,9 @@ function AuthPageContent() {
 
   const handleRoleModalClose = () => {
     setShowRoleModal(false)
+    // Clear stored data
+    setTempPassword('')
+    setTempSession(null)
     // Redirect to verification page even if user closes modal
     router.push(`/verify-email?email=${encodeURIComponent(email)}`)
   }
@@ -598,47 +608,63 @@ function AuthPageContent() {
           setPassword('') // Clear password field
           return
         } else {
-          // For invited users, attempt auto-login
-          if (inviteData && tempPassword && signedUpUser?.email) {
-            console.log('🔄 [AUTH] No session found for invited user, attempting auto-login...')
+          // For invited users, attempt session restoration
+          if (inviteData && tempSession && signedUpUser?.email) {
+            console.log('🔄 [AUTH] No session found for invited user, attempting session restoration...')
+            console.log('📝 [AUTH] Session restoration details:', {
+              hasAccessToken: !!tempSession?.access_token,
+              hasRefreshToken: !!tempSession?.refresh_token,
+              userEmail: signedUpUser.email
+            })
+
             try {
-              const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-                email: signedUpUser.email,
-                password: tempPassword
+              const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+                access_token: tempSession.access_token,
+                refresh_token: tempSession.refresh_token
               })
 
-              if (loginError) {
-                console.error('❌ [AUTH] Auto-login failed:', loginError.message)
-                setMessage('Auto-login failed. Please log in manually.')
+              if (sessionError) {
+                console.error('❌ [AUTH] Session restoration failed:', sessionError.message)
+                setMessage('Session restoration failed. Please log in manually.')
                 setIsLogin(true)
                 setPassword('')
                 setTempPassword('')
+                setTempSession(null)
                 return
               }
 
-              if (loginData?.session) {
-                console.log('✅ [AUTH] Auto-login successful for invited user')
+              if (sessionData?.session) {
+                console.log('✅ [AUTH] Session restoration successful for invited user')
                 setTempPassword('') // Clear stored password
+                setTempSession(null) // Clear stored session
                 // Continue with redirect logic below
               } else {
-                console.error('❌ [AUTH] Auto-login succeeded but no session created')
-                setMessage('Login succeeded but session not established. Please try logging in again.')
+                console.error('❌ [AUTH] Session restoration succeeded but no session created')
+                setMessage('Session restored but not active. Please try logging in again.')
                 setIsLogin(true)
                 setPassword('')
                 setTempPassword('')
+                setTempSession(null)
                 return
               }
             } catch (error) {
-              console.error('❌ [AUTH] Auto-login exception:', error)
-              setMessage('Auto-login failed. Please log in manually.')
+              console.error('❌ [AUTH] Session restoration exception:', error)
+              setMessage('Session restoration failed. Please log in manually.')
               setIsLogin(true)
               setPassword('')
               setTempPassword('')
+              setTempSession(null)
               return
             }
           } else {
             // This shouldn't happen in normal flow
             console.log('❌ [AUTH] Unexpected: No session in normal flow')
+            console.log('🔍 [AUTH] Debug info:', {
+              hasInviteData: !!inviteData,
+              hasTempSession: !!tempSession,
+              hasSignedUpUser: !!signedUpUser,
+              userEmail: signedUpUser?.email
+            })
             setMessage('Session error. Please log in again.')
             setIsLogin(true)
             setPassword('')
