@@ -61,6 +61,7 @@ export default function PaymentHistoryPage() {
   const supabase = createClient()
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
+  const [userRole, setUserRole] = useState<string | null>(null)
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([])
   const [transactions, setTransactions] = useState<PaymentTransaction[]>([])
   const [stats, setStats] = useState<PaymentStats | null>(null)
@@ -154,6 +155,25 @@ export default function PaymentHistoryPage() {
     }
   }
 
+  const fetchUserRole = async () => {
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'GET',
+        credentials: 'include'
+      })
+
+      if (!response.ok) {
+        console.error('Error fetching user profile:', await response.text())
+        return
+      }
+
+      const { userData } = await response.json()
+      setUserRole(userData.role)
+    } catch (error) {
+      console.error('Error fetching user profile:', error)
+    }
+  }
+
   // Simple authentication and data loading (like my-links)
   useEffect(() => {
     const getUser = async () => {
@@ -167,6 +187,7 @@ export default function PaymentHistoryPage() {
         console.log('✅ Payments: User authenticated:', user.id)
         setUser(user)
         await fetchPaymentData(user.id)
+        await fetchUserRole()
 
         // Set up real-time subscription for payment completion events
         console.log('🔄 Setting up real-time subscription for user:', user.id)
@@ -316,10 +337,11 @@ export default function PaymentHistoryPage() {
         {/* Analytics */}
         <div className="flex justify-center">
           <div style={{width: '70vw'}}>
-            <PaymentStats 
+            <PaymentStats
               transactions={transactions}
               paymentLinks={filteredAndSortedLinks}
               user={user}
+              userRole={userRole}
             />
           </div>
         </div>

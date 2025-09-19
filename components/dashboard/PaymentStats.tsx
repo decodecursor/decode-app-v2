@@ -38,6 +38,7 @@ interface PaymentStatsProps {
       user_name?: string
     }
   } | null
+  userRole?: string
 }
 
 interface DateRangeStats {
@@ -54,7 +55,7 @@ interface PopularAmount {
   percentage: number
 }
 
-export default function PaymentStats({ transactions, paymentLinks, user }: PaymentStatsProps) {
+export default function PaymentStats({ transactions, paymentLinks, user, userRole }: PaymentStatsProps) {
   // Early return if no user data available
   if (!user) {
     return (
@@ -474,16 +475,22 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
               <h3 className="cosmic-label text-white/70">My Commission</h3>
-              {dateRange !== 'custom' && (
+              {dateRange !== 'custom' && userRole !== 'Admin' && (
                 <span className={`text-xs font-medium ${getChangeColor(current.myCommission, previous.myCommission)}`}>
                   {formatPercentageChange(current.myCommission, previous.myCommission)}
                 </span>
               )}
             </div>
-            <p className="text-2xl font-bold text-white mb-1">
-              {formatCurrency(current.myCommission)}
-            </p>
-            {dateRange !== 'custom' && (
+            {userRole === 'Admin' ? (
+              <p className="text-2xl font-bold text-white/30 mb-1">
+                —
+              </p>
+            ) : (
+              <p className="text-2xl font-bold text-white mb-1">
+                {formatCurrency(current.myCommission)}
+              </p>
+            )}
+            {dateRange !== 'custom' && userRole !== 'Admin' && (
               <p className="text-xs text-white/50">
                 vs {formatCurrency(previous.myCommission)} previous period
               </p>
@@ -493,16 +500,22 @@ export default function PaymentStats({ transactions, paymentLinks, user }: Payme
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
               <h3 className="cosmic-label text-white/70">My Next Payout</h3>
-              {dateRange !== 'custom' && (
+              {dateRange !== 'custom' && userRole !== 'Admin' && (
                 <span className={`text-xs font-medium ${getChangeColor(current.myCommission, previous.myCommission)}`}>
                   {formatPercentageChange(current.myCommission, previous.myCommission)}
                 </span>
               )}
             </div>
-            <p className="text-2xl font-bold text-white mb-1">
-              {formatCurrency(current.myCommission)}
-            </p>
-            {dateRange !== 'custom' && (
+            {userRole === 'Admin' ? (
+              <p className="text-2xl font-bold text-white/30 mb-1">
+                —
+              </p>
+            ) : (
+              <p className="text-2xl font-bold text-white mb-1">
+                {formatCurrency(current.myCommission)}
+              </p>
+            )}
+            {dateRange !== 'custom' && userRole !== 'Admin' && (
               <p className="text-xs text-white/50">
                 vs {formatCurrency(previous.myCommission)} previous period
               </p>
