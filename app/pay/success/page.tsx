@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
-import HeartAnimation from '@/components/effects/HeartAnimation'
+import PaymentHeartAnimation from '@/components/effects/PaymentHeartAnimation'
 
 interface PaymentDetails {
   id: string
@@ -171,15 +171,15 @@ function PaymentSuccessContent() {
 
   return (
     <div className="cosmic-bg">
-      {/* Heart Animation Component */}
-      <HeartAnimation
+      {/* Payment Heart Animation Component */}
+      <PaymentHeartAnimation
         isActive={heartAnimating}
         targetElementId="payment-success-message"
       />
-      <div className="min-h-screen flex items-center justify-center px-4 py-8">
+      <div className="h-screen flex items-center justify-center px-4">
         <div className="cosmic-card max-w-lg w-full text-center">
           {/* Success Animation */}
-          <div className="mb-8">
+          <div className="mb-12">
             <div className="relative w-14 h-14 mx-auto mb-4">
               <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping"></div>
               <div className="relative w-14 h-14 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center">
@@ -188,8 +188,8 @@ function PaymentSuccessContent() {
                 </svg>
               </div>
             </div>
-            <h1 className="text-green-400 mb-2 font-bold text-[28px] font-light tracking-wide">Payment Completed</h1>
-            <p className="text-white opacity-70 mb-4 text-[6px] font-light">Your payment has been processed successfully</p>
+            <h1 className="text-white mb-2 font-bold text-[22px] font-light tracking-wide">Payment Completed</h1>
+            <p className="text-white opacity-70 mb-4 text-[10px] font-light">Your payment has been processed successfully</p>
           </div>
 
           {/* Payment Details */}
@@ -214,8 +214,8 @@ function PaymentSuccessContent() {
             </p>
           </div>
 
-          {/* Email Receipt Button (Design Only) */}
-          <div className="mt-8">
+          {/* Email Receipt Button (Hidden for Future Activation) */}
+          <div className="mt-8 hidden">
             <button className="cosmic-button-primary w-full py-3 px-6 rounded-lg text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-300 cursor-pointer">
               📧 Email Receipt
             </button>
