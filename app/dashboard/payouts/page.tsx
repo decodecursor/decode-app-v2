@@ -387,7 +387,7 @@ export default function PayoutsPage() {
                   </div>
 
                   {/* Two-Column Layout */}
-                  <div className="flex gap-4 mb-6">
+                  <div className="flex gap-4 mb-3">
                     {/* Available Balance */}
                     <div className="flex-1">
                       <p className="text-gray-400 text-sm mb-1">Available Balance</p>
@@ -396,12 +396,24 @@ export default function PayoutsPage() {
                       </p>
                     </div>
 
-                    {/* Payout to */}
+                    {/* Payout to - Styled Subcard */}
                     <div className="flex-1">
                       <p className="text-gray-400 text-sm mb-1">Payout to</p>
-                      <p className="text-white font-medium">
-                        {getSelectedMethodDisplayName()}
-                      </p>
+                      <div
+                        onClick={() => setShowSelectMethodModal(true)}
+                        className="bg-white/5 rounded-lg p-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <p className="text-white text-2xl font-bold">
+                            {getSelectedMethodDisplayName()}
+                          </p>
+                          <div className="w-6 h-6 text-gray-400 group-hover:text-purple-400 transition-colors">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -419,22 +431,14 @@ export default function PayoutsPage() {
                     </div>
                   )}
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-3">
+                  {/* Action Button */}
+                  <div>
                     <button
                       onClick={handleRequestPayoutClick}
                       disabled={payoutInProcess}
-                      className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+                      className="w-full py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
                     >
                       Request Payout
-                    </button>
-
-                    <button
-                      onClick={() => setShowSelectMethodModal(true)}
-                      disabled={availablePayoutMethods.length === 0}
-                      className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
-                    >
-                      Select Method
                     </button>
                   </div>
                 </div>
