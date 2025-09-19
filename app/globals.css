@@ -13,6 +13,22 @@
   }
 }
 
+/* Floating Heart Animation for Payment Success */
+@keyframes heartFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-20px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-120px) scale(0.8);
+  }
+}
+
 /* Cosmic Design System - CSS Custom Properties */
 :root {
   /* Cosmic Color Palette */

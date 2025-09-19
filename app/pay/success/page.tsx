@@ -19,6 +19,44 @@ function PaymentSuccessContent() {
   const [loading, setLoading] = useState(true)
   const searchParams = useSearchParams()
 
+  // Heart animation function
+  const triggerHeartAnimation = () => {
+    const heartContainer = document.getElementById('heart-container')
+    if (!heartContainer) return
+
+    // Create 5-7 hearts
+    const numHearts = Math.floor(Math.random() * 3) + 5
+
+    for (let i = 0; i < numHearts; i++) {
+      setTimeout(() => {
+        const heart = document.createElement('div')
+        heart.innerHTML = '❤️'
+        heart.style.position = 'absolute'
+        heart.style.fontSize = '20px'
+        heart.style.userSelect = 'none'
+        heart.style.pointerEvents = 'none'
+        heart.style.zIndex = '20'
+
+        // Random horizontal position
+        const leftPosition = Math.random() * 80 + 10 // 10% to 90%
+        heart.style.left = `${leftPosition}%`
+        heart.style.bottom = '0px'
+
+        // Add animation class
+        heart.style.animation = 'heartFloat 3s ease-out forwards'
+
+        heartContainer.appendChild(heart)
+
+        // Remove heart after animation
+        setTimeout(() => {
+          if (heart.parentNode) {
+            heart.parentNode.removeChild(heart)
+          }
+        }, 3000)
+      }, i * 200) // Stagger the hearts
+    }
+  }
+
   // Update transaction status to completed
   const markPaymentAsPaid = async (paymentLinkId: string, paymentIntent?: string) => {
     try {
@@ -98,8 +136,15 @@ function PaymentSuccessContent() {
         hasTimestamp: !!timestamp 
       })
     }
-    
+
     setLoading(false)
+
+    // Auto-trigger heart animation after 2 seconds
+    if (id && amount && description && timestamp) {
+      setTimeout(() => {
+        triggerHeartAnimation()
+      }, 2000)
+    }
   }, [searchParams])
 
 
@@ -161,13 +206,13 @@ function PaymentSuccessContent() {
                 </svg>
               </div>
             </div>
-            <h1 className="cosmic-logo text-green-400 mb-2">Payment Successful</h1>
-            <p className="cosmic-body opacity-70 mb-4">Your payment has been processed successfully</p>
+            <h1 className="cosmic-logo text-green-400 mb-2">Payment Completed</h1>
+            <p className="cosmic-body opacity-70 mb-4 text-xs">Your payment has been processed successfully</p>
           </div>
 
           {/* Payment Details */}
           <div className="bg-black rounded-lg p-6 mb-6">
-            <p className="cosmic-body text-white mb-2">{paymentDetails.description}</p>
+            <p className="cosmic-body text-white mb-2">Beauty Service</p>
             <p className="cosmic-body text-white">
               {paymentDetails.clientName || 'Client Name'}
             </p>
@@ -176,11 +221,23 @@ function PaymentSuccessContent() {
             </p>
           </div>
 
-          {/* Personalized Thank You Message */}
-          <div>
-            <p className="cosmic-body text-white text-lg">
-              ❤️ Thank you so much, {paymentDetails.clientName || 'Client'} ❤️
+          {/* Personalized Thank You Message with Heart Animation */}
+          <div className="relative">
+            <div id="heart-container" className="absolute inset-0 pointer-events-none overflow-hidden"></div>
+            <p
+              className="cosmic-body text-white text-lg cursor-pointer relative z-10"
+              onClick={() => triggerHeartAnimation()}
+              id="thank-you-message"
+            >
+              💜 Thanks, Your {paymentDetails.clientName || 'Client'} 💜
             </p>
+          </div>
+
+          {/* Email Receipt Button (Design Only) */}
+          <div className="mt-8">
+            <button className="cosmic-button-primary w-full py-3 px-6 rounded-lg text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-300 cursor-pointer">
+              📧 Email Receipt
+            </button>
           </div>
         </div>
       </div>
