@@ -655,8 +655,8 @@ function MyLinksContent() {
       const { userData } = await response.json()
       setUserRole(userData.role)
       setCompanyName(userData.company_name || userData.professional_center_name)
-      // Note: branchCount not available in this endpoint, but not critical for my-links page
-      setCompanyBranchCount(1) // Default value
+      // Use the actual branch count from the API response
+      setCompanyBranchCount(userData.branchCount || 1)
     } catch (error) {
       console.error('Error fetching user profile:', error)
     }

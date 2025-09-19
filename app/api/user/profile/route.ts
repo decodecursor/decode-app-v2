@@ -92,6 +92,17 @@ export async function GET(request: NextRequest) {
       pendingUsersCount = count || 0
     }
 
+    // Get branch count for the company
+    let branchCount = 1
+    if (userData.company_name) {
+      const { count } = await supabase
+        .from('branches')
+        .select('*', { count: 'exact', head: true })
+        .eq('company_name', userData.company_name)
+
+      branchCount = count || 1
+    }
+
     console.log('✅ [PROXY-PROFILE] Successfully fetched user profile with role:', userData.role)
 
     return NextResponse.json({
@@ -99,7 +110,8 @@ export async function GET(request: NextRequest) {
       userData: {
         ...userData,
         companyProfileImage,
-        pendingUsersCount
+        pendingUsersCount,
+        branchCount
       }
     })
 
