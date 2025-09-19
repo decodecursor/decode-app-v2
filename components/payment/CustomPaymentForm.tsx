@@ -57,6 +57,23 @@ function PaymentForm({
     email: customerEmail
   });
 
+  // Page-level autofocus prevention on component mount
+  useEffect(() => {
+    const preventPageAutofocus = () => {
+      // Remove focus from any element that might have auto-focused
+      if (document.activeElement && document.activeElement !== document.body) {
+        console.log('🔒 Removing page-level autofocus from:', document.activeElement.tagName);
+        (document.activeElement as HTMLElement).blur();
+      }
+    };
+
+    // Prevent autofocus immediately and after a short delay
+    preventPageAutofocus();
+    const timeoutId = setTimeout(preventPageAutofocus, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
+
   // Simplified device detection for payment capabilities
   const detectPaymentCapabilities = () => {
     // Check multiple ways to detect iOS devices
@@ -363,6 +380,7 @@ function PaymentForm({
                 onChange={(e) => setClientInfo(prev => ({ ...prev, email: e.target.value }))}
                 className="cosmic-input"
                 autoComplete="email"
+                autoFocus={false}
                 required
               />
             </div>
@@ -396,13 +414,28 @@ function PaymentForm({
                 }}
                 onReady={() => {
                   console.log('✅ PaymentElement ready and visible');
-                  // Remove autofocus from payment element inputs
-                  setTimeout(() => {
-                    const activeElement = document.activeElement;
-                    if (activeElement && activeElement.tagName === 'INPUT') {
-                      (activeElement as HTMLElement).blur();
+                  // Enhanced autofocus prevention for payment fields
+                  const preventAutofocus = () => {
+                    // Blur any currently focused element
+                    if (document.activeElement && document.activeElement !== document.body) {
+                      console.log('🔒 Removing autofocus from element:', document.activeElement.tagName);
+                      (document.activeElement as HTMLElement).blur();
                     }
-                  }, 100);
+
+                    // Target Stripe payment inputs specifically
+                    const stripeInputs = document.querySelectorAll('input[data-elements-stable-field-name], input[placeholder*="card"], input[placeholder*="Card"], input[placeholder*="expiry"], input[placeholder*="cvc"], input[placeholder*="postal"]');
+                    stripeInputs.forEach(input => {
+                      if (input === document.activeElement) {
+                        console.log('🔒 Removing focus from Stripe input:', input);
+                        (input as HTMLElement).blur();
+                      }
+                    });
+                  };
+
+                  // Multiple timeouts to catch different autofocus scenarios
+                  setTimeout(preventAutofocus, 100);
+                  setTimeout(preventAutofocus, 300);
+                  setTimeout(preventAutofocus, 500);
                 }}
                 onLoaderStart={() => {
                   console.log('🔄 PaymentElement loading...');
