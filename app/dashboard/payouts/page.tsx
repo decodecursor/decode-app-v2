@@ -37,6 +37,7 @@ export default function PayoutsPage() {
   const [selectedPayoutMethod, setSelectedPayoutMethod] = useState<'bank_account' | 'paypal' | null>(null)
   const [availablePayoutMethods, setAvailablePayoutMethods] = useState<PayoutMethod[]>([])
   const [showSelectMethodModal, setShowSelectMethodModal] = useState(false)
+  const [showNoPaymentMethodModal, setShowNoPaymentMethodModal] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -186,13 +187,19 @@ export default function PayoutsPage() {
   const handleRequestPayoutClick = () => {
     if (!payoutSummary) return
 
+    // Check if payment method is selected
+    if (!selectedPayoutMethod) {
+      setShowNoPaymentMethodModal(true)
+      return
+    }
+
     // If balance is less than 50 AED, show minimum balance modal
     if (payoutSummary.availableBalance < 50) {
       setShowMinimumBalanceModal(true)
       return
     }
 
-    // If balance is sufficient, show request modal
+    // If all checks pass, show request modal
     setShowRequestModal(true)
   }
 
@@ -416,7 +423,7 @@ export default function PayoutsPage() {
                   <div className="flex gap-3">
                     <button
                       onClick={handleRequestPayoutClick}
-                      disabled={!selectedPayoutMethod || payoutInProcess || (payoutSummary?.availableBalance || 0) < 50}
+                      disabled={payoutInProcess}
                       className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
                     >
                       Request Payout
@@ -564,6 +571,43 @@ export default function PayoutsPage() {
                 >
                   OK
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* No Payment Method Modal */}
+        {showNoPaymentMethodModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-xl border border-gray-700 p-6 w-full max-w-md">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-4">Select Payment Method</h3>
+                <p className="text-gray-300 mb-6">
+                  Please select a payment method before requesting a payout.
+                </p>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowNoPaymentMethodModal(false)}
+                    className="flex-1 cosmic-button-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowNoPaymentMethodModal(false)
+                      setShowSelectMethodModal(true)
+                    }}
+                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                  >
+                    Select Method
+                  </button>
+                </div>
               </div>
             </div>
           </div>
