@@ -176,10 +176,10 @@ function PaymentSuccessContent() {
         isActive={heartAnimating}
         targetElementId="payment-success-message"
       />
-      <div className="h-screen flex items-end justify-center px-4 overflow-hidden">
-        <div className="cosmic-card max-w-lg w-full text-center mb-16 md:mb-0 md:transform md:-translate-y-16">
+      <div className="h-screen flex items-center justify-center px-4 overflow-hidden">
+        <div className="cosmic-card max-w-lg w-full text-center">
           {/* Success Animation */}
-          <div className="mb-12">
+          <div className="mb-6">
             <div className="relative w-14 h-14 mx-auto mb-4">
               <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping"></div>
               <div className="relative w-14 h-14 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center">
