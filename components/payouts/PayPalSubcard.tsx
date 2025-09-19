@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 interface PayPalSubcardProps {
   userId: string
   onClick: () => void
+  refreshKey?: number
 }
 
 interface PayPalAccount {
@@ -15,13 +16,13 @@ interface PayPalAccount {
   status: string
 }
 
-export function PayPalSubcard({ userId, onClick }: PayPalSubcardProps) {
+export function PayPalSubcard({ userId, onClick, refreshKey }: PayPalSubcardProps) {
   const [loading, setLoading] = useState(true)
   const [paypalAccount, setPaypalAccount] = useState<PayPalAccount | null>(null)
 
   useEffect(() => {
     loadPayPalAccount()
-  }, [userId])
+  }, [userId, refreshKey])
 
   const loadPayPalAccount = async () => {
     try {

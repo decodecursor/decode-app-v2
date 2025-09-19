@@ -81,6 +81,7 @@ export function PayoutMethodsCard({ userId }: PayoutMethodsCardProps) {
               key={`paypal-${refreshKey}`}
               userId={userId}
               onClick={handlePayPalClick}
+              refreshKey={refreshKey}
             />
           </div>
         </div>

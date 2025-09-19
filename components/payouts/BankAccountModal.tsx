@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { ConfirmationModal } from './ConfirmationModal'
 
 interface BankAccountModalProps {
   isOpen: boolean
@@ -17,6 +18,8 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
   const [bank, setBank] = useState('')
   const [isConnected, setIsConnected] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false)
+  const [removeLoading, setRemoveLoading] = useState(false)
 
   // Load existing bank account data
   useEffect(() => {
@@ -145,7 +148,60 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
       setBank('')
     }
     setMessage(null)
+    setShowRemoveConfirmation(false)
     onClose()
+  }
+
+  const handleRemoveAccount = async () => {
+    setRemoveLoading(true)
+    setMessage(null)
+
+    try {
+      const response = await fetch('/api/user/bank-account', {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        setMessage({
+          type: 'success',
+          text: 'Bank account removed successfully!'
+        })
+
+        // Reset form state
+        setBeneficiary('')
+        setIban('')
+        setBank('')
+        setIsConnected(false)
+        setShowRemoveConfirmation(false)
+
+        // Trigger parent refresh
+        onSuccess()
+
+        // Close modal after a brief delay
+        setTimeout(() => {
+          onClose()
+          setMessage(null)
+        }, 1500)
+      } else {
+        setMessage({
+          type: 'error',
+          text: result.error || 'Failed to remove bank account'
+        })
+        setShowRemoveConfirmation(false)
+      }
+    } catch (error) {
+      console.error('Error removing bank account:', error)
+      setMessage({
+        type: 'error',
+        text: 'Network error - please try again'
+      })
+      setShowRemoveConfirmation(false)
+    } finally {
+      setRemoveLoading(false)
+    }
   }
 
   return (
@@ -268,6 +324,15 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
           >
             Cancel
           </button>
+          {isConnected && (
+            <button
+              onClick={() => setShowRemoveConfirmation(true)}
+              disabled={loading}
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Remove Account
+            </button>
+          )}
           <button
             onClick={handleSaveBankAccount}
             disabled={loading || !beneficiary || !iban || !bank}
@@ -277,6 +342,23 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
           </button>
         </div>
       </div>
+
+      {/* Remove Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showRemoveConfirmation}
+        onClose={() => setShowRemoveConfirmation(false)}
+        onConfirm={handleRemoveAccount}
+        title="Remove Bank Account"
+        message="Are you sure you want to remove this bank account?"
+        confirmText="Remove Account"
+        loading={removeLoading}
+      >
+        <div className="text-left bg-gray-800/50 rounded-lg p-3">
+          <p className="text-white text-sm font-mono">
+            {iban && bank ? `${iban.slice(0, 4)}••••${iban.slice(-4)} • ${bank}` : 'Bank Account'}
+          </p>
+        </div>
+      </ConfirmationModal>
     </div>
   )
 }

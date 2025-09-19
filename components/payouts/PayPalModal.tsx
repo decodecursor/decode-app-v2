@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { ConfirmationModal } from './ConfirmationModal'
 
 interface PayPalModalProps {
   isOpen: boolean
@@ -15,6 +16,8 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
   const [confirmEmail, setConfirmEmail] = useState('')
   const [isConnected, setIsConnected] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false)
+  const [removeLoading, setRemoveLoading] = useState(false)
 
   // Load existing PayPal account data when modal opens
   useEffect(() => {
@@ -117,7 +120,59 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
       setConfirmEmail('')
     }
     setMessage(null)
+    setShowRemoveConfirmation(false)
     onClose()
+  }
+
+  const handleRemoveAccount = async () => {
+    setRemoveLoading(true)
+    setMessage(null)
+
+    try {
+      const response = await fetch('/api/user/paypal-account', {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        setMessage({
+          type: 'success',
+          text: 'PayPal account removed successfully!'
+        })
+
+        // Reset form state
+        setEmail('')
+        setConfirmEmail('')
+        setIsConnected(false)
+        setShowRemoveConfirmation(false)
+
+        // Trigger parent refresh
+        onSuccess()
+
+        // Close modal after a brief delay
+        setTimeout(() => {
+          onClose()
+          setMessage(null)
+        }, 1500)
+      } else {
+        setMessage({
+          type: 'error',
+          text: result.error || 'Failed to remove PayPal account'
+        })
+        setShowRemoveConfirmation(false)
+      }
+    } catch (error) {
+      console.error('Error removing PayPal account:', error)
+      setMessage({
+        type: 'error',
+        text: 'Network error - please try again'
+      })
+      setShowRemoveConfirmation(false)
+    } finally {
+      setRemoveLoading(false)
+    }
   }
 
   return (
@@ -224,6 +279,15 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
           >
             Cancel
           </button>
+          {isConnected && (
+            <button
+              onClick={() => setShowRemoveConfirmation(true)}
+              disabled={loading}
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Remove Account
+            </button>
+          )}
           <button
             onClick={handleSavePayPal}
             disabled={loading || !email || !confirmEmail}
@@ -233,6 +297,23 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
           </button>
         </div>
       </div>
+
+      {/* Remove Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showRemoveConfirmation}
+        onClose={() => setShowRemoveConfirmation(false)}
+        onConfirm={handleRemoveAccount}
+        title="Remove PayPal Account"
+        message="Are you sure you want to remove this PayPal account?"
+        confirmText="Remove Account"
+        loading={removeLoading}
+      >
+        <div className="text-left bg-gray-800/50 rounded-lg p-3">
+          <p className="text-white text-sm font-mono">
+            {email ? email : 'PayPal Account'}
+          </p>
+        </div>
+      </ConfirmationModal>
     </div>
   )
 }
