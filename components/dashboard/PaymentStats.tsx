@@ -174,14 +174,14 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     console.log(`📊 Current Period Links: ${currentPeriodLinks.length}`)
     console.log(`📊 Previous Period Links: ${previousPeriodLinks.length}`)
 
-    // Calculate current period stats from payment links (using service_amount_aed)
-    const currentRevenue = currentPeriodLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0)
+    // Calculate current period stats from payment links (using service_amount_aed only)
+    const currentRevenue = currentPeriodLinks.reduce((sum, link) => sum + (link.service_amount_aed || 0), 0)
     const currentCount = currentPeriodLinks.reduce((sum, link) => sum + link.transaction_count, 0)
     const currentAverage = currentCount > 0 ? currentRevenue / currentCount : 0
     const currentSuccessRate = 100 // All paid links are successful
 
-    // Calculate previous period stats from payment links (using service_amount_aed)
-    const previousRevenue = previousPeriodLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0)
+    // Calculate previous period stats from payment links (using service_amount_aed only)
+    const previousRevenue = previousPeriodLinks.reduce((sum, link) => sum + (link.service_amount_aed || 0), 0)
     const previousCount = previousPeriodLinks.reduce((sum, link) => sum + link.transaction_count, 0)
     const previousAverage = previousCount > 0 ? previousRevenue / previousCount : 0
     const previousSuccessRate = 100
@@ -190,8 +190,8 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     const currentMyLinks = currentPeriodLinks.filter(link => link.creator_id === user?.id)
     const previousMyLinks = previousPeriodLinks.filter(link => link.creator_id === user?.id)
     
-    const currentMyRevenue = currentMyLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0)
-    const previousMyRevenue = previousMyLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0)
+    const currentMyRevenue = currentMyLinks.reduce((sum, link) => sum + (link.service_amount_aed || 0), 0)
+    const previousMyRevenue = previousMyLinks.reduce((sum, link) => sum + (link.service_amount_aed || 0), 0)
     
     // Commission is 1% of user's own service revenue
     const currentMyCommission = currentMyRevenue * 0.01
@@ -268,7 +268,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                  paidDate.getDate() === date.getDate()
         })
         
-        const revenue = dayLinks.reduce((sum, link) => sum + (link.service_amount_aed || link.amount_aed), 0)
+        const revenue = dayLinks.reduce((sum, link) => sum + (link.service_amount_aed || 0), 0)
         const transactionCount = dayLinks.reduce((sum, link) => sum + link.transaction_count, 0)
         
         // Store date as local date string, not UTC ISO string
@@ -632,12 +632,10 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                               onMouseLeave={() => setHoveredDayData(null)}
                             >
                               <div className="relative flex-1 w-full h-full flex items-end">
-                                <div 
+                                <div
                                   className={`w-full rounded-t-sm transition-all duration-300 ${
-                                    day.revenue > 0 
-                                      ? isToday 
-                                        ? 'bg-gradient-to-t from-yellow-500 to-yellow-300 group-hover:from-yellow-400 group-hover:to-yellow-200' 
-                                        : 'bg-gradient-to-t from-purple-600 to-purple-400 group-hover:from-purple-500 group-hover:to-purple-300'
+                                    day.revenue > 0
+                                      ? 'bg-gradient-to-t from-purple-600 to-purple-400 group-hover:from-purple-500 group-hover:to-purple-300'
                                       : 'bg-white/10'
                                   }`}
                                   style={{ 
@@ -741,7 +739,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                 </div>
                 <div className="flex items-center space-x-4">
                   <span className="cosmic-body text-green-400 font-bold">
-                    {formatCurrency(payment.service_amount_aed || payment.amount_aed)}
+                    {formatCurrency(payment.service_amount_aed || 0)}
                   </span>
                   <span className="cosmic-label text-white/60 text-sm min-w-[140px] text-right">
                     {formatPaymentDate(payment.paid_at!)}
