@@ -4,7 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { crossmintDB } from '@/lib/crossmint-db';
 import { calculateMarketplaceFee } from '@/types/crossmint';
-import { USER_ROLES } from '@/types/user';
+import { USER_ROLES, normalizeRole } from '@/types/user';
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,7 +47,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (![USER_ROLES.STAFF, USER_ROLES.ADMIN].includes(creator.role)) {
+    // Normalize and validate user role
+    const normalizedRole = normalizeRole(creator.role);
+    if (!normalizedRole || ![USER_ROLES.STAFF, USER_ROLES.ADMIN].includes(normalizedRole)) {
       return NextResponse.json(
         { error: 'Only authenticated users can create payment links' },
         { status: 403 }
