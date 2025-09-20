@@ -176,13 +176,33 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
     // Calculate current period stats from payment links (using service_amount_aed only)
     const currentRevenue = currentPeriodLinks.reduce((sum, link) => sum + (link.service_amount_aed || 0), 0)
-    const currentCount = currentPeriodLinks.reduce((sum, link) => sum + link.transaction_count, 0)
+
+    // For STAFF users: count payment links (not individual transactions)
+    // For ADMIN users: count total transactions across all payment links
+    console.log(`📊 Transaction Count Debug - UserRole: ${userRole}, isStaff: ${userRole === 'Staff'}`)
+    const currentCount = userRole === 'Staff'
+      ? currentPeriodLinks.length
+      : currentPeriodLinks.reduce((sum, link) => sum + link.transaction_count, 0)
+
+    console.log(`📊 Current Count: ${currentCount} (Payment Links: ${currentPeriodLinks.length})`)
+    currentPeriodLinks.forEach((link, i) => {
+      console.log(`📊 Link ${i + 1}: transaction_count=${link.transaction_count}, service_amount=${link.service_amount_aed}`)
+    })
+
     const currentAverage = currentCount > 0 ? currentRevenue / currentCount : 0
     const currentSuccessRate = 100 // All paid links are successful
 
     // Calculate previous period stats from payment links (using service_amount_aed only)
     const previousRevenue = previousPeriodLinks.reduce((sum, link) => sum + (link.service_amount_aed || 0), 0)
-    const previousCount = previousPeriodLinks.reduce((sum, link) => sum + link.transaction_count, 0)
+
+    // For STAFF users: count payment links (not individual transactions)
+    // For ADMIN users: count total transactions across all payment links
+    const previousCount = userRole === 'Staff'
+      ? previousPeriodLinks.length
+      : previousPeriodLinks.reduce((sum, link) => sum + link.transaction_count, 0)
+
+    console.log(`📊 Previous Count: ${previousCount} (Payment Links: ${previousPeriodLinks.length})`)
+
     const previousAverage = previousCount > 0 ? previousRevenue / previousCount : 0
     const previousSuccessRate = 100
 
@@ -304,7 +324,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       popularAmounts,
       revenueByDay
     })
-  }, [dateRange, customDateRange, transactions, paymentLinks, now])
+  }, [dateRange, customDateRange, transactions, paymentLinks, now, userRole, user])
 
   useEffect(() => {
     calculateStats()
