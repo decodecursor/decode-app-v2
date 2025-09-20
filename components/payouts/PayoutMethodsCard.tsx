@@ -48,6 +48,10 @@ export function PayoutMethodsCard({ userId, onMethodDeleted }: PayoutMethodsCard
   const handlePayPalSuccess = () => {
     // Trigger refresh of PayPal subcard
     setRefreshKey(prev => prev + 1)
+    // Notify parent about method change (addition)
+    if (onMethodDeleted) {
+      onMethodDeleted()
+    }
   }
 
   const handleMethodDeleted = () => {
@@ -66,6 +70,10 @@ export function PayoutMethodsCard({ userId, onMethodDeleted }: PayoutMethodsCard
       newKey: newKey
     })
     setRefreshKey(newKey)
+    // Notify parent about method change (addition)
+    if (onMethodDeleted) {
+      onMethodDeleted()
+    }
   }
 
   return (
