@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { crossmintDB } from '@/lib/crossmint-db';
 import { calculateMarketplaceFee } from '@/types/crossmint';
+import { USER_ROLES } from '@/types/user';
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!['User', 'Beauty Professional', 'Admin'].includes(creator.role)) {
+    if (![USER_ROLES.STAFF, USER_ROLES.ADMIN].includes(creator.role)) {
       return NextResponse.json(
         { error: 'Only authenticated users can create payment links' },
         { status: 403 }

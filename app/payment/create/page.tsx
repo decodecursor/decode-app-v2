@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 import { calculateMarketplaceFee } from '@/types/crossmint'
+import { USER_ROLES, UserRole } from '@/types/user'
 
 export default function CreatePayment() {
   const [user, setUser] = useState<User | null>(null)
@@ -33,6 +34,7 @@ export default function CreatePayment() {
   const [userBranches, setUserBranches] = useState<string[]>([])
   const [selectedBranch, setSelectedBranch] = useState<string>('')
   const [showBranchSelector, setShowBranchSelector] = useState(false)
+  const [userRole, setUserRole] = useState<UserRole | null>(null)
   
   const router = useRouter()
 
@@ -166,10 +168,14 @@ export default function CreatePayment() {
           setSelectedBranch('')
         }
 
+        // Set user role
+        setUserRole(userData?.role || null)
+
       } catch (error) {
         console.error('Error loading user data:', error)
         setUserBranches([])
         setSelectedBranch('')
+        setUserRole(null)
       }
 
       setLoading(false)
@@ -466,6 +472,10 @@ export default function CreatePayment() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
+                ) : userBranches.length === 1 && userRole === USER_ROLES.STAFF ? (
+                  <div className="text-sm text-gray-300">
+                    {selectedBranch}
+                  </div>
                 ) : userBranches.length === 0 ? (
                   <div className="text-sm text-red-400">
                     ⚠️ No branch assigned - Contact administrator

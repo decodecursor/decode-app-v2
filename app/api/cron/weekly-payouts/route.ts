@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { stripeTransferService } from '@/lib/stripe-transfer-service'
 import { logger } from '@/lib/logger'
+import { USER_ROLES } from '@/types/user'
 
 // This endpoint should be called by a cron job every Monday at midnight
 // You can use Vercel Cron Jobs or an external service like cron-job.org
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
     const { data: users, error: usersError } = await supabaseAdmin
       .from('users')
       .select('id, email, stripe_connect_account_id')
-      .eq('role', 'Beauty Professional')
+      .eq('role', USER_ROLES.STAFF)
       .eq('stripe_connect_status', 'active')
       .not('stripe_connect_account_id', 'is', null) as any
 
