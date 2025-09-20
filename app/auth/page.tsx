@@ -17,8 +17,6 @@ function AuthPageContent() {
   const [message, setMessage] = useState('')
   const [showRoleModal, setShowRoleModal] = useState(false)
   const [signedUpUser, setSignedUpUser] = useState<any>(null)
-  const [tempPassword, setTempPassword] = useState<string>('')
-  const [tempSession, setTempSession] = useState<any>(null)
   const [agreedToTerms, setAgreedToTerms] = useState(true)
   const [emailError, setEmailError] = useState('')
   const [checkingEmail, setCheckingEmail] = useState(false)
@@ -475,23 +473,8 @@ function AuthPageContent() {
         
         if (signupData && signupData.user) {
           console.log('✅ [AUTH] User signed up successfully:', signupData.user.id)
-          
-          // For invited users, skip email verification and go straight to role modal
-          if (inviteData) {
-            console.log('✅ [AUTH] Invited user - skipping email verification')
-            setSignedUpUser(signupData.user)
-            setTempPassword(password) // Store password for potential auto-login
-            setTempSession(signupData.session) // Store session for auto-login
-            console.log('📝 [AUTH] Stored session for invited user:', {
-              hasSession: !!signupData.session,
-              hasAccessToken: !!signupData.session?.access_token,
-              hasRefreshToken: !!signupData.session?.refresh_token
-            })
-            setShowRoleModal(true)
-            return
-          }
-          
-          // For regular users, check if email is confirmed
+
+          // All users (invited and regular) must verify their email
           if (signupData.user.email_confirmed_at || signupData.session) {
             console.log('✅ [AUTH] Email confirmed or session active - showing role modal')
             setSignedUpUser(signupData.user)
@@ -590,168 +573,17 @@ function AuthPageContent() {
 
   const handleRoleModalComplete = async (role: string) => {
     setShowRoleModal(false)
-    
+
     console.log('✅ [AUTH] Profile creation completed for role:', role)
-    
-    // Verify session exists before redirecting
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        console.log('⚠️ [AUTH] No session found after profile creation')
-        
-        if (isPostVerificationFlow) {
-          // This is expected for post-verification flow - show login form
-          console.log('✅ [AUTH] Post-verification flow: Profile created, switching to login')
-          setMessage('Profile created successfully! Please log in to continue.')
-          setIsLogin(true) // Switch to login mode
-          setShowRoleModal(false) // Close modal
-          setPassword('') // Clear password field
-          return
-        } else {
-          // For invited users, attempt session restoration
-          console.log('🔍 [AUTH] Pre-condition check - Available state:', {
-            inviteData: inviteData ? 'EXISTS' : 'MISSING',
-            inviteDataContent: inviteData,
-            tempSession: tempSession ? 'EXISTS' : 'MISSING',
-            tempSessionContent: tempSession ? {
-              hasAccessToken: !!tempSession.access_token,
-              hasRefreshToken: !!tempSession.refresh_token,
-              sessionKeys: Object.keys(tempSession || {})
-            } : null,
-            signedUpUser: signedUpUser ? 'EXISTS' : 'MISSING',
-            signedUpUserContent: signedUpUser ? {
-              id: signedUpUser.id,
-              email: signedUpUser.email,
-              userKeys: Object.keys(signedUpUser || {})
-            } : null
-          })
 
-          if (inviteData && tempSession && signedUpUser?.email) {
-            console.log('🔄 [AUTH] No session found for invited user, attempting session restoration...')
-            console.log('📝 [AUTH] Session restoration details:', {
-              hasAccessToken: !!tempSession?.access_token,
-              hasRefreshToken: !!tempSession?.refresh_token,
-              userEmail: signedUpUser.email
-            })
+    // After profile creation, ALL users need to verify email and login
+    console.log('✅ [AUTH] Profile created successfully - switching to login flow')
+    setMessage('Profile created successfully! Please check your email to verify your account, then log in.')
+    setIsLogin(true)
+    setPassword('')
 
-            try {
-              const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-                access_token: tempSession.access_token,
-                refresh_token: tempSession.refresh_token
-              })
-
-              if (sessionError) {
-                console.error('❌ [AUTH] Session restoration failed:', sessionError.message)
-                setMessage('Session restoration failed. Please log in manually.')
-                setIsLogin(true)
-                setPassword('')
-                setTempPassword('')
-                setTempSession(null)
-                return
-              }
-
-              if (sessionData?.session) {
-                console.log('✅ [AUTH] Session restoration successful for invited user')
-                setTempPassword('') // Clear stored password
-                setTempSession(null) // Clear stored session
-                // Continue with redirect logic below
-              } else {
-                console.error('❌ [AUTH] Session restoration succeeded but no session created')
-                setMessage('Session restored but not active. Please try logging in again.')
-                setIsLogin(true)
-                setPassword('')
-                setTempPassword('')
-                setTempSession(null)
-                return
-              }
-            } catch (error) {
-              console.error('❌ [AUTH] Session restoration exception:', error)
-              setMessage('Session restoration failed. Please log in manually.')
-              setIsLogin(true)
-              setPassword('')
-              setTempPassword('')
-              setTempSession(null)
-              return
-            }
-          } else {
-            // Condition failed - identify which value is missing
-            console.log('❌ [AUTH] Session restoration condition failed')
-            console.log('🔍 [AUTH] Condition failure analysis:', {
-              inviteData: {
-                exists: !!inviteData,
-                content: inviteData,
-                truthyCheck: !!inviteData
-              },
-              tempSession: {
-                exists: !!tempSession,
-                content: tempSession,
-                truthyCheck: !!tempSession
-              },
-              signedUpUser: {
-                exists: !!signedUpUser,
-                hasEmail: !!signedUpUser?.email,
-                email: signedUpUser?.email,
-                content: signedUpUser,
-                truthyCheck: !!signedUpUser?.email
-              },
-              overallCondition: !!(inviteData && tempSession && signedUpUser?.email)
-            })
-
-            // Try alternative session restoration if we have session data
-            if (tempSession && tempSession.access_token && tempSession.refresh_token) {
-              console.log('🔄 [AUTH] Attempting fallback session restoration without full condition check...')
-              try {
-                const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-                  access_token: tempSession.access_token,
-                  refresh_token: tempSession.refresh_token
-                })
-
-                if (sessionError) {
-                  console.error('❌ [AUTH] Fallback session restoration failed:', sessionError.message)
-                } else if (sessionData?.session) {
-                  console.log('✅ [AUTH] Fallback session restoration successful!')
-                  setTempPassword('')
-                  setTempSession(null)
-                  // Continue with redirect logic
-                  if (role === 'Admin') {
-                    console.log('✅ [AUTH] Admin user registered - redirecting to dashboard')
-                    router.push('/dashboard')
-                    return
-                  } else {
-                    console.log('✅ [AUTH] Staff user registered - redirecting to pending approval')
-                    router.push('/pending-approval')
-                    return
-                  }
-                } else {
-                  console.error('❌ [AUTH] Fallback session restoration succeeded but no session created')
-                }
-              } catch (error) {
-                console.error('❌ [AUTH] Fallback session restoration exception:', error)
-              }
-            }
-
-            // If all restoration attempts fail
-            setMessage('Session error. Please log in again.')
-            setIsLogin(true)
-            setPassword('')
-            return
-          }
-        }
-      }
-      console.log('✅ [AUTH] Session verified, proceeding with redirect')
-    } catch (error) {
-      console.error('❌ [AUTH] Session verification failed:', error)
-      setMessage('Session error. Please log in again.')
-      return
-    }
-    
-    if (role === 'Admin') {
-      console.log('✅ [AUTH] Admin user registered - redirecting to dashboard')
-      router.push('/dashboard')
-    } else {
-      console.log('✅ [AUTH] Staff user registered - redirecting to pending approval')
-      router.push('/pending-approval')
-    }
+    // Clear any temporary data
+    setSignedUpUser(null)
   }
 
   return (
