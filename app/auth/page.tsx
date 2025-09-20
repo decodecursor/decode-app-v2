@@ -564,9 +564,6 @@ function AuthPageContent() {
 
   const handleRoleModalClose = () => {
     setShowRoleModal(false)
-    // Clear stored data
-    setTempPassword('')
-    setTempSession(null)
     // Redirect to verification page even if user closes modal
     router.push(`/verify-email?email=${encodeURIComponent(email)}`)
   }
