@@ -288,8 +288,30 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                  paidDate.getDate() === date.getDate()
         })
         
-        const revenue = dayLinks.reduce((sum, link) => sum + (link.service_amount_aed || 0), 0)
-        const transactionCount = dayLinks.reduce((sum, link) => sum + link.transaction_count, 0)
+        // Debug logging for chart revenue calculation
+        console.log(`📊 Chart Debug - Day ${date.toLocaleDateString()}: ${dayLinks.length} links`)
+        dayLinks.forEach((link, i) => {
+          console.log(`📊 Link ${i + 1}: service_amount_aed=${link.service_amount_aed}, amount_aed=${link.amount_aed}, title="${link.title}"`)
+        })
+
+        // Ensure we only use service amount (staff portion), calculate if missing
+        const revenue = dayLinks.reduce((sum, link) => {
+          let serviceAmount = link.service_amount_aed || 0
+
+          // If service_amount_aed is missing or suspiciously equal to total amount, calculate it
+          if (!serviceAmount || serviceAmount === link.amount_aed) {
+            // Calculate service amount: total - 9% platform fee
+            serviceAmount = link.amount_aed ? link.amount_aed * 0.91 : 0
+            console.log(`📊 Calculated service amount for ${link.title}: ${serviceAmount} (from total: ${link.amount_aed})`)
+          }
+
+          return sum + serviceAmount
+        }, 0)
+        const transactionCount = userRole === 'Staff'
+          ? dayLinks.length  // Count payment links for STAFF
+          : dayLinks.reduce((sum, link) => sum + link.transaction_count, 0)  // Count transactions for ADMIN
+
+        console.log(`📊 Total day revenue: ${revenue} (from service_amount_aed)`)
         
         // Store date as local date string, not UTC ISO string
         const year = date.getFullYear()
