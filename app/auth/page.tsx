@@ -83,6 +83,10 @@ function AuthPageContent() {
         setEmail(decodedData.email || '')
         setIsLogin(false) // Force signup mode for invitations
         setMessage(`Welcome! You've been invited to join ${decodedData.companyName}`)
+
+        // Store complete invite data in sessionStorage to persist through email verification
+        sessionStorage.setItem('inviteData', JSON.stringify(decodedData))
+        console.log('✅ [AUTH] Stored invite data in sessionStorage for email verification persistence')
       } catch (error) {
         console.error('Invalid invite link:', error)
         setMessage('Invalid invitation link')
@@ -140,6 +144,21 @@ function AuthPageContent() {
               setPreselectedRole(storedPreselectedRole)
               // Clear it after use
               sessionStorage.removeItem('preselectedRole')
+            }
+
+            // Retrieve complete invite data from sessionStorage if available
+            const storedInviteData = sessionStorage.getItem('inviteData')
+            if (storedInviteData) {
+              try {
+                const parsedInviteData = JSON.parse(storedInviteData)
+                setInviteData(parsedInviteData)
+                console.log('✅ [AUTH] Restored invite data from sessionStorage:', parsedInviteData)
+                // Clear it after use
+                sessionStorage.removeItem('inviteData')
+              } catch (error) {
+                console.error('❌ [AUTH] Failed to parse stored invite data:', error)
+                sessionStorage.removeItem('inviteData') // Clean up invalid data
+              }
             }
 
             setShowRoleModal(true)
