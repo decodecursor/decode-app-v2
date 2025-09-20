@@ -8,9 +8,10 @@ interface PayPalModalProps {
   onClose: () => void
   userId: string
   onSuccess: () => void
+  onMethodDeleted?: () => void
 }
 
-export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalProps) {
+export function PayPalModal({ isOpen, onClose, userId, onSuccess, onMethodDeleted }: PayPalModalProps) {
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
   const [confirmEmail, setConfirmEmail] = useState('')
@@ -150,6 +151,11 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess }: PayPalModalP
 
         // Trigger parent refresh
         onSuccess()
+
+        // Notify about method deletion
+        if (onMethodDeleted) {
+          onMethodDeleted()
+        }
 
         // Close modal after a brief delay
         setTimeout(() => {

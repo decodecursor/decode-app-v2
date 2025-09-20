@@ -8,9 +8,10 @@ import { BankAccountModal } from './BankAccountModal'
 
 interface PayoutMethodsCardProps {
   userId: string
+  onMethodDeleted?: () => void
 }
 
-export function PayoutMethodsCard({ userId }: PayoutMethodsCardProps) {
+export function PayoutMethodsCard({ userId, onMethodDeleted }: PayoutMethodsCardProps) {
   const [showPayPalModal, setShowPayPalModal] = useState(false)
   const [showBankAccountModal, setShowBankAccountModal] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -47,6 +48,14 @@ export function PayoutMethodsCard({ userId }: PayoutMethodsCardProps) {
   const handlePayPalSuccess = () => {
     // Trigger refresh of PayPal subcard
     setRefreshKey(prev => prev + 1)
+  }
+
+  const handleMethodDeleted = () => {
+    // Trigger refresh of subcards and notify parent
+    setRefreshKey(prev => prev + 1)
+    if (onMethodDeleted) {
+      onMethodDeleted()
+    }
   }
 
   const handleBankAccountSuccess = () => {
@@ -93,6 +102,7 @@ export function PayoutMethodsCard({ userId }: PayoutMethodsCardProps) {
         onClose={() => setShowPayPalModal(false)}
         userId={userId}
         onSuccess={handlePayPalSuccess}
+        onMethodDeleted={handleMethodDeleted}
       />
 
       {/* Bank Account Modal */}
@@ -102,6 +112,7 @@ export function PayoutMethodsCard({ userId }: PayoutMethodsCardProps) {
         userId={userId}
         userRole={userRole}
         onSuccess={handleBankAccountSuccess}
+        onMethodDeleted={handleMethodDeleted}
       />
     </>
   )

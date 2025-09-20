@@ -9,9 +9,10 @@ interface BankAccountModalProps {
   userId: string
   onSuccess: () => void
   userRole?: string
+  onMethodDeleted?: () => void
 }
 
-export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole }: BankAccountModalProps) {
+export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole, onMethodDeleted }: BankAccountModalProps) {
   const [loading, setLoading] = useState(false)
   const [beneficiary, setBeneficiary] = useState('')
   const [iban, setIban] = useState('')
@@ -179,6 +180,11 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole 
 
         // Trigger parent refresh
         onSuccess()
+
+        // Notify about method deletion
+        if (onMethodDeleted) {
+          onMethodDeleted()
+        }
 
         // Close modal after a brief delay
         setTimeout(() => {

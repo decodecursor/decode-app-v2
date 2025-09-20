@@ -139,12 +139,26 @@ export default function PayoutsPage() {
 
       if (profileResponse.ok) {
         const { userData } = await profileResponse.json()
-        setSelectedPayoutMethod(userData.preferred_payout_method || null)
+        const currentSelection = userData.preferred_payout_method
 
-        // Auto-select first available method if none selected
-        if (!userData.preferred_payout_method && methods.length > 0) {
-          setSelectedPayoutMethod(methods[0].type)
-          await savePayoutMethodSelection(methods[0].type)
+        // Check if current selection still exists in available methods
+        const isCurrentSelectionAvailable = methods.some(method => method.type === currentSelection)
+
+        if (isCurrentSelectionAvailable) {
+          // Keep current selection if it's still available
+          setSelectedPayoutMethod(currentSelection)
+        } else if (methods.length > 0) {
+          // Auto-select first available method if current selection is no longer available
+          const newSelection = methods[0].type
+          setSelectedPayoutMethod(newSelection)
+          await savePayoutMethodSelection(newSelection)
+        } else {
+          // Clear selection if no methods available
+          setSelectedPayoutMethod(null)
+          if (currentSelection) {
+            // Clear from profile if a method was previously selected
+            await savePayoutMethodSelection(null)
+          }
         }
       }
 
@@ -153,7 +167,7 @@ export default function PayoutsPage() {
     }
   }
 
-  const savePayoutMethodSelection = async (method: 'bank_account' | 'paypal') => {
+  const savePayoutMethodSelection = async (method: 'bank_account' | 'paypal' | null) => {
     try {
       const response = await fetch('/api/user/profile', {
         method: 'PATCH',
@@ -470,7 +484,7 @@ export default function PayoutsPage() {
                 </div>
 
                 {/* My Payout Methods Card */}
-                {user && <PayoutMethodsCard userId={user.id} />}
+                {user && <PayoutMethodsCard userId={user.id} onMethodDeleted={loadPayoutMethods} />}
               </div>
             )}
 
