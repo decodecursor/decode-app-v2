@@ -1116,70 +1116,41 @@ Manage your payment settings in your dashboard.
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Join ${data.companyName} on DECODE</title>
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #34d399 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-        .invite-icon { font-size: 48px; color: #34d399; margin-bottom: 20px; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; text-align: center; }
+        .logo { font-size: 24px; font-weight: bold; color: #6366f1; margin-bottom: 30px; }
         .company-name { font-size: 24px; font-weight: bold; color: #059669; margin: 20px 0; }
-        .details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .detail-row:last-child { border-bottom: none; }
-        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
         .button { display: inline-block; background: #34d399; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
-        .button:hover { background: #059669; }
-        .expiry-notice { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 5px; padding: 15px; margin: 20px 0; color: #92400e; }
+        .expiry { color: #666; font-size: 14px; margin-top: 20px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>DECODE</h1>
-            <h2>🎉 You're Invited!</h2>
-        </div>
-        <div class="content">
-            <div style="text-align: center;">
-                <div class="invite-icon">✉️</div>
-                <h3>Hello ${data.recipientName}!</h3>
-                <div class="company-name">${data.companyName}</div>
-                <p>You've been invited to join <strong>${data.companyName}</strong> on DECODE.</p>
-            </div>
-            
-            
-            <div class="expiry-notice">
-                ⏰ <strong>Important:</strong> This invitation will expire in 48 hours. Please accept it soon to join your team.
-            </div>
-            
-            <div style="text-align: center;">
-                <p>Click the button below to create your account and join ${data.companyName}.</p>
-                <a href="${data.signupUrl}" class="button">Accept Invitation & Register</a>
-                <p style="font-size: 14px; color: #666;">
-                    If the button doesn't work, copy and paste this link into your browser:<br>
-                    <a href="${data.signupUrl}" style="color: #059669; word-break: break-all;">${data.signupUrl}</a>
-                </p>
-            </div>
-        </div>
-        <div class="footer">
-            <p>This invitation was sent by DECODE</p>
-            <p>If you didn't expect this invitation, you can safely ignore this email.</p>
-        </div>
+        <div class="logo">DECODE</div>
+
+        <p>Hi ${data.recipientName},</p>
+
+        <p>You've been invited to join ${data.companyName} on DECODE.</p>
+
+        <div class="company-name">${data.companyName}</div>
+
+        <a href="${data.signupUrl}" class="button">Accept Invitation & Register</a>
+
+        <div class="expiry">Invitation expires in 48 hours</div>
     </div>
 </body>
 </html>`
 
     const text = `
-DECODE - You're Invited to Join ${data.companyName}!
-
-Hello ${data.recipientName}!
+Hi ${data.recipientName},
 
 You've been invited to join ${data.companyName} on DECODE.
 
-IMPORTANT: This invitation will expire in 48 hours.
+${data.companyName}
 
-To accept this invitation and create your account, visit:
-${data.signupUrl}
+Accept invitation: ${data.signupUrl}
 
-If you didn't expect this invitation, you can safely ignore this email.
+Invitation expires in 48 hours
 
 ---
 DECODE
