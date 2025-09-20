@@ -5,6 +5,7 @@ export interface CrossmintUser {
   email: string;
   user_name: string;
   professional_center_name: string | null;
+  company_name: string | null;
   instagram_handle: string | null;
   wallet_address: string | null;
   crossmint_wallet_id: string | null;
