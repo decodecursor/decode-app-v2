@@ -401,6 +401,12 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
   const { current, previous, popularAmounts, revenueByDay } = statsData
 
+  // Role-based labels for better UX
+  const isStaffUser = userRole === 'Staff'
+  const revenueLabel = isStaffUser ? 'My Revenue' : 'Company Revenue'
+  const transactionLabel = isStaffUser ? 'My Transactions' : 'Company Transactions'
+  const analyticsLabel = isStaffUser ? 'My Revenue Analytics' : 'Revenue Analytics'
+
   return (
     <>
     <div className="space-y-6">
@@ -436,7 +442,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="cosmic-label text-white/70">Company Revenue</h3>
+              <h3 className="cosmic-label text-white/70">{revenueLabel}</h3>
               {dateRange !== 'custom' && (
                 <span className={`text-xs font-medium ${getChangeColor(current.revenue, previous.revenue)}`}>
                   {formatPercentageChange(current.revenue, previous.revenue)}
@@ -455,7 +461,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="cosmic-label text-white/70">Company Transactions</h3>
+              <h3 className="cosmic-label text-white/70">{transactionLabel}</h3>
               {dateRange !== 'custom' && (
                 <span className={`text-xs font-medium ${getChangeColor(current.transactions, previous.transactions)}`}>
                   {formatPercentageChange(current.transactions, previous.transactions)}
@@ -526,7 +532,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
       {/* Revenue Chart */}
       <div className="cosmic-card">
-        <h3 className="cosmic-heading text-white mb-4">Revenue Analytics</h3>
+        <h3 className="cosmic-heading text-white mb-4">{analyticsLabel}</h3>
         {revenueByDay.length > 0 ? (
           <>
             {(() => {
