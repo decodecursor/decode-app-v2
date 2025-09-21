@@ -97,16 +97,16 @@ export async function GET(request: NextRequest) {
     // Get all completed payouts to calculate total paid out
     const { data: allPayouts } = await supabase
       .from('payouts')
-      .select('amount_aed')
+      .select('payout_amount_aed')
       .eq('user_id', userId)
       .eq('status', 'paid')
 
-    const totalPaidOut = (allPayouts || []).reduce((sum, p) => sum + (p.amount_aed || 0), 0)
+    const totalPaidOut = (allPayouts || []).reduce((sum, p) => sum + (p.payout_amount_aed || 0), 0)
 
     // Get last payout
     const { data: lastPayout } = await supabase
       .from('payouts')
-      .select('amount_aed, paid_at')
+      .select('payout_amount_aed, paid_at')
       .eq('user_id', userId)
       .eq('status', 'paid')
       .order('paid_at', { ascending: false })
@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
       pendingBalance: availableBalance,
       totalEarnings,
       totalPaidOut,
-      lastPayoutAmount: lastPayout?.amount_aed || 0,
+      lastPayoutAmount: lastPayout?.payout_amount_aed || 0,
       lastPayoutDate: lastPayout?.paid_at || null,
       bankConnected
     }

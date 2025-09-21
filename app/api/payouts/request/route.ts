@@ -91,12 +91,12 @@ export async function POST(request: NextRequest) {
     // Get total previous payouts
     const { data: allPayouts } = await supabase
       .from('payouts')
-      .select('amount_aed, paid_at')
+      .select('payout_amount_aed, paid_at')
       .eq('user_id', userId)
       .eq('status', 'paid')
       .order('paid_at', { ascending: false })
 
-    const totalPaidOut = (allPayouts || []).reduce((sum, p) => sum + (p.amount_aed || 0), 0)
+    const totalPaidOut = (allPayouts || []).reduce((sum, p) => sum + (p.payout_amount_aed || 0), 0)
 
     // Calculate available balance
     const availableBalance = Math.max(0, totalCommission - totalPaidOut)
@@ -124,7 +124,9 @@ export async function POST(request: NextRequest) {
     // Create payout request in database
     const payoutData = {
       user_id: userId,
-      amount_aed: amount,
+      payout_amount_aed: amount,
+      company_name: userData?.company_name,
+      user_name: userData?.user_name,
       payout_request_id: payoutRequestId,
       status: 'pending',
       period_start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -178,7 +180,7 @@ export async function POST(request: NextRequest) {
         account_last4: bankAccount?.account_last4,
         stripe_connect_account_id: userData?.stripe_connect_account_id,
         last_payout_date: allPayouts?.[0]?.paid_at,
-        last_payout_amount: allPayouts?.[0]?.amount_aed,
+        last_payout_amount: allPayouts?.[0]?.payout_amount_aed,
         request_date: new Date().toISOString()
       })
 
