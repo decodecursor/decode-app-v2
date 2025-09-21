@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { generateUniquePayoutRequestId } from '@/lib/short-id'
+import { emailService } from '@/lib/email-service'
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔄 [PAYOUT-REQUEST] Request received - NEW VERSION')
-    console.log('🔄 [PAYOUT-REQUEST] Request URL:', request.url)
-    console.log('🔄 [PAYOUT-REQUEST] Request method:', request.method)
+    console.log('🔄 [PAYOUT-REQUEST] Request received - SIMPLIFIED VERSION')
 
     // Use standard server client for authentication
     const supabase = await createClient()
@@ -43,19 +42,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Fetch user profile data (optional - for additional info)
+    // Fetch user profile data for email and additional info
     const { data: userData } = await supabase
       .from('users')
-      .select('id, email, stripe_connect_account_id, stripe_connect_status, preferred_payout_method')
+      .select('*')
       .eq('id', userId)
       .maybeSingle()
 
-    console.log('📋 [PAYOUT-REQUEST] User data from users table:', userData)
+    console.log('📋 [PAYOUT-REQUEST] User data:', userData)
 
-    // Use email from auth user as primary, fallback to users table email
+    // Get user email
     const userEmail = user.email || userData?.email
 
-    // For email-based payout requests, we just need a valid email
     if (!userEmail) {
       console.error('❌ [PAYOUT-REQUEST] No email found for user')
       return NextResponse.json(
@@ -63,10 +61,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-
-    console.log('✅ [PAYOUT-REQUEST] Email found for payout:', userEmail)
-
-    console.log(`✅ Payout request: User ${userId} has valid email for email-based payout`)
 
     // Calculate available balance using same logic as proxy-summary (commission-based)
     const { data: userPaymentLinks } = await supabase
@@ -97,17 +91,17 @@ export async function POST(request: NextRequest) {
     // Get total previous payouts
     const { data: allPayouts } = await supabase
       .from('payouts')
-      .select('amount_aed')
+      .select('amount_aed, paid_at')
       .eq('user_id', userId)
       .eq('status', 'paid')
+      .order('paid_at', { ascending: false })
 
     const totalPaidOut = (allPayouts || []).reduce((sum, p) => sum + (p.amount_aed || 0), 0)
 
     // Calculate available balance
     const availableBalance = Math.max(0, totalCommission - totalPaidOut)
 
-    console.log(`💰 Payout Request Balance Check for User ${userId}:`)
-    console.log(`💰 Total Commission: ${totalCommission}, Paid Out: ${totalPaidOut}, Available: ${availableBalance}`)
+    console.log(`💰 Balance: Commission: ${totalCommission}, Paid: ${totalPaidOut}, Available: ${availableBalance}`)
 
     // Validate requested amount against available balance
     if (amount > availableBalance) {
@@ -133,9 +127,9 @@ export async function POST(request: NextRequest) {
       amount_aed: amount,
       payout_request_id: payoutRequestId,
       status: 'pending',
-      period_start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // Last week
-      period_end: new Date().toISOString(), // Today
-      scheduled_for: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days from now
+      period_start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      period_end: new Date().toISOString(),
+      scheduled_for: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
       created_at: new Date().toISOString()
     }
 
@@ -146,26 +140,53 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (payoutError) {
-      console.error('Error creating payout:', payoutError)
+      console.error('❌ Error creating payout:', payoutError)
       return NextResponse.json(
         { error: 'Unable to process your payout request at this time. Please try again later.' },
         { status: 500 }
       )
     }
 
-    // In a real implementation, you would integrate with Stripe Connect here
-    // to create an actual payout. For now, we just create the database record.
+    console.log('✅ Payout created successfully:', payout.id)
 
-    // TODO: Integrate with Stripe Connect API
-    // const stripePayout = await stripe.transfers.create({
-    //   amount: Math.round(amount * 100), // Convert to cents
-    //   currency: 'aed',
-    //   destination: userData.stripe_connect_account_id,
-    //   metadata: {
-    //     payout_id: payout.id,
-    //     user_id: userId
-    //   }
-    // })
+    // Send email notification to admin
+    try {
+      console.log('📧 Sending admin notification email...')
+
+      // Get bank account info if available
+      const { data: bankAccount } = await supabase
+        .from('user_bank_accounts')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle()
+
+      await emailService.sendAdminPayoutRequestNotification({
+        payout_request_id: payoutRequestId,
+        user_name: userData?.user_name || 'Unknown User',
+        user_email: userEmail,
+        user_role: userData?.role || 'Unknown',
+        user_id: userId,
+        company_name: userData?.company_name || 'Unknown Company',
+        branch_name: userData?.branch_name,
+        amount: amount,
+        total_earnings: totalServiceRevenue,
+        available_balance: availableBalance,
+        previous_payouts_count: allPayouts?.length || 0,
+        account_holder_name: bankAccount?.account_holder_name,
+        bank_name: bankAccount?.bank_name,
+        account_type: bankAccount?.account_type,
+        account_last4: bankAccount?.account_last4,
+        stripe_connect_account_id: userData?.stripe_connect_account_id,
+        last_payout_date: allPayouts?.[0]?.paid_at,
+        last_payout_amount: allPayouts?.[0]?.amount_aed,
+        request_date: new Date().toISOString()
+      })
+
+      console.log('✅ Admin notification email sent successfully')
+    } catch (emailError) {
+      // Don't fail the payout request if email fails
+      console.error('⚠️ Failed to send admin notification email:', emailError)
+    }
 
     return NextResponse.json({
       success: true,
@@ -179,7 +200,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error: any) {
-    console.error('Payout request error:', error)
+    console.error('❌ Payout request error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
