@@ -457,27 +457,6 @@ function PaymentForm({
                     billingDetails: {
                       email: clientInfo.email
                     }
-                  },
-                  // Mobile-optimized configuration to prevent autofocus issues
-                  appearance: {
-                    theme: 'night',
-                    variables: {
-                      fontFamily: '"SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                      fontSizeBase: '16px', // Larger font size prevents iOS zoom
-                      spacingUnit: '6px'
-                    },
-                    rules: {
-                      '.Input': {
-                        fontSize: '16px !important', // Critical: prevents iOS zoom
-                        lineHeight: '1.2',
-                        padding: '12px',
-                        border: '1px solid #4d4d4d'
-                      },
-                      '.Input:focus': {
-                        outline: 'none',
-                        border: '1px solid #999999'
-                      }
-                    }
                   }
                 }}
                 onReady={() => {
@@ -740,7 +719,7 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
         colorText: '#ffffff',
         colorDanger: '#ef4444',
         fontFamily: 'Inter, sans-serif',
-        fontSizeBase: '14px',
+        fontSizeBase: '16px', // Larger font size prevents iOS zoom
         borderRadius: '8px',
         spacingUnit: '4px',
       },
@@ -750,7 +729,7 @@ export function CustomPaymentForm(props: CustomPaymentFormProps) {
           border: '1px solid #4d4d4d',
           color: '#ffffff',
           padding: '8px 12px',
-          fontSize: '14px',
+          fontSize: '16px', // Critical: prevents iOS zoom
           lineHeight: '1.2',
         },
         '.Input:focus': {
