@@ -231,20 +231,26 @@ export default function PayoutsPage() {
       return
     }
 
+    console.log('🚀 [FRONTEND] Starting payout request for amount:', amount)
+    console.log('🚀 [FRONTEND] Available balance:', payoutSummary.availableBalance)
+    console.log('🚀 [FRONTEND] User:', user.id)
+
     setRequestLoading(true)
     setRequestError('') // Clear any previous errors
     setModalError('') // Clear any modal errors
     try {
+      console.log('📤 [FRONTEND] Sending payout request...')
       const response = await fetch('/api/payouts/request', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: user.id,
           amount: amount
         })
       })
+
+      console.log('📥 [FRONTEND] Response received:', response.status, response.statusText)
 
       if (response.ok) {
         setShowRequestModal(false)
@@ -261,6 +267,7 @@ export default function PayoutsPage() {
         await fetchPayoutSummary(user.id)
       } else {
         const errorData = await response.json()
+        console.log('❌ [FRONTEND] Error response:', errorData)
         setRequestError(errorData.error || 'Failed to request payout')
 
         // Auto-hide error message after 8 seconds

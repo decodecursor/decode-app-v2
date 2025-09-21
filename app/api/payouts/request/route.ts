@@ -4,7 +4,9 @@ import { generateUniquePayoutRequestId } from '@/lib/short-id'
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔄 [PAYOUT-REQUEST] Request received')
+    console.log('🔄 [PAYOUT-REQUEST] Request received - NEW VERSION')
+    console.log('🔄 [PAYOUT-REQUEST] Request URL:', request.url)
+    console.log('🔄 [PAYOUT-REQUEST] Request method:', request.method)
 
     // Use standard server client for authentication
     const supabase = await createClient()
@@ -20,7 +22,10 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ [PAYOUT-REQUEST] Found user:', user.id)
 
-    const { amount } = await request.json()
+    const requestBody = await request.json()
+    console.log('📋 [PAYOUT-REQUEST] Request body:', requestBody)
+
+    const { amount } = requestBody
     const userId = user.id
 
     if (!amount || amount <= 0) {
