@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { ConfirmationModal } from './ConfirmationModal'
+import { USER_ROLES } from '@/types/user'
 
 interface BankAccountModalProps {
   isOpen: boolean
@@ -231,7 +232,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">
-            {userRole === 'User' ? 'Add Your Personal Bank Account' : 'Add Company Bank Account'}
+            {userRole === USER_ROLES.STAFF ? 'Add Your Bank Account' : 'Add Company Bank Account'}
           </h2>
           <p className="text-gray-400 text-sm">Connect your bank account to receive payouts</p>
         </div>
@@ -269,7 +270,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
               type="text"
               value={beneficiary}
               onChange={(e) => setBeneficiary(e.target.value)}
-              placeholder={userRole === 'User' ? 'John Smith' : 'Boho Beauty Salon'}
+              placeholder={userRole === USER_ROLES.STAFF ? 'Sarah Johnson' : 'Boho Beauty Salon'}
               className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
               disabled={loading}
             />

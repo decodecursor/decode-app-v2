@@ -57,6 +57,14 @@ function PaymentForm({
     email: customerEmail
   });
 
+  // Format amount with thousands separators
+  const formatAmount = (amount: number): string => {
+    return amount.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
+  };
+
   // Enhanced mobile viewport control and autofocus prevention
   useEffect(() => {
     const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -261,7 +269,7 @@ function PaymentForm({
               {customerName || 'Client Name'}
             </div>
             <div className="cosmic-body text-xs font-extrabold text-white" style={{fontSize: '14px'}}>
-              {currency} {amount.toFixed(2)}
+              {currency} {formatAmount(amount)}
             </div>
           </div>
         </div>
@@ -576,7 +584,7 @@ function PaymentForm({
             disabled={!stripe || loading}
             className="cosmic-button-primary w-full"
           >
-            {loading ? 'Processing...' : `Pay ${currency} ${amount.toFixed(2)}`}
+            {loading ? 'Processing...' : `Pay ${currency} ${formatAmount(amount)}`}
           </button>
         </form>
         </>
