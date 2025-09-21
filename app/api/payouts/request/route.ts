@@ -1,17 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-admin'
+import { createClient } from '@/utils/supabase/server'
 import { generateUniquePayoutRequestId } from '@/lib/short-id'
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, amount } = await request.json()
+    console.log('🔄 [PAYOUT-REQUEST] Request received')
 
-    if (!userId) {
+    // Use standard server client for authentication
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      console.log('❌ [PAYOUT-REQUEST] No authenticated user found')
       return NextResponse.json(
-        { error: 'User ID is required' },
-        { status: 400 }
+        { error: 'Not authenticated' },
+        { status: 401 }
       )
     }
+
+    console.log('✅ [PAYOUT-REQUEST] Found user:', user.id)
+
+    const { amount } = await request.json()
+    const userId = user.id
 
     if (!amount || amount <= 0) {
       return NextResponse.json(
@@ -28,34 +38,33 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify user exists and check available payout methods
-    const { data: userData, error: userError } = await supabaseAdmin
+    // Fetch user profile data (optional - for additional info)
+    const { data: userData } = await supabase
       .from('users')
       .select('id, email, stripe_connect_account_id, stripe_connect_status, preferred_payout_method')
       .eq('id', userId)
-      .single()
+      .maybeSingle()
 
-    if (userError || !userData) {
-      console.error('User lookup error:', userError)
-      return NextResponse.json(
-        { error: 'Unable to process payout request. Please try again or contact support.' },
-        { status: 404 }
-      )
-    }
+    console.log('📋 [PAYOUT-REQUEST] User data from users table:', userData)
 
-    // For now, we'll process email-based payout requests for any user with a valid email
-    // The actual payout will be handled manually via email
-    if (!userData.email) {
+    // Use email from auth user as primary, fallback to users table email
+    const userEmail = user.email || userData?.email
+
+    // For email-based payout requests, we just need a valid email
+    if (!userEmail) {
+      console.error('❌ [PAYOUT-REQUEST] No email found for user')
       return NextResponse.json(
         { error: 'Valid email address required for payout requests.' },
         { status: 400 }
       )
     }
 
+    console.log('✅ [PAYOUT-REQUEST] Email found for payout:', userEmail)
+
     console.log(`✅ Payout request: User ${userId} has valid email for email-based payout`)
 
     // Calculate available balance using same logic as proxy-summary (commission-based)
-    const { data: userPaymentLinks } = await supabaseAdmin
+    const { data: userPaymentLinks } = await supabase
       .from('payment_links')
       .select(`
         service_amount_aed,
@@ -81,7 +90,7 @@ export async function POST(request: NextRequest) {
     const totalCommission = totalServiceRevenue * 0.01
 
     // Get total previous payouts
-    const { data: allPayouts } = await supabaseAdmin
+    const { data: allPayouts } = await supabase
       .from('payouts')
       .select('amount_aed')
       .eq('user_id', userId)
@@ -105,7 +114,7 @@ export async function POST(request: NextRequest) {
 
     // Generate unique payout request ID
     const payoutRequestId = await generateUniquePayoutRequestId(async (id) => {
-      const { data } = await supabaseAdmin
+      const { data } = await supabase
         .from('payouts')
         .select('payout_request_id')
         .eq('payout_request_id', id)
@@ -125,7 +134,7 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString()
     }
 
-    const { data: payout, error: payoutError } = await supabaseAdmin
+    const { data: payout, error: payoutError } = await supabase
       .from('payouts')
       .insert([payoutData])
       .select()
