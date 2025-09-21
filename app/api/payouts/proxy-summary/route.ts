@@ -46,19 +46,37 @@ export async function GET(request: NextRequest) {
     // Bank is connected if EITHER system shows connection
     const bankConnected = stripeConnected || manualBankConnected
 
-    // Get available balance if bank connected
-    let availableBalance = 0
-    if (bankConnected && userData?.stripe_connect_account_id) {
-      try {
-        const balanceResponse = await fetch(`${request.nextUrl.origin}/api/stripe/account-balance?userId=${userId}`)
-        if (balanceResponse.ok) {
-          const balanceData = await balanceResponse.json()
-          availableBalance = balanceData.available || 0
-        }
-      } catch (error) {
-        console.error('Error loading balance:', error)
+    // Calculate available balance using same logic as PaymentStats (commission-based)
+    // Get user's completed payment links to calculate commission
+    const { data: userPaymentLinks } = await supabase
+      .from('payment_links')
+      .select(`
+        service_amount_aed,
+        amount_aed,
+        paid_at
+      `)
+      .eq('creator_id', userId)
+      .not('paid_at', 'is', null)
+
+    // Calculate total service revenue (what user earned)
+    const totalServiceRevenue = (userPaymentLinks || []).reduce((sum, link) => {
+      let serviceAmount = link.service_amount_aed || 0
+
+      // If service_amount_aed is missing, calculate it (total - 9% platform fee)
+      if (!serviceAmount && link.amount_aed) {
+        serviceAmount = link.amount_aed * 0.91
       }
-    }
+
+      return sum + serviceAmount
+    }, 0)
+
+    // Calculate total commission (1% of service revenue)
+    const totalCommission = totalServiceRevenue * 0.01
+
+    console.log(`💰 Payout Balance Calculation for User ${userId}:`)
+    console.log(`💰 Payment Links: ${userPaymentLinks?.length || 0}`)
+    console.log(`💰 Total Service Revenue: ${totalServiceRevenue}`)
+    console.log(`💰 Total Commission (1%): ${totalCommission}`)
 
     // Get earnings from completed transactions
     const { data: transactions } = await supabase
@@ -94,6 +112,12 @@ export async function GET(request: NextRequest) {
       .order('paid_at', { ascending: false })
       .limit(1)
       .maybeSingle()
+
+    // Calculate available balance by subtracting previous payouts from total commission
+    const availableBalance = Math.max(0, totalCommission - totalPaidOut)
+
+    console.log(`💰 Total Paid Out: ${totalPaidOut}`)
+    console.log(`💰 Available Balance: ${availableBalance} (${totalCommission} - ${totalPaidOut})`)
 
     const payoutSummary = {
       availableBalance,
