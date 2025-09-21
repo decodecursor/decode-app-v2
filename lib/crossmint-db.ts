@@ -139,6 +139,7 @@ export class CrossmintDatabaseService {
       linked_user_id: request.linked_user_id,
       branch_name: request.branch_name,
       creator_name: request.creator_name,
+      company_name: request.company_name,
       is_active: true
     };
 
@@ -146,6 +147,7 @@ export class CrossmintDatabaseService {
     console.log('🔍 [PAYMENT-LINK-CREATE] Request data:', {
       branch_name: request.branch_name,
       creator_name: request.creator_name,
+      company_name: request.company_name,
       creator_id: request.creator_id
     });
 
@@ -154,6 +156,7 @@ export class CrossmintDatabaseService {
       title: paymentLinkData.title,
       branch_name: paymentLinkData.branch_name,
       creator_name: paymentLinkData.creator_name,
+      company_name: paymentLinkData.company_name,
       creator_id: paymentLinkData.creator_id,
       amount_aed: paymentLinkData.amount_aed
     });
@@ -173,6 +176,7 @@ export class CrossmintDatabaseService {
       id: data.id,
       branch_name: data.branch_name,
       creator_name: data.creator_name,
+      company_name: data.company_name,
       title: data.title
     });
 

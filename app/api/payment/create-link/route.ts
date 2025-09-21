@@ -142,7 +142,8 @@ export async function POST(request: NextRequest) {
       creator_id,
       linked_user_id,
       branch_name: branch_name || creator.branch_name, // Use selected branch or fallback to creator's branch
-      creator_name: creator.user_name
+      creator_name: creator.user_name,
+      company_name: creator.company_name
     });
 
     console.log(`✅ Payment link created: ${paymentLink.id}`);

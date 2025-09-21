@@ -112,6 +112,7 @@ export interface Database {
           paid_at: string | null
           branch_name: string | null
           creator_name: string | null
+          company_name: string | null
         }
         Insert: {
           id?: string
@@ -128,6 +129,7 @@ export interface Database {
           paid_at?: string | null
           branch_name?: string | null
           creator_name?: string | null
+          company_name?: string | null
         }
         Update: {
           id?: string
@@ -144,6 +146,7 @@ export interface Database {
           paid_at?: string | null
           branch_name?: string | null
           creator_name?: string | null
+          company_name?: string | null
           updated_at?: string
         }
         Relationships: [

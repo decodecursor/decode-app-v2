@@ -33,6 +33,7 @@ export interface CrossmintPaymentLink {
   is_active: boolean;
   branch_name?: string | null; // Branch name of creator at time of creation
   creator_name?: string | null; // Creator name at time of creation
+  company_name?: string | null; // Company name of creator at time of creation
   created_at: string;
   updated_at?: string;
 }
@@ -182,6 +183,7 @@ export interface CreatePaymentLinkRequest {
   linked_user_id?: string;
   branch_name?: string; // Branch name from creator
   creator_name?: string; // Creator name
+  company_name?: string; // Company name from creator
 }
 
 export interface CreatePaymentLinkResponse extends CrossmintPaymentLink {
