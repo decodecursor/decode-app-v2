@@ -188,8 +188,8 @@ export default function PaymentPageClient() {
                   </svg>
                 </div>
               </div>
-              <h1 className="cosmic-logo text-blue-400 mb-2">Payment Completed</h1>
-              <p className="cosmic-body opacity-70 mb-4">This payment link has already been paid</p>
+              <h1 className="cosmic-logo text-blue-400 mb-2" style={{fontSize: '22px'}}>Payment Completed</h1>
+              <p className="cosmic-body opacity-70 mb-4" style={{fontSize: '14px'}}>This payment link has already been paid</p>
             </div>
 
             {/* Payment Details */}

@@ -57,21 +57,58 @@ function PaymentForm({
     email: customerEmail
   });
 
-  // Page-level autofocus prevention on component mount
+  // Enhanced mobile viewport control and autofocus prevention
   useEffect(() => {
+    const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    // Mobile viewport centering and zoom prevention
+    const centerViewportOnMobile = () => {
+      if (!isMobileDevice) return;
+
+      // Scroll to center the form
+      const formContainer = document.querySelector('.cosmic-card-login');
+      if (formContainer) {
+        formContainer.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'center'
+        });
+      }
+
+      // Prevent zoom by ensuring viewport is at scale 1
+      window.scrollTo({
+        left: 0,
+        behavior: 'smooth'
+      });
+    };
+
     const preventPageAutofocus = () => {
       // Remove focus from any element that might have auto-focused
       if (document.activeElement && document.activeElement !== document.body) {
         console.log('🔒 Removing page-level autofocus from:', document.activeElement.tagName);
         (document.activeElement as HTMLElement).blur();
+
+        // Center viewport after removing focus on mobile
+        if (isMobileDevice) {
+          setTimeout(centerViewportOnMobile, 100);
+        }
       }
     };
 
-    // Prevent autofocus immediately and after a short delay
+    // Prevent autofocus immediately and after delays
     preventPageAutofocus();
-    const timeoutId = setTimeout(preventPageAutofocus, 100);
+    const timeoutId1 = setTimeout(preventPageAutofocus, 100);
+    const timeoutId2 = setTimeout(preventPageAutofocus, 300);
 
-    return () => clearTimeout(timeoutId);
+    // Add viewport centering for mobile
+    if (isMobileDevice) {
+      setTimeout(centerViewportOnMobile, 200);
+    }
+
+    return () => {
+      clearTimeout(timeoutId1);
+      clearTimeout(timeoutId2);
+    };
   }, []);
 
   // Simplified device detection for payment capabilities
@@ -195,7 +232,14 @@ function PaymentForm({
 
   return (
     <div className="cosmic-bg min-h-screen flex items-center justify-center px-4 py-2">
-      <div className="cosmic-card-login max-w-6xl md:max-w-md w-full">
+      <div className="cosmic-card-login max-w-6xl md:max-w-md w-full" style={{
+        // Enhanced mobile centering and anti-zoom styles
+        transform: 'translateX(0)', // Reset any transform shifts
+        margin: '0 auto', // Explicit centering
+        position: 'relative', // Ensure proper positioning context
+        left: '0', // Reset any left positioning
+        right: '0' // Reset any right positioning
+      }}>
         {/* Header */}
         <div className="text-center mb-7">
           <img 
@@ -381,6 +425,9 @@ function PaymentForm({
                 className="cosmic-input"
                 autoComplete="email"
                 autoFocus={false}
+                style={{
+                  fontSize: '16px' // Prevent iOS zoom on focus
+                }}
                 required
               />
             </div>
@@ -410,16 +457,82 @@ function PaymentForm({
                     billingDetails: {
                       email: clientInfo.email
                     }
+                  },
+                  // Mobile-optimized configuration to prevent autofocus issues
+                  appearance: {
+                    theme: 'night',
+                    variables: {
+                      fontFamily: '"SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      fontSizeBase: '16px', // Larger font size prevents iOS zoom
+                      spacingUnit: '6px'
+                    },
+                    rules: {
+                      '.Input': {
+                        fontSize: '16px !important', // Critical: prevents iOS zoom
+                        lineHeight: '1.2',
+                        padding: '12px',
+                        border: '1px solid #4d4d4d'
+                      },
+                      '.Input:focus': {
+                        outline: 'none',
+                        border: '1px solid #999999'
+                      }
+                    }
                   }
                 }}
                 onReady={() => {
                   console.log('✅ PaymentElement ready and visible');
+                  const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+                  // Enhanced viewport recovery function for mobile
+                  const recoverMobileViewport = () => {
+                    if (!isMobileDevice) return;
+
+                    // Force viewport back to center
+                    const formContainer = document.querySelector('.cosmic-card-login');
+                    if (formContainer) {
+                      // Get viewport dimensions
+                      const viewportWidth = window.innerWidth;
+                      const containerRect = formContainer.getBoundingClientRect();
+
+                      // Calculate if container is off-center
+                      const containerCenter = containerRect.left + (containerRect.width / 2);
+                      const viewportCenter = viewportWidth / 2;
+                      const offset = containerCenter - viewportCenter;
+
+                      if (Math.abs(offset) > 10) {
+                        console.log('📱 Mobile viewport off-center by', offset, 'px - recovering...');
+
+                        // Scroll to recenter
+                        window.scrollTo({
+                          left: window.scrollX - offset,
+                          top: window.scrollY,
+                          behavior: 'smooth'
+                        });
+
+                        // Also use scrollIntoView as backup
+                        setTimeout(() => {
+                          formContainer.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center',
+                            inline: 'center'
+                          });
+                        }, 100);
+                      }
+                    }
+                  };
+
                   // Enhanced autofocus prevention for payment fields
                   const preventAutofocus = () => {
                     // Blur any currently focused element
                     if (document.activeElement && document.activeElement !== document.body) {
                       console.log('🔒 Removing autofocus from element:', document.activeElement.tagName);
                       (document.activeElement as HTMLElement).blur();
+
+                      // Recover viewport on mobile after blur
+                      if (isMobileDevice) {
+                        setTimeout(recoverMobileViewport, 150);
+                      }
                     }
 
                     // Target Stripe payment inputs specifically
@@ -428,6 +541,11 @@ function PaymentForm({
                       if (input === document.activeElement) {
                         console.log('🔒 Removing focus from Stripe input:', input);
                         (input as HTMLElement).blur();
+
+                        // Recover viewport after Stripe blur
+                        if (isMobileDevice) {
+                          setTimeout(recoverMobileViewport, 150);
+                        }
                       }
                     });
                   };
@@ -436,6 +554,25 @@ function PaymentForm({
                   setTimeout(preventAutofocus, 100);
                   setTimeout(preventAutofocus, 300);
                   setTimeout(preventAutofocus, 500);
+
+                  // Add viewport recovery for mobile
+                  if (isMobileDevice) {
+                    setTimeout(recoverMobileViewport, 600);
+
+                    // Set up listener for any future focus events that might shift viewport
+                    const handleFocusEvents = () => {
+                      setTimeout(recoverMobileViewport, 200);
+                    };
+
+                    document.addEventListener('focusin', handleFocusEvents);
+                    document.addEventListener('focusout', handleFocusEvents);
+
+                    // Cleanup on component unmount (though this is in onReady)
+                    setTimeout(() => {
+                      document.removeEventListener('focusin', handleFocusEvents);
+                      document.removeEventListener('focusout', handleFocusEvents);
+                    }, 30000); // Clean up after 30 seconds
+                  }
                 }}
                 onLoaderStart={() => {
                   console.log('🔄 PaymentElement loading...');
