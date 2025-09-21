@@ -28,51 +28,105 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify user exists and has connected bank account
+    // Verify user exists and check available payout methods
     const { data: userData, error: userError } = await supabaseAdmin
       .from('users')
-      .select('id, email, stripe_connect_account_id, stripe_connect_status')
+      .select('id, email, stripe_connect_account_id, stripe_connect_status, preferred_payout_method')
       .eq('id', userId)
       .single()
 
     if (userError || !userData) {
+      console.error('User lookup error:', userError)
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       )
     }
 
-    // Check if user has connected and active Stripe account
-    if (!userData.stripe_connect_account_id || userData.stripe_connect_status !== 'active') {
+    // Check for available payout methods based on user preference
+    let hasValidPayoutMethod = false
+    let payoutMethodType = userData.preferred_payout_method
+
+    if (payoutMethodType === 'bank_account') {
+      // Check manual bank account
+      const { data: bankAccount } = await supabaseAdmin
+        .from('user_bank_accounts')
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1)
+        .maybeSingle()
+
+      hasValidPayoutMethod = !!bankAccount
+    } else if (payoutMethodType === 'paypal') {
+      // Check PayPal account
+      const { data: paypalAccount } = await supabaseAdmin
+        .from('user_paypal_accounts')
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1)
+        .maybeSingle()
+
+      hasValidPayoutMethod = !!paypalAccount
+    } else {
+      // Check Stripe Connect as fallback
+      hasValidPayoutMethod = !!(userData.stripe_connect_account_id && userData.stripe_connect_status === 'active')
+      payoutMethodType = 'stripe_connect'
+    }
+
+    if (!hasValidPayoutMethod) {
       return NextResponse.json(
-        { error: 'Bank account not connected or not verified. Please connect your bank account first.' },
+        { error: 'No valid payout method connected. Please set up your bank account or PayPal first.' },
         { status: 400 }
       )
     }
 
-    // Check available balance via Stripe (if API exists)
-    let availableBalance = 0
-    try {
-      const balanceResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/stripe/account-balance?userId=${userId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      })
-      
-      if (balanceResponse.ok) {
-        const balanceData = await balanceResponse.json()
-        availableBalance = balanceData.available || 0
+    console.log(`✅ Payout request: User ${userId} has valid ${payoutMethodType} method`)
+
+    // Calculate available balance using same logic as proxy-summary (commission-based)
+    const { data: userPaymentLinks } = await supabaseAdmin
+      .from('payment_links')
+      .select(`
+        service_amount_aed,
+        amount_aed,
+        paid_at
+      `)
+      .eq('creator_id', userId)
+      .not('paid_at', 'is', null)
+
+    // Calculate total service revenue (what user earned)
+    const totalServiceRevenue = (userPaymentLinks || []).reduce((sum, link) => {
+      let serviceAmount = link.service_amount_aed || 0
+
+      // If service_amount_aed is missing, calculate it (total - 9% platform fee)
+      if (!serviceAmount && link.amount_aed) {
+        serviceAmount = link.amount_aed * 0.91
       }
-    } catch (error) {
-      console.error('Error checking balance:', error)
-      // Continue without balance check if API unavailable
-    }
+
+      return sum + serviceAmount
+    }, 0)
+
+    // Calculate total commission (1% of service revenue)
+    const totalCommission = totalServiceRevenue * 0.01
+
+    // Get total previous payouts
+    const { data: allPayouts } = await supabaseAdmin
+      .from('payouts')
+      .select('amount_aed')
+      .eq('user_id', userId)
+      .eq('status', 'paid')
+
+    const totalPaidOut = (allPayouts || []).reduce((sum, p) => sum + (p.amount_aed || 0), 0)
+
+    // Calculate available balance
+    const availableBalance = Math.max(0, totalCommission - totalPaidOut)
+
+    console.log(`💰 Payout Request Balance Check for User ${userId}:`)
+    console.log(`💰 Total Commission: ${totalCommission}, Paid Out: ${totalPaidOut}, Available: ${availableBalance}`)
 
     // Validate requested amount against available balance
-    if (availableBalance > 0 && amount > availableBalance) {
+    if (amount > availableBalance) {
       return NextResponse.json(
-        { error: `Insufficient balance. Available: AED ${availableBalance.toFixed(2)}` },
+        { error: `Insufficient balance. Available: AED ${availableBalance.toFixed(2)}, Requested: AED ${amount.toFixed(2)}` },
         { status: 400 }
       )
     }
