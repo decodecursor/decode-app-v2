@@ -36,6 +36,7 @@ export default function PayoutsPage() {
   const [payoutInProcess, setPayoutInProcess] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const [requestError, setRequestError] = useState('')
+  const [modalError, setModalError] = useState('')
   const [selectedPayoutMethod, setSelectedPayoutMethod] = useState<'bank_account' | 'paypal' | null>(null)
   const [availablePayoutMethods, setAvailablePayoutMethods] = useState<PayoutMethod[]>([])
   const [showSelectMethodModal, setShowSelectMethodModal] = useState(false)
@@ -203,19 +204,13 @@ export default function PayoutsPage() {
   const handleRequestPayoutClick = () => {
     if (!payoutSummary) return
 
-    // Check if payment method is selected
-    if (!selectedPayoutMethod) {
-      setShowNoPaymentMethodModal(true)
-      return
-    }
-
     // If balance is less than 50 AED, show minimum balance modal
     if (payoutSummary.availableBalance < 50) {
       setShowMinimumBalanceModal(true)
       return
     }
 
-    // If all checks pass, show request modal
+    // Show request modal (no payment method validation needed for email-based payouts)
     setShowRequestModal(true)
   }
 
@@ -226,20 +221,19 @@ export default function PayoutsPage() {
 
     // Validate minimum amount
     if (amount < 50) {
-      setRequestError('Minimum payout amount is AED 50. Please request at least AED 50 for processing.')
-      setTimeout(() => setRequestError(''), 8000)
+      setModalError('⚠️ Minimum payout amount: AED 50')
       return
     }
 
     // Validate maximum amount
     if (amount > payoutSummary.availableBalance) {
-      setRequestError(`Requested amount exceeds available balance. You have AED ${payoutSummary.availableBalance.toFixed(2)} available for payout.`)
-      setTimeout(() => setRequestError(''), 8000)
+      setModalError(`Requested amount exceeds available balance. You have AED ${payoutSummary.availableBalance.toFixed(2)} available for payout.`)
       return
     }
 
     setRequestLoading(true)
     setRequestError('') // Clear any previous errors
+    setModalError('') // Clear any modal errors
     try {
       const response = await fetch('/api/payouts/request', {
         method: 'POST',
@@ -529,12 +523,25 @@ export default function PayoutsPage() {
             <div className="bg-gray-900 rounded-xl border border-gray-700 p-6 w-full max-w-md">
               <h3 className="text-lg font-semibold text-white mb-4">Request Payout</h3>
               
+              {/* Modal Error Message */}
+              {modalError && (
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-3 mb-4">
+                  <div className="flex items-center">
+                    <svg className="w-4 h-4 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <p className="text-red-100 text-sm font-medium">{modalError}</p>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">
+                {/* Available Balance - Enhanced with subcard design */}
+                <div className="bg-gradient-to-br from-purple-600/10 to-purple-500/5 border border-purple-500/20 rounded-lg p-4">
+                  <label className="block text-sm text-purple-300 mb-2 font-medium">
                     Available Balance
                   </label>
-                  <p className="text-xl font-bold text-white">
+                  <p className="text-2xl font-bold text-white bg-gradient-to-r from-purple-300 to-white bg-clip-text text-transparent">
                     {formatCurrency(payoutSummary?.availableBalance || 0)}
                   </p>
                 </div>
