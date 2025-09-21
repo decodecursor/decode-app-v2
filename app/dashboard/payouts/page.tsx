@@ -35,6 +35,7 @@ export default function PayoutsPage() {
   const [requestAmount, setRequestAmount] = useState('')
   const [payoutInProcess, setPayoutInProcess] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+  const [requestError, setRequestError] = useState('')
   const [selectedPayoutMethod, setSelectedPayoutMethod] = useState<'bank_account' | 'paypal' | null>(null)
   const [availablePayoutMethods, setAvailablePayoutMethods] = useState<PayoutMethod[]>([])
   const [showSelectMethodModal, setShowSelectMethodModal] = useState(false)
@@ -225,17 +226,20 @@ export default function PayoutsPage() {
 
     // Validate minimum amount
     if (amount < 50) {
-      alert('Minimum payout amount is AED 50')
+      setRequestError('Minimum payout amount is AED 50. Please request at least AED 50 for processing.')
+      setTimeout(() => setRequestError(''), 8000)
       return
     }
 
     // Validate maximum amount
     if (amount > payoutSummary.availableBalance) {
-      alert('Amount cannot exceed available balance')
+      setRequestError(`Requested amount exceeds available balance. You have AED ${payoutSummary.availableBalance.toFixed(2)} available for payout.`)
+      setTimeout(() => setRequestError(''), 8000)
       return
     }
 
     setRequestLoading(true)
+    setRequestError('') // Clear any previous errors
     try {
       const response = await fetch('/api/payouts/request', {
         method: 'POST',
@@ -263,11 +267,21 @@ export default function PayoutsPage() {
         await fetchPayoutSummary(user.id)
       } else {
         const errorData = await response.json()
-        alert(`Error: ${errorData.error || 'Failed to request payout'}`)
+        setRequestError(errorData.error || 'Failed to request payout')
+
+        // Auto-hide error message after 8 seconds
+        setTimeout(() => {
+          setRequestError('')
+        }, 8000)
       }
     } catch (error) {
       console.error('Error requesting payout:', error)
-      alert('Failed to request payout. Please try again.')
+      setRequestError('Failed to request payout. Please try again.')
+
+      // Auto-hide error message after 8 seconds
+      setTimeout(() => {
+        setRequestError('')
+      }, 8000)
     } finally {
       setRequestLoading(false)
     }
@@ -370,6 +384,22 @@ export default function PayoutsPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <p className="text-green-100 font-medium">{successMessage}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Request Error Message */}
+        {requestError && (
+          <div className="flex justify-center mb-6">
+            <div style={{width: '70vw'}}>
+              <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-4">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  <p className="text-red-100 font-medium">{requestError}</p>
                 </div>
               </div>
             </div>
@@ -511,7 +541,7 @@ export default function PayoutsPage() {
                 
                 <div>
                   <label htmlFor="amount" className="block text-sm text-gray-400 mb-2">
-                    Request Amount (leave blank for full amount)
+                    Request Amount
                   </label>
                   <input
                     id="amount"
@@ -525,18 +555,9 @@ export default function PayoutsPage() {
                   />
                 </div>
                 
-                <div className="bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-3">
-                  <p className="text-yellow-100 text-sm font-medium">
-                    ⚠️ Minimum payout amount: AED 50
-                  </p>
-                  <p className="text-yellow-100 text-xs mt-1">
-                    Below AED 50 payouts are not possible.
-                  </p>
-                </div>
-                
                 <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-3">
                   <p className="text-blue-100 text-sm">
-                    Payouts are typically processed within 1-2 business days to your connected bank account.
+                    Payouts are typically processed within 1-2 business days to your preferred payout method.
                   </p>
                 </div>
               </div>

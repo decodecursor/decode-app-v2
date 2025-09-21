@@ -87,6 +87,9 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     revenueByDay: []
   })
 
+  // State for total available balance (independent of date range)
+  const [totalAvailableBalance, setTotalAvailableBalance] = useState<number>(0)
+
   // Tooltip hover state for revenue chart
   const [hoveredDayData, setHoveredDayData] = useState<{
     date: string
@@ -97,6 +100,33 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
   // Use stable date reference to prevent infinite re-renders
   const now = useMemo(() => new Date(), [dateRange])
+
+  // Fetch total available balance (independent of date filters)
+  const fetchTotalAvailableBalance = useCallback(async () => {
+    if (!user) return
+
+    try {
+      const response = await fetch('/api/payouts/proxy-summary', {
+        method: 'GET',
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.payoutSummary) {
+          setTotalAvailableBalance(data.payoutSummary.availableBalance || 0)
+          console.log(`💰 Total Available Balance fetched: ${data.payoutSummary.availableBalance}`)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching total available balance:', error)
+    }
+  }, [user])
+
+  // Fetch total available balance on component mount and user change
+  useEffect(() => {
+    fetchTotalAvailableBalance()
+  }, [fetchTotalAvailableBalance])
 
   const calculateStats = useCallback(() => {
     let currentPeriodStart: Date
@@ -548,11 +578,6 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
               <h3 className="cosmic-label text-white/70">My Next Payout</h3>
-              {dateRange !== 'custom' && userRole !== 'Admin' && (
-                <span className={`text-xs font-medium ${getChangeColor(current.myCommission, previous.myCommission)}`}>
-                  {formatPercentageChange(current.myCommission, previous.myCommission)}
-                </span>
-              )}
             </div>
             {userRole === 'Admin' ? (
               <p className="text-2xl font-bold text-white/30 mb-1">
@@ -560,12 +585,12 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
               </p>
             ) : (
               <p className="text-2xl font-bold text-white mb-1">
-                {formatCurrency(current.myCommission)}
+                {formatCurrency(totalAvailableBalance)}
               </p>
             )}
-            {dateRange !== 'custom' && userRole !== 'Admin' && (
+            {userRole !== 'Admin' && (
               <p className="text-xs text-white/50">
-                vs {formatCurrency(previous.myCommission)} previous period
+                Total available balance
               </p>
             )}
           </div>

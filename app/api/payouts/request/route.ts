@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     // Enforce minimum payout amount of AED 50
     if (amount < 50) {
       return NextResponse.json(
-        { error: 'Minimum payout amount is AED 50. Below AED 50 payouts are not possible.' },
+        { error: 'Minimum payout amount is AED 50. Please request at least AED 50 for processing.' },
         { status: 400 }
       )
     }
@@ -38,49 +38,21 @@ export async function POST(request: NextRequest) {
     if (userError || !userData) {
       console.error('User lookup error:', userError)
       return NextResponse.json(
-        { error: 'User not found' },
+        { error: 'Unable to process payout request. Please try again or contact support.' },
         { status: 404 }
       )
     }
 
-    // Check for available payout methods based on user preference
-    let hasValidPayoutMethod = false
-    let payoutMethodType = userData.preferred_payout_method
-
-    if (payoutMethodType === 'bank_account') {
-      // Check manual bank account
-      const { data: bankAccount } = await supabaseAdmin
-        .from('user_bank_accounts')
-        .select('id')
-        .eq('user_id', userId)
-        .limit(1)
-        .maybeSingle()
-
-      hasValidPayoutMethod = !!bankAccount
-    } else if (payoutMethodType === 'paypal') {
-      // Check PayPal account
-      const { data: paypalAccount } = await supabaseAdmin
-        .from('user_paypal_accounts')
-        .select('id')
-        .eq('user_id', userId)
-        .limit(1)
-        .maybeSingle()
-
-      hasValidPayoutMethod = !!paypalAccount
-    } else {
-      // Check Stripe Connect as fallback
-      hasValidPayoutMethod = !!(userData.stripe_connect_account_id && userData.stripe_connect_status === 'active')
-      payoutMethodType = 'stripe_connect'
-    }
-
-    if (!hasValidPayoutMethod) {
+    // For now, we'll process email-based payout requests for any user with a valid email
+    // The actual payout will be handled manually via email
+    if (!userData.email) {
       return NextResponse.json(
-        { error: 'No valid payout method connected. Please set up your bank account or PayPal first.' },
+        { error: 'Valid email address required for payout requests.' },
         { status: 400 }
       )
     }
 
-    console.log(`✅ Payout request: User ${userId} has valid ${payoutMethodType} method`)
+    console.log(`✅ Payout request: User ${userId} has valid email for email-based payout`)
 
     // Calculate available balance using same logic as proxy-summary (commission-based)
     const { data: userPaymentLinks } = await supabaseAdmin
@@ -126,7 +98,7 @@ export async function POST(request: NextRequest) {
     // Validate requested amount against available balance
     if (amount > availableBalance) {
       return NextResponse.json(
-        { error: `Insufficient balance. Available: AED ${availableBalance.toFixed(2)}, Requested: AED ${amount.toFixed(2)}` },
+        { error: `Requested amount exceeds available balance. You have AED ${availableBalance.toFixed(2)} available for payout.` },
         { status: 400 }
       )
     }
@@ -162,7 +134,7 @@ export async function POST(request: NextRequest) {
     if (payoutError) {
       console.error('Error creating payout:', payoutError)
       return NextResponse.json(
-        { error: 'Failed to create payout request' },
+        { error: 'Unable to process your payout request at this time. Please try again later.' },
         { status: 500 }
       )
     }
