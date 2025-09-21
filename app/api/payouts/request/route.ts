@@ -5,7 +5,7 @@ import { emailService } from '@/lib/email-service'
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔄 [PAYOUT-REQUEST] Request received - SIMPLIFIED VERSION v2')
+    console.log('🔄 [PAYOUT-REQUEST] Request received - SIMPLIFIED VERSION v3 - FINAL')
 
     // Use standard server client for authentication
     const supabase = await createClient()
