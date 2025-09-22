@@ -16,14 +16,16 @@ interface Payout {
 
 interface PayoutHistoryProps {
   userId: string
+  onNewPayout?: (payoutId: string) => void
 }
 
-export function PayoutHistory({ userId }: PayoutHistoryProps) {
+export function PayoutHistory({ userId, onNewPayout }: PayoutHistoryProps) {
   const [payouts, setPayouts] = useState<Payout[]>([])
   const [loading, setLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
   const [exportDone, setExportDone] = useState(false)
   const [visibleCount, setVisibleCount] = useState(6)
+  const [previousPayoutCount, setPreviousPayoutCount] = useState(0)
 
   useEffect(() => {
     loadPayouts()
@@ -55,9 +57,20 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
 
       const data = await response.json()
       if (data.success && data.payouts) {
-        setPayouts(data.payouts)
+        const newPayouts = data.payouts
+
+        // Check if we have a new payout (more payouts than before)
+        if (newPayouts.length > previousPayoutCount && previousPayoutCount > 0 && onNewPayout) {
+          // Get the newest payout (first in the list)
+          const newestPayout = newPayouts[0]
+          onNewPayout(`payout-${newestPayout.id}`)
+        }
+
+        setPayouts(newPayouts)
+        setPreviousPayoutCount(newPayouts.length)
       } else {
         setPayouts([])
+        setPreviousPayoutCount(0)
       }
     } catch (error) {
       console.error('Error loading payouts:', error)
@@ -190,6 +203,7 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
               return (
                 <div
                   key={payout.id}
+                  id={`payout-${payout.id}`}
                   className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/8 transition-colors"
                 >
                   <div className="flex-1">
@@ -211,7 +225,7 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
                       )}
                       {payout.payout_method && (
                         <p className="text-sm text-gray-400">
-                          Method: <span className="text-blue-400">{formatPayoutMethod(payout.payout_method)}</span>
+                          Method: <span className="text-purple-400">{formatPayoutMethod(payout.payout_method)}</span>
                         </p>
                       )}
                     </div>

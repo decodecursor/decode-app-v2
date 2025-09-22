@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { getUserWithProxy } from '@/utils/auth-helper'
 import { PayoutHistory } from '@/components/stripe/PayoutHistory'
 import { PayoutMethodsCard } from '@/components/payouts/PayoutMethodsCard'
+import HeartAnimation from '@/components/effects/HeartAnimation'
 import type { User } from '@supabase/supabase-js'
 
 interface PayoutSummary {
@@ -41,6 +42,7 @@ export default function PayoutsPage() {
   const [availablePayoutMethods, setAvailablePayoutMethods] = useState<PayoutMethod[]>([])
   const [showSelectMethodModal, setShowSelectMethodModal] = useState(false)
   const [showNoPaymentMethodModal, setShowNoPaymentMethodModal] = useState(false)
+  const [heartAnimatingId, setHeartAnimatingId] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -256,13 +258,7 @@ export default function PayoutsPage() {
         setShowRequestModal(false)
         setRequestAmount('')
         setPayoutInProcess(true)
-        setSuccessMessage('Payout request submitted successfully!')
-        
-        // Auto-hide success message after 5 seconds
-        setTimeout(() => {
-          setSuccessMessage('')
-        }, 5000)
-        
+
         // Refresh data
         await fetchPayoutSummary(user.id)
       } else {
@@ -346,8 +342,23 @@ export default function PayoutsPage() {
     )
   }
 
+  const handleNewPayout = (payoutId: string) => {
+    setHeartAnimatingId(payoutId)
+
+    // Auto-clear heart animation after 3 seconds
+    setTimeout(() => {
+      setHeartAnimatingId(null)
+    }, 3000)
+  }
+
   return (
     <div className="cosmic-bg min-h-screen">
+      {/* Heart Animation - Positioned at specific payout */}
+      <HeartAnimation
+        isActive={heartAnimatingId !== null}
+        targetElementId={heartAnimatingId || undefined}
+      />
+
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Button */}
         <div className="flex justify-center mb-8">
@@ -375,21 +386,6 @@ export default function PayoutsPage() {
           </div>
         </div>
 
-        {/* Success Message */}
-        {successMessage && (
-          <div className="flex justify-center mb-6">
-            <div style={{width: '70vw'}}>
-              <div className="bg-green-600/20 border border-green-500/30 rounded-lg p-4">
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <p className="text-green-100 font-medium">{successMessage}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Request Error Message */}
         {requestError && (
@@ -520,7 +516,7 @@ export default function PayoutsPage() {
             )}
 
             {/* Payout History */}
-            {user && <PayoutHistory userId={user.id} />}
+            {user && <PayoutHistory userId={user.id} onNewPayout={handleNewPayout} />}
           </div>
         </div>
 
@@ -607,11 +603,8 @@ export default function PayoutsPage() {
                   </svg>
                 </div>
                 <h3 className="text-lg font-semibold text-white mb-4">Minimum Payout Required</h3>
-                <p className="text-gray-300 mb-2">
-                  Minimum payout shall be AED 50.
-                </p>
                 <p className="text-gray-300 mb-6">
-                  Below AED 50 is not possible.
+                  Minimum payout shall be AED 50.
                 </p>
                 <div className="mb-6">
                   <p className="text-sm text-gray-400">Current Balance:</p>
