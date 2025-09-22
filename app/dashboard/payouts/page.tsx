@@ -43,6 +43,7 @@ export default function PayoutsPage() {
   const [showSelectMethodModal, setShowSelectMethodModal] = useState(false)
   const [showNoPaymentMethodModal, setShowNoPaymentMethodModal] = useState(false)
   const [heartAnimatingId, setHeartAnimatingId] = useState<string | null>(null)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
   const router = useRouter()
 
   useEffect(() => {
@@ -257,10 +258,12 @@ export default function PayoutsPage() {
       if (response.ok) {
         setShowRequestModal(false)
         setRequestAmount('')
-        setPayoutInProcess(true)
 
         // Refresh data
         await fetchPayoutSummary(user.id)
+
+        // Trigger PayoutHistory refresh to show new payout and heart animation
+        setRefreshTrigger(prev => prev + 1)
       } else {
         const errorData = await response.json()
         console.log('❌ [FRONTEND] Error response:', errorData)
@@ -460,11 +463,6 @@ export default function PayoutsPage() {
                   </div>
 
                   {/* Status Messages */}
-                  {payoutInProcess && (
-                    <div className="w-full text-center py-3 px-4 bg-blue-600/20 border border-blue-500/30 rounded-lg mb-4">
-                      <p className="text-blue-100 font-medium">Payout in process</p>
-                    </div>
-                  )}
                   {availablePayoutMethods.length === 0 && (
                     <div className="w-full text-center py-3 px-4 bg-yellow-600/20 border border-yellow-500/30 rounded-lg mb-4">
                       <p className="text-yellow-400 font-medium">
@@ -516,7 +514,7 @@ export default function PayoutsPage() {
             )}
 
             {/* Payout History */}
-            {user && <PayoutHistory userId={user.id} onNewPayout={handleNewPayout} />}
+            {user && <PayoutHistory userId={user.id} onNewPayout={handleNewPayout} refreshTrigger={refreshTrigger} />}
           </div>
         </div>
 

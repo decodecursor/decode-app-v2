@@ -17,9 +17,10 @@ interface Payout {
 interface PayoutHistoryProps {
   userId: string
   onNewPayout?: (payoutId: string) => void
+  refreshTrigger?: number
 }
 
-export function PayoutHistory({ userId, onNewPayout }: PayoutHistoryProps) {
+export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHistoryProps) {
   const [payouts, setPayouts] = useState<Payout[]>([])
   const [loading, setLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
@@ -30,6 +31,13 @@ export function PayoutHistory({ userId, onNewPayout }: PayoutHistoryProps) {
   useEffect(() => {
     loadPayouts()
   }, [userId])
+
+  // Refresh when trigger changes (new payout added)
+  useEffect(() => {
+    if (refreshTrigger && refreshTrigger > 0) {
+      loadPayouts()
+    }
+  }, [refreshTrigger])
 
   useEffect(() => {
     let timer: NodeJS.Timeout
