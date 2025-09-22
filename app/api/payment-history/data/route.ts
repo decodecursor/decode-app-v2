@@ -107,18 +107,8 @@ export async function GET(request: NextRequest) {
     console.log('  - isAdmin:', isAdmin)
     console.log('  - companyName:', companyName)
 
-    // Test simple query first without OR condition
-    console.log('📊 [PAYMENT-HISTORY API] Testing simple query first...')
-    const { data: testData } = await query.limit(5)
-    console.log('  - Simple query found:', testData?.length || 0, 'total payment links')
-    if (testData && testData.length > 0) {
-      console.log('  - Sample payment link:', {
-        id: testData[0].id,
-        payment_status: testData[0].payment_status,
-        is_paid: testData[0].is_paid,
-        company_name: testData[0].company_name
-      })
-    }
+    // REMOVED test query that was limiting results to 5!
+    // The test query was modifying the original query object with .limit(5)
 
     // Now try with payment status filter - check BOTH payment_status AND is_paid
     const { data: linksData, error: linksError } = await query
