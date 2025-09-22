@@ -216,8 +216,10 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     console.log(`📊 Available Payment Links: ${activePaymentLinks.length}`)
 
     const currentPeriodLinks = activePaymentLinks.filter(link => {
-      if (!link.paid_at) return false
-      const paidDate = new Date(link.paid_at)
+      // Use paid_at if available, otherwise use created_at for paid links
+      const dateToCheck = link.paid_at || link.created_at
+      if (!dateToCheck) return false
+      const paidDate = new Date(dateToCheck)
       const isIncluded = paidDate >= currentPeriodStart
       
       console.log(`📊 Payment Link ${link.id}: paid_at=${link.paid_at}, included_in_current=${isIncluded}`)
@@ -226,8 +228,9 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     })
     
     const previousPeriodLinks = dateRange !== 'custom' ? activePaymentLinks.filter(link => {
-      if (!link.paid_at) return false
-      const paidDate = new Date(link.paid_at)
+      const dateToCheck = link.paid_at || link.created_at
+      if (!dateToCheck) return false
+      const paidDate = new Date(dateToCheck)
       const isIncluded = paidDate >= previousPeriodStart && paidDate < previousPeriodEnd
       
       console.log(`📊 Payment Link ${link.id}: included_in_previous=${isIncluded}`)
@@ -351,10 +354,12 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
         const date = new Date(chartStart.getTime() + i * 24 * 60 * 60 * 1000)
         
         const dayLinks = activePaymentLinks.filter(link => {
-          if (!link.paid_at) return false
-          
-          // Parse paid_at date and handle timezone properly
-          const paidDate = new Date(link.paid_at)
+          // Use paid_at if available, otherwise use created_at for paid links
+          const dateToCheck = link.paid_at || link.created_at
+          if (!dateToCheck) return false
+
+          // Parse date and handle timezone properly
+          const paidDate = new Date(dateToCheck)
           
           // Compare just the date parts (year, month, day) ignoring time and timezone
           return paidDate.getFullYear() === date.getFullYear() &&
@@ -501,8 +506,10 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     // Get payment links that were paid in the selected period
     // Use same filtering logic as analytics cards (no end date restriction for consistency)
     const filteredLinks = activePaymentLinks.filter(link => {
-      if (!link.paid_at) return false
-      const paidDate = new Date(link.paid_at)
+      // Use paid_at if available, otherwise use created_at for paid links without timestamp
+      const dateToCheck = link.paid_at || link.created_at
+      if (!dateToCheck) return false
+      const paidDate = new Date(dateToCheck)
 
       // For "today", "week", "month" - use same logic as analytics cards (start date only)
       // For "custom" - use both start and end dates if specified
