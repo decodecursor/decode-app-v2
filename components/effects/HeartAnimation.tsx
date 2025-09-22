@@ -161,7 +161,12 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
 
     // If we have a target element ID, use its position
     if (targetElementId) {
-      const targetElement = document.getElementById(`payment-link-${targetElementId}`)
+      // Try payout element first, then payment link (for backward compatibility)
+      let targetElement = document.getElementById(targetElementId)
+      if (!targetElement) {
+        targetElement = document.getElementById(`payment-link-${targetElementId}`)
+      }
+
       if (targetElement) {
         const rect = targetElement.getBoundingClientRect()
         targetX = rect.left + rect.width / 2

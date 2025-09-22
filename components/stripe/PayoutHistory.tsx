@@ -27,6 +27,7 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
   const [exportDone, setExportDone] = useState(false)
   const [visibleCount, setVisibleCount] = useState(6)
   const [previousPayoutCount, setPreviousPayoutCount] = useState(0)
+  const [highlightedPayoutId, setHighlightedPayoutId] = useState<string | null>(null)
 
   useEffect(() => {
     loadPayouts()
@@ -71,7 +72,18 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
         if (newPayouts.length > previousPayoutCount && previousPayoutCount > 0 && onNewPayout) {
           // Get the newest payout (first in the list)
           const newestPayout = newPayouts[0]
-          onNewPayout(`payout-${newestPayout.id}`)
+          const payoutElementId = `payout-${newestPayout.id}`
+
+          // Trigger heart animation
+          onNewPayout(payoutElementId)
+
+          // Highlight the new payout with purple background fade
+          setHighlightedPayoutId(newestPayout.id)
+
+          // Clear highlight after 3 seconds
+          setTimeout(() => {
+            setHighlightedPayoutId(null)
+          }, 3000)
         }
 
         setPayouts(newPayouts)
@@ -208,11 +220,19 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
           <div className="space-y-3">
             {payouts.slice(0, visibleCount).map((payout) => {
               const status = getStatusBadge(payout.status)
+              const isHighlighted = highlightedPayoutId === payout.id
               return (
                 <div
                   key={payout.id}
                   id={`payout-${payout.id}`}
-                  className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/8 transition-colors"
+                  className={`flex items-center justify-between p-4 rounded-lg hover:bg-white/8 transition-all duration-300 ${
+                    isHighlighted
+                      ? 'bg-purple-600/30 animate-[fadeToNormal_3s_ease-out_forwards]'
+                      : 'bg-white/5'
+                  }`}
+                  style={{
+                    animationDelay: isHighlighted ? '0s' : undefined
+                  }}
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1">

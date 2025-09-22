@@ -13,6 +13,16 @@
   }
 }
 
+/* Payout Highlight Animation - Purple fade to normal */
+@keyframes fadeToNormal {
+  0% {
+    background-color: rgba(147, 51, 234, 0.3); /* purple-600/30 */
+  }
+  100% {
+    background-color: rgba(255, 255, 255, 0.05); /* bg-white/5 */
+  }
+}
+
 
 /* Cosmic Design System - CSS Custom Properties */
 :root {
