@@ -59,6 +59,7 @@ export async function GET(request: NextRequest) {
         branch_name,
         creator_name,
         payment_status,
+        is_paid,
         creator:creator_id (
           user_name,
           email
