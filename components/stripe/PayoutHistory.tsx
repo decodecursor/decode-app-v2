@@ -9,6 +9,8 @@ interface Payout {
   status: string
   paid_at: string | null
   created_at: string
+  company_name?: string
+  user_name?: string
 }
 
 interface PayoutHistoryProps {
@@ -19,11 +21,24 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
   const [payouts, setPayouts] = useState<Payout[]>([])
   const [loading, setLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
+  const [exportDone, setExportDone] = useState(false)
   const [visibleCount, setVisibleCount] = useState(6)
 
   useEffect(() => {
     loadPayouts()
   }, [userId])
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout
+    if (exportDone) {
+      timer = setTimeout(() => {
+        setExportDone(false)
+      }, 3000)
+    }
+    return () => {
+      if (timer) clearTimeout(timer)
+    }
+  }, [exportDone])
 
   const loadPayouts = async () => {
     try {
@@ -86,12 +101,13 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
 
       const data = result.payouts
 
-      const headers = ['Request ID', 'Date', 'Amount (AED)', 'Paid Date']
+      const headers = ['Company Name', 'User Name', 'Created At', 'Payout Request ID', 'Payout Amount AED']
       const rows = (data || []).map(payout => [
-        payout.payout_request_id || 'N/A',
+        payout.company_name || 'N/A',
+        payout.user_name || 'N/A',
         formatDate(payout.created_at),
-        payout.payout_amount_aed.toFixed(2),
-        payout.paid_at ? formatDate(payout.paid_at) : 'Pending'
+        payout.payout_request_id || 'N/A',
+        payout.payout_amount_aed.toFixed(2)
       ])
 
       const csvContent = [
@@ -108,6 +124,9 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
       a.click()
       document.body.removeChild(a)
       window.URL.revokeObjectURL(url)
+
+      // Show "Done!" feedback for 3 seconds
+      setExportDone(true)
     } catch (error) {
       console.error('Error exporting payouts:', error)
     } finally {
@@ -135,13 +154,13 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
         {payouts.length > 0 && (
           <button
             onClick={exportToCSV}
-            disabled={exporting}
+            disabled={exporting || exportDone}
             className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            {exporting ? 'Exporting...' : 'Export CSV'}
+            {exportDone ? 'Done!' : exporting ? 'Exporting...' : 'Export'}
           </button>
         )}
       </div>
