@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     const completedPayouts = payouts?.filter(p => p.status === 'paid').length || 0
     const totalPaidAmount = payouts
       ?.filter(p => p.status === 'paid')
-      ?.reduce((sum, p) => sum + (p.amount_aed || 0), 0) || 0
+      ?.reduce((sum, p) => sum + (p.payout_amount_aed || 0), 0) || 0
 
     const lastPayout = payouts?.find(p => p.status === 'paid')
     const nextPendingPayout = payouts?.find(p => p.status === 'pending')
@@ -48,14 +48,14 @@ export async function GET(request: NextRequest) {
         totalPaidAmount,
         lastPayout: lastPayout ? {
           id: lastPayout.id,
-          amount: lastPayout.amount_aed,
+          amount: lastPayout.payout_amount_aed,
           paidAt: lastPayout.paid_at,
           periodStart: lastPayout.period_start,
           periodEnd: lastPayout.period_end
         } : null,
         nextPendingPayout: nextPendingPayout ? {
           id: nextPendingPayout.id,
-          amount: nextPendingPayout.amount_aed,
+          amount: nextPendingPayout.payout_amount_aed,
           scheduledFor: nextPendingPayout.scheduled_for,
           status: nextPendingPayout.status
         } : null

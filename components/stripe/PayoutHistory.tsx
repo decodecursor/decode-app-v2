@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 interface Payout {
   id: string
   payout_request_id: string | null
-  amount_aed: number
+  payout_amount_aed: number
   status: string
   period_start: string | null
   period_end: string | null
@@ -93,7 +93,7 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
       const rows = (data || []).map(payout => [
         payout.payout_request_id || 'N/A',
         formatDate(payout.created_at),
-        payout.amount_aed.toFixed(2),
+        payout.payout_amount_aed.toFixed(2),
         payout.status,
         payout.period_start ? formatDate(payout.period_start) : 'N/A',
         payout.period_end ? formatDate(payout.period_end) : 'N/A',
@@ -166,7 +166,7 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-1">
                     <span className="text-white font-medium">
-                      AED {payout.amount_aed.toFixed(2)}
+                      AED {payout.payout_amount_aed.toFixed(2)}
                     </span>
                     <span className={`text-xs px-2 py-1 rounded-full ${status.bg} ${status.text}`}>
                       {status.label}
