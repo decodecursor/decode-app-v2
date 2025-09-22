@@ -150,6 +150,14 @@ export async function POST(request: NextRequest) {
 
     console.log(`💳 [PAYOUT-REQUEST] Determined payout method: ${payoutMethod}`)
 
+    // Validate that a payout method is available
+    if (!payoutMethod) {
+      return NextResponse.json(
+        { error: 'No valid payment method configured. Please set up a bank account, PayPal account, or complete Stripe Connect setup before requesting a payout.' },
+        { status: 400 }
+      )
+    }
+
     // Generate unique payout request ID
     const payoutRequestId = await generateUniquePayoutRequestId(async (id) => {
       const { data } = await supabase

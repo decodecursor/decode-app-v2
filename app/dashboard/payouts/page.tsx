@@ -213,7 +213,13 @@ export default function PayoutsPage() {
       return
     }
 
-    // Show request modal (no payment method validation needed for email-based payouts)
+    // Check if user has any payment method configured
+    if (availablePayoutMethods.length === 0 || !selectedPayoutMethod) {
+      setShowNoPaymentMethodModal(true)
+      return
+    }
+
+    // Show request modal
     setShowRequestModal(true)
   }
 
@@ -625,9 +631,9 @@ export default function PayoutsPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-4">Select Payment Method</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">Payment Method Required</h3>
                 <p className="text-gray-300 mb-6">
-                  Please select a payment method before requesting a payout.
+                  You must configure a payment method before requesting a payout. Please set up a bank account or PayPal account in the payment methods section below.
                 </p>
 
                 <div className="flex gap-3">
@@ -638,13 +644,10 @@ export default function PayoutsPage() {
                     Cancel
                   </button>
                   <button
-                    onClick={() => {
-                      setShowNoPaymentMethodModal(false)
-                      setShowSelectMethodModal(true)
-                    }}
+                    onClick={() => setShowNoPaymentMethodModal(false)}
                     className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
                   >
-                    Select Method
+                    OK
                   </button>
                 </div>
               </div>
