@@ -100,10 +100,10 @@ export async function GET(request: NextRequest) {
       query = query.eq('creator_id', userId)
     }
 
-    // Fetch payment links with paid_at field
+    // Fetch payment links with correct payment status
     const { data: linksData, error: linksError } = await query
-      .not('paid_at', 'is', null) // Only get paid payment links
-      .order('paid_at', { ascending: false })
+      .or('payment_status.eq.paid,is_paid.eq.true') // Get paid payment links using correct columns
+      .order('created_at', { ascending: false })
 
     if (linksError) {
       console.error('Payment links query failed:', linksError)
