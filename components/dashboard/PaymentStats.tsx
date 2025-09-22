@@ -61,6 +61,7 @@ interface PopularAmount {
 }
 
 export default function PaymentStats({ transactions, paymentLinks, user, userRole }: PaymentStatsProps) {
+  console.log('🚨 [PAYMENTSTATS MOUNT] Component mounted with userRole:', userRole, 'USER_ROLES.ADMIN:', USER_ROLES.ADMIN, 'Match:', (userRole === USER_ROLES.ADMIN || userRole === 'Admin'))
 
   // State for company-wide data (for ADMIN users)
   const [companyData, setCompanyData] = useState<{
@@ -132,8 +133,16 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
   // Fetch company-wide data for ADMIN users
   const fetchCompanyWideData = useCallback(async () => {
     console.log('🔍 [ANALYTICS DEBUG] fetchCompanyWideData called - user:', !!user, 'userRole:', userRole, 'expected:', USER_ROLES.ADMIN)
-    if (!user || userRole !== USER_ROLES.ADMIN) {
-      console.log('❌ [ANALYTICS DEBUG] Not fetching - user missing or not admin')
+    if (!user) {
+      console.log('❌ [ANALYTICS DEBUG] Not fetching - user missing')
+      return
+    }
+    if (!userRole) {
+      console.log('⚠️ [ANALYTICS DEBUG] Not fetching - userRole is null/undefined')
+      return
+    }
+    if (userRole !== USER_ROLES.ADMIN && userRole !== 'Admin') {
+      console.log('❌ [ANALYTICS DEBUG] Not fetching - user is not admin (role:', userRole, ')')
       return
     }
 
@@ -183,14 +192,20 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     }
   }, [user, userRole])
 
-  // Fetch company-wide data for ADMIN users on component mount
+  // Fetch company-wide data for ADMIN users on component mount and when userRole changes
   useEffect(() => {
-    console.log('🔍 [ANALYTICS DEBUG] Effect triggered - userRole:', userRole, 'isAdmin:', userRole === USER_ROLES.ADMIN)
-    if (userRole === USER_ROLES.ADMIN) {
-      console.log('✅ [ANALYTICS DEBUG] Triggering fetchCompanyWideData...')
+    console.log('🔍 [ANALYTICS DEBUG] Effect triggered - userRole:', userRole, 'type:', typeof userRole, 'isAdmin:', (userRole === USER_ROLES.ADMIN || userRole === 'Admin'), 'USER_ROLES.ADMIN:', USER_ROLES.ADMIN)
+
+    // Also check for raw string comparison as a fallback
+    const isAdmin = (userRole === USER_ROLES.ADMIN || userRole === 'Admin') || userRole === 'Admin'
+
+    if (isAdmin && user) {
+      console.log('✅ [ANALYTICS DEBUG] User is ADMIN - Triggering fetchCompanyWideData...')
       fetchCompanyWideData()
+    } else {
+      console.log('⚠️ [ANALYTICS DEBUG] Not triggering fetch - isAdmin:', isAdmin, 'user:', !!user)
     }
-  }, [fetchCompanyWideData])
+  }, [fetchCompanyWideData, userRole, user])
 
   // Clear export done message after 3 seconds
   useEffect(() => {
@@ -207,8 +222,8 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
   const calculateStats = useCallback(() => {
     // Use company-wide data for ADMIN users if available
-    const activePaymentLinks = userRole === USER_ROLES.ADMIN && companyData ? companyData.paymentLinks : paymentLinks
-    const activeTransactions = userRole === USER_ROLES.ADMIN && companyData ? companyData.transactions : transactions
+    const activePaymentLinks = (userRole === USER_ROLES.ADMIN || userRole === 'Admin') && companyData ? companyData.paymentLinks : paymentLinks
+    const activeTransactions = (userRole === USER_ROLES.ADMIN || userRole === 'Admin') && companyData ? companyData.transactions : transactions
     let currentPeriodStart: Date
     let previousPeriodStart: Date
     let previousPeriodEnd: Date
@@ -483,7 +498,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
   const getFilteredPayments = () => {
     // Use company-wide data for ADMIN users if available
-    const activePaymentLinks = userRole === USER_ROLES.ADMIN && companyData ? companyData.paymentLinks : paymentLinks
+    const activePaymentLinks = (userRole === USER_ROLES.ADMIN || userRole === 'Admin') && companyData ? companyData.paymentLinks : paymentLinks
     const getUAEDate = (date: Date) => {
       const utc = date.getTime() + (date.getTimezoneOffset() * 60000)
       return new Date(utc + (4 * 3600000))
@@ -556,7 +571,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     setExporting(true)
     try {
       // Use company-wide data for ADMIN users if available
-      const activePaymentLinks = userRole === USER_ROLES.ADMIN && companyData ? companyData.paymentLinks : paymentLinks
+      const activePaymentLinks = (userRole === USER_ROLES.ADMIN || userRole === 'Admin') && companyData ? companyData.paymentLinks : paymentLinks
 
       // Get all filtered payment links (without the slice limit)
       const getUAEDate = (date: Date) => {
@@ -672,7 +687,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     )
   }
 
-  if (userRole === USER_ROLES.ADMIN && loadingCompanyData) {
+  if ((userRole === USER_ROLES.ADMIN || userRole === 'Admin') && loadingCompanyData) {
     return (
       <div className="space-y-6">
         <div className="cosmic-card">
@@ -689,7 +704,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     )
   }
 
-  if (userRole === USER_ROLES.ADMIN && companyDataError) {
+  if ((userRole === USER_ROLES.ADMIN || userRole === 'Admin') && companyDataError) {
     return (
       <div className="space-y-6">
         <div className="cosmic-card">
@@ -792,7 +807,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                 </span>
               )}
             </div>
-            {userRole === USER_ROLES.ADMIN ? (
+            {(userRole === USER_ROLES.ADMIN || userRole === 'Admin') ? (
               <p className="text-2xl font-bold text-white/30 mb-1">
                 —
               </p>
@@ -812,7 +827,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             <div className="flex justify-between items-start mb-2">
               <h3 className="cosmic-label text-white/70">My Next Payout</h3>
             </div>
-            {userRole === USER_ROLES.ADMIN ? (
+            {(userRole === USER_ROLES.ADMIN || userRole === 'Admin') ? (
               <p className="text-2xl font-bold text-white/30 mb-1">
                 —
               </p>
