@@ -462,14 +462,6 @@ export default function PayoutsPage() {
                     </div>
                   </div>
 
-                  {/* Status Messages */}
-                  {availablePayoutMethods.length === 0 && (
-                    <div className="w-full text-center py-3 px-4 bg-yellow-600/20 border border-yellow-500/30 rounded-lg mb-4">
-                      <p className="text-yellow-400 font-medium">
-                        Connect your payment methods using the section below
-                      </p>
-                    </div>
-                  )}
 
                   {/* Action Button */}
                   <div>
