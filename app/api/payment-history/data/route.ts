@@ -35,10 +35,19 @@ export async function GET(request: NextRequest) {
       console.error('❌ [PAYMENT-HISTORY API] Failed to fetch user profile:', profileError)
     }
 
-    const isAdmin = userProfile?.role === USER_ROLES.ADMIN || userProfile?.role === 'Admin'
+    // More flexible ADMIN role detection
+    const userRole = userProfile?.role?.toLowerCase()
+    const isAdmin = userRole === 'admin' || userProfile?.role === USER_ROLES.ADMIN || userProfile?.role === 'Admin'
     const companyName = userProfile?.company_name || userProfile?.professional_center_name
 
-    console.log('📊 [PAYMENT-HISTORY API] User role:', userProfile?.role, 'isAdmin:', isAdmin, 'company:', companyName)
+    console.log('📊 [PAYMENT-HISTORY API] DETAILED ROLE DEBUG:')
+    console.log('  - Raw role from DB:', userProfile?.role)
+    console.log('  - Lowercased role:', userRole)
+    console.log('  - USER_ROLES.ADMIN constant:', USER_ROLES.ADMIN)
+    console.log('  - isAdmin result:', isAdmin)
+    console.log('  - company_name:', userProfile?.company_name)
+    console.log('  - professional_center_name:', userProfile?.professional_center_name)
+    console.log('  - Final companyName:', companyName)
 
     // Build the query based on user role
     let query = supabaseService
@@ -75,12 +84,12 @@ export async function GET(request: NextRequest) {
 
     // If ADMIN and has company, fetch all payment links from that company directly
     if (isAdmin && companyName) {
-      console.log('📊 [PAYMENT-HISTORY API] Fetching company-wide data for:', companyName)
-      // Direct company filter - much simpler
-      query = query.eq('company_name', companyName)
+      console.log('📊 [PAYMENT-HISTORY API] ADMIN USER - Fetching company-wide data for:', companyName)
+      // Try both company name fields in payment_links table
+      query = query.or(`company_name.eq."${companyName}",professional_center_name.eq."${companyName}"`)
     } else {
       // For non-admin users, get only their own payment links
-      console.log('📊 [PAYMENT-HISTORY API] Fetching user-specific data')
+      console.log('📊 [PAYMENT-HISTORY API] NON-ADMIN USER - Fetching user-specific data for userId:', userId)
       query = query.eq('creator_id', userId)
     }
 
