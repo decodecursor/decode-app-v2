@@ -144,6 +144,24 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
   const calculateStats = useCallback(() => {
     // Data is now passed directly from parent (already includes company-wide data for ADMIN users)
     const activePaymentLinks = paymentLinks
+
+    // Debug logging for ADMIN data verification
+    console.log(`🔍 [PaymentStats] User Role: ${userRole}, User ID: ${user?.id}`)
+    console.log(`🔍 [PaymentStats] Received ${activePaymentLinks.length} payment links`)
+
+    if (userRole === USER_ROLES.ADMIN || userRole === 'Admin') {
+      console.log('🔍 [PaymentStats] ADMIN USER - Analyzing company-wide data:')
+      const uniqueCreators = new Set(activePaymentLinks.map(link => link.creator_id))
+      console.log(`  - Unique creators: ${uniqueCreators.size}`)
+      console.log(`  - Creator IDs: [${Array.from(uniqueCreators).join(', ')}]`)
+      console.log(`  - Current user ID: ${user?.id}`)
+      console.log(`  - Total payment links: ${activePaymentLinks.length}`)
+
+      // Sample payment links for verification
+      activePaymentLinks.slice(0, 3).forEach((link, i) => {
+        console.log(`  - Link ${i + 1}: creator=${link.creator_id}, amount=${link.amount_aed}, service=${link.service_amount_aed}, transactions=${link.transaction_count}`)
+      })
+    }
     const activeTransactions = transactions
     let currentPeriodStart: Date
     let previousPeriodStart: Date
@@ -275,6 +293,8 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     console.log(`💰 Current period: ${currentMyLinks.length} my links, Revenue: ${currentMyRevenue}, Commission: ${currentMyCommission}`)
     console.log(`💰 Previous period: ${previousMyLinks.length} my links, Revenue: ${previousMyRevenue}, Commission: ${previousMyCommission}`)
     console.log(`💰 Total company revenue: ${currentRevenue} (current), ${previousRevenue} (previous)`)
+    console.log(`💰 Company transactions: ${currentCount} (current), ${previousCount} (previous)`)
+    console.log(`💰 Company average payment: ${currentAverage} (current), ${previousAverage} (previous)`)
 
     // Calculate popular payment amounts
     const amountCounts = new Map<number, number>()
@@ -344,8 +364,12 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
         
         // Debug logging for chart revenue calculation
         console.log(`📊 Chart Debug - Day ${date.toLocaleDateString()}: ${dayLinks.length} links`)
+        if (userRole === USER_ROLES.ADMIN || userRole === 'Admin') {
+          const uniqueCreatorsForDay = new Set(dayLinks.map(link => link.creator_id))
+          console.log(`📊 ADMIN Chart - Day creators: ${uniqueCreatorsForDay.size} unique (${Array.from(uniqueCreatorsForDay).join(', ')})`)
+        }
         dayLinks.forEach((link, i) => {
-          console.log(`📊 Link ${i + 1}: service_amount_aed=${link.service_amount_aed}, amount_aed=${link.amount_aed}, title="${link.title}"`)
+          console.log(`📊 Link ${i + 1}: creator=${link.creator_id}, service_amount_aed=${link.service_amount_aed}, amount_aed=${link.amount_aed}, title="${link.title}"`)
         })
 
         // Ensure we only use service amount (staff portion), calculate if missing
@@ -428,6 +452,13 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
   const getFilteredPayments = () => {
     // Data is now passed directly from parent (already includes company-wide data for ADMIN users)
     const activePaymentLinks = paymentLinks
+
+    console.log(`🔍 [getFilteredPayments] Processing ${activePaymentLinks.length} payment links`)
+    if (userRole === USER_ROLES.ADMIN || userRole === 'Admin') {
+      const uniqueCreators = new Set(activePaymentLinks.map(link => link.creator_id))
+      console.log(`🔍 [ADMIN PayLinks List] Showing ${activePaymentLinks.length} links from ${uniqueCreators.size} creators`)
+      console.log(`🔍 [ADMIN PayLinks List] Creator IDs: [${Array.from(uniqueCreators).join(', ')}]`)
+    }
     const getUAEDate = (date: Date) => {
       const utc = date.getTime() + (date.getTimezoneOffset() * 60000)
       return new Date(utc + (4 * 3600000))
