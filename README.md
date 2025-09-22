@@ -205,3 +205,5 @@ This project is proprietary and confidential.
 ## Support
 
 For support, email support@decode.beauty or create an issue in the repository.
+
+<!-- Last updated: 2025-09-22 - Payment amount display fixes deployed -->
