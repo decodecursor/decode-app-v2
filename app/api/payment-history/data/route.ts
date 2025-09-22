@@ -83,10 +83,32 @@ export async function GET(request: NextRequest) {
       query = query.eq('creator_id', userId)
     }
 
-    // Fetch payment links with correct payment status
+    // Add extensive debugging before query
+    console.log('📊 [PAYMENT-HISTORY API] About to query with:')
+    console.log('  - isAdmin:', isAdmin)
+    console.log('  - companyName:', companyName)
+
+    // Test simple query first without OR condition
+    console.log('📊 [PAYMENT-HISTORY API] Testing simple query first...')
+    const { data: testData } = await query.limit(5)
+    console.log('  - Simple query found:', testData?.length || 0, 'total payment links')
+    if (testData && testData.length > 0) {
+      console.log('  - Sample payment link:', {
+        id: testData[0].id,
+        payment_status: testData[0].payment_status,
+        is_paid: testData[0].is_paid,
+        company_name: testData[0].company_name
+      })
+    }
+
+    // Now try with payment status filter - use separate conditions
     const { data: linksData, error: linksError } = await query
-      .or('payment_status.eq.paid,is_paid.eq.true') // Get paid payment links using correct columns
+      .eq('payment_status', 'paid')
       .order('created_at', { ascending: false })
+
+    console.log('📊 [PAYMENT-HISTORY API] Query completed:')
+    console.log('  - Found links:', linksData?.length || 0)
+    console.log('  - Query error:', linksError)
 
     if (linksError) {
       console.error('Payment links query failed:', linksError)
