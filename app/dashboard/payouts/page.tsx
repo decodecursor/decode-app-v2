@@ -221,7 +221,7 @@ export default function PayoutsPage() {
 
     // Validate minimum amount
     if (amount < 50) {
-      setModalError('⚠️ Minimum payout amount: AED 50')
+      setModalError('Minimum payout amount: AED 50')
       return
     }
 
