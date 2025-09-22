@@ -5,11 +5,14 @@ import { USER_ROLES } from '@/types/user'
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('🔍 [ANALYTICS API] Company-wide analytics request started')
+
     // Use the same authentication pattern as other endpoints
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
+      console.error('❌ [ANALYTICS API] Authentication failed:', authError)
       return NextResponse.json(
         { error: 'No authenticated user' },
         { status: 401 }
@@ -17,11 +20,13 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = user.id
+    console.log('✅ [ANALYTICS API] User authenticated:', userId)
 
     // Use service role to query data
     const supabaseService = createServiceRoleClient()
 
     // First, get the current user's profile to check role and company
+    console.log('🔍 [ANALYTICS API] Fetching user profile...')
     const { data: userProfile, error: profileError } = await supabaseService
       .from('user_profiles')
       .select('role, company_name, professional_center_name')
@@ -29,11 +34,14 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (profileError || !userProfile) {
+      console.error('❌ [ANALYTICS API] Profile fetch failed:', profileError)
       return NextResponse.json(
-        { error: 'Failed to fetch user profile' },
+        { error: 'Failed to fetch user profile', details: profileError?.message },
         { status: 500 }
       )
     }
+
+    console.log('✅ [ANALYTICS API] User profile:', userProfile)
 
     // Check if user is ADMIN
     if (userProfile.role !== USER_ROLES.ADMIN) {
@@ -53,21 +61,23 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get all users in the same company
+    // Get all users in the same company (properly escape company name for SQL)
+    console.log('🔍 [ANALYTICS API] Searching for company users with name:', companyName)
     const { data: companyUsers, error: usersError } = await supabaseService
       .from('user_profiles')
       .select('id')
-      .or(`company_name.eq.${companyName},professional_center_name.eq.${companyName}`)
+      .or(`company_name.eq."${companyName}",professional_center_name.eq."${companyName}"`)
 
     if (usersError) {
-      console.error('Error fetching company users:', usersError)
+      console.error('❌ [ANALYTICS API] Error fetching company users:', usersError)
       return NextResponse.json(
-        { error: 'Failed to fetch company users' },
+        { error: 'Failed to fetch company users', details: usersError.message },
         { status: 500 }
       )
     }
 
     const companyUserIds = (companyUsers || []).map(u => u.id)
+    console.log('✅ [ANALYTICS API] Found company users:', companyUserIds.length)
 
     if (companyUserIds.length === 0) {
       return NextResponse.json({
@@ -89,6 +99,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch all payment links for company users (including both paid and unpaid)
+    console.log('🔍 [ANALYTICS API] Fetching payment links for users:', companyUserIds)
     const { data: linksData, error: linksError } = await supabaseService
       .from('payment_links')
       .select(`
@@ -123,12 +134,14 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
 
     if (linksError) {
-      console.error('Payment links query failed:', linksError)
+      console.error('❌ [ANALYTICS API] Payment links query failed:', linksError)
       return NextResponse.json(
-        { error: 'Failed to fetch payment links' },
+        { error: 'Failed to fetch payment links', details: linksError.message },
         { status: 500 }
       )
     }
+
+    console.log('✅ [ANALYTICS API] Found payment links:', (linksData || []).length)
 
     // Process payment links
     const allProcessedLinks = (linksData || []).map((link: any) => {
@@ -204,6 +217,14 @@ export async function GET(request: NextRequest) {
         transactions: thisMonthTransactions.length
       }
     }
+
+    console.log('✅ [ANALYTICS API] Successfully returning data:', {
+      paymentLinks: paidLinksOnly.length,
+      transactions: processedTransactions.length,
+      stats,
+      companyName,
+      companyUserCount: companyUserIds.length
+    })
 
     return NextResponse.json({
       success: true,
