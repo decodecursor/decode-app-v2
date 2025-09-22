@@ -513,14 +513,20 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       }
     })
 
-    // Return payment links sorted by paid_at date
+    // Add debugging to see filtering results
+    console.log(`🔍 [PayLinks List] DEBUGGING FILTER RESULTS:`)
+    console.log(`  - Total payment links received: ${activePaymentLinks.length}`)
+    console.log(`  - After date filtering: ${filteredLinks.length}`)
+    console.log(`  - Date range: ${dateRange}`)
+    console.log(`  - Start date: ${startDate}`)
+
+    // Return ALL filtered payment links (remove artificial limit)
     return filteredLinks
       .sort((a, b) => {
         const aDate = new Date(b.paid_at!)
         const bDate = new Date(a.paid_at!)
         return aDate.getTime() - bDate.getTime()
       })
-      .slice(0, 10)
   }
 
   const formatPaymentDate = (dateString: string) => {
