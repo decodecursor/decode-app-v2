@@ -94,14 +94,14 @@ export async function GET(request: NextRequest) {
 
     const totalEarnings = (transactions || []).reduce((sum, t) => sum + (t.amount_aed || 0), 0)
 
-    // Get all completed payouts to calculate total paid out
+    // Get all payouts (both paid and pending) to calculate total requested
     const { data: allPayouts } = await supabase
       .from('payouts')
-      .select('payout_amount_aed')
+      .select('payout_amount_aed, status')
       .eq('user_id', userId)
-      .eq('status', 'paid')
+      .in('status', ['paid', 'pending'])
 
-    const totalPaidOut = (allPayouts || []).reduce((sum, p) => sum + (p.payout_amount_aed || 0), 0)
+    const totalRequestedPayouts = (allPayouts || []).reduce((sum, p) => sum + (p.payout_amount_aed || 0), 0)
 
     // Get last payout
     const { data: lastPayout } = await supabase
@@ -113,17 +113,17 @@ export async function GET(request: NextRequest) {
       .limit(1)
       .maybeSingle()
 
-    // Calculate available balance by subtracting previous payouts from total commission
-    const availableBalance = Math.max(0, totalCommission - totalPaidOut)
+    // Calculate available balance by subtracting all requested payouts (both paid and pending) from total commission
+    const availableBalance = Math.max(0, totalCommission - totalRequestedPayouts)
 
-    console.log(`💰 Total Paid Out: ${totalPaidOut}`)
-    console.log(`💰 Available Balance: ${availableBalance} (${totalCommission} - ${totalPaidOut})`)
+    console.log(`💰 Total Requested Payouts: ${totalRequestedPayouts}`)
+    console.log(`💰 Available Balance: ${availableBalance} (${totalCommission} - ${totalRequestedPayouts})`)
 
     const payoutSummary = {
       availableBalance,
       pendingBalance: availableBalance,
       totalEarnings,
-      totalPaidOut,
+      totalPaidOut: totalRequestedPayouts,
       lastPayoutAmount: lastPayout?.payout_amount_aed || 0,
       lastPayoutDate: lastPayout?.paid_at || null,
       bankConnected

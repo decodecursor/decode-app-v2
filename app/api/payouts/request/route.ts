@@ -88,20 +88,20 @@ export async function POST(request: NextRequest) {
     // Calculate total commission (1% of service revenue)
     const totalCommission = totalServiceRevenue * 0.01
 
-    // Get total previous payouts
+    // Get total previous payouts (both paid and pending)
     const { data: allPayouts } = await supabase
       .from('payouts')
-      .select('payout_amount_aed, paid_at')
+      .select('payout_amount_aed, paid_at, status')
       .eq('user_id', userId)
-      .eq('status', 'paid')
-      .order('paid_at', { ascending: false })
+      .in('status', ['paid', 'pending'])
+      .order('created_at', { ascending: false })
 
-    const totalPaidOut = (allPayouts || []).reduce((sum, p) => sum + (p.payout_amount_aed || 0), 0)
+    const totalRequestedPayouts = (allPayouts || []).reduce((sum, p) => sum + (p.payout_amount_aed || 0), 0)
 
     // Calculate available balance
-    const availableBalance = Math.max(0, totalCommission - totalPaidOut)
+    const availableBalance = Math.max(0, totalCommission - totalRequestedPayouts)
 
-    console.log(`💰 Balance: Commission: ${totalCommission}, Paid: ${totalPaidOut}, Available: ${availableBalance}`)
+    console.log(`💰 Balance: Commission: ${totalCommission}, Requested: ${totalRequestedPayouts}, Available: ${availableBalance}`)
 
     // Validate requested amount against available balance
     if (amount > availableBalance) {

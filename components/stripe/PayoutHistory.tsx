@@ -54,11 +54,10 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
 
   const getStatusBadge = (status: string) => {
     const badges = {
-      pending: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', label: 'Pending' },
       paid: { bg: 'bg-green-500/20', text: 'text-green-400', label: 'Paid' },
       failed: { bg: 'bg-red-500/20', text: 'text-red-400', label: 'Failed' }
     }
-    return badges[status as keyof typeof badges] || badges.pending
+    return badges[status as keyof typeof badges] || null
   }
 
   const formatDate = (date: string) => {
@@ -168,19 +167,18 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
                     <span className="text-white font-medium">
                       AED {payout.payout_amount_aed.toFixed(2)}
                     </span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${status.bg} ${status.text}`}>
-                      {status.label}
-                    </span>
+                    {status && (
+                      <span className={`text-xs px-2 py-1 rounded-full ${status.bg} ${status.text}`}>
+                        {status.label}
+                      </span>
+                    )}
                   </div>
                   <div className="space-y-1">
                     {payout.payout_request_id && (
                       <p className="text-sm text-gray-400">
-                        Request ID: <span className="font-mono text-purple-400">{payout.payout_request_id}</span>
+                        Payout Request ID: <span className="font-mono text-purple-400">{payout.payout_request_id}</span>
                       </p>
                     )}
-                    <p className="text-sm text-gray-400">
-                      Period: {payout.period_start ? formatDate(payout.period_start) : 'N/A'} - {payout.period_end ? formatDate(payout.period_end) : 'N/A'}
-                    </p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -188,7 +186,7 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
                     {payout.paid_at ? (
                       <>Paid on {formatDate(payout.paid_at)}</>
                     ) : (
-                      <>Scheduled for {payout.scheduled_for ? formatDate(payout.scheduled_for) : 'N/A'}</>
+                      <>Requested on {formatDate(payout.created_at)}</>
                     )}
                   </p>
                 </div>
