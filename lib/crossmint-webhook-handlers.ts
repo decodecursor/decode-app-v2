@@ -3,6 +3,7 @@
 
 import { crossmintService } from '@/lib/crossmint';
 import { crossmintDB } from '@/lib/crossmint-db';
+import { calculateMarketplaceFee } from '@/types/crossmint';
 
 interface CrossmintHeadlessWebhookEvent {
   type: 'payment.completed' | 'payment.failed' | 'transfer.completed' | 'transfer.failed';
@@ -115,6 +116,9 @@ async function handleHeadlessPaymentCompleted(event: CrossmintHeadlessWebhookEve
 
     console.log(`✅ Payment transaction recorded: ${paymentTransaction.id}`);
 
+    // Calculate the actual fee percentage used for this transaction
+    const feeCalculation = calculateMarketplaceFee(originalAmount);
+
     // Record the marketplace fee collection
     await crossmintDB.recordTransaction({
       user_id: beautyProfessionalId, // Associate with professional for tracking
@@ -126,10 +130,11 @@ async function handleHeadlessPaymentCompleted(event: CrossmintHeadlessWebhookEve
       crossmint_transaction_id: data.id,
       completed_at: data.completed_at || new Date().toISOString(),
       metadata: {
-        fee_percentage: 9,
+        fee_percentage: feeCalculation.feePercentage,
         original_transaction_id: paymentTransaction.id,
         marketplace_revenue: true,
-        decode_commission: feeAmount
+        decode_commission: feeAmount,
+        amount_tier: originalAmount >= 5000 ? '5000+' : originalAmount >= 2000 ? '2000-4999' : '1-1999'
       }
     });
 

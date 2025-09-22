@@ -245,17 +245,35 @@ class StripeService {
   }
 
   /**
-   * Calculate platform fee (9% added on top of service amount)
+   * Get tiered fee percentage based on amount
    */
-  calculatePlatformFee(serviceAmount: number): { serviceAmount: number; feeAmount: number; totalAmount: number } {
-    const feePercentage = 0.09; // 9% platform fee
-    const feeAmount = Math.round(serviceAmount * feePercentage);
+  private getTieredFeePercentage(amount: number): number {
+    if (amount >= 1 && amount <= 1999) {
+      return 9; // 9% for AED 1-1999
+    } else if (amount >= 2000 && amount <= 4999) {
+      return 7.5; // 7.5% for AED 2000-4999
+    } else if (amount >= 5000 && amount <= 100000) {
+      return 6; // 6% for AED 5000-100000
+    } else {
+      // Default to 9% for amounts outside defined ranges
+      return 9;
+    }
+  }
+
+  /**
+   * Calculate platform fee based on tiered structure
+   */
+  calculatePlatformFee(serviceAmount: number): { serviceAmount: number; feeAmount: number; totalAmount: number; feePercentage: number } {
+    const feePercentage = this.getTieredFeePercentage(serviceAmount);
+    const feeDecimal = feePercentage / 100;
+    const feeAmount = Math.round(serviceAmount * feeDecimal);
     const totalAmount = serviceAmount + feeAmount;
-    
+
     return {
       serviceAmount,
       feeAmount,
-      totalAmount
+      totalAmount,
+      feePercentage
     };
   }
 

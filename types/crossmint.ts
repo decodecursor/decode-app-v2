@@ -159,12 +159,28 @@ export interface FeeCalculation {
   totalAmount: number;
 }
 
+// Helper function to determine fee percentage based on amount tiers
+function getTieredFeePercentage(amount: number): number {
+  if (amount >= 1 && amount <= 1999) {
+    return 9; // 9% for AED 1-1999
+  } else if (amount >= 2000 && amount <= 4999) {
+    return 7.5; // 7.5% for AED 2000-4999
+  } else if (amount >= 5000 && amount <= 100000) {
+    return 6; // 6% for AED 5000-100000
+  } else {
+    // Default to 9% for amounts outside defined ranges
+    return 9;
+  }
+}
+
 export function calculateMarketplaceFee(originalAmount: number): FeeCalculation {
-  const feePercentage = 9;
-  // Calculate fee as exactly 9% to match database constraint
-  const feeAmount = Number((originalAmount * 0.09).toFixed(2));
+  const feePercentage = getTieredFeePercentage(originalAmount);
+  const feeDecimal = feePercentage / 100;
+
+  // Calculate fee based on tiered percentage
+  const feeAmount = Number((originalAmount * feeDecimal).toFixed(2));
   const totalAmount = Number((originalAmount + feeAmount).toFixed(2));
-  
+
   return {
     originalAmount: Number(originalAmount.toFixed(2)),
     feePercentage,
