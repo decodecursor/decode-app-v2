@@ -9,6 +9,7 @@ import { User } from '@supabase/supabase-js'
 import { UserRole, USER_ROLES, validateUserProfile, normalizeRole } from '@/types/user'
 import { EmailVerificationGate } from '@/components/EmailVerificationGate'
 import PaymentStats from '@/components/dashboard/PaymentStats'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 
 export default function Dashboard() {
@@ -637,12 +638,14 @@ export default function Dashboard() {
 
         {/* Main Dashboard Content - Analytics */}
         <div className="container mx-auto px-4 py-8">
-          <PaymentStats
-            transactions={[]}
-            paymentLinks={[]}
-            user={user}
-            userRole={userRole}
-          />
+          <ErrorBoundary>
+            <PaymentStats
+              transactions={[]}
+              paymentLinks={[]}
+              user={user}
+              userRole={userRole}
+            />
+          </ErrorBoundary>
         </div>
         </div>
       </div>

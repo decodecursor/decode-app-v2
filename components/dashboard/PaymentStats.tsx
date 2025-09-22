@@ -60,21 +60,6 @@ interface PopularAmount {
 }
 
 export default function PaymentStats({ transactions, paymentLinks, user, userRole }: PaymentStatsProps) {
-  // Early return if no user data available
-  if (!user) {
-    return (
-      <div className="cosmic-card">
-        <div className="text-center py-8">
-          <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3">
-            <svg className="w-8 h-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-          </div>
-          <p className="cosmic-body text-white/50">Loading user data...</p>
-        </div>
-      </div>
-    )
-  }
 
   // State for company-wide data (for ADMIN users)
   const [companyData, setCompanyData] = useState<{
@@ -83,22 +68,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     stats: any
   } | null>(null)
   const [loadingCompanyData, setLoadingCompanyData] = useState(false)
-
-  // Show loading state for ADMIN users fetching company data
-  if (userRole === 'Admin' && loadingCompanyData) {
-    return (
-      <div className="cosmic-card">
-        <div className="text-center py-8">
-          <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3">
-            <svg className="w-8 h-8 text-white/40 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          </div>
-          <p className="cosmic-body text-white/50">Loading company analytics...</p>
-        </div>
-      </div>
-    )
-  }
+  const [companyDataError, setCompanyDataError] = useState<string | null>(null)
 
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'custom'>('today')
   const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined)
@@ -164,10 +134,19 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
     try {
       setLoadingCompanyData(true)
+      setCompanyDataError(null)
+
+      // Add timeout to prevent infinite loading
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
       const response = await fetch('/api/analytics/company-wide', {
         method: 'GET',
-        credentials: 'include'
+        credentials: 'include',
+        signal: controller.signal
       })
+
+      clearTimeout(timeoutId)
 
       if (response.ok) {
         const data = await response.json()
@@ -178,11 +157,19 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             stats: data.stats || {}
           })
           console.log('📊 Company-wide data fetched:', data)
+        } else {
+          setCompanyDataError('Failed to load company data')
         }
       } else {
+        setCompanyDataError(`Failed to fetch data (${response.status})`)
         console.error('Failed to fetch company-wide data:', response.status)
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        setCompanyDataError('Request timed out')
+      } else {
+        setCompanyDataError('Error loading company data')
+      }
       console.error('Error fetching company-wide data:', error)
     } finally {
       setLoadingCompanyData(false)
@@ -657,6 +644,64 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
   const revenueLabel = 'Company Revenue'
   const transactionLabel = 'Company Transactions'
   const analyticsLabel = 'Revenue Analytics'
+
+  // Show loading state or error for ADMIN users
+  if (!user) {
+    return (
+      <div className="space-y-6">
+        <div className="cosmic-card">
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg className="w-8 h-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <p className="cosmic-body text-white/50">Loading user data...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (userRole === 'Admin' && loadingCompanyData) {
+    return (
+      <div className="space-y-6">
+        <div className="cosmic-card">
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg className="w-8 h-8 text-white/40 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </div>
+            <p className="cosmic-body text-white/50">Loading company analytics...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (userRole === 'Admin' && companyDataError) {
+    return (
+      <div className="space-y-6">
+        <div className="cosmic-card">
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <p className="cosmic-body text-red-400 mb-4">{companyDataError}</p>
+            <button
+              onClick={fetchCompanyWideData}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
