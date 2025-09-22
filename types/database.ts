@@ -404,6 +404,7 @@ export interface Database {
           user_id: string
           stripe_payout_id: string
           payout_request_id: string | null
+          payout_amount_aed: number
           amount_aed: number
           currency: string
           status: string
@@ -416,30 +417,16 @@ export interface Database {
           paid_at: string | null
           created_at: string
           updated_at: string
+          company_name: string | null
+          user_name: string | null
+          payout_method: 'bank_account' | 'paypal' | 'stripe_connect' | null
         }
         Insert: {
           id?: string
           user_id: string
-          stripe_payout_id: string
-          payout_request_id?: string | null
-          amount_aed: number
-          currency?: string
-          status?: string
-          arrival_date?: string | null
-          payment_id?: string | null
-          metadata?: Json | null
-          period_start?: string | null
-          period_end?: string | null
-          scheduled_for?: string | null
-          paid_at?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
           stripe_payout_id?: string
           payout_request_id?: string | null
+          payout_amount_aed: number
           amount_aed?: number
           currency?: string
           status?: string
@@ -452,6 +439,31 @@ export interface Database {
           paid_at?: string | null
           created_at?: string
           updated_at?: string
+          company_name?: string | null
+          user_name?: string | null
+          payout_method?: 'bank_account' | 'paypal' | 'stripe_connect' | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          stripe_payout_id?: string
+          payout_request_id?: string | null
+          payout_amount_aed?: number
+          amount_aed?: number
+          currency?: string
+          status?: string
+          arrival_date?: string | null
+          payment_id?: string | null
+          metadata?: Json | null
+          period_start?: string | null
+          period_end?: string | null
+          scheduled_for?: string | null
+          paid_at?: string | null
+          created_at?: string
+          updated_at?: string
+          company_name?: string | null
+          user_name?: string | null
+          payout_method?: 'bank_account' | 'paypal' | 'stripe_connect' | null
         }
         Relationships: [
           {

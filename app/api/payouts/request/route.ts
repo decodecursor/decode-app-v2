@@ -111,6 +111,45 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Determine payout method for this request
+    let payoutMethod = userData?.preferred_payout_method || null
+
+    // If no preferred method, determine from available accounts
+    if (!payoutMethod) {
+      // Check if user has Stripe Connect enabled
+      if (userData?.stripe_connect_status === 'active' && userData?.stripe_payouts_enabled) {
+        payoutMethod = 'stripe_connect'
+      } else {
+        // Check for bank account
+        const { data: bankAccount } = await supabase
+          .from('user_bank_accounts')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('is_primary', true)
+          .limit(1)
+          .maybeSingle()
+
+        if (bankAccount) {
+          payoutMethod = 'bank_account'
+        } else {
+          // Check for PayPal account
+          const { data: paypalAccount } = await supabase
+            .from('user_paypal_accounts')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('is_primary', true)
+            .limit(1)
+            .maybeSingle()
+
+          if (paypalAccount) {
+            payoutMethod = 'paypal'
+          }
+        }
+      }
+    }
+
+    console.log(`💳 [PAYOUT-REQUEST] Determined payout method: ${payoutMethod}`)
+
     // Generate unique payout request ID
     const payoutRequestId = await generateUniquePayoutRequestId(async (id) => {
       const { data } = await supabase
@@ -128,6 +167,7 @@ export async function POST(request: NextRequest) {
       company_name: userData?.company_name,
       user_name: userData?.user_name,
       payout_request_id: payoutRequestId,
+      payout_method: payoutMethod,
       status: 'pending',
       created_at: new Date().toISOString()
     }

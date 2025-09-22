@@ -11,6 +11,7 @@ interface Payout {
   created_at: string
   company_name?: string
   user_name?: string
+  payout_method?: 'bank_account' | 'paypal' | 'stripe_connect' | null
 }
 
 interface PayoutHistoryProps {
@@ -81,6 +82,19 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
     })
   }
 
+  const formatPayoutMethod = (method: string) => {
+    switch (method) {
+      case 'bank_account':
+        return 'Bank Account'
+      case 'paypal':
+        return 'PayPal'
+      case 'stripe_connect':
+        return 'Stripe Connect'
+      default:
+        return method
+    }
+  }
+
   const exportToCSV = async () => {
     setExporting(true)
     try {
@@ -101,12 +115,13 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
 
       const data = result.payouts
 
-      const headers = ['Company Name', 'User Name', 'Created At', 'Payout Request ID', 'Payout Amount AED']
+      const headers = ['Company Name', 'User Name', 'Date', 'Payout Request ID', 'Payout Method', 'Payout Amount AED']
       const rows = (data || []).map(payout => [
         payout.company_name || 'N/A',
         payout.user_name || 'N/A',
         formatDate(payout.created_at),
         payout.payout_request_id || 'N/A',
+        payout.payout_method ? formatPayoutMethod(payout.payout_method) : 'N/A',
         payout.payout_amount_aed.toFixed(2)
       ])
 
@@ -192,6 +207,11 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
                       {payout.payout_request_id && (
                         <p className="text-sm text-gray-400">
                           Payout Request ID: <span className="font-mono text-purple-400">{payout.payout_request_id}</span>
+                        </p>
+                      )}
+                      {payout.payout_method && (
+                        <p className="text-sm text-gray-400">
+                          Method: <span className="text-blue-400">{formatPayoutMethod(payout.payout_method)}</span>
                         </p>
                       )}
                     </div>
