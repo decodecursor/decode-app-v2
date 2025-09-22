@@ -118,11 +118,18 @@ export async function GET(request: NextRequest) {
       const transactions = link.transactions || []
       const completedTransactions = transactions.filter((t: any) => t.status === 'completed')
 
+      // Calculate service revenue (91% of total if not specified)
+      const serviceAmount = link.service_amount_aed || (link.amount_aed * 0.91)
+      const totalRevenue = completedTransactions.reduce((sum: number, t: any) => sum + (t.amount_aed || 0), 0)
+
+      console.log(`📊 [API] Processing link ${link.id}: amount=${link.amount_aed}, service=${link.service_amount_aed}, calculated_service=${serviceAmount}, transactions=${completedTransactions.length}`)
+
       return {
         ...link,
+        service_amount_aed: serviceAmount, // Ensure service amount is always present
         creator: Array.isArray(link.creator) ? (link.creator[0] || { user_name: null, email: '' }) : (link.creator || { user_name: null, email: '' }),
         transaction_count: completedTransactions.length,
-        total_revenue: completedTransactions.reduce((sum: number, t: any) => sum + (t.amount_aed || 0), 0)
+        total_revenue: totalRevenue
       }
     })
 
@@ -157,27 +164,47 @@ export async function GET(request: NextRequest) {
         payment_link: Array.isArray(t.payment_link) ? (t.payment_link[0] || { title: '', amount_aed: 0 }) : (t.payment_link || { title: '', amount_aed: 0 })
       }))
 
-    // Calculate stats
+    // Calculate stats - using service_amount_aed for proper revenue calculation
     const now = new Date()
     const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
 
-    const thisMonthTransactions = processedTransactions.filter(t =>
-      new Date(t.completed_at || t.created_at) >= thisMonthStart
+    const thisMonthLinks = processedLinks.filter((link: any) =>
+      link.paid_at && new Date(link.paid_at) >= thisMonthStart
     )
 
+    // Calculate total revenue from payment links (service amount after platform fee)
+    const totalServiceRevenue = processedLinks.reduce((sum: any, link: any) => {
+      const serviceAmount = link.service_amount_aed || (link.amount_aed * 0.91)
+      return sum + (serviceAmount * link.transaction_count) // Multiply by transaction count
+    }, 0)
+
+    const thisMonthServiceRevenue = thisMonthLinks.reduce((sum: any, link: any) => {
+      const serviceAmount = link.service_amount_aed || (link.amount_aed * 0.91)
+      return sum + (serviceAmount * link.transaction_count)
+    }, 0)
+
+    const totalTransactionCount = processedLinks.reduce((sum: any, link: any) =>
+      sum + link.transaction_count, 0)
+
+    const thisMonthTransactionCount = thisMonthLinks.reduce((sum: any, link: any) =>
+      sum + link.transaction_count, 0)
+
     const stats = {
-      totalRevenue: processedTransactions.reduce((sum, t) => sum + (t.amount_aed || 0), 0),
+      totalRevenue: totalServiceRevenue,
       activeLinks: processedLinks.filter((link: any) => link.is_active).length,
-      totalTransactions: processedTransactions.length,
-      successfulPayments: processedTransactions.filter(t => t.status === 'completed').length,
-      averagePayment: processedTransactions.length > 0
-        ? processedTransactions.reduce((sum, t) => sum + (t.amount_aed || 0), 0) / processedTransactions.length
+      totalTransactions: totalTransactionCount,
+      successfulPayments: totalTransactionCount, // All counted transactions are successful
+      averagePayment: totalTransactionCount > 0
+        ? totalServiceRevenue / totalTransactionCount
         : 0,
       thisMonth: {
-        revenue: thisMonthTransactions.reduce((sum, t) => sum + (t.amount_aed || 0), 0),
-        transactions: thisMonthTransactions.length
+        revenue: thisMonthServiceRevenue,
+        transactions: thisMonthTransactionCount
       }
     }
+
+    console.log(`📊 [API] Stats calculated:`, stats)
+    console.log(`📊 [API] Total links: ${processedLinks.length}, This month links: ${thisMonthLinks.length}`)
 
     console.log('📊 [PAYMENT-HISTORY API] Successfully returning:', {
       paymentLinks: processedLinks.length,

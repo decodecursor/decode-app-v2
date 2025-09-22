@@ -220,8 +220,13 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     console.log(`📊 Current Period Links: ${currentPeriodLinks.length}`)
     console.log(`📊 Previous Period Links: ${previousPeriodLinks.length}`)
 
-    // Calculate current period stats from payment links (using service_amount_aed only)
-    const currentRevenue = currentPeriodLinks.reduce((sum, link) => sum + (link.service_amount_aed || 0), 0)
+    // Calculate current period stats from payment links
+    // If service_amount_aed is missing, calculate as 91% of amount_aed (after 9% platform fee)
+    const currentRevenue = currentPeriodLinks.reduce((sum, link) => {
+      const serviceAmount = link.service_amount_aed || (link.amount_aed * 0.91)
+      console.log(`💰 Link ${link.id}: service_amount=${link.service_amount_aed}, amount=${link.amount_aed}, calculated=${serviceAmount}`)
+      return sum + serviceAmount
+    }, 0)
 
     // For STAFF users: count payment links (not individual transactions)
     // For ADMIN users: count total transactions across all payment links
@@ -238,8 +243,11 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     const currentAverage = currentCount > 0 ? currentRevenue / currentCount : 0
     const currentSuccessRate = 100 // All paid links are successful
 
-    // Calculate previous period stats from payment links (using service_amount_aed only)
-    const previousRevenue = previousPeriodLinks.reduce((sum, link) => sum + (link.service_amount_aed || 0), 0)
+    // Calculate previous period stats from payment links
+    const previousRevenue = previousPeriodLinks.reduce((sum, link) => {
+      const serviceAmount = link.service_amount_aed || (link.amount_aed * 0.91)
+      return sum + serviceAmount
+    }, 0)
 
     // For STAFF users: count payment links (not individual transactions)
     // For ADMIN users: count total transactions across all payment links

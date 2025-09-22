@@ -111,6 +111,22 @@ export default function PaymentHistoryPage() {
       console.log('💳 Found', processedTransactions?.length || 0, 'transactions')
       console.log('📊 Stats:', fetchedStats)
 
+      // Log details about payment links for debugging
+      if (processedLinks && processedLinks.length > 0) {
+        console.log('📊 Sample payment link data:')
+        processedLinks.slice(0, 3).forEach((link: any, i: number) => {
+          console.log(`  Link ${i + 1}:`, {
+            id: link.id,
+            title: link.title,
+            amount_aed: link.amount_aed,
+            service_amount_aed: link.service_amount_aed,
+            transaction_count: link.transaction_count,
+            total_revenue: link.total_revenue,
+            paid_at: link.paid_at
+          })
+        })
+      }
+
       setPaymentLinks(processedLinks || [])
       setTransactions(processedTransactions || [])
 
@@ -346,7 +362,7 @@ export default function PaymentHistoryPage() {
           <div style={{width: '70vw'}}>
             <PaymentStats
               transactions={transactions}
-              paymentLinks={filteredAndSortedLinks}
+              paymentLinks={paymentLinks}
               user={user}
               userRole={userRole}
             />
