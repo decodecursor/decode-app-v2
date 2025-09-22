@@ -75,6 +75,8 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'custom'>('today')
   const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined)
   const [showDatePicker, setShowDatePicker] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [exportDone, setExportDone] = useState(false)
   const [statsData, setStatsData] = useState<{
     current: DateRangeStats
     previous: DateRangeStats
@@ -127,6 +129,19 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
   useEffect(() => {
     fetchTotalAvailableBalance()
   }, [fetchTotalAvailableBalance])
+
+  // Clear export done message after 3 seconds
+  useEffect(() => {
+    let timer: NodeJS.Timeout
+    if (exportDone) {
+      timer = setTimeout(() => {
+        setExportDone(false)
+      }, 3000)
+    }
+    return () => {
+      if (timer) clearTimeout(timer)
+    }
+  }, [exportDone])
 
   const calculateStats = useCallback(() => {
     let currentPeriodStart: Date
@@ -470,6 +485,95 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     })
   }
 
+  const exportPayLinksToCSV = () => {
+    setExporting(true)
+    try {
+      // Get all filtered payment links (without the slice limit)
+      const getUAEDate = (date: Date) => {
+        const utc = date.getTime() + (date.getTimezoneOffset() * 60000)
+        return new Date(utc + (4 * 3600000))
+      }
+
+      const now = getUAEDate(new Date())
+      let startDate: Date
+      let endDate: Date = now
+
+      switch (dateRange) {
+        case 'today':
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+          break
+        case 'week':
+          const dayOfWeek = now.getDay()
+          const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysFromMonday)
+          startDate.setHours(0, 0, 0, 0)
+          break
+        case 'month':
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+          startDate.setHours(0, 0, 0, 0)
+          break
+        case 'custom':
+          if (customDateRange?.from) {
+            startDate = new Date(customDateRange.from)
+            startDate.setHours(0, 0, 0, 0)
+            if (customDateRange.to) {
+              endDate = new Date(customDateRange.to)
+              endDate.setHours(23, 59, 59, 999)
+            }
+          } else {
+            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+          }
+          break
+        default:
+          startDate = new Date(0)
+      }
+
+      // Get all payment links that were paid in the selected period (no slice limit)
+      const filteredLinks = paymentLinks.filter(link => {
+        if (!link.paid_at) return false
+        const paidDate = new Date(link.paid_at)
+        return paidDate >= startDate && paidDate <= endDate
+      }).sort((a, b) => {
+        const aDate = new Date(b.paid_at!)
+        const bDate = new Date(a.paid_at!)
+        return aDate.getTime() - bDate.getTime()
+      })
+
+      // Create CSV content
+      const headers = ['Client Name', 'Service', 'Total Amount (AED)', 'Service Amount (AED)', 'Date Paid']
+      const rows = filteredLinks.map(link => [
+        link.client_name || 'Client',
+        link.title || 'Service',
+        link.amount_aed.toFixed(2),
+        (link.service_amount_aed || 0).toFixed(2),
+        formatPaymentDate(link.paid_at!)
+      ])
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n')
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `paid_paylinks_${new Date().toISOString().split('T')[0]}.csv`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+
+      // Show "Done!" feedback
+      setExportDone(true)
+    } catch (error) {
+      console.error('Error exporting payment links:', error)
+    } finally {
+      setExporting(false)
+    }
+  }
+
 
   const { current, previous, popularAmounts, revenueByDay } = statsData
 
@@ -792,7 +896,21 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
       {/* PayLinks */}
       <div className="cosmic-card">
-        <h3 className="cosmic-heading text-white mb-4">Successful PayLinks</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="cosmic-heading text-white">Paid PayLinks</h3>
+          {getFilteredPayments().length > 0 && (
+            <button
+              onClick={exportPayLinksToCSV}
+              disabled={exporting || exportDone}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              {exportDone ? 'Done!' : exporting ? 'Exporting...' : 'Export'}
+            </button>
+          )}
+        </div>
         <div className="space-y-3">
           {getFilteredPayments().map((payment, index) => (
             <div key={`${payment.id}-${index}`} className="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors">
