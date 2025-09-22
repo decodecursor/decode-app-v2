@@ -72,30 +72,13 @@ export async function GET(request: NextRequest) {
         )
       `)
 
-    // If ADMIN and has company, fetch all payment links from that company
+    // If ADMIN and has company, fetch all payment links from that company directly
     if (isAdmin && companyName) {
       console.log('📊 [PAYMENT-HISTORY API] Fetching company-wide data for:', companyName)
-      // Get all users in the same company first
-      const { data: companyUsers, error: usersError } = await supabaseService
-        .from('user_profiles')
-        .select('id')
-        .or(`company_name.eq."${companyName}",professional_center_name.eq."${companyName}"`)
-
-      if (usersError) {
-        console.error('❌ [PAYMENT-HISTORY API] Error fetching company users:', usersError)
-      } else {
-        const companyUserIds = (companyUsers || []).map(u => u.id)
-        console.log('📊 [PAYMENT-HISTORY API] Found company users:', companyUserIds.length)
-
-        if (companyUserIds.length > 0) {
-          query = query.in('creator_id', companyUserIds)
-        } else {
-          // If no company users found, fall back to user's own data
-          query = query.eq('creator_id', userId)
-        }
-      }
+      // Direct company filter - much simpler
+      query = query.eq('company_name', companyName)
     } else {
-      // For non-admin users or if company fetch fails, get only their own payment links
+      // For non-admin users, get only their own payment links
       console.log('📊 [PAYMENT-HISTORY API] Fetching user-specific data')
       query = query.eq('creator_id', userId)
     }
