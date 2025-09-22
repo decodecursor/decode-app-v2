@@ -227,8 +227,8 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
                   id={`payout-${payout.id}`}
                   className={`flex items-center justify-between p-4 rounded-lg hover:bg-white/8 transition-all duration-300 ${
                     isHighlighted
-                      ? 'bg-purple-600/30 animate-[fadeToNormal_3s_ease-out_forwards]'
-                      : 'bg-white/5'
+                      ? 'bg-purple-600/30 border-2 border-purple-500/60 animate-[fadeToNormal_3s_ease-out_forwards]'
+                      : 'bg-white/5 border-2 border-transparent'
                   }`}
                   style={{
                     animationDelay: isHighlighted ? '0s' : undefined

@@ -197,7 +197,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
   const startAnimation = () => {
     // Generate hearts periodically for 2 seconds
     let heartCount = 0
-    const maxHearts = 20
+    const maxHearts = 24
     
     checkIntervalRef.current = setInterval(() => {
       if (heartCount < maxHearts) {
