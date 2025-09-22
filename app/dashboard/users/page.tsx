@@ -1051,7 +1051,7 @@ export default function UsersManagement() {
         {/* Invite User Modal */}
         {showInviteModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="cosmic-card max-w-md w-full">
+            <div className="cosmic-card max-w-md w-full min-h-[480px]">
               <h3 className="cosmic-heading mb-4 text-white">Invite New User</h3>
               <div className="space-y-4">
                 <div>
@@ -1083,7 +1083,7 @@ export default function UsersManagement() {
                   </button>
                   
                   {showRoleDropdown && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-10">
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-50">
                       {['Staff', 'Admin'].map((role) => (
                         <button
                           key={role}
@@ -1112,7 +1112,7 @@ export default function UsersManagement() {
                   <p>Inviting to: <span className="text-white font-medium">{adminCompany}</span></p>
                 </div>
               </div>
-              
+
               {/* Status Display */}
               {inviteStatus === 'success' && (
                 <div className="mt-6 p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
@@ -1144,7 +1144,7 @@ export default function UsersManagement() {
                   </div>
                 </div>
               )}
-              <div className="flex space-x-4 mt-6">
+              <div className="flex space-x-4 mt-12">
                 <button
                   onClick={() => {
                     setShowInviteModal(false)
