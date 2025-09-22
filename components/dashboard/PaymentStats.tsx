@@ -499,10 +499,18 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     }
 
     // Get payment links that were paid in the selected period
+    // Use same filtering logic as analytics cards (no end date restriction for consistency)
     const filteredLinks = activePaymentLinks.filter(link => {
       if (!link.paid_at) return false
       const paidDate = new Date(link.paid_at)
-      return paidDate >= startDate && paidDate <= endDate
+
+      // For "today", "week", "month" - use same logic as analytics cards (start date only)
+      // For "custom" - use both start and end dates if specified
+      if (dateRange === 'custom' && customDateRange?.to) {
+        return paidDate >= startDate && paidDate <= endDate
+      } else {
+        return paidDate >= startDate
+      }
     })
 
     // Return payment links sorted by paid_at date
