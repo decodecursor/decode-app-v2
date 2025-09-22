@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 
 interface EarningsSummaryProps {
   userId: string
+  userRole?: string
 }
 
 interface EarningsData {
@@ -14,7 +15,7 @@ interface EarningsData {
   totalEarnings: number
 }
 
-export function EarningsSummary({ userId }: EarningsSummaryProps) {
+export function EarningsSummary({ userId, userRole }: EarningsSummaryProps) {
   const [loading, setLoading] = useState(true)
   const [earnings, setEarnings] = useState<EarningsData>({
     todayEarnings: 0,
@@ -25,10 +26,62 @@ export function EarningsSummary({ userId }: EarningsSummaryProps) {
 
   useEffect(() => {
     loadEarnings()
-  }, [userId])
+  }, [userId, userRole])
 
   const loadEarnings = async () => {
     try {
+      // For ADMIN users, load company-wide earnings
+      if (userRole === 'Admin') {
+        const response = await fetch('/api/analytics/company-wide', {
+          method: 'GET',
+          credentials: 'include'
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success) {
+            const paymentLinks = data.paymentLinks || []
+
+            // Calculate earnings from service amounts
+            const today = new Date()
+            today.setHours(0, 0, 0, 0)
+
+            const weekStart = new Date()
+            const day = weekStart.getDay()
+            const diff = weekStart.getDate() - day + (day === 0 ? -6 : 1)
+            weekStart.setDate(diff)
+            weekStart.setHours(0, 0, 0, 0)
+
+            const monthStart = new Date()
+            monthStart.setDate(1)
+            monthStart.setHours(0, 0, 0, 0)
+
+            const todayEarnings = paymentLinks
+              .filter((link: any) => link.paid_at && new Date(link.paid_at) >= today)
+              .reduce((sum: number, link: any) => sum + (link.service_amount_aed || 0), 0)
+
+            const weekEarnings = paymentLinks
+              .filter((link: any) => link.paid_at && new Date(link.paid_at) >= weekStart)
+              .reduce((sum: number, link: any) => sum + (link.service_amount_aed || 0), 0)
+
+            const monthEarnings = paymentLinks
+              .filter((link: any) => link.paid_at && new Date(link.paid_at) >= monthStart)
+              .reduce((sum: number, link: any) => sum + (link.service_amount_aed || 0), 0)
+
+            const totalEarnings = paymentLinks
+              .reduce((sum: number, link: any) => sum + (link.service_amount_aed || 0), 0)
+
+            setEarnings({
+              todayEarnings,
+              weekEarnings,
+              monthEarnings,
+              totalEarnings
+            })
+          }
+        }
+        setLoading(false)
+        return
+      }
       // Get today's start
       const today = new Date()
       today.setHours(0, 0, 0, 0)
@@ -117,7 +170,9 @@ export function EarningsSummary({ userId }: EarningsSummaryProps) {
 
   return (
     <div className="cosmic-card">
-      <h3 className="text-lg font-semibold text-white mb-6">Earnings</h3>
+      <h3 className="text-lg font-semibold text-white mb-6">
+        {userRole === 'Admin' ? 'Company Earnings' : 'My Earnings'}
+      </h3>
       
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-white/5 rounded-lg p-4 backdrop-blur-sm">

@@ -76,6 +76,30 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     )
   }
 
+  // State for company-wide data (for ADMIN users)
+  const [companyData, setCompanyData] = useState<{
+    paymentLinks: any[]
+    transactions: any[]
+    stats: any
+  } | null>(null)
+  const [loadingCompanyData, setLoadingCompanyData] = useState(false)
+
+  // Show loading state for ADMIN users fetching company data
+  if (userRole === 'Admin' && loadingCompanyData) {
+    return (
+      <div className="cosmic-card">
+        <div className="text-center py-8">
+          <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3">
+            <svg className="w-8 h-8 text-white/40 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </div>
+          <p className="cosmic-body text-white/50">Loading company analytics...</p>
+        </div>
+      </div>
+    )
+  }
+
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'custom'>('today')
   const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined)
   const [showDatePicker, setShowDatePicker] = useState(false)
@@ -134,6 +158,44 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     fetchTotalAvailableBalance()
   }, [fetchTotalAvailableBalance])
 
+  // Fetch company-wide data for ADMIN users
+  const fetchCompanyWideData = useCallback(async () => {
+    if (!user || userRole !== 'Admin') return
+
+    try {
+      setLoadingCompanyData(true)
+      const response = await fetch('/api/analytics/company-wide', {
+        method: 'GET',
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          setCompanyData({
+            paymentLinks: data.paymentLinks || [],
+            transactions: data.transactions || [],
+            stats: data.stats || {}
+          })
+          console.log('📊 Company-wide data fetched:', data)
+        }
+      } else {
+        console.error('Failed to fetch company-wide data:', response.status)
+      }
+    } catch (error) {
+      console.error('Error fetching company-wide data:', error)
+    } finally {
+      setLoadingCompanyData(false)
+    }
+  }, [user, userRole])
+
+  // Fetch company-wide data for ADMIN users on component mount
+  useEffect(() => {
+    if (userRole === 'Admin') {
+      fetchCompanyWideData()
+    }
+  }, [fetchCompanyWideData])
+
   // Clear export done message after 3 seconds
   useEffect(() => {
     let timer: NodeJS.Timeout
@@ -148,6 +210,9 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
   }, [exportDone])
 
   const calculateStats = useCallback(() => {
+    // Use company-wide data for ADMIN users if available
+    const activePaymentLinks = userRole === 'Admin' && companyData ? companyData.paymentLinks : paymentLinks
+    const activeTransactions = userRole === 'Admin' && companyData ? companyData.transactions : transactions
     let currentPeriodStart: Date
     let previousPeriodStart: Date
     let previousPeriodEnd: Date
@@ -198,9 +263,9 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     // Filter payment links by their paid_at dates
     console.log(`📊 Analytics Debug - Date Range: ${dateRange}`)
     console.log(`📊 Current Period Start: ${currentPeriodStart.toISOString()}`)
-    console.log(`📊 Available Payment Links: ${paymentLinks.length}`)
-    
-    const currentPeriodLinks = paymentLinks.filter(link => {
+    console.log(`📊 Available Payment Links: ${activePaymentLinks.length}`)
+
+    const currentPeriodLinks = activePaymentLinks.filter(link => {
       if (!link.paid_at) return false
       const paidDate = new Date(link.paid_at)
       const isIncluded = paidDate >= currentPeriodStart
@@ -210,7 +275,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       return isIncluded
     })
     
-    const previousPeriodLinks = dateRange !== 'custom' ? paymentLinks.filter(link => {
+    const previousPeriodLinks = dateRange !== 'custom' ? activePaymentLinks.filter(link => {
       if (!link.paid_at) return false
       const paidDate = new Date(link.paid_at)
       const isIncluded = paidDate >= previousPeriodStart && paidDate < previousPeriodEnd
@@ -273,7 +338,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
     // Calculate popular payment amounts
     const amountCounts = new Map<number, number>()
-    paymentLinks.forEach(link => {
+    activePaymentLinks.forEach(link => {
       const count = amountCounts.get(link.amount_aed) || 0
       amountCounts.set(link.amount_aed, count + link.transaction_count)
     })
@@ -325,7 +390,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       for (let i = 0; i < days; i++) {
         const date = new Date(chartStart.getTime() + i * 24 * 60 * 60 * 1000)
         
-        const dayLinks = paymentLinks.filter(link => {
+        const dayLinks = activePaymentLinks.filter(link => {
           if (!link.paid_at) return false
           
           // Parse paid_at date and handle timezone properly
@@ -395,7 +460,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       popularAmounts,
       revenueByDay
     })
-  }, [dateRange, customDateRange, transactions, paymentLinks, now, userRole, user])
+  }, [dateRange, customDateRange, transactions, paymentLinks, now, userRole, user, companyData])
 
   useEffect(() => {
     calculateStats()
@@ -421,6 +486,8 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
   }
 
   const getFilteredPayments = () => {
+    // Use company-wide data for ADMIN users if available
+    const activePaymentLinks = userRole === 'Admin' && companyData ? companyData.paymentLinks : paymentLinks
     const getUAEDate = (date: Date) => {
       const utc = date.getTime() + (date.getTimezoneOffset() * 60000)
       return new Date(utc + (4 * 3600000))
@@ -461,7 +528,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     }
 
     // Get payment links that were paid in the selected period
-    const filteredLinks = paymentLinks.filter(link => {
+    const filteredLinks = activePaymentLinks.filter(link => {
       if (!link.paid_at) return false
       const paidDate = new Date(link.paid_at)
       return paidDate >= startDate && paidDate <= endDate
@@ -492,6 +559,9 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
   const exportPayLinksToCSV = () => {
     setExporting(true)
     try {
+      // Use company-wide data for ADMIN users if available
+      const activePaymentLinks = userRole === 'Admin' && companyData ? companyData.paymentLinks : paymentLinks
+
       // Get all filtered payment links (without the slice limit)
       const getUAEDate = (date: Date) => {
         const utc = date.getTime() + (date.getTimezoneOffset() * 60000)
@@ -533,7 +603,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       }
 
       // Get all payment links that were paid in the selected period (no slice limit)
-      const filteredLinks = paymentLinks.filter(link => {
+      const filteredLinks = activePaymentLinks.filter(link => {
         if (!link.paid_at) return false
         const paidDate = new Date(link.paid_at)
         return paidDate >= startDate && paidDate <= endDate

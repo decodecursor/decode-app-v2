@@ -8,6 +8,7 @@ import { getUserWithProxy } from '@/utils/auth-helper'
 import { User } from '@supabase/supabase-js'
 import { UserRole, USER_ROLES, validateUserProfile, normalizeRole } from '@/types/user'
 import { EmailVerificationGate } from '@/components/EmailVerificationGate'
+import PaymentStats from '@/components/dashboard/PaymentStats'
 
 
 export default function Dashboard() {
@@ -634,9 +635,14 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Main Dashboard Content - EMPTY */}
-        <div className="container mx-auto px-4 py-8 mt-[70vh]">
-          {/* Dashboard content intentionally empty per user request */}
+        {/* Main Dashboard Content - Analytics */}
+        <div className="container mx-auto px-4 py-8">
+          <PaymentStats
+            transactions={[]}
+            paymentLinks={[]}
+            user={user}
+            userRole={userRole}
+          />
         </div>
         </div>
       </div>
