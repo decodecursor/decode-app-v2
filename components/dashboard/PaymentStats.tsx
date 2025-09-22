@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { DayPicker, DateRange } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
+import { USER_ROLES } from '@/types/user'
 
 interface PaymentTransaction {
   id: string
@@ -130,7 +131,13 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
   // Fetch company-wide data for ADMIN users
   const fetchCompanyWideData = useCallback(async () => {
-    if (!user || userRole !== 'Admin') return
+    console.log('🔍 [ANALYTICS DEBUG] fetchCompanyWideData called - user:', !!user, 'userRole:', userRole, 'expected:', USER_ROLES.ADMIN)
+    if (!user || userRole !== USER_ROLES.ADMIN) {
+      console.log('❌ [ANALYTICS DEBUG] Not fetching - user missing or not admin')
+      return
+    }
+
+    console.log('✅ [ANALYTICS DEBUG] Fetching company-wide analytics data...')
 
     try {
       setLoadingCompanyData(true)
@@ -178,7 +185,9 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
   // Fetch company-wide data for ADMIN users on component mount
   useEffect(() => {
-    if (userRole === 'Admin') {
+    console.log('🔍 [ANALYTICS DEBUG] Effect triggered - userRole:', userRole, 'isAdmin:', userRole === USER_ROLES.ADMIN)
+    if (userRole === USER_ROLES.ADMIN) {
+      console.log('✅ [ANALYTICS DEBUG] Triggering fetchCompanyWideData...')
       fetchCompanyWideData()
     }
   }, [fetchCompanyWideData])
@@ -198,8 +207,8 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
   const calculateStats = useCallback(() => {
     // Use company-wide data for ADMIN users if available
-    const activePaymentLinks = userRole === 'Admin' && companyData ? companyData.paymentLinks : paymentLinks
-    const activeTransactions = userRole === 'Admin' && companyData ? companyData.transactions : transactions
+    const activePaymentLinks = userRole === USER_ROLES.ADMIN && companyData ? companyData.paymentLinks : paymentLinks
+    const activeTransactions = userRole === USER_ROLES.ADMIN && companyData ? companyData.transactions : transactions
     let currentPeriodStart: Date
     let previousPeriodStart: Date
     let previousPeriodEnd: Date
@@ -280,8 +289,8 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
     // For STAFF users: count payment links (not individual transactions)
     // For ADMIN users: count total transactions across all payment links
-    console.log(`📊 Transaction Count Debug - UserRole: ${userRole}, isStaff: ${userRole === 'Staff'}`)
-    const currentCount = userRole === 'Staff'
+    console.log(`📊 Transaction Count Debug - UserRole: ${userRole}, isStaff: ${userRole === USER_ROLES.STAFF}`)
+    const currentCount = userRole === USER_ROLES.STAFF
       ? currentPeriodLinks.length
       : currentPeriodLinks.reduce((sum, link) => sum + link.transaction_count, 0)
 
@@ -298,7 +307,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
     // For STAFF users: count payment links (not individual transactions)
     // For ADMIN users: count total transactions across all payment links
-    const previousCount = userRole === 'Staff'
+    const previousCount = userRole === USER_ROLES.STAFF
       ? previousPeriodLinks.length
       : previousPeriodLinks.reduce((sum, link) => sum + link.transaction_count, 0)
 
@@ -408,7 +417,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
           return sum + serviceAmount
         }, 0)
-        const transactionCount = userRole === 'Staff'
+        const transactionCount = userRole === USER_ROLES.STAFF
           ? dayLinks.length  // Count payment links for STAFF
           : dayLinks.reduce((sum, link) => sum + link.transaction_count, 0)  // Count transactions for ADMIN
 
@@ -474,7 +483,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
   const getFilteredPayments = () => {
     // Use company-wide data for ADMIN users if available
-    const activePaymentLinks = userRole === 'Admin' && companyData ? companyData.paymentLinks : paymentLinks
+    const activePaymentLinks = userRole === USER_ROLES.ADMIN && companyData ? companyData.paymentLinks : paymentLinks
     const getUAEDate = (date: Date) => {
       const utc = date.getTime() + (date.getTimezoneOffset() * 60000)
       return new Date(utc + (4 * 3600000))
@@ -547,7 +556,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     setExporting(true)
     try {
       // Use company-wide data for ADMIN users if available
-      const activePaymentLinks = userRole === 'Admin' && companyData ? companyData.paymentLinks : paymentLinks
+      const activePaymentLinks = userRole === USER_ROLES.ADMIN && companyData ? companyData.paymentLinks : paymentLinks
 
       // Get all filtered payment links (without the slice limit)
       const getUAEDate = (date: Date) => {
@@ -663,7 +672,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     )
   }
 
-  if (userRole === 'Admin' && loadingCompanyData) {
+  if (userRole === USER_ROLES.ADMIN && loadingCompanyData) {
     return (
       <div className="space-y-6">
         <div className="cosmic-card">
@@ -680,7 +689,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     )
   }
 
-  if (userRole === 'Admin' && companyDataError) {
+  if (userRole === USER_ROLES.ADMIN && companyDataError) {
     return (
       <div className="space-y-6">
         <div className="cosmic-card">
@@ -777,13 +786,13 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
               <h3 className="cosmic-label text-white/70">My Commission</h3>
-              {dateRange !== 'custom' && userRole !== 'Admin' && (
+              {dateRange !== 'custom' && userRole !== USER_ROLES.ADMIN && (
                 <span className={`text-xs font-medium ${getChangeColor(current.myCommission, previous.myCommission)}`}>
                   {formatPercentageChange(current.myCommission, previous.myCommission)}
                 </span>
               )}
             </div>
-            {userRole === 'Admin' ? (
+            {userRole === USER_ROLES.ADMIN ? (
               <p className="text-2xl font-bold text-white/30 mb-1">
                 —
               </p>
@@ -792,7 +801,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                 {formatCurrency(current.myCommission)}
               </p>
             )}
-            {dateRange !== 'custom' && userRole !== 'Admin' && (
+            {dateRange !== 'custom' && userRole !== USER_ROLES.ADMIN && (
               <p className="text-xs text-white/50">
                 vs {formatCurrency(previous.myCommission)} previous period
               </p>
@@ -803,7 +812,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             <div className="flex justify-between items-start mb-2">
               <h3 className="cosmic-label text-white/70">My Next Payout</h3>
             </div>
-            {userRole === 'Admin' ? (
+            {userRole === USER_ROLES.ADMIN ? (
               <p className="text-2xl font-bold text-white/30 mb-1">
                 —
               </p>
@@ -812,7 +821,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                 {formatCurrency(totalAvailableBalance)}
               </p>
             )}
-            {userRole !== 'Admin' && (
+            {userRole !== USER_ROLES.ADMIN && (
               <p className="text-xs text-white/50">
                 Total available balance
               </p>
