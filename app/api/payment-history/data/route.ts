@@ -120,9 +120,9 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Now try with payment status filter - use separate conditions
+    // Now try with payment status filter - check BOTH payment_status AND is_paid
     const { data: linksData, error: linksError } = await query
-      .eq('payment_status', 'paid')
+      .or('payment_status.eq.paid,is_paid.eq.true')
       .order('created_at', { ascending: false })
 
     console.log('📊 [PAYMENT-HISTORY API] Query completed:')
