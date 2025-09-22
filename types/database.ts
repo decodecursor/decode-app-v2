@@ -411,9 +411,6 @@ export interface Database {
           arrival_date: string | null
           payment_id: string | null
           metadata: Json | null
-          period_start: string | null
-          period_end: string | null
-          scheduled_for: string | null
           paid_at: string | null
           created_at: string
           updated_at: string
@@ -433,9 +430,6 @@ export interface Database {
           arrival_date?: string | null
           payment_id?: string | null
           metadata?: Json | null
-          period_start?: string | null
-          period_end?: string | null
-          scheduled_for?: string | null
           paid_at?: string | null
           created_at?: string
           updated_at?: string
@@ -455,9 +449,6 @@ export interface Database {
           arrival_date?: string | null
           payment_id?: string | null
           metadata?: Json | null
-          period_start?: string | null
-          period_end?: string | null
-          scheduled_for?: string | null
           paid_at?: string | null
           created_at?: string
           updated_at?: string

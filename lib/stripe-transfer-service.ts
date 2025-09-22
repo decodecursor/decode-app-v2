@@ -159,10 +159,7 @@ export class StripeTransferService {
           amount_aed: balance.available,
           stripe_payout_id: payout.id,
           stripe_connect_account_id: connectedAccountId,
-          status: 'pending',
-          period_start: startDate.toISOString().split('T')[0],
-          period_end: endDate.toISOString().split('T')[0],
-          scheduled_for: endDate.toISOString().split('T')[0]
+          status: 'pending'
         })
 
       logger.info(`Weekly payout created: ${payout.id} for AED ${balance.available}`)
