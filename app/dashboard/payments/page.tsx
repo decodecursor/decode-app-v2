@@ -30,6 +30,10 @@ interface PaymentLink {
   }
   transaction_count: number
   total_revenue: number
+  company_name: string | null
+  branch_name: string | null
+  creator_name: string | null
+  payment_status: string | null
 }
 
 interface PaymentTransaction {
