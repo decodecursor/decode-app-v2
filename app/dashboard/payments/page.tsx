@@ -11,6 +11,7 @@ import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 import PaymentLinkCard from '@/components/dashboard/PaymentLinkCard'
 import PaymentStats from '@/components/dashboard/PaymentStats'
+import { USER_ROLES, normalizeRole, UserRole } from '@/types/user'
 
 interface PaymentLink {
   id: string
@@ -65,7 +66,7 @@ export default function PaymentHistoryPage() {
   const supabase = createClient()
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
-  const [userRole, setUserRole] = useState<string | null>(null)
+  const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([])
   const [transactions, setTransactions] = useState<PaymentTransaction[]>([])
   const [stats, setStats] = useState<PaymentStats | null>(null)
@@ -77,7 +78,7 @@ export default function PaymentHistoryPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [heartAnimationLinks, setHeartAnimationLinks] = useState<Set<string>>(new Set())
 
-  console.log('🔄 PaymentHistoryPage render - user:', user?.id, 'paymentLinks:', paymentLinks.length, 'loading:', loading, 'error:', error)
+  console.log('🔄 PaymentHistoryPage render - user:', user?.id, 'userRole:', userRole, 'paymentLinks:', paymentLinks.length, 'loading:', loading, 'error:', error)
 
   const fetchPaymentData = async (userId: string) => {
     try {
@@ -172,7 +173,9 @@ export default function PaymentHistoryPage() {
       }
 
       const { userData } = await response.json()
-      setUserRole(userData.role)
+      const normalizedRole = normalizeRole(userData.role)
+      console.log('🔍 [PAYMENTS DEBUG] Raw role:', userData.role, 'Normalized role:', normalizedRole)
+      setUserRole(normalizedRole)
     } catch (error) {
       console.error('Error fetching user profile:', error)
     }
