@@ -567,7 +567,9 @@ export default function PayoutsPage() {
                 
                 <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-3">
                   <p className="text-blue-100 text-sm">
-                    Payouts are typically processed within 1-2 business days to your preferred payout method.
+                    <strong>Payout Method:</strong> {getSelectedMethodDisplayName()}
+                    <br />
+                    Payouts are typically processed within 1-2 business days.
                   </p>
                 </div>
               </div>
