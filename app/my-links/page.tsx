@@ -13,7 +13,7 @@ interface PaymentLink {
   client_name: string | null
   title: string
   amount_aed: number
-  service_amount_aed?: number
+  service_amount_aed: number
   decode_amount_aed?: number
   total_amount_aed?: number
   description?: string | null
@@ -598,6 +598,9 @@ function MyLinksContent() {
           client_name: link?.client_name,
           title: link?.title || '',
           amount_aed: link?.amount_aed || 0,
+          service_amount_aed: link?.service_amount_aed || link?.amount_aed || 0,
+          decode_amount_aed: link?.decode_amount_aed,
+          total_amount_aed: link?.total_amount_aed,
           expiration_date: link?.expiration_date || '',
           is_active: link?.is_active || false,
           created_at: link?.created_at || '',
@@ -1220,7 +1223,7 @@ function MyLinksContent() {
                           <div className="flex items-center gap-3">
                             <div className="flex-1">
                               <div className="text-white font-medium text-xl">
-                                AED {formatAmount(link.service_amount_aed)}
+                                AED {formatAmount(link.service_amount_aed || link.amount_aed)}
                               </div>
                             </div>
                             {/* Branch Name and Creator Name Display */}
@@ -1403,7 +1406,7 @@ function MyLinksContent() {
                 Are you sure you want to deactivate the payment link for &lsquo;{linkToDeactivate.client_name || 'Client'}&rsquo; and the &lsquo;{linkToDeactivate.title}&rsquo;?
               </p>
               <p className="cosmic-body text-gray-400 text-sm mb-6">
-                Amount: AED {formatAmount(linkToDeactivate.service_amount_aed)}
+                Amount: AED {formatAmount(linkToDeactivate.service_amount_aed || linkToDeactivate.amount_aed)}
               </p>
               <div className="flex space-x-4">
                 <button
@@ -1433,7 +1436,7 @@ function MyLinksContent() {
                 This action cannot be undone.
               </p>
               <p className="cosmic-body text-gray-400 text-sm mb-6">
-                Amount: AED {formatAmount(linkToDelete.service_amount_aed)}
+                Amount: AED {formatAmount(linkToDelete.service_amount_aed || linkToDelete.amount_aed)}
               </p>
               <div className="flex space-x-4">
                 <button
@@ -1519,7 +1522,7 @@ function MyLinksContent() {
               <div className="mb-6 space-y-2">
                 <p className="text-white text-xl font-semibold">{currentQRLink.client_name || 'Client'}</p>
                 <p className="text-white text-lg">{currentQRLink.title}</p>
-                <p className="text-white text-xl font-semibold">AED {formatAmount(currentQRLink.service_amount_aed)}</p>
+                <p className="text-white text-xl font-semibold">AED {formatAmount(currentQRLink.service_amount_aed || currentQRLink.amount_aed)}</p>
               </div>
 
               <button
