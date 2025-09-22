@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
+import { USER_ROLES } from '@/types/user'
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('📊 [PAYMENT-HISTORY API] Request started')
+
     // Use the same working authentication as /api/user/profile
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -16,12 +19,29 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = user.id
+    console.log('📊 [PAYMENT-HISTORY API] User authenticated:', userId)
 
     // Use service role to query data
     const supabaseService = createServiceRoleClient()
 
-    // Fetch payment links with paid_at field
-    const { data: linksData, error: linksError } = await supabaseService
+    // First, check if user is ADMIN to fetch company-wide data
+    const { data: userProfile, error: profileError } = await supabaseService
+      .from('user_profiles')
+      .select('role, company_name, professional_center_name')
+      .eq('id', userId)
+      .single()
+
+    if (profileError) {
+      console.error('❌ [PAYMENT-HISTORY API] Failed to fetch user profile:', profileError)
+    }
+
+    const isAdmin = userProfile?.role === USER_ROLES.ADMIN || userProfile?.role === 'Admin'
+    const companyName = userProfile?.company_name || userProfile?.professional_center_name
+
+    console.log('📊 [PAYMENT-HISTORY API] User role:', userProfile?.role, 'isAdmin:', isAdmin, 'company:', companyName)
+
+    // Build the query based on user role
+    let query = supabaseService
       .from('payment_links')
       .select(`
         id,
@@ -51,7 +71,37 @@ export async function GET(request: NextRequest) {
           completed_at
         )
       `)
-      .eq('creator_id', userId)
+
+    // If ADMIN and has company, fetch all payment links from that company
+    if (isAdmin && companyName) {
+      console.log('📊 [PAYMENT-HISTORY API] Fetching company-wide data for:', companyName)
+      // Get all users in the same company first
+      const { data: companyUsers, error: usersError } = await supabaseService
+        .from('user_profiles')
+        .select('id')
+        .or(`company_name.eq."${companyName}",professional_center_name.eq."${companyName}"`)
+
+      if (usersError) {
+        console.error('❌ [PAYMENT-HISTORY API] Error fetching company users:', usersError)
+      } else {
+        const companyUserIds = (companyUsers || []).map(u => u.id)
+        console.log('📊 [PAYMENT-HISTORY API] Found company users:', companyUserIds.length)
+
+        if (companyUserIds.length > 0) {
+          query = query.in('creator_id', companyUserIds)
+        } else {
+          // If no company users found, fall back to user's own data
+          query = query.eq('creator_id', userId)
+        }
+      }
+    } else {
+      // For non-admin users or if company fetch fails, get only their own payment links
+      console.log('📊 [PAYMENT-HISTORY API] Fetching user-specific data')
+      query = query.eq('creator_id', userId)
+    }
+
+    // Fetch payment links with paid_at field
+    const { data: linksData, error: linksError } = await query
       .not('paid_at', 'is', null) // Only get paid payment links
       .order('paid_at', { ascending: false })
 
@@ -129,11 +179,20 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    console.log('📊 [PAYMENT-HISTORY API] Successfully returning:', {
+      paymentLinks: processedLinks.length,
+      transactions: processedTransactions.length,
+      isAdmin,
+      companyName
+    })
+
     return NextResponse.json({
       success: true,
       paymentLinks: processedLinks,
       transactions: processedTransactions,
-      stats
+      stats,
+      isAdmin,
+      companyName
     })
 
   } catch (error: any) {

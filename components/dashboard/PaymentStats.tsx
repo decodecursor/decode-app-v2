@@ -61,16 +61,7 @@ interface PopularAmount {
 }
 
 export default function PaymentStats({ transactions, paymentLinks, user, userRole }: PaymentStatsProps) {
-  console.log('🚨 [PAYMENTSTATS MOUNT] Component mounted with userRole:', userRole, 'USER_ROLES.ADMIN:', USER_ROLES.ADMIN, 'Match:', (userRole === USER_ROLES.ADMIN || userRole === 'Admin'))
-
-  // State for company-wide data (for ADMIN users)
-  const [companyData, setCompanyData] = useState<{
-    paymentLinks: any[]
-    transactions: any[]
-    stats: any
-  } | null>(null)
-  const [loadingCompanyData, setLoadingCompanyData] = useState(false)
-  const [companyDataError, setCompanyDataError] = useState<string | null>(null)
+  console.log('📊 [PAYMENTSTATS] Component rendered - paymentLinks:', paymentLinks.length, 'transactions:', transactions.length, 'userRole:', userRole)
 
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'custom'>('today')
   const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined)
@@ -130,82 +121,12 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     fetchTotalAvailableBalance()
   }, [fetchTotalAvailableBalance])
 
-  // Fetch company-wide data for ADMIN users
-  const fetchCompanyWideData = useCallback(async () => {
-    console.log('🔍 [ANALYTICS DEBUG] fetchCompanyWideData called - user:', !!user, 'userRole:', userRole, 'expected:', USER_ROLES.ADMIN)
-    if (!user) {
-      console.log('❌ [ANALYTICS DEBUG] Not fetching - user missing')
-      return
-    }
-    if (!userRole) {
-      console.log('⚠️ [ANALYTICS DEBUG] Not fetching - userRole is null/undefined')
-      return
-    }
-    if (userRole !== USER_ROLES.ADMIN && userRole !== 'Admin') {
-      console.log('❌ [ANALYTICS DEBUG] Not fetching - user is not admin (role:', userRole, ')')
-      return
-    }
+  // No need for company-wide fetching anymore - data is passed from parent
 
-    console.log('✅ [ANALYTICS DEBUG] Fetching company-wide analytics data...')
-
-    try {
-      setLoadingCompanyData(true)
-      setCompanyDataError(null)
-
-      // Add timeout to prevent infinite loading
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
-
-      const response = await fetch('/api/analytics/company-wide', {
-        method: 'GET',
-        credentials: 'include',
-        signal: controller.signal
-      })
-
-      clearTimeout(timeoutId)
-
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success) {
-          setCompanyData({
-            paymentLinks: data.paymentLinks || [],
-            transactions: data.transactions || [],
-            stats: data.stats || {}
-          })
-          console.log('📊 Company-wide data fetched:', data)
-        } else {
-          setCompanyDataError('Failed to load company data')
-        }
-      } else {
-        setCompanyDataError(`Failed to fetch data (${response.status})`)
-        console.error('Failed to fetch company-wide data:', response.status)
-      }
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
-        setCompanyDataError('Request timed out')
-      } else {
-        setCompanyDataError('Error loading company data')
-      }
-      console.error('Error fetching company-wide data:', error)
-    } finally {
-      setLoadingCompanyData(false)
-    }
-  }, [user, userRole])
-
-  // Fetch company-wide data for ADMIN users on component mount and when userRole changes
+  // Log when data changes
   useEffect(() => {
-    console.log('🔍 [ANALYTICS DEBUG] Effect triggered - userRole:', userRole, 'type:', typeof userRole, 'isAdmin:', (userRole === USER_ROLES.ADMIN || userRole === 'Admin'), 'USER_ROLES.ADMIN:', USER_ROLES.ADMIN)
-
-    // Also check for raw string comparison as a fallback
-    const isAdmin = (userRole === USER_ROLES.ADMIN || userRole === 'Admin') || userRole === 'Admin'
-
-    if (isAdmin && user) {
-      console.log('✅ [ANALYTICS DEBUG] User is ADMIN - Triggering fetchCompanyWideData...')
-      fetchCompanyWideData()
-    } else {
-      console.log('⚠️ [ANALYTICS DEBUG] Not triggering fetch - isAdmin:', isAdmin, 'user:', !!user)
-    }
-  }, [fetchCompanyWideData, userRole, user])
+    console.log('📊 [PAYMENTSTATS] Data updated - paymentLinks:', paymentLinks.length, 'transactions:', transactions.length)
+  }, [paymentLinks, transactions])
 
   // Clear export done message after 3 seconds
   useEffect(() => {
@@ -221,9 +142,9 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
   }, [exportDone])
 
   const calculateStats = useCallback(() => {
-    // Use company-wide data for ADMIN users if available
-    const activePaymentLinks = (userRole === USER_ROLES.ADMIN || userRole === 'Admin') && companyData ? companyData.paymentLinks : paymentLinks
-    const activeTransactions = (userRole === USER_ROLES.ADMIN || userRole === 'Admin') && companyData ? companyData.transactions : transactions
+    // Data is now passed directly from parent (already includes company-wide data for ADMIN users)
+    const activePaymentLinks = paymentLinks
+    const activeTransactions = transactions
     let currentPeriodStart: Date
     let previousPeriodStart: Date
     let previousPeriodEnd: Date
@@ -471,7 +392,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       popularAmounts,
       revenueByDay
     })
-  }, [dateRange, customDateRange, transactions, paymentLinks, now, userRole, user, companyData])
+  }, [dateRange, customDateRange, transactions, paymentLinks, now, userRole, user])
 
   useEffect(() => {
     calculateStats()
@@ -497,8 +418,8 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
   }
 
   const getFilteredPayments = () => {
-    // Use company-wide data for ADMIN users if available
-    const activePaymentLinks = (userRole === USER_ROLES.ADMIN || userRole === 'Admin') && companyData ? companyData.paymentLinks : paymentLinks
+    // Data is now passed directly from parent (already includes company-wide data for ADMIN users)
+    const activePaymentLinks = paymentLinks
     const getUAEDate = (date: Date) => {
       const utc = date.getTime() + (date.getTimezoneOffset() * 60000)
       return new Date(utc + (4 * 3600000))
@@ -687,45 +608,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     )
   }
 
-  if ((userRole === USER_ROLES.ADMIN || userRole === 'Admin') && loadingCompanyData) {
-    return (
-      <div className="space-y-6">
-        <div className="cosmic-card">
-          <div className="text-center py-8">
-            <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg className="w-8 h-8 text-white/40 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-            </div>
-            <p className="cosmic-body text-white/50">Loading company analytics...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if ((userRole === USER_ROLES.ADMIN || userRole === 'Admin') && companyDataError) {
-    return (
-      <div className="space-y-6">
-        <div className="cosmic-card">
-          <div className="text-center py-8">
-            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
-            <p className="cosmic-body text-red-400 mb-4">{companyDataError}</p>
-            <button
-              onClick={fetchCompanyWideData}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // Removed loading and error states - data is now fetched by parent component
 
   return (
     <>
