@@ -129,9 +129,6 @@ export async function POST(request: NextRequest) {
       user_name: userData?.user_name,
       payout_request_id: payoutRequestId,
       status: 'pending',
-      period_start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      period_end: new Date().toISOString(),
-      scheduled_for: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
       created_at: new Date().toISOString()
     }
 
@@ -195,9 +192,7 @@ export async function POST(request: NextRequest) {
       payout: {
         id: payout.id,
         requestId: payoutRequestId,
-        amount: amount,
-        status: 'pending',
-        scheduledFor: payoutData.scheduled_for
+        amount: amount
       }
     })
 

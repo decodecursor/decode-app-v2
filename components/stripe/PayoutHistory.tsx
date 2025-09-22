@@ -7,9 +7,6 @@ interface Payout {
   payout_request_id: string | null
   payout_amount_aed: number
   status: string
-  period_start: string | null
-  period_end: string | null
-  scheduled_for: string | null
   paid_at: string | null
   created_at: string
 }
@@ -22,6 +19,7 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
   const [payouts, setPayouts] = useState<Payout[]>([])
   const [loading, setLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(6)
 
   useEffect(() => {
     loadPayouts()
@@ -29,7 +27,7 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
 
   const loadPayouts = async () => {
     try {
-      const response = await fetch('/api/payouts/history?limit=10', {
+      const response = await fetch('/api/payouts/history', {
         method: 'GET',
         credentials: 'include'
       })
@@ -88,14 +86,11 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
 
       const data = result.payouts
 
-      const headers = ['Request ID', 'Date', 'Amount (AED)', 'Status', 'Period Start', 'Period End', 'Paid Date']
+      const headers = ['Request ID', 'Date', 'Amount (AED)', 'Paid Date']
       const rows = (data || []).map(payout => [
         payout.payout_request_id || 'N/A',
         formatDate(payout.created_at),
         payout.payout_amount_aed.toFixed(2),
-        payout.status,
-        payout.period_start ? formatDate(payout.period_start) : 'N/A',
-        payout.period_end ? formatDate(payout.period_end) : 'N/A',
         payout.paid_at ? formatDate(payout.paid_at) : 'Pending'
       ])
 
@@ -155,7 +150,7 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
         <p className="text-gray-400 text-center py-8">No payouts yet. Your first payout will appear here.</p>
       ) : (
         <div className="space-y-3">
-          {payouts.map((payout) => {
+          {payouts.slice(0, visibleCount).map((payout) => {
             const status = getStatusBadge(payout.status)
             return (
               <div
@@ -182,7 +177,7 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-white">
                     {payout.paid_at ? (
                       <>Paid on {formatDate(payout.paid_at)}</>
                     ) : (
@@ -194,14 +189,20 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
             )
           })}
         </div>
-      )}
-      
-      {payouts.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-gray-800">
-          <p className="text-xs text-gray-500 text-center">
-            Showing last 10 payouts. Payouts are processed every Monday.
-          </p>
-        </div>
+
+        {/* Load More Button */}
+        {visibleCount < payouts.length && (
+          <div className="flex justify-center pt-6">
+            <button
+              onClick={() => setVisibleCount(prev => prev + 6)}
+              className="cosmic-button-secondary px-6 py-3 flex flex-col items-center"
+              style={{ textDecoration: 'none' }}
+            >
+              <span className="text-lg font-bold">Load More</span>
+              <span className="text-xs font-normal">{payouts.length - visibleCount} remaining</span>
+            </button>
+          </div>
+        )}
       )}
     </div>
   )

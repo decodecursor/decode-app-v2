@@ -49,15 +49,11 @@ export async function GET(request: NextRequest) {
         lastPayout: lastPayout ? {
           id: lastPayout.id,
           amount: lastPayout.payout_amount_aed,
-          paidAt: lastPayout.paid_at,
-          periodStart: lastPayout.period_start,
-          periodEnd: lastPayout.period_end
+          paidAt: lastPayout.paid_at
         } : null,
         nextPendingPayout: nextPendingPayout ? {
           id: nextPendingPayout.id,
-          amount: nextPendingPayout.payout_amount_aed,
-          scheduledFor: nextPendingPayout.scheduled_for,
-          status: nextPendingPayout.status
+          amount: nextPendingPayout.payout_amount_aed
         } : null
       },
       recentPayouts: payouts?.slice(0, 5) || []
