@@ -473,11 +473,10 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
   const { current, previous, popularAmounts, revenueByDay } = statsData
 
-  // Role-based labels for better UX
-  const isStaffUser = userRole === 'Staff'
-  const revenueLabel = isStaffUser ? 'My Revenue' : 'Company Revenue'
-  const transactionLabel = isStaffUser ? 'My Transactions' : 'Company Transactions'
-  const analyticsLabel = isStaffUser ? 'My Revenue Analytics' : 'Revenue Analytics'
+  // Fixed labels for all users (including STAFF) - always show company-wide labels
+  const revenueLabel = 'Company Revenue'
+  const transactionLabel = 'Company Transactions'
+  const analyticsLabel = 'Revenue Analytics'
 
   return (
     <>
