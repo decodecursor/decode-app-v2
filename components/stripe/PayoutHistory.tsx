@@ -149,60 +149,62 @@ export function PayoutHistory({ userId }: PayoutHistoryProps) {
       {payouts.length === 0 ? (
         <p className="text-gray-400 text-center py-8">No payouts yet. Your first payout will appear here.</p>
       ) : (
-        <div className="space-y-3">
-          {payouts.slice(0, visibleCount).map((payout) => {
-            const status = getStatusBadge(payout.status)
-            return (
-              <div
-                key={payout.id}
-                className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/8 transition-colors"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-white font-medium">
-                      AED {payout.payout_amount_aed.toFixed(2)}
-                    </span>
-                    {status && (
-                      <span className={`text-xs px-2 py-1 rounded-full ${status.bg} ${status.text}`}>
-                        {status.label}
+        <>
+          <div className="space-y-3">
+            {payouts.slice(0, visibleCount).map((payout) => {
+              const status = getStatusBadge(payout.status)
+              return (
+                <div
+                  key={payout.id}
+                  className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/8 transition-colors"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="text-white font-medium">
+                        AED {payout.payout_amount_aed.toFixed(2)}
                       </span>
-                    )}
+                      {status && (
+                        <span className={`text-xs px-2 py-1 rounded-full ${status.bg} ${status.text}`}>
+                          {status.label}
+                        </span>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      {payout.payout_request_id && (
+                        <p className="text-sm text-gray-400">
+                          Payout Request ID: <span className="font-mono text-purple-400">{payout.payout_request_id}</span>
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    {payout.payout_request_id && (
-                      <p className="text-sm text-gray-400">
-                        Payout Request ID: <span className="font-mono text-purple-400">{payout.payout_request_id}</span>
-                      </p>
-                    )}
+                  <div className="text-right">
+                    <p className="text-sm text-white">
+                      {payout.paid_at ? (
+                        <>Paid on {formatDate(payout.paid_at)}</>
+                      ) : (
+                        <>Requested on {formatDate(payout.created_at)}</>
+                      )}
+                    </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-white">
-                    {payout.paid_at ? (
-                      <>Paid on {formatDate(payout.paid_at)}</>
-                    ) : (
-                      <>Requested on {formatDate(payout.created_at)}</>
-                    )}
-                  </p>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Load More Button */}
-        {visibleCount < payouts.length && (
-          <div className="flex justify-center pt-6">
-            <button
-              onClick={() => setVisibleCount(prev => prev + 6)}
-              className="cosmic-button-secondary px-6 py-3 flex flex-col items-center"
-              style={{ textDecoration: 'none' }}
-            >
-              <span className="text-lg font-bold">Load More</span>
-              <span className="text-xs font-normal">{payouts.length - visibleCount} remaining</span>
-            </button>
+              )
+            })}
           </div>
-        )}
+
+          {/* Load More Button */}
+          {visibleCount < payouts.length && (
+            <div className="flex justify-center pt-6">
+              <button
+                onClick={() => setVisibleCount(prev => prev + 6)}
+                className="cosmic-button-secondary px-6 py-3 flex flex-col items-center"
+                style={{ textDecoration: 'none' }}
+              >
+                <span className="text-lg font-bold">Load More</span>
+                <span className="text-xs font-normal">{payouts.length - visibleCount} remaining</span>
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
