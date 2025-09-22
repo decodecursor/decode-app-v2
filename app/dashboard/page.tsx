@@ -1,15 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { getUserWithProxy } from '@/utils/auth-helper'
 import { User } from '@supabase/supabase-js'
 import { UserRole, USER_ROLES, validateUserProfile, normalizeRole } from '@/types/user'
 import { EmailVerificationGate } from '@/components/EmailVerificationGate'
-import PaymentStats from '@/components/dashboard/PaymentStats'
-import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 
 export default function Dashboard() {
@@ -26,9 +24,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
-  const [paymentLinks, setPaymentLinks] = useState<any[]>([])
-  const [transactions, setTransactions] = useState<any[]>([])
-  const [paymentDataLoading, setPaymentDataLoading] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const hoverTimeout = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
@@ -302,52 +297,6 @@ export default function Dashboard() {
     }
   }
 
-  // Fetch payment data for analytics
-  const fetchPaymentData = useCallback(async () => {
-    if (!user) {
-      console.log('📊 Dashboard: No user, skipping payment data fetch')
-      return
-    }
-
-    try {
-      console.log('📊 Dashboard: Fetching payment data...')
-      setPaymentDataLoading(true)
-
-      const response = await fetch('/api/payment-history/data', {
-        method: 'GET',
-        credentials: 'include'
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        console.error('❌ Dashboard: Payment data fetch failed:', errorData)
-        return
-      }
-
-      const data = await response.json()
-      console.log('✅ Dashboard: Payment data received:', {
-        paymentLinks: data.paymentLinks?.length || 0,
-        transactions: data.transactions?.length || 0,
-        isAdmin: data.isAdmin,
-        companyName: data.companyName
-      })
-
-      setPaymentLinks(data.paymentLinks || [])
-      setTransactions(data.transactions || [])
-    } catch (error) {
-      console.error('❌ Dashboard: Error fetching payment data:', error)
-    } finally {
-      setPaymentDataLoading(false)
-    }
-  }, [user])
-
-  // Fetch payment data when user and role are loaded
-  useEffect(() => {
-    if (user && userRole) {
-      console.log('📊 Dashboard: User and role ready, fetching payment data')
-      fetchPaymentData()
-    }
-  }, [user, userRole, fetchPaymentData])
 
   // Check authentication on mount
   useEffect(() => {
@@ -744,17 +693,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Main Dashboard Content - Analytics */}
-        <div className="container mx-auto px-4 py-8">
-          <ErrorBoundary>
-            <PaymentStats
-              transactions={transactions}
-              paymentLinks={paymentLinks}
-              user={user}
-              userRole={userRole}
-            />
-          </ErrorBoundary>
-        </div>
         </div>
       </div>
     </EmailVerificationGate>
