@@ -206,4 +206,4 @@ This project is proprietary and confidential.
 
 For support, email support@decode.beauty or create an issue in the repository.
 
-<!-- Last updated: 2025-09-22 - Payment amount display fixes deployed -->
+<!-- Last updated: 2025-09-22 - Database migration completed - service amounts now display correctly -->
