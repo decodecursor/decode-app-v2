@@ -35,6 +35,10 @@ export async function GET(request: NextRequest) {
         is_active,
         created_at,
         paid_at,
+        company_name,
+        branch_name,
+        creator_name,
+        payment_status,
         creator:creator_id (
           user_name,
           email

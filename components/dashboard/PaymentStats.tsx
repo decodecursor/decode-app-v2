@@ -30,6 +30,10 @@ interface PaymentStatsProps {
     paid_at: string | null
     transaction_count: number
     total_revenue: number
+    company_name: string | null
+    branch_name: string | null
+    creator_name: string | null
+    payment_status: string | null
   }>
   user: {
     id: string
@@ -539,14 +543,16 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
         return aDate.getTime() - bDate.getTime()
       })
 
-      // Create CSV content
-      const headers = ['Client Name', 'Service', 'Total Amount (AED)', 'Service Amount (AED)', 'Date Paid']
+      // Create CSV content with the exact columns requested
+      const headers = ['Company name', 'Brance name', 'User_name', 'Date Paid', 'Status', 'Client Name', 'Service amount']
       const rows = filteredLinks.map(link => [
-        link.client_name || 'Client',
-        link.title || 'Service',
-        link.amount_aed.toFixed(2),
-        (link.service_amount_aed || 0).toFixed(2),
-        formatPaymentDate(link.paid_at!)
+        link.company_name || '',
+        link.branch_name || '',
+        link.creator_name || '',
+        formatPaymentDate(link.paid_at!),
+        link.payment_status || 'paid',
+        link.client_name || '',
+        (link.service_amount_aed || 0).toFixed(2)
       ])
 
       const csvContent = [
