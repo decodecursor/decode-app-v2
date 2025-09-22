@@ -16,6 +16,7 @@ export default function Dashboard() {
   const supabase = createClient()
   const [user, setUser] = useState<User | null>(null)
   const [authLoading, setAuthLoading] = useState(true)
+  const [authError, setAuthError] = useState<string | null>(null)
   const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [companyProfileImage, setCompanyProfileImage] = useState<string | null>(null)
   const [companyName, setCompanyName] = useState<string | null>(null)
@@ -302,19 +303,28 @@ export default function Dashboard() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        setAuthError(null)
         const { user: authUser, error } = await getUserWithProxy()
+
+        if (error) {
+          console.error('🚫 Dashboard: Authentication error:', error)
+          setAuthError('Authentication failed. Please try again.')
+          return
+        }
 
         if (!authUser) {
           console.log('🚪 Dashboard: No authenticated user, redirecting to auth')
-          router.push('/auth')
+          // Don't redirect immediately, give user a chance to see error and retry
+          setAuthError('No authenticated user found. Please log in.')
+          setTimeout(() => router.push('/auth'), 3000)
           return
         }
 
         console.log('✅ Dashboard: User authenticated:', authUser.id)
         setUser(authUser)
       } catch (error) {
-        console.error('Auth check failed:', error)
-        router.push('/auth')
+        console.error('❌ Auth check failed:', error)
+        setAuthError('Failed to check authentication. Please try again.')
       } finally {
         setAuthLoading(false)
       }
@@ -337,9 +347,57 @@ export default function Dashboard() {
     )
   }
 
-  // Ensure user exists before rendering
+  // Show authentication error state
+  if (authError && !authLoading) {
+    return (
+      <div className="cosmic-bg">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center max-w-md mx-auto px-4">
+            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h2 className="cosmic-heading text-white mb-2">Authentication Issue</h2>
+            <p className="cosmic-body text-white/70 mb-6">{authError}</p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Try Again
+              </button>
+              <button
+                onClick={() => router.push('/auth')}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Go to Login
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Ensure user exists before rendering - show fallback instead of null
   if (!user) {
-    return null
+    return (
+      <div className="cosmic-bg">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h2 className="cosmic-heading text-white mb-2">Loading User Data</h2>
+            <p className="cosmic-body text-white/70 mb-4">Please wait while we load your account...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
 
