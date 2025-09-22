@@ -24,29 +24,25 @@ export async function GET(request: NextRequest) {
     // Use service role to query data
     const supabaseService = createServiceRoleClient()
 
-    // First, check if user is ADMIN to fetch company-wide data
-    const { data: userProfile, error: profileError } = await supabaseService
-      .from('user_profiles')
-      .select('role, company_name, professional_center_name')
+    // Copy working logic from /api/payment-links/list - use users table instead of user_profiles
+    const { data: currentUser, error: userError } = await supabaseService
+      .from('users')
+      .select('role, company_name')
       .eq('id', userId)
       .single()
 
-    if (profileError) {
-      console.error('❌ [PAYMENT-HISTORY API] Failed to fetch user profile:', profileError)
+    if (userError) {
+      console.error('❌ [PAYMENT-HISTORY API] Failed to fetch user from users table:', userError)
     }
 
-    // More flexible ADMIN role detection
-    const userRole = userProfile?.role?.toLowerCase()
-    const isAdmin = userRole === 'admin' || userProfile?.role === USER_ROLES.ADMIN || userProfile?.role === 'Admin'
-    const companyName = userProfile?.company_name || userProfile?.professional_center_name
+    // Use same role detection as working API
+    const isAdmin = currentUser?.role === 'Admin'
+    const companyName = currentUser?.company_name
 
-    console.log('📊 [PAYMENT-HISTORY API] DETAILED ROLE DEBUG:')
-    console.log('  - Raw role from DB:', userProfile?.role)
-    console.log('  - Lowercased role:', userRole)
-    console.log('  - USER_ROLES.ADMIN constant:', USER_ROLES.ADMIN)
+    console.log('📊 [PAYMENT-HISTORY API] USING WORKING LOGIC FROM payment-links/list:')
+    console.log('  - Raw role from users table:', currentUser?.role)
     console.log('  - isAdmin result:', isAdmin)
-    console.log('  - company_name:', userProfile?.company_name)
-    console.log('  - professional_center_name:', userProfile?.professional_center_name)
+    console.log('  - company_name from users:', currentUser?.company_name)
     console.log('  - Final companyName:', companyName)
 
     // Build the query based on user role
@@ -82,11 +78,24 @@ export async function GET(request: NextRequest) {
         )
       `)
 
-    // If ADMIN and has company, fetch all payment links from that company directly
+    // Copy exact working logic from /api/payment-links/list for company filtering
     if (isAdmin && companyName) {
       console.log('📊 [PAYMENT-HISTORY API] ADMIN USER - Fetching company-wide data for:', companyName)
-      // Try both company name fields in payment_links table
-      query = query.or(`company_name.eq."${companyName}",professional_center_name.eq."${companyName}"`)
+      // Get all users from the company (same as working API)
+      const { data: companyUsers } = await supabaseService
+        .from('users')
+        .select('id')
+        .eq('company_name', companyName)
+
+      const companyUserIds = companyUsers?.map(u => u.id) || []
+      console.log('📊 [PAYMENT-HISTORY API] Found company user IDs:', companyUserIds.length, companyUserIds)
+
+      if (companyUserIds.length > 0) {
+        query = query.in('creator_id', companyUserIds)
+      } else {
+        // Fallback to user's own data if no company users found
+        query = query.eq('creator_id', userId)
+      }
     } else {
       // For non-admin users, get only their own payment links
       console.log('📊 [PAYMENT-HISTORY API] NON-ADMIN USER - Fetching user-specific data for userId:', userId)
