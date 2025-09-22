@@ -491,8 +491,8 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
   const exportPayLinksToCSV = () => {
     setExporting(true)
     try {
-      // Use company-wide data for ADMIN users if available
-      const activePaymentLinks = (userRole === USER_ROLES.ADMIN || userRole === 'Admin') && companyData ? companyData.paymentLinks : paymentLinks
+      // Data is now passed directly from parent (already includes company-wide data for ADMIN users)
+      const activePaymentLinks = paymentLinks
 
       // Get all filtered payment links (without the slice limit)
       const getUAEDate = (date: Date) => {
