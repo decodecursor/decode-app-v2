@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { getUserWithProxy } from '@/utils/auth-helper'
@@ -303,7 +303,7 @@ export default function Dashboard() {
   }
 
   // Fetch payment data for analytics
-  const fetchPaymentData = async () => {
+  const fetchPaymentData = useCallback(async () => {
     if (!user) {
       console.log('📊 Dashboard: No user, skipping payment data fetch')
       return
@@ -339,7 +339,7 @@ export default function Dashboard() {
     } finally {
       setPaymentDataLoading(false)
     }
-  }
+  }, [user])
 
   // Fetch payment data when user and role are loaded
   useEffect(() => {
@@ -347,7 +347,7 @@ export default function Dashboard() {
       console.log('📊 Dashboard: User and role ready, fetching payment data')
       fetchPaymentData()
     }
-  }, [user, userRole])
+  }, [user, userRole, fetchPaymentData])
 
   // Check authentication on mount
   useEffect(() => {
