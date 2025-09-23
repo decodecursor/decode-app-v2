@@ -53,7 +53,8 @@ export async function GET(request: NextRequest) {
       .select(`
         service_amount_aed,
         amount_aed,
-        paid_at
+        paid_at,
+        company_name
       `)
       .not('paid_at', 'is', null)
 
