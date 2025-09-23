@@ -107,12 +107,16 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
     return badges[status as keyof typeof badges] || null
   }
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-AE', {
-      year: 'numeric',
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', {
       month: 'short',
-      day: 'numeric'
-    })
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).replace(/,(?=[^,]*$)/, ' -')
   }
 
   const formatPayoutMethod = (method: string) => {
