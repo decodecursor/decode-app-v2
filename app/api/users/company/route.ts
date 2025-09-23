@@ -47,24 +47,25 @@ export async function GET(request: NextRequest) {
 
     console.log('🔍 [API] Found users:', companyUsers?.length)
 
-    // Get branches for the company
-    console.log('🔍 [API] Fetching branches...')
-    const { data: branchesData, error: branchesError } = await supabase
-      .from('branches')
-      .select('name')
-      .eq('company_name', userData.company_name)
-      .order('name')
+    // Extract unique branch names from users' branch_name field
+    console.log('🔍 [API] Extracting branches from user data...')
+    const branchesSet = new Set<string>()
 
-    if (branchesError) {
-      console.error('❌ [API] Branches fetch error:', branchesError.message)
-      return NextResponse.json({ error: branchesError.message }, { status: 500 })
-    }
+    companyUsers?.forEach(user => {
+      if (user.branch_name) {
+        // Handle comma-separated branch names
+        const userBranches = user.branch_name.split(',').map(b => b.trim()).filter(b => b !== '')
+        userBranches.forEach(branch => branchesSet.add(branch))
+      }
+    })
 
-    console.log('🔍 [API] Found branches:', branchesData?.length)
+    // Convert to sorted array
+    const branches = Array.from(branchesSet).sort()
+    console.log('🔍 [API] Extracted branches:', branches.length, branches)
 
     const result = {
       users: companyUsers || [],
-      branches: branchesData?.map(b => b.name) || []
+      branches: branches
     }
 
     console.log('✅ [API] Returning data:', result)

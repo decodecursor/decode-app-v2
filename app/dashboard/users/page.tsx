@@ -343,19 +343,13 @@ export default function UsersManagement() {
         return
       }
 
-      // Delete from branches table
-      const { error } = await supabase
-        .from('branches')
-        .delete()
-        .eq('name', branchToDelete)
-        .eq('company_name', adminCompany)
-
-      if (error) throw error
-
-      // Remove from local branches state
+      // Since branches are derived from user data, deleting a branch
+      // just means removing it from local state (it's already gone if no users have it)
       const updatedBranches = branches.filter(b => b !== branchToDelete)
       setBranches(updatedBranches)
 
+      setMessage(`Branch '${branchToDelete}' removed`)
+      setTimeout(() => setMessage(''), 3000)
       setShowDeleteBranchModal(false)
       setBranchToDelete('')
     } catch (error) {
