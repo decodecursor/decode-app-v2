@@ -476,9 +476,9 @@ export default function Dashboard() {
                   <div className="user-info-company">
                     {companyName || 'No company set'}
                   </div>
-                  {(userRole || userBranch) && (
+                  {userRole && (
                     <div className="text-xs text-gray-400">
-                      {userRole === USER_ROLES.ADMIN ? userRole : (userBranch || userRole)}
+                      {userRole}
                     </div>
                   )}
                 </div>
