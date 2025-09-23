@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { emailService } from '@/lib/email-service'
 
 // Direct auth proxy that runs on Vercel servers (avoiding VPN/network issues)
 export async function POST(request: NextRequest) {
@@ -251,7 +252,28 @@ export async function POST(request: NextRequest) {
       hasSession: !!data.session,
       processingTimeMs: Date.now() - startTime
     })
-    
+
+    // Send admin notification email for new user registration
+    if (data.user) {
+      console.log('📧 [PROXY-SIGNUP] Sending admin notification email...')
+      try {
+        await emailService.sendAdminUserRegistrationNotification({
+          id: data.user.id,
+          email: data.user.email || email, // Fallback to request email if needed
+          user_name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'New User',
+          role: 'User', // Default role for new signups
+          company_name: data.user.user_metadata?.company_name || 'Not specified',
+          branch_name: data.user.user_metadata?.branch_name || 'Not specified',
+          approval_status: 'pending', // New signups default to pending
+          created_at: new Date().toISOString()
+        })
+        console.log('✅ [PROXY-SIGNUP] Admin notification email sent successfully')
+      } catch (emailError) {
+        console.error('⚠️ [PROXY-SIGNUP] Failed to send admin notification email:', emailError)
+        // Don't fail the signup if email fails - user signup should still succeed
+      }
+    }
+
     // Return success with user and session data (matches client-side signUp response format)
     const response = {
       success: true,
@@ -259,7 +281,7 @@ export async function POST(request: NextRequest) {
       session: data.session,
       processingTimeMs: Date.now() - startTime
     }
-    
+
     console.log('📤 [PROXY-SIGNUP] Returning successful response')
     return NextResponse.json(response)
     

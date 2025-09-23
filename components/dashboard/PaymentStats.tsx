@@ -545,7 +545,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       hour: '2-digit',
       minute: '2-digit',
       hour12: false
-    })
+    }).replace(', ', ' - ')
   }
 
   const exportPayLinksToCSV = () => {
@@ -606,13 +606,13 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       })
 
       // Create CSV content with the exact columns requested
-      const headers = ['Company name', 'Brance name', 'User_name', 'Date Paid', 'Status', 'Client Name', 'Service amount']
+      const headers = ['Company Name', 'Branch Name', 'Creator Name', 'Payment Status', 'Payment Date', 'Client Name', 'Service Amount in AED']
       const rows = filteredLinks.map(link => [
         link.company_name || '',
         link.branch_name || '',
         link.creator_name || '',
-        formatPaymentDate(link.paid_at!),
         link.payment_status || 'paid',
+        formatPaymentDate(link.paid_at!),
         link.client_name || '',
         (link.service_amount_aed || 0).toFixed(2)
       ])

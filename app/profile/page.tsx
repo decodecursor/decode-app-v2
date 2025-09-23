@@ -199,24 +199,31 @@ export default function ProfilePage() {
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')!
 
-    const size = 300 // Fixed circular crop size
-    canvas.width = size
-    canvas.height = size
+    // Match canvas size to editor container (320px)
+    const containerSize = 320
+    const cropSize = 256 // Circular crop diameter (128px radius * 2)
+    canvas.width = cropSize
+    canvas.height = cropSize
 
-    // Create circular clipping path
+    // Create circular clipping path centered in crop area
     ctx.beginPath()
-    ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI)
+    ctx.arc(cropSize / 2, cropSize / 2, cropSize / 2, 0, 2 * Math.PI)
     ctx.clip()
 
     // Calculate scaled dimensions
     const scaledWidth = image.naturalWidth * imageScale
     const scaledHeight = image.naturalHeight * imageScale
 
-    // Draw image with position and scale
+    // Adjust coordinates from container space to crop space
+    // The crop area is centered in the 320px container, so offset by (320-256)/2 = 32px
+    const cropOffsetX = (containerSize - cropSize) / 2
+    const cropOffsetY = (containerSize - cropSize) / 2
+
+    // Draw image with position and scale, adjusted for crop area
     ctx.drawImage(
       image,
-      imagePosition.x,
-      imagePosition.y,
+      imagePosition.x - cropOffsetX,
+      imagePosition.y - cropOffsetY,
       scaledWidth,
       scaledHeight
     )
