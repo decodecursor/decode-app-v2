@@ -513,7 +513,7 @@ body {
   border: 4px solid transparent;
   background-origin: border-box;
   background-clip: padding-box, border-box;
-  background-image: linear-gradient(white, white), linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  background-image: linear-gradient(transparent, transparent), linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
   cursor: pointer;
   transition: all 0.3s ease;
   box-sizing: border-box;
