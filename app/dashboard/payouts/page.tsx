@@ -688,7 +688,7 @@ export default function PayoutsPage() {
         {showSelectMethodModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-gray-900 rounded-xl border border-gray-700 p-6 w-full max-w-md">
-              <h3 className="text-lg font-semibold text-white mb-4">Select Payout Method</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">Payout Method Required</h3>
 
               <div className="space-y-3 mb-6">
                 {availablePayoutMethods.map((method) => (
@@ -719,9 +719,8 @@ export default function PayoutsPage() {
 
                 {availablePayoutMethods.length === 0 && (
                   <div className="text-center py-8">
-                    <p className="text-gray-400">No payment methods connected</p>
-                    <p className="text-gray-500 text-sm mt-1">
-                      Set up your payment methods using the section below
+                    <p className="text-gray-400">
+                      You must configure a payment method before requesting a payout. Please set up a bank account or PayPal account in the payout methods section on the right side.
                     </p>
                   </div>
                 )}
