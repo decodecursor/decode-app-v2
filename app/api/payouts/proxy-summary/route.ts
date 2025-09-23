@@ -17,10 +17,10 @@ export async function GET(request: NextRequest) {
     
     const userId = user.id
     
-    // Get user's bank connection status
+    // Get user's bank connection status and role
     const { data: userData } = await supabase
       .from('users')
-      .select('stripe_connect_account_id, stripe_connect_status')
+      .select('stripe_connect_account_id, stripe_connect_status, role')
       .eq('id', userId)
       .single()
 
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate available balance using same logic as PaymentStats (commission-based)
     // Get user's completed payment links to calculate commission
-    const { data: userPaymentLinks } = await supabase
+    let paymentLinksQuery = supabase
       .from('payment_links')
       .select(`
         service_amount_aed,
@@ -57,6 +57,22 @@ export async function GET(request: NextRequest) {
       `)
       .eq('creator_id', userId)
       .not('paid_at', 'is', null)
+
+    // For Admin users, filter to current day only
+    if (userData?.role === 'Admin') {
+      // Filter to current date (today) in UTC
+      const today = new Date()
+      const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+      const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+
+      paymentLinksQuery = paymentLinksQuery
+        .gte('paid_at', startOfToday.toISOString())
+        .lt('paid_at', endOfToday.toISOString())
+
+      console.log(`🔍 Admin user ${userId}: Filtering payments to current day (${startOfToday.toISOString()} to ${endOfToday.toISOString()})`)
+    }
+
+    const { data: userPaymentLinks } = await paymentLinksQuery
 
     // Calculate total service revenue (what user earned)
     const totalServiceRevenue = (userPaymentLinks || []).reduce((sum, link) => {
@@ -73,7 +89,8 @@ export async function GET(request: NextRequest) {
     // Calculate total commission (1% of service revenue)
     const totalCommission = totalServiceRevenue * 0.01
 
-    console.log(`💰 Payout Balance Calculation for User ${userId}:`)
+    const userRoleLabel = userData?.role === 'Admin' ? 'Admin (Current Day Only)' : 'User (All Time)'
+    console.log(`💰 Payout Balance Calculation for ${userRoleLabel} ${userId}:`)
     console.log(`💰 Payment Links: ${userPaymentLinks?.length || 0}`)
     console.log(`💰 Total Service Revenue: ${totalServiceRevenue}`)
     console.log(`💰 Total Commission (1%): ${totalCommission}`)

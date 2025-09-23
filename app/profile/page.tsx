@@ -524,7 +524,7 @@ export default function ProfilePage() {
                             }`}
                             style={{
                               transform: `translate(${imagePosition.x}px, ${imagePosition.y}px) scale(${imageScale})`,
-                              transformOrigin: 'center',
+                              transformOrigin: 'top left',
                               transition: isDragging ? 'none' : 'transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease',
                               zIndex: 1
                             }}
