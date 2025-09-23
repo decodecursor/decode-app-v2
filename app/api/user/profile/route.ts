@@ -80,27 +80,45 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Run parallel queries for better performance
+    const queries = []
+
     // Get pending users count if admin
     let pendingUsersCount = 0
     if (userData.role === USER_ROLES.ADMIN && userData.company_name) {
-      const { count } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true })
-        .eq('company_name', userData.company_name)
-        .eq('approval_status', 'pending')
-
-      pendingUsersCount = count || 0
+      queries.push(
+        supabase
+          .from('users')
+          .select('*', { count: 'exact', head: true })
+          .eq('company_name', userData.company_name)
+          .eq('approval_status', 'pending')
+          .then(result => ({ type: 'pending', count: result.count || 0 }))
+      )
     }
 
     // Get branch count for the company
     let branchCount = 1
     if (userData.company_name) {
-      const { count } = await supabase
-        .from('branches')
-        .select('*', { count: 'exact', head: true })
-        .eq('company_name', userData.company_name)
+      queries.push(
+        supabase
+          .from('branches')
+          .select('*', { count: 'exact', head: true })
+          .eq('company_name', userData.company_name)
+          .then(result => ({ type: 'branches', count: result.count || 1 }))
+      )
+    }
 
-      branchCount = count || 1
+    // Execute all queries in parallel
+    if (queries.length > 0) {
+      try {
+        const results = await Promise.all(queries)
+        results.forEach(result => {
+          if (result.type === 'pending') pendingUsersCount = result.count
+          if (result.type === 'branches') branchCount = result.count
+        })
+      } catch (error) {
+        console.error('❌ [PROXY-PROFILE] Error executing parallel queries:', error)
+      }
     }
 
     // Auto-assign Main Branch if user has no branch and company has only 1 branch
