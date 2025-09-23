@@ -1024,26 +1024,34 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             }
             return (
               <div key={`${payment.id}-${index}`} className="bg-gray-800/50 rounded-lg p-3 hover:bg-gray-700/50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3 flex-1">
+                <div className="grid grid-cols-6 gap-x-6 items-center">
+                  <div className="flex items-center justify-start">
                     <span className="w-7 h-7 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">
                       {index + 1}
                     </span>
+                  </div>
+                  <div className="text-left">
                     <span className="cosmic-body text-white font-semibold">
                       {payment.client_name || 'Client'}
                     </span>
                   </div>
-                  <div className="flex items-center space-x-4">
-                    <span className="cosmic-body text-green-400 font-bold min-w-[120px] text-right">
+                  <div className="text-left">
+                    <span className="cosmic-body text-green-400 font-bold">
                       {formatCurrency(payment.service_amount_aed || 0)}
                     </span>
-                    <span className="cosmic-label text-white/60 text-sm min-w-[140px] text-right">
+                  </div>
+                  <div className="text-left">
+                    <span className="cosmic-label text-white/60 text-sm">
                       {formatPaymentDate(payment.paid_at!)}
                     </span>
-                    <span className="cosmic-body text-white/70 min-w-[120px] text-right">
+                  </div>
+                  <div className="text-left">
+                    <span className="cosmic-body text-white/70">
                       {payment.branch_name || 'No Branch'}
                     </span>
-                    <span className="cosmic-body text-white/70 min-w-[120px] text-right">
+                  </div>
+                  <div className="text-left">
+                    <span className="cosmic-body text-white/70">
                       {payment.creator_name || 'Unknown'}
                     </span>
                   </div>
