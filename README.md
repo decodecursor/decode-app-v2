@@ -1,6 +1,6 @@
 # DECODE Beauty Platform
 
-A modern payment platform for beauty professionals in the UAE, built with Next.js, Stripe Connect, and Supabase.
+A modern payment platform for beauty professionals in the UAE, built with Next.js, Stripe Connect, and Supabase. Version 0.1.1 with auto-assignment fixes.
 
 ## Features
 
