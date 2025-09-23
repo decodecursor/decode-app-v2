@@ -86,13 +86,15 @@ export async function GET(request: NextRequest) {
       return sum + serviceAmount
     }, 0)
 
-    // Calculate total commission (1% of service revenue)
+    // For Admin users, use full service revenue; for others, use 1% commission
+    const userBalance = userData?.role === 'Admin' ? totalServiceRevenue : totalServiceRevenue * 0.01
     const totalCommission = totalServiceRevenue * 0.01
 
     const userRoleLabel = userData?.role === 'Admin' ? 'Admin (Current Day Only)' : 'User (All Time)'
     console.log(`💰 Payout Balance Calculation for ${userRoleLabel} ${userId}:`)
     console.log(`💰 Payment Links: ${userPaymentLinks?.length || 0}`)
     console.log(`💰 Total Service Revenue: ${totalServiceRevenue}`)
+    console.log(`💰 User Balance: ${userBalance} (${userData?.role === 'Admin' ? 'Full Service Revenue' : '1% Commission'})`)
     console.log(`💰 Total Commission (1%): ${totalCommission}`)
 
     // Get earnings from completed transactions
@@ -130,11 +132,11 @@ export async function GET(request: NextRequest) {
       .limit(1)
       .maybeSingle()
 
-    // Calculate available balance by subtracting all requested payouts (both paid and pending) from total commission
-    const availableBalance = Math.max(0, totalCommission - totalRequestedPayouts)
+    // Calculate available balance by subtracting all requested payouts from user balance
+    const availableBalance = Math.max(0, userBalance - totalRequestedPayouts)
 
     console.log(`💰 Total Requested Payouts: ${totalRequestedPayouts}`)
-    console.log(`💰 Available Balance: ${availableBalance} (${totalCommission} - ${totalRequestedPayouts})`)
+    console.log(`💰 Available Balance: ${availableBalance} (${userBalance} - ${totalRequestedPayouts})`)
 
     const payoutSummary = {
       availableBalance,
