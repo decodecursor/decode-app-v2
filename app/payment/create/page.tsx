@@ -170,39 +170,8 @@ export default function CreatePayment() {
           setUserBranches(branches)
           setSelectedBranch(branches[0] || '')
         } else {
-          // Check if company has only 1 branch and auto-assign to Main Branch
-          if (userData?.branchCount === 1 && userData?.company_name) {
-            console.log('🔄 Auto-assigning user to Main Branch for single-branch company')
-            try {
-              // Update user's branch assignment in database
-              const updateResponse = await fetch('/api/user/profile', {
-                method: 'PATCH',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  branch_name: 'Main Branch'
-                })
-              })
-
-              if (updateResponse.ok) {
-                console.log('✅ Successfully auto-assigned user to Main Branch')
-                setUserBranches(['Main Branch'])
-                setSelectedBranch('Main Branch')
-              } else {
-                console.error('❌ Failed to auto-assign branch')
-                setUserBranches([])
-                setSelectedBranch('')
-              }
-            } catch (error) {
-              console.error('❌ Error auto-assigning branch:', error)
-              setUserBranches([])
-              setSelectedBranch('')
-            }
-          } else {
-            setUserBranches([])
-            setSelectedBranch('')
-          }
+          setUserBranches([])
+          setSelectedBranch('')
         }
 
         // Set user role

@@ -103,6 +103,28 @@ export async function GET(request: NextRequest) {
       branchCount = count || 1
     }
 
+    // Auto-assign Main Branch if user has no branch and company has only 1 branch
+    if (!userData.branch_name && branchCount === 1 && userData.company_name) {
+      console.log('🔄 [PROXY-PROFILE] Auto-assigning user to Main Branch for single-branch company')
+      try {
+        const { data: updatedUser, error: updateError } = await supabase
+          .from('users')
+          .update({ branch_name: 'Main Branch' })
+          .eq('id', user.id)
+          .select('branch_name')
+          .single()
+
+        if (updateError) {
+          console.error('❌ [PROXY-PROFILE] Failed to auto-assign branch:', updateError)
+        } else {
+          console.log('✅ [PROXY-PROFILE] Successfully auto-assigned user to Main Branch')
+          userData.branch_name = 'Main Branch'
+        }
+      } catch (error) {
+        console.error('❌ [PROXY-PROFILE] Error auto-assigning branch:', error)
+      }
+    }
+
     console.log('✅ [PROXY-PROFILE] Successfully fetched user profile with role:', userData.role)
 
     return NextResponse.json({
