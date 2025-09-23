@@ -557,6 +557,27 @@ export interface Database {
           }
         ]
       }
+      branches: {
+        Row: {
+          id: string
+          name: string
+          company_name: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          company_name: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          company_name?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -609,6 +630,10 @@ export type TransferUpdate = Database['public']['Tables']['transfers']['Update']
 export type UserPayPalAccountRow = Database['public']['Tables']['user_paypal_accounts']['Row']
 export type UserPayPalAccountInsert = Database['public']['Tables']['user_paypal_accounts']['Insert']
 export type UserPayPalAccountUpdate = Database['public']['Tables']['user_paypal_accounts']['Update']
+
+export type BranchRow = Database['public']['Tables']['branches']['Row']
+export type BranchInsert = Database['public']['Tables']['branches']['Insert']
+export type BranchUpdate = Database['public']['Tables']['branches']['Update']
 
 // Extended types for queries with relations
 export type PaymentLinkWithCreator = PaymentLinkRow & {

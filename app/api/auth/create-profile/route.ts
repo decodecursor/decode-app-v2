@@ -47,6 +47,46 @@ export async function POST(request: NextRequest) {
     
     console.log('✅ [CREATE-PROFILE] Profile created successfully')
 
+    // If this is an admin user, automatically create "Main Branch" entry in branches table
+    if (profileData.role === 'Admin' && profileData.branch_name === 'Main Branch') {
+      console.log('🔄 [CREATE-PROFILE] Creating Main Branch for admin user...')
+
+      try {
+        const { data: existingBranch, error: checkError } = await supabase
+          .from('branches')
+          .select('id')
+          .eq('name', 'Main Branch')
+          .eq('company_name', profileData.company_name)
+          .single()
+
+        if (checkError && checkError.code !== 'PGRST116') {
+          console.error('⚠️ [CREATE-PROFILE] Error checking existing branch:', checkError)
+        }
+
+        // Only create branch if it doesn't exist
+        if (!existingBranch) {
+          const { error: branchError } = await supabase
+            .from('branches')
+            .insert({
+              name: 'Main Branch',
+              company_name: profileData.company_name
+            })
+
+          if (branchError) {
+            console.error('⚠️ [CREATE-PROFILE] Failed to create Main Branch:', branchError)
+            // Don't fail the entire registration if branch creation fails
+          } else {
+            console.log('✅ [CREATE-PROFILE] Main Branch created successfully')
+          }
+        } else {
+          console.log('ℹ️ [CREATE-PROFILE] Main Branch already exists for company')
+        }
+      } catch (branchCreationError) {
+        console.error('⚠️ [CREATE-PROFILE] Error during branch creation:', branchCreationError)
+        // Don't fail the entire registration if branch creation fails
+      }
+    }
+
     // Send admin notification email for new user registration
     try {
       await emailService.sendAdminUserRegistrationNotification({

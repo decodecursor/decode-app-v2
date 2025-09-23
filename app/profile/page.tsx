@@ -12,6 +12,7 @@ interface UserProfile {
   id: string
   email: string
   professional_center_name: string | null
+  company_name: string | null
   user_name: string
   role: string
   profile_photo_url?: string | null // NOTE: Requires database column: ALTER TABLE users ADD COLUMN profile_photo_url TEXT;
@@ -92,7 +93,7 @@ export default function ProfilePage() {
         // Type casting to bypass Supabase type checking for profile_photo_url column
         const { data, error } = await supabase
           .from('users')
-          .select('id, email, user_name, professional_center_name, role, profile_photo_url')
+          .select('id, email, user_name, professional_center_name, company_name, role, profile_photo_url')
           .eq('id', user.id)
           .single() as { data: UserProfile | null, error: any }
 
@@ -104,6 +105,7 @@ export default function ProfilePage() {
             email: user.email || '',
             user_name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
             professional_center_name: null,
+            company_name: null,
             role: 'User',
             profile_photo_url: null
           }
@@ -117,6 +119,7 @@ export default function ProfilePage() {
           email: user.email || '',
           user_name: user.email?.split('@')[0] || 'User',
           professional_center_name: null,
+          company_name: null,
           role: 'User',
           profile_photo_url: null
         }
@@ -124,7 +127,7 @@ export default function ProfilePage() {
 
       if (profileData) {
         setProfile(profileData)
-        setProfessionalCenterName(profileData.professional_center_name || '')
+        setProfessionalCenterName(profileData.company_name || profileData.professional_center_name || '')
         setNewEmail(profileData.email || user.email || '')
         setProfilePhotoUrl(profileData.profile_photo_url || null)
       } else {
@@ -151,14 +154,21 @@ export default function ProfilePage() {
       const supabase = createClient()
       const { error } = await supabase
         .from('users')
-        .update({ professional_center_name: professionalCenterName.trim() })
+        .update({
+          professional_center_name: professionalCenterName.trim(),
+          company_name: professionalCenterName.trim()
+        })
         .eq('id', profile.id)
 
       if (error) {
         console.error('Professional center name update error:', error)
         throw error
       } else {
-        setProfile({ ...profile, professional_center_name: professionalCenterName.trim() })
+        setProfile({
+          ...profile,
+          professional_center_name: professionalCenterName.trim(),
+          company_name: professionalCenterName.trim()
+        })
         setMessage({ type: 'success', text: 'Company name updated successfully' })
       }
     } catch (error) {
@@ -642,7 +652,7 @@ export default function ProfilePage() {
               />
               <button
                 onClick={updateProfessionalCenterName}
-                disabled={saving || !professionalCenterName.trim() || professionalCenterName === profile?.professional_center_name}
+                disabled={saving || !professionalCenterName.trim() || (professionalCenterName === profile?.professional_center_name && professionalCenterName === profile?.company_name)}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
                 {saving ? 'Saving...' : 'Change'}
