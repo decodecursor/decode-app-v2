@@ -200,7 +200,7 @@ export default function PayoutsPage() {
   }
 
   const getSelectedMethodDisplayName = () => {
-    if (!selectedPayoutMethod) return 'No method selected'
+    if (!selectedPayoutMethod) return 'Select Method'
     return selectedPayoutMethod === 'bank_account' ? 'Bank Account' : 'PayPal'
   }
 
@@ -452,7 +452,7 @@ export default function PayoutsPage() {
                       <p className="text-gray-400 text-sm mb-1">Payout to</p>
                       <div
                         onClick={() => setShowSelectMethodModal(true)}
-                        className="bg-white/5 rounded-lg p-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group"
+                        className="bg-white/5 rounded-lg py-2 px-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group"
                       >
                         <div className="flex items-center justify-between">
                           <p className="text-white text-sm font-bold">
