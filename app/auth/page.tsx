@@ -49,6 +49,9 @@ function AuthPageContent() {
     const inviteParam = searchParams?.get('invite')
     const roleParam = searchParams?.get('role')
     const modeParam = searchParams?.get('mode')
+    const verifiedParam = searchParams?.get('verified')
+
+    console.log('🔍 [AUTH] URL params:', { inviteParam: !!inviteParam, roleParam, modeParam, verifiedParam })
 
     // Handle mode parameter for login/register
     if (modeParam === 'login') {
@@ -70,8 +73,10 @@ function AuthPageContent() {
       if (mappedRole) {
         setPreselectedRole(mappedRole)
         setIsLogin(false) // Force signup mode
-        // Store preselected role in sessionStorage to persist through email verification
+        // Store preselected role in both sessionStorage and localStorage for persistence
         sessionStorage.setItem('preselectedRole', mappedRole)
+        localStorage.setItem('decode_preselectedRole', mappedRole)
+        console.log('✅ [AUTH] Stored preselected role:', mappedRole)
       }
     }
 
@@ -79,17 +84,70 @@ function AuthPageContent() {
     if (inviteParam) {
       try {
         const decodedData = JSON.parse(Buffer.from(inviteParam, 'base64').toString())
+        console.log('✅ [AUTH] Decoded invite data:', decodedData)
         setInviteData(decodedData)
         setEmail(decodedData.email || '')
         setIsLogin(false) // Force signup mode for invitations
         setMessage(`Welcome! You've been invited to join ${decodedData.companyName}`)
 
-        // Store complete invite data in sessionStorage to persist through email verification
-        sessionStorage.setItem('inviteData', JSON.stringify(decodedData))
-        console.log('✅ [AUTH] Stored invite data in sessionStorage for email verification persistence')
+        // Store complete invite data in BOTH sessionStorage AND localStorage for maximum persistence
+        const inviteDataStr = JSON.stringify(decodedData)
+        sessionStorage.setItem('inviteData', inviteDataStr)
+        localStorage.setItem('decode_inviteData', inviteDataStr)
+        localStorage.setItem('decode_inviteTimestamp', Date.now().toString())
+        console.log('✅ [AUTH] Stored invite data in sessionStorage AND localStorage for email verification persistence')
       } catch (error) {
-        console.error('Invalid invite link:', error)
+        console.error('❌ [AUTH] Invalid invite link:', error)
         setMessage('Invalid invitation link')
+      }
+    } else if (verifiedParam === 'true') {
+      // If we have verified=true but no invite param, try to restore from storage
+      console.log('🔍 [AUTH] Email verification detected, attempting to restore invite data from storage')
+
+      // Try to restore invite data from storage sources
+      let restoredInviteData = null
+
+      // Try sessionStorage first
+      try {
+        const sessionData = sessionStorage.getItem('inviteData')
+        if (sessionData) {
+          restoredInviteData = JSON.parse(sessionData)
+          console.log('✅ [AUTH] Restored invite data from sessionStorage:', restoredInviteData)
+        }
+      } catch (error) {
+        console.warn('⚠️ [AUTH] Failed to restore from sessionStorage:', error)
+      }
+
+      // Try localStorage as backup
+      if (!restoredInviteData) {
+        try {
+          const localData = localStorage.getItem('decode_inviteData')
+          const timestamp = localStorage.getItem('decode_inviteTimestamp')
+
+          if (localData && timestamp) {
+            const age = Date.now() - parseInt(timestamp)
+            // Only use localStorage data if it's less than 1 hour old
+            if (age < 60 * 60 * 1000) {
+              restoredInviteData = JSON.parse(localData)
+              console.log('✅ [AUTH] Restored invite data from localStorage:', restoredInviteData)
+            } else {
+              console.log('⚠️ [AUTH] localStorage invite data too old, ignoring')
+              localStorage.removeItem('decode_inviteData')
+              localStorage.removeItem('decode_inviteTimestamp')
+            }
+          }
+        } catch (error) {
+          console.warn('⚠️ [AUTH] Failed to restore from localStorage:', error)
+        }
+      }
+
+      if (restoredInviteData) {
+        setInviteData(restoredInviteData)
+        setEmail(restoredInviteData.email || '')
+        setMessage('Please complete your profile to finish registration')
+        console.log('✅ [AUTH] Successfully restored invite data after email verification')
+      } else {
+        console.log('⚠️ [AUTH] No invite data found in storage after verification')
       }
     }
   }, [searchParams])
@@ -138,27 +196,89 @@ function AuthPageContent() {
             setEmail(user.email || '')
             setSignedUpUser(user)
 
-            // Retrieve preselected role from sessionStorage if available
-            const storedPreselectedRole = sessionStorage.getItem('preselectedRole')
-            if (storedPreselectedRole) {
-              setPreselectedRole(storedPreselectedRole)
-              // Clear it after use
-              sessionStorage.removeItem('preselectedRole')
+            // Retrieve preselected role from multiple storage sources
+            let restoredPreselectedRole = null
+
+            // Try sessionStorage first
+            try {
+              restoredPreselectedRole = sessionStorage.getItem('preselectedRole')
+              if (restoredPreselectedRole) {
+                console.log('✅ [AUTH] Found preselected role in sessionStorage:', restoredPreselectedRole)
+                sessionStorage.removeItem('preselectedRole') // Clear after use
+              }
+            } catch (error) {
+              console.warn('⚠️ [AUTH] Failed to read preselected role from sessionStorage:', error)
             }
 
-            // Retrieve complete invite data from sessionStorage if available
-            const storedInviteData = sessionStorage.getItem('inviteData')
-            if (storedInviteData) {
+            // Try localStorage as backup
+            if (!restoredPreselectedRole) {
               try {
-                const parsedInviteData = JSON.parse(storedInviteData)
-                setInviteData(parsedInviteData)
-                console.log('✅ [AUTH] Restored invite data from sessionStorage:', parsedInviteData)
-                // Clear it after use
-                sessionStorage.removeItem('inviteData')
+                restoredPreselectedRole = localStorage.getItem('decode_preselectedRole')
+                if (restoredPreselectedRole) {
+                  console.log('✅ [AUTH] Found preselected role in localStorage:', restoredPreselectedRole)
+                  localStorage.removeItem('decode_preselectedRole') // Clear after use
+                }
               } catch (error) {
-                console.error('❌ [AUTH] Failed to parse stored invite data:', error)
+                console.warn('⚠️ [AUTH] Failed to read preselected role from localStorage:', error)
+              }
+            }
+
+            if (restoredPreselectedRole) {
+              setPreselectedRole(restoredPreselectedRole)
+            }
+
+            // Retrieve complete invite data from multiple storage sources
+            let restoredInviteData = null
+
+            // If we already have inviteData from URL params, don't override it
+            if (!inviteData) {
+              // Try sessionStorage first
+              try {
+                const sessionData = sessionStorage.getItem('inviteData')
+                if (sessionData) {
+                  restoredInviteData = JSON.parse(sessionData)
+                  console.log('✅ [AUTH] Found invite data in sessionStorage:', restoredInviteData)
+                  sessionStorage.removeItem('inviteData') // Clear after use
+                }
+              } catch (error) {
+                console.warn('⚠️ [AUTH] Failed to parse invite data from sessionStorage:', error)
                 sessionStorage.removeItem('inviteData') // Clean up invalid data
               }
+
+              // Try localStorage as backup
+              if (!restoredInviteData) {
+                try {
+                  const localData = localStorage.getItem('decode_inviteData')
+                  const timestamp = localStorage.getItem('decode_inviteTimestamp')
+
+                  if (localData && timestamp) {
+                    const age = Date.now() - parseInt(timestamp)
+                    // Only use localStorage data if it's less than 1 hour old
+                    if (age < 60 * 60 * 1000) {
+                      restoredInviteData = JSON.parse(localData)
+                      console.log('✅ [AUTH] Found invite data in localStorage:', restoredInviteData)
+                    } else {
+                      console.log('⚠️ [AUTH] localStorage invite data too old, ignoring')
+                    }
+                    // Clean up localStorage data after use
+                    localStorage.removeItem('decode_inviteData')
+                    localStorage.removeItem('decode_inviteTimestamp')
+                  }
+                } catch (error) {
+                  console.warn('⚠️ [AUTH] Failed to parse invite data from localStorage:', error)
+                  localStorage.removeItem('decode_inviteData')
+                  localStorage.removeItem('decode_inviteTimestamp')
+                }
+              }
+
+              if (restoredInviteData) {
+                setInviteData(restoredInviteData)
+                console.log('✅ [AUTH] Successfully restored invite data for role modal:', restoredInviteData)
+              } else {
+                console.log('⚠️ [AUTH] No invite data found in any storage after verification')
+              }
+            } else {
+              console.log('✅ [AUTH] Using invite data from URL params, skipping storage restoration')
             }
 
             setShowRoleModal(true)

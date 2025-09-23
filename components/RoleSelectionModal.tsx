@@ -16,6 +16,15 @@ interface RoleSelectionModalProps {
 }
 
 export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcceptedAt, inviteData, preselectedRole, onClose, onComplete }: RoleSelectionModalProps) {
+  console.log('🚀 [ROLE MODAL] Component initializing with props:', {
+    isOpen,
+    userEmail,
+    userId,
+    hasInviteData: !!inviteData,
+    preselectedRole,
+    inviteDataKeys: inviteData ? Object.keys(inviteData) : []
+  })
+
   const [role, setRole] = useState(preselectedRole || inviteData?.role || '')
   const [companyName, setCompanyName] = useState(inviteData?.companyName || '')
   const [userName, setUserName] = useState('')
@@ -25,37 +34,82 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [hasSelectedSuggestion, setHasSelectedSuggestion] = useState(false)
 
+  console.log('🚀 [ROLE MODAL] Initial state set:', {
+    initialRole: role,
+    initialCompanyName: companyName,
+    fromInviteData: {
+      role: inviteData?.role,
+      companyName: inviteData?.companyName
+    },
+    fromPreselectedRole: preselectedRole
+  })
+
   const nameInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
 
   // Pre-populate form with invite data or pre-selected role
   useEffect(() => {
-    console.log('🔄 [ROLE MODAL] Pre-population effect triggered:', { inviteData, preselectedRole })
+    console.log('🔄 [ROLE MODAL] Pre-population effect triggered')
+    console.log('🔍 [ROLE MODAL] Props received:', {
+      hasInviteData: !!inviteData,
+      preselectedRole,
+      userEmail,
+      isOpen
+    })
     console.log('🔍 [ROLE MODAL] Full inviteData structure:', JSON.stringify(inviteData, null, 2))
 
     if (inviteData) {
-      console.log('✅ [ROLE MODAL] Using invite data. Role found:', inviteData.role)
+      console.log('✅ [ROLE MODAL] Processing invite data...')
       console.log('🔍 [ROLE MODAL] Available properties in inviteData:', Object.keys(inviteData))
 
       // Handle different possible role property names in invite data
       const inviteRole = inviteData.role || inviteData.user_role || inviteData.assignedRole || 'Staff'
-      console.log('🔍 [ROLE MODAL] Resolved invite role:', inviteRole)
+      const inviteCompany = inviteData.companyName || inviteData.company_name || ''
+
+      console.log('🔍 [ROLE MODAL] Extracted from invite data:', {
+        role: inviteRole,
+        company: inviteCompany,
+        email: inviteData.email
+      })
 
       setRole(inviteRole)
-      setCompanyName(inviteData.companyName || inviteData.company_name || '')
+      setCompanyName(inviteCompany)
       setHasSelectedSuggestion(true) // Prevent company suggestions for invited users
+
+      console.log('✅ [ROLE MODAL] Successfully applied invite data - Role:', inviteRole, 'Company:', inviteCompany)
     } else if (preselectedRole) {
       console.log('✅ [ROLE MODAL] Using preselected role:', preselectedRole)
       setRole(preselectedRole)
     } else {
-      console.log('⚠️ [ROLE MODAL] No preselected role or invite data')
+      console.log('⚠️ [ROLE MODAL] No preselected role or invite data available')
+      console.log('🔍 [ROLE MODAL] Current state - Role:', role, 'Company:', companyName)
     }
   }, [inviteData, preselectedRole])
 
   // Debug effect to track role changes
   useEffect(() => {
-    console.log('🔄 [ROLE MODAL] Current role state:', role)
+    console.log('🔄 [ROLE MODAL] Role state changed:', role)
   }, [role])
+
+  // Debug effect to track company name changes
+  useEffect(() => {
+    console.log('🔄 [ROLE MODAL] Company name state changed:', companyName)
+  }, [companyName])
+
+  // Debug effect to track modal open/close state
+  useEffect(() => {
+    if (isOpen) {
+      console.log('🎭 [ROLE MODAL] Modal opened with current state:', {
+        role,
+        companyName,
+        userName,
+        hasInviteData: !!inviteData,
+        preselectedRole
+      })
+    } else {
+      console.log('🎭 [ROLE MODAL] Modal closed')
+    }
+  }, [isOpen])
 
   // Auto-focus name input when modal opens
   useEffect(() => {
