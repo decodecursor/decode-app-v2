@@ -531,7 +531,7 @@ body {
   border: none;
   object-fit: cover;
   display: block;
-  background: white;
+  background: transparent;
 }
 
 .instagram-avatar .avatar-fallback {
