@@ -46,108 +46,68 @@ export async function GET(request: NextRequest) {
     // Bank is connected if EITHER system shows connection
     const bankConnected = stripeConnected || manualBankConnected
 
-    // Calculate available balance using same logic as PaymentStats (commission-based)
-    // Get user's completed payment links to calculate commission
-    let paymentLinksQuery = supabase
-      .from('payment_links')
-      .select(`
-        service_amount_aed,
-        amount_aed,
-        paid_at,
-        company_name
-      `)
-      .not('paid_at', 'is', null)
+    // Simple approach: Calculate available balance
+    let userBalance = 0
 
-    // Check if user is admin (case-insensitive)
-    const isAdmin = userData?.role && (
-      userData.role === 'Admin' ||
-      userData.role === 'admin' ||
-      userData.role.toLowerCase() === 'admin'
-    )
+    if (userData?.role === 'Admin' && userData?.company_name) {
+      // ADMIN: Get today's paid payment links for the company and sum service_amount_aed
+      console.log(`💰 ADMIN USER: Getting today's service revenue for company: "${userData.company_name}"`)
 
-    // For Admin users, get all company payment links directly; for others, get personal data
-    if (isAdmin && userData?.company_name) {
-      console.log(`🔍 Admin user ${userId}: Getting ALL payment links for company: "${userData.company_name}"`)
-      paymentLinksQuery = paymentLinksQuery.eq('company_name', userData.company_name)
-    } else {
-      // For Staff users, get personal payment links only
-      console.log(`🔍 Staff user ${userId}: Getting personal payment links only`)
-      paymentLinksQuery = paymentLinksQuery.eq('creator_id', userId)
-    }
-
-    // For Admin users, filter to current day only (as requested)
-    if (isAdmin) {
-      // Filter to current date (today) in UTC
       const today = new Date()
       const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
       const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
 
-      paymentLinksQuery = paymentLinksQuery
+      console.log(`💰 Date range: ${startOfToday.toISOString()} to ${endOfToday.toISOString()}`)
+
+      const { data: adminPaymentLinks } = await supabase
+        .from('payment_links')
+        .select('service_amount_aed, amount_aed, paid_at, client_name')
+        .eq('company_name', userData.company_name)
+        .not('paid_at', 'is', null)
         .gte('paid_at', startOfToday.toISOString())
         .lt('paid_at', endOfToday.toISOString())
 
-      console.log(`🔍 Admin user ${userId}: Filtering payments to current day (${startOfToday.toISOString()} to ${endOfToday.toISOString()})`)
-    }
+      console.log(`💰 Found ${adminPaymentLinks?.length || 0} paid payment links for today`)
 
-    const { data: userPaymentLinks } = await paymentLinksQuery
+      if (adminPaymentLinks && adminPaymentLinks.length > 0) {
+        console.log(`💰 Payment links data:`, adminPaymentLinks.map(link => ({
+          client_name: link.client_name,
+          service_amount_aed: link.service_amount_aed,
+          amount_aed: link.amount_aed,
+          paid_at: link.paid_at
+        })))
 
-    console.log(`🔍 QUERY RESULT: Found ${userPaymentLinks?.length || 0} payment links`)
-    if (userPaymentLinks && userPaymentLinks.length > 0) {
-      console.log(`🔍 PAYMENT LINKS SAMPLE:`, userPaymentLinks.slice(0, 3).map(link => ({
-        company_name: link.company_name,
-        service_amount_aed: link.service_amount_aed,
-        amount_aed: link.amount_aed,
-        paid_at: link.paid_at
-      })))
-      console.log(`🔍 ALL PAYMENT LINKS FULL DATA:`, userPaymentLinks.map(link => ({
-        company_name: link.company_name,
-        service_amount_aed: link.service_amount_aed,
-        amount_aed: link.amount_aed,
-        paid_at: link.paid_at
-      })))
-    } else {
-      console.log(`🔍 NO PAYMENT LINKS FOUND - Query details:`)
-      console.log(`🔍 - Company name: ${userData?.company_name}`)
-      console.log(`🔍 - User role: ${userData?.role}`)
-      console.log(`🔍 - Current time: ${new Date().toISOString()}`)
-    }
+        // Sum all service_amount_aed for today
+        userBalance = adminPaymentLinks.reduce((sum, link) => {
+          const serviceAmount = link.service_amount_aed || (link.amount_aed * 0.91) || 0
+          console.log(`💰 Adding service amount: ${serviceAmount}`)
+          return sum + serviceAmount
+        }, 0)
 
-    // Calculate total service revenue (what user earned)
-    const totalServiceRevenue = (userPaymentLinks || []).reduce((sum, link) => {
-      let serviceAmount = link.service_amount_aed || 0
-
-      // If service_amount_aed is missing, calculate it (total - 9% platform fee)
-      if (!serviceAmount && link.amount_aed) {
-        serviceAmount = link.amount_aed * 0.91
-        console.log(`🔍 Calculated service amount for link: ${link.amount_aed} * 0.91 = ${serviceAmount}`)
-      } else if (serviceAmount) {
-        console.log(`🔍 Using existing service amount: ${serviceAmount}`)
+        console.log(`💰 ADMIN TOTAL SERVICE REVENUE FOR TODAY: ${userBalance}`)
+      } else {
+        console.log(`💰 No paid payment links found for today`)
+        userBalance = 0
       }
 
-      return sum + serviceAmount
-    }, 0)
+    } else {
+      // STAFF: Get personal payment links and use 1% commission
+      console.log(`💰 STAFF USER: Getting personal payment links for 1% commission`)
 
-    console.log(`🔍 CALCULATION RESULT: Total Service Revenue = ${totalServiceRevenue}`)
+      const { data: staffPaymentLinks } = await supabase
+        .from('payment_links')
+        .select('service_amount_aed, amount_aed')
+        .eq('creator_id', userId)
+        .not('paid_at', 'is', null)
 
-    // Debug role detection
-    console.log(`🔍 ROLE DEBUG: Raw role from database: "${userData?.role}"`)
-    console.log(`🔍 ROLE DEBUG: Role type: ${typeof userData?.role}`)
-    console.log(`🔍 ROLE DEBUG: Role === 'Admin': ${userData?.role === 'Admin'}`)
-    console.log(`🔍 ROLE DEBUG: Role === 'admin': ${userData?.role === 'admin'}`)
-    console.log(`🔍 ROLE DEBUG: Role toLowerCase(): ${userData?.role?.toLowerCase()}`)
-    console.log(`🔍 ROLE DEBUG: Final isAdmin result: ${isAdmin}`)
+      const totalServiceRevenue = (staffPaymentLinks || []).reduce((sum, link) => {
+        const serviceAmount = link.service_amount_aed || (link.amount_aed * 0.91) || 0
+        return sum + serviceAmount
+      }, 0)
 
-    // For Admin users, use full service revenue; for others, use 1% commission
-    const userBalance = isAdmin ? totalServiceRevenue : totalServiceRevenue * 0.01
-    const totalCommission = totalServiceRevenue * 0.01
-
-    const userRoleLabel = isAdmin ? 'Admin (Current Day Only)' : 'User (All Time)'
-    console.log(`💰 Payout Balance Calculation for ${userRoleLabel} ${userId}:`)
-    console.log(`💰 Payment Links: ${userPaymentLinks?.length || 0}`)
-    console.log(`💰 Total Service Revenue: ${totalServiceRevenue}`)
-    console.log(`💰 User Balance: ${userBalance} (${isAdmin ? 'Full Service Revenue' : '1% Commission'})`)
-    console.log(`💰 Total Commission (1%): ${totalCommission}`)
-    console.log(`💰 ADMIN CALCULATION: ${isAdmin ? 'USING FULL AMOUNT' : 'USING 1% COMMISSION'}`)
+      userBalance = totalServiceRevenue * 0.01
+      console.log(`💰 STAFF: Total service revenue: ${totalServiceRevenue}, 1% commission: ${userBalance}`)
+    }
 
     // Get earnings from completed transactions
     const { data: transactions } = await supabase
