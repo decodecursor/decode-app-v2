@@ -458,6 +458,16 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     // Data is now passed directly from parent (already includes company-wide data for ADMIN users)
     const activePaymentLinks = paymentLinks
 
+    // Debug: Log first payment link to see what data we have
+    if (activePaymentLinks.length > 0) {
+      console.log('🔍 [PayLinks] First payment link data:', {
+        id: activePaymentLinks[0].id,
+        branch_name: activePaymentLinks[0].branch_name,
+        creator_name: activePaymentLinks[0].creator_name,
+        client_name: activePaymentLinks[0].client_name
+      })
+    }
+
     console.log(`🔍 [getFilteredPayments] Processing ${activePaymentLinks.length} payment links`)
     if (userRole === USER_ROLES.ADMIN || userRole === 'Admin') {
       const uniqueCreators = new Set(activePaymentLinks.map(link => link.creator_id))
@@ -1000,7 +1010,19 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
           )}
         </div>
         <div className="space-y-3">
-          {getFilteredPayments().map((payment, index) => (
+          {getFilteredPayments().map((payment, index) => {
+            // Debug logging
+            if (index === 0) {
+              console.log('🔍 [PayLinks Debug] First payment data:', {
+                id: payment.id,
+                client_name: payment.client_name,
+                branch_name: payment.branch_name,
+                creator_name: payment.creator_name,
+                service_amount_aed: payment.service_amount_aed,
+                paid_at: payment.paid_at
+              })
+            }
+            return (
             <div key={`${payment.id}-${index}`} className="bg-gray-800/50 rounded-lg p-3 hover:bg-gray-700/50 transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3 flex-1">
@@ -1028,6 +1050,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
               </div>
             </div>
           ))}
+
           {getFilteredPayments().length === 0 && (
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3">
