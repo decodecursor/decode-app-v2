@@ -214,16 +214,28 @@ export default function ProfilePage() {
     const scaledWidth = image.naturalWidth * imageScale
     const scaledHeight = image.naturalHeight * imageScale
 
-    // Adjust coordinates from container space to crop space
-    // The crop area is centered in the 320px container, so offset by (320-256)/2 = 32px
+    // The editor uses transform origin 'center', so we need to account for that
+    // Calculate image center position in the 320px container
+    const imageCenterX = imagePosition.x + (scaledWidth / 2)
+    const imageCenterY = imagePosition.y + (scaledHeight / 2)
+
+    // The crop area is centered in the 320px container, offset by (320-256)/2 = 32px
     const cropOffsetX = (containerSize - cropSize) / 2
     const cropOffsetY = (containerSize - cropSize) / 2
 
-    // Draw image with position and scale, adjusted for crop area
+    // Convert image center from container space to crop canvas space
+    const cropCenterX = imageCenterX - cropOffsetX
+    const cropCenterY = imageCenterY - cropOffsetY
+
+    // Calculate top-left position for canvas drawing (canvas expects top-left coordinates)
+    const canvasX = cropCenterX - (scaledWidth / 2)
+    const canvasY = cropCenterY - (scaledHeight / 2)
+
+    // Draw image with corrected coordinates
     ctx.drawImage(
       image,
-      imagePosition.x - cropOffsetX,
-      imagePosition.y - cropOffsetY,
+      canvasX,
+      canvasY,
       scaledWidth,
       scaledHeight
     )
