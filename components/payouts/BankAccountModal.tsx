@@ -307,18 +307,13 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
 
         {/* Info box */}
         <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-4 mb-6">
-          <div className="flex items-start space-x-3">
-            <svg className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div className="text-blue-100 text-sm">
-              <p className="font-medium mb-1">Important:</p>
-              <ul className="space-y-1 text-xs">
-                <li>• Use the IBAN format for UAE bank accounts</li>
-                <li>• Beneficiary name must match your account holder name</li>
-                <li>• Payouts are typically processed within 1-2 business days</li>
-              </ul>
-            </div>
+          <div className="text-blue-100 text-xs text-left">
+            <p className="font-medium mb-1">Important:</p>
+            <ul className="space-y-1 text-[11px]">
+              <li>• Use the IBAN format for UAE bank accounts</li>
+              <li>• Beneficiary name must match your account holder name</li>
+              <li>• Payouts are typically processed within 1-2 business days</li>
+            </ul>
           </div>
         </div>
 
