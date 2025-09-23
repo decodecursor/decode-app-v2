@@ -68,19 +68,8 @@ export async function GET(request: NextRequest) {
       paymentLinksQuery = paymentLinksQuery.eq('creator_id', userId)
     }
 
-    // For Admin users, filter to current day only
-    if (userData?.role === 'Admin') {
-      // Filter to current date (today) in UTC
-      const today = new Date()
-      const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-      const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
-
-      paymentLinksQuery = paymentLinksQuery
-        .gte('paid_at', startOfToday.toISOString())
-        .lt('paid_at', endOfToday.toISOString())
-
-      console.log(`🔍 Admin user ${userId}: Filtering payments to current day (${startOfToday.toISOString()} to ${endOfToday.toISOString()})`)
-    }
+    // Temporarily removed current day filtering for Admin users to test calculation
+    // TODO: Restore day filtering if needed based on requirements
 
     const { data: userPaymentLinks } = await paymentLinksQuery
 
@@ -115,7 +104,7 @@ export async function GET(request: NextRequest) {
     const userBalance = userData?.role === 'Admin' ? totalServiceRevenue : totalServiceRevenue * 0.01
     const totalCommission = totalServiceRevenue * 0.01
 
-    const userRoleLabel = userData?.role === 'Admin' ? 'Admin (Current Day Only)' : 'User (All Time)'
+    const userRoleLabel = userData?.role === 'Admin' ? 'Admin (All Company Payments)' : 'User (All Time)'
     console.log(`💰 Payout Balance Calculation for ${userRoleLabel} ${userId}:`)
     console.log(`💰 Payment Links: ${userPaymentLinks?.length || 0}`)
     console.log(`💰 Total Service Revenue: ${totalServiceRevenue}`)
