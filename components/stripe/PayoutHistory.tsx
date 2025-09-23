@@ -222,54 +222,50 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
       ) : (
         <>
           <div className="space-y-3">
-            {payouts.slice(0, visibleCount).map((payout) => {
+            {payouts.slice(0, visibleCount).map((payout, index) => {
               const status = getStatusBadge(payout.status)
               const isHighlighted = highlightedPayoutId === payout.id
               return (
                 <div
                   key={payout.id}
                   id={`payout-${payout.id}`}
-                  className={`flex items-center justify-between p-4 rounded-lg hover:bg-white/10 transition-colors ${
+                  className={`bg-gray-800/50 rounded-lg p-3 hover:bg-gray-700/50 transition-colors ${
                     isHighlighted
-                      ? 'bg-purple-600/30 border-2 border-purple-500/60 animate-[fadeToNormal_3s_ease-out_forwards]'
-                      : 'bg-white/5 border-2 border-transparent'
+                      ? 'border-2 border-purple-500/60 animate-[fadeToNormal_3s_ease-out_forwards]'
+                      : 'border-2 border-transparent'
                   }`}
                   style={{
                     animationDelay: isHighlighted ? '0s' : undefined
                   }}
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-1">
-                      <span className="text-white font-medium">
+                  <div className="grid grid-cols-4 gap-x-5 items-center">
+                    <div className="flex items-center space-x-3">
+                      <span className="w-7 h-7 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">
+                        {index + 1}
+                      </span>
+                      <span className="cosmic-body text-green-400 font-bold">
                         AED {payout.payout_amount_aed.toFixed(2)}
                       </span>
-                      {status && (
-                        <span className={`text-xs px-2 py-1 rounded-full ${status.bg} ${status.text}`}>
-                          {status.label}
-                        </span>
-                      )}
                     </div>
-                    <div className="space-y-1">
-                      {payout.payout_request_id && (
-                        <p className="text-sm text-gray-400">
-                          Payout Request ID: <span className="font-mono text-purple-400">{payout.payout_request_id}</span>
-                        </p>
-                      )}
-                      {payout.payout_method && (
-                        <p className="text-sm text-gray-400">
-                          Method: <span className="text-purple-400">{formatPayoutMethod(payout.payout_method)}</span>
-                        </p>
-                      )}
+                    <div className="text-left">
+                      <span className="cosmic-body text-white/70">
+                        {payout.payout_method ? formatPayoutMethod(payout.payout_method) : 'N/A'}
+                      </span>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-white">
-                      {payout.paid_at ? (
-                        <>Paid on {formatDate(payout.paid_at)}</>
-                      ) : (
-                        <>Requested on {formatDate(payout.created_at)}</>
-                      )}
-                    </p>
+                    <div className="text-left">
+                      <span className="cosmic-label text-white/60 text-sm">
+                        {payout.payout_request_id || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="cosmic-body text-white/70">
+                        {payout.paid_at ? (
+                          <>Paid on {formatDate(payout.paid_at)}</>
+                        ) : (
+                          <>Requested on {formatDate(payout.created_at)}</>
+                        )}
+                      </span>
+                    </div>
                   </div>
                 </div>
               )
