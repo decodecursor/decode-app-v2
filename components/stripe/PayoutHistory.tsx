@@ -148,7 +148,7 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
 
       const data = result.payouts
 
-      const headers = ['Company Name', 'User Name', 'Date', 'Payout Request ID', 'Payout Method', 'Payout Amount AED']
+      const headers = ['Company Name', 'Creator Name', 'Payout Request Date', 'Payout Request ID', 'Payout Method', 'Payout Amount in AED']
       const rows = (data || []).map(payout => [
         payout.company_name || 'N/A',
         payout.user_name || 'N/A',

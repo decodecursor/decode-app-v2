@@ -207,6 +207,13 @@ export async function POST(request: NextRequest) {
         .eq('user_id', userId)
         .maybeSingle()
 
+      // Get PayPal account info if available
+      const { data: paypalAccount } = await supabase
+        .from('user_paypal_accounts')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle()
+
       await emailService.sendAdminPayoutRequestNotification({
         payout_request_id: payoutRequestId,
         user_name: userData?.user_name || 'Unknown User',
@@ -224,6 +231,9 @@ export async function POST(request: NextRequest) {
         account_type: bankAccount?.account_type,
         account_last4: bankAccount?.account_last4,
         stripe_connect_account_id: userData?.stripe_connect_account_id,
+        preferred_payout_method: payoutMethod,
+        paypal_email: paypalAccount?.email,
+        paypal_account_type: paypalAccount?.account_type,
         last_payout_date: allPayouts?.[0]?.paid_at,
         last_payout_amount: allPayouts?.[0]?.payout_amount_aed,
         request_date: new Date().toISOString()
