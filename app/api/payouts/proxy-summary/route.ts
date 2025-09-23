@@ -17,10 +17,10 @@ export async function GET(request: NextRequest) {
     
     const userId = user.id
     
-    // Get user's bank connection status and role
+    // Get user's bank connection status, role, and company info
     const { data: userData } = await supabase
       .from('users')
-      .select('stripe_connect_account_id, stripe_connect_status, role')
+      .select('stripe_connect_account_id, stripe_connect_status, role, company_name')
       .eq('id', userId)
       .single()
 
@@ -55,8 +55,31 @@ export async function GET(request: NextRequest) {
         amount_aed,
         paid_at
       `)
-      .eq('creator_id', userId)
       .not('paid_at', 'is', null)
+
+    // For Admin users, get company-wide data; for others, get personal data
+    if (userData?.role === 'Admin' && userData?.company_name) {
+      console.log(`🔍 Admin user ${userId}: Getting company-wide data for company: ${userData.company_name}`)
+
+      // Get all users from the company
+      const { data: companyUsers } = await supabase
+        .from('users')
+        .select('id')
+        .eq('company_name', userData.company_name)
+
+      const companyUserIds = companyUsers?.map(u => u.id) || []
+      console.log(`🔍 Found ${companyUserIds.length} company users:`, companyUserIds)
+
+      if (companyUserIds.length > 0) {
+        paymentLinksQuery = paymentLinksQuery.in('creator_id', companyUserIds)
+      } else {
+        // Fallback to personal data if no company users found
+        paymentLinksQuery = paymentLinksQuery.eq('creator_id', userId)
+      }
+    } else {
+      // For Staff users, get personal payment links only
+      paymentLinksQuery = paymentLinksQuery.eq('creator_id', userId)
+    }
 
     // For Admin users, filter to current day only
     if (userData?.role === 'Admin') {
