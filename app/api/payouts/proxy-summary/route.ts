@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
 
     // For Admin users, get all company payment links directly; for others, get personal data
     if (userData?.role === 'Admin' && userData?.company_name) {
-      console.log(`🔍 Admin user ${userId}: Getting ALL payment links for company: ${userData.company_name}`)
+      console.log(`🔍 Admin user ${userId}: Getting ALL payment links for company: "${userData.company_name}"`)
       paymentLinksQuery = paymentLinksQuery.eq('company_name', userData.company_name)
     } else {
       // For Staff users, get personal payment links only
@@ -83,6 +83,16 @@ export async function GET(request: NextRequest) {
 
     const { data: userPaymentLinks } = await paymentLinksQuery
 
+    console.log(`🔍 QUERY RESULT: Found ${userPaymentLinks?.length || 0} payment links`)
+    if (userPaymentLinks && userPaymentLinks.length > 0) {
+      console.log(`🔍 PAYMENT LINKS SAMPLE:`, userPaymentLinks.slice(0, 3).map(link => ({
+        company_name: link.company_name,
+        service_amount_aed: link.service_amount_aed,
+        amount_aed: link.amount_aed,
+        paid_at: link.paid_at
+      })))
+    }
+
     // Calculate total service revenue (what user earned)
     const totalServiceRevenue = (userPaymentLinks || []).reduce((sum, link) => {
       let serviceAmount = link.service_amount_aed || 0
@@ -90,10 +100,15 @@ export async function GET(request: NextRequest) {
       // If service_amount_aed is missing, calculate it (total - 9% platform fee)
       if (!serviceAmount && link.amount_aed) {
         serviceAmount = link.amount_aed * 0.91
+        console.log(`🔍 Calculated service amount for link: ${link.amount_aed} * 0.91 = ${serviceAmount}`)
+      } else if (serviceAmount) {
+        console.log(`🔍 Using existing service amount: ${serviceAmount}`)
       }
 
       return sum + serviceAmount
     }, 0)
+
+    console.log(`🔍 CALCULATION RESULT: Total Service Revenue = ${totalServiceRevenue}`)
 
     // For Admin users, use full service revenue; for others, use 1% commission
     const userBalance = userData?.role === 'Admin' ? totalServiceRevenue : totalServiceRevenue * 0.01
