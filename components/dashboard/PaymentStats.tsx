@@ -1024,13 +1024,11 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             }
             return (
               <div key={`${payment.id}-${index}`} className="bg-gray-800/50 rounded-lg p-3 hover:bg-gray-700/50 transition-colors">
-                <div className="grid grid-cols-6 gap-x-6 items-center">
-                  <div className="flex items-center justify-start">
+                <div className="grid grid-cols-5 gap-x-5 items-center">
+                  <div className="flex items-center space-x-3">
                     <span className="w-7 h-7 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">
                       {index + 1}
                     </span>
-                  </div>
-                  <div className="text-left">
                     <span className="cosmic-body text-white font-semibold">
                       {payment.client_name || 'Client'}
                     </span>
@@ -1050,7 +1048,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                       {payment.branch_name || 'No Branch'}
                     </span>
                   </div>
-                  <div className="text-left">
+                  <div className="text-right">
                     <span className="cosmic-body text-white/70">
                       {payment.creator_name || 'Unknown'}
                     </span>
