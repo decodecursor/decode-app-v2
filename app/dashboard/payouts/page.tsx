@@ -7,6 +7,7 @@ import { getUserWithProxy } from '@/utils/auth-helper'
 import { PayoutHistory } from '@/components/stripe/PayoutHistory'
 import { PayoutMethodsCard } from '@/components/payouts/PayoutMethodsCard'
 import HeartAnimation from '@/components/effects/HeartAnimation'
+import { createClient } from '@/utils/supabase/client'
 import type { User } from '@supabase/supabase-js'
 
 interface PayoutSummary {
@@ -27,6 +28,7 @@ interface PayoutMethod {
 
 export default function PayoutsPage() {
   const [user, setUser] = useState<User | null>(null)
+  const [userRole, setUserRole] = useState<string>('')
   const [payoutSummary, setPayoutSummary] = useState<PayoutSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -46,6 +48,32 @@ export default function PayoutsPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const router = useRouter()
 
+  // Fetch user profile with role information
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', userId)
+        .single()
+
+      if (error) {
+        console.error('Error fetching user profile:', error)
+        return
+      }
+
+      setUserRole(data?.role || '')
+    } catch (error) {
+      console.error('Exception fetching user profile:', error)
+    }
+  }
+
+  // Helper function to get card titles based on user role
+  const getCardTitle = (baseTitle: string) => {
+    return userRole === 'Admin' ? baseTitle.replace('My', 'Company') : baseTitle
+  }
+
   useEffect(() => {
     const getUser = async () => {
       try {
@@ -55,6 +83,7 @@ export default function PayoutsPage() {
           return
         }
         setUser(user)
+        await fetchUserProfile(user.id)
         await fetchPayoutSummary(user.id)
         await loadPayoutMethods()
       } catch (error) {
@@ -434,7 +463,7 @@ export default function PayoutsPage() {
                 {/* My Next Payout Card */}
                 <div className="flex-1 cosmic-card">
                   <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-white">My Next Payout</h3>
+                    <h3 className="text-lg font-semibold text-white">{getCardTitle('My Next Payout')}</h3>
                   </div>
 
                   {/* Two-Column Layout */}
@@ -484,7 +513,7 @@ export default function PayoutsPage() {
                 {/* My Total Payouts Card */}
                 <div className="flex-1 cosmic-card">
                   <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-white">My Total Payouts</h3>
+                    <h3 className="text-lg font-semibold text-white">{getCardTitle('My Total Payouts')}</h3>
                   </div>
                   
                   <div className="space-y-4">
@@ -507,7 +536,7 @@ export default function PayoutsPage() {
                 </div>
 
                 {/* My Payout Methods Card */}
-                {user && <PayoutMethodsCard userId={user.id} onMethodDeleted={loadPayoutMethods} />}
+                {user && <PayoutMethodsCard userId={user.id} userRole={userRole} onMethodDeleted={loadPayoutMethods} />}
               </div>
             )}
 
@@ -631,9 +660,9 @@ export default function PayoutsPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-4">Payment Method Required</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">Payout Method Required</h3>
                 <p className="text-gray-300 mb-6">
-                  You must configure a payment method before requesting a payout. Please set up a bank account or PayPal account in the payment methods section below.
+                  You must configure a payment method before requesting a payout. Please set up a bank account or PayPal account in the payout methods section on the right side.
                 </p>
 
                 <div className="flex gap-3">

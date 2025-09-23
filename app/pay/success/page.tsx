@@ -13,6 +13,7 @@ interface PaymentDetails {
   description: string
   clientName?: string
   timestamp: string
+  companyName?: string
 }
 
 function PaymentSuccessContent() {
@@ -31,6 +32,29 @@ function PaymentSuccessContent() {
       console.log('🎉 SUCCESS PAGE: Stopping heart animation')
       setHeartAnimating(false)
     }, 3000)
+  }
+
+  // Fetch payment link data to get company name
+  const fetchPaymentLinkData = async (paymentLinkId: string) => {
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('payment_links')
+        .select('company_name')
+        .eq('id', paymentLinkId)
+        .single()
+
+      if (error) {
+        console.error('❌ Error fetching payment link data:', error)
+        return null
+      }
+
+      console.log('✅ Payment link data fetched:', data)
+      return data?.company_name || null
+    } catch (error) {
+      console.error('❌ Exception fetching payment link data:', error)
+      return null
+    }
   }
 
   // Update transaction status to completed
@@ -71,57 +95,63 @@ function PaymentSuccessContent() {
   };
 
   useEffect(() => {
-    // Get payment details from URL params
-    console.log('🔍 Success page - All URL params:', Object.fromEntries(searchParams.entries()))
-    
-    const id = searchParams.get('id')
-    const amount = searchParams.get('amount')
-    const currency = searchParams.get('currency') || 'AED'
-    const description = searchParams.get('description')
-    const clientName = searchParams.get('clientName')
-    const timestamp = searchParams.get('timestamp')
-    
-    // Extract payment intent from Stripe redirect
-    const paymentIntent = searchParams.get('payment_intent')
-    const paymentIntentClientSecret = searchParams.get('payment_intent_client_secret')
-    const redirectStatus = searchParams.get('redirect_status')
-    
-    console.log('💰 Parsed params:', { id, amount, currency, description, clientName, timestamp })
-    console.log('💳 Stripe params:', { paymentIntent, redirectStatus, hasClientSecret: !!paymentIntentClientSecret })
+    const initializePaymentSuccess = async () => {
+      // Get payment details from URL params
+      console.log('🔍 Success page - All URL params:', Object.fromEntries(searchParams.entries()))
 
-    if (id && amount && description && timestamp) {
-      console.log('✅ All required params present - setting payment details')
-      console.log('✅ Payment redirect status:', redirectStatus)
-      
-      setPaymentDetails({
-        id,
-        amount: parseFloat(amount),
-        currency,
-        description,
-        clientName: clientName || undefined,
-        timestamp
-      })
-      
-      // Mark payment as completed with payment intent if available
-      markPaymentAsPaid(id, paymentIntent || undefined)
-    } else {
-      console.log('❌ Missing required params:', { 
-        hasId: !!id, 
-        hasAmount: !!amount, 
-        hasDescription: !!description, 
-        hasTimestamp: !!timestamp 
-      })
+      const id = searchParams.get('id')
+      const amount = searchParams.get('amount')
+      const currency = searchParams.get('currency') || 'AED'
+      const description = searchParams.get('description')
+      const clientName = searchParams.get('clientName')
+      const timestamp = searchParams.get('timestamp')
+
+      // Extract payment intent from Stripe redirect
+      const paymentIntent = searchParams.get('payment_intent')
+      const paymentIntentClientSecret = searchParams.get('payment_intent_client_secret')
+      const redirectStatus = searchParams.get('redirect_status')
+
+      console.log('💰 Parsed params:', { id, amount, currency, description, clientName, timestamp })
+      console.log('💳 Stripe params:', { paymentIntent, redirectStatus, hasClientSecret: !!paymentIntentClientSecret })
+
+      if (id && amount && description && timestamp) {
+        console.log('✅ All required params present - fetching company data and setting payment details')
+        console.log('✅ Payment redirect status:', redirectStatus)
+
+        // Fetch company name from payment link
+        const companyName = await fetchPaymentLinkData(id)
+
+        setPaymentDetails({
+          id,
+          amount: parseFloat(amount),
+          currency,
+          description,
+          clientName: clientName || undefined,
+          timestamp,
+          companyName: companyName || undefined
+        })
+
+        // Mark payment as completed with payment intent if available
+        markPaymentAsPaid(id, paymentIntent || undefined)
+
+        // Auto-trigger heart animation after 2 seconds
+        setTimeout(() => {
+          console.log('🎉 SUCCESS PAGE: Auto-triggering heart animation after 2 seconds')
+          triggerHeartAnimation()
+        }, 2000)
+      } else {
+        console.log('❌ Missing required params:', {
+          hasId: !!id,
+          hasAmount: !!amount,
+          hasDescription: !!description,
+          hasTimestamp: !!timestamp
+        })
+      }
+
+      setLoading(false)
     }
 
-    setLoading(false)
-
-    // Auto-trigger heart animation after 2 seconds
-    if (id && amount && description && timestamp) {
-      setTimeout(() => {
-        console.log('🎉 SUCCESS PAGE: Auto-triggering heart animation after 2 seconds')
-        triggerHeartAnimation()
-      }, 2000)
-    }
+    initializePaymentSuccess()
   }, [searchParams])
 
 
@@ -199,7 +229,7 @@ function PaymentSuccessContent() {
               {paymentDetails.clientName || 'Client Name'}
             </p>
             <p className="cosmic-body text-white mt-2">
-              Boho Beauty Salon
+              {paymentDetails.companyName || 'Beauty Salon'}
             </p>
           </div>
 

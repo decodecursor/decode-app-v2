@@ -8,33 +8,18 @@ import { BankAccountModal } from './BankAccountModal'
 
 interface PayoutMethodsCardProps {
   userId: string
+  userRole?: string
   onMethodDeleted?: () => void
 }
 
-export function PayoutMethodsCard({ userId, onMethodDeleted }: PayoutMethodsCardProps) {
+export function PayoutMethodsCard({ userId, userRole = 'User', onMethodDeleted }: PayoutMethodsCardProps) {
   const [showPayPalModal, setShowPayPalModal] = useState(false)
   const [showBankAccountModal, setShowBankAccountModal] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
-  const [userRole, setUserRole] = useState<string>('User')
 
-  useEffect(() => {
-    loadUserRole()
-  }, [userId])
-
-  const loadUserRole = async () => {
-    try {
-      const response = await fetch('/api/user/profile', {
-        method: 'GET',
-        credentials: 'include'
-      })
-
-      if (response.ok) {
-        const { userData } = await response.json()
-        setUserRole(userData.role || 'User')
-      }
-    } catch (error) {
-      console.error('Error loading user role:', error)
-    }
+  // Helper function to get card titles based on user role
+  const getCardTitle = (baseTitle: string) => {
+    return userRole === 'Admin' ? baseTitle.replace('My', 'Company') : baseTitle
   }
 
   const handleBankAccountClick = () => {
@@ -80,7 +65,7 @@ export function PayoutMethodsCard({ userId, onMethodDeleted }: PayoutMethodsCard
     <>
       <div className="flex-1 cosmic-card">
         <div className="mb-4">
-          <h3 className="text-lg font-semibold text-white">My Payout Methods</h3>
+          <h3 className="text-lg font-semibold text-white">{getCardTitle('My Payout Methods')}</h3>
         </div>
         
         <div className="space-y-4">
