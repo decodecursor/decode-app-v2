@@ -58,8 +58,15 @@ export async function GET(request: NextRequest) {
       `)
       .not('paid_at', 'is', null)
 
+    // Check if user is admin (case-insensitive)
+    const isAdmin = userData?.role && (
+      userData.role === 'Admin' ||
+      userData.role === 'admin' ||
+      userData.role.toLowerCase() === 'admin'
+    )
+
     // For Admin users, get all company payment links directly; for others, get personal data
-    if (userData?.role === 'Admin' && userData?.company_name) {
+    if (isAdmin && userData?.company_name) {
       console.log(`🔍 Admin user ${userId}: Getting ALL payment links for company: "${userData.company_name}"`)
       paymentLinksQuery = paymentLinksQuery.eq('company_name', userData.company_name)
     } else {
@@ -69,7 +76,7 @@ export async function GET(request: NextRequest) {
     }
 
     // For Admin users, filter to current day only (as requested)
-    if (userData?.role === 'Admin') {
+    if (isAdmin) {
       // Filter to current date (today) in UTC
       const today = new Date()
       const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
@@ -122,16 +129,25 @@ export async function GET(request: NextRequest) {
 
     console.log(`🔍 CALCULATION RESULT: Total Service Revenue = ${totalServiceRevenue}`)
 
+    // Debug role detection
+    console.log(`🔍 ROLE DEBUG: Raw role from database: "${userData?.role}"`)
+    console.log(`🔍 ROLE DEBUG: Role type: ${typeof userData?.role}`)
+    console.log(`🔍 ROLE DEBUG: Role === 'Admin': ${userData?.role === 'Admin'}`)
+    console.log(`🔍 ROLE DEBUG: Role === 'admin': ${userData?.role === 'admin'}`)
+    console.log(`🔍 ROLE DEBUG: Role toLowerCase(): ${userData?.role?.toLowerCase()}`)
+    console.log(`🔍 ROLE DEBUG: Final isAdmin result: ${isAdmin}`)
+
     // For Admin users, use full service revenue; for others, use 1% commission
-    const userBalance = userData?.role === 'Admin' ? totalServiceRevenue : totalServiceRevenue * 0.01
+    const userBalance = isAdmin ? totalServiceRevenue : totalServiceRevenue * 0.01
     const totalCommission = totalServiceRevenue * 0.01
 
-    const userRoleLabel = userData?.role === 'Admin' ? 'Admin (Current Day Only)' : 'User (All Time)'
+    const userRoleLabel = isAdmin ? 'Admin (Current Day Only)' : 'User (All Time)'
     console.log(`💰 Payout Balance Calculation for ${userRoleLabel} ${userId}:`)
     console.log(`💰 Payment Links: ${userPaymentLinks?.length || 0}`)
     console.log(`💰 Total Service Revenue: ${totalServiceRevenue}`)
-    console.log(`💰 User Balance: ${userBalance} (${userData?.role === 'Admin' ? 'Full Service Revenue' : '1% Commission'})`)
+    console.log(`💰 User Balance: ${userBalance} (${isAdmin ? 'Full Service Revenue' : '1% Commission'})`)
     console.log(`💰 Total Commission (1%): ${totalCommission}`)
+    console.log(`💰 ADMIN CALCULATION: ${isAdmin ? 'USING FULL AMOUNT' : 'USING 1% COMMISSION'}`)
 
     // Get earnings from completed transactions
     const { data: transactions } = await supabase
