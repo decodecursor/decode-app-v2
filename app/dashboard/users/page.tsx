@@ -1138,7 +1138,7 @@ export default function UsersManagement() {
                   </div>
                 </div>
               )}
-              <div className="flex space-x-4 mt-auto pt-6">
+              <div className="flex space-x-4 mt-auto pt-10 pb-6">
                 <button
                   onClick={() => {
                     setShowInviteModal(false)
