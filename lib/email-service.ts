@@ -1126,8 +1126,6 @@ Manage your payment settings in your dashboard.
 </head>
 <body>
     <div class="container">
-        <div class="logo">DECODE</div>
-
         <p>Hi ${data.recipientName},</p>
 
         <p>You've been invited to join ${data.companyName} on DECODE.</p>

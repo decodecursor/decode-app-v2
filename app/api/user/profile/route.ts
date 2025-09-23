@@ -141,11 +141,12 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { preferred_payout_method } = body
+    const { preferred_payout_method, branch_name } = body
 
     console.log('📝 [PROFILE-PATCH] Update request:', {
       userId: user.id,
-      preferred_payout_method
+      preferred_payout_method,
+      branch_name
     })
 
     // Validate preferred_payout_method if provided
@@ -162,6 +163,9 @@ export async function PATCH(request: NextRequest) {
     const updateData: any = {}
     if (preferred_payout_method !== undefined) {
       updateData.preferred_payout_method = preferred_payout_method
+    }
+    if (branch_name !== undefined) {
+      updateData.branch_name = branch_name
     }
 
     if (Object.keys(updateData).length === 0) {

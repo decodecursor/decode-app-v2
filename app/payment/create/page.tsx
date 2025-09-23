@@ -35,6 +35,8 @@ export default function CreatePayment() {
   const [selectedBranch, setSelectedBranch] = useState<string>('')
   const [showBranchSelector, setShowBranchSelector] = useState(false)
   const [userRole, setUserRole] = useState<UserRole | null>(null)
+  const [companyName, setCompanyName] = useState<string>('')
+  const [branchCount, setBranchCount] = useState<number>(1)
   
   const router = useRouter()
 
@@ -158,14 +160,49 @@ export default function CreatePayment() {
 
         const { userData } = await response.json()
 
+        // Set company info
+        setCompanyName(userData?.company_name || '')
+        setBranchCount(userData?.branchCount || 1)
+
         // Set user branch data (copy dashboard logic exactly)
         if (userData?.branch_name) {
           const branches = userData.branch_name.split(',').map((b: string) => b.trim()).filter((b: string) => b !== '')
           setUserBranches(branches)
           setSelectedBranch(branches[0] || '')
         } else {
-          setUserBranches([])
-          setSelectedBranch('')
+          // Check if company has only 1 branch and auto-assign to Main Branch
+          if (userData?.branchCount === 1 && userData?.company_name) {
+            console.log('🔄 Auto-assigning user to Main Branch for single-branch company')
+            try {
+              // Update user's branch assignment in database
+              const updateResponse = await fetch('/api/user/profile', {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  branch_name: 'Main Branch'
+                })
+              })
+
+              if (updateResponse.ok) {
+                console.log('✅ Successfully auto-assigned user to Main Branch')
+                setUserBranches(['Main Branch'])
+                setSelectedBranch('Main Branch')
+              } else {
+                console.error('❌ Failed to auto-assign branch')
+                setUserBranches([])
+                setSelectedBranch('')
+              }
+            } catch (error) {
+              console.error('❌ Error auto-assigning branch:', error)
+              setUserBranches([])
+              setSelectedBranch('')
+            }
+          } else {
+            setUserBranches([])
+            setSelectedBranch('')
+          }
         }
 
         // Set user role
@@ -477,8 +514,9 @@ export default function CreatePayment() {
                     {selectedBranch}
                   </div>
                 ) : userBranches.length === 0 ? (
-                  <div className="text-sm text-red-400">
-                    ⚠️ No branch assigned - Contact administrator
+                  <div className="text-sm text-red-400 text-center">
+                    <div>⚠️ No branch assigned ⚠️</div>
+                    <div>Contact your admin at {companyName || 'your company'} to assign you to correct branch</div>
                   </div>
                 ) : null}
 
