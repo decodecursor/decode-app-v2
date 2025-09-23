@@ -712,11 +712,22 @@ function AuthPageContent() {
 
     console.log('✅ [AUTH] Profile creation completed for role:', role)
 
-    // After profile creation, ALL users need to verify email and login
-    console.log('✅ [AUTH] Profile created successfully - switching to login flow')
-    setMessage('Profile created successfully! Please check your email to verify your account, then log in.')
-    setIsLogin(true)
-    setPassword('')
+    // Check if this is a post-verification flow (user already verified via email)
+    if (isPostVerificationFlow || signedUpUser?.email_confirmed_at) {
+      console.log('✅ [AUTH] User is already verified - redirecting directly to dashboard')
+      setMessage('Profile created successfully! Redirecting to dashboard...')
+
+      // Small delay to show success message, then redirect
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 1500)
+    } else {
+      // For users who signed up directly (not via email verification)
+      console.log('✅ [AUTH] User needs email verification - switching to login flow')
+      setMessage('Profile created successfully! Please check your email to verify your account, then log in.')
+      setIsLogin(true)
+      setPassword('')
+    }
 
     // Clear any temporary data
     setSignedUpUser(null)
