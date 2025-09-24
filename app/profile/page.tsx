@@ -34,6 +34,7 @@ export default function ProfilePage() {
 
   // Photo upload states
   const [photoUploading, setPhotoUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<string>('')
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null)
   const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 })
@@ -196,64 +197,167 @@ export default function ProfilePage() {
   }
 
   const getCroppedImg = (image: HTMLImageElement): Promise<Blob> => {
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')!
+    return new Promise((resolve, reject) => {
+      try {
+        console.log('🖼️ Starting image crop process...')
 
-    // Match canvas size to editor container (320px)
-    const containerSize = 320
-    const cropSize = 256 // Circular crop diameter (128px radius * 2)
-    canvas.width = cropSize
-    canvas.height = cropSize
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
 
-    // Create circular clipping path centered in crop area
-    ctx.beginPath()
-    ctx.arc(cropSize / 2, cropSize / 2, cropSize / 2, 0, 2 * Math.PI)
-    ctx.clip()
+        if (!ctx) {
+          throw new Error('Failed to get canvas context')
+        }
 
-    // Calculate scaled dimensions
-    const scaledWidth = image.naturalWidth * imageScale
-    const scaledHeight = image.naturalHeight * imageScale
+        // Match canvas size to crop area
+        const containerSize = 320
+        const cropSize = 256 // Circular crop diameter (128px radius * 2)
+        canvas.width = cropSize
+        canvas.height = cropSize
 
-    // The container is 320px, canvas is 256px
-    // The crop area is centered in the container, so we need to offset by (320-256)/2 = 32px
-    const cropOffset = (containerSize - cropSize) / 2  // 32px
+        console.log('📐 Canvas setup:', {
+          containerSize,
+          cropSize,
+          imageScale,
+          imagePosition
+        })
 
-    // imagePosition.x and imagePosition.y are the top-left coordinates of the image in the container
-    // We just need to subtract the offset to convert from container space to canvas space
-    const canvasX = imagePosition.x - cropOffset
-    const canvasY = imagePosition.y - cropOffset
+        // Fill with white background first (in case image has transparency)
+        ctx.fillStyle = '#FFFFFF'
+        ctx.fillRect(0, 0, cropSize, cropSize)
 
-    // Draw image at the calculated position
-    ctx.drawImage(
-      image,
-      canvasX,
-      canvasY,
-      scaledWidth,
-      scaledHeight
-    )
+        // Create circular clipping path centered in crop area
+        ctx.beginPath()
+        ctx.arc(cropSize / 2, cropSize / 2, cropSize / 2, 0, 2 * Math.PI)
+        ctx.clip()
 
-    return new Promise((resolve) => {
-      canvas.toBlob((blob) => {
-        resolve(blob!)
-      }, 'image/jpeg', 0.95)
+        // Calculate scaled dimensions
+        const scaledWidth = image.naturalWidth * imageScale
+        const scaledHeight = image.naturalHeight * imageScale
+
+        console.log('🔢 Image dimensions:', {
+          natural: { width: image.naturalWidth, height: image.naturalHeight },
+          scaled: { width: scaledWidth, height: scaledHeight }
+        })
+
+        // The container is 320px, canvas is 256px
+        // The crop area is centered in the container, so we need to offset by (320-256)/2 = 32px
+        const cropOffset = (containerSize - cropSize) / 2  // 32px
+
+        // imagePosition.x and imagePosition.y are the top-left coordinates of the image in the container
+        // We need to subtract the offset to convert from container space to canvas space
+        const canvasX = imagePosition.x - cropOffset
+        const canvasY = imagePosition.y - cropOffset
+
+        console.log('📍 Drawing position:', {
+          containerPosition: imagePosition,
+          cropOffset,
+          canvasPosition: { x: canvasX, y: canvasY }
+        })
+
+        // Draw image at the calculated position
+        ctx.drawImage(
+          image,
+          canvasX,
+          canvasY,
+          scaledWidth,
+          scaledHeight
+        )
+
+        // Convert canvas to blob
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            console.error('❌ Failed to create blob from canvas')
+            reject(new Error('Failed to create image blob'))
+            return
+          }
+
+          console.log('✅ Image cropped successfully:', {
+            blobSize: blob.size,
+            blobType: blob.type
+          })
+
+          resolve(blob)
+        }, 'image/jpeg', 0.95)
+
+      } catch (error) {
+        console.error('❌ Error in getCroppedImg:', error)
+        reject(error)
+      }
     })
   }
 
-  const uploadProfilePhoto = async () => {
-    if (!imgRef.current || !profile || !selectedImage) return
-
-    setPhotoUploading(true)
+  // Helper function to check if storage bucket exists
+  const checkStorageBucket = async (supabase: any): Promise<boolean> => {
     try {
+      console.log('🪣 Checking if storage bucket exists...')
+      const { data, error } = await supabase.storage.listBuckets()
+
+      if (error) {
+        console.error('❌ Error listing buckets:', error)
+        return false
+      }
+
+      const bucketExists = data?.some((bucket: any) => bucket.name === 'user-uploads')
+      console.log('✅ Bucket check result:', { bucketExists, availableBuckets: data?.map((b: any) => b.name) })
+
+      return bucketExists || false
+    } catch (error) {
+      console.error('❌ Unexpected error checking bucket:', error)
+      return false
+    }
+  }
+
+  const uploadProfilePhoto = async () => {
+    if (!imgRef.current || !profile || !selectedImage) {
+      console.error('❌ Upload failed: Missing required data', {
+        hasImage: !!imgRef.current,
+        hasProfile: !!profile,
+        hasSelectedImage: !!selectedImage
+      })
+      setMessage({ type: 'error', text: 'Missing image or profile data. Please try again.' })
+      return
+    }
+
+    console.log('🚀 Starting photo upload process...')
+    setPhotoUploading(true)
+    setUploadProgress('Preparing image...')
+
+    try {
+      // Step 1: Create cropped image blob
+      console.log('📸 Creating cropped image...')
+      setUploadProgress('Processing image...')
       const croppedImageBlob = await getCroppedImg(imgRef.current)
-      
+
+      if (!croppedImageBlob || croppedImageBlob.size === 0) {
+        throw new Error('Failed to create image blob')
+      }
+
+      console.log('✅ Cropped image created:', {
+        size: croppedImageBlob.size,
+        type: croppedImageBlob.type
+      })
+
       const fileExt = 'jpg'
       const fileName = `${profile.id}-${Date.now()}.${fileExt}`
       const filePath = `profile-photos/${fileName}`
 
+      console.log('☁️ Uploading to Supabase storage:', filePath)
       const supabase = createClient()
-      
-      // Upload to Supabase storage
-      const { error: uploadError } = await supabase.storage
+
+      // Check if storage bucket exists before attempting upload
+      setUploadProgress('Checking storage...')
+      const bucketExists = await checkStorageBucket(supabase)
+      if (!bucketExists) {
+        setMessage({
+          type: 'error',
+          text: 'Storage bucket "user-uploads" not found. Please contact admin to set up image storage.'
+        })
+        return
+      }
+
+      // Step 2: Upload to Supabase storage
+      setUploadProgress('Uploading image...')
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('user-uploads')
         .upload(filePath, croppedImageBlob, {
           contentType: 'image/jpeg',
@@ -261,45 +365,67 @@ export default function ProfilePage() {
         })
 
       if (uploadError) {
-        console.error('Storage upload error:', uploadError)
+        console.error('❌ Storage upload error:', uploadError)
         if (uploadError.message?.includes('not found') || uploadError.message?.includes('bucket')) {
           setMessage({ type: 'error', text: 'Storage bucket not found. Please create "user-uploads" bucket in Supabase Storage.' })
+        } else if (uploadError.message?.includes('policy')) {
+          setMessage({ type: 'error', text: 'Permission denied. Please check storage bucket policies.' })
         } else {
-          throw uploadError
+          setMessage({ type: 'error', text: `Upload failed: ${uploadError.message}` })
         }
         return
       }
 
-      // Get public URL
+      console.log('✅ Upload successful:', uploadData)
+
+      // Step 3: Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('user-uploads')
         .getPublicUrl(filePath)
 
-      // Update profile photo URL in state and database
-      setProfilePhotoUrl(publicUrl)
-      
-      // Update user profile in database with photo URL
-      // Type casting to bypass Supabase type checking for profile_photo_url column
+      console.log('🔗 Public URL generated:', publicUrl)
+
+      // Step 4: Update user profile in database with photo URL
+      console.log('💾 Updating database...')
+      setUploadProgress('Saving to profile...')
       const { error: updateError } = await supabase
         .from('users')
         .update({ profile_photo_url: publicUrl } as any)
         .eq('id', profile.id)
 
       if (updateError) {
-        console.error('Error updating profile photo URL:', updateError)
-        setMessage({ type: 'error', text: 'Failed to save profile photo. Please try again.' })
+        console.error('❌ Database update error:', updateError)
+        if (updateError.message?.includes('column') && updateError.message?.includes('profile_photo_url')) {
+          setMessage({ type: 'error', text: 'Database column missing. Please run the profile updates SQL script.' })
+        } else {
+          setMessage({ type: 'error', text: `Database update failed: ${updateError.message}` })
+        }
         return
       }
 
-      // Reset editor state without showing success message
+      console.log('✅ Database updated successfully')
+
+      // Step 5: Update local state and show success
+      setProfilePhotoUrl(publicUrl)
+      setMessage({ type: 'success', text: 'Profile photo updated successfully!' })
+
+      // Reset editor state after successful upload
       setSelectedImage(null)
       setImagePosition({ x: 0, y: 0 })
       setImageScale(1)
+
+      console.log('🎉 Profile photo upload completed successfully!')
+
     } catch (error) {
-      console.error('Error uploading photo:', error)
-      setMessage({ type: 'error', text: 'Failed to upload profile photo. Check console for details.' })
+      console.error('❌ Unexpected error during photo upload:', error)
+      setMessage({
+        type: 'error',
+        text: `Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}. Check console for details.`
+      })
+      // Don't reset editor state on error - let user try again
     } finally {
       setPhotoUploading(false)
+      setUploadProgress('')
     }
   }
 
@@ -584,7 +710,7 @@ export default function ProfilePage() {
                           </svg>
                         </div>
                         
-                        <p className="text-sm text-white text-center mt-4">Drag to reposition • Use slider to zoom</p>
+                        <p className="text-xs text-white text-center mt-4">Drag image to position • Use slider to zoom</p>
                       </div>
                     </div>
                     
@@ -608,7 +734,7 @@ export default function ProfilePage() {
                         {photoUploading ? (
                           <div className="flex items-center gap-2">
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Uploading...
+                            {uploadProgress || 'Uploading...'}
                           </div>
                         ) : (
                           'Save Photo'
