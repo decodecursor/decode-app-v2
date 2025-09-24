@@ -25,6 +25,7 @@ interface PaymentLink {
   is_paid?: boolean
   branch_name?: string | null
   creator_name?: string | null
+  creator_id: string
   created_at: string
   updated_at: string
 }
