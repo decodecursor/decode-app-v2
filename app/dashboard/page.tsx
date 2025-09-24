@@ -145,15 +145,15 @@ export default function Dashboard() {
       // Note: Profile is automatically created by database trigger during registration
       // No need to redirect to profile setup - users should stay on dashboard
 
-      // Check if user is approved (skip check for Admins)
-      if (profile.approval_status === 'pending' && profile.role !== USER_ROLES.ADMIN) {
+      // Check if user is approved (skip check for Admins) - only if profile exists
+      if (profile?.approval_status === 'pending' && profile?.role !== USER_ROLES.ADMIN) {
         window.location.href = '/pending-approval'
         return
       }
 
       // Set pending users count for admins
-      if (profile.role === USER_ROLES.ADMIN && profile.pendingUsersCount !== undefined) {
-        setPendingUsersCount(profile.pendingUsersCount)
+      if (profile?.role === USER_ROLES.ADMIN && profile?.pendingUsersCount !== undefined) {
+        setPendingUsersCount(profile?.pendingUsersCount)
       }
     }
   }, [contextLoading, user, profile, router])
@@ -233,9 +233,23 @@ export default function Dashboard() {
     )
   }
 
-  // Early return if no user or profile (will redirect in useEffect)
-  if (!user || !profile) {
+  // Early return if no user (will redirect to auth in useEffect)
+  if (!user) {
     return null
+  }
+
+  // Show loading if profile is still loading but user exists
+  if (!profile && !contextLoading) {
+    return (
+      <div className="cosmic-bg">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-gray-300">Loading your profile...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   // Ensure user exists before rendering - show fallback instead of null
@@ -279,9 +293,9 @@ export default function Dashboard() {
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                     className="instagram-avatar"
                   >
-                    {profile.companyProfileImage ? (
+                    {profile?.companyProfileImage ? (
                       <img 
-                        src={profile.companyProfileImage} 
+                        src={profile?.companyProfileImage} 
                         alt="Company Profile" 
                       />
                     ) : (
@@ -330,21 +344,21 @@ export default function Dashboard() {
                 {/* User Info Text */}
                 <div className="flex flex-col justify-center">
                   <div className="user-info-name">
-                    {profile.user_name || 'No name set'}
+                    {profile?.user_name || 'No name set'}
                   </div>
                   <div className="user-info-company">
-                    {profile.company_name || 'No company set'}
+                    {profile?.company_name || 'No company set'}
                   </div>
-                  {profile.role && (
+                  {profile?.role && (
                     <div className="text-xs text-gray-400">
-                      {profile.role}
+                      {profile?.role}
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Right side - Navigation Buttons */}
-              {profile.role === USER_ROLES.ADMIN && (
+              {profile?.role === USER_ROLES.ADMIN && (
                 <div className="flex gap-4 items-center">
                   {/* Users Management */}
                   <Link 
@@ -387,7 +401,7 @@ export default function Dashboard() {
               )}
 
               {/* User Navigation Buttons */}
-              {profile.role === USER_ROLES.STAFF && (
+              {profile?.role === USER_ROLES.STAFF && (
                 <div className="flex gap-4 items-center">
                   {/* Payment History */}
                   <Link 
@@ -426,9 +440,9 @@ export default function Dashboard() {
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                     className="instagram-avatar"
                   >
-                    {profile.companyProfileImage ? (
+                    {profile?.companyProfileImage ? (
                       <img 
-                        src={profile.companyProfileImage} 
+                        src={profile?.companyProfileImage} 
                         alt="Company Profile" 
                       />
                     ) : (
@@ -443,14 +457,14 @@ export default function Dashboard() {
                   {/* Mobile User Info Text */}
                   <div className="flex flex-col justify-center">
                     <div className="user-info-name text-base">
-                      {profile.user_name || 'No name set'}
+                      {profile?.user_name || 'No name set'}
                     </div>
                     <div className="user-info-company text-xs">
-                      {profile.company_name || 'No company set'}
+                      {profile?.company_name || 'No company set'}
                     </div>
-                    {profile.role && (
+                    {profile?.role && (
                       <div className="text-xs text-gray-400">
-                        {profile.role}
+                        {profile?.role}
                       </div>
                     )}
                   </div>
@@ -475,7 +489,7 @@ export default function Dashboard() {
                 <div className="border-t border-gray-700 pt-4">
                   <nav className="space-y-2">
                     
-                    {profile.role === USER_ROLES.ADMIN && (
+                    {profile?.role === USER_ROLES.ADMIN && (
                       <>
                         <button 
                           className="block w-full text-left bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] mb-2"
