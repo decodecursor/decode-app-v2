@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { getUserWithProxy } from '@/utils/auth-helper'
 import { User } from '@supabase/supabase-js'
 import PasswordInput from '@/components/PasswordInput'
-// Removed ReactCrop - using custom Instagram-style interface
+import Cropper from 'react-easy-crop'
 
 interface UserProfile {
   id: string
@@ -37,14 +37,10 @@ export default function ProfilePage() {
   const [uploadProgress, setUploadProgress] = useState<string>('')
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null)
-  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 })
-  const [imageScale, setImageScale] = useState(1)
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  const [hasInitialized, setHasInitialized] = useState(false)
-  const imgRef = useRef<HTMLImageElement>(null)
+  const [crop, setCrop] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [croppedImage, setCroppedImage] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
 
   // Password change states
   const [currentPassword, setCurrentPassword] = useState('')
@@ -193,66 +189,50 @@ export default function ProfilePage() {
     const reader = new FileReader()
     reader.onload = () => {
       setSelectedImage(reader.result as string)
-      setHasInitialized(false) // Reset so new image gets centered
+      setCrop({ x: 0, y: 0 })
+      setZoom(1)
+      setCroppedImage(null)
     }
     reader.readAsDataURL(file)
   }
 
-  const getCroppedImg = (image: HTMLImageElement): Promise<Blob> => {
-    // Get actual container dimensions
-    const containerSize = containerRef.current ? containerRef.current.offsetWidth : 320
-    const cropSize = 256
-    const offset = (containerSize - cropSize) / 2
-
-    console.log('📐 Cropping dimensions:', {
-      containerSize,
-      cropSize,
-      offset,
-      imagePosition,
-      imageScale,
-      actualContainerWidth: containerRef.current?.offsetWidth,
-      actualContainerHeight: containerRef.current?.offsetHeight,
-      copyFromX: offset,
-      copyFromY: offset,
-      copyToX: offset + cropSize,
-      copyToY: offset + cropSize
-    })
-
-    // Step 1: Create a canvas same size as actual editor container
-    const tempCanvas = document.createElement('canvas')
-    const tempCtx = tempCanvas.getContext('2d')!
-    tempCanvas.width = containerSize
-    tempCanvas.height = containerSize
-
-    // Match CSS transform behavior exactly: translate first, then scale
-    tempCtx.save()
-    tempCtx.translate(imagePosition.x, imagePosition.y)
-    tempCtx.scale(imageScale, imageScale)
-    tempCtx.drawImage(image, 0, 0, image.naturalWidth, image.naturalHeight)
-    tempCtx.restore()
-
-    // Step 2: Create final canvas for cropped result
-    const finalCanvas = document.createElement('canvas')
-    const finalCtx = finalCanvas.getContext('2d')!
-    finalCanvas.width = cropSize
-    finalCanvas.height = cropSize
-
-    // Create circular clipping path
-    finalCtx.beginPath()
-    finalCtx.arc(cropSize/2, cropSize/2, cropSize/2, 0, 2 * Math.PI)
-    finalCtx.clip()
-
-    // Copy the center area from temp canvas
-    finalCtx.drawImage(
-      tempCanvas,
-      offset, offset, cropSize, cropSize,  // Source: center of container
-      0, 0, cropSize, cropSize              // Destination: full crop canvas
-    )
-
+  const getCroppedImg = (imageSrc: string, crop: { x: number, y: number }, zoom: number): Promise<Blob> => {
     return new Promise((resolve) => {
-      finalCanvas.toBlob((blob) => {
-        resolve(blob!)
-      }, 'image/jpeg', 0.95)
+      const image = new Image()
+      image.src = imageSrc
+      image.onload = () => {
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')!
+
+        const size = Math.min(image.width, image.height)
+        canvas.width = size
+        canvas.height = size
+
+        const cropX = (crop.x * image.width) / 100
+        const cropY = (crop.y * image.height) / 100
+
+        // Create circular clipping path
+        ctx.beginPath()
+        ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI)
+        ctx.clip()
+
+        // Draw the cropped image
+        ctx.drawImage(
+          image,
+          cropX,
+          cropY,
+          image.width / zoom,
+          image.height / zoom,
+          0,
+          0,
+          size,
+          size
+        )
+
+        canvas.toBlob((blob) => {
+          resolve(blob!)
+        }, 'image/jpeg', 0.95)
+      }
     })
   }
 
@@ -277,12 +257,19 @@ export default function ProfilePage() {
     }
   }
 
+  const onCropComplete = useCallback(async (_, croppedAreaPixels) => {
+    if (!selectedImage) return
+    const cropped = await getCroppedImg(selectedImage, crop, zoom)
+    const croppedUrl = URL.createObjectURL(cropped)
+    setCroppedImage(croppedUrl)
+  }, [selectedImage, crop, zoom])
+
   const uploadProfilePhoto = async () => {
-    if (!imgRef.current || !profile || !selectedImage) return
+    if (!profile || !selectedImage || !croppedImage) return
 
     setPhotoUploading(true)
     try {
-      const croppedImageBlob = await getCroppedImg(imgRef.current)
+      const croppedImageBlob = await getCroppedImg(selectedImage, crop, zoom)
 
       const fileExt = 'jpg'
       const fileName = `${profile.id}-${Date.now()}.${fileExt}`
@@ -331,9 +318,9 @@ export default function ProfilePage() {
 
       // Reset editor state without showing success message
       setSelectedImage(null)
-      setImagePosition({ x: 0, y: 0 })
-      setImageScale(1)
-      setHasInitialized(false)
+      setCrop({ x: 0, y: 0 })
+      setZoom(1)
+      setCroppedImage(null)
     } catch (error) {
       console.error('Error uploading photo:', error)
       setMessage({ type: 'error', text: 'Failed to upload profile photo. Check console for details.' })
@@ -342,64 +329,6 @@ export default function ProfilePage() {
     }
   }
 
-  // Handle mouse/touch events for dragging
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-    setDragStart({ x: e.clientX - imagePosition.x, y: e.clientY - imagePosition.y })
-  }
-
-  // Document-level drag handling for proper mouse tracking
-  useEffect(() => {
-    if (!isDragging) return
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!imgRef.current) return
-      
-      const newX = e.clientX - dragStart.x
-      const newY = e.clientY - dragStart.y
-      
-      // Calculate simple boundaries for smooth dragging in all directions
-      const img = imgRef.current
-      const scaledWidth = img.naturalWidth * imageScale
-      const scaledHeight = img.naturalHeight * imageScale
-      const containerWidth = containerRef.current ? containerRef.current.offsetWidth : 320
-      const containerHeight = containerRef.current ? containerRef.current.offsetHeight : 320
-      const buffer = 100 // Allow image to move beyond container but keep some portion visible
-      
-      // Simple boundary logic - allow generous movement in all directions
-      const minX = -scaledWidth + buffer
-      const maxX = containerWidth - buffer
-      const minY = -scaledHeight + buffer  
-      const maxY = containerHeight - buffer
-      
-      const newPosition = {
-        x: Math.max(minX, Math.min(maxX, newX)),
-        y: Math.max(minY, Math.min(maxY, newY))
-      }
-      console.log('🖱️ Mouse move - updating position:', newPosition)
-      setImagePosition(newPosition)
-    }
-
-    const handleMouseUp = () => {
-      setIsDragging(false)
-    }
-
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-    }
-  }, [isDragging, dragStart.x, dragStart.y, imageScale])
-
-  // Handle zoom slider
-  const handleZoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newScale = parseFloat(e.target.value)
-    console.log('🔍 Zoom slider changed:', { oldScale: imageScale, newScale })
-    setImageScale(newScale)
-  }
 
   const changeEmail = async () => {
     if (!profile || !newEmail.trim() || newEmail === profile.email) return
@@ -538,99 +467,55 @@ export default function ProfilePage() {
                 </div>
               )}
 
-              {/* Instagram-Style Image Editor */}
+              {/* React Easy Crop Image Editor */}
               {selectedImage && (
                   <div className="mb-8">
-                    <div className="flex justify-center">
-                      {/* Main Image Container */}
-                      <div className="relative">
-                        <div 
-                          ref={containerRef}
-                          className={`relative w-80 h-80 bg-gray-600 rounded-2xl overflow-hidden transition-all duration-200 ${
-                            isDragging ? 'cursor-grabbing' : 'cursor-grab'
-                          }`}
-                          onMouseDown={handleMouseDown}
-                          style={{
-                            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)`,
-                            backgroundSize: '20px 20px'
-                          }}
-                        >
-                          {/* Image Behind Mask */}
-                          <img
-                            ref={imgRef}
-                            src={selectedImage}
-                            alt="Edit preview"
-                            className={`absolute select-none border-2 rounded-lg shadow-lg transition-all duration-200 ${
-                              isDragging 
-                                ? 'border-blue-400 shadow-blue-400/50' 
-                                : 'border-white/50 hover:border-white/80'
-                            }`}
-                            style={{
-                              transform: `translate(${imagePosition.x}px, ${imagePosition.y}px) scale(${imageScale})`,
-                              transformOrigin: 'top left',
-                              transition: isDragging ? 'none' : 'transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease',
-                              zIndex: 1
-                            }}
-                            onLoad={() => {
-                              // Only auto-center on first load, not on re-renders
-                              if (!hasInitialized && imgRef.current && containerRef.current) {
-                                const img = imgRef.current
-                                const container = containerRef.current
-
-                                // Calculate proper centering based on natural dimensions
-                                const containerWidth = container.offsetWidth
-                                const containerHeight = container.offsetHeight
-
-                                // Scale image to fill circular crop area (256px diameter)
-                                const minScale = Math.max(256 / img.naturalWidth, 256 / img.naturalHeight)
-                                const scaledWidth = img.naturalWidth * minScale
-                                const scaledHeight = img.naturalHeight * minScale
-
-                                // Center the scaled image
-                                setImagePosition({
-                                  x: (containerWidth - scaledWidth) / 2,
-                                  y: (containerHeight - scaledHeight) / 2
-                                })
-                                setImageScale(minScale)
-                                setHasInitialized(true)
-                              }
-                            }}
-                          />
-
-                          {/* Circular Crop Mask - Above Image */}
-                          <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 2 }}>
-                            <div 
-                              className="absolute inset-0 bg-black bg-opacity-70"
-                              style={{
-                                maskImage: 'radial-gradient(circle 128px at center, transparent 128px, black 128px)',
-                                WebkitMaskImage: 'radial-gradient(circle 128px at center, transparent 128px, black 128px)'
-                              }}
-                            ></div>
-                            <div className="absolute top-1/2 left-1/2 w-64 h-64 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/30"></div>
-                          </div>
-                        </div>
-                        
-                        {/* Zoom Slider */}
-                        <div className="mt-6 flex items-center gap-3">
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                          </svg>
-                          <input
-                            type="range"
-                            min="0.5"
-                            max="3"
-                            step="0.1"
-                            value={imageScale}
-                            onChange={handleZoomChange}
-                            className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                          />
-                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
-                          </svg>
-                        </div>
-                        
-                        <p className="text-xs text-white text-center mt-4">Drag image to position • Use slider to zoom</p>
+                    <div className="flex flex-col items-center gap-6">
+                      {/* Crop Area */}
+                      <div className="relative w-80 h-80 bg-gray-800 rounded-2xl overflow-hidden">
+                        <Cropper
+                          image={selectedImage}
+                          crop={crop}
+                          zoom={zoom}
+                          aspect={1}
+                          cropShape="round"
+                          showGrid={false}
+                          onCropChange={setCrop}
+                          onZoomChange={setZoom}
+                          onCropComplete={onCropComplete}
+                        />
                       </div>
+
+                      {/* Zoom Slider */}
+                      <div className="flex items-center gap-3 w-80">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <input
+                          type="range"
+                          min="1"
+                          max="3"
+                          step="0.1"
+                          value={zoom}
+                          onChange={(e) => setZoom(parseFloat(e.target.value))}
+                          className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                        />
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                        </svg>
+                      </div>
+
+                      {/* Preview */}
+                      {croppedImage && (
+                        <div className="flex flex-col items-center gap-2">
+                          <img
+                            src={croppedImage}
+                            alt="Cropped preview"
+                            className="w-32 h-32 rounded-full border-2 border-white/30"
+                          />
+                          <p className="text-xs text-gray-400">Preview</p>
+                        </div>
+                      )}
                     </div>
                     
                     {/* Action Buttons */}
@@ -638,9 +523,9 @@ export default function ProfilePage() {
                       <button
                         onClick={() => {
                           setSelectedImage(null)
-                          setImagePosition({ x: 0, y: 0 })
-                          setImageScale(1)
-                          setHasInitialized(false)
+                          setCrop({ x: 0, y: 0 })
+                          setZoom(1)
+                          setCroppedImage(null)
                         }}
                         className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-full font-medium transition-all duration-200 transform hover:scale-105"
                       >
