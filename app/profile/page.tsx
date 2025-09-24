@@ -213,26 +213,28 @@ export default function ProfilePage() {
     const scaledWidth = image.naturalWidth * imageScale
     const scaledHeight = image.naturalHeight * imageScale
 
-    // The crop circle (256px) is centered in the 320px container
-    // So there's a 32px offset from container edge to crop circle edge
-    const containerSize = 320
-    const offset = (containerSize - cropSize) / 2  // 32px
+    // Simple coordinate conversion:
+    // Container: 320px, crop area from x=32 to x=288
+    // Canvas: 256px, crop area from x=0 to x=256
+    // So: canvasX = imagePosition.x - 32
 
-    // Convert container coordinates to canvas coordinates
-    // Subtract the offset to get position relative to crop circle, then scale
-    const scale = cropSize / containerSize
-    const canvasX = (imagePosition.x - offset) * scale + offset * scale
-    const canvasY = (imagePosition.y - offset) * scale + offset * scale
+    const offset = 32
+    const canvasX = imagePosition.x - offset
+    const canvasY = imagePosition.y - offset
+
+    // Scale image size from 320px container to 256px canvas
+    const scale = 256 / 320  // 0.8
     const canvasWidth = scaledWidth * scale
     const canvasHeight = scaledHeight * scale
 
-    console.log('🎯 Fixed coordinate conversion:', {
-      containerPos: imagePosition,
-      offset,
-      scale,
-      canvasPos: { x: canvasX, y: canvasY },
-      canvasSize: { w: canvasWidth, h: canvasHeight }
-    })
+    console.log('🎯 DETAILED coordinate conversion:')
+    console.log('   Container position:', imagePosition)
+    console.log('   Image scale:', imageScale)
+    console.log('   Image natural size:', image.naturalWidth, 'x', image.naturalHeight)
+    console.log('   Scaled size:', scaledWidth, 'x', scaledHeight)
+    console.log('   Canvas position:', canvasX, ',', canvasY)
+    console.log('   Canvas size:', canvasWidth, 'x', canvasHeight)
+    console.log('   Scale factor:', scale)
 
     // Draw image
     ctx.drawImage(
