@@ -197,6 +197,13 @@ export default function ProfilePage() {
   }
 
   const getCroppedImg = (image: HTMLImageElement): Promise<Blob> => {
+    console.log('🔍 getCroppedImg called with state:', {
+      imagePosition,
+      imageScale,
+      imageNaturalWidth: image.naturalWidth,
+      imageNaturalHeight: image.naturalHeight
+    })
+
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')!
 
@@ -356,10 +363,12 @@ export default function ProfilePage() {
       const minY = -scaledHeight + buffer  
       const maxY = containerHeight - buffer
       
-      setImagePosition({
+      const newPosition = {
         x: Math.max(minX, Math.min(maxX, newX)),
         y: Math.max(minY, Math.min(maxY, newY))
-      })
+      }
+      console.log('🖱️ Mouse move - updating position:', newPosition)
+      setImagePosition(newPosition)
     }
 
     const handleMouseUp = () => {
