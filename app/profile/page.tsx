@@ -199,34 +199,30 @@ export default function ProfilePage() {
   }
 
   const getCroppedImg = (image: HTMLImageElement): Promise<Blob> => {
-    // Get actual container dimensions consistently
+    // Get actual container dimensions
     const containerSize = containerRef.current ? containerRef.current.offsetWidth : 320
     const cropSize = 256
-    const cropRadius = cropSize / 2
-    const centerX = containerSize / 2
-    const centerY = containerSize / 2
+    const offset = (containerSize - cropSize) / 2
 
-    console.log('📐 Direct pixel cropping:', {
+    console.log('📐 Cropping dimensions:', {
       containerSize,
       cropSize,
+      offset,
       imagePosition,
-      imageScale,
-      centerX,
-      centerY
+      imageScale
     })
 
-    // Create a single canvas that exactly matches the editor container
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')!
-    canvas.width = containerSize
-    canvas.height = containerSize
+    // Step 1: Create a canvas same size as actual editor container
+    const tempCanvas = document.createElement('canvas')
+    const tempCtx = tempCanvas.getContext('2d')!
+    tempCanvas.width = containerSize
+    tempCanvas.height = containerSize
 
-    // Draw the image exactly as it appears in the preview
-    // Using the same positioning logic as the CSS transform
+    // Draw image at exact same position as in editor
     const scaledWidth = image.naturalWidth * imageScale
     const scaledHeight = image.naturalHeight * imageScale
 
-    ctx.drawImage(
+    tempCtx.drawImage(
       image,
       imagePosition.x,
       imagePosition.y,
@@ -234,30 +230,26 @@ export default function ProfilePage() {
       scaledHeight
     )
 
-    // Create the final circular cropped canvas
-    const croppedCanvas = document.createElement('canvas')
-    const croppedCtx = croppedCanvas.getContext('2d')!
-    croppedCanvas.width = cropSize
-    croppedCanvas.height = cropSize
+    // Step 2: Create final canvas for cropped result
+    const finalCanvas = document.createElement('canvas')
+    const finalCtx = finalCanvas.getContext('2d')!
+    finalCanvas.width = cropSize
+    finalCanvas.height = cropSize
 
-    // Create circular clipping path first
-    croppedCtx.beginPath()
-    croppedCtx.arc(cropRadius, cropRadius, cropRadius, 0, 2 * Math.PI)
-    croppedCtx.clip()
+    // Create circular clipping path
+    finalCtx.beginPath()
+    finalCtx.arc(cropSize/2, cropSize/2, cropSize/2, 0, 2 * Math.PI)
+    finalCtx.clip()
 
-    // Copy the circular area from the center of the container canvas
-    // Source coordinates: center of container minus crop radius
-    const sourceX = centerX - cropRadius
-    const sourceY = centerY - cropRadius
-
-    croppedCtx.drawImage(
-      canvas,
-      sourceX, sourceY, cropSize, cropSize,  // Source: circular area from center of container
-      0, 0, cropSize, cropSize               // Destination: entire cropped canvas
+    // Copy the center area from temp canvas
+    finalCtx.drawImage(
+      tempCanvas,
+      offset, offset, cropSize, cropSize,  // Source: center of container
+      0, 0, cropSize, cropSize              // Destination: full crop canvas
     )
 
     return new Promise((resolve) => {
-      croppedCanvas.toBlob((blob) => {
+      finalCanvas.toBlob((blob) => {
         resolve(blob!)
       }, 'image/jpeg', 0.95)
     })
