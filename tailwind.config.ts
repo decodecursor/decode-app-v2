@@ -99,7 +99,7 @@ const config = {
     function({ addUtilities }: { addUtilities: any }) {
       const newUtilities = {
         '.cosmic-bg': {
-          'background-image': 'url("/Background2.png")',
+          'background-image': 'url("/starry-background.jpg")',
           'background-size': 'cover',
           'background-position': 'center',
           'background-attachment': 'fixed',
