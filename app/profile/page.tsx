@@ -374,6 +374,19 @@ export default function ProfilePage() {
 
       console.log('🔗 Public URL generated:', publicUrl)
 
+      // Validate uploaded file exists
+      try {
+        const response = await fetch(publicUrl)
+        if (!response.ok) {
+          throw new Error(`File not accessible: ${response.status}`)
+        }
+        console.log('✅ Upload verified - file accessible')
+      } catch (error) {
+        console.error('❌ Upload verification failed:', error)
+        setMessage({ type: 'error', text: 'Upload failed - file not accessible. Please try again.' })
+        return
+      }
+
       // Step 4: Update user profile in database with photo URL
       console.log('💾 Updating database...')
       setUploadProgress('Saving to profile...')
