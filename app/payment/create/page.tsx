@@ -11,7 +11,7 @@ import { USER_ROLES, UserRole } from '@/types/user'
 
 export default function CreatePayment() {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true) // Start with loading true
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
@@ -350,7 +350,19 @@ export default function CreatePayment() {
     setError('')
   }
 
-  // Loading state removed - show content immediately
+  // Show loading state while checking auth and fetching user data
+  if (loading) {
+    return (
+      <div className="cosmic-bg">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-gray-300">Loading...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="cosmic-bg">
