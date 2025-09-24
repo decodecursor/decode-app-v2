@@ -200,33 +200,37 @@ export default function ProfilePage() {
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')!
 
-    const cropSize = 256 // Final circular crop size
+    // Match canvas size to editor container (320px)
+    const containerSize = 320
+    const cropSize = 256 // Circular crop diameter (128px radius * 2)
     canvas.width = cropSize
     canvas.height = cropSize
 
-    // Create circular clipping path
+    // Create circular clipping path centered in crop area
     ctx.beginPath()
     ctx.arc(cropSize / 2, cropSize / 2, cropSize / 2, 0, 2 * Math.PI)
     ctx.clip()
 
-    // Calculate scaled dimensions for canvas
+    // Calculate scaled dimensions
     const scaledWidth = image.naturalWidth * imageScale
     const scaledHeight = image.naturalHeight * imageScale
 
-    // Convert editor coordinates (320px container) to canvas coordinates (256px)
-    const scale = cropSize / 320  // Scale factor from editor to canvas
-    const canvasX = imagePosition.x * scale
-    const canvasY = imagePosition.y * scale
-    const canvasScaledWidth = scaledWidth * scale
-    const canvasScaledHeight = scaledHeight * scale
+    // The container is 320px, canvas is 256px
+    // The crop area is centered in the container, so we need to offset by (320-256)/2 = 32px
+    const cropOffset = (containerSize - cropSize) / 2  // 32px
 
-    // Draw image at the scaled position
+    // imagePosition.x and imagePosition.y are the top-left coordinates of the image in the container
+    // We just need to subtract the offset to convert from container space to canvas space
+    const canvasX = imagePosition.x - cropOffset
+    const canvasY = imagePosition.y - cropOffset
+
+    // Draw image at the calculated position
     ctx.drawImage(
       image,
       canvasX,
       canvasY,
-      canvasScaledWidth,
-      canvasScaledHeight
+      scaledWidth,
+      scaledHeight
     )
 
     return new Promise((resolve) => {
@@ -258,45 +262,20 @@ export default function ProfilePage() {
   }
 
   const uploadProfilePhoto = async () => {
-    if (!imgRef.current || !profile || !selectedImage) {
-      console.error('❌ Upload failed: Missing required data', {
-        hasImage: !!imgRef.current,
-        hasProfile: !!profile,
-        hasSelectedImage: !!selectedImage
-      })
-      setMessage({ type: 'error', text: 'Missing image or profile data. Please try again.' })
-      return
-    }
+    if (!imgRef.current || !profile || !selectedImage) return
 
-    console.log('🚀 Starting photo upload process...')
     setPhotoUploading(true)
-    setUploadProgress('Preparing image...')
-
     try {
-      // Step 1: Create cropped image blob
-      console.log('📸 Creating cropped image...')
-      setUploadProgress('Processing image...')
       const croppedImageBlob = await getCroppedImg(imgRef.current)
-
-      if (!croppedImageBlob || croppedImageBlob.size === 0) {
-        throw new Error('Failed to create image blob')
-      }
-
-      console.log('✅ Cropped image created:', {
-        size: croppedImageBlob.size,
-        type: croppedImageBlob.type
-      })
 
       const fileExt = 'jpg'
       const fileName = `${profile.id}-${Date.now()}.${fileExt}`
       const filePath = `profile-photos/${fileName}`
 
-      console.log('☁️ Uploading to Supabase storage:', filePath)
       const supabase = createClient()
 
-      // Step 2: Upload to Supabase storage
-      setUploadProgress('Uploading image...')
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      // Upload to Supabase storage
+      const { error: uploadError } = await supabase.storage
         .from('user-uploads')
         .upload(filePath, croppedImageBlob, {
           contentType: 'image/jpeg',
@@ -304,83 +283,45 @@ export default function ProfilePage() {
         })
 
       if (uploadError) {
-        console.error('❌ Storage upload error:', uploadError)
+        console.error('Storage upload error:', uploadError)
         if (uploadError.message?.includes('not found') || uploadError.message?.includes('bucket')) {
           setMessage({ type: 'error', text: 'Storage bucket not found. Please create "user-uploads" bucket in Supabase Storage.' })
-        } else if (uploadError.message?.includes('policy')) {
-          setMessage({ type: 'error', text: 'Permission denied. Please check storage bucket policies.' })
         } else {
-          setMessage({ type: 'error', text: `Upload failed: ${uploadError.message}` })
+          throw uploadError
         }
         return
       }
 
-      console.log('✅ Upload successful:', uploadData)
-
-      // Step 3: Get public URL
+      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('user-uploads')
         .getPublicUrl(filePath)
 
-      console.log('🔗 Public URL generated:', publicUrl)
+      // Update profile photo URL in state and database
+      setProfilePhotoUrl(publicUrl)
 
-      // Validate uploaded file exists
-      try {
-        const response = await fetch(publicUrl)
-        if (!response.ok) {
-          throw new Error(`File not accessible: ${response.status}`)
-        }
-        console.log('✅ Upload verified - file accessible')
-      } catch (error) {
-        console.error('❌ Upload verification failed:', error)
-        setMessage({ type: 'error', text: 'Upload failed - file not accessible. Please try again.' })
-        return
-      }
-
-      // Step 4: Update user profile in database with photo URL
-      console.log('💾 Updating database...')
-      setUploadProgress('Saving to profile...')
+      // Update user profile in database with photo URL
+      // Type casting to bypass Supabase type checking for profile_photo_url column
       const { error: updateError } = await supabase
         .from('users')
         .update({ profile_photo_url: publicUrl } as any)
         .eq('id', profile.id)
 
       if (updateError) {
-        console.error('❌ Database update error:', updateError)
-        if (updateError.message?.includes('column') && updateError.message?.includes('profile_photo_url')) {
-          setMessage({ type: 'error', text: 'Database column missing. Please run the profile updates SQL script.' })
-        } else {
-          setMessage({ type: 'error', text: `Database update failed: ${updateError.message}` })
-        }
+        console.error('Error updating profile photo URL:', updateError)
+        setMessage({ type: 'error', text: 'Failed to save profile photo. Please try again.' })
         return
       }
 
-      console.log('✅ Database updated successfully')
-
-      // Step 5: Update local state and show success
-      setProfilePhotoUrl(publicUrl)
-      if (profile) {
-        setProfile({ ...profile, profile_photo_url: publicUrl })
-      }
-      setMessage({ type: 'success', text: 'Profile photo updated successfully!' })
-
-      // Reset editor state after successful upload
+      // Reset editor state without showing success message
       setSelectedImage(null)
       setImagePosition({ x: 0, y: 0 })
       setImageScale(1)
-
-      console.log('🎉 Profile photo upload completed successfully!')
-
     } catch (error) {
-      console.error('❌ Unexpected error during photo upload:', error)
-      setMessage({
-        type: 'error',
-        text: `Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}. Check console for details.`
-      })
-      // Don't reset editor state on error - let user try again
+      console.error('Error uploading photo:', error)
+      setMessage({ type: 'error', text: 'Failed to upload profile photo. Check console for details.' })
     } finally {
       setPhotoUploading(false)
-      setUploadProgress('')
     }
   }
 
