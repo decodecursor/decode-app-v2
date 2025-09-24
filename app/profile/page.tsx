@@ -41,6 +41,7 @@ export default function ProfilePage() {
   const [imageScale, setImageScale] = useState(1)
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [hasInitialized, setHasInitialized] = useState(false)
   const imgRef = useRef<HTMLImageElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -192,6 +193,7 @@ export default function ProfilePage() {
     const reader = new FileReader()
     reader.onload = () => {
       setSelectedImage(reader.result as string)
+      setHasInitialized(false) // Reset so new image gets centered
     }
     reader.readAsDataURL(file)
   }
@@ -330,6 +332,7 @@ export default function ProfilePage() {
       setSelectedImage(null)
       setImagePosition({ x: 0, y: 0 })
       setImageScale(1)
+      setHasInitialized(false)
     } catch (error) {
       console.error('Error uploading photo:', error)
       setMessage({ type: 'error', text: 'Failed to upload profile photo. Check console for details.' })
@@ -568,25 +571,27 @@ export default function ProfilePage() {
                               zIndex: 1
                             }}
                             onLoad={() => {
-                              if (imgRef.current && containerRef.current) {
+                              // Only auto-center on first load, not on re-renders
+                              if (!hasInitialized && imgRef.current && containerRef.current) {
                                 const img = imgRef.current
                                 const container = containerRef.current
-                                
+
                                 // Calculate proper centering based on natural dimensions
                                 const containerWidth = 320 // 80 * 4 = 320px
                                 const containerHeight = 320
-                                
+
                                 // Scale image to fill circular crop area (256px diameter)
                                 const minScale = Math.max(256 / img.naturalWidth, 256 / img.naturalHeight)
                                 const scaledWidth = img.naturalWidth * minScale
                                 const scaledHeight = img.naturalHeight * minScale
-                                
+
                                 // Center the scaled image
                                 setImagePosition({
                                   x: (containerWidth - scaledWidth) / 2,
                                   y: (containerHeight - scaledHeight) / 2
                                 })
                                 setImageScale(minScale)
+                                setHasInitialized(true)
                               }
                             }}
                           />
@@ -634,6 +639,7 @@ export default function ProfilePage() {
                           setSelectedImage(null)
                           setImagePosition({ x: 0, y: 0 })
                           setImageScale(1)
+                          setHasInitialized(false)
                         }}
                         className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-full font-medium transition-all duration-200 transform hover:scale-105"
                       >
