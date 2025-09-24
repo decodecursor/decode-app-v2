@@ -98,6 +98,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const initUser = async () => {
       try {
         setError(null)
+
+        // Single auth check using proxy-first approach
         const { user: authUser, error: authError } = await getUserWithProxy()
 
         if (authError) {
@@ -107,16 +109,25 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (!authUser) {
+          // No user logged in - this is OK, not an error
           setLoading(false)
           return
         }
 
         setUser(authUser)
 
-        // Fetch profile data
+        // Only fetch profile if we have a user
+        // Use Promise.race to timeout if profile fetch is slow
+        const profilePromise = fetchProfile(authUser.id)
+        const timeoutPromise = new Promise<null>((resolve) =>
+          setTimeout(() => resolve(null), 3000) // 3 second timeout
+        )
+
         try {
-          const profileData = await fetchProfile(authUser.id)
-          setProfile(profileData)
+          const profileData = await Promise.race([profilePromise, timeoutPromise])
+          if (profileData !== null) {
+            setProfile(profileData)
+          }
         } catch (profileError) {
           console.error('Profile fetch error:', profileError)
           // Don't fail if profile fetch fails - user might need to set up profile

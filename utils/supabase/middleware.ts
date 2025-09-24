@@ -36,25 +36,9 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Skip auth operations for public and static routes
-  const pathname = request.nextUrl.pathname
-  const isPublicRoute =
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/api/auth') ||
-    pathname === '/favicon.ico' ||
-    pathname.endsWith('.png') ||
-    pathname.endsWith('.jpg') ||
-    pathname.endsWith('.svg')
-
-  if (!isPublicRoute) {
-    // Only try to get the user, don't force refresh
-    try {
-      await supabase.auth.getUser()
-    } catch (error) {
-      // Silent fail - let the client handle auth state
-      console.log('Middleware: Auth check skipped due to error')
-    }
-  }
+  // REMOVED: Auth checks in middleware - this was causing slowness!
+  // The middleware should ONLY handle cookie refresh, not auth checks.
+  // Auth checks are handled by components/pages that need them.
 
   return supabaseResponse
 }
