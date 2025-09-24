@@ -144,11 +144,15 @@ export async function GET(request: NextRequest) {
       .limit(1)
       .maybeSingle()
 
-    // Calculate available balance by subtracting all requested payouts from user balance
-    const availableBalance = Math.max(0, userBalance - totalRequestedPayouts)
+    // Calculate available balance
+    // For ADMIN: Show raw sum of today's service revenue without deducting payouts
+    // For STAFF: Subtract requested payouts from commission balance
+    const availableBalance = userData?.role === 'Admin'
+      ? userBalance
+      : Math.max(0, userBalance - totalRequestedPayouts)
 
     console.log(`💰 Total Requested Payouts: ${totalRequestedPayouts}`)
-    console.log(`💰 Available Balance: ${availableBalance} (${userBalance} - ${totalRequestedPayouts})`)
+    console.log(`💰 Available Balance: ${availableBalance} (${userData?.role === 'Admin' ? 'ADMIN: Today\'s service revenue' : `${userBalance} - ${totalRequestedPayouts}`})`)
 
     const payoutSummary = {
       availableBalance,
