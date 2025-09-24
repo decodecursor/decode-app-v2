@@ -197,57 +197,44 @@ export default function ProfilePage() {
   }
 
   const getCroppedImg = (image: HTMLImageElement): Promise<Blob> => {
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')!
+    // Step 1: Create a canvas same size as editor container
+    const tempCanvas = document.createElement('canvas')
+    const tempCtx = tempCanvas.getContext('2d')!
+    tempCanvas.width = 320
+    tempCanvas.height = 320
 
-    const cropSize = 256
-    canvas.width = cropSize
-    canvas.height = cropSize
-
-    // Create circular clipping path
-    ctx.beginPath()
-    ctx.arc(cropSize / 2, cropSize / 2, cropSize / 2, 0, 2 * Math.PI)
-    ctx.clip()
-
-    // Calculate scaled dimensions
+    // Draw image at exact same position as in editor
     const scaledWidth = image.naturalWidth * imageScale
     const scaledHeight = image.naturalHeight * imageScale
 
-    // Center-based coordinate conversion:
-    // Container center: (160, 160), Canvas center: (128, 128)
-    // Convert relative to centers to handle negative coordinates properly
-
-    const containerCenter = 160  // 320px / 2
-    const canvasCenter = 128     // 256px / 2
-    const scale = 256 / 320      // 0.8
-
-    const canvasX = (imagePosition.x - containerCenter) * scale + canvasCenter
-    const canvasY = (imagePosition.y - containerCenter) * scale + canvasCenter
-
-    // Scale image size
-    const canvasWidth = scaledWidth * scale
-    const canvasHeight = scaledHeight * scale
-
-    console.log('🎯 DETAILED coordinate conversion:')
-    console.log('   Container position:', imagePosition)
-    console.log('   Image scale:', imageScale)
-    console.log('   Image natural size:', image.naturalWidth, 'x', image.naturalHeight)
-    console.log('   Scaled size:', scaledWidth, 'x', scaledHeight)
-    console.log('   Canvas position:', canvasX, ',', canvasY)
-    console.log('   Canvas size:', canvasWidth, 'x', canvasHeight)
-    console.log('   Scale factor:', scale)
-
-    // Draw image
-    ctx.drawImage(
+    tempCtx.drawImage(
       image,
-      canvasX,
-      canvasY,
-      canvasWidth,
-      canvasHeight
+      imagePosition.x,
+      imagePosition.y,
+      scaledWidth,
+      scaledHeight
+    )
+
+    // Step 2: Create final canvas for cropped result
+    const finalCanvas = document.createElement('canvas')
+    const finalCtx = finalCanvas.getContext('2d')!
+    finalCanvas.width = 256
+    finalCanvas.height = 256
+
+    // Create circular clipping path
+    finalCtx.beginPath()
+    finalCtx.arc(128, 128, 128, 0, 2 * Math.PI)
+    finalCtx.clip()
+
+    // Copy the center 256x256 area from temp canvas (which starts at x:32, y:32)
+    finalCtx.drawImage(
+      tempCanvas,
+      32, 32, 256, 256,  // Source: center of 320px canvas
+      0, 0, 256, 256     // Destination: full 256px canvas
     )
 
     return new Promise((resolve) => {
-      canvas.toBlob((blob) => {
+      finalCanvas.toBlob((blob) => {
         resolve(blob!)
       }, 'image/jpeg', 0.95)
     })
