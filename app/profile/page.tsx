@@ -40,6 +40,7 @@ export default function ProfilePage() {
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedImage, setCroppedImage] = useState<string | null>(null)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<{ x: number, y: number, width: number, height: number } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Password change states
@@ -192,11 +193,12 @@ export default function ProfilePage() {
       setCrop({ x: 0, y: 0 })
       setZoom(1)
       setCroppedImage(null)
+      setCroppedAreaPixels(null)
     }
     reader.readAsDataURL(file)
   }
 
-  const getCroppedImg = (imageSrc: string, crop: { x: number, y: number }, zoom: number): Promise<Blob> => {
+  const getCroppedImg = (imageSrc: string, croppedAreaPixels: { x: number, y: number, width: number, height: number }): Promise<Blob> => {
     return new Promise((resolve) => {
       const image = new Image()
       image.src = imageSrc
@@ -204,29 +206,27 @@ export default function ProfilePage() {
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d')!
 
-        const size = Math.min(image.width, image.height)
-        canvas.width = size
-        canvas.height = size
+        // Set canvas to desired output size (square for circular crop)
+        const outputSize = 256
+        canvas.width = outputSize
+        canvas.height = outputSize
 
-        const cropX = (crop.x * image.width) / 100
-        const cropY = (crop.y * image.height) / 100
-
-        // Create circular clipping path
+        // Create circular clipping path first
         ctx.beginPath()
-        ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI)
+        ctx.arc(outputSize / 2, outputSize / 2, outputSize / 2, 0, 2 * Math.PI)
         ctx.clip()
 
-        // Draw the cropped image
+        // Draw the cropped area from source image to canvas
         ctx.drawImage(
           image,
-          cropX,
-          cropY,
-          image.width / zoom,
-          image.height / zoom,
+          croppedAreaPixels.x,
+          croppedAreaPixels.y,
+          croppedAreaPixels.width,
+          croppedAreaPixels.height,
           0,
           0,
-          size,
-          size
+          outputSize,
+          outputSize
         )
 
         canvas.toBlob((blob) => {
@@ -257,19 +257,20 @@ export default function ProfilePage() {
     }
   }
 
-  const onCropComplete = useCallback(async (_, croppedAreaPixels) => {
+  const onCropComplete = useCallback(async (_, croppedAreaPixelsParam) => {
     if (!selectedImage) return
-    const cropped = await getCroppedImg(selectedImage, crop, zoom)
+    setCroppedAreaPixels(croppedAreaPixelsParam)
+    const cropped = await getCroppedImg(selectedImage, croppedAreaPixelsParam)
     const croppedUrl = URL.createObjectURL(cropped)
     setCroppedImage(croppedUrl)
-  }, [selectedImage, crop, zoom])
+  }, [selectedImage])
 
   const uploadProfilePhoto = async () => {
-    if (!profile || !selectedImage || !croppedImage) return
+    if (!profile || !selectedImage || !croppedAreaPixels) return
 
     setPhotoUploading(true)
     try {
-      const croppedImageBlob = await getCroppedImg(selectedImage, crop, zoom)
+      const croppedImageBlob = await getCroppedImg(selectedImage, croppedAreaPixels)
 
       const fileExt = 'jpg'
       const fileName = `${profile.id}-${Date.now()}.${fileExt}`
@@ -321,6 +322,7 @@ export default function ProfilePage() {
       setCrop({ x: 0, y: 0 })
       setZoom(1)
       setCroppedImage(null)
+      setCroppedAreaPixels(null)
     } catch (error) {
       console.error('Error uploading photo:', error)
       setMessage({ type: 'error', text: 'Failed to upload profile photo. Check console for details.' })
@@ -526,6 +528,7 @@ export default function ProfilePage() {
                           setCrop({ x: 0, y: 0 })
                           setZoom(1)
                           setCroppedImage(null)
+                          setCroppedAreaPixels(null)
                         }}
                         className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-full font-medium transition-all duration-200 transform hover:scale-105"
                       >
