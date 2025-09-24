@@ -35,6 +35,7 @@ interface PaymentLink {
   branch_name: string | null
   creator_name: string | null
   payment_status: string | null
+  paymentlink_request_id: string | null
 }
 
 interface PaymentTransaction {

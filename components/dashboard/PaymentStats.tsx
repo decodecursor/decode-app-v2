@@ -35,6 +35,7 @@ interface PaymentStatsProps {
     branch_name: string | null
     creator_name: string | null
     payment_status: string | null
+    paymentlink_request_id: string | null
   }>
   user: {
     id: string
@@ -616,13 +617,14 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       })
 
       // Create CSV content with the exact columns requested
-      const headers = ['Company Name', 'Branch Name', 'Creator Name', 'Payment Status', 'Payment Date', 'Client Name', 'Service Amount in AED']
+      const headers = ['Company Name', 'Branch Name', 'Creator Name', 'Payment Status', 'Payment Date', 'Tracking ID', 'Client Name', 'Service Amount in AED']
       const rows = filteredLinks.map(link => [
         link.company_name || '',
         link.branch_name || '',
         link.creator_name || '',
         link.payment_status || 'paid',
         formatPaymentDate(link.paid_at!),
+        link.paymentlink_request_id || '',
         link.client_name || '',
         (link.service_amount_aed || 0).toFixed(2)
       ])
@@ -1024,7 +1026,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             }
             return (
               <div key={`${payment.id}-${index}`} className="bg-gray-800/50 rounded-lg p-3 hover:bg-gray-700/50 transition-colors">
-                <div className="grid grid-cols-5 gap-x-5 items-center">
+                <div className="grid grid-cols-6 gap-x-4 items-center">
                   <div className="flex items-center space-x-3">
                     <span className="w-7 h-7 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">
                       {index + 1}
@@ -1042,6 +1044,22 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                     <span className="cosmic-label text-white/60 text-sm">
                       {formatPaymentDate(payment.paid_at!)}
                     </span>
+                  </div>
+                  <div className="text-center">
+                    {payment.paymentlink_request_id ? (
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(payment.paymentlink_request_id!)
+                          // Could add toast notification here
+                        }}
+                        className="cosmic-label text-purple-400 font-mono text-sm hover:text-purple-300 hover:bg-purple-400/10 px-2 py-1 rounded transition-colors cursor-pointer"
+                        title="Click to copy tracking ID"
+                      >
+                        {payment.paymentlink_request_id}
+                      </button>
+                    ) : (
+                      <span className="cosmic-label text-white/30 text-sm">—</span>
+                    )}
                   </div>
                   <div className="text-left">
                     <span className="cosmic-body text-white/70">

@@ -65,6 +65,7 @@ export async function GET(request: NextRequest) {
         creator_name,
         payment_status,
         is_paid,
+        paymentlink_request_id,
         creator:creator_id (
           user_name,
           email
