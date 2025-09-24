@@ -344,17 +344,6 @@ export default function ProfilePage() {
       console.log('☁️ Uploading to Supabase storage:', filePath)
       const supabase = createClient()
 
-      // Check if storage bucket exists before attempting upload
-      setUploadProgress('Checking storage...')
-      const bucketExists = await checkStorageBucket(supabase)
-      if (!bucketExists) {
-        setMessage({
-          type: 'error',
-          text: 'Storage bucket "user-uploads" not found. Please contact admin to set up image storage.'
-        })
-        return
-      }
-
       // Step 2: Upload to Supabase storage
       setUploadProgress('Uploading image...')
       const { data: uploadData, error: uploadError } = await supabase.storage
