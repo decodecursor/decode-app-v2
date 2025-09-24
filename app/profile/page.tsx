@@ -218,17 +218,24 @@ export default function ProfilePage() {
     tempCanvas.width = containerSize
     tempCanvas.height = containerSize
 
-    // Draw image at exact same position as in editor
+    // Apply the same transform as CSS does
     const scaledWidth = image.naturalWidth * imageScale
     const scaledHeight = image.naturalHeight * imageScale
 
+    // CSS transform with scale and transform-origin: top left works like this:
+    // The image is scaled from its top-left corner, which is already at imagePosition
+    // So we draw at the exact imagePosition with scaled dimensions
+    tempCtx.save()
+    tempCtx.translate(imagePosition.x, imagePosition.y)
+    tempCtx.scale(imageScale, imageScale)
     tempCtx.drawImage(
       image,
-      imagePosition.x,
-      imagePosition.y,
-      scaledWidth,
-      scaledHeight
+      0,
+      0,
+      image.naturalWidth,
+      image.naturalHeight
     )
+    tempCtx.restore()
 
     // Step 2: Create final canvas for cropped result
     const finalCanvas = document.createElement('canvas')
