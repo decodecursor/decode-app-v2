@@ -213,17 +213,18 @@ export default function ProfilePage() {
     const scaledWidth = image.naturalWidth * imageScale
     const scaledHeight = image.naturalHeight * imageScale
 
-    // Simple coordinate conversion:
-    // Container: 320px, crop area from x=32 to x=288
-    // Canvas: 256px, crop area from x=0 to x=256
-    // So: canvasX = imagePosition.x - 32
+    // Center-based coordinate conversion:
+    // Container center: (160, 160), Canvas center: (128, 128)
+    // Convert relative to centers to handle negative coordinates properly
 
-    const offset = 32
-    const canvasX = imagePosition.x - offset
-    const canvasY = imagePosition.y - offset
+    const containerCenter = 160  // 320px / 2
+    const canvasCenter = 128     // 256px / 2
+    const scale = 256 / 320      // 0.8
 
-    // Scale image size from 320px container to 256px canvas
-    const scale = 256 / 320  // 0.8
+    const canvasX = (imagePosition.x - containerCenter) * scale + canvasCenter
+    const canvasY = (imagePosition.y - containerCenter) * scale + canvasCenter
+
+    // Scale image size
     const canvasWidth = scaledWidth * scale
     const canvasHeight = scaledHeight * scale
 
