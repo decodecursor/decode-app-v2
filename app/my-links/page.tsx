@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import QRCode from 'qrcode'
 import HeartAnimation from '@/components/effects/HeartAnimation'
+import { formatUserNameWithStyle } from '@/lib/user-utils'
 
 interface PaymentLink {
   id: string
@@ -1232,7 +1233,9 @@ function MyLinksContent() {
                               {userRole === 'Admin' && link.creator_name && (
                                 <div className="flex items-center gap-2">
                                   <span className="text-purple-400">Creator:</span>
-                                  <span>{link.creator_name}</span>
+                                  <span className={formatUserNameWithStyle(link.creator_name, link.creator_id).className}>
+                                    {formatUserNameWithStyle(link.creator_name, link.creator_id).name}
+                                  </span>
                                 </div>
                               )}
                               

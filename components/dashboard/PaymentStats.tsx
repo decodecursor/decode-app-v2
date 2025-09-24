@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { DayPicker, DateRange } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
 import { USER_ROLES } from '@/types/user'
+import { formatUserName } from '@/lib/user-utils'
 
 interface PaymentTransaction {
   id: string
@@ -621,7 +622,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       const rows = filteredLinks.map(link => [
         link.company_name || '',
         link.branch_name || '',
-        link.creator_name || '',
+        formatUserName(link.creator_name, link.creator_id),
         link.payment_status || 'paid',
         formatPaymentDate(link.paid_at!),
         link.paymentlink_request_id || '',
@@ -1068,7 +1069,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                   </div>
                   <div className="text-right">
                     <span className="cosmic-body text-white/70">
-                      {payment.creator_name || 'Unknown'}
+                      {formatUserName(payment.creator_name, payment.creator_id)}
                     </span>
                   </div>
                 </div>
