@@ -463,18 +463,22 @@ export default function PayoutsPage() {
                 {/* My Next Payout Card */}
                 <div className="flex-1 cosmic-card">
                   <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-white">{getCardTitle('My Next Payout')}</h3>
+                    <h3 className="text-lg font-semibold text-white">
+                      {userRole === 'Admin' ? 'Select Payout Method' : getCardTitle('My Next Payout')}
+                    </h3>
                   </div>
 
                   {/* Two-Column Layout */}
                   <div className="flex gap-4 mb-3">
-                    {/* Available Balance */}
-                    <div className="flex-1">
-                      <p className="text-gray-400 text-sm mb-1">Available Balance</p>
-                      <p className="text-2xl font-bold text-white">
-                        {formatCurrency(payoutSummary?.availableBalance || 0)}
-                      </p>
-                    </div>
+                    {/* Available Balance - Hidden for ADMIN */}
+                    {userRole !== 'Admin' && (
+                      <div className="flex-1">
+                        <p className="text-gray-400 text-sm mb-1">Available Balance</p>
+                        <p className="text-2xl font-bold text-white">
+                          {formatCurrency(payoutSummary?.availableBalance || 0)}
+                        </p>
+                      </div>
+                    )}
 
                     {/* Payout to - Styled Subcard */}
                     <div className="flex-1">
@@ -498,16 +502,18 @@ export default function PayoutsPage() {
                   </div>
 
 
-                  {/* Action Button */}
-                  <div>
-                    <button
-                      onClick={handleRequestPayoutClick}
-                      disabled={payoutInProcess}
-                      className="w-full py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
-                    >
-                      Request Payout
-                    </button>
-                  </div>
+                  {/* Action Button - Hidden for ADMIN */}
+                  {userRole !== 'Admin' && (
+                    <div>
+                      <button
+                        onClick={handleRequestPayoutClick}
+                        disabled={payoutInProcess}
+                        className="w-full py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+                      >
+                        Request Payout
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* My Total Payouts Card */}
@@ -540,8 +546,8 @@ export default function PayoutsPage() {
               </div>
             )}
 
-            {/* Payout History */}
-            {user && <PayoutHistory userId={user.id} onNewPayout={handleNewPayout} refreshTrigger={refreshTrigger} />}
+            {/* Payout History - Hidden for ADMIN */}
+            {user && userRole !== 'Admin' && <PayoutHistory userId={user.id} onNewPayout={handleNewPayout} refreshTrigger={refreshTrigger} />}
           </div>
         </div>
 
