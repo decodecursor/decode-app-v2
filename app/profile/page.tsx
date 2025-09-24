@@ -199,64 +199,65 @@ export default function ProfilePage() {
   }
 
   const getCroppedImg = (image: HTMLImageElement): Promise<Blob> => {
-    // Get actual container dimensions
+    // Get actual container dimensions consistently
     const containerSize = containerRef.current ? containerRef.current.offsetWidth : 320
     const cropSize = 256
-    const offset = (containerSize - cropSize) / 2
+    const cropRadius = cropSize / 2
+    const centerX = containerSize / 2
+    const centerY = containerSize / 2
 
-    console.log('📐 Cropping dimensions:', {
+    console.log('📐 Direct pixel cropping:', {
       containerSize,
       cropSize,
-      offset,
       imagePosition,
-      imageScale
+      imageScale,
+      centerX,
+      centerY
     })
 
-    // Step 1: Create a canvas same size as actual editor container
-    const tempCanvas = document.createElement('canvas')
-    const tempCtx = tempCanvas.getContext('2d')!
-    tempCanvas.width = containerSize
-    tempCanvas.height = containerSize
+    // Create a single canvas that exactly matches the editor container
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')!
+    canvas.width = containerSize
+    canvas.height = containerSize
 
-    // Apply the same transform as CSS does
+    // Draw the image exactly as it appears in the preview
+    // Using the same positioning logic as the CSS transform
     const scaledWidth = image.naturalWidth * imageScale
     const scaledHeight = image.naturalHeight * imageScale
 
-    // CSS transform with scale and transform-origin: top left works like this:
-    // The image is scaled from its top-left corner, which is already at imagePosition
-    // So we draw at the exact imagePosition with scaled dimensions
-    tempCtx.save()
-    tempCtx.translate(imagePosition.x, imagePosition.y)
-    tempCtx.scale(imageScale, imageScale)
-    tempCtx.drawImage(
+    ctx.drawImage(
       image,
-      0,
-      0,
-      image.naturalWidth,
-      image.naturalHeight
+      imagePosition.x,
+      imagePosition.y,
+      scaledWidth,
+      scaledHeight
     )
-    tempCtx.restore()
 
-    // Step 2: Create final canvas for cropped result
-    const finalCanvas = document.createElement('canvas')
-    const finalCtx = finalCanvas.getContext('2d')!
-    finalCanvas.width = cropSize
-    finalCanvas.height = cropSize
+    // Create the final circular cropped canvas
+    const croppedCanvas = document.createElement('canvas')
+    const croppedCtx = croppedCanvas.getContext('2d')!
+    croppedCanvas.width = cropSize
+    croppedCanvas.height = cropSize
 
-    // Create circular clipping path
-    finalCtx.beginPath()
-    finalCtx.arc(cropSize/2, cropSize/2, cropSize/2, 0, 2 * Math.PI)
-    finalCtx.clip()
+    // Create circular clipping path first
+    croppedCtx.beginPath()
+    croppedCtx.arc(cropRadius, cropRadius, cropRadius, 0, 2 * Math.PI)
+    croppedCtx.clip()
 
-    // Copy the center area from temp canvas
-    finalCtx.drawImage(
-      tempCanvas,
-      offset, offset, cropSize, cropSize,  // Source: center of container
-      0, 0, cropSize, cropSize              // Destination: full crop canvas
+    // Copy the circular area from the center of the container canvas
+    // Source coordinates: center of container minus crop radius
+    const sourceX = centerX - cropRadius
+    const sourceY = centerY - cropRadius
+
+    croppedCtx.drawImage(
+      canvas,
+      sourceX, sourceY, cropSize, cropSize,  // Source: circular area from center of container
+      0, 0, cropSize, cropSize               // Destination: entire cropped canvas
     )
 
     return new Promise((resolve) => {
-      finalCanvas.toBlob((blob) => {
+      croppedCanvas.toBlob((blob) => {
         resolve(blob!)
       }, 'image/jpeg', 0.95)
     })
@@ -369,8 +370,8 @@ export default function ProfilePage() {
       const img = imgRef.current
       const scaledWidth = img.naturalWidth * imageScale
       const scaledHeight = img.naturalHeight * imageScale
-      const containerWidth = 320
-      const containerHeight = 320
+      const containerWidth = containerRef.current ? containerRef.current.offsetWidth : 320
+      const containerHeight = containerRef.current ? containerRef.current.offsetHeight : 320
       const buffer = 100 // Allow image to move beyond container but keep some portion visible
       
       // Simple boundary logic - allow generous movement in all directions
@@ -584,8 +585,8 @@ export default function ProfilePage() {
                                 const container = containerRef.current
 
                                 // Calculate proper centering based on natural dimensions
-                                const containerWidth = 320 // 80 * 4 = 320px
-                                const containerHeight = 320
+                                const containerWidth = container.offsetWidth
+                                const containerHeight = container.offsetHeight
 
                                 // Scale image to fill circular crop area (256px diameter)
                                 const minScale = Math.max(256 / img.naturalWidth, 256 / img.naturalHeight)
