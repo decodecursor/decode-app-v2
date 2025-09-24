@@ -140,3 +140,65 @@ export function isValidPayoutRequestId(id: string): boolean {
   // Check if it's exactly 10 characters alternating letters and numbers
   return /^[A-Z][0-9][A-Z][0-9][A-Z][0-9][A-Z][0-9][A-Z][0-9]$/.test(id);
 }
+
+/**
+ * Generate a 10-character payment link request ID for tracking
+ * Format: PL + 8 alphanumeric characters (e.g., PL7G4K2M9P)
+ *
+ * Provides 36^8 unique combinations (2.8 * 10^12)
+ * Very low collision probability for tracking purposes
+ */
+export function generatePaymentLinkRequestId(): string {
+  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const prefix = 'PL';
+  let result = prefix;
+
+  // Generate 8 random alphanumeric characters
+  for (let i = 0; i < 8; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+
+  return result;
+}
+
+/**
+ * Generate a unique payment link request ID with collision check
+ * Attempts up to 5 retries before falling back to timestamp-based ID
+ */
+export async function generateUniquePaymentLinkRequestId(
+  checkExists: (id: string) => Promise<boolean>,
+  maxRetries: number = 5
+): Promise<string> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const requestId = generatePaymentLinkRequestId();
+
+    try {
+      // Check if this ID already exists
+      const exists = await checkExists(requestId);
+
+      if (!exists) {
+        return requestId;
+      }
+
+      console.warn(`Payment link request ID collision detected: ${requestId}, retrying... (attempt ${attempt + 1}/${maxRetries})`);
+    } catch (error) {
+      console.error(`Error checking payment link request ID existence: ${error}, attempting anyway with ID: ${requestId}`);
+      // If we can't check existence, just return the request ID anyway
+      return requestId;
+    }
+  }
+
+  // Fallback to timestamp-based ID if too many collisions (extremely rare)
+  console.error('Too many payment link request ID collisions, falling back to timestamp-based ID');
+  const timestamp = Date.now().toString();
+  const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  return `PL${timestamp.slice(-6)}${randomSuffix}`;
+}
+
+/**
+ * Validate if a string is a valid payment link request ID format
+ */
+export function isValidPaymentLinkRequestId(id: string): boolean {
+  // Check if it starts with PL and has 8 alphanumeric characters after
+  return /^PL[A-Z0-9]{8}$/.test(id);
+}

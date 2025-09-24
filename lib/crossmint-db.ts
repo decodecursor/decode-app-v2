@@ -7,7 +7,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-import { generateUniqueShortId } from '@/lib/short-id';
+import { generateUniqueShortId, generateUniquePaymentLinkRequestId } from '@/lib/short-id';
 import { v4 as uuidv4 } from 'uuid';
 import {
   CrossmintUser,
@@ -115,7 +115,31 @@ export class CrossmintDatabaseService {
       return false;
     }
   }
-  
+
+  /**
+   * Check if a payment link request ID already exists
+   */
+  private async checkPaymentLinkRequestIdExists(requestId: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase
+        .from('payment_links')
+        .select('paymentlink_request_id')
+        .eq('paymentlink_request_id', requestId)
+        .limit(1)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking payment link request ID existence:', error);
+        return false; // Assume it doesn't exist to avoid blocking
+      }
+
+      return !!data;
+    } catch (error) {
+      console.error('Exception checking payment link request ID existence:', error);
+      return false; // Assume it doesn't exist to avoid blocking
+    }
+  }
+
   /**
    * Create payment link with marketplace fee calculation
    */
@@ -125,6 +149,11 @@ export class CrossmintDatabaseService {
     // Set expiration to 7 days from now
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 7);
+
+    // Generate unique payment link request ID
+    const paymentlinkRequestId = await generateUniquePaymentLinkRequestId(
+      this.checkPaymentLinkRequestIdExists.bind(this)
+    );
 
     const paymentLinkData = {
       client_name: request.client_name,
@@ -140,6 +169,7 @@ export class CrossmintDatabaseService {
       branch_name: request.branch_name,
       creator_name: request.creator_name,
       company_name: request.company_name,
+      paymentlink_request_id: paymentlinkRequestId,
       is_active: true
     };
 
@@ -158,6 +188,7 @@ export class CrossmintDatabaseService {
       creator_name: paymentLinkData.creator_name,
       company_name: paymentLinkData.company_name,
       creator_id: paymentLinkData.creator_id,
+      paymentlink_request_id: paymentLinkData.paymentlink_request_id,
       amount_aed: paymentLinkData.amount_aed
     });
 
