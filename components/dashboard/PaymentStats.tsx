@@ -617,7 +617,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       })
 
       // Create CSV content with the exact columns requested
-      const headers = ['Company Name', 'Branch Name', 'Creator Name', 'Payment Status', 'Payment Date', 'Tracking ID', 'Client Name', 'Service Amount in AED']
+      const headers = ['Company Name', 'Branch Name', 'Creator Name', 'Payment Status', 'Payment Date', 'Payment ID', 'Client Name', 'Service Amount in AED']
       const rows = filteredLinks.map(link => [
         link.company_name || '',
         link.branch_name || '',
@@ -1026,7 +1026,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             }
             return (
               <div key={`${payment.id}-${index}`} className="bg-gray-800/50 rounded-lg p-3 hover:bg-gray-700/50 transition-colors">
-                <div className="grid gap-x-4 items-center" style={{gridTemplateColumns: '2fr 1.2fr 1.5fr 1fr 1fr 1fr'}}>
+                <div className="grid gap-x-4 items-center" style={{gridTemplateColumns: '1.6fr 1.2fr 1.4fr 1.1fr 1.1fr 1.1fr'}}>
                   <div className="flex items-center space-x-3">
                     <span className="w-7 h-7 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">
                       {index + 1}
