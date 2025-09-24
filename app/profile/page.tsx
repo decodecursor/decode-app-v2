@@ -7,6 +7,7 @@ import { getUserWithProxy } from '@/utils/auth-helper'
 import { User } from '@supabase/supabase-js'
 import PasswordInput from '@/components/PasswordInput'
 import Cropper from 'react-easy-crop'
+import { useUser } from '@/providers/UserContext'
 
 interface UserProfile {
   id: string
@@ -21,6 +22,7 @@ interface UserProfile {
 export default function ProfilePage() {
   const router = useRouter()
   const supabase = createClient()
+  const { refreshProfile } = useUser()
   const [user, setUser] = useState<User | null>(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -51,6 +53,7 @@ export default function ProfilePage() {
 
   // Feedback states
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
+  const [companyNameSaved, setCompanyNameSaved] = useState(false)
 
   // Load profile data when user is available
   // Check auth on mount
@@ -168,7 +171,12 @@ export default function ProfilePage() {
           professional_center_name: professionalCenterName.trim(),
           company_name: professionalCenterName.trim()
         })
-        setMessage({ type: 'success', text: 'Company name updated successfully' })
+
+        // Show success on button for 3 seconds
+        setCompanyNameSaved(true)
+        setTimeout(() => {
+          setCompanyNameSaved(false)
+        }, 3000)
       }
     } catch (error) {
       console.error('Error updating professional center name:', error)
@@ -316,6 +324,9 @@ export default function ProfilePage() {
         setMessage({ type: 'error', text: 'Failed to save profile photo. Please try again.' })
         return
       }
+
+      // Refresh profile context to update dashboard image
+      await refreshProfile()
 
       // Reset editor state without showing success message
       setSelectedImage(null)
@@ -597,10 +608,14 @@ export default function ProfilePage() {
               />
               <button
                 onClick={updateProfessionalCenterName}
-                disabled={saving || !professionalCenterName.trim() || (professionalCenterName === profile?.professional_center_name || professionalCenterName === profile?.company_name)}
-                className="cosmic-button-primary disabled:opacity-50 w-full"
+                disabled={saving || companyNameSaved || !professionalCenterName.trim() || (professionalCenterName === profile?.professional_center_name || professionalCenterName === profile?.company_name)}
+                className={`w-full transition-all duration-200 ${
+                  companyNameSaved
+                    ? 'bg-green-600 hover:bg-green-700 text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-default'
+                    : 'cosmic-button-primary disabled:opacity-50'
+                }`}
               >
-                {saving ? 'Saving...' : 'Change'}
+                {saving ? 'Saving...' : companyNameSaved ? '✓ Saved!' : 'Change'}
               </button>
             </div>
           </div>

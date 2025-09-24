@@ -195,6 +195,21 @@ export default function Dashboard() {
     }
   }, [])
 
+  // Refresh profile when window regains focus (user returns from profile page)
+  useEffect(() => {
+    const handleWindowFocus = () => {
+      // Only refresh if user exists and page is visible
+      if (user && document.visibilityState === 'visible') {
+        refreshProfile()
+      }
+    }
+
+    window.addEventListener('focus', handleWindowFocus)
+    return () => {
+      window.removeEventListener('focus', handleWindowFocus)
+    }
+  }, [user, refreshProfile])
+
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut()
