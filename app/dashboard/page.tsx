@@ -4,24 +4,15 @@ import Link from 'next/link'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import { getUserWithProxy } from '@/utils/auth-helper'
-import { User } from '@supabase/supabase-js'
-import { UserRole, USER_ROLES, validateUserProfile, normalizeRole } from '@/types/user'
+import { useUser } from '@/providers/UserContext'
+import { USER_ROLES } from '@/types/user'
 import { EmailVerificationGate } from '@/components/EmailVerificationGate'
 
 
 export default function Dashboard() {
   const supabase = createClient()
-  const [user, setUser] = useState<User | null>(null)
-  const [authLoading, setAuthLoading] = useState(true)
-  const [authError, setAuthError] = useState<string | null>(null)
-  const [userRole, setUserRole] = useState<UserRole | null>(null)
-  const [companyProfileImage, setCompanyProfileImage] = useState<string | null>(null)
-  const [companyName, setCompanyName] = useState<string | null>(null)
-  const [userName, setUserName] = useState<string | null>(null)
-  const [userBranch, setUserBranch] = useState<string | null>(null)
+  const { user, profile, loading: contextLoading, refreshProfile } = useUser()
   const [pendingUsersCount, setPendingUsersCount] = useState(0)
-  const [loading, setLoading] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -143,123 +134,41 @@ export default function Dashboard() {
   }
 
 
-  // Load user data when user is available
+  // Check authentication and profile on mount
   useEffect(() => {
-    const loadUserData = async () => {
+    if (!contextLoading) {
       if (!user) {
-        console.log('🚪 Dashboard: No user, waiting for auth...')
+        router.push('/auth')
         return
       }
 
-      try {
-        console.log('🔍 Dashboard: Loading user data for:', user.id)
-        setLoading(true)
+      // If no profile exists, redirect to profile setup
+      if (!profile) {
+        router.push('/profile')
+        return
+      }
 
-        // Use proxy endpoint to fetch user profile data
-        console.log('🔍 [DASHBOARD DEBUG] Fetching profile for user:', user.id)
-        const response = await fetch('/api/user/profile', {
-          method: 'GET',
-          credentials: 'include'
-        })
+      // Check if user is approved (skip check for Admins)
+      if (profile.approval_status === 'pending' && profile.role !== USER_ROLES.ADMIN) {
+        window.location.href = '/pending-approval'
+        return
+      }
 
-        console.log('🔍 [DASHBOARD DEBUG] Response status:', response.status)
-        console.log('🔍 [DASHBOARD DEBUG] Response ok:', response.ok)
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          console.error('⚠️ Dashboard: Failed to fetch profile:', errorData.error)
-
-          // If no profile exists, redirect to profile setup
-          if (response.status === 404 || errorData.error === 'NO_PROFILE') {
-            router.push('/profile')
-            return
-          }
-          setLoading(false)
-          return
-        }
-
-        const fullDashboardResponse = await response.json()
-        console.log('🔍 [DASHBOARD DEBUG] Full API response:', JSON.stringify(fullDashboardResponse, null, 2))
-
-        const { userData } = fullDashboardResponse
-        console.log('✅ Dashboard: Profile data received:', userData)
-        console.log('🔍 [DASHBOARD DEBUG] userData.branch_name:', userData?.branch_name)
-
-        // Validate and normalize user profile data
-        const validatedProfile = validateUserProfile(userData)
-
-        console.log('✅ Dashboard: Validated role:', validatedProfile.role)
-        console.log('🔍 Dashboard: Setting userRole state to:', validatedProfile.role)
-        setUserRole(validatedProfile.role)
-
-        setCompanyName(validatedProfile.company_name || validatedProfile.professional_center_name)
-        setUserName(validatedProfile.user_name)
-
-        // Set user branch (first branch if multiple)
-        if (validatedProfile.branch_name) {
-          const branches = validatedProfile.branch_name.split(',').map((b: string) => b.trim()).filter((b: string) => b !== '')
-          setUserBranch(branches[0] || null)
-        } else {
-          setUserBranch(null)
-        }
-
-        // Set company profile image if available
-        if (validatedProfile.companyProfileImage) {
-          setCompanyProfileImage(validatedProfile.companyProfileImage)
-        }
-
-        // Check if user is approved (skip check for Admins)
-        if (validatedProfile.approval_status === 'pending' && validatedProfile.role !== USER_ROLES.ADMIN) {
-          window.location.href = '/pending-approval'
-          return
-        }
-
-        // Set pending users count for admins
-        if (validatedProfile.role === USER_ROLES.ADMIN && validatedProfile.pendingUsersCount !== undefined) {
-          setPendingUsersCount(validatedProfile.pendingUsersCount)
-        }
-      
-      
-      setLoading(false)
-    } catch (error) {
-      console.error('💥 Dashboard: Failed to load user data:', error)
-      setLoading(false)
+      // Set pending users count for admins
+      if (profile.role === USER_ROLES.ADMIN && profile.pendingUsersCount !== undefined) {
+        setPendingUsersCount(profile.pendingUsersCount)
+      }
     }
-    }
-
-    loadUserData()
-  }, [user, router, supabase])
+  }, [contextLoading, user, profile, router])
 
   // Set up polling-based real-time updates for pending users
   useEffect(() => {
-    if (userRole === USER_ROLES.ADMIN && companyName) {
-      const fetchPendingCount = async () => {
-        try {
-          // Use proxy endpoint to get updated counts
-          const response = await fetch('/api/user/profile', {
-            method: 'GET',
-            credentials: 'include'
-          })
-
-          if (response.ok) {
-            const { userData } = await response.json()
-            if (userData && userData.pendingUsersCount !== undefined) {
-              setPendingUsersCount(userData.pendingUsersCount)
-            }
-          }
-        } catch (error) {
-          console.error('Error fetching pending users count:', error)
-        }
-      }
-
-      // Initial fetch
-      fetchPendingCount()
-      
+    if (profile?.role === USER_ROLES.ADMIN && profile?.company_name) {
       // Set up polling every 30 seconds
-      const pollInterval = setInterval(() => {
+      const pollInterval = setInterval(async () => {
         // Only poll if page is visible to save resources
         if (document.visibilityState === 'visible') {
-          fetchPendingCount()
+          await refreshProfile()
         }
       }, 30000) // 30 seconds
 
@@ -268,9 +177,9 @@ export default function Dashboard() {
         clearInterval(pollInterval)
       }
     }
-    
+
     return () => {}
-  }, [userRole, companyName])
+  }, [profile?.role, profile?.company_name, refreshProfile])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -298,85 +207,23 @@ export default function Dashboard() {
   }
 
 
-  // Check authentication on mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        setAuthError(null)
-        const { user: authUser, error } = await getUserWithProxy()
-
-        if (error) {
-          console.error('🚫 Dashboard: Authentication error:', error)
-          setAuthError('Authentication failed. Please try again.')
-          return
-        }
-
-        if (!authUser) {
-          console.log('🚪 Dashboard: No authenticated user, redirecting to auth')
-          // Don't redirect immediately, give user a chance to see error and retry
-          setAuthError('No authenticated user found. Please log in.')
-          setTimeout(() => router.push('/auth'), 3000)
-          return
-        }
-
-        console.log('✅ Dashboard: User authenticated:', authUser.id)
-        setUser(authUser)
-      } catch (error) {
-        console.error('❌ Auth check failed:', error)
-        setAuthError('Failed to check authentication. Please try again.')
-      } finally {
-        setAuthLoading(false)
-      }
-    }
-
-    checkAuth()
-  }, [router])
-
-  // Show loading spinner while checking authentication or loading data
-  if (authLoading || loading) {
+  // Show loading spinner while checking authentication
+  if (contextLoading) {
     return (
       <div className="cosmic-bg">
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-gray-300">{authLoading ? 'Authenticating...' : 'Loading dashboard...'}</p>
+            <p className="text-gray-300">Loading dashboard...</p>
           </div>
         </div>
       </div>
     )
   }
 
-  // Show authentication error state
-  if (authError && !authLoading) {
-    return (
-      <div className="cosmic-bg">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center max-w-md mx-auto px-4">
-            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
-            <h2 className="cosmic-heading text-white mb-2">Authentication Issue</h2>
-            <p className="cosmic-body text-white/70 mb-6">{authError}</p>
-            <div className="flex gap-3 justify-center">
-              <button
-                onClick={() => window.location.reload()}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                Try Again
-              </button>
-              <button
-                onClick={() => router.push('/auth')}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                Go to Login
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+  // Early return if no user or profile (will redirect in useEffect)
+  if (!user || !profile) {
+    return null
   }
 
   // Ensure user exists before rendering - show fallback instead of null
@@ -420,9 +267,9 @@ export default function Dashboard() {
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                     className="instagram-avatar"
                   >
-                    {companyProfileImage ? (
+                    {profile.companyProfileImage ? (
                       <img 
-                        src={companyProfileImage} 
+                        src={profile.companyProfileImage} 
                         alt="Company Profile" 
                       />
                     ) : (
@@ -471,21 +318,21 @@ export default function Dashboard() {
                 {/* User Info Text */}
                 <div className="flex flex-col justify-center">
                   <div className="user-info-name">
-                    {userName || 'No name set'}
+                    {profile.user_name || 'No name set'}
                   </div>
                   <div className="user-info-company">
-                    {companyName || 'No company set'}
+                    {profile.company_name || 'No company set'}
                   </div>
-                  {userRole && (
+                  {profile.role && (
                     <div className="text-xs text-gray-400">
-                      {userRole}
+                      {profile.role}
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Right side - Navigation Buttons */}
-              {userRole === USER_ROLES.ADMIN && (
+              {profile.role === USER_ROLES.ADMIN && (
                 <div className="flex gap-4 items-center">
                   {/* Users Management */}
                   <Link 
@@ -528,7 +375,7 @@ export default function Dashboard() {
               )}
 
               {/* User Navigation Buttons */}
-              {userRole === USER_ROLES.STAFF && (
+              {profile.role === USER_ROLES.STAFF && (
                 <div className="flex gap-4 items-center">
                   {/* Payment History */}
                   <Link 
@@ -567,9 +414,9 @@ export default function Dashboard() {
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                     className="instagram-avatar"
                   >
-                    {companyProfileImage ? (
+                    {profile.companyProfileImage ? (
                       <img 
-                        src={companyProfileImage} 
+                        src={profile.companyProfileImage} 
                         alt="Company Profile" 
                       />
                     ) : (
@@ -584,14 +431,14 @@ export default function Dashboard() {
                   {/* Mobile User Info Text */}
                   <div className="flex flex-col justify-center">
                     <div className="user-info-name text-base">
-                      {userName || 'No name set'}
+                      {profile.user_name || 'No name set'}
                     </div>
                     <div className="user-info-company text-xs">
-                      {companyName || 'No company set'}
+                      {profile.company_name || 'No company set'}
                     </div>
-                    {userRole && (
+                    {profile.role && (
                       <div className="text-xs text-gray-400">
-                        {userRole}
+                        {profile.role}
                       </div>
                     )}
                   </div>
@@ -616,7 +463,7 @@ export default function Dashboard() {
                 <div className="border-t border-gray-700 pt-4">
                   <nav className="space-y-2">
                     
-                    {userRole === USER_ROLES.ADMIN && (
+                    {profile.role === USER_ROLES.ADMIN && (
                       <>
                         <button 
                           className="block w-full text-left bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] mb-2"

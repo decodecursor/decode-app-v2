@@ -2,16 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { getUserWithProxy } from '@/utils/auth-helper'
+import { useUser } from '@/providers/UserContext'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import type { User } from '@supabase/supabase-js'
 import { calculateMarketplaceFee } from '@/types/crossmint'
-import { USER_ROLES, UserRole } from '@/types/user'
+import { USER_ROLES } from '@/types/user'
 
 export default function CreatePayment() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true) // Start with loading true
+  const { user, profile, loading: contextLoading } = useUser()
+  const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
@@ -22,25 +21,21 @@ export default function CreatePayment() {
     client: '',
     amount: ''
   })
-  
+
   // Client suggestions states
   const [clientSuggestions, setClientSuggestions] = useState<Array<{name: string, count: number}>>([])
   const [showClientSuggestions, setShowClientSuggestions] = useState(false)
   const [selectedClientSuggestionIndex, setSelectedClientSuggestionIndex] = useState(-1)
   const [isLoadingClientSuggestions, setIsLoadingClientSuggestions] = useState(false)
-  
-  
+
+
   // Branch management states
-  const [userBranches, setUserBranches] = useState<string[]>([])
   const [selectedBranch, setSelectedBranch] = useState<string>('')
   const [showBranchSelector, setShowBranchSelector] = useState(false)
-  const [userRole, setUserRole] = useState<UserRole | null>(null)
-  const [companyName, setCompanyName] = useState<string>('')
-  const [branchCount, setBranchCount] = useState<number>(1)
-  
+
   const router = useRouter()
 
-  const ensureUserHasWallet = async (user: User) => {
+  const ensureUserHasWallet = async (userId: string, userEmail: string | undefined) => {
     try {
       const supabase = createClient()
       
@@ -48,7 +43,7 @@ export default function CreatePayment() {
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('wallet_address, crossmint_wallet_id')
-        .eq('id', user.id)
+        .eq('id', userId)
         .single()
 
       if (userError) {
@@ -70,8 +65,8 @@ export default function CreatePayment() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: user.id,
-          userEmail: user.email
+          userId: userId,
+          userEmail: userEmail
         })
       })
 
@@ -136,59 +131,23 @@ export default function CreatePayment() {
   }, [])
 
   useEffect(() => {
-    const loadUserData = async () => {
-      const { user } = await getUserWithProxy()
-      if (!user) {
-        router.push('/auth')
-        return
-      }
-      setUser(user)
-
-      try {
-        const response = await fetch('/api/user/profile', {
-          method: 'GET',
-          credentials: 'include'
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          console.error('Failed to fetch profile:', errorData.error)
-          setUserBranches([])
-          setSelectedBranch('')
-          return
-        }
-
-        const { userData } = await response.json()
-
-        // Set company info
-        setCompanyName(userData?.company_name || '')
-        setBranchCount(userData?.branchCount || 1)
-
-        // Set user branch data (copy dashboard logic exactly)
-        if (userData?.branch_name) {
-          const branches = userData.branch_name.split(',').map((b: string) => b.trim()).filter((b: string) => b !== '')
-          setUserBranches(branches)
-          setSelectedBranch(branches[0] || '')
-        } else {
-          setUserBranches([])
-          setSelectedBranch('')
-        }
-
-        // Set user role
-        setUserRole(userData?.role || null)
-
-      } catch (error) {
-        console.error('Error loading user data:', error)
-        setUserBranches([])
-        setSelectedBranch('')
-        setUserRole(null)
-      }
-
-      setLoading(false)
+    // Check auth and redirect if needed
+    if (!contextLoading && !user) {
+      router.push('/auth')
+      return
     }
 
-    loadUserData()
-  }, [])
+    // Set branch data from cached profile
+    if (!contextLoading && profile) {
+      if (profile.branches.length > 0) {
+        setSelectedBranch(profile.branches[0])
+      }
+      setLoading(false)
+    } else if (!contextLoading) {
+      // No profile yet, but user is authenticated
+      setLoading(false)
+    }
+  }, [contextLoading, user, profile, router])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -281,13 +240,13 @@ export default function CreatePayment() {
     }
 
     // Check if user has any branch assignments
-    if (userBranches.length === 0) {
+    if (!profile || profile.branches.length === 0) {
       setError('You are not assigned to any branch. Please contact your administrator to get branch access before creating payment links.')
       return
     }
 
     // Check if selected branch is still valid (in case of real-time removal)
-    if (selectedBranch && !userBranches.includes(selectedBranch)) {
+    if (selectedBranch && !profile.branches.includes(selectedBranch)) {
       setError('The selected branch is no longer available. Please refresh the page and try again.')
       return
     }
@@ -468,18 +427,18 @@ export default function CreatePayment() {
               <div className="flex justify-center">
                 <button
                   type="submit"
-                  disabled={creating || userBranches.length === 0}
+                  disabled={creating || !profile || profile.branches.length === 0}
                   className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   {creating ? 'Creating PayLink...' :
-                   userBranches.length === 0 ? 'No Branch Access' :
+                   (!profile || profile.branches.length === 0) ? 'No Branch Access' :
                    'Create PayLink'}
                 </button>
               </div>
 
               {/* Branch Information */}
               <div className="-mt-8 text-center">
-                {userBranches.length > 1 ? (
+                {profile && profile.branches.length > 1 ? (
                   <button
                     type="button"
                     onClick={() => setShowBranchSelector(true)}
@@ -490,10 +449,10 @@ export default function CreatePayment() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
-                ) : userBranches.length === 0 ? (
+                ) : (!profile || profile.branches.length === 0) ? (
                   <div className="text-sm text-red-400 text-center">
                     <div>⚠️ No branch assigned ⚠️</div>
-                    <div>Contact your admin at {companyName || 'your company'} to assign you to correct branch</div>
+                    <div>Contact your admin at {profile?.company_name || 'your company'} to assign you to correct branch</div>
                   </div>
                 ) : null}
 
@@ -513,7 +472,7 @@ export default function CreatePayment() {
             </p>
             
             <div className="space-y-2 mb-6">
-              {userBranches.map((branch) => (
+              {profile?.branches.map((branch) => (
                 <button
                   key={branch}
                   onClick={() => {
