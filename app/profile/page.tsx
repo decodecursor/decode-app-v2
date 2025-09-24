@@ -200,37 +200,33 @@ export default function ProfilePage() {
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')!
 
-    // Match canvas size to editor container (320px)
-    const containerSize = 320
-    const cropSize = 256 // Circular crop diameter (128px radius * 2)
+    const cropSize = 256 // Final circular crop size
     canvas.width = cropSize
     canvas.height = cropSize
 
-    // Create circular clipping path centered in crop area
+    // Create circular clipping path
     ctx.beginPath()
     ctx.arc(cropSize / 2, cropSize / 2, cropSize / 2, 0, 2 * Math.PI)
     ctx.clip()
 
-    // Calculate scaled dimensions
+    // Calculate scaled dimensions for canvas
     const scaledWidth = image.naturalWidth * imageScale
     const scaledHeight = image.naturalHeight * imageScale
 
-    // The container is 320px, canvas is 256px
-    // The crop area is centered in the container, so we need to offset by (320-256)/2 = 32px
-    const cropOffset = (containerSize - cropSize) / 2  // 32px
+    // Convert editor coordinates (320px container) to canvas coordinates (256px)
+    const scale = cropSize / 320  // Scale factor from editor to canvas
+    const canvasX = imagePosition.x * scale
+    const canvasY = imagePosition.y * scale
+    const canvasScaledWidth = scaledWidth * scale
+    const canvasScaledHeight = scaledHeight * scale
 
-    // imagePosition.x and imagePosition.y are the top-left coordinates of the image in the container
-    // We just need to subtract the offset to convert from container space to canvas space
-    const canvasX = imagePosition.x - cropOffset
-    const canvasY = imagePosition.y - cropOffset
-
-    // Draw image at the calculated position
+    // Draw image at the scaled position
     ctx.drawImage(
       image,
       canvasX,
       canvasY,
-      scaledWidth,
-      scaledHeight
+      canvasScaledWidth,
+      canvasScaledHeight
     )
 
     return new Promise((resolve) => {
