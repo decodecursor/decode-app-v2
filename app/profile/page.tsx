@@ -409,6 +409,9 @@ export default function ProfilePage() {
 
       // Step 5: Update local state and show success
       setProfilePhotoUrl(publicUrl)
+      if (profile) {
+        setProfile({ ...profile, profile_photo_url: publicUrl })
+      }
       setMessage({ type: 'success', text: 'Profile photo updated successfully!' })
 
       // Reset editor state after successful upload
