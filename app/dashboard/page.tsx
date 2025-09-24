@@ -142,8 +142,8 @@ export default function Dashboard() {
         return
       }
 
-      // If no profile exists, redirect to profile setup
-      if (!profile) {
+      // If no profile exists after context has loaded, redirect to profile setup
+      if (!contextLoading && !profile) {
         router.push('/profile')
         return
       }
