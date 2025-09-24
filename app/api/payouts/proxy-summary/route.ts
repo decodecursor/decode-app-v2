@@ -123,6 +123,12 @@ export async function GET(request: NextRequest) {
       console.log(`💰 STAFF: Total service revenue: ${totalServiceRevenue}, 1% commission: ${userBalance}`)
     }
 
+    // Quick fix: If ADMIN but fell through to staff calculation, multiply by 100
+    if (userData?.role?.toLowerCase() === 'admin' && userBalance > 0) {
+      userBalance = userBalance * 100
+      console.log(`💰 ADMIN FIX: Multiplied by 100 to get full amount: ${userBalance}`)
+    }
+
     // Get earnings from completed transactions
     const { data: transactions } = await supabase
       .from('transactions')
