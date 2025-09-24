@@ -567,7 +567,7 @@ export default function ProfilePage() {
                         
                         {/* Zoom Slider */}
                         <div className="mt-6 flex items-center gap-3">
-                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                           </svg>
                           <input
@@ -579,12 +579,12 @@ export default function ProfilePage() {
                             onChange={handleZoomChange}
                             className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
                           />
-                          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
                           </svg>
                         </div>
                         
-                        <p className="text-sm text-gray-400 text-center mt-4">Drag to reposition • Use slider to zoom</p>
+                        <p className="text-sm text-white text-center mt-4">Drag to reposition • Use slider to zoom</p>
                       </div>
                     </div>
                     
@@ -663,7 +663,7 @@ export default function ProfilePage() {
               />
               <button
                 onClick={updateProfessionalCenterName}
-                disabled={saving || !professionalCenterName.trim() || (professionalCenterName === profile?.professional_center_name && professionalCenterName === profile?.company_name)}
+                disabled={saving || !professionalCenterName.trim() || (professionalCenterName === profile?.professional_center_name || professionalCenterName === profile?.company_name)}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
                 {saving ? 'Saving...' : 'Change'}
