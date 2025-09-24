@@ -597,25 +597,28 @@ export default function ProfilePage() {
           {/* Professional Center Name Card - Admin Only */}
           {profile?.role === 'Admin' && (
           <div className="cosmic-card-profile">
-            <h2 className="text-xl font-semibold text-white mb-6">Company Name</h2>
+            <div className="flex items-center gap-3 mb-6">
+              <h2 className="text-xl font-semibold text-white">Company Name</h2>
+              <div className="flex items-center gap-1 px-2 py-1 bg-gray-600/20 text-gray-400 text-xs font-medium rounded-full border border-gray-500/30">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Permanent
+              </div>
+            </div>
             <div className="space-y-4">
               <input
                 type="text"
                 value={professionalCenterName}
-                onChange={(e) => setProfessionalCenterName(e.target.value)}
-                placeholder="Enter your company/business name"
-                className="cosmic-input w-full"
+                disabled={true}
+                placeholder="Set at registration"
+                className="cosmic-input w-full opacity-60 cursor-not-allowed"
               />
               <button
-                onClick={updateProfessionalCenterName}
-                disabled={saving || companyNameSaved || !professionalCenterName.trim() || (professionalCenterName === profile?.professional_center_name || professionalCenterName === profile?.company_name)}
-                className={`w-full transition-all duration-200 ${
-                  companyNameSaved
-                    ? 'bg-green-600 hover:bg-green-700 text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-default'
-                    : 'cosmic-button-primary disabled:opacity-50'
-                }`}
+                disabled={true}
+                className="cosmic-button-primary disabled:opacity-50 w-full cursor-not-allowed"
               >
-                {saving ? 'Saving...' : companyNameSaved ? '✓ Saved!' : 'Change'}
+                Set at Registration
               </button>
             </div>
           </div>
