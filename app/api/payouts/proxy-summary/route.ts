@@ -49,9 +49,12 @@ export async function GET(request: NextRequest) {
     // Simple approach: Calculate available balance
     let userBalance = 0
 
-    if (userData?.role === 'Admin' && userData?.company_name) {
-      // ADMIN: Get today's paid payment links for the company and sum service_amount_aed
-      console.log(`💰 ADMIN USER: Getting today's service revenue for company: "${userData.company_name}"`)
+    // Check if user is ADMIN (case-insensitive)
+    const isAdmin = userData?.role?.toLowerCase() === 'admin'
+
+    if (isAdmin) {
+      // ADMIN: Get today's paid payment links and sum FULL service_amount_aed
+      console.log(`💰 ADMIN USER (role: ${userData.role}): Getting today's full service revenue`)
 
       const today = new Date()
       const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
@@ -59,32 +62,43 @@ export async function GET(request: NextRequest) {
 
       console.log(`💰 Date range: ${startOfToday.toISOString()} to ${endOfToday.toISOString()}`)
 
-      const { data: adminPaymentLinks } = await supabase
+      // Build query for payment links
+      let query = supabase
         .from('payment_links')
-        .select('service_amount_aed, amount_aed, paid_at, client_name')
-        .eq('company_name', userData.company_name)
+        .select('service_amount_aed, amount_aed, paid_at, client_name, company_name')
         .not('paid_at', 'is', null)
         .gte('paid_at', startOfToday.toISOString())
         .lt('paid_at', endOfToday.toISOString())
+
+      // If company_name exists, filter by it. Otherwise get all payment links for today
+      if (userData.company_name) {
+        console.log(`💰 Filtering by company: "${userData.company_name}"`)
+        query = query.eq('company_name', userData.company_name)
+      } else {
+        console.log(`💰 No company_name set, getting ALL payment links for today`)
+      }
+
+      const { data: adminPaymentLinks } = await query
 
       console.log(`💰 Found ${adminPaymentLinks?.length || 0} paid payment links for today`)
 
       if (adminPaymentLinks && adminPaymentLinks.length > 0) {
         console.log(`💰 Payment links data:`, adminPaymentLinks.map(link => ({
           client_name: link.client_name,
+          company_name: link.company_name,
           service_amount_aed: link.service_amount_aed,
           amount_aed: link.amount_aed,
           paid_at: link.paid_at
         })))
 
-        // Sum all service_amount_aed for today
+        // Sum all service_amount_aed for today (FULL AMOUNT for ADMIN)
         userBalance = adminPaymentLinks.reduce((sum, link) => {
           const serviceAmount = link.service_amount_aed || (link.amount_aed * 0.91) || 0
-          console.log(`💰 Adding service amount: ${serviceAmount}`)
+          console.log(`💰 Adding FULL service amount: ${serviceAmount}`)
           return sum + serviceAmount
         }, 0)
 
-        console.log(`💰 ADMIN TOTAL SERVICE REVENUE FOR TODAY: ${userBalance}`)
+        console.log(`💰 ADMIN TOTAL SERVICE REVENUE FOR TODAY (FULL AMOUNT): ${userBalance}`)
       } else {
         console.log(`💰 No paid payment links found for today`)
         userBalance = 0
@@ -92,7 +106,7 @@ export async function GET(request: NextRequest) {
 
     } else {
       // STAFF: Get personal payment links and use 1% commission
-      console.log(`💰 STAFF USER: Getting personal payment links for 1% commission`)
+      console.log(`💰 STAFF USER (role: ${userData?.role}): Getting personal payment links for 1% commission`)
 
       const { data: staffPaymentLinks } = await supabase
         .from('payment_links')
@@ -147,12 +161,12 @@ export async function GET(request: NextRequest) {
     // Calculate available balance
     // For ADMIN: Show raw sum of today's service revenue without deducting payouts
     // For STAFF: Subtract requested payouts from commission balance
-    const availableBalance = userData?.role === 'Admin'
+    const availableBalance = isAdmin
       ? userBalance
       : Math.max(0, userBalance - totalRequestedPayouts)
 
     console.log(`💰 Total Requested Payouts: ${totalRequestedPayouts}`)
-    console.log(`💰 Available Balance: ${availableBalance} (${userData?.role === 'Admin' ? 'ADMIN: Today\'s service revenue' : `${userBalance} - ${totalRequestedPayouts}`})`)
+    console.log(`💰 Available Balance: ${availableBalance} (${isAdmin ? 'ADMIN: Today\'s full service revenue' : `${userBalance} - ${totalRequestedPayouts}`})`)
 
     const payoutSummary = {
       availableBalance,
