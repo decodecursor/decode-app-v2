@@ -197,92 +197,46 @@ export default function ProfilePage() {
   }
 
   const getCroppedImg = (image: HTMLImageElement): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      try {
-        console.log('🖼️ Starting image crop process...')
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')!
 
-        const canvas = document.createElement('canvas')
-        const ctx = canvas.getContext('2d')
+    // Match canvas size to editor container (320px)
+    const containerSize = 320
+    const cropSize = 256 // Circular crop diameter (128px radius * 2)
+    canvas.width = cropSize
+    canvas.height = cropSize
 
-        if (!ctx) {
-          throw new Error('Failed to get canvas context')
-        }
+    // Create circular clipping path centered in crop area
+    ctx.beginPath()
+    ctx.arc(cropSize / 2, cropSize / 2, cropSize / 2, 0, 2 * Math.PI)
+    ctx.clip()
 
-        // Match canvas size to crop area
-        const containerSize = 320
-        const cropSize = 256 // Circular crop diameter (128px radius * 2)
-        canvas.width = cropSize
-        canvas.height = cropSize
+    // Calculate scaled dimensions
+    const scaledWidth = image.naturalWidth * imageScale
+    const scaledHeight = image.naturalHeight * imageScale
 
-        console.log('📐 Canvas setup:', {
-          containerSize,
-          cropSize,
-          imageScale,
-          imagePosition
-        })
+    // The container is 320px, canvas is 256px
+    // The crop area is centered in the container, so we need to offset by (320-256)/2 = 32px
+    const cropOffset = (containerSize - cropSize) / 2  // 32px
 
-        // Fill with white background first (in case image has transparency)
-        ctx.fillStyle = '#FFFFFF'
-        ctx.fillRect(0, 0, cropSize, cropSize)
+    // imagePosition.x and imagePosition.y are the top-left coordinates of the image in the container
+    // We just need to subtract the offset to convert from container space to canvas space
+    const canvasX = imagePosition.x - cropOffset
+    const canvasY = imagePosition.y - cropOffset
 
-        // Create circular clipping path centered in crop area
-        ctx.beginPath()
-        ctx.arc(cropSize / 2, cropSize / 2, cropSize / 2, 0, 2 * Math.PI)
-        ctx.clip()
+    // Draw image at the calculated position
+    ctx.drawImage(
+      image,
+      canvasX,
+      canvasY,
+      scaledWidth,
+      scaledHeight
+    )
 
-        // Calculate scaled dimensions
-        const scaledWidth = image.naturalWidth * imageScale
-        const scaledHeight = image.naturalHeight * imageScale
-
-        console.log('🔢 Image dimensions:', {
-          natural: { width: image.naturalWidth, height: image.naturalHeight },
-          scaled: { width: scaledWidth, height: scaledHeight }
-        })
-
-        // The container is 320px, canvas is 256px
-        // The crop area is centered in the container, so we need to offset by (320-256)/2 = 32px
-        const cropOffset = (containerSize - cropSize) / 2  // 32px
-
-        // imagePosition.x and imagePosition.y are the top-left coordinates of the image in the container
-        // We need to subtract the offset to convert from container space to canvas space
-        const canvasX = imagePosition.x - cropOffset
-        const canvasY = imagePosition.y - cropOffset
-
-        console.log('📍 Drawing position:', {
-          containerPosition: imagePosition,
-          cropOffset,
-          canvasPosition: { x: canvasX, y: canvasY }
-        })
-
-        // Draw image at the calculated position
-        ctx.drawImage(
-          image,
-          canvasX,
-          canvasY,
-          scaledWidth,
-          scaledHeight
-        )
-
-        // Convert canvas to blob
-        canvas.toBlob((blob) => {
-          if (!blob) {
-            console.error('❌ Failed to create blob from canvas')
-            reject(new Error('Failed to create image blob'))
-            return
-          }
-
-          console.log('✅ Image cropped successfully:', {
-            blobSize: blob.size,
-            blobType: blob.type
-          })
-
-          resolve(blob)
-        }, 'image/jpeg', 0.95)
-
-      } catch (error) {
-        console.error('❌ Error in getCroppedImg:', error)
-        reject(error)
-      }
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        resolve(blob!)
+      }, 'image/jpeg', 0.95)
     })
   }
 
