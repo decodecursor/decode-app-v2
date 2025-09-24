@@ -213,18 +213,25 @@ export default function ProfilePage() {
     const scaledWidth = image.naturalWidth * imageScale
     const scaledHeight = image.naturalHeight * imageScale
 
-    // Scale coordinates from 320px container to 256px canvas
-    const scale = cropSize / 320
-    const canvasX = imagePosition.x * scale
-    const canvasY = imagePosition.y * scale
+    // The crop circle (256px) is centered in the 320px container
+    // So there's a 32px offset from container edge to crop circle edge
+    const containerSize = 320
+    const offset = (containerSize - cropSize) / 2  // 32px
+
+    // Convert container coordinates to canvas coordinates
+    // Subtract the offset to get position relative to crop circle, then scale
+    const scale = cropSize / containerSize
+    const canvasX = (imagePosition.x - offset) * scale + offset * scale
+    const canvasY = (imagePosition.y - offset) * scale + offset * scale
     const canvasWidth = scaledWidth * scale
     const canvasHeight = scaledHeight * scale
 
-    console.log('🎯 Drawing on canvas:', {
+    console.log('🎯 Fixed coordinate conversion:', {
       containerPos: imagePosition,
+      offset,
+      scale,
       canvasPos: { x: canvasX, y: canvasY },
-      canvasSize: { w: canvasWidth, h: canvasHeight },
-      scale
+      canvasSize: { w: canvasWidth, h: canvasHeight }
     })
 
     // Draw image
