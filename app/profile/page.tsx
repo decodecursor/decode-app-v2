@@ -197,23 +197,14 @@ export default function ProfilePage() {
   }
 
   const getCroppedImg = (image: HTMLImageElement): Promise<Blob> => {
-    console.log('🔍 getCroppedImg called with state:', {
-      imagePosition,
-      imageScale,
-      imageNaturalWidth: image.naturalWidth,
-      imageNaturalHeight: image.naturalHeight
-    })
-
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')!
 
-    // Match canvas size to editor container (320px)
-    const containerSize = 320
-    const cropSize = 256 // Circular crop diameter (128px radius * 2)
+    const cropSize = 256
     canvas.width = cropSize
     canvas.height = cropSize
 
-    // Create circular clipping path centered in crop area
+    // Create circular clipping path
     ctx.beginPath()
     ctx.arc(cropSize / 2, cropSize / 2, cropSize / 2, 0, 2 * Math.PI)
     ctx.clip()
@@ -222,22 +213,27 @@ export default function ProfilePage() {
     const scaledWidth = image.naturalWidth * imageScale
     const scaledHeight = image.naturalHeight * imageScale
 
-    // The container is 320px, canvas is 256px
-    // The crop area is centered in the container, so we need to offset by (320-256)/2 = 32px
-    const cropOffset = (containerSize - cropSize) / 2  // 32px
+    // Scale coordinates from 320px container to 256px canvas
+    const scale = cropSize / 320
+    const canvasX = imagePosition.x * scale
+    const canvasY = imagePosition.y * scale
+    const canvasWidth = scaledWidth * scale
+    const canvasHeight = scaledHeight * scale
 
-    // imagePosition.x and imagePosition.y are the top-left coordinates of the image in the container
-    // We just need to subtract the offset to convert from container space to canvas space
-    const canvasX = imagePosition.x - cropOffset
-    const canvasY = imagePosition.y - cropOffset
+    console.log('🎯 Drawing on canvas:', {
+      containerPos: imagePosition,
+      canvasPos: { x: canvasX, y: canvasY },
+      canvasSize: { w: canvasWidth, h: canvasHeight },
+      scale
+    })
 
-    // Draw image at the calculated position
+    // Draw image
     ctx.drawImage(
       image,
       canvasX,
       canvasY,
-      scaledWidth,
-      scaledHeight
+      canvasWidth,
+      canvasHeight
     )
 
     return new Promise((resolve) => {
