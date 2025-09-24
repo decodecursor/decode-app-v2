@@ -134,7 +134,7 @@ export default function Dashboard() {
   }
 
 
-  // Check authentication and profile on mount
+  // Check authentication on mount
   useEffect(() => {
     if (!contextLoading) {
       if (!user) {
@@ -142,11 +142,8 @@ export default function Dashboard() {
         return
       }
 
-      // If no profile exists after context has loaded, redirect to profile setup
-      if (!contextLoading && !profile) {
-        router.push('/profile')
-        return
-      }
+      // Note: Profile is automatically created by database trigger during registration
+      // No need to redirect to profile setup - users should stay on dashboard
 
       // Check if user is approved (skip check for Admins)
       if (profile.approval_status === 'pending' && profile.role !== USER_ROLES.ADMIN) {
