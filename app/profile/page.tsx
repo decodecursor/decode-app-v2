@@ -209,7 +209,13 @@ export default function ProfilePage() {
       cropSize,
       offset,
       imagePosition,
-      imageScale
+      imageScale,
+      actualContainerWidth: containerRef.current?.offsetWidth,
+      actualContainerHeight: containerRef.current?.offsetHeight,
+      copyFromX: offset,
+      copyFromY: offset,
+      copyToX: offset + cropSize,
+      copyToY: offset + cropSize
     })
 
     // Step 1: Create a canvas same size as actual editor container
