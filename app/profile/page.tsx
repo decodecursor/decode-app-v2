@@ -386,7 +386,9 @@ export default function ProfilePage() {
 
   // Handle zoom slider
   const handleZoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setImageScale(parseFloat(e.target.value))
+    const newScale = parseFloat(e.target.value)
+    console.log('🔍 Zoom slider changed:', { oldScale: imageScale, newScale })
+    setImageScale(newScale)
   }
 
   const changeEmail = async () => {
