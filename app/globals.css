@@ -969,57 +969,151 @@ body {
     overflow-y: auto !important;
   }
 
-  /* Mobile-only styles for my-links page */
+  /* Professional mobile design for my-links page */
   .my-links-container {
-    width: 100% !important;
-    max-width: none !important;
-    padding: 0 16px;
+    width: calc(100% - 32px) !important;
+    max-width: 420px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
   }
 
-  /* Mobile payment link card */
+  /* Compact header */
+  .my-links-header-mobile {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 12px 16px !important;
+  }
+
+  .my-links-header-mobile h1 {
+    font-size: 24px !important;
+    margin: 0 !important;
+  }
+
+  .my-links-header-mobile a {
+    width: auto !important;
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    border-radius: 18px !important;
+  }
+
+  /* Professional card design */
   .payment-link-card-mobile {
     padding: 16px !important;
+    border-radius: 12px !important;
+    margin-bottom: 12px !important;
+    position: relative !important;
   }
 
-  /* Stack action buttons vertically on mobile */
+  /* Remove giant status overlays on mobile */
+  .status-overlay-mobile {
+    display: none !important;
+  }
+
+  /* Compact status badge */
+  .payment-link-status-mobile {
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    border-radius: 12px !important;
+  }
+
+  /* Client name styling */
+  .payment-link-client-mobile {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    margin-bottom: 4px !important;
+    padding-right: 80px !important; /* Space for badge */
+  }
+
+  /* Service title */
+  .payment-link-title-mobile {
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    color: rgba(255,255,255,0.8) !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* Amount - prominent */
+  .payment-link-amount-mobile {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    margin-bottom: 4px !important;
+  }
+
+  /* Date info */
+  .payment-link-date-mobile {
+    font-size: 12px !important;
+    color: rgba(255,255,255,0.6) !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* Icon-only action buttons */
   .payment-link-actions-mobile {
-    flex-direction: column !important;
-    width: 100% !important;
+    flex-direction: row !important;
     gap: 8px !important;
-    margin-left: 0 !important;
+    margin: 0 !important;
+    padding-top: 8px !important;
+    border-top: 1px solid rgba(255,255,255,0.1) !important;
   }
 
   .payment-link-actions-mobile button {
-    width: 100% !important;
+    width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
     justify-content: center !important;
+    border-radius: 8px !important;
+    font-size: 16px !important;
   }
 
-  /* Mobile text overlay for status */
-  .status-overlay-mobile {
-    font-size: 2rem !important;
+  /* Hide button text on mobile, show only icons */
+  .payment-link-actions-mobile button span:not(.button-icon) {
+    display: none !important;
   }
 
-  /* Stack header elements on mobile */
-  .my-links-header-mobile {
-    flex-direction: column !important;
-    gap: 16px !important;
+  .payment-link-actions-mobile button .button-icon {
+    display: flex !important;
   }
 
-  .my-links-header-mobile button,
-  .my-links-header-mobile a {
-    width: 100% !important;
+  /* Hide desktop info row on mobile */
+  .payment-link-info-mobile {
+    display: none !important;
+  }
+
+  /* Hide metadata on mobile */
+  .payment-link-meta-mobile {
+    display: none !important;
+  }
+
+  /* Back button styling */
+  .my-links-back-button {
+    font-size: 14px !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* Empty state styling */
+  .my-links-empty-state {
+    padding: 40px 20px !important;
     text-align: center !important;
   }
 
-  /* Mobile-friendly amount and status layout */
-  .payment-link-info-mobile {
-    flex-direction: column !important;
-    gap: 8px !important;
+  .my-links-empty-state h2 {
+    font-size: 20px !important;
+    margin-bottom: 12px !important;
   }
 
-  /* Hide branch/creator info on mobile to save space */
-  .payment-link-meta-mobile {
-    display: none !important;
+  .my-links-empty-state p {
+    font-size: 14px !important;
+    margin-bottom: 20px !important;
   }
 }
 
