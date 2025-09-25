@@ -1278,54 +1278,61 @@ body {
     margin: 0 auto !important;
   }
 
-  /* Stack header elements vertically */
+  /* Header elements on same line */
   .payments-header-mobile {
-    flex-direction: column !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
     gap: 12px !important;
-    align-items: stretch !important;
   }
 
   .payments-header-mobile h1 {
-    font-size: 24px !important;
-    text-align: center !important;
+    font-size: 20px !important;
+    margin: 0 !important;
   }
 
   .payments-header-mobile a,
   .payments-header-mobile button {
-    width: 100% !important;
-    justify-content: center !important;
+    width: auto !important;
+    font-size: 14px !important;
+    padding: 8px 16px !important;
+    white-space: nowrap !important;
   }
 
-  /* 2x2 grid for metrics */
+  /* 2x2 grid for metrics - compressed */
   .payments-metrics-grid {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    gap: 12px !important;
+    gap: 8px !important;
   }
 
-  /* Metric card styling */
+  /* Metric card styling - compressed */
   .payment-metric-card {
-    padding: 12px !important;
-    min-height: 100px !important;
+    padding: 8px !important;
+    min-height: auto !important;
   }
 
   .payment-metric-label {
-    font-size: 11px !important;
-    margin-bottom: 4px !important;
+    font-size: 10px !important;
+    margin-bottom: 2px !important;
+    line-height: 1.2 !important;
   }
 
   .payment-metric-value {
-    font-size: 18px !important;
+    font-size: 16px !important;
     font-weight: 700 !important;
-    margin-bottom: 2px !important;
+    margin-bottom: 1px !important;
+    line-height: 1.2 !important;
   }
 
   .payment-metric-change {
-    font-size: 11px !important;
+    font-size: 10px !important;
+    line-height: 1.2 !important;
   }
 
   .payment-metric-comparison {
-    font-size: 10px !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
   }
 
   /* Horizontal scroll for date filters */
@@ -1356,24 +1363,38 @@ body {
     flex-shrink: 0 !important;
   }
 
-  /* Chart container for mobile */
+  /* Chart container for mobile - compressed */
   .payments-chart-container {
-    padding: 12px !important;
+    padding: 8px !important;
   }
 
   .payments-chart-mobile {
-    height: 200px !important;
-    overflow-x: auto !important;
+    height: 150px !important;
+    overflow: visible !important;
+  }
+
+  .payments-chart-mobile .flex {
+    height: 150px !important;
   }
 
   .payments-chart-mobile .chart-bar {
-    min-width: 30px !important;
+    min-width: 20px !important;
   }
 
   /* Y-axis labels simplified */
   .payments-chart-yaxis {
-    width: 40px !important;
-    font-size: 10px !important;
+    width: 35px !important;
+    font-size: 9px !important;
+  }
+
+  /* Compress analytics card overall */
+  .analytics-card-mobile {
+    padding: 12px !important;
+  }
+
+  .analytics-card-mobile h2 {
+    font-size: 18px !important;
+    margin-bottom: 8px !important;
   }
 
   /* Back button styling */
@@ -1392,5 +1413,45 @@ body {
   .export-button-mobile {
     font-size: 12px !important;
     padding: 8px 12px !important;
+  }
+
+  /* Paid PayLinks section */
+  .paid-paylinks-container {
+    max-height: 400px !important;
+    overflow-y: auto !important;
+  }
+
+  .paid-paylink-card {
+    padding: 10px !important;
+    border-radius: 8px !important;
+    background: rgba(255,255,255,0.05) !important;
+    margin-bottom: 8px !important;
+    border-left: 3px solid #10b981 !important;
+  }
+
+  .paid-paylink-title {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: white !important;
+    margin-bottom: 2px !important;
+  }
+
+  .paid-paylink-client {
+    font-size: 12px !important;
+    color: rgba(255,255,255,0.7) !important;
+    margin-bottom: 2px !important;
+  }
+
+  .paid-paylink-info {
+    font-size: 12px !important;
+    color: rgba(255,255,255,0.6) !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+
+  .paid-paylink-amount {
+    font-weight: 600 !important;
+    color: #10b981 !important;
   }
 }

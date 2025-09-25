@@ -687,8 +687,8 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     <>
     <div className="space-y-6">
       {/* Date Range Selector */}
-      <div className="cosmic-card">
-        <div className="flex justify-between items-center mb-6">
+      <div className="cosmic-card analytics-card-mobile">
+        <div className="flex justify-between items-center mb-4 md:mb-6">
           <h2 className="cosmic-heading text-white">Analytics</h2>
           <div className="flex space-x-2 payments-filters-scroll">
             {(['today', 'week', 'month', 'custom'] as const).map((range) => (
