@@ -716,11 +716,27 @@ function AuthPageContent() {
     if (isPostVerificationFlow || signedUpUser?.email_confirmed_at) {
       console.log('✅ [AUTH] User is already verified - redirecting directly to dashboard')
       setMessage('Profile created successfully! Redirecting to dashboard...')
+      setLoading(true) // Show loading during redirect
 
-      // Longer delay to allow user context and profile to stabilize
-      setTimeout(() => {
-        router.push('/dashboard')
-      }, 3000)
+      try {
+        // Verify session is active before redirect
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          console.log('✅ [AUTH] Session verified, redirecting now')
+          router.push('/dashboard')
+        } else {
+          console.log('⚠️ [AUTH] No session found, attempting refresh')
+          await supabase.auth.refreshSession()
+          // Small delay to allow session refresh, then redirect
+          setTimeout(() => {
+            router.push('/dashboard')
+          }, 500)
+        }
+      } catch (error) {
+        console.error('❌ [AUTH] Error during redirect:', error)
+        setMessage('Profile created successfully! Please refresh the page to continue.')
+        setLoading(false)
+      }
     } else {
       // For users who signed up directly (not via email verification)
       console.log('✅ [AUTH] User needs email verification - switching to login flow')
