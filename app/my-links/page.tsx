@@ -1304,50 +1304,46 @@ function MyLinksContent() {
                         </div>
                       )}
 
-                      <div className={`flex flex-col gap-3 ${isPaid || isExpired || isDeactivated ? 'opacity-60 filter grayscale-[0.2]' : ''}`}>
-                        {/* Mobile Status Badge - Positioned absolute on mobile */}
-                        <span className={`md:hidden payment-link-status-mobile inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor} bg-gray-800`}>
-                          {status}
-                        </span>
-
+                      <div className={`flex flex-col gap-2 ${isPaid || isExpired || isDeactivated ? 'opacity-60 filter grayscale-[0.2]' : ''}`}>
                         {/* Mobile Layout - Hidden on desktop */}
                         <div className="md:hidden">
-                          {/* Top row with client name */}
-                          {link.client_name && (
-                            <p className="payment-link-client-mobile text-purple-400 mb-1">
-                              {link.client_name}
+                          {/* Top row with client name and badge on same line */}
+                          <div className="flex justify-between items-start mb-1">
+                            <p className="payment-link-client-mobile text-purple-400">
+                              {link.client_name || ''}
                             </p>
-                          )}
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColor} bg-gray-800`}>
+                              {status}
+                            </span>
+                          </div>
 
                           {/* Service title with date aligned under badge */}
-                          <div className="flex justify-between items-start mb-2">
+                          <div className="flex justify-between items-start mb-1">
                             <h3 className="payment-link-title-mobile text-white flex-1">
                               {link.title}
                             </h3>
-                            <div className="text-right" style={{ marginTop: '2px' }}>
-                              <div className={`text-xs ${(() => {
-                                if (isDeactivated || isExpired) return 'text-red-400'
-                                if (isPaid) return 'text-green-400'
-                                return 'text-gray-400'
-                              })()}`}>
-                                {(() => {
-                                  if (isDeactivated) return formatDate(link.updated_at || link.created_at)
-                                  if (isExpired) return formatDate(link.expiration_date)
-                                  if (isPaid) return formatDate(link.paid_at || link.expiration_date)
-                                  return formatDate(link.expiration_date)
-                                })()}
-                              </div>
+                            <div className={`text-xs ${(() => {
+                              if (isDeactivated || isExpired) return 'text-red-400'
+                              if (isPaid) return 'text-green-400'
+                              return 'text-gray-400'
+                            })()}`}>
+                              {(() => {
+                                if (isDeactivated) return formatDate(link.updated_at || link.created_at)
+                                if (isExpired) return formatDate(link.expiration_date)
+                                if (isPaid) return formatDate(link.paid_at || link.expiration_date)
+                                return formatDate(link.expiration_date)
+                              })()}
                             </div>
                           </div>
 
                           {/* Amount and Creator in same row */}
-                          <div className="flex justify-between items-start mb-3">
+                          <div className="flex justify-between items-start mb-2">
                             <div className="payment-link-amount-mobile text-white">
                               AED {formatAmount(link.service_amount_aed || link.amount_aed)}
                             </div>
-                            {/* Creator info right-aligned */}
+                            {/* Creator info right-aligned with smaller text */}
                             {userRole === 'Admin' && link.creator_name && (
-                              <div className="text-xs text-gray-400">
+                              <div className="payment-link-creator-mobile text-gray-400">
                                 Creator: <span className={formatUserNameWithStyle(link.creator_name, link.creator_id).className}>
                                   {formatUserNameWithStyle(link.creator_name, link.creator_id).name}
                                 </span>
@@ -1356,7 +1352,7 @@ function MyLinksContent() {
                           </div>
 
                           {/* Mobile Action Buttons with Text */}
-                          <div className={`flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-700 ${isPaid || isExpired || isDeactivated ? 'opacity-50' : ''}`}>
+                          <div className={`flex flex-wrap gap-2 mt-2 pt-2 border-t border-gray-700 ${isPaid || isExpired || isDeactivated ? 'opacity-50' : ''}`}>
                             <button
                               onClick={() => copyToClipboard(link.id)}
                               disabled={copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
