@@ -108,8 +108,14 @@ function MyLinksContent() {
       try {
         await fetchPaymentLinks(user.id)
         await fetchUserRoleAndBranchCount(user.id)
+      } catch (error) {
+        console.error('❌ [MY-LINKS] Error loading payment links:', error)
+        setError('Failed to load payment links. Please try refreshing.')
+        return // Exit early if data loading fails
+      }
 
-        // Set up real-time subscription for payment status changes
+      // Set up real-time subscription separately (non-critical)
+      try {
         console.log('🔄 Setting up real-time subscription for user:', user.id)
         const subscription = createClient()
           .channel('payment_links_changes')
@@ -217,9 +223,11 @@ function MyLinksContent() {
         return () => {
           subscription.unsubscribe()
         }
-      } catch (error) {
-        console.error('❌ [MY-LINKS] Error during initialization:', error)
-        setError('Failed to initialize page. Please try refreshing.')
+      } catch (subscriptionError) {
+        // Log subscription errors but don't show to user (non-critical feature)
+        console.error('⚠️ [MY-LINKS] Real-time subscription error (non-critical):', subscriptionError)
+        console.log('ℹ️ [MY-LINKS] Continuing without real-time updates - page will still work')
+        // Don't set error - real-time updates are nice to have but not required
       }
     }
 
@@ -592,9 +600,16 @@ function MyLinksContent() {
 
             setPaymentLinks(basicPaymentLinks)
 
-            // Show specific error details in the UI
-            const mainApiError = errorData?.error || `HTTP ${response.status}`
-            setError(`⚠️ FALLBACK MODE ACTIVE: Main API failed (${mainApiError}). Showing basic data only. Full details unavailable.`)
+            // Don't show error if we have data in fallback mode - just a warning
+            if (basicPaymentLinks.length > 0) {
+              // Clear error since we have usable data
+              setError('')
+              console.log('✅ [MY-LINKS] Fallback mode but data available - clearing error')
+            } else {
+              // Only show error if no data at all
+              const mainApiError = errorData?.error || `HTTP ${response.status}`
+              setError(`⚠️ No payment links found. Main API failed (${mainApiError}).`)
+            }
 
             // Mark initial load as complete for fallback mode
             setTimeout(() => {
@@ -733,6 +748,10 @@ function MyLinksContent() {
       setPaymentLinks(paymentLinksWithStatus)
 
       console.log('✅ [MY-LINKS] Payment links state updated with', paymentLinksWithStatus.length, 'links')
+
+      // Clear any previous errors since data loaded successfully
+      setError('')
+      console.log('✅ [MY-LINKS] Cleared any previous errors - data loaded successfully')
 
       // Mark initial load as complete
       setTimeout(() => {
