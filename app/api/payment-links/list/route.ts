@@ -67,8 +67,8 @@ export async function GET(request: NextRequest) {
 
     console.log('📡 [PAYMENT-LINKS-LIST] Fetching payment links for user:', userId, 'isAdmin:', isAdmin)
 
-    // Fetch payment links based on role
-    // Use LEFT JOIN to handle missing user references gracefully
+    // Fetch payment links WITHOUT the problematic users JOIN
+    // Using creator_name field directly from payment_links table
     let query = supabaseService
       .from('payment_links')
       .select(`
@@ -89,11 +89,7 @@ export async function GET(request: NextRequest) {
         branch_name,
         creator_name,
         created_at,
-        updated_at,
-        users (
-          user_name,
-          email
-        )
+        updated_at
       `)
       .order('created_at', { ascending: false })
 
@@ -154,22 +150,14 @@ export async function GET(request: NextRequest) {
     console.log('✅ [PAYMENT-LINKS-LIST] Successfully fetched', paymentLinks?.length || 0, 'payment links')
 
     // Format the response to match what the frontend expects
-    // Handle cases where creator might be deleted (users field is null)
+    // Using creator_name directly from payment_links table (no JOIN needed)
     const formattedLinks = paymentLinks?.map(link => {
-      // Handle both array and single object returns from Supabase users relationship
-      // TypeScript sees this as potentially an array, so we need safe access
-      const userRecord = Array.isArray(link.users) ? link.users[0] : link.users
-      const hasValidUser = userRecord && userRecord.user_name
-
-      if (!hasValidUser) {
-        console.log('⚠️ [PAYMENT-LINKS-LIST] Missing user reference for payment link:', link.id, 'creator_id:', link.creator_id)
-      }
-
       return {
         ...link,
-        creator: userRecord || {
-          user_name: link.creator_name || 'Deleted User',
-          email: 'deleted@user.com'
+        // Provide creator info using the creator_name field directly
+        creator: {
+          user_name: link.creator_name || 'Unknown User',
+          email: 'user@decode.com' // Placeholder since we don't fetch email anymore
         }
       }
     }) || []
