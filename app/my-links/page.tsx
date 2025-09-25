@@ -1157,7 +1157,7 @@ function MyLinksContent() {
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Link */}
         <div className="flex justify-center mb-8">
-          <div style={{width: '70vw'}}>
+          <div style={{width: '70vw'}} className="my-links-container">
           <Link href="/dashboard" className="inline-flex items-center text-gray-300 hover:text-white transition-colors">
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1169,9 +1169,9 @@ function MyLinksContent() {
 
         {/* Header */}
         <div className="flex justify-center mb-8">
-          <div style={{width: '70vw'}}>
+          <div style={{width: '70vw'}} className="my-links-container">
           <div className="cosmic-card">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center my-links-header-mobile">
               <div>
                 <h1 className="cosmic-heading mb-2">PayLinks</h1>
               </div>
@@ -1188,7 +1188,7 @@ function MyLinksContent() {
 
         {/* Main Content */}
         <div className="flex justify-center">
-          <div style={{width: '70vw'}}>
+          <div style={{width: '70vw'}} className="my-links-container">
           {/* Error Messages Only */}
           {error && (
             <div className="cosmic-card mb-8">
@@ -1254,7 +1254,7 @@ function MyLinksContent() {
                           createNewPayLinkHighlight(el)
                         }
                       }}
-                      className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out ${
+                      className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 payment-link-card-mobile transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out ${
                         isNewPayLink
                           ? 'bg-yellow-900/10 border-l-yellow-500 border-yellow-400/60 shadow-2xl shadow-yellow-400/40 scale-[1.02] animate-pulse'
                           : isPaid
@@ -1268,7 +1268,7 @@ function MyLinksContent() {
                       {/* PAID Overlay */}
                       {isPaid && (
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                          <span className="text-emerald-400 font-bold tracking-wider opacity-30 transform rotate-[-15deg]"
+                          <span className="text-emerald-400 font-bold tracking-wider opacity-30 transform rotate-[-15deg] status-overlay-mobile"
                                 style={{
                                   fontSize: '3.2rem',
                                   WebkitTextStroke: '1px rgba(16,185,129,0.4)'
@@ -1281,7 +1281,7 @@ function MyLinksContent() {
                       {/* EXPIRED Overlay */}
                       {isExpired && (
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                          <span className="text-red-400 font-bold tracking-wider opacity-30 transform rotate-[-15deg]"
+                          <span className="text-red-400 font-bold tracking-wider opacity-30 transform rotate-[-15deg] status-overlay-mobile"
                                 style={{
                                   fontSize: '3.2rem',
                                   WebkitTextStroke: '1px rgba(239,68,68,0.4)'
@@ -1294,7 +1294,7 @@ function MyLinksContent() {
                       {/* DEACTIVATED Overlay */}
                       {isDeactivated && (
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                          <span className="text-red-400 font-bold tracking-wider opacity-30 transform rotate-[-15deg]"
+                          <span className="text-red-400 font-bold tracking-wider opacity-30 transform rotate-[-15deg] status-overlay-mobile"
                                 style={{
                                   fontSize: '3.2rem',
                                   WebkitTextStroke: '1px rgba(239,68,68,0.4)'
@@ -1318,7 +1318,7 @@ function MyLinksContent() {
                             </h3>
                           </div>
                           
-                          <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
+                          <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8 payment-link-info-mobile">
                             <div className="text-right">
                               <p className={`text-sm ${(() => {
                                 const now = new Date()
@@ -1371,7 +1371,7 @@ function MyLinksContent() {
                               </div>
                             </div>
                             {/* Branch Name and Creator Name Display */}
-                            <div className="flex items-center gap-4 text-sm text-gray-400">
+                            <div className="flex items-center gap-4 text-sm text-gray-400 payment-link-meta-mobile">
                               {/* For Admin accounts: Always show creator_name, show branch_name if company has 2+ branches */}
                               {userRole === 'Admin' && link.creator_name && (
                                 <div className="flex items-center gap-2">
@@ -1391,7 +1391,7 @@ function MyLinksContent() {
                               )}
                             </div>
                             
-                            <div className={`flex gap-2 ml-4 ${isPaid || isExpired || isDeactivated ? 'opacity-50' : ''}`}>
+                            <div className={`flex gap-2 ml-4 payment-link-actions-mobile ${isPaid || isExpired || isDeactivated ? 'opacity-50' : ''}`}>
                             <button
                               onClick={() => copyToClipboard(link.id)}
                               disabled={copyingId === link.id || deactivatingId === link.id || deletingId === link.id}

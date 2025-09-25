@@ -968,6 +968,59 @@ body {
     max-height: 200px !important;
     overflow-y: auto !important;
   }
+
+  /* Mobile-only styles for my-links page */
+  .my-links-container {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 16px;
+  }
+
+  /* Mobile payment link card */
+  .payment-link-card-mobile {
+    padding: 16px !important;
+  }
+
+  /* Stack action buttons vertically on mobile */
+  .payment-link-actions-mobile {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 8px !important;
+    margin-left: 0 !important;
+  }
+
+  .payment-link-actions-mobile button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Mobile text overlay for status */
+  .status-overlay-mobile {
+    font-size: 2rem !important;
+  }
+
+  /* Stack header elements on mobile */
+  .my-links-header-mobile {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .my-links-header-mobile button,
+  .my-links-header-mobile a {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  /* Mobile-friendly amount and status layout */
+  .payment-link-info-mobile {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  /* Hide branch/creator info on mobile to save space */
+  .payment-link-meta-mobile {
+    display: none !important;
+  }
 }
 
 /* Extra small screens */
