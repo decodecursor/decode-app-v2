@@ -757,7 +757,9 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
           <div className="bg-white/5 rounded-lg p-4">
             {(userRole === USER_ROLES.ADMIN || userRole === 'Admin') ? (
               // Empty content for ADMIN roles - just the line/border
-              <div className="border-t border-white/10 pt-4"></div>
+              <div className="flex justify-center pt-4">
+                <div className="w-16 h-1 bg-white/30 rounded-full"></div>
+              </div>
             ) : (
               // Full content for STAFF roles
               <>
@@ -784,7 +786,9 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
           <div className="bg-white/5 rounded-lg p-4">
             {(userRole === USER_ROLES.ADMIN || userRole === 'Admin') ? (
               // Empty content for ADMIN roles - just the line/border
-              <div className="border-t border-white/10 pt-4"></div>
+              <div className="flex justify-center pt-4">
+                <div className="w-16 h-1 bg-white/30 rounded-full"></div>
+              </div>
             ) : (
               // Full content for STAFF roles
               <>
