@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { getUserWithProxy } from '@/utils/auth-helper'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useUser } from '@/providers/UserContext'
 import Link from 'next/link'
 import QRCode from 'qrcode'
 import HeartAnimation from '@/components/effects/HeartAnimation'
@@ -31,6 +32,7 @@ interface PaymentLink {
 }
 
 function MyLinksContent() {
+  const { user, profile, loading: contextLoading } = useUser()
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([])
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
@@ -81,128 +83,148 @@ function MyLinksContent() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    const getUser = async () => {
-      const { user } = await getUserWithProxy()
-      if (!user) {
-        router.push('/auth')
-        return
-      }
-      await fetchPaymentLinks(user.id)
-      await fetchUserRoleAndBranchCount(user.id)
-      
-      // Set up real-time subscription for payment status changes
-      console.log('🔄 Setting up real-time subscription for user:', user.id); // Force deployment
-      const subscription = createClient()
-        .channel('payment_links_changes')
-        .on('postgres_changes', 
-          { 
-            event: 'UPDATE', 
-            schema: 'public', 
-            table: 'payment_links'
-            // Removed filter to test if that's blocking updates
-          }, 
-          (payload) => {
-            // Only process updates for this user's payment links
-            if (payload.new?.creator_id !== user.id) {
-              return; // Skip updates for other users
-            }
-            console.log('💖 Real-time payment update received:', payload)
-            console.log('💖 Payload details:', {
-              event_type: payload.eventType,
-              table: payload.table,
-              old_payment_status: payload.old?.payment_status,
-              new_payment_status: payload.new?.payment_status,
-              old_paid_at: payload.old?.paid_at,
-              new_paid_at: payload.new?.paid_at,
-              old_is_paid: payload.old?.is_paid,
-              new_is_paid: payload.new?.is_paid,
-              old_is_active: payload.old?.is_active,
-              new_is_active: payload.new?.is_active,
-              link_id: payload.new?.id,
-              timestamp: new Date().toISOString()
-            })
-            
-            // Enhanced payment detection - check ALL possible indicators
-            const statusChangedToPaid = payload.new.payment_status === 'paid' && payload.old?.payment_status !== 'paid'
-            const paidAtWasSet = payload.new.paid_at && !payload.old?.paid_at
-            const isPaidWasSet = payload.new.is_paid && !payload.old?.is_paid
-            const statusExistsAndPaid = payload.new.payment_status === 'paid' && (!payload.old?.payment_status || payload.old.payment_status !== 'paid')
-            const isPaidIsTrue = payload.new.is_paid === true && payload.old?.is_paid !== true
-            
-            console.log('💖 Payment detection flags:', {
-              statusChangedToPaid,
-              paidAtWasSet,
-              isPaidWasSet,
-              statusExistsAndPaid,
-              isPaidIsTrue
-            })
-            
-            const justPaid = statusChangedToPaid || paidAtWasSet || isPaidWasSet || statusExistsAndPaid || isPaidIsTrue
-            
-            if (justPaid) {
-              console.log('🎉 Payment completed! Triggering heart animation for:', payload.new.id)
-              console.log('🎉 Current heart animating state:', heartAnimatingId)
-              console.log('🎉 Setting heart animation for link:', payload.new.id, 'at timestamp:', new Date().toISOString())
-              
-              // Clear any existing animation first
-              setHeartAnimatingId(null)
-              
-              // Use setTimeout to ensure state update processes
-              setTimeout(() => {
-                console.log('🎉 Actually setting heart animation now for:', payload.new.id)
-                setHeartAnimatingId(payload.new.id)
-                
-                // Auto-hide after 3 seconds with additional logging
-                setTimeout(() => {
-                  console.log('🎉 Clearing heart animation for:', payload.new.id)
-                  setHeartAnimatingId(null)
-                }, 3000)
-              }, 50)
-              
-              // Also trigger a backup animation after 1 second in case the first one doesn't work
-              setTimeout(() => {
-                console.log('🎉 Backup heart animation trigger for:', payload.new.id)
-                setHeartAnimatingId(payload.new.id)
-                setTimeout(() => setHeartAnimatingId(null), 3000)
-              }, 1000)
-            }
-            
-            // Always update the payment link in state for any change
-            console.log('🔄 Updating payment link state...')
-            setPaymentLinks(prev => {
-              const updated = prev.map(link => 
-                link.id === payload.new.id 
-                  ? {
-                      ...link,
-                      is_paid: payload.new.payment_status === 'paid' || payload.new.is_paid || false,
-                      is_active: payload.new.is_active !== undefined ? payload.new.is_active : link.is_active,
-                      payment_status: payload.new.payment_status || (payload.new.is_paid ? 'paid' : 'unpaid') as 'paid' | 'unpaid',
-                      paid_at: payload.new.paid_at || link.paid_at
-                    }
-                  : link
-              )
-              console.log('✅ Payment links state updated')
-              return updated
-            })
-          }
-        )
-        .subscribe((status) => {
-          console.log('📡 Real-time subscription status:', status)
-          if (status === 'SUBSCRIBED') {
-            console.log('✅ Successfully subscribed to real-time updates')
-          } else {
-            console.warn('⚠️ Real-time subscription status:', status)
-          }
-        })
+    console.log('🔄 [MY-LINKS] Context state change:', {
+      contextLoading,
+      hasUser: !!user,
+      hasProfile: !!profile,
+      userId: user?.id
+    })
 
-      // Cleanup subscription only
-      return () => {
-        subscription.unsubscribe()
+    // Wait for user context to fully initialize
+    if (contextLoading) {
+      console.log('⏳ [MY-LINKS] User context still loading...')
+      return
+    }
+
+    if (!user) {
+      console.log('❌ [MY-LINKS] No user found in context, redirecting to auth')
+      router.push('/auth')
+      return
+    }
+
+    console.log('✅ [MY-LINKS] User context ready, initializing page...')
+
+    const initializePaymentLinks = async () => {
+      try {
+        await fetchPaymentLinks(user.id)
+        await fetchUserRoleAndBranchCount(user.id)
+
+        // Set up real-time subscription for payment status changes
+        console.log('🔄 Setting up real-time subscription for user:', user.id)
+        const subscription = createClient()
+          .channel('payment_links_changes')
+          .on('postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'payment_links'
+            },
+            (payload) => {
+              // Only process updates for this user's payment links
+              if (payload.new?.creator_id !== user.id) {
+                return; // Skip updates for other users
+              }
+              console.log('💖 Real-time payment update received:', payload)
+              console.log('💖 Payload details:', {
+                event_type: payload.eventType,
+                table: payload.table,
+                old_payment_status: payload.old?.payment_status,
+                new_payment_status: payload.new?.payment_status,
+                old_paid_at: payload.old?.paid_at,
+                new_paid_at: payload.new?.paid_at,
+                old_is_paid: payload.old?.is_paid,
+                new_is_paid: payload.new?.is_paid,
+                old_is_active: payload.old?.is_active,
+                new_is_active: payload.new?.is_active,
+                link_id: payload.new?.id,
+                timestamp: new Date().toISOString()
+              })
+
+              // Enhanced payment detection - check ALL possible indicators
+              const statusChangedToPaid = payload.new.payment_status === 'paid' && payload.old?.payment_status !== 'paid'
+              const paidAtWasSet = payload.new.paid_at && !payload.old?.paid_at
+              const isPaidWasSet = payload.new.is_paid && !payload.old?.is_paid
+              const statusExistsAndPaid = payload.new.payment_status === 'paid' && (!payload.old?.payment_status || payload.old.payment_status !== 'paid')
+              const isPaidIsTrue = payload.new.is_paid === true && payload.old?.is_paid !== true
+
+              console.log('💖 Payment detection flags:', {
+                statusChangedToPaid,
+                paidAtWasSet,
+                isPaidWasSet,
+                statusExistsAndPaid,
+                isPaidIsTrue
+              })
+
+              const justPaid = statusChangedToPaid || paidAtWasSet || isPaidWasSet || statusExistsAndPaid || isPaidIsTrue
+
+              if (justPaid) {
+                console.log('🎉 Payment completed! Triggering heart animation for:', payload.new.id)
+                console.log('🎉 Current heart animating state:', heartAnimatingId)
+                console.log('🎉 Setting heart animation for link:', payload.new.id, 'at timestamp:', new Date().toISOString())
+
+                // Clear any existing animation first
+                setHeartAnimatingId(null)
+
+                // Use setTimeout to ensure state update processes
+                setTimeout(() => {
+                  console.log('🎉 Actually setting heart animation now for:', payload.new.id)
+                  setHeartAnimatingId(payload.new.id)
+
+                  // Auto-hide after 3 seconds with additional logging
+                  setTimeout(() => {
+                    console.log('🎉 Clearing heart animation for:', payload.new.id)
+                    setHeartAnimatingId(null)
+                  }, 3000)
+                }, 50)
+
+                // Also trigger a backup animation after 1 second in case the first one doesn't work
+                setTimeout(() => {
+                  console.log('🎉 Backup heart animation trigger for:', payload.new.id)
+                  setHeartAnimatingId(payload.new.id)
+                  setTimeout(() => setHeartAnimatingId(null), 3000)
+                }, 1000)
+              }
+
+              // Always update the payment link in state for any change
+              console.log('🔄 Updating payment link state...')
+              setPaymentLinks(prev => {
+                const updated = prev.map(link =>
+                  link.id === payload.new.id
+                    ? {
+                        ...link,
+                        is_paid: payload.new.payment_status === 'paid' || payload.new.is_paid || false,
+                        is_active: payload.new.is_active !== undefined ? payload.new.is_active : link.is_active,
+                        payment_status: payload.new.payment_status || (payload.new.is_paid ? 'paid' : 'unpaid') as 'paid' | 'unpaid',
+                        paid_at: payload.new.paid_at || link.paid_at
+                      }
+                    : link
+                )
+                console.log('✅ Payment links state updated')
+                return updated
+              })
+            }
+          )
+          .subscribe((status) => {
+            console.log('📡 Real-time subscription status:', status)
+            if (status === 'SUBSCRIBED') {
+              console.log('✅ Successfully subscribed to real-time updates')
+            } else {
+              console.warn('⚠️ Real-time subscription status:', status)
+            }
+          })
+
+        // Cleanup subscription only
+        return () => {
+          subscription.unsubscribe()
+        }
+      } catch (error) {
+        console.error('❌ [MY-LINKS] Error during initialization:', error)
+        setError('Failed to initialize page. Please try refreshing.')
       }
     }
-    
-    getUser()
-  }, [router])
+
+    initializePaymentLinks()
+  }, [contextLoading, user, router])
 
   // Enhanced polling useEffect that depends on userRole and companyName being available
   useEffect(() => {
@@ -506,23 +528,41 @@ function MyLinksContent() {
       setLoading(true)
       setError('')
 
+      console.log('📡 [MY-LINKS] Fetching payment links for user:', userId)
+
       // Fetch payment links via proxy endpoint
       const response = await fetch('/api/payment-links/list', {
         method: 'GET',
         credentials: 'include'
       })
 
+      console.log('📡 [MY-LINKS] API response status:', response.status, response.ok)
+
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to fetch payment links')
+        console.error('❌ [MY-LINKS] API error:', errorData)
+
+        if (response.status === 401) {
+          throw new Error('Authentication failed. Please try logging out and logging back in.')
+        } else if (response.status === 403) {
+          throw new Error('Access denied. Please check your account permissions.')
+        } else {
+          throw new Error(errorData.error || `Failed to fetch payment links (${response.status})`)
+        }
       }
 
       const data = await response.json()
       const { paymentLinks: paymentLinksData, isAdmin } = data
 
+      console.log('✅ [MY-LINKS] Received payment links data:', {
+        linksCount: paymentLinksData?.length || 0,
+        isAdmin
+      })
+
       // Process the fetched payment links
       if (!paymentLinksData) {
-        throw new Error('No payment links data received')
+        console.warn('⚠️ [MY-LINKS] No payment links data in response')
+        throw new Error('No payment links data received from server')
       }
 
       // Transform the data to include fields expected by PaymentLink interface
@@ -618,9 +658,11 @@ function MyLinksContent() {
       
       setPaymentLinks(paymentLinksWithStatus)
 
+      console.log('✅ [MY-LINKS] Payment links state updated with', paymentLinksWithStatus.length, 'links')
+
       // Mark initial load as complete
       setTimeout(() => {
-        console.log('✅ Initial payment links load complete - enabling heart animations')
+        console.log('✅ [MY-LINKS] Initial payment links load complete - enabling heart animations')
         setInitialLoadComplete(true)
       }, 1000) // Wait 1 second for state to settle
     } catch (error) {
@@ -1063,7 +1105,14 @@ function MyLinksContent() {
             </div>
           )}
 
-          {!initialLoading && paymentLinks.length === 0 ? (
+          {contextLoading ? (
+            /* User Context Loading */
+            <div className="cosmic-card text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
+              <div className="cosmic-body text-white mb-2">Loading your account...</div>
+              <div className="cosmic-body text-gray-400 text-sm">Initializing user context</div>
+            </div>
+          ) : !initialLoading && paymentLinks.length === 0 ? (
             /* Empty State */
             <div className="cosmic-card text-center">
               <div className="mb-6">
