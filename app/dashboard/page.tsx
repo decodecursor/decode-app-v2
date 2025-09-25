@@ -250,19 +250,8 @@ export default function Dashboard() {
     )
   }
 
-  // Show loading if profile is still loading (common during registration)
-  if (!profile) {
-    return (
-      <div className="cosmic-bg">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-gray-300">Setting up your profile...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // Profile might be null for new users - that's OK, dashboard will use optional chaining
+  // No need to block rendering - profile data will load eventually
 
 
   return (
