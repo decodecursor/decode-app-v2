@@ -37,8 +37,10 @@ export async function GET(request: NextRequest) {
     const isAdmin = currentUser.role === 'Admin'
     const companyName = currentUser.company_name
 
+    console.log('📡 [PAYMENT-LINKS-LIST] Fetching payment links for user:', userId, 'isAdmin:', isAdmin)
+
     // Fetch payment links based on role
-    // Note: Supabase handles null foreign keys automatically
+    // Use LEFT JOIN to handle missing user references gracefully
     let query = supabaseService
       .from('payment_links')
       .select(`
@@ -69,6 +71,7 @@ export async function GET(request: NextRequest) {
 
     // Admins see all company links, users see only their own
     if (isAdmin && companyName) {
+      console.log('📡 [PAYMENT-LINKS-LIST] Admin user, fetching company links for:', companyName)
       // Get all users from the company
       const { data: companyUsers } = await supabaseService
         .from('users')
@@ -76,32 +79,63 @@ export async function GET(request: NextRequest) {
         .eq('company_name', companyName)
 
       const companyUserIds = companyUsers?.map(u => u.id) || []
+      console.log('📡 [PAYMENT-LINKS-LIST] Found company user IDs:', companyUserIds.length)
       if (companyUserIds.length > 0) {
         query = query.in('creator_id', companyUserIds)
       }
     } else {
+      console.log('📡 [PAYMENT-LINKS-LIST] Regular user, fetching own links only')
       query = query.eq('creator_id', userId)
     }
 
     const { data: paymentLinks, error: linksError } = await query
 
     if (linksError) {
-      console.error('Error fetching payment links:', linksError)
+      console.error('❌ [PAYMENT-LINKS-LIST] Database query error:', linksError)
+      console.error('❌ [PAYMENT-LINKS-LIST] Error details:', {
+        message: linksError.message,
+        details: linksError.details,
+        hint: linksError.hint,
+        code: linksError.code
+      })
+
+      // Try to provide more specific error information
+      if (linksError.message?.includes('foreign key') || linksError.code === 'PGRST116') {
+        console.error('❌ [PAYMENT-LINKS-LIST] Foreign key constraint issue detected')
+        return NextResponse.json(
+          { error: 'Database integrity issue with user references. Please contact support.' },
+          { status: 500 }
+        )
+      }
+
       return NextResponse.json(
-        { error: 'Failed to fetch payment links' },
+        { error: 'Failed to fetch payment links', details: linksError.message },
         { status: 500 }
       )
     }
 
+    console.log('✅ [PAYMENT-LINKS-LIST] Successfully fetched', paymentLinks?.length || 0, 'payment links')
+
     // Format the response to match what the frontend expects
     // Handle cases where creator might be deleted (users field is null)
-    const formattedLinks = paymentLinks?.map(link => ({
-      ...link,
-      creator: link.users || {
-        user_name: link.creator_name || 'Deleted User',
-        email: 'deleted@user.com'
+    const formattedLinks = paymentLinks?.map(link => {
+      // Check if the user reference is missing (user was deleted)
+      const hasValidUser = link.users && link.users.user_name
+
+      if (!hasValidUser) {
+        console.log('⚠️ [PAYMENT-LINKS-LIST] Missing user reference for payment link:', link.id, 'creator_id:', link.creator_id)
       }
-    })) || []
+
+      return {
+        ...link,
+        creator: link.users || {
+          user_name: link.creator_name || 'Deleted User',
+          email: 'deleted@user.com'
+        }
+      }
+    }) || []
+
+    console.log('✅ [PAYMENT-LINKS-LIST] Formatted', formattedLinks.length, 'payment links')
 
     return NextResponse.json({
       success: true,

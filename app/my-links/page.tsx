@@ -540,8 +540,61 @@ function MyLinksContent() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        console.error('❌ [MY-LINKS] API error:', errorData)
+        console.error('❌ [MY-LINKS] Primary API error:', errorData)
 
+        // Try fallback approach using status-check endpoint
+        console.log('🔄 [MY-LINKS] Attempting fallback using status-check endpoint...')
+        try {
+          const fallbackResponse = await fetch('/api/payment-links/status-check', {
+            method: 'GET',
+            credentials: 'include'
+          })
+
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json()
+            const { paymentStatus } = fallbackData
+
+            console.log('✅ [MY-LINKS] Fallback successful, got', paymentStatus?.length || 0, 'basic payment links')
+
+            // Transform status-check data to match expected format
+            const basicPaymentLinks = (paymentStatus || []).map((link: any) => ({
+              id: link.id,
+              title: 'Payment Link', // Default title since we don't have it
+              client_name: null,
+              amount_aed: 0, // Will need to be populated from somewhere else
+              service_amount_aed: 0,
+              decode_amount_aed: 0,
+              total_amount_aed: 0,
+              description: null,
+              expiration_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default to 30 days
+              is_active: link.is_active,
+              payment_status: link.payment_status,
+              paid_at: link.paid_at,
+              is_paid: link.is_paid,
+              branch_name: null,
+              creator_name: 'Unknown User',
+              creator_id: userId,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }))
+
+            setPaymentLinks(basicPaymentLinks)
+            setError('Limited data mode: Some payment link details unavailable due to database issues.')
+
+            // Mark initial load as complete for fallback mode
+            setTimeout(() => {
+              console.log('✅ [MY-LINKS] Fallback initial load complete - enabling heart animations')
+              setInitialLoadComplete(true)
+            }, 500)
+
+            console.log('✅ [MY-LINKS] Fallback payment links loaded with basic data')
+            return // Skip the rest of the normal flow
+          }
+        } catch (fallbackError) {
+          console.error('❌ [MY-LINKS] Fallback also failed:', fallbackError)
+        }
+
+        // If fallback also fails, show original error
         if (response.status === 401) {
           throw new Error('Authentication failed. Please try logging out and logging back in.')
         } else if (response.status === 403) {
