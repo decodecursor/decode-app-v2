@@ -15,6 +15,7 @@ export default function Dashboard() {
   const [pendingUsersCount, setPendingUsersCount] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
+  const [profileWaitCount, setProfileWaitCount] = useState(0)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const hoverTimeout = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
@@ -250,8 +251,30 @@ export default function Dashboard() {
     )
   }
 
-  // Profile might be null for new users - that's OK, dashboard will use optional chaining
-  // No need to block rendering - profile data will load eventually
+  // Effect to wait for profile loading for newly registered users
+  useEffect(() => {
+    if (user && profile === null && profileWaitCount < 6) { // 6 * 500ms = 3 seconds
+      const timer = setTimeout(() => {
+        setProfileWaitCount(prev => prev + 1)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [user, profile, profileWaitCount])
+
+  // For newly registered users, wait for profile to load before showing dashboard
+  // This prevents showing "No name set", "No company set" for a few seconds
+  if (user && profile === null && profileWaitCount < 6) {
+    return (
+      <div className="cosmic-bg">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-gray-300">Loading your profile...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
 
   return (
