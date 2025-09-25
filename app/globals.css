@@ -971,10 +971,10 @@ body {
 
   /* Professional mobile design for my-links page */
   .my-links-container {
-    width: 100% !important;
+    width: calc(100% - 32px) !important;
     max-width: 420px !important;
     margin: 0 auto !important;
-    padding: 0 16px !important;
+    padding: 0 !important;
   }
 
   /* Compact header */
@@ -1078,13 +1078,20 @@ body {
     flex-shrink: 0 !important;
   }
 
-  /* Show both icons and text on mobile buttons */
+  /* Show both icons and text on mobile buttons (except delete) */
   .payment-link-actions-mobile button span {
     display: inline-flex !important;
   }
 
   .payment-link-actions-mobile button svg {
     display: inline-flex !important;
+  }
+
+  /* Delete button - icon only on mobile */
+  .delete-button-mobile {
+    width: 40px !important;
+    min-width: 40px !important;
+    padding: 8px !important;
   }
 
   /* Hide desktop info row on mobile */

@@ -1312,49 +1312,48 @@ function MyLinksContent() {
 
                         {/* Mobile Layout - Hidden on desktop */}
                         <div className="md:hidden">
-                          {/* Top row with client name and status/date aligned right */}
-                          <div className="flex justify-between items-start mb-1">
-                            {link.client_name ? (
-                              <p className="payment-link-client-mobile text-purple-400">
-                                {link.client_name}
-                              </p>
-                            ) : (
-                              <div></div>
-                            )}
-                          </div>
+                          {/* Top row with client name */}
+                          {link.client_name && (
+                            <p className="payment-link-client-mobile text-purple-400 mb-1">
+                              {link.client_name}
+                            </p>
+                          )}
 
-                          {/* Service title with date right-aligned */}
+                          {/* Service title with date aligned under badge */}
                           <div className="flex justify-between items-start mb-2">
                             <h3 className="payment-link-title-mobile text-white flex-1">
                               {link.title}
                             </h3>
-                            <div className={`text-right text-xs ${(() => {
-                              if (isDeactivated || isExpired) return 'text-red-400'
-                              if (isPaid) return 'text-green-400'
-                              return 'text-gray-400'
-                            })()}`} style={{ marginTop: '-20px' }}>
-                              {(() => {
-                                if (isDeactivated) return formatDate(link.updated_at || link.created_at)
-                                if (isExpired) return formatDate(link.expiration_date)
-                                if (isPaid) return formatDate(link.paid_at || link.expiration_date)
-                                return formatDate(link.expiration_date)
-                              })()}
+                            <div className="text-right" style={{ marginTop: '2px' }}>
+                              <div className={`text-xs ${(() => {
+                                if (isDeactivated || isExpired) return 'text-red-400'
+                                if (isPaid) return 'text-green-400'
+                                return 'text-gray-400'
+                              })()}`}>
+                                {(() => {
+                                  if (isDeactivated) return formatDate(link.updated_at || link.created_at)
+                                  if (isExpired) return formatDate(link.expiration_date)
+                                  if (isPaid) return formatDate(link.paid_at || link.expiration_date)
+                                  return formatDate(link.expiration_date)
+                                })()}
+                              </div>
                             </div>
                           </div>
 
-                          {/* Amount */}
-                          <div className="payment-link-amount-mobile text-white mb-2">
-                            AED {formatAmount(link.service_amount_aed || link.amount_aed)}
-                          </div>
-
-                          {/* Creator info for admin */}
-                          {userRole === 'Admin' && link.creator_name && (
-                            <div className="text-xs text-gray-400 mb-3">
-                              Creator: <span className={formatUserNameWithStyle(link.creator_name, link.creator_id).className}>
-                                {formatUserNameWithStyle(link.creator_name, link.creator_id).name}
-                              </span>
+                          {/* Amount and Creator in same row */}
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="payment-link-amount-mobile text-white">
+                              AED {formatAmount(link.service_amount_aed || link.amount_aed)}
                             </div>
-                          )}
+                            {/* Creator info right-aligned */}
+                            {userRole === 'Admin' && link.creator_name && (
+                              <div className="text-xs text-gray-400">
+                                Creator: <span className={formatUserNameWithStyle(link.creator_name, link.creator_id).className}>
+                                  {formatUserNameWithStyle(link.creator_name, link.creator_id).name}
+                                </span>
+                              </div>
+                            )}
+                          </div>
 
                           {/* Mobile Action Buttons with Text */}
                           <div className={`flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-700 ${isPaid || isExpired || isDeactivated ? 'opacity-50' : ''}`}>
@@ -1440,24 +1439,18 @@ function MyLinksContent() {
                             <button
                               onClick={() => handleDeleteClick(link)}
                               disabled={deletingId === link.id || copyingId === link.id || deactivatingId === link.id}
-                              className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors disabled:opacity-50"
+                              className="flex items-center justify-center p-2 text-sm border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors disabled:opacity-50 delete-button-mobile"
                               title="Delete"
                             >
                               {deletingId === link.id ? (
-                                <>
-                                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                  </svg>
-                                  <span>Deleting...</span>
-                                </>
+                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
                               ) : (
-                                <>
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                  </svg>
-                                  <span>Delete</span>
-                                </>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
                               )}
                             </button>
                           </div>
