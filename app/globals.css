@@ -1340,13 +1340,13 @@ body {
     overflow-x: auto !important;
     white-space: nowrap !important;
     -webkit-overflow-scrolling: touch !important;
-    padding-bottom: 8px !important;
-    margin: 0 -16px !important;
-    padding: 0 16px 8px !important;
+    padding-bottom: 4px !important;
+    display: flex !important;
+    gap: 4px !important;
   }
 
   .payments-filters-scroll::-webkit-scrollbar {
-    height: 4px !important;
+    height: 3px !important;
   }
 
   .payments-filters-scroll::-webkit-scrollbar-track {
@@ -1358,9 +1358,13 @@ body {
     border-radius: 2px !important;
   }
 
-  /* Date filter buttons */
+  /* Date filter buttons - smaller */
   .payments-filters-scroll button {
     flex-shrink: 0 !important;
+    padding: 4px 10px !important;
+    font-size: 11px !important;
+    border-radius: 6px !important;
+    min-width: auto !important;
   }
 
   /* Chart container for mobile - compressed */

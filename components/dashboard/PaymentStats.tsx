@@ -1044,8 +1044,34 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
               })
             }
             return (
-              <div key={`${payment.id}-${index}`} className="bg-gray-800/50 rounded-lg p-3 hover:bg-gray-700/50 transition-colors">
-                <div className="grid gap-x-4 items-center" style={{gridTemplateColumns: '1.6fr 1.2fr 1.4fr 1.1fr 1.1fr 1.1fr'}}>
+              <div key={`${payment.id}-${index}`} className="bg-gray-800/50 rounded-lg p-3 hover:bg-gray-700/50 transition-colors paid-paylink-card">
+                {/* Mobile Layout */}
+                <div className="md:hidden">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-xs font-bold rounded-full flex items-center justify-center flex-shrink-0">
+                        {index + 1}
+                      </span>
+                      <span className="text-white font-semibold text-sm">
+                        {payment.title || 'Payment'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-300 mb-1">
+                    {payment.client_name || 'Client'}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-green-400 font-bold">
+                      {formatCurrency(payment.service_amount_aed || 0)}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {formatPaymentDate(payment.paid_at!)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Desktop Layout */}
+                <div className="hidden md:grid gap-x-4 items-center" style={{gridTemplateColumns: '1.6fr 1.2fr 1.4fr 1.1fr 1.1fr 1.1fr'}}>
                   <div className="flex items-center space-x-3">
                     <span className="w-7 h-7 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">
                       {index + 1}
