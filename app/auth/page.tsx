@@ -717,10 +717,10 @@ function AuthPageContent() {
       console.log('✅ [AUTH] User is already verified - redirecting directly to dashboard')
       setMessage('Profile created successfully! Redirecting to dashboard...')
 
-      // Small delay to show success message, then redirect
+      // Longer delay to allow user context and profile to stabilize
       setTimeout(() => {
         router.push('/dashboard')
-      }, 1500)
+      }, 3000)
     } else {
       // For users who signed up directly (not via email verification)
       console.log('✅ [AUTH] User needs email verification - switching to login flow')

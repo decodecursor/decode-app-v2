@@ -136,25 +136,40 @@ export default function Dashboard() {
 
   // Check authentication on mount
   useEffect(() => {
+    console.log('🔄 [DASHBOARD] State change:', {
+      contextLoading,
+      hasUser: !!user,
+      hasProfile: !!profile,
+      profileApprovalStatus: profile?.approval_status,
+      profileRole: profile?.role
+    })
+
     if (!contextLoading) {
       if (!user) {
+        console.log('❌ [DASHBOARD] No user found, redirecting to auth')
         router.push('/auth')
         return
       }
+
+      console.log('✅ [DASHBOARD] User authenticated, checking profile...')
 
       // Note: Profile is automatically created by database trigger during registration
       // No need to redirect to profile setup - users should stay on dashboard
 
       // Check if user is approved (skip check for Admins) - only if profile exists
       if (profile?.approval_status === 'pending' && profile?.role !== USER_ROLES.ADMIN) {
+        console.log('⏳ [DASHBOARD] User pending approval, redirecting to pending page')
         window.location.href = '/pending-approval'
         return
       }
 
       // Set pending users count for admins
       if (profile?.role === USER_ROLES.ADMIN && profile?.pendingUsersCount !== undefined) {
+        console.log('👑 [DASHBOARD] Admin user, setting pending count:', profile?.pendingUsersCount)
         setPendingUsersCount(profile?.pendingUsersCount)
       }
+
+      console.log('✅ [DASHBOARD] Setup complete, rendering dashboard')
     }
   }, [contextLoading, user, profile, router])
 
@@ -219,53 +234,30 @@ export default function Dashboard() {
   }
 
 
-  // Show loading spinner while checking authentication
-  if (contextLoading) {
+  // Show loading spinner while context is loading or if no user yet
+  if (contextLoading || !user) {
     return (
       <div className="cosmic-bg">
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-gray-300">Loading dashboard...</p>
+            <p className="text-gray-300">
+              {contextLoading ? 'Loading dashboard...' : 'Authenticating...'}
+            </p>
           </div>
         </div>
       </div>
     )
   }
 
-  // Early return if no user (will redirect to auth in useEffect)
-  if (!user) {
-    return null
-  }
-
-  // Show loading if profile is still loading but user exists
-  if (!profile && !contextLoading) {
+  // Show loading if profile is still loading (common during registration)
+  if (!profile) {
     return (
       <div className="cosmic-bg">
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-gray-300">Loading your profile...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Ensure user exists before rendering - show fallback instead of null
-  if (!user) {
-    return (
-      <div className="cosmic-bg">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
-            <h2 className="cosmic-heading text-white mb-2">Loading User Data</h2>
-            <p className="cosmic-body text-white/70 mb-4">Please wait while we load your account...</p>
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+            <p className="text-gray-300">Setting up your profile...</p>
           </div>
         </div>
       </div>
