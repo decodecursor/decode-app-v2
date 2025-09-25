@@ -755,47 +755,49 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
           </div>
 
           <div className="bg-white/5 rounded-lg p-4">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="cosmic-label text-white/70">My Commission</h3>
-              {dateRange !== 'custom' && userRole !== USER_ROLES.ADMIN && (
-                <span className={`text-xs font-medium ${getChangeColor(current.myCommission, previous.myCommission)}`}>
-                  {formatPercentageChange(current.myCommission, previous.myCommission)}
-                </span>
-              )}
-            </div>
             {(userRole === USER_ROLES.ADMIN || userRole === 'Admin') ? (
-              <p className="text-2xl font-bold text-white/30 mb-1">
-                —
-              </p>
+              // Empty content for ADMIN roles - just the line/border
+              <div className="border-t border-white/10 pt-4"></div>
             ) : (
-              <p className="text-2xl font-bold text-white mb-1">
-                {formatCurrency(current.myCommission)}
-              </p>
-            )}
-            {dateRange !== 'custom' && userRole !== USER_ROLES.ADMIN && (
-              <p className="text-xs text-white/50">
-                vs {formatCurrency(previous.myCommission)} previous period
-              </p>
+              // Full content for STAFF roles
+              <>
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="cosmic-label text-white/70">My Commission</h3>
+                  {dateRange !== 'custom' && (
+                    <span className={`text-xs font-medium ${getChangeColor(current.myCommission, previous.myCommission)}`}>
+                      {formatPercentageChange(current.myCommission, previous.myCommission)}
+                    </span>
+                  )}
+                </div>
+                <p className="text-2xl font-bold text-white mb-1">
+                  {formatCurrency(current.myCommission)}
+                </p>
+                {dateRange !== 'custom' && (
+                  <p className="text-xs text-white/50">
+                    vs {formatCurrency(previous.myCommission)} previous period
+                  </p>
+                )}
+              </>
             )}
           </div>
 
           <div className="bg-white/5 rounded-lg p-4">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="cosmic-label text-white/70">My Next Payout</h3>
-            </div>
             {(userRole === USER_ROLES.ADMIN || userRole === 'Admin') ? (
-              <p className="text-2xl font-bold text-white/30 mb-1">
-                —
-              </p>
+              // Empty content for ADMIN roles - just the line/border
+              <div className="border-t border-white/10 pt-4"></div>
             ) : (
-              <p className="text-2xl font-bold text-white mb-1">
-                {formatCurrency(totalAvailableBalance)}
-              </p>
-            )}
-            {userRole !== USER_ROLES.ADMIN && (
-              <p className="text-xs text-white/50">
-                Total available balance
-              </p>
+              // Full content for STAFF roles
+              <>
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="cosmic-label text-white/70">My Next Payout</h3>
+                </div>
+                <p className="text-2xl font-bold text-white mb-1">
+                  {formatCurrency(totalAvailableBalance)}
+                </p>
+                <p className="text-xs text-white/50">
+                  Total available balance
+                </p>
+              </>
             )}
           </div>
         </div>
