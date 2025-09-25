@@ -327,10 +327,10 @@ export default function PaymentHistoryPage() {
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Button - Above Header */}
         <div className="flex justify-center mb-8">
-          <div style={{width: '70vw'}}>
+          <div className="payments-container" style={{width: '70vw'}}>
             <Link
               href="/dashboard"
-              className="inline-flex items-center text-gray-300 hover:text-white transition-colors payment-back-button"
+              className="inline-flex items-center text-gray-300 hover:text-white transition-colors payment-back-button payments-back-button-mobile"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -341,15 +341,15 @@ export default function PaymentHistoryPage() {
 
         {/* Header */}
         <div className="flex justify-center mb-6">
-          <div style={{width: '70vw'}}>
+          <div className="payments-container" style={{width: '70vw'}}>
             <div className="cosmic-card">
-              <div className="flex justify-between items-center">
+              <div className="flex md:flex-row md:justify-between md:items-center payments-header-mobile">
                 <div>
-                  <h1 className="cosmic-heading mb-2">Earnings</h1>
+                  <h1 className="cosmic-heading mb-2 md:mb-2">Earnings</h1>
                 </div>
-                <Link 
-                  href="/payment/create" 
-                  className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block"
+                <Link
+                  href="/payment/create"
+                  className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block create-paylink-button-mobile"
                 >
                   Create PayLink
                 </Link>
@@ -360,7 +360,7 @@ export default function PaymentHistoryPage() {
 
         {/* Analytics */}
         <div className="flex justify-center">
-          <div style={{width: '70vw'}}>
+          <div className="payments-container" style={{width: '70vw'}}>
             <PaymentStats
               transactions={transactions}
               paymentLinks={paymentLinks}

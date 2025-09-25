@@ -690,7 +690,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       <div className="cosmic-card">
         <div className="flex justify-between items-center mb-6">
           <h2 className="cosmic-heading text-white">Analytics</h2>
-          <div className="flex space-x-2">
+          <div className="flex space-x-2 payments-filters-scroll">
             {(['today', 'week', 'month', 'custom'] as const).map((range) => (
               <button
                 key={range}
@@ -715,41 +715,43 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
         </div>
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white/5 rounded-lg p-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 payments-metrics-grid">
+          <div className="bg-white/5 rounded-lg p-4 payment-metric-card">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="cosmic-label text-white/70">{revenueLabel}</h3>
+              <h3 className="cosmic-label text-white/70 payment-metric-label">{revenueLabel}</h3>
               {dateRange !== 'custom' && (
                 <span className={`text-xs font-medium ${getChangeColor(current.revenue, previous.revenue)}`}>
                   {formatPercentageChange(current.revenue, previous.revenue)}
                 </span>
               )}
             </div>
-            <p className="text-2xl font-bold text-white mb-1">
+            <p className="text-2xl font-bold text-white mb-1 payment-metric-value">
               {formatCurrency(current.revenue)}
             </p>
             {dateRange !== 'custom' && (
-              <p className="text-xs text-white/50">
-                vs {formatCurrency(previous.revenue)} previous period
+              <p className="text-xs text-white/50 payment-metric-comparison">
+                <span className="hidden md:inline">vs {formatCurrency(previous.revenue)} previous period</span>
+                <span className="md:hidden">vs prev {formatCurrency(previous.revenue)}</span>
               </p>
             )}
           </div>
 
-          <div className="bg-white/5 rounded-lg p-4">
+          <div className="bg-white/5 rounded-lg p-4 payment-metric-card">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="cosmic-label text-white/70">{transactionLabel}</h3>
+              <h3 className="cosmic-label text-white/70 payment-metric-label">{transactionLabel}</h3>
               {dateRange !== 'custom' && (
                 <span className={`text-xs font-medium ${getChangeColor(current.transactions, previous.transactions)}`}>
                   {formatPercentageChange(current.transactions, previous.transactions)}
                 </span>
               )}
             </div>
-            <p className="text-2xl font-bold text-white mb-1">
+            <p className="text-2xl font-bold text-white mb-1 payment-metric-value">
               {current.transactions}
             </p>
             {dateRange !== 'custom' && (
-              <p className="text-xs text-white/50">
-                vs {previous.transactions} previous period
+              <p className="text-xs text-white/50 payment-metric-comparison">
+                <span className="hidden md:inline">vs {previous.transactions} previous period</span>
+                <span className="md:hidden">vs prev {previous.transactions}</span>
               </p>
             )}
           </div>
@@ -818,7 +820,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       </div>
 
       {/* Revenue Chart */}
-      <div className="cosmic-card">
+      <div className="cosmic-card payments-chart-container">
         <h3 className="cosmic-heading text-white mb-4">{analyticsLabel}</h3>
         {revenueByDay.length > 0 ? (
           <>
@@ -875,11 +877,11 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
               }
               
               return (
-                <div className="relative">
+                <div className="relative payments-chart-mobile">
                   {/* Chart Container */}
-                  <div className="flex h-80">
+                  <div className="flex h-80 md:h-80">
                     {/* Y-Axis */}
-                    <div className="w-16 flex flex-col justify-between py-4 pr-2">
+                    <div className="w-16 flex flex-col justify-between py-4 pr-2 payments-chart-yaxis">
                       {yAxisValues.map((value, index) => (
                         <div key={index} className="text-right">
                           <span className="text-xs text-white/50">
