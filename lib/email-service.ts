@@ -1209,6 +1209,7 @@ DECODE
    */
   async sendAdminPaymentNotification(paymentData: {
     payment_link_id: string
+    paymentlink_request_id?: string
     transaction_id: string
     service_amount_aed: number
     decode_amount_aed?: number
@@ -1434,6 +1435,7 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
    */
   private async renderAdminPaymentNotificationEmail(paymentData: {
     payment_link_id: string
+    paymentlink_request_id?: string
     transaction_id: string
     service_amount_aed: number
     decode_amount_aed?: number
@@ -1489,6 +1491,7 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
             <div class="details">
                 <h3>💳 Transaction Details</h3>
                 <p><strong>Payment Link ID:</strong> ${paymentData.payment_link_id}</p>
+                ${paymentData.paymentlink_request_id ? `<p><strong>Payment Link Request ID:</strong> ${paymentData.paymentlink_request_id}</p>` : ''}
                 <p><strong>Transaction ID:</strong> ${paymentData.transaction_id}</p>
                 <p><strong>Service Amount:</strong> ${paymentData.service_amount_aed} AED</p>
                 <p><strong>DECODE Fee:</strong> ${paymentData.decode_amount_aed || 0} AED</p>
@@ -1542,6 +1545,7 @@ A payment has been successfully processed:
 
 TRANSACTION DETAILS
 Payment Link ID: ${paymentData.payment_link_id}
+${paymentData.paymentlink_request_id ? `Payment Link Request ID: ${paymentData.paymentlink_request_id}` : ''}
 Transaction ID: ${paymentData.transaction_id}
 Service Amount: ${paymentData.service_amount_aed} AED
 DECODE Fee: ${paymentData.decode_amount_aed || 0} AED
@@ -1667,7 +1671,7 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
                     <h3>💳 Preferred Payment Method</h3>
                     <p><strong>Method:</strong> ${payoutData.preferred_payout_method ?
                         payoutData.preferred_payout_method === 'bank_account' ? 'Bank Account' :
-                        payoutData.preferred_payout_method === 'paypal' ? 'PayPal' :
+                        payoutData.preferred_payout_method === 'paypal' ? `PayPal${payoutData.paypal_email ? ` (${payoutData.paypal_email})` : ''}` :
                         payoutData.preferred_payout_method === 'stripe_connect' ? 'Stripe Connect' :
                         payoutData.preferred_payout_method : 'Not specified'}</p>
                     ${payoutData.account_holder_name ? `
@@ -1740,7 +1744,7 @@ ${payoutData.preferred_payout_method || payoutData.account_holder_name || payout
 PREFERRED PAYMENT METHOD
 Method: ${payoutData.preferred_payout_method ?
     payoutData.preferred_payout_method === 'bank_account' ? 'Bank Account' :
-    payoutData.preferred_payout_method === 'paypal' ? 'PayPal' :
+    payoutData.preferred_payout_method === 'paypal' ? `PayPal${payoutData.paypal_email ? ` (${payoutData.paypal_email})` : ''}` :
     payoutData.preferred_payout_method === 'stripe_connect' ? 'Stripe Connect' :
     payoutData.preferred_payout_method : 'Not specified'}
 ${payoutData.account_holder_name ? `

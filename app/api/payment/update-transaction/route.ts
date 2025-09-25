@@ -14,6 +14,7 @@ async function sendPaymentNotification(transaction: any, paymentLink: any) {
 
     await emailService.sendAdminPaymentNotification({
       payment_link_id: paymentLink.id,
+      paymentlink_request_id: paymentLink.paymentlink_request_id,
       transaction_id: transaction.id,
       service_amount_aed: paymentLink.service_amount_aed || 0,
       decode_amount_aed: paymentLink.decode_amount_aed || 0,
