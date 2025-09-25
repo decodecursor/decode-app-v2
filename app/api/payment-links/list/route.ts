@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
     const companyName = currentUser.company_name
 
     // Fetch payment links based on role
+    // Use left join to handle cases where creator might be deleted
     let query = supabaseService
       .from('payment_links')
       .select(`
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
         creator_name,
         created_at,
         updated_at,
-        users!payment_links_creator_id_fkey (
+        users!left (
           user_name,
           email
         )
@@ -93,9 +94,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Format the response to match what the frontend expects
+    // Handle cases where creator might be deleted (users field is null)
     const formattedLinks = paymentLinks?.map(link => ({
       ...link,
-      creator: link.users || { user_name: null, email: '' }
+      creator: link.users || {
+        user_name: link.creator_name || 'Deleted User',
+        email: 'deleted@user.com'
+      }
     })) || []
 
     return NextResponse.json({

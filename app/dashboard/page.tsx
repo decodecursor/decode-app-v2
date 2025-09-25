@@ -339,11 +339,12 @@ export default function Dashboard() {
               </div>
 
               {/* Right side - Navigation Buttons */}
-              {profile?.role === USER_ROLES.ADMIN && (
+              {/* Show navigation based on role, or default navigation if no profile yet */}
+              {profile?.role === USER_ROLES.ADMIN ? (
                 <div className="flex gap-4 items-center">
                   {/* Users Management */}
-                  <Link 
-                    href="/dashboard/users" 
+                  <Link
+                    href="/dashboard/users"
                     className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors relative"
                   >
                     Users
@@ -353,25 +354,25 @@ export default function Dashboard() {
                       </span>
                     )}
                   </Link>
-                  
+
                   {/* Payment History */}
-                  <Link 
-                    href="/dashboard/payments" 
+                  <Link
+                    href="/dashboard/payments"
                     className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                   >
                     Earnings
                   </Link>
-                  
+
                   {/* My PayLinks */}
-                  <Link 
-                    href="/my-links" 
+                  <Link
+                    href="/my-links"
                     className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                   >
                     PayLinks
                   </Link>
-                  
+
                   {/* Create PayLink - Black Button */}
-                  <button 
+                  <button
                     className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
                     onMouseOver={createHoverSparkles}
                     onClick={handleCreatePayLinkClick}
@@ -379,29 +380,46 @@ export default function Dashboard() {
                     Create PayLink
                   </button>
                 </div>
-              )}
-
-              {/* User Navigation Buttons */}
-              {profile?.role === USER_ROLES.STAFF && (
+              ) : profile?.role === USER_ROLES.STAFF ? (
                 <div className="flex gap-4 items-center">
                   {/* Payment History */}
-                  <Link 
-                    href="/dashboard/payments" 
+                  <Link
+                    href="/dashboard/payments"
                     className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                   >
                     Earnings
                   </Link>
-                  
+
                   {/* My PayLinks */}
-                  <Link 
-                    href="/my-links" 
+                  <Link
+                    href="/my-links"
                     className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                   >
                     PayLinks
                   </Link>
-                  
+
                   {/* Create PayLink - Black Button */}
-                  <button 
+                  <button
+                    className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+                    onMouseOver={createHoverSparkles}
+                    onClick={handleCreatePayLinkClick}
+                  >
+                    Create PayLink
+                  </button>
+                </div>
+              ) : (
+                // Default navigation for users without profile yet (new users)
+                <div className="flex gap-4 items-center">
+                  {/* Basic navigation available to all users */}
+                  <Link
+                    href="/my-links"
+                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    PayLinks
+                  </Link>
+
+                  {/* Create PayLink - Black Button */}
+                  <button
                     className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
                     onMouseOver={createHoverSparkles}
                     onClick={handleCreatePayLinkClick}
@@ -469,34 +487,37 @@ export default function Dashboard() {
               {mobileMenuOpen && (
                 <div className="border-t border-gray-700 pt-4">
                   <nav className="space-y-2">
-                    
-                    {profile?.role === USER_ROLES.ADMIN && (
-                      <>
-                        <button 
-                          className="block w-full text-left bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] mb-2"
-                          onMouseOver={createHoverSparkles}
-                          onClick={(e) => {
-                            setMobileMenuOpen(false)
-                            handleCreatePayLinkClick(e)
-                          }}
-                        >
-                          Create PayLink
-                        </button>
-                        <Link 
-                          href="/my-links" 
-                          className="block nav-button px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          PayLinks
-                        </Link>
-                        <Link 
-                          href="/dashboard/payments" 
-                          className="block nav-button px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          Earnings
-                        </Link>
-                      </>
+
+                    {/* Always show Create PayLink button */}
+                    <button
+                      className="block w-full text-left bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] mb-2"
+                      onMouseOver={createHoverSparkles}
+                      onClick={(e) => {
+                        setMobileMenuOpen(false)
+                        handleCreatePayLinkClick(e)
+                      }}
+                    >
+                      Create PayLink
+                    </button>
+
+                    {/* Always show PayLinks */}
+                    <Link
+                      href="/my-links"
+                      className="block nav-button px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      PayLinks
+                    </Link>
+
+                    {/* Show Earnings for Admin and Staff roles */}
+                    {(profile?.role === USER_ROLES.ADMIN || profile?.role === USER_ROLES.STAFF) && (
+                      <Link
+                        href="/dashboard/payments"
+                        className="block nav-button px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Earnings
+                      </Link>
                     )}
                     
                     {/* Profile */}
