@@ -1306,16 +1306,28 @@ body {
     gap: 8px !important;
   }
 
+  .payments-metrics-grid > div {
+    min-height: 85px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+
   /* Metric card styling - compressed */
   .payment-metric-card {
     padding: 8px !important;
     min-height: auto !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
   }
 
   .payment-metric-label {
     font-size: 10px !important;
     margin-bottom: 2px !important;
     line-height: 1.2 !important;
+    flex-shrink: 0 !important;
   }
 
   .payment-metric-value {
@@ -1323,16 +1335,21 @@ body {
     font-weight: 700 !important;
     margin-bottom: 1px !important;
     line-height: 1.2 !important;
+    flex-grow: 1 !important;
+    display: flex !important;
+    align-items: center !important;
   }
 
   .payment-metric-change {
     font-size: 10px !important;
     line-height: 1.2 !important;
+    flex-shrink: 0 !important;
   }
 
   .payment-metric-comparison {
     font-size: 9px !important;
     line-height: 1.2 !important;
+    flex-shrink: 0 !important;
   }
 
   /* Horizontal scroll for date filters */
@@ -1361,8 +1378,8 @@ body {
   /* Date filter buttons - smaller */
   .payments-filters-scroll button {
     flex-shrink: 0 !important;
-    padding: 4px 10px !important;
-    font-size: 11px !important;
+    padding: 2px 8px !important;
+    font-size: 10px !important;
     border-radius: 6px !important;
     min-width: auto !important;
   }

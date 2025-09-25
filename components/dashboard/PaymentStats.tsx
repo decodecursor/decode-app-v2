@@ -1057,8 +1057,34 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                       </span>
                     </div>
                   </div>
-                  <div className="text-sm text-gray-300 mb-1">
-                    {payment.client_name || 'Client'}
+                  <div className="space-y-1 mb-2">
+                    <div className="text-sm text-gray-300">
+                      <span className="text-xs text-gray-500">Client: </span>
+                      {payment.client_name || 'Client'}
+                    </div>
+                    <div className="text-sm text-gray-300">
+                      <span className="text-xs text-gray-500">Branch: </span>
+                      {payment.branch_name || 'No Branch'}
+                    </div>
+                    <div className="text-sm text-gray-300">
+                      <span className="text-xs text-gray-500">Creator: </span>
+                      {formatUserName(payment.creator_name, payment.creator_id)}
+                    </div>
+                    {payment.paymentlink_request_id && (
+                      <div className="text-sm text-gray-300">
+                        <span className="text-xs text-gray-500">ID: </span>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(payment.paymentlink_request_id!)
+                            // Could add toast notification here
+                          }}
+                          className="text-purple-400 font-mono text-xs hover:text-purple-300 hover:bg-purple-400/10 px-1 py-0.5 rounded transition-colors cursor-pointer"
+                          title="Click to copy tracking ID"
+                        >
+                          {payment.paymentlink_request_id}
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-green-400 font-bold">
