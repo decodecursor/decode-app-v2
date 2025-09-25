@@ -1312,68 +1312,103 @@ function MyLinksContent() {
 
                         {/* Mobile Layout - Hidden on desktop */}
                         <div className="md:hidden">
-                          {link.client_name && (
-                            <p className="payment-link-client-mobile text-purple-400">
-                              {link.client_name}
-                            </p>
-                          )}
-                          <h3 className="payment-link-title-mobile text-white">
-                            {link.title}
-                          </h3>
-                          <div className="payment-link-amount-mobile text-white">
-                            AED {formatAmount(link.service_amount_aed || link.amount_aed)}
-                          </div>
-                          <div className={`payment-link-date-mobile ${(() => {
-                            if (isDeactivated || isExpired) return 'text-red-400'
-                            if (isPaid) return 'text-green-400'
-                            return getExpiryColor(link.expiration_date)
-                          })()}`}>
-                            {(() => {
-                              if (isDeactivated) return `Deactivated ${formatDate(link.updated_at || link.created_at)}`
-                              if (isExpired) return `Expired ${formatDate(link.expiration_date)}`
-                              if (isPaid) return `Paid ${formatDate(link.paid_at || link.expiration_date)}`
-                              return `Expires ${formatDate(link.expiration_date)}`
-                            })()}
+                          {/* Top row with client name and status/date aligned right */}
+                          <div className="flex justify-between items-start mb-1">
+                            {link.client_name ? (
+                              <p className="payment-link-client-mobile text-purple-400">
+                                {link.client_name}
+                              </p>
+                            ) : (
+                              <div></div>
+                            )}
                           </div>
 
-                          {/* Mobile Action Buttons */}
-                          <div className={`flex gap-2 mt-3 pt-3 border-t border-gray-700 payment-link-actions-mobile ${isPaid || isExpired || isDeactivated ? 'opacity-50' : ''}`}>
+                          {/* Service title with date right-aligned */}
+                          <div className="flex justify-between items-start mb-2">
+                            <h3 className="payment-link-title-mobile text-white flex-1">
+                              {link.title}
+                            </h3>
+                            <div className={`text-right text-xs ${(() => {
+                              if (isDeactivated || isExpired) return 'text-red-400'
+                              if (isPaid) return 'text-green-400'
+                              return 'text-gray-400'
+                            })()}`} style={{ marginTop: '-20px' }}>
+                              {(() => {
+                                if (isDeactivated) return formatDate(link.updated_at || link.created_at)
+                                if (isExpired) return formatDate(link.expiration_date)
+                                if (isPaid) return formatDate(link.paid_at || link.expiration_date)
+                                return formatDate(link.expiration_date)
+                              })()}
+                            </div>
+                          </div>
+
+                          {/* Amount */}
+                          <div className="payment-link-amount-mobile text-white mb-2">
+                            AED {formatAmount(link.service_amount_aed || link.amount_aed)}
+                          </div>
+
+                          {/* Creator info for admin */}
+                          {userRole === 'Admin' && link.creator_name && (
+                            <div className="text-xs text-gray-400 mb-3">
+                              Creator: <span className={formatUserNameWithStyle(link.creator_name, link.creator_id).className}>
+                                {formatUserNameWithStyle(link.creator_name, link.creator_id).name}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Mobile Action Buttons with Text */}
+                          <div className={`flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-700 ${isPaid || isExpired || isDeactivated ? 'opacity-50' : ''}`}>
                             <button
                               onClick={() => copyToClipboard(link.id)}
                               disabled={copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
-                              className={`${copiedId === link.id ? 'border-green-500 bg-green-500/10' : 'border-white/30 hover:bg-white/10'} border rounded-lg transition-colors disabled:opacity-50`}
+                              className={`flex items-center gap-2 px-3 py-2 text-sm ${copiedId === link.id ? 'border-green-500 bg-green-500/10 text-green-400' : 'border-white/30 hover:bg-white/10 text-white'} border rounded-lg transition-colors disabled:opacity-50`}
                               title="Copy Link"
                             >
                               {copyingId === link.id ? (
-                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
+                                <>
+                                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  <span>Copying...</span>
+                                </>
                               ) : copiedId === link.id ? (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
+                                <>
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  <span>Copied!</span>
+                                </>
                               ) : (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                </svg>
+                                <>
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                  </svg>
+                                  <span>Copy Link</span>
+                                </>
                               )}
                             </button>
 
                             <button
                               onClick={() => generateQRCode(link)}
                               disabled={generatingQR || copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
-                              className="border border-blue-500/50 text-blue-400 hover:bg-blue-500/10 hover:border-blue-500 rounded-lg transition-colors disabled:opacity-50"
+                              className="flex items-center gap-2 px-3 py-2 text-sm border border-blue-500/50 text-blue-400 hover:bg-blue-500/10 hover:border-blue-500 rounded-lg transition-colors disabled:opacity-50"
                             >
                               {generatingQR && currentQRLink?.id === link.id ? (
-                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
+                                <>
+                                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  <span>Generating...</span>
+                                </>
                               ) : (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                                </svg>
+                                <>
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                  </svg>
+                                  <span>QR Code</span>
+                                </>
                               )}
                             </button>
 
@@ -1381,17 +1416,23 @@ function MyLinksContent() {
                               <button
                                 onClick={() => handleDeactivateClick(link)}
                                 disabled={deactivatingId === link.id || copyingId === link.id || deletingId === link.id}
-                                className="border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 rounded-lg transition-colors disabled:opacity-50"
+                                className="flex items-center gap-2 px-3 py-2 text-sm border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 rounded-lg transition-colors disabled:opacity-50"
                               >
                                 {deactivatingId === link.id ? (
-                                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                  </svg>
+                                  <>
+                                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Deactivating...</span>
+                                  </>
                                 ) : (
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                                  </svg>
+                                  <>
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                    </svg>
+                                    <span>Deactivate</span>
+                                  </>
                                 )}
                               </button>
                             )}
@@ -1399,18 +1440,24 @@ function MyLinksContent() {
                             <button
                               onClick={() => handleDeleteClick(link)}
                               disabled={deletingId === link.id || copyingId === link.id || deactivatingId === link.id}
-                              className="border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors disabled:opacity-50"
+                              className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors disabled:opacity-50"
                               title="Delete"
                             >
                               {deletingId === link.id ? (
-                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
+                                <>
+                                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  <span>Deleting...</span>
+                                </>
                               ) : (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
+                                <>
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                  <span>Delete</span>
+                                </>
                               )}
                             </button>
                           </div>

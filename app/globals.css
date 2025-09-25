@@ -971,10 +971,10 @@ body {
 
   /* Professional mobile design for my-links page */
   .my-links-container {
-    width: calc(100% - 24px) !important;
-    max-width: 400px !important;
+    width: 100% !important;
+    max-width: 420px !important;
     margin: 0 auto !important;
-    padding: 0 12px !important;
+    padding: 0 16px !important;
   }
 
   /* Compact header */
@@ -1055,35 +1055,36 @@ body {
     margin-bottom: 12px !important;
   }
 
-  /* Icon-only action buttons */
+  /* Action buttons with text - removed icon-only restriction */
   .payment-link-actions-mobile {
     display: flex !important;
     flex-direction: row !important;
+    flex-wrap: wrap !important;
     gap: 8px !important;
     margin: 0 !important;
     padding-top: 12px !important;
   }
 
   .payment-link-actions-mobile button {
-    width: 44px !important;
-    min-width: 44px !important;
-    height: 44px !important;
-    padding: 0 !important;
+    width: auto !important;
+    min-width: auto !important;
+    height: 40px !important;
+    padding: 0 12px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     border-radius: 8px !important;
-    font-size: 16px !important;
+    font-size: 14px !important;
     flex-shrink: 0 !important;
   }
 
-  /* Hide button text on mobile, show only icons */
-  .payment-link-actions-mobile button span:not(.button-icon) {
-    display: none !important;
+  /* Show both icons and text on mobile buttons */
+  .payment-link-actions-mobile button span {
+    display: inline-flex !important;
   }
 
-  .payment-link-actions-mobile button .button-icon {
-    display: flex !important;
+  .payment-link-actions-mobile button svg {
+    display: inline-flex !important;
   }
 
   /* Hide desktop info row on mobile */
