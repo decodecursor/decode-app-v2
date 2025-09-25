@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     const companyName = currentUser.company_name
 
     // Fetch payment links based on role
-    // Use left join to handle cases where creator might be deleted
+    // Note: Supabase handles null foreign keys automatically
     let query = supabaseService
       .from('payment_links')
       .select(`
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
         creator_name,
         created_at,
         updated_at,
-        users!left (
+        users (
           user_name,
           email
         )
