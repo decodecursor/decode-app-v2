@@ -119,8 +119,10 @@ export async function GET(request: NextRequest) {
     // Format the response to match what the frontend expects
     // Handle cases where creator might be deleted (users field is null)
     const formattedLinks = paymentLinks?.map(link => {
-      // Check if the user reference is missing (user was deleted)
-      const hasValidUser = link.users && link.users.user_name
+      // Handle both array and single object returns from Supabase users relationship
+      // TypeScript sees this as potentially an array, so we need safe access
+      const userRecord = Array.isArray(link.users) ? link.users[0] : link.users
+      const hasValidUser = userRecord && userRecord.user_name
 
       if (!hasValidUser) {
         console.log('⚠️ [PAYMENT-LINKS-LIST] Missing user reference for payment link:', link.id, 'creator_id:', link.creator_id)
@@ -128,7 +130,7 @@ export async function GET(request: NextRequest) {
 
       return {
         ...link,
-        creator: link.users || {
+        creator: userRecord || {
           user_name: link.creator_name || 'Deleted User',
           email: 'deleted@user.com'
         }
