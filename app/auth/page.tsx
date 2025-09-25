@@ -724,13 +724,14 @@ function AuthPageContent() {
         if (session?.user) {
           console.log('✅ [AUTH] Session verified, redirecting now')
           // Force reload to trigger UserContext refresh with new profile
-          window.location.href = '/dashboard'
+          // Add new_user flag to help dashboard detect newly registered users
+          window.location.href = '/dashboard?new_user=true'
         } else {
           console.log('⚠️ [AUTH] No session found, attempting refresh')
           await supabase.auth.refreshSession()
           // Small delay to allow session refresh, then redirect with force reload
           setTimeout(() => {
-            window.location.href = '/dashboard'
+            window.location.href = '/dashboard?new_user=true'
           }, 500)
         }
       } catch (error) {

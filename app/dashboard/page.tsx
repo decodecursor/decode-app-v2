@@ -16,6 +16,7 @@ export default function Dashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const [profileWaitCount, setProfileWaitCount] = useState(0)
+  const [isNewUser, setIsNewUser] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const hoverTimeout = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
@@ -251,25 +252,46 @@ export default function Dashboard() {
     )
   }
 
-  // Effect to wait for profile loading for newly registered users
+  // Check if user just completed registration (detect new user)
   useEffect(() => {
-    if (user && profile === null && profileWaitCount < 6) { // 6 * 500ms = 3 seconds
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const newUserFlag = urlParams.get('new_user') === 'true'
+      const fromRegistration = document.referrer.includes('/auth')
+
+      // Detect if this is a new user from registration
+      if (newUserFlag || fromRegistration) {
+        setIsNewUser(true)
+        // Clear the URL parameter to avoid affecting refreshes
+        if (newUserFlag) {
+          const newUrl = window.location.pathname
+          window.history.replaceState({}, '', newUrl)
+        }
+      }
+    }
+  }, [])
+
+  // Effect to wait for profile loading ONLY for newly registered users
+  useEffect(() => {
+    if (isNewUser && user && profile === null && profileWaitCount < 6) { // 6 * 500ms = 3 seconds
       const timer = setTimeout(() => {
         setProfileWaitCount(prev => prev + 1)
       }, 500)
       return () => clearTimeout(timer)
     }
-  }, [user, profile, profileWaitCount])
+  }, [isNewUser, user, profile, profileWaitCount])
 
-  // For newly registered users, wait for profile to load before showing dashboard
-  // This prevents showing "No name set", "No company set" for a few seconds
-  if (user && profile === null && profileWaitCount < 6) {
+  // ONLY for newly registered users, wait for profile to load before showing dashboard
+  // This prevents showing "No name set", "No company set" for new users
+  // Existing users bypass this and show dashboard even if profile is null
+  if (isNewUser && user && profile === null && profileWaitCount < 6) {
     return (
       <div className="cosmic-bg">
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
             <p className="text-gray-300">Loading your profile...</p>
+            <p className="text-gray-400 text-sm mt-2">Setting up your dashboard...</p>
           </div>
         </div>
       </div>
@@ -348,15 +370,28 @@ export default function Dashboard() {
                 {/* User Info Text */}
                 <div className="flex flex-col justify-center">
                   <div className="user-info-name">
-                    {profile?.user_name || 'No name set'}
+                    {profile?.user_name || 'Loading...'}
                   </div>
                   <div className="user-info-company">
-                    {profile?.company_name || 'No company set'}
+                    {profile?.company_name || 'Loading...'}
                   </div>
-                  {profile?.role && (
+                  {profile?.role ? (
                     <div className="text-xs text-gray-400">
                       {profile?.role}
                     </div>
+                  ) : (
+                    <div className="text-xs text-gray-400">
+                      Loading...
+                    </div>
+                  )}
+                  {/* Show retry button if profile failed to load for existing users */}
+                  {!isNewUser && !profile && user && (
+                    <button
+                      onClick={() => refreshProfile()}
+                      className="text-xs text-purple-400 hover:text-purple-300 mt-1"
+                    >
+                      Retry loading profile
+                    </button>
                   )}
                 </div>
               </div>
@@ -479,15 +514,28 @@ export default function Dashboard() {
                   {/* Mobile User Info Text */}
                   <div className="flex flex-col justify-center">
                     <div className="user-info-name text-base">
-                      {profile?.user_name || 'No name set'}
+                      {profile?.user_name || 'Loading...'}
                     </div>
                     <div className="user-info-company text-xs">
-                      {profile?.company_name || 'No company set'}
+                      {profile?.company_name || 'Loading...'}
                     </div>
-                    {profile?.role && (
+                    {profile?.role ? (
                       <div className="text-xs text-gray-400">
                         {profile?.role}
                       </div>
+                    ) : (
+                      <div className="text-xs text-gray-400">
+                        Loading...
+                      </div>
+                    )}
+                    {/* Show retry button if profile failed to load for existing users */}
+                    {!isNewUser && !profile && user && (
+                      <button
+                        onClick={() => refreshProfile()}
+                        className="text-xs text-purple-400 hover:text-purple-300 mt-1 text-left"
+                      >
+                        Retry
+                      </button>
                     )}
                   </div>
                 </div>
