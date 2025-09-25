@@ -6,6 +6,7 @@ interface BankAccountSubcardProps {
   userId: string
   onClick: () => void
   refreshKey?: number
+  bankAccountData?: BankAccount | null
 }
 
 interface BankAccount {
@@ -17,14 +18,21 @@ interface BankAccount {
   status: string
 }
 
-export function BankAccountSubcard({ userId, onClick, refreshKey }: BankAccountSubcardProps) {
+export function BankAccountSubcard({ userId, onClick, refreshKey, bankAccountData }: BankAccountSubcardProps) {
   const [loading, setLoading] = useState(true)
   const [bankAccount, setBankAccount] = useState<BankAccount | null>(null)
 
   useEffect(() => {
-    console.log('🔄 [BANK-SUBCARD] Component mounted/updated, loading bank account for userId:', userId, 'refreshKey:', refreshKey)
-    loadBankAccount()
-  }, [userId, refreshKey])
+    // Use passed data if available, otherwise fallback to API call
+    if (bankAccountData !== undefined) {
+      console.log('🔄 [BANK-SUBCARD] Using passed data:', bankAccountData)
+      setBankAccount(bankAccountData)
+      setLoading(false)
+    } else {
+      console.log('🔄 [BANK-SUBCARD] No data passed, loading from API for userId:', userId, 'refreshKey:', refreshKey)
+      loadBankAccount()
+    }
+  }, [userId, refreshKey, bankAccountData])
 
   const loadBankAccount = async () => {
     try {

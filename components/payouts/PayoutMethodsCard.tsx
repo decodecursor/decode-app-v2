@@ -10,9 +10,11 @@ interface PayoutMethodsCardProps {
   userId: string
   userRole?: string
   onMethodDeleted?: () => void
+  bankAccountData?: any
+  paypalAccountData?: any
 }
 
-export function PayoutMethodsCard({ userId, userRole = 'User', onMethodDeleted }: PayoutMethodsCardProps) {
+export function PayoutMethodsCard({ userId, userRole = 'User', onMethodDeleted, bankAccountData, paypalAccountData }: PayoutMethodsCardProps) {
   const [showPayPalModal, setShowPayPalModal] = useState(false)
   const [showBankAccountModal, setShowBankAccountModal] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -78,12 +80,14 @@ export function PayoutMethodsCard({ userId, userRole = 'User', onMethodDeleted }
               userId={userId}
               onClick={handleBankAccountClick}
               refreshKey={refreshKey}
+              bankAccountData={bankAccountData}
             />
             <PayPalSubcard
               key={`paypal-${refreshKey}`}
               userId={userId}
               onClick={handlePayPalClick}
               refreshKey={refreshKey}
+              paypalAccountData={paypalAccountData}
             />
           </div>
         </div>

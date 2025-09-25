@@ -6,6 +6,7 @@ interface PayPalSubcardProps {
   userId: string
   onClick: () => void
   refreshKey?: number
+  paypalAccountData?: PayPalAccount | null
 }
 
 interface PayPalAccount {
@@ -16,13 +17,21 @@ interface PayPalAccount {
   status: string
 }
 
-export function PayPalSubcard({ userId, onClick, refreshKey }: PayPalSubcardProps) {
+export function PayPalSubcard({ userId, onClick, refreshKey, paypalAccountData }: PayPalSubcardProps) {
   const [loading, setLoading] = useState(true)
   const [paypalAccount, setPaypalAccount] = useState<PayPalAccount | null>(null)
 
   useEffect(() => {
-    loadPayPalAccount()
-  }, [userId, refreshKey])
+    // Use passed data if available, otherwise fallback to API call
+    if (paypalAccountData !== undefined) {
+      console.log('🔄 [PAYPAL-SUBCARD] Using passed data:', paypalAccountData)
+      setPaypalAccount(paypalAccountData)
+      setLoading(false)
+    } else {
+      console.log('🔄 [PAYPAL-SUBCARD] No data passed, loading from API for userId:', userId, 'refreshKey:', refreshKey)
+      loadPayPalAccount()
+    }
+  }, [userId, refreshKey, paypalAccountData])
 
   const loadPayPalAccount = async () => {
     try {

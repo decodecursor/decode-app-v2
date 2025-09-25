@@ -31,72 +31,46 @@ export async function GET() {
       userEmail: user.email
     })
 
-    // Get user's bank account
-    console.log('🔍 [BANK-ACCOUNT-API] GET Querying bank account for user:', user.id)
-    console.log('🔍 [BANK-ACCOUNT-API] GET User ID type:', typeof user.id, 'Length:', user.id.length)
-
-    // First, let's see if there are ANY bank accounts for this user (without is_primary filter)
-    const { data: allAccounts, error: allError } = await supabase
-      .from('user_bank_accounts')
-      .select('*')
-      .eq('user_id', user.id)
-
-    console.log('🔍 [BANK-ACCOUNT-API] GET All accounts for user:', {
-      count: allAccounts?.length || 0,
-      accounts: allAccounts,
-      error: allError
-    })
-
-    // Now get the primary account (use the most recent one if multiple exist)
-    const { data: bankAccounts, error } = await supabase
+    // Get user's primary bank account (optimized single query)
+    const { data: bankAccount, error } = await supabase
       .from('user_bank_accounts')
       .select('*')
       .eq('user_id', user.id)
       .eq('is_primary', true)
       .order('created_at', { ascending: false })
-
-    const bankAccount = bankAccounts && bankAccounts.length > 0 ? bankAccounts[0] : null
-
-    console.log('🔍 [BANK-ACCOUNT-API] GET Multiple primary accounts check:', {
-      foundCount: bankAccounts?.length || 0,
-      selectedAccount: bankAccount ? {
-        id: bankAccount.id,
-        bank_name: bankAccount.bank_name,
-        created_at: bankAccount.created_at
-      } : null
-    })
-
-    console.log('🔍 [BANK-ACCOUNT-API] GET Primary account query result:', {
-      bankAccount,
-      error,
-      errorCode: error?.code,
-      errorMessage: error?.message
-    })
+      .maybeSingle()
 
     if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-      console.error('❌ [BANK-ACCOUNT-API] GET Error fetching bank account:', {
-        error,
-        errorCode: error.code,
-        errorMessage: error.message,
-        userId: user.id
-      })
+      console.error('❌ [BANK-ACCOUNT-API] GET Error fetching bank account:', error)
       return NextResponse.json(
         { error: 'Failed to fetch bank account', details: error.message },
         { status: 500 }
       )
     }
 
-    if (bankAccount) {
-      console.log('✅ [BANK-ACCOUNT-API] GET Bank account found:', {
-        accountId: bankAccount.id,
-        bankName: bankAccount.bank_name,
-        beneficiaryName: bankAccount.beneficiary_name,
-        isVerified: bankAccount.is_verified,
-        status: bankAccount.status,
-        userId: user.id
-      })
-    } else {
-      console.log('ℹ️ [BANK-ACCOUNT-API] GET No bank account found for user:', user.id)
+    // If no manual bank account found, check for Stripe Connect as fallback
+    if (!bankAccount) {
+      const { data: userProfile } = await supabase
+        .from('users')
+        .select('stripe_connect_status, user_name')
+        .eq('id', user.id)
+        .single()
+
+      if (userProfile?.stripe_connect_status === 'active') {
+        const stripeAccount = {
+          id: 'stripe',
+          iban_number: '****connected',
+          bank_name: 'Stripe Connect',
+          beneficiary_name: userProfile.user_name || 'User',
+          is_verified: true,
+          status: 'active'
+        }
+
+        return NextResponse.json({
+          success: true,
+          data: stripeAccount
+        })
+      }
     }
 
     return NextResponse.json({
@@ -234,27 +208,7 @@ export async function POST(request: Request) {
       )
     }
 
-    console.log('✅ [BANK-ACCOUNT-API] Bank account created successfully:', {
-      accountId: newAccount.id,
-      userId: user.id,
-      userEmail: user.email,
-      insertedData: newAccount
-    })
-
-    // Immediately verify the data can be retrieved
-    console.log('🔍 [BANK-ACCOUNT-API] POST Immediate verification - querying saved account...')
-    const { data: verifyAccount, error: verifyError } = await supabase
-      .from('user_bank_accounts')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('is_primary', true)
-      .single()
-
-    console.log('🔍 [BANK-ACCOUNT-API] POST Verification result:', {
-      found: !!verifyAccount,
-      account: verifyAccount,
-      error: verifyError
-    })
+    console.log('✅ [BANK-ACCOUNT-API] Bank account created successfully:', newAccount.id)
 
     return NextResponse.json({
       success: true,

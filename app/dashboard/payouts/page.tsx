@@ -46,6 +46,8 @@ export default function PayoutsPage() {
   const [showNoPaymentMethodModal, setShowNoPaymentMethodModal] = useState(false)
   const [heartAnimatingId, setHeartAnimatingId] = useState<string | null>(null)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
+  const [bankAccountData, setBankAccountData] = useState<any>(null)
+  const [paypalAccountData, setPaypalAccountData] = useState<any>(null)
   const router = useRouter()
 
   // Fetch user profile with role information
@@ -83,9 +85,13 @@ export default function PayoutsPage() {
           return
         }
         setUser(user)
-        await fetchUserProfile(user.id)
-        await fetchPayoutSummary(user.id)
-        await loadPayoutMethods()
+
+        // Load all data in parallel for better performance
+        await Promise.all([
+          fetchUserProfile(user.id),
+          fetchPayoutSummary(user.id),
+          loadPayoutMethods()
+        ])
       } catch (error) {
         console.error('Authentication failed:', error)
         router.push('/auth')
@@ -127,69 +133,42 @@ export default function PayoutsPage() {
 
   const loadPayoutMethods = async () => {
     try {
-      const methods: PayoutMethod[] = []
-
-      // Check bank account
-      const bankResponse = await fetch('/api/user/bank-account', {
+      // Use new consolidated API for better performance
+      const response = await fetch('/api/user/payment-methods', {
         method: 'GET',
         credentials: 'include'
       })
 
-      if (bankResponse.ok) {
-        const bankResult = await bankResponse.json()
-        if (bankResult.success && bankResult.data) {
-          methods.push({
-            type: 'bank_account',
-            displayName: 'Bank Account',
-            isConnected: true
-          })
-        }
+      if (!response.ok) {
+        throw new Error(`API Error (${response.status}): Failed to fetch payment methods`)
       }
 
-      // Check PayPal
-      const paypalResponse = await fetch('/api/user/paypal-account', {
-        method: 'GET',
-        credentials: 'include'
-      })
+      const result = await response.json()
 
-      if (paypalResponse.ok) {
-        const paypalResult = await paypalResponse.json()
-        if (paypalResult.success && paypalResult.data) {
-          methods.push({
-            type: 'paypal',
-            displayName: 'PayPal',
-            isConnected: true
-          })
-        }
-      }
+      if (result.success && result.data) {
+        const { availableMethods, preferredMethod, bankAccount, paypalAccount } = result.data
 
-      setAvailablePayoutMethods(methods)
+        setAvailablePayoutMethods(availableMethods)
+        setBankAccountData(bankAccount)
+        setPaypalAccountData(paypalAccount)
 
-      // Load selected method from user profile
-      const profileResponse = await fetch('/api/user/profile', {
-        method: 'GET',
-        credentials: 'include'
-      })
-
-      if (profileResponse.ok) {
-        const { userData } = await profileResponse.json()
-        const currentSelection = userData.preferred_payout_method
-
-        // Check if current selection still exists in available methods
-        const isCurrentSelectionAvailable = methods.some(method => method.type === currentSelection)
+        // Handle method selection logic
+        const isCurrentSelectionAvailable = availableMethods.some(
+          (method: PayoutMethod) => method.type === preferredMethod
+        )
 
         if (isCurrentSelectionAvailable) {
           // Keep current selection if it's still available
-          setSelectedPayoutMethod(currentSelection)
-        } else if (methods.length > 0) {
+          setSelectedPayoutMethod(preferredMethod)
+        } else if (availableMethods.length > 0) {
           // Auto-select first available method if current selection is no longer available
-          const newSelection = methods[0].type
+          const newSelection = availableMethods[0].type
           setSelectedPayoutMethod(newSelection)
           await savePayoutMethodSelection(newSelection)
         } else {
           // Clear selection if no methods available
           setSelectedPayoutMethod(null)
-          if (currentSelection) {
+          if (preferredMethod) {
             // Clear from profile if a method was previously selected
             await savePayoutMethodSelection(null)
           }
@@ -542,7 +521,13 @@ export default function PayoutsPage() {
                 </div>
 
                 {/* My Payout Methods Card */}
-                {user && <PayoutMethodsCard userId={user.id} userRole={userRole} onMethodDeleted={loadPayoutMethods} />}
+                {user && <PayoutMethodsCard
+                  userId={user.id}
+                  userRole={userRole}
+                  onMethodDeleted={loadPayoutMethods}
+                  bankAccountData={bankAccountData}
+                  paypalAccountData={paypalAccountData}
+                />}
               </div>
             )}
 
