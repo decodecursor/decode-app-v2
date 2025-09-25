@@ -1279,10 +1279,10 @@ DECODE
     available_balance?: number
     previous_payouts_count?: number
     preferred_payout_method?: string
-    account_holder_name?: string
+    beneficiary_name?: string
     bank_name?: string
     account_type?: string
-    account_last4?: string
+    iban_number?: string
     stripe_connect_account_id?: string
     paypal_email?: string
     paypal_account_type?: string
@@ -1599,10 +1599,10 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
     available_balance?: number
     previous_payouts_count?: number
     preferred_payout_method?: string
-    account_holder_name?: string
+    beneficiary_name?: string
     bank_name?: string
     account_type?: string
-    account_last4?: string
+    iban_number?: string
     stripe_connect_account_id?: string
     paypal_email?: string
     paypal_account_type?: string
@@ -1666,7 +1666,7 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
                 <p><strong>Previous Payouts:</strong> ${payoutData.previous_payouts_count || 0}</p>
             </div>
 
-            ${payoutData.preferred_payout_method || payoutData.account_holder_name || payoutData.paypal_email ? `
+            ${payoutData.preferred_payout_method || payoutData.beneficiary_name || payoutData.paypal_email ? `
                 <div class="details">
                     <h3>💳 Preferred Payment Method</h3>
                     <p><strong>Method:</strong> ${payoutData.preferred_payout_method ?
@@ -1674,12 +1674,18 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
                         payoutData.preferred_payout_method === 'paypal' ? `PayPal${payoutData.paypal_email ? ` (${payoutData.paypal_email})` : ''}` :
                         payoutData.preferred_payout_method === 'stripe_connect' ? 'Stripe Connect' :
                         payoutData.preferred_payout_method : 'Not specified'}</p>
-                    ${payoutData.account_holder_name ? `
+                    ${payoutData.preferred_payout_method === 'bank_account' && payoutData.beneficiary_name ? `
+                        <p><strong>Beneficiary Name:</strong> ${payoutData.beneficiary_name}</p>
+                        <p><strong>Bank:</strong> ${payoutData.bank_name || 'Not specified'}</p>
+                        <p><strong>IBAN:</strong> ${payoutData.iban_number || 'Not specified'}</p>
+                        ${payoutData.account_type ? `<p><strong>Account Type:</strong> ${payoutData.account_type}</p>` : ''}
+                    ` : ''}
+                    ${payoutData.beneficiary_name && payoutData.preferred_payout_method !== 'bank_account' ? `
                         <h4>🏦 Bank Account Details</h4>
-                        <p><strong>Account Holder:</strong> ${payoutData.account_holder_name}</p>
+                        <p><strong>Beneficiary Name:</strong> ${payoutData.beneficiary_name}</p>
                         <p><strong>Bank Name:</strong> ${payoutData.bank_name || 'Not specified'}</p>
                         <p><strong>Account Type:</strong> ${payoutData.account_type || 'Not specified'}</p>
-                        <p><strong>Last 4 Digits:</strong> ****${payoutData.account_last4 || 'N/A'}</p>
+                        <p><strong>IBAN:</strong> ${payoutData.iban_number || 'N/A'}</p>
                         <p><strong>Stripe Connect ID:</strong> ${payoutData.stripe_connect_account_id || 'Not connected'}</p>
                     ` : ''}
                     ${payoutData.paypal_email ? `
@@ -1740,19 +1746,23 @@ Total Earnings: ${payoutData.total_earnings || 'Unknown'} AED
 Available Balance: ${payoutData.available_balance || 'Unknown'} AED
 Previous Payouts: ${payoutData.previous_payouts_count || 0}
 
-${payoutData.preferred_payout_method || payoutData.account_holder_name || payoutData.paypal_email ? `
+${payoutData.preferred_payout_method || payoutData.beneficiary_name || payoutData.paypal_email ? `
 PREFERRED PAYMENT METHOD
 Method: ${payoutData.preferred_payout_method ?
     payoutData.preferred_payout_method === 'bank_account' ? 'Bank Account' :
     payoutData.preferred_payout_method === 'paypal' ? `PayPal${payoutData.paypal_email ? ` (${payoutData.paypal_email})` : ''}` :
     payoutData.preferred_payout_method === 'stripe_connect' ? 'Stripe Connect' :
     payoutData.preferred_payout_method : 'Not specified'}
-${payoutData.account_holder_name ? `
+${payoutData.preferred_payout_method === 'bank_account' && payoutData.beneficiary_name ? `Beneficiary Name: ${payoutData.beneficiary_name}
+Bank: ${payoutData.bank_name || 'Not specified'}
+IBAN: ${payoutData.iban_number || 'Not specified'}${payoutData.account_type ? `
+Account Type: ${payoutData.account_type}` : ''}` : ''}
+${payoutData.beneficiary_name && payoutData.preferred_payout_method !== 'bank_account' ? `
 BANK ACCOUNT DETAILS
-Account Holder: ${payoutData.account_holder_name}
+Beneficiary Name: ${payoutData.beneficiary_name}
 Bank Name: ${payoutData.bank_name || 'Not specified'}
 Account Type: ${payoutData.account_type || 'Not specified'}
-Last 4 Digits: ****${payoutData.account_last4 || 'N/A'}
+IBAN: ${payoutData.iban_number || 'N/A'}
 Stripe Connect ID: ${payoutData.stripe_connect_account_id || 'Not connected'}
 ` : ''}${payoutData.paypal_email ? `
 PAYPAL ACCOUNT DETAILS
