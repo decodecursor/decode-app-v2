@@ -224,34 +224,6 @@ export default function Dashboard() {
     }
   }, [user, refreshProfile])
 
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut()
-      console.log('✅ Signed out successfully')
-      router.push('/auth')
-    } catch (error) {
-      console.error('Error signing out:', error)
-      router.push('/auth')
-    }
-  }
-
-
-  // Show loading spinner while context is loading or if no user yet
-  if (contextLoading || !user) {
-    return (
-      <div className="cosmic-bg">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-gray-300">
-              {contextLoading ? 'Loading dashboard...' : 'Authenticating...'}
-            </p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   // Check if user just completed registration (detect new user)
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -280,6 +252,34 @@ export default function Dashboard() {
       return () => clearTimeout(timer)
     }
   }, [isNewUser, user, profile, profileWaitCount])
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut()
+      console.log('✅ Signed out successfully')
+      router.push('/auth')
+    } catch (error) {
+      console.error('Error signing out:', error)
+      router.push('/auth')
+    }
+  }
+
+
+  // Show loading spinner while context is loading or if no user yet
+  if (contextLoading || !user) {
+    return (
+      <div className="cosmic-bg">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-gray-300">
+              {contextLoading ? 'Loading dashboard...' : 'Authenticating...'}
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   // ONLY for newly registered users, wait for profile to load before showing dashboard
   // This prevents showing "No name set", "No company set" for new users
