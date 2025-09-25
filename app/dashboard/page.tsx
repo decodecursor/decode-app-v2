@@ -229,16 +229,14 @@ export default function Dashboard() {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search)
       const newUserFlag = urlParams.get('new_user') === 'true'
-      const fromRegistration = document.referrer.includes('/auth')
 
-      // Detect if this is a new user from registration
-      if (newUserFlag || fromRegistration) {
+      // ONLY detect new user from explicit URL parameter
+      // Do NOT use referrer check as it catches login users too
+      if (newUserFlag) {
         setIsNewUser(true)
         // Clear the URL parameter to avoid affecting refreshes
-        if (newUserFlag) {
-          const newUrl = window.location.pathname
-          window.history.replaceState({}, '', newUrl)
-        }
+        const newUrl = window.location.pathname
+        window.history.replaceState({}, '', newUrl)
       }
     }
   }, [])
