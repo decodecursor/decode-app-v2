@@ -3,23 +3,37 @@ import { createClient } from '@/utils/supabase/server'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
 
 export async function GET(request: NextRequest) {
+  const timestamp = new Date().toISOString()
+  console.log('🚀 [PAYMENT-LINKS-LIST] === REQUEST START ===', timestamp)
+
   try {
+    console.log('🔐 [PAYMENT-LINKS-LIST] Checking authentication...')
+
     // Use the same working authentication as /api/user/profile
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
+      console.error('❌ [PAYMENT-LINKS-LIST] Authentication failed:', {
+        error: authError?.message,
+        hasUser: !!user,
+        timestamp
+      })
       return NextResponse.json(
         { error: 'No authenticated user' },
         { status: 401 }
       )
     }
 
+    console.log('✅ [PAYMENT-LINKS-LIST] User authenticated:', user.id)
+
     const userId = user.id
 
+    console.log('🔧 [PAYMENT-LINKS-LIST] Creating service role client...')
     // Use service role to query data
     const supabaseService = createServiceRoleClient()
 
+    console.log('👤 [PAYMENT-LINKS-LIST] Fetching user profile for role check...')
     // First get user info to determine if admin
     const { data: currentUser, error: userError } = await supabaseService
       .from('users')
@@ -28,11 +42,25 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (userError || !currentUser) {
+      console.error('❌ [PAYMENT-LINKS-LIST] Failed to get user profile:', {
+        error: userError?.message,
+        code: userError?.code,
+        details: userError?.details,
+        hasCurrentUser: !!currentUser,
+        userId,
+        timestamp
+      })
       return NextResponse.json(
-        { error: 'Failed to get user information' },
+        { error: 'Failed to get user information', details: userError?.message },
         { status: 500 }
       )
     }
+
+    console.log('✅ [PAYMENT-LINKS-LIST] User profile retrieved:', {
+      userId,
+      role: currentUser.role,
+      company: currentUser.company_name
+    })
 
     const isAdmin = currentUser.role === 'Admin'
     const companyName = currentUser.company_name
@@ -88,15 +116,24 @@ export async function GET(request: NextRequest) {
       query = query.eq('creator_id', userId)
     }
 
+    console.log('🔍 [PAYMENT-LINKS-LIST] Executing database query...')
+    const queryStart = Date.now()
     const { data: paymentLinks, error: linksError } = await query
+    const queryTime = Date.now() - queryStart
+
+    console.log('⏱️ [PAYMENT-LINKS-LIST] Query completed in', queryTime, 'ms')
 
     if (linksError) {
-      console.error('❌ [PAYMENT-LINKS-LIST] Database query error:', linksError)
-      console.error('❌ [PAYMENT-LINKS-LIST] Error details:', {
+      console.error('❌ [PAYMENT-LINKS-LIST] DATABASE QUERY FAILED:', {
         message: linksError.message,
         details: linksError.details,
         hint: linksError.hint,
-        code: linksError.code
+        code: linksError.code,
+        queryTime,
+        isAdmin,
+        companyName,
+        userId,
+        timestamp
       })
 
       // Try to provide more specific error information
@@ -139,15 +176,29 @@ export async function GET(request: NextRequest) {
 
     console.log('✅ [PAYMENT-LINKS-LIST] Formatted', formattedLinks.length, 'payment links')
 
-    return NextResponse.json({
+    const response = {
       success: true,
       paymentLinks: formattedLinks,
       isAdmin,
       companyName
+    }
+
+    console.log('🎉 [PAYMENT-LINKS-LIST] === REQUEST SUCCESS ===', {
+      linksCount: formattedLinks.length,
+      totalTime: Date.now() - new Date(timestamp).getTime(),
+      timestamp: new Date().toISOString()
     })
 
+    return NextResponse.json(response)
+
   } catch (error: any) {
-    console.error('Server error:', error)
+    console.error('💥 [PAYMENT-LINKS-LIST] === UNHANDLED ERROR ===', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+      timestamp: new Date().toISOString()
+    })
+
     return NextResponse.json(
       { error: 'Server error', details: error.message },
       { status: 500 }

@@ -540,10 +540,22 @@ function MyLinksContent() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        console.error('❌ [MY-LINKS] Primary API error:', errorData)
+        console.error('❌ [MY-LINKS] PRIMARY API FAILED - Response status:', response.status)
+        console.error('❌ [MY-LINKS] PRIMARY API FAILED - Error data:', errorData)
+        console.error('❌ [MY-LINKS] PRIMARY API FAILED - Response headers:', [...response.headers.entries()])
+
+        // Show detailed error info to identify the issue
+        console.error('🚨 [MY-LINKS] MAIN ENDPOINT FAILURE DETAILS:', {
+          url: '/api/payment-links/list',
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData.error,
+          details: errorData.details,
+          timestamp: new Date().toISOString()
+        })
 
         // Try fallback approach using status-check endpoint
-        console.log('🔄 [MY-LINKS] Attempting fallback using status-check endpoint...')
+        console.log('🔄 [MY-LINKS] FALLING BACK TO STATUS-CHECK - Main API failed, attempting fallback...')
         try {
           const fallbackResponse = await fetch('/api/payment-links/status-check', {
             method: 'GET',
@@ -579,7 +591,10 @@ function MyLinksContent() {
             }))
 
             setPaymentLinks(basicPaymentLinks)
-            setError('Limited data mode: Some payment link details unavailable due to database issues.')
+
+            // Show specific error details in the UI
+            const mainApiError = errorData?.error || `HTTP ${response.status}`
+            setError(`⚠️ FALLBACK MODE ACTIVE: Main API failed (${mainApiError}). Showing basic data only. Full details unavailable.`)
 
             // Mark initial load as complete for fallback mode
             setTimeout(() => {
@@ -607,9 +622,15 @@ function MyLinksContent() {
       const data = await response.json()
       const { paymentLinks: paymentLinksData, isAdmin } = data
 
-      console.log('✅ [MY-LINKS] Received payment links data:', {
+      console.log('✅ [MY-LINKS] MAIN API SUCCESS - Received full payment links data:', {
         linksCount: paymentLinksData?.length || 0,
-        isAdmin
+        isAdmin,
+        sampleLink: paymentLinksData?.[0] ? {
+          id: paymentLinksData[0].id,
+          hasTitle: !!paymentLinksData[0].title,
+          hasAmount: !!paymentLinksData[0].amount_aed,
+          hasClient: !!paymentLinksData[0].client_name
+        } : 'No links'
       })
 
       // Process the fetched payment links
