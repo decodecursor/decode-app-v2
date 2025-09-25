@@ -6,6 +6,7 @@ import { createClient } from '@/utils/supabase/client'
 import { getUserWithProxy } from '@/utils/auth-helper'
 import RoleSelectionModal from '@/components/RoleSelectionModal'
 import PasswordInput from '@/components/PasswordInput'
+import { safeLocalStorage, safeSessionStorage, detectRedirectLoop, clearRedirectLoop, isMobileDevice, getDeviceInfo } from '@/utils/storage-helper'
 
 function AuthPageContent() {
   const router = useRouter()
@@ -74,8 +75,8 @@ function AuthPageContent() {
         setPreselectedRole(mappedRole)
         setIsLogin(false) // Force signup mode
         // Store preselected role in both sessionStorage and localStorage for persistence
-        sessionStorage.setItem('preselectedRole', mappedRole)
-        localStorage.setItem('decode_preselectedRole', mappedRole)
+        safeSessionStorage.setItem('preselectedRole', mappedRole)
+        safeLocalStorage.setItem('decode_preselectedRole', mappedRole)
         console.log('✅ [AUTH] Stored preselected role:', mappedRole)
       }
     }
@@ -92,10 +93,10 @@ function AuthPageContent() {
 
         // Store complete invite data in BOTH sessionStorage AND localStorage for maximum persistence
         const inviteDataStr = JSON.stringify(decodedData)
-        sessionStorage.setItem('inviteData', inviteDataStr)
-        localStorage.setItem('decode_inviteData', inviteDataStr)
-        localStorage.setItem('decode_inviteTimestamp', Date.now().toString())
-        console.log('✅ [AUTH] Stored invite data in sessionStorage AND localStorage for email verification persistence')
+        safeSessionStorage.setItem('inviteData', inviteDataStr)
+        safeLocalStorage.setItem('decode_inviteData', inviteDataStr)
+        safeLocalStorage.setItem('decode_inviteTimestamp', Date.now().toString())
+        console.log('✅ [AUTH] Stored invite data in safe storage for email verification persistence')
       } catch (error) {
         console.error('❌ [AUTH] Invalid invite link:', error)
         setMessage('Invalid invitation link')
@@ -109,7 +110,7 @@ function AuthPageContent() {
 
       // Try sessionStorage first
       try {
-        const sessionData = sessionStorage.getItem('inviteData')
+        const sessionData = safeSessionStorage.getItem('inviteData')
         if (sessionData) {
           restoredInviteData = JSON.parse(sessionData)
           console.log('✅ [AUTH] Restored invite data from sessionStorage:', restoredInviteData)
@@ -121,8 +122,8 @@ function AuthPageContent() {
       // Try localStorage as backup
       if (!restoredInviteData) {
         try {
-          const localData = localStorage.getItem('decode_inviteData')
-          const timestamp = localStorage.getItem('decode_inviteTimestamp')
+          const localData = safeLocalStorage.getItem('decode_inviteData')
+          const timestamp = safeLocalStorage.getItem('decode_inviteTimestamp')
 
           if (localData && timestamp) {
             const age = Date.now() - parseInt(timestamp)
@@ -132,8 +133,8 @@ function AuthPageContent() {
               console.log('✅ [AUTH] Restored invite data from localStorage:', restoredInviteData)
             } else {
               console.log('⚠️ [AUTH] localStorage invite data too old, ignoring')
-              localStorage.removeItem('decode_inviteData')
-              localStorage.removeItem('decode_inviteTimestamp')
+              safeLocalStorage.removeItem('decode_inviteData')
+              safeLocalStorage.removeItem('decode_inviteTimestamp')
             }
           }
         } catch (error) {
@@ -506,6 +507,8 @@ function AuthPageContent() {
               console.log('✅ Direct login successful')
               loginSuccess = true
               loginData = data
+              // Clear redirect loop counter on successful login
+              clearRedirectLoop()
             } else {
               loginError = new Error('Login failed - no session created')
             }

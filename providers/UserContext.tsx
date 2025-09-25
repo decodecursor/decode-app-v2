@@ -39,6 +39,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [authCheckAttempts, setAuthCheckAttempts] = useState(0)
 
   const fetchProfile = useCallback(async (userId: string) => {
     try {
@@ -98,11 +99,30 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const initUser = async () => {
       try {
         setError(null)
+        setAuthCheckAttempts(prev => prev + 1)
+
+        // Add a small delay on mobile to ensure cookies are properly set
+        if (typeof window !== 'undefined' && authCheckAttempts === 0) {
+          const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+          if (isMobile) {
+            console.log('📱 [UserContext] Mobile device detected, adding delay for cookie settlement')
+            await new Promise(resolve => setTimeout(resolve, 500))
+          }
+        }
 
         // Single auth check using proxy-first approach
         const { user: authUser, error: authError } = await getUserWithProxy()
 
         if (authError) {
+          // On mobile, retry once if this is the first attempt
+          if (authCheckAttempts === 0 && typeof window !== 'undefined') {
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+            if (isMobile) {
+              console.log('🔄 [UserContext] Mobile auth failed, retrying once...')
+              setTimeout(() => initUser(), 1000)
+              return
+            }
+          }
           setError(authError)
           setLoading(false)
           return

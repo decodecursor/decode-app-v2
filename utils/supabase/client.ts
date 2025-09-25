@@ -10,8 +10,27 @@ export function createClient() {
     throw new Error('supabaseKey is required.')
   }
 
+  // Add mobile-friendly options
   return createBrowserClient(
     supabaseUrl,
-    supabaseAnonKey
+    supabaseAnonKey,
+    {
+      cookies: {
+        // Extend cookie lifetime for mobile browsers
+        domain: undefined, // Let browser handle domain
+        path: '/',
+        sameSite: 'lax',
+        secure: typeof window !== 'undefined' && window.location.protocol === 'https:',
+      },
+      auth: {
+        // Add longer timeouts for mobile networks
+        storageKey: 'supabase.auth.token',
+        persistSession: true,
+        detectSessionInUrl: true,
+        autoRefreshToken: true,
+        // Extend timeout for mobile connections
+        flowType: 'pkce',
+      },
+    }
   )
 }

@@ -15,19 +15,24 @@ export async function createClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              // Ensure Firefox-compatible cookie settings
-              const firefoxOptions = {
+              // Mobile-friendly cookie settings
+              const mobileOptions = {
                 ...options,
-                sameSite: 'lax' as const, // Firefox-friendly
+                // Use 'none' for mobile browsers to ensure cookies work across redirects
+                // but fallback to 'lax' for localhost
+                sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as const,
                 secure: process.env.NODE_ENV === 'production',
                 path: '/',
+                // Extend expiry for mobile browsers
+                maxAge: options?.maxAge || 60 * 60 * 24 * 7, // 7 days
               }
-              cookieStore.set(name, value, firefoxOptions)
+              cookieStore.set(name, value, mobileOptions)
             })
-          } catch {
+          } catch (error) {
             // The `setAll` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing
             // user sessions.
+            console.warn('[COOKIES] Failed to set cookies:', error)
           }
         },
       },

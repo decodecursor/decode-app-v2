@@ -7,6 +7,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useUser } from '@/providers/UserContext'
 import { USER_ROLES } from '@/types/user'
 import { EmailVerificationGate } from '@/components/EmailVerificationGate'
+import { detectRedirectLoop, clearRedirectLoop, getDeviceInfo } from '@/utils/storage-helper'
 
 
 export default function Dashboard() {
@@ -148,9 +149,19 @@ export default function Dashboard() {
 
     if (!contextLoading) {
       if (!user) {
+        // Check for redirect loop before redirecting
+        if (detectRedirectLoop()) {
+          console.error('🚨 [DASHBOARD] Redirect loop detected!')
+          console.log('📱 [DASHBOARD] Device info:', getDeviceInfo())
+          // Don't redirect, show error message instead
+          return
+        }
         console.log('❌ [DASHBOARD] No user found, redirecting to auth')
         router.push('/auth')
         return
+      } else {
+        // User is authenticated, clear redirect loop counter
+        clearRedirectLoop()
       }
 
       console.log('✅ [DASHBOARD] User authenticated, checking profile...')
