@@ -63,10 +63,10 @@ export async function GET(request: NextRequest) {
       total_earnings: 5500,
       available_balance: 2000,
       previous_payouts_count: 3,
-      account_holder_name: 'Sarah Johnson',
+      beneficiary_name: 'Sarah Johnson',
       bank_name: 'Emirates NBD',
       account_type: 'Business Checking',
-      account_last4: '1234',
+      iban_number: 'AE123456789012345678901234',
       stripe_connect_account_id: 'acct_1234567890',
       last_payout_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
       last_payout_amount: 1500,
