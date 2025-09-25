@@ -328,7 +328,7 @@ export default function CreatePayment() {
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Link */}
         <div className="flex justify-center mb-8">
-          <div className="w-full" style={{maxWidth: '30vw'}}>
+          <div className="w-full payment-create-container" style={{maxWidth: '30vw'}}>
           <Link 
             href="/dashboard" 
             className="inline-flex items-center text-gray-300 hover:text-white transition-colors payment-back-button"
@@ -348,7 +348,7 @@ export default function CreatePayment() {
 
         {/* Main Content */}
         <div className="flex justify-center">
-          <div className="cosmic-card" style={{width: '30vw'}}>
+          <div className="cosmic-card payment-create-card" style={{width: '30vw'}}>
             <h1 className="cosmic-heading text-center mb-8">Create PayLink</h1>
 
             <form onSubmit={generatePaymentLink} className="space-y-6">
@@ -366,14 +366,14 @@ export default function CreatePayment() {
                     }
                   }}
                   placeholder="Sarah Johnson"
-                  className={`cosmic-input ${errors.client ? 'border-red-500' : ''}`}
+                  className={`cosmic-input payment-create-input ${errors.client ? 'border-red-500' : ''}`}
                   disabled={creating}
                   autoComplete="off"
                 />
                 
                 {/* Client Suggestions Dropdown */}
                 {showClientSuggestions && clientSuggestions.length > 0 && (
-                  <div className="absolute z-50 w-full mt-1 bg-gray-900 border border-purple-500/50 rounded-lg shadow-2xl overflow-hidden">
+                  <div className="absolute z-50 w-full mt-1 bg-gray-900 border border-purple-500/50 rounded-lg shadow-2xl overflow-hidden client-suggestions-mobile">
                     {clientSuggestions.map((suggestion, index) => (
                       <div
                         key={suggestion.name}
@@ -410,7 +410,7 @@ export default function CreatePayment() {
                   placeholder="0.00"
                   step="0.01"
                   min="0"
-                  className={`cosmic-input text-xl ${errors.amount ? 'border-red-500' : ''}`}
+                  className={`cosmic-input payment-create-input text-xl ${errors.amount ? 'border-red-500' : ''}`}
                   disabled={creating}
                 />
                 {errors.amount && (
@@ -428,7 +428,7 @@ export default function CreatePayment() {
                 <button
                   type="submit"
                   disabled={creating || !profile || profile.branches.length === 0}
-                  className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="payment-create-button bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   {creating ? 'Creating PayLink...' :
                    (!profile || profile.branches.length === 0) ? 'No Branch Access' :
