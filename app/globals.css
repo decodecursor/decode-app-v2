@@ -1307,7 +1307,7 @@ body {
   }
 
   .payments-metrics-grid > div {
-    min-height: 85px !important;
+    min-height: 75px !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
@@ -1315,7 +1315,7 @@ body {
 
   /* Metric card styling - compressed */
   .payment-metric-card {
-    padding: 8px !important;
+    padding: 6px !important;
     min-height: auto !important;
     height: 100% !important;
     display: flex !important;
@@ -1324,31 +1324,31 @@ body {
   }
 
   .payment-metric-label {
-    font-size: 10px !important;
-    margin-bottom: 2px !important;
-    line-height: 1.2 !important;
+    font-size: 9px !important;
+    margin-bottom: 1px !important;
+    line-height: 1.1 !important;
     flex-shrink: 0 !important;
   }
 
   .payment-metric-value {
-    font-size: 16px !important;
+    font-size: 14px !important;
     font-weight: 700 !important;
     margin-bottom: 1px !important;
-    line-height: 1.2 !important;
+    line-height: 1.1 !important;
     flex-grow: 1 !important;
     display: flex !important;
     align-items: center !important;
   }
 
   .payment-metric-change {
-    font-size: 10px !important;
-    line-height: 1.2 !important;
+    font-size: 9px !important;
+    line-height: 1.1 !important;
     flex-shrink: 0 !important;
   }
 
   .payment-metric-comparison {
-    font-size: 9px !important;
-    line-height: 1.2 !important;
+    font-size: 8px !important;
+    line-height: 1.1 !important;
     flex-shrink: 0 !important;
   }
 
@@ -1375,18 +1375,27 @@ body {
     border-radius: 2px !important;
   }
 
-  /* Date filter buttons - smaller */
+  /* Date filter buttons - much smaller to prevent scrolling */
   .payments-filters-scroll button {
     flex-shrink: 0 !important;
-    padding: 2px 8px !important;
-    font-size: 10px !important;
-    border-radius: 6px !important;
+    padding: 1px 4px !important;
+    font-size: 8px !important;
+    border-radius: 4px !important;
     min-width: auto !important;
+    max-width: 50px !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
   }
 
   /* Chart container for mobile - compressed */
   .payments-chart-container {
     padding: 8px !important;
+  }
+
+  /* Y-axis labels smaller */
+  .payments-chart-yaxis .text-xs {
+    font-size: 8px !important;
+  }
   }
 
   .payments-chart-mobile {

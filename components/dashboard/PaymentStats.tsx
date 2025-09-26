@@ -1045,40 +1045,54 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             }
             return (
               <div key={`${payment.id}-${index}`} className="bg-gray-800/50 rounded-lg p-3 hover:bg-gray-700/50 transition-colors paid-paylink-card">
-                {/* Mobile Layout */}
+                {/* Mobile Layout - Redesigned */}
                 <div className="md:hidden">
-                  <div className="flex items-start justify-between mb-2">
+                  {/* Header with number and amount */}
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-xs font-bold rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="w-5 h-5 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-xs font-bold rounded-full flex items-center justify-center flex-shrink-0">
                         {index + 1}
                       </span>
                       <span className="text-white font-semibold text-sm">
                         {payment.title || 'Payment'}
                       </span>
                     </div>
+                    <span className="text-green-400 font-bold text-sm">
+                      {formatCurrency(payment.service_amount_aed || 0)}
+                    </span>
                   </div>
-                  <div className="space-y-1 mb-2">
-                    <div className="text-sm text-gray-300">
-                      <span className="text-xs text-gray-500">Client: </span>
-                      {payment.client_name || 'Client'}
+
+                  {/* Main content in organized sections */}
+                  <div className="space-y-2 mb-3">
+                    <div className="flex justify-between items-center py-1 border-b border-white/10">
+                      <span className="text-xs text-gray-500 uppercase tracking-wide">Client</span>
+                      <span className="text-sm text-gray-300 font-medium">
+                        {payment.client_name || 'Client'}
+                      </span>
                     </div>
-                    <div className="text-sm text-gray-300">
-                      <span className="text-xs text-gray-500">Branch: </span>
-                      {payment.branch_name || 'No Branch'}
+
+                    <div className="flex justify-between items-center py-1 border-b border-white/10">
+                      <span className="text-xs text-gray-500 uppercase tracking-wide">Branch</span>
+                      <span className="text-sm text-gray-300">
+                        {payment.branch_name || 'No Branch'}
+                      </span>
                     </div>
-                    <div className="text-sm text-gray-300">
-                      <span className="text-xs text-gray-500">Creator: </span>
-                      {formatUserName(payment.creator_name, payment.creator_id)}
+
+                    <div className="flex justify-between items-center py-1 border-b border-white/10">
+                      <span className="text-xs text-gray-500 uppercase tracking-wide">Creator</span>
+                      <span className="text-sm text-gray-300">
+                        {formatUserName(payment.creator_name, payment.creator_id)}
+                      </span>
                     </div>
+
                     {payment.paymentlink_request_id && (
-                      <div className="text-sm text-gray-300">
-                        <span className="text-xs text-gray-500">ID: </span>
+                      <div className="flex justify-between items-center py-1 border-b border-white/10">
+                        <span className="text-xs text-gray-500 uppercase tracking-wide">ID</span>
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(payment.paymentlink_request_id!)
-                            // Could add toast notification here
                           }}
-                          className="text-purple-400 font-mono text-xs hover:text-purple-300 hover:bg-purple-400/10 px-1 py-0.5 rounded transition-colors cursor-pointer"
+                          className="text-purple-400 font-mono text-xs hover:text-purple-300 hover:bg-purple-400/10 px-1.5 py-0.5 rounded transition-colors cursor-pointer"
                           title="Click to copy tracking ID"
                         >
                           {payment.paymentlink_request_id}
@@ -1086,11 +1100,10 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                       </div>
                     )}
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-green-400 font-bold">
-                      {formatCurrency(payment.service_amount_aed || 0)}
-                    </span>
-                    <span className="text-xs text-gray-400">
+
+                  {/* Footer with date */}
+                  <div className="flex justify-end">
+                    <span className="text-xs text-gray-500">
                       {formatPaymentDate(payment.paid_at!)}
                     </span>
                   </div>
