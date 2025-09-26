@@ -690,7 +690,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       <div className="cosmic-card analytics-card-mobile">
         <div className="flex justify-between items-center mb-4 md:mb-6">
           <h2 className="cosmic-heading text-white">Analytics</h2>
-          <div className="flex space-x-2 payments-filters-scroll payments-filters-mobile">
+          <div className="flex gap-1 payments-filters-mobile-fixed">
             {(['today', 'week', 'month', 'custom'] as const).map((range) => (
               <button
                 key={range}
@@ -702,13 +702,13 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                     setShowDatePicker(false)
                   }
                 }}
-                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors min-w-[70px] ${
+                className={`flex-1 px-2 py-1 rounded-md text-xs font-medium transition-colors ${
                   dateRange === range
                     ? 'bg-purple-600 text-white'
                     : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                 }`}
               >
-                {range === 'today' ? 'Today' : range === 'week' ? 'This Week' : range === 'month' ? 'This Month' : 'Custom'}
+                {range === 'today' ? 'Today' : range === 'week' ? 'Week' : range === 'month' ? 'Month' : 'Custom'}
               </button>
             ))}
           </div>
@@ -820,7 +820,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       </div>
 
       {/* Revenue Chart */}
-      <div className="cosmic-card payments-chart-container">
+      <div className="cosmic-card analytics-card-mobile payments-chart-container">
         <h3 className="cosmic-heading text-white mb-4">{analyticsLabel}</h3>
         {revenueByDay.length > 0 ? (
           <>
@@ -980,7 +980,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             
             {/* Chart Summary - only show period */}
             <div className="flex justify-between items-center mt-6 pt-4 border-t border-white/10">
-              <div className="text-xs text-white/50">
+              <div className="text-xs text-white/50 period-text-mobile">
                 <span>Period: {
                   dateRange === 'today' ? `Today (${now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })})` : 
                   dateRange === 'week' ? (() => {
@@ -1014,7 +1014,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       </div>
 
       {/* PayLinks */}
-      <div className="cosmic-card">
+      <div className="cosmic-card analytics-card-mobile">
         <div className="flex items-center justify-between mb-4">
           <h3 className="cosmic-heading text-white">Paid PayLinks</h3>
           {getFilteredPayments().length > 0 && (
@@ -1045,29 +1045,24 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             }
             return (
               <div key={`${payment.id}-${index}`} className="bg-gray-800/50 rounded-lg p-3 hover:bg-gray-700/50 transition-colors paid-paylink-card">
-                {/* Mobile Layout - Redesigned with prominent Amount/Client */}
+                {/* Mobile Layout - Redesigned with client left/amount right, no service */}
                 <div className="md:hidden">
-                  {/* Row 1: Number, Service Type/Title */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-6 h-6 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-xs font-bold rounded-full flex items-center justify-center flex-shrink-0">
-                      {index + 1}
-                    </span>
-                    <span className="text-white/80 text-xs font-medium">
-                      {payment.title || 'Beauty Service'}
-                    </span>
-                  </div>
-
-                  {/* Row 2: Prominent Amount and Client */}
-                  <div className="flex justify-between items-center mb-3">
+                  {/* Row 1: Number, Client (left), Amount (right) */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-xs font-bold rounded-full flex items-center justify-center flex-shrink-0">
+                        {index + 1}
+                      </span>
+                      <span className="text-white font-semibold text-base">
+                        {payment.client_name || 'Client'}
+                      </span>
+                    </div>
                     <span className="text-green-400 font-bold text-lg">
                       {formatCurrency(payment.service_amount_aed || 0)}
                     </span>
-                    <span className="text-white font-semibold text-base">
-                      {payment.client_name || 'Client'}
-                    </span>
                   </div>
 
-                  {/* Row 3: Less prominent metadata */}
+                  {/* Row 2: Less prominent metadata */}
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                     <div className="text-gray-500">
                       <span>{formatPaymentDate(payment.paid_at!).split(' -')[0]}</span>

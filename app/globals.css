@@ -1347,8 +1347,15 @@ body {
   }
 
   /* Reduce percentage text size by 3px on mobile */
-  .payment-metric-percentage {
-    font-size: 9px !important;
+  @media (max-width: 768px) {
+    .payment-metric-percentage {
+      font-size: 6px !important;
+    }
+  }
+  @media (min-width: 769px) {
+    .payment-metric-percentage {
+      font-size: 9px !important;
+    }
   }
 
   .payment-metric-comparison {
@@ -1390,6 +1397,23 @@ body {
     max-width: 50px !important;
     overflow: hidden !important;
     white-space: nowrap !important;
+  }
+
+  /* Fixed width buttons to prevent scrolling on mobile */
+  @media (max-width: 768px) {
+    .payments-filters-mobile-fixed {
+      display: flex !important;
+      gap: 4px !important;
+      width: 100% !important;
+      max-width: 240px !important;
+    }
+
+    .payments-filters-mobile-fixed button {
+      flex: 1 !important;
+      min-width: 0 !important;
+      padding: 4px 6px !important;
+      font-size: 10px !important;
+    }
   }
 
   /* Chart container for mobile - compressed */
@@ -1435,6 +1459,13 @@ body {
   /* Compress analytics card overall */
   .analytics-card-mobile {
     padding: 12px !important;
+  }
+
+  /* Reduce Period text size on mobile */
+  @media (max-width: 768px) {
+    .period-text-mobile {
+      font-size: 9px !important;
+    }
   }
 
   .analytics-card-mobile h2 {
