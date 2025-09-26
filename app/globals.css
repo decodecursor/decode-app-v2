@@ -865,31 +865,12 @@ body {
     border-radius: 18px !important;
   }
 
-  /* CRITICAL: Payment link card background - NUCLEAR SPECIFICITY OVERRIDE */
-  div[class*="payment-link-card-mobile"],
-  .payment-link-card-mobile,
-  div.payment-link-card-mobile[class*="bg-gray-900"],
-  div.payment-link-card-mobile[class*="bg-blue-900"],
-  div.payment-link-card-mobile[class*="bg-yellow-900"] {
+  /* Payment link card styles for mobile - preserve desktop colors */
+  .payment-link-card-mobile {
     padding: 16px !important;
     border-radius: 12px !important;
     margin-bottom: 12px !important;
     position: relative !important;
-    background-color: rgba(255, 255, 255, 0.3) !important;
-    background: rgba(255, 255, 255, 0.3) !important;
-    backdrop-filter: blur(15px) !important;
-    -webkit-backdrop-filter: blur(15px) !important;
-  }
-
-  /* OVERRIDE ALL POSSIBLE TAILWIND BACKGROUND CLASSES */
-  div.payment-link-card-mobile.bg-gray-900\/80,
-  div.payment-link-card-mobile.bg-blue-900\/30,
-  div.payment-link-card-mobile.bg-yellow-900\/10,
-  .payment-link-card-mobile.bg-gray-900\/80,
-  .payment-link-card-mobile.bg-blue-900\/30,
-  .payment-link-card-mobile.bg-yellow-900\/10 {
-    background-color: rgba(255, 255, 255, 0.3) !important;
-    background: rgba(255, 255, 255, 0.3) !important;
   }
 
   /* Remove giant status overlays on mobile */
