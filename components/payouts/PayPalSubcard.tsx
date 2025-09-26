@@ -81,7 +81,7 @@ export function PayPalSubcard({ userId, onClick, refreshKey, paypalAccountData }
 
   if (loading) {
     return (
-      <div className="flex-1 bg-white/5 rounded-lg p-4 border border-gray-700 cursor-pointer hover:bg-white/8 transition-colors">
+      <div className="w-full md:flex-1 bg-white/5 rounded-lg p-4 border border-gray-700 cursor-pointer hover:bg-white/8 transition-colors">
         <div className="animate-pulse">
           <div className="flex items-center justify-between mb-3">
             <div className="w-8 h-8 bg-gray-700 rounded" />
@@ -97,18 +97,18 @@ export function PayPalSubcard({ userId, onClick, refreshKey, paypalAccountData }
   return (
     <div
       onClick={onClick}
-      className="flex-1 bg-white/5 rounded-lg p-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group relative"
+      className="w-full md:flex-1 bg-white/5 rounded-lg p-4 md:p-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group relative min-h-[80px] md:min-h-0"
     >
       {getStatusIcon() && (
         <div className="absolute -top-2 -right-2 z-10">
           {getStatusIcon()}
         </div>
       )}
-      <div className="flex items-center justify-between mb-1">
-        <h4 className="text-white font-medium text-sm">PayPal</h4>
-        <div className="w-7 h-7 bg-purple-600/20 rounded-lg flex items-center justify-center">
+      <div className="flex items-center justify-between mb-2 md:mb-1">
+        <h4 className="text-white font-medium text-base md:text-sm">💳 PayPal</h4>
+        <div className="w-8 h-8 md:w-7 md:h-7 bg-purple-600/20 rounded-lg flex items-center justify-center">
           {/* PayPal P logo */}
-          <div className="w-4 h-4 text-purple-400 font-bold text-xs flex items-center justify-center">
+          <div className="w-5 h-5 md:w-4 md:h-4 text-purple-400 font-bold text-sm md:text-xs flex items-center justify-center">
             P
           </div>
         </div>
@@ -116,11 +116,11 @@ export function PayPalSubcard({ userId, onClick, refreshKey, paypalAccountData }
       
       <div>
         {paypalAccount ? (
-          <p className="text-white text-xs font-mono">
+          <p className="text-white text-sm md:text-xs font-mono">
             {maskEmail(paypalAccount.email)}
           </p>
         ) : (
-          <p className="text-gray-400 text-xs">Not connected</p>
+          <p className="text-gray-400 text-sm md:text-xs">Not connected</p>
         )}
       </div>
     </div>

@@ -378,10 +378,10 @@ export default function PayoutsPage() {
 
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Button */}
-        <div className="flex justify-center mb-8">
-          <div style={{width: '70vw'}}>
-            <Link 
-              href="/dashboard" 
+        <div className="flex justify-center mb-6 md:mb-8">
+          <div className="w-full md:w-[70vw]">
+            <Link
+              href="/dashboard"
               className="inline-flex items-center text-gray-300 hover:text-white transition-colors payment-back-button"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -394,10 +394,10 @@ export default function PayoutsPage() {
 
         {/* Header */}
         <div className="flex justify-center mb-6">
-          <div style={{width: '70vw'}}>
+          <div className="w-full md:w-[70vw]">
             <div className="cosmic-card">
               <div>
-                <h1 className="cosmic-heading mb-2">Payouts</h1>
+                <h1 className="cosmic-heading mb-2 text-2xl md:text-3xl">Payouts</h1>
               </div>
             </div>
           </div>
@@ -407,13 +407,13 @@ export default function PayoutsPage() {
         {/* Request Error Message */}
         {requestError && (
           <div className="flex justify-center mb-6">
-            <div style={{width: '70vw'}}>
+            <div className="w-full md:w-[70vw]">
               <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-4">
                 <div className="flex items-center">
-                  <svg className="w-5 h-5 text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-red-400 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                   </svg>
-                  <p className="text-red-100 font-medium">{requestError}</p>
+                  <p className="text-red-100 font-medium text-sm md:text-base">{requestError}</p>
                 </div>
               </div>
             </div>
@@ -422,7 +422,7 @@ export default function PayoutsPage() {
 
         {/* Main Content */}
         <div className="flex justify-center">
-          <div style={{width: '70vw'}} className="space-y-6">
+          <div className="w-full md:w-[70vw] space-y-6">
             
             {/* Payout Summary Cards */}
             {loading ? (
@@ -438,39 +438,39 @@ export default function PayoutsPage() {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex flex-col gap-4">
                 {/* My Next Payout Card */}
-                <div className="flex-1 cosmic-card">
+                <div className="cosmic-card">
                   <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-white">
+                    <h3 className="text-base md:text-lg font-semibold text-white">
                       {userRole === 'Admin' ? 'Select Payout Method' : getCardTitle('My Next Payout')}
                     </h3>
                   </div>
 
-                  {/* Two-Column Layout */}
-                  <div className="flex gap-4 mb-3">
+                  {/* Mobile: Stack, Desktop: Two-Column */}
+                  <div className="flex flex-col md:flex-row gap-4 mb-3">
                     {/* Available Balance - Hidden for ADMIN */}
                     {userRole !== 'Admin' && (
                       <div className="flex-1">
-                        <p className="text-gray-400 text-sm mb-1">Available Balance</p>
-                        <p className="text-2xl font-bold text-white">
+                        <p className="text-gray-400 text-xs md:text-sm mb-1">Available Balance</p>
+                        <p className="text-xl md:text-2xl font-bold text-white">
                           {formatCurrency(payoutSummary?.availableBalance || 0)}
                         </p>
                       </div>
                     )}
 
                     {/* Payout to - Styled Subcard */}
-                    <div className="flex-1">
-                      <p className="text-gray-400 text-sm mb-1">Payout to</p>
+                    <div className="flex-1 md:flex-1">
+                      <p className="text-gray-400 text-xs md:text-sm mb-1">Payout to</p>
                       <div
                         onClick={() => setShowSelectMethodModal(true)}
-                        className="bg-white/5 rounded-lg py-2 px-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group"
+                        className="bg-white/5 rounded-lg py-3 md:py-2 px-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group min-h-[48px] md:min-h-0 flex items-center"
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between w-full">
                           <p className="text-white text-sm font-bold">
                             {getSelectedMethodDisplayName()}
                           </p>
-                          <div className="w-6 h-6 text-gray-400 group-hover:text-purple-400 transition-colors">
+                          <div className="w-5 h-5 md:w-6 md:h-6 text-gray-400 group-hover:text-purple-400 transition-colors">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
@@ -495,24 +495,24 @@ export default function PayoutsPage() {
                   )}
                 </div>
 
-                {/* My Total Payouts Card */}
-                <div className="flex-1 cosmic-card">
+                {/* Company Total Payouts Card */}
+                <div className="cosmic-card">
                   <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-white">{getCardTitle('My Total Payouts')}</h3>
+                    <h3 className="text-base md:text-lg font-semibold text-white">{getCardTitle('My Total Payouts')}</h3>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div>
-                      <p className="text-gray-400 text-sm">Paid Amount</p>
-                      <p className="text-2xl font-bold text-white">
+                      <p className="text-gray-400 text-xs md:text-sm">Paid Amount</p>
+                      <p className="text-xl md:text-2xl font-bold text-white">
                         {formatCurrency(payoutSummary?.totalPaidOut || 0)}
                       </p>
                     </div>
-                    
+
                     {payoutSummary?.lastPayoutDate && (
                       <div>
-                        <p className="text-gray-400 text-sm">Last Payout</p>
-                        <p className="text-white">
+                        <p className="text-gray-400 text-xs md:text-sm">Last Payout</p>
+                        <p className="text-white text-sm md:text-base">
                           {formatCurrency(payoutSummary.lastPayoutAmount)} on {formatDate(payoutSummary.lastPayoutDate)}
                         </p>
                       </div>
@@ -538,9 +538,9 @@ export default function PayoutsPage() {
 
         {/* Payout Request Modal */}
         {showRequestModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-900 rounded-xl border border-gray-700 p-6 w-full max-w-md">
-              <h3 className="text-lg font-semibold text-white mb-4">Request Payout</h3>
+          <div className="fixed inset-0 bg-black/50 flex items-end md:items-center justify-center z-50 md:p-4">
+            <div className="bg-gray-900 rounded-t-xl md:rounded-xl border border-gray-700 p-6 w-full max-w-md md:mx-auto">
+              <h3 className="text-base md:text-lg font-semibold text-white mb-4">Request Payout</h3>
               
               {/* Modal Error Message */}
               {modalError && (
@@ -612,15 +612,15 @@ export default function PayoutsPage() {
 
         {/* Minimum Balance Modal */}
         {showMinimumBalanceModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-900 rounded-xl border border-gray-700 p-6 w-full max-w-md">
+          <div className="fixed inset-0 bg-black/50 flex items-end md:items-center justify-center z-50 md:p-4">
+            <div className="bg-gray-900 rounded-t-xl md:rounded-xl border border-gray-700 p-6 w-full max-w-md md:mx-auto">
               <div className="text-center">
                 <div className="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-4">Minimum Payout Required</h3>
+                <h3 className="text-base md:text-lg font-semibold text-white mb-4">Minimum Payout Required</h3>
                 <p className="text-gray-300 mb-6">
                   Minimum payout shall be AED 50.
                 </p>
@@ -643,16 +643,16 @@ export default function PayoutsPage() {
 
         {/* No Payment Method Modal */}
         {showNoPaymentMethodModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-900 rounded-xl border border-gray-700 p-6 w-full max-w-md">
+          <div className="fixed inset-0 bg-black/50 flex items-end md:items-center justify-center z-50 md:p-4">
+            <div className="bg-gray-900 rounded-t-xl md:rounded-xl border border-gray-700 p-6 w-full max-w-md md:mx-auto">
               <div className="text-center">
                 <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-4">Payout Method Required</h3>
-                <p className="text-gray-300 mb-6">
+                <h3 className="text-base md:text-lg font-semibold text-white mb-4">Payout Method Required</h3>
+                <p className="text-gray-300 text-sm md:text-base mb-6">
                   You must configure a payment method before requesting a payout. Please set up a bank account or PayPal account in the payout methods section on the right side.
                 </p>
 
@@ -677,9 +677,9 @@ export default function PayoutsPage() {
 
         {/* Select Method Modal */}
         {showSelectMethodModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-900 rounded-xl border border-gray-700 p-6 w-full max-w-md">
-              <h3 className="text-lg font-semibold text-white mb-4">Payout Method Required</h3>
+          <div className="fixed inset-0 bg-black/50 flex items-end md:items-center justify-center z-50 md:p-4">
+            <div className="bg-gray-900 rounded-t-xl md:rounded-xl border border-gray-700 p-6 w-full max-w-md md:mx-auto">
+              <h3 className="text-base md:text-lg font-semibold text-white mb-4">Select Payout Method</h3>
 
               <div className="space-y-3 mb-6">
                 {availablePayoutMethods.map((method) => (

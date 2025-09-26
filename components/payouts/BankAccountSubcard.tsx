@@ -134,7 +134,7 @@ export function BankAccountSubcard({ userId, onClick, refreshKey, bankAccountDat
   if (loading) {
     console.log('⏳ [BANK-SUBCARD] Rendering loading state')
     return (
-      <div className="flex-1 bg-white/5 rounded-lg p-4 border border-gray-700 cursor-pointer hover:bg-white/8 transition-colors">
+      <div className="w-full md:flex-1 bg-white/5 rounded-lg p-4 border border-gray-700 cursor-pointer hover:bg-white/8 transition-colors">
         <div className="animate-pulse">
           <div className="flex items-center justify-between mb-3">
             <div className="w-8 h-8 bg-gray-700 rounded" />
@@ -159,17 +159,17 @@ export function BankAccountSubcard({ userId, onClick, refreshKey, bankAccountDat
   return (
     <div
       onClick={onClick}
-      className="flex-1 bg-white/5 rounded-lg p-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group relative"
+      className="w-full md:flex-1 bg-white/5 rounded-lg p-4 md:p-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group relative min-h-[80px] md:min-h-0"
     >
       {getStatusIcon() && (
         <div className="absolute -top-2 -right-2 z-10">
           {getStatusIcon()}
         </div>
       )}
-      <div className="flex items-center justify-between mb-1">
-        <h4 className="text-white font-medium text-sm">Bank Account</h4>
-        <div className="w-7 h-7 bg-purple-600/20 rounded-lg flex items-center justify-center">
-          <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex items-center justify-between mb-2 md:mb-1">
+        <h4 className="text-white font-medium text-base md:text-sm">🏦 Bank Account</h4>
+        <div className="w-8 h-8 md:w-7 md:h-7 bg-purple-600/20 rounded-lg flex items-center justify-center">
+          <svg className="w-5 h-5 md:w-4 md:h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
           </svg>
         </div>
@@ -177,11 +177,11 @@ export function BankAccountSubcard({ userId, onClick, refreshKey, bankAccountDat
       
       <div>
         {bankAccount ? (
-          <p className="text-white text-xs font-mono">
+          <p className="text-white text-sm md:text-xs font-mono">
             {maskIban(bankAccount.iban_number)} • {bankAccount.bank_name}
           </p>
         ) : (
-          <p className="text-gray-400 text-xs">Not connected</p>
+          <p className="text-gray-400 text-sm md:text-xs">Not connected</p>
         )}
       </div>
     </div>

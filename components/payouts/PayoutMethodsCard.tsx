@@ -65,16 +65,16 @@ export function PayoutMethodsCard({ userId, userRole = 'User', onMethodDeleted, 
 
   return (
     <>
-      <div className="flex-1 cosmic-card">
+      <div className="cosmic-card">
         <div className="mb-4">
-          <h3 className="text-lg font-semibold text-white">{getCardTitle('My Payout Methods')}</h3>
+          <h3 className="text-base md:text-lg font-semibold text-white">{getCardTitle('My Payout Methods')}</h3>
         </div>
-        
+
         <div className="space-y-4">
           <div>
-            <p className="text-gray-400 text-sm">Manage your payout preferences</p>
+            <p className="text-gray-400 text-xs md:text-sm">Manage your payout preferences</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col md:flex-row gap-3">
             <BankAccountSubcard
               key={`bank-${refreshKey}`}
               userId={userId}
