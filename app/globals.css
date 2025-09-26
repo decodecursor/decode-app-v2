@@ -1313,9 +1313,8 @@ body {
     justify-content: space-between !important;
   }
 
-  /* Metric card styling - compressed */
+  /* Metric card styling - let natural p-4 padding work */
   .payment-metric-card {
-    padding: 8px 6px 4px 6px !important;
     min-height: auto !important;
     height: 100% !important;
     display: flex !important;
@@ -1330,16 +1329,6 @@ body {
     flex-shrink: 0 !important;
   }
 
-  /* Mobile subcard label text sizing */
-  @media (max-width: 768px) {
-    .cosmic-card .payment-metric-label,
-    .analytics-card-mobile .payment-metric-label,
-    h3.payment-metric-label {
-      font-size: 9px !important;
-      line-height: 1.2 !important;
-    }
-
-  }
 
   .payment-metric-value {
     font-size: 14px !important;
@@ -1357,16 +1346,9 @@ body {
     flex-shrink: 0 !important;
   }
 
-  /* Reduce percentage text size by 3px on mobile */
-  @media (max-width: 768px) {
-    .payment-metric-percentage {
-      font-size: 6px !important;
-    }
-  }
-  @media (min-width: 769px) {
-    .payment-metric-percentage {
-      font-size: 9px !important;
-    }
+  /* Keep percentage text consistent across devices */
+  .payment-metric-percentage {
+    font-size: 10px !important;
   }
 
   .payment-metric-comparison {
