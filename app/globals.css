@@ -1315,7 +1315,7 @@ body {
 
   /* Metric card styling - compressed */
   .payment-metric-card {
-    padding: 6px !important;
+    padding: 8px 6px 4px 6px !important;
     min-height: auto !important;
     height: 100% !important;
     display: flex !important;
@@ -1454,6 +1454,10 @@ body {
     .payments-chart-area-mobile {
       margin-left: 6px !important;
     }
+    /* Align chart labels with bars */
+    .chart-labels-mobile {
+      margin-left: 53px !important;
+    }
   }
 
   /* Compress analytics card overall */
@@ -1469,6 +1473,12 @@ body {
   }
 
   .analytics-card-mobile h2 {
+    font-size: 18px !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Make h3 headers same size as Analytics h2 on mobile */
+  .analytics-card-mobile h3 {
     font-size: 18px !important;
     margin-bottom: 8px !important;
   }
@@ -1502,7 +1512,7 @@ body {
     border-radius: 8px !important;
     background: rgba(255,255,255,0.05) !important;
     margin-bottom: 8px !important;
-    border-left: 3px solid #10b981 !important;
+    border-left: 3px solid #a855f7 !important;
   }
 
   .paid-paylink-title {

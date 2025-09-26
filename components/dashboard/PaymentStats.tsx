@@ -717,7 +717,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
         {/* Key Metrics */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 payments-metrics-grid">
           <div className="bg-white/5 rounded-lg p-4 payment-metric-card">
-            <div className="flex justify-between items-start mb-2">
+            <div className="flex justify-between items-center mb-2">
               <h3 className="cosmic-label text-white/70 payment-metric-label">{revenueLabel}</h3>
               {dateRange !== 'custom' && (
                 <span className={`text-xs md:text-xs font-medium payment-metric-percentage ${getChangeColor(current.revenue, previous.revenue)}`}>
@@ -737,7 +737,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
           </div>
 
           <div className="bg-white/5 rounded-lg p-4 payment-metric-card">
-            <div className="flex justify-between items-start mb-2">
+            <div className="flex justify-between items-center mb-2">
               <h3 className="cosmic-label text-white/70 payment-metric-label">{transactionLabel}</h3>
               {dateRange !== 'custom' && (
                 <span className={`text-xs md:text-xs font-medium payment-metric-percentage ${getChangeColor(current.transactions, previous.transactions)}`}>
@@ -947,11 +947,11 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                   </div>
                   
                   {/* X-Axis Labels */}
-                  <div className="flex ml-16">
+                  <div className="flex ml-16 chart-labels-mobile">
                     {revenueByDay.map((day, index) => {
                       const label = getDateLabel(day, index)
                       return (
-                        <div key={day.date} className="flex-1 text-center">
+                        <div key={day.date} className="flex-1 flex justify-center">
                           <span className="text-xs text-white/50">
                             {label}
                           </span>
@@ -1057,7 +1057,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                         {payment.client_name || 'Client'}
                       </span>
                     </div>
-                    <span className="text-green-400 font-bold text-lg">
+                    <span className="text-purple-400 font-bold text-lg">
                       {formatCurrency(payment.service_amount_aed || 0)}
                     </span>
                   </div>
@@ -1100,7 +1100,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                     </span>
                   </div>
                   <div className="text-left">
-                    <span className="cosmic-body text-green-400 font-bold">
+                    <span className="cosmic-body text-purple-400 font-bold">
                       {formatCurrency(payment.service_amount_aed || 0)}
                     </span>
                   </div>
