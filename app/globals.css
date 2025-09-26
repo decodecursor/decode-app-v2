@@ -606,7 +606,7 @@ body {
 }
 
 
-/* Mobile-specific layout adjustments */
+/* Mobile-specific layout adjustments - CACHE BUST 2025-09-26-v4 */
 @media (max-width: 768px) {
   .cosmic-card {
     padding: 20px;
@@ -798,6 +798,110 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
+  /* MOBILE PAYMENT LINK STYLES - MOVED INSIDE MEDIA QUERY */
+  /* Professional mobile design for my-links page */
+  .my-links-container {
+    width: 100% !important;
+    max-width: 400px !important;
+    margin: 0 auto !important;
+    padding: 0 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Compact header */
+  .my-links-header-mobile {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 12px 16px !important;
+  }
+
+  .my-links-header-mobile h1 {
+    font-size: 24px !important;
+    margin: 0 !important;
+  }
+
+  .my-links-header-mobile a {
+    width: auto !important;
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    border-radius: 18px !important;
+  }
+
+  /* CRITICAL: Payment link card background - highest specificity override */
+  div[class*="payment-link-card-mobile"],
+  .payment-link-card-mobile {
+    padding: 16px !important;
+    border-radius: 12px !important;
+    margin-bottom: 12px !important;
+    position: relative !important;
+    background: rgba(255, 255, 255, 0.3) !important;
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+  }
+
+  /* Remove giant status overlays on mobile */
+  .status-overlay-mobile {
+    display: none !important;
+  }
+
+  /* Compact status badge */
+  .payment-link-status-mobile {
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    border-radius: 12px !important;
+  }
+
+  /* Client name styling */
+  .payment-link-client-mobile {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Service title */
+  .payment-link-title-mobile {
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    color: rgba(255,255,255,0.8) !important;
+    margin: 0 !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Amount - prominent */
+  .payment-link-amount-mobile {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+  }
+
+  /* CRITICAL: Revenue/Transactions text labels - readable size */
+  .payment-metric-label {
+    font-size: 14px !important;
+    margin-bottom: 1px !important;
+    line-height: 1.1 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .payment-metric-value {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    margin-bottom: 1px !important;
+    line-height: 1.1 !important;
+    flex-shrink: 0 !important;
+  }
 }
 
 /* Magic Button Full Effect Styles */
@@ -969,185 +1073,6 @@ body {
     overflow-y: auto !important;
   }
 
-  /* Professional mobile design for my-links page */
-  .my-links-container {
-    width: 100% !important;
-    max-width: 400px !important;
-    margin: 0 auto !important;
-    padding: 0 12px !important;
-    box-sizing: border-box !important;
-  }
-
-  /* Compact header */
-  .my-links-header-mobile {
-    flex-direction: row !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    gap: 12px !important;
-    padding: 12px 16px !important;
-  }
-
-  .my-links-header-mobile h1 {
-    font-size: 24px !important;
-    margin: 0 !important;
-  }
-
-  .my-links-header-mobile a {
-    width: auto !important;
-    padding: 8px 16px !important;
-    font-size: 14px !important;
-    height: 36px !important;
-    display: flex !important;
-    align-items: center !important;
-    border-radius: 18px !important;
-  }
-
-  /* Professional card design - force background override with higher specificity */
-  div.payment-link-card-mobile,
-  .payment-link-card-mobile {
-    padding: 16px !important;
-    border-radius: 12px !important;
-    margin-bottom: 12px !important;
-    position: relative !important;
-    background: rgba(255, 255, 255, 0.3) !important;
-    backdrop-filter: blur(15px) !important;
-    -webkit-backdrop-filter: blur(15px) !important;
-  }
-
-  /* Override all Tailwind background classes on mobile payment link cards */
-  @media (max-width: 768px) {
-    .payment-link-card-mobile {
-      background: rgba(255, 255, 255, 0.3) !important;
-      backdrop-filter: blur(15px) !important;
-      -webkit-backdrop-filter: blur(15px) !important;
-    }
-  }
-
-  /* Remove giant status overlays on mobile */
-  .status-overlay-mobile {
-    display: none !important;
-  }
-
-  /* Compact status badge */
-  .payment-link-status-mobile {
-    position: absolute !important;
-    top: 12px !important;
-    right: 12px !important;
-    padding: 4px 8px !important;
-    font-size: 11px !important;
-    font-weight: 500 !important;
-    border-radius: 12px !important;
-  }
-
-  /* Client name styling */
-  .payment-link-client-mobile {
-    font-size: 14px !important;
-    font-weight: 600 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    line-height: 1.2 !important;
-  }
-
-  /* Service title */
-  .payment-link-title-mobile {
-    font-size: 14px !important;
-    font-weight: 400 !important;
-    color: rgba(255,255,255,0.8) !important;
-    margin: 0 !important;
-    line-height: 1.3 !important;
-  }
-
-  /* Amount - prominent */
-  .payment-link-amount-mobile {
-    font-size: 18px !important;
-    font-weight: 700 !important;
-    margin: 0 !important;
-    line-height: 1.2 !important;
-  }
-
-  /* Date info */
-  .payment-link-date-mobile {
-    font-size: 12px !important;
-    color: rgba(255,255,255,0.6) !important;
-    margin: 0 !important;
-  }
-
-  /* Creator text - smaller */
-  .payment-link-creator-mobile {
-    font-size: 11px !important;
-    line-height: 1.2 !important;
-  }
-
-  /* Action buttons with text - removed icon-only restriction */
-  .payment-link-actions-mobile {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-    margin: 0 !important;
-    padding-top: 12px !important;
-  }
-
-  .payment-link-actions-mobile button {
-    width: auto !important;
-    min-width: auto !important;
-    height: 40px !important;
-    padding: 0 12px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 8px !important;
-    font-size: 14px !important;
-    flex-shrink: 0 !important;
-  }
-
-  /* Show both icons and text on mobile buttons (except delete) */
-  .payment-link-actions-mobile button span {
-    display: inline-flex !important;
-  }
-
-  .payment-link-actions-mobile button svg {
-    display: inline-flex !important;
-  }
-
-  /* Delete button - icon only on mobile */
-  .delete-button-mobile {
-    width: 40px !important;
-    min-width: 40px !important;
-    padding: 8px !important;
-  }
-
-  /* Hide desktop info row on mobile */
-  .payment-link-info-mobile {
-    display: none !important;
-  }
-
-  /* Hide metadata on mobile */
-  .payment-link-meta-mobile {
-    display: none !important;
-  }
-
-  /* Back button styling */
-  .my-links-back-button {
-    font-size: 14px !important;
-    margin-bottom: 16px !important;
-  }
-
-  /* Empty state styling */
-  .my-links-empty-state {
-    padding: 40px 20px !important;
-    text-align: center !important;
-  }
-
-  .my-links-empty-state h2 {
-    font-size: 20px !important;
-    margin-bottom: 12px !important;
-  }
-
-  .my-links-empty-state p {
-    font-size: 14px !important;
-    margin-bottom: 20px !important;
-  }
 }
 
 /* Extra small screens */
@@ -1326,32 +1251,6 @@ body {
     justify-content: space-between !important;
   }
 
-  /* Metric card styling - let natural p-4 padding work */
-  .payment-metric-card {
-    min-height: auto !important;
-    height: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
-  }
-
-  .payment-metric-label {
-    font-size: 14px !important;
-    margin-bottom: 1px !important;
-    line-height: 1.1 !important;
-    flex-shrink: 0 !important;
-  }
-
-
-  .payment-metric-value {
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    margin-bottom: 1px !important;
-    line-height: 1.1 !important;
-    flex-grow: 1 !important;
-    display: flex !important;
-    align-items: center !important;
-  }
 
   .payment-metric-change {
     font-size: 9px !important;
