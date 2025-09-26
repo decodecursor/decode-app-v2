@@ -327,7 +327,7 @@ export default function PaymentHistoryPage() {
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Button - Above Header */}
         <div className="flex justify-center mb-8">
-          <div className="payments-container" style={{width: '70vw'}}>
+          <div className="payments-container payments-container-mobile">
             <Link
               href="/dashboard"
               className="inline-flex items-center text-gray-300 hover:text-white transition-colors payment-back-button payments-back-button-mobile"
@@ -341,7 +341,7 @@ export default function PaymentHistoryPage() {
 
         {/* Header */}
         <div className="flex justify-center mb-6">
-          <div className="payments-container" style={{width: '70vw'}}>
+          <div className="payments-container payments-container-mobile">
             <div className="cosmic-card">
               <div className="flex md:flex-row md:justify-between md:items-center payments-header-mobile">
                 <div>
@@ -360,7 +360,7 @@ export default function PaymentHistoryPage() {
 
         {/* Analytics */}
         <div className="flex justify-center">
-          <div className="payments-container" style={{width: '70vw'}}>
+          <div className="payments-container payments-container-mobile">
             <PaymentStats
               transactions={transactions}
               paymentLinks={paymentLinks}

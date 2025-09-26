@@ -1456,7 +1456,7 @@ body {
     }
     /* Align chart labels with bars */
     .chart-labels-mobile {
-      margin-left: 53px !important;
+      margin-left: 51px !important;
     }
   }
 
@@ -1481,6 +1481,18 @@ body {
   .analytics-card-mobile h3 {
     font-size: 18px !important;
     margin-bottom: 8px !important;
+  }
+
+  /* Fix container widths on mobile to prevent horizontal scrolling */
+  @media (max-width: 768px) {
+    .payments-container-mobile {
+      width: 95vw !important;
+      max-width: 95vw !important;
+      margin: 0 auto !important;
+    }
+    .payments-container {
+      width: 70vw !important;
+    }
   }
 
   /* Back button styling */
@@ -1512,7 +1524,6 @@ body {
     border-radius: 8px !important;
     background: rgba(255,255,255,0.05) !important;
     margin-bottom: 8px !important;
-    border-left: 3px solid #a855f7 !important;
   }
 
   .paid-paylink-title {

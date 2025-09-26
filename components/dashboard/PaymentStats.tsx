@@ -659,8 +659,8 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
   const { current, previous, popularAmounts, revenueByDay } = statsData
 
   // Fixed labels for all users (including STAFF) - always show company-wide labels
-  const revenueLabel = 'Company Revenue'
-  const transactionLabel = 'Company Transactions'
+  const revenueLabel = 'Revenue'
+  const transactionLabel = 'Transactions'
   const analyticsLabel = 'Revenue Analytics'
 
   // Show loading state or error for ADMIN users
@@ -1064,11 +1064,11 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
                   {/* Row 2: Less prominent metadata */}
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                    <div className="text-gray-500">
-                      <span>{formatPaymentDate(payment.paid_at!).split(' -')[0]}</span>
+                    <div className="text-gray-400">
+                      <span>{formatPaymentDate(payment.paid_at!)}</span>
                     </div>
                     {payment.paymentlink_request_id && (
-                      <div className="text-gray-500 text-right">
+                      <div className="text-gray-400 text-right">
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(payment.paymentlink_request_id!)
@@ -1080,10 +1080,10 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                         </button>
                       </div>
                     )}
-                    <div className="text-gray-500">
+                    <div className="text-gray-400">
                       <span>{payment.branch_name || 'Main Branch'}</span>
                     </div>
-                    <div className="text-gray-500 text-right">
+                    <div className="text-gray-400 text-right">
                       <span>{formatUserName(payment.creator_name, payment.creator_id)}</span>
                     </div>
                   </div>
