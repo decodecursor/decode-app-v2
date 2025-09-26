@@ -1002,7 +1002,8 @@ body {
     border-radius: 18px !important;
   }
 
-  /* Professional card design */
+  /* Professional card design - force background override with higher specificity */
+  div.payment-link-card-mobile,
   .payment-link-card-mobile {
     padding: 16px !important;
     border-radius: 12px !important;
@@ -1011,6 +1012,15 @@ body {
     background: rgba(255, 255, 255, 0.3) !important;
     backdrop-filter: blur(15px) !important;
     -webkit-backdrop-filter: blur(15px) !important;
+  }
+
+  /* Override all Tailwind background classes on mobile payment link cards */
+  @media (max-width: 768px) {
+    .payment-link-card-mobile {
+      background: rgba(255, 255, 255, 0.3) !important;
+      backdrop-filter: blur(15px) !important;
+      -webkit-backdrop-filter: blur(15px) !important;
+    }
   }
 
   /* Remove giant status overlays on mobile */
@@ -1326,7 +1336,7 @@ body {
   }
 
   .payment-metric-label {
-    font-size: 4px !important;
+    font-size: 14px !important;
     margin-bottom: 1px !important;
     line-height: 1.1 !important;
     flex-shrink: 0 !important;
