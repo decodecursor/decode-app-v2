@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { User } from '@supabase/supabase-js'
-import { UserRole } from '@/types/user'
+import { UserRole, validateUserProfile } from '@/types/user'
 import { getUserWithProxy } from '@/utils/auth-helper'
 
 interface UserProfile {
@@ -61,20 +61,23 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
       const { userData } = await response.json()
 
+      // Use validateUserProfile like the Users page does - this ensures role is normalized
+      const validatedProfile = validateUserProfile(userData)
+
       // Parse branches
       const branches = userData?.branch_name
         ? userData.branch_name.split(',').map((b: string) => b.trim()).filter((b: string) => b !== '')
         : []
 
       const profileData: UserProfile = {
-        user_name: userData?.user_name || null,
-        role: userData?.role || null,
-        company_name: userData?.company_name || userData?.professional_center_name || null,
+        user_name: validatedProfile.user_name,
+        role: validatedProfile.role, // This is now properly normalized
+        company_name: validatedProfile.company_name || validatedProfile.professional_center_name || null,
         branch_name: branches[0] || null,
         branches,
-        approval_status: userData?.approval_status || null,
-        companyProfileImage: userData?.companyProfileImage || null,
-        pendingUsersCount: userData?.pendingUsersCount
+        approval_status: validatedProfile.approval_status,
+        companyProfileImage: validatedProfile.companyProfileImage,
+        pendingUsersCount: validatedProfile.pendingUsersCount
       }
 
       return profileData

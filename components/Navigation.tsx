@@ -3,11 +3,14 @@
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { useUser } from '@/providers/UserContext'
+import { USER_ROLES } from '@/types/user'
 
 export default function Navigation() {
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
+  const { profile } = useUser()
 
   const handleSignOut = async () => {
     try {
@@ -26,10 +29,15 @@ export default function Navigation() {
     }
   }
 
+  // Dynamic navigation items based on user role
   const navItems = [
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/payment/create', label: 'Create Payment' },
     { href: '/dashboard/analytics', label: 'Analytics' },
+    // Add USERS page for admin users only
+    ...(profile?.role === USER_ROLES.ADMIN ? [
+      { href: '/dashboard/users', label: 'Users' }
+    ] : [])
   ]
 
   return (
@@ -60,7 +68,7 @@ export default function Navigation() {
         <div className="flex items-center space-x-4">
           {/* Mobile Menu Button */}
           <div className="md:hidden">
-            <select 
+            <select
               onChange={(e) => router.push(e.target.value)}
               value={pathname}
               className="cosmic-input py-2 text-sm"
