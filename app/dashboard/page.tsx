@@ -314,7 +314,7 @@ export default function Dashboard() {
       userEmail={user?.email}
     >
       <div className="cosmic-bg">
-        <div className="min-h-screen px-4 py-8">
+        <div className="min-h-screen px-4 py-2 md:py-8">
 
         {/* Navigation Menu */}
         <div className="mx-auto mb-8" style={{maxWidth: '3000px'}}>

@@ -620,13 +620,15 @@ body {
   /* Position background to show more of the bottom (purple gradient and palm trees) */
   .cosmic-bg {
     background-position: center bottom; /* Show more of the beautiful bottom part */
+    height: 100vh; /* Exactly viewport height */
+    overflow: hidden; /* Prevent scrolling */
   }
 
   .cosmic-card {
     padding: 10px;
     width: 90vw;
     max-width: 400px;
-    margin: 20px auto;
+    margin: 8px auto; /* Reduced from 20px to prevent overflow */
     border-radius: 20px;
     box-shadow: none !important; /* Remove ALL glow on mobile */
     border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Subtle border instead of glow */
