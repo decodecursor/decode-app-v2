@@ -65,7 +65,7 @@ export function PayoutMethodsCard({ userId, userRole = 'User', onMethodDeleted, 
 
   return (
     <>
-      <div className="cosmic-card">
+      <div className="flex-1 cosmic-card">
         <div className="mb-4">
           <h3 className="text-base md:text-lg font-semibold text-white">{getCardTitle('My Payout Methods')}</h3>
         </div>

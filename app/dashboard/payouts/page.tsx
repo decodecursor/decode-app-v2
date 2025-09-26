@@ -438,9 +438,9 @@ export default function PayoutsPage() {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col lg:flex-row gap-4">
                 {/* My Next Payout Card */}
-                <div className="cosmic-card">
+                <div className="flex-1 cosmic-card">
                   <div className="mb-4">
                     <h3 className="text-base md:text-lg font-semibold text-white">
                       {userRole === 'Admin' ? 'Select Payout Method' : getCardTitle('My Next Payout')}
@@ -496,7 +496,7 @@ export default function PayoutsPage() {
                 </div>
 
                 {/* Company Total Payouts Card */}
-                <div className="cosmic-card">
+                <div className="flex-1 cosmic-card">
                   <div className="mb-4">
                     <h3 className="text-base md:text-lg font-semibold text-white">{getCardTitle('My Total Payouts')}</h3>
                   </div>
