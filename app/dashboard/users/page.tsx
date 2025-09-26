@@ -574,16 +574,16 @@ export default function UsersManagement() {
                 <div>
                   <h1 className="cosmic-heading mb-2 text-xl md:text-2xl">User Management</h1>
                 </div>
-                <div className="flex flex-col md:flex-row gap-3">
+                <div className="flex flex-row md:flex-row gap-2 md:gap-3">
                   <button
                     onClick={() => setShowCreateBranchModal(true)}
-                    className="text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[15px] font-medium px-5 py-3 md:py-2.5 cursor-pointer transition-colors w-full md:w-auto"
+                    className="text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-xs md:text-[15px] font-medium px-2 py-2 md:px-5 md:py-2.5 cursor-pointer transition-colors flex-1 md:w-auto"
                   >
                     Create Branch
                   </button>
                   <button
                     onClick={() => setShowInviteModal(true)}
-                    className="relative text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[15px] font-medium px-5 py-3 md:py-2.5 cursor-pointer transition-colors w-full md:w-auto"
+                    className="relative text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-xs md:text-[15px] font-medium px-2 py-2 md:px-5 md:py-2.5 cursor-pointer transition-colors flex-1 md:w-auto"
                   >
                     Invite User
                     {newUserCount > 0 && (
@@ -594,7 +594,7 @@ export default function UsersManagement() {
                   </button>
                   <Link
                     href="/payment/create"
-                    className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block text-center w-full md:w-auto"
+                    className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-xs md:text-[17px] font-medium px-2 py-2 md:px-6 md:py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block text-center flex-1 md:w-auto"
                   >
                     Create PayLink
                   </Link>
@@ -746,21 +746,21 @@ export default function UsersManagement() {
               {Object.entries(usersByBranch).map(([branch, branchUsers]) => (
                 <div key={branch} className="cosmic-card w-1/2 mx-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-white">{branch}</h3>
-              <div className="flex gap-2">
+              <h3 className="text-lg md:text-xl font-semibold text-white flex-1 min-w-0">{branch}</h3>
+              <div className="flex gap-1 md:gap-2 ml-2">
                 <button
                   onClick={() => {
                     setSelectedBranch(branch)
                     setShowAddUserModal(true)
                   }}
-                  className="bg-gradient-to-br from-purple-600 to-purple-800 text-white border-none rounded-lg text-sm md:text-[13px] font-medium px-4 py-3 md:px-4 md:py-1.5 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-purple-500 hover:to-purple-700"
+                  className="bg-gradient-to-br from-purple-600 to-purple-800 text-white border-none rounded-lg text-xs md:text-[13px] font-medium px-2 py-1.5 md:px-4 md:py-1.5 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-purple-500 hover:to-purple-700"
                   title="Add user to branch"
                 >
                   Add User
                 </button>
                 <button
                   onClick={() => handleDeleteBranchClick(branch)}
-                  className="px-4 py-3 md:px-3 md:py-1 text-sm border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 rounded-lg transition-colors"
+                  className="px-2 py-1.5 md:px-3 md:py-1 text-xs md:text-sm border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 rounded-lg transition-colors"
                   title="Delete branch"
                 >
                   Delete Branch
@@ -770,8 +770,32 @@ export default function UsersManagement() {
             
             <div className="space-y-4 md:space-y-3">
               {branchUsers.map((user, index) => (
-                <div key={user.id} className="flex flex-col md:flex-row md:items-center gap-4 md:gap-3 p-4 bg-gray-800/50 rounded-lg">
-                  <div className="flex items-center gap-3 flex-1">
+                <div key={user.id} className="flex md:flex-row md:items-center gap-4 md:gap-3 p-4 bg-gray-800/50 rounded-lg relative">
+                  {/* Mobile: Status badge top-right */}
+                  <div className="absolute top-3 right-3 md:relative md:top-auto md:right-auto md:order-2 flex flex-col gap-1 md:flex-row md:items-center md:gap-2">
+                    <span className={`px-2 py-1 md:px-3 md:py-1 rounded-full text-xs font-medium text-center ${
+                      user.approval_status === 'approved'
+                        ? 'bg-green-900/20 text-green-400'
+                        : user.approval_status === 'rejected'
+                        ? 'bg-red-900/20 text-red-400'
+                        : 'bg-yellow-900/20 text-yellow-400'
+                    }`}>
+                      {user.approval_status === 'approved' ? 'Active' : user.approval_status}
+                    </span>
+
+                    {/* Delete User Button - Mobile: below status, Desktop: inline */}
+                    <button
+                      onClick={() => handleDeleteUserClick(user, branch)}
+                      className="p-1.5 md:px-2 md:py-2 text-sm border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors flex items-center justify-center"
+                      title="Remove user from branch"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-3 flex-1 md:order-1 pr-20 md:pr-0">
                     <NumberedAvatar
                       number={index + 1}
                       size="md"
@@ -786,46 +810,22 @@ export default function UsersManagement() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-2 w-full md:w-auto">
-                    <span className={`px-3 py-2 md:py-1 rounded-full text-xs font-medium text-center md:text-left ${
-                      user.approval_status === 'approved'
-                        ? 'bg-green-900/20 text-green-400'
-                        : user.approval_status === 'rejected'
-                        ? 'bg-red-900/20 text-red-400'
-                        : 'bg-yellow-900/20 text-yellow-400'
-                    }`}>
-                      {user.approval_status === 'approved' ? 'Active' : user.approval_status}
-                    </span>
-
-                    {user.approval_status === 'pending' && (
-                      <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-                        <button
-                          onClick={() => handleApproval(user.id, 'approved')}
-                          className="px-4 py-3 md:px-4 md:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleApproval(user.id, 'rejected')}
-                          className="px-4 py-3 md:px-4 md:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Delete User Button */}
-                    <button
-                      onClick={() => handleDeleteUserClick(user, branch)}
-                      className="px-4 py-3 md:px-2 md:py-2 text-sm border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors flex items-center justify-center w-full md:w-auto"
-                      title="Remove user from branch"
-                    >
-                      <svg className="w-4 h-4 md:mr-0 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      <span className="md:hidden">Remove from Branch</span>
-                    </button>
-                  </div>
+                  {user.approval_status === 'pending' && (
+                    <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto md:order-3">
+                      <button
+                        onClick={() => handleApproval(user.id, 'approved')}
+                        className="px-4 py-3 md:px-4 md:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleApproval(user.id, 'rejected')}
+                        className="px-4 py-3 md:px-4 md:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
