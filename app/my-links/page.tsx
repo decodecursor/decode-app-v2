@@ -1339,14 +1339,6 @@ function MyLinksContent() {
                             <div className="payment-link-amount-mobile text-white">
                               AED {formatAmount(link.service_amount_aed || link.amount_aed)}
                             </div>
-                            {/* Creator info right-aligned with smaller text */}
-                            {userRole === 'Admin' && link.creator_name && (
-                              <div className="payment-link-creator-mobile text-gray-400">
-                                Creator: <span className={formatUserNameWithStyle(link.creator_name, link.creator_id).className}>
-                                  {formatUserNameWithStyle(link.creator_name, link.creator_id).name}
-                                </span>
-                              </div>
-                            )}
                           </div>
 
                           {/* Mobile Action Buttons - Optimized sizing for one line */}
@@ -1772,10 +1764,9 @@ function MyLinksContent() {
                 </div>
               )}
 
-              {/* Client, Service, Original Amount between QR and Close button */}
+              {/* Client and Amount between QR and Close button */}
               <div className="mb-6 space-y-2">
                 <p className="text-white text-xl font-semibold">{currentQRLink.client_name || 'Client'}</p>
-                <p className="text-white text-lg">{currentQRLink.title}</p>
                 <p className="text-white text-xl font-semibold">AED {formatAmount(currentQRLink.service_amount_aed || currentQRLink.amount_aed)}</p>
               </div>
 
