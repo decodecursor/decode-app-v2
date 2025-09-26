@@ -437,10 +437,10 @@ export default function ProfilePage() {
         )}
 
         {/* Main Content */}
-        <div className="space-y-6 flex justify-center">
-          <div className="w-full px-0 md:max-w-2xl">
+        <div className="space-y-6">
+          <div className="w-full md:max-w-2xl md:mx-auto">
             {/* Back to Dashboard Link - Positioned to align with centered cosmic cards */}
-            <div className="mb-4 md:mb-8 w-full md:w-auto" style={{ maxWidth: '28vw', marginLeft: 'auto', marginRight: 'auto' }}>
+            <div className="mb-4 md:mb-8">
               <button
                 onClick={() => router.push('/dashboard')}
                 className="flex items-center text-gray-300 hover:text-white transition-colors w-fit"
@@ -455,7 +455,7 @@ export default function ProfilePage() {
             <div className="space-y-4 md:space-y-8">
           {/* Profile Photo Section - Admin Only */}  
           {profile?.role === 'Admin' && (
-          <div className="cosmic-card-profile h-fit">
+          <div className="cosmic-card-profile h-fit w-full">
             <h2 className="text-lg md:text-xl font-semibold text-white mb-4 md:mb-8">Company Profile Photo</h2>
             
             <div className="text-center">
@@ -596,7 +596,7 @@ export default function ProfilePage() {
 
           {/* Professional Center Name Card - Admin Only */}
           {profile?.role === 'Admin' && (
-          <div className="cosmic-card-profile">
+          <div className="cosmic-card-profile w-full">
             <div className="flex items-center gap-3 mb-6">
               <h2 className="text-lg md:text-xl font-semibold text-white">Company Name</h2>
               <div className="flex items-center gap-1 px-2 py-1 bg-gray-600/20 text-gray-400 text-xs font-medium rounded-full border border-gray-500/30">
@@ -625,7 +625,7 @@ export default function ProfilePage() {
           )}
 
           {/* Email Address Card */}
-          <div className="cosmic-card-profile">
+          <div className="cosmic-card-profile w-full">
             <div className="flex items-center gap-3 mb-6">
               <h2 className="text-lg md:text-xl font-semibold text-white">Email Address</h2>
               {user?.email_confirmed_at && (
@@ -665,7 +665,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Password Change Card */}
-          <div className="cosmic-card-profile">
+          <div className="cosmic-card-profile w-full">
             <h2 className="text-lg md:text-xl font-semibold text-white mb-4 md:mb-6">Password</h2>
             <div className="space-y-4">
               <PasswordInput
