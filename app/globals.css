@@ -618,11 +618,12 @@ body {
 /* Mobile-specific layout adjustments - CACHE BUST 2025-09-26-v4 */
 @media (max-width: 768px) {
   .cosmic-card {
-    padding: 20px;
+    padding: 10px;
     width: 90vw;
     max-width: 400px;
     margin: 20px auto;
     border-radius: 20px;
+    background: rgba(30, 30, 30, 0.95) !important; /* Solid dark background - no transparency */
     box-shadow: none !important; /* Remove ALL glow on mobile */
   }
 
