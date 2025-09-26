@@ -1346,6 +1346,11 @@ body {
     flex-shrink: 0 !important;
   }
 
+  /* Reduce percentage text size by 3px on mobile */
+  .payment-metric-percentage {
+    font-size: 9px !important;
+  }
+
   .payment-metric-comparison {
     font-size: 8px !important;
     line-height: 1.1 !important;
@@ -1375,13 +1380,13 @@ body {
     border-radius: 2px !important;
   }
 
-  /* Date filter buttons - much smaller to prevent scrolling */
+  /* Date filter buttons - improved for better mobile UX */
   .payments-filters-scroll button {
     flex-shrink: 0 !important;
-    padding: 1px 4px !important;
-    font-size: 8px !important;
-    border-radius: 4px !important;
-    min-width: auto !important;
+    padding: 4px 12px !important;
+    font-size: 11px !important;
+    border-radius: 6px !important;
+    min-width: 65px !important;
     max-width: 50px !important;
     overflow: hidden !important;
     white-space: nowrap !important;
@@ -1414,6 +1419,17 @@ body {
   .payments-chart-yaxis {
     width: 35px !important;
     font-size: 9px !important;
+  }
+
+  /* Add gap between Y-axis and chart on mobile */
+  @media (max-width: 768px) {
+    .payments-chart-yaxis-mobile {
+      width: 45px !important;
+      padding-right: 8px !important;
+    }
+    .payments-chart-area-mobile {
+      margin-left: 6px !important;
+    }
   }
 
   /* Compress analytics card overall */
@@ -1451,7 +1467,7 @@ body {
   }
 
   .paid-paylink-card {
-    padding: 10px !important;
+    padding: 12px !important;
     border-radius: 8px !important;
     background: rgba(255,255,255,0.05) !important;
     margin-bottom: 8px !important;

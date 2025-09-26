@@ -690,7 +690,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       <div className="cosmic-card analytics-card-mobile">
         <div className="flex justify-between items-center mb-4 md:mb-6">
           <h2 className="cosmic-heading text-white">Analytics</h2>
-          <div className="flex space-x-2 payments-filters-scroll">
+          <div className="flex space-x-2 payments-filters-scroll payments-filters-mobile">
             {(['today', 'week', 'month', 'custom'] as const).map((range) => (
               <button
                 key={range}
@@ -702,7 +702,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                     setShowDatePicker(false)
                   }
                 }}
-                className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors min-w-[70px] ${
                   dateRange === range
                     ? 'bg-purple-600 text-white'
                     : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
@@ -720,7 +720,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             <div className="flex justify-between items-start mb-2">
               <h3 className="cosmic-label text-white/70 payment-metric-label">{revenueLabel}</h3>
               {dateRange !== 'custom' && (
-                <span className={`text-xs font-medium ${getChangeColor(current.revenue, previous.revenue)}`}>
+                <span className={`text-xs md:text-xs font-medium payment-metric-percentage ${getChangeColor(current.revenue, previous.revenue)}`}>
                   {formatPercentageChange(current.revenue, previous.revenue)}
                 </span>
               )}
@@ -740,7 +740,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             <div className="flex justify-between items-start mb-2">
               <h3 className="cosmic-label text-white/70 payment-metric-label">{transactionLabel}</h3>
               {dateRange !== 'custom' && (
-                <span className={`text-xs font-medium ${getChangeColor(current.transactions, previous.transactions)}`}>
+                <span className={`text-xs md:text-xs font-medium payment-metric-percentage ${getChangeColor(current.transactions, previous.transactions)}`}>
                   {formatPercentageChange(current.transactions, previous.transactions)}
                 </span>
               )}
@@ -881,7 +881,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                   {/* Chart Container */}
                   <div className="flex h-80 md:h-80">
                     {/* Y-Axis */}
-                    <div className="w-16 flex flex-col justify-between py-4 pr-2 payments-chart-yaxis">
+                    <div className="w-16 flex flex-col justify-between py-4 pr-3 payments-chart-yaxis payments-chart-yaxis-mobile">
                       {yAxisValues.map((value, index) => (
                         <div key={index} className="text-right">
                           <span className="text-xs text-white/50">
@@ -891,8 +891,8 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                       ))}
                     </div>
                     
-                    {/* Chart Area */}
-                    <div className="flex-1 relative">
+                    {/* Chart Area with gap from Y-axis */}
+                    <div className="flex-1 relative ml-2 payments-chart-area-mobile">
                       {/* Grid Lines */}
                       <div className="absolute inset-0">
                         {yAxisValues.map((value, index) => (
@@ -1045,67 +1045,52 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             }
             return (
               <div key={`${payment.id}-${index}`} className="bg-gray-800/50 rounded-lg p-3 hover:bg-gray-700/50 transition-colors paid-paylink-card">
-                {/* Mobile Layout - Redesigned */}
+                {/* Mobile Layout - Redesigned with prominent Amount/Client */}
                 <div className="md:hidden">
-                  {/* Header with number and amount */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-xs font-bold rounded-full flex items-center justify-center flex-shrink-0">
-                        {index + 1}
-                      </span>
-                      <span className="text-white font-semibold text-sm">
-                        {payment.title || 'Payment'}
-                      </span>
-                    </div>
-                    <span className="text-green-400 font-bold text-sm">
-                      {formatCurrency(payment.service_amount_aed || 0)}
+                  {/* Row 1: Number, Service Type/Title */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-6 h-6 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-xs font-bold rounded-full flex items-center justify-center flex-shrink-0">
+                      {index + 1}
+                    </span>
+                    <span className="text-white/80 text-xs font-medium">
+                      {payment.title || 'Beauty Service'}
                     </span>
                   </div>
 
-                  {/* Main content in organized sections */}
-                  <div className="space-y-2 mb-3">
-                    <div className="flex justify-between items-center py-1 border-b border-white/10">
-                      <span className="text-xs text-gray-500 uppercase tracking-wide">Client</span>
-                      <span className="text-sm text-gray-300 font-medium">
-                        {payment.client_name || 'Client'}
-                      </span>
-                    </div>
+                  {/* Row 2: Prominent Amount and Client */}
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-green-400 font-bold text-lg">
+                      {formatCurrency(payment.service_amount_aed || 0)}
+                    </span>
+                    <span className="text-white font-semibold text-base">
+                      {payment.client_name || 'Client'}
+                    </span>
+                  </div>
 
-                    <div className="flex justify-between items-center py-1 border-b border-white/10">
-                      <span className="text-xs text-gray-500 uppercase tracking-wide">Branch</span>
-                      <span className="text-sm text-gray-300">
-                        {payment.branch_name || 'No Branch'}
-                      </span>
+                  {/* Row 3: Less prominent metadata */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    <div className="text-gray-500">
+                      <span>{formatPaymentDate(payment.paid_at!).split(' -')[0]}</span>
                     </div>
-
-                    <div className="flex justify-between items-center py-1 border-b border-white/10">
-                      <span className="text-xs text-gray-500 uppercase tracking-wide">Creator</span>
-                      <span className="text-sm text-gray-300">
-                        {formatUserName(payment.creator_name, payment.creator_id)}
-                      </span>
-                    </div>
-
                     {payment.paymentlink_request_id && (
-                      <div className="flex justify-between items-center py-1 border-b border-white/10">
-                        <span className="text-xs text-gray-500 uppercase tracking-wide">ID</span>
+                      <div className="text-gray-500 text-right">
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(payment.paymentlink_request_id!)
                           }}
-                          className="text-purple-400 font-mono text-xs hover:text-purple-300 hover:bg-purple-400/10 px-1.5 py-0.5 rounded transition-colors cursor-pointer"
-                          title="Click to copy tracking ID"
+                          className="font-mono hover:text-purple-400 transition-colors"
+                          title="Click to copy ID"
                         >
                           {payment.paymentlink_request_id}
                         </button>
                       </div>
                     )}
-                  </div>
-
-                  {/* Footer with date */}
-                  <div className="flex justify-end">
-                    <span className="text-xs text-gray-500">
-                      {formatPaymentDate(payment.paid_at!)}
-                    </span>
+                    <div className="text-gray-500">
+                      <span>{payment.branch_name || 'Main Branch'}</span>
+                    </div>
+                    <div className="text-gray-500 text-right">
+                      <span>{formatUserName(payment.creator_name, payment.creator_id)}</span>
+                    </div>
                   </div>
                 </div>
 
