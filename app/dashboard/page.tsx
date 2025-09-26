@@ -499,7 +499,7 @@ export default function Dashboard() {
 
             {/* Mobile Navigation */}
             <div className="md:hidden">
-              <div className="flex items-center justify-between p-2">
+              <div className="flex items-center justify-between p-1">
                 {/* Mobile Profile Section */}
                 <div className="flex items-center gap-3">
                   <div
@@ -554,7 +554,7 @@ export default function Dashboard() {
                   className="text-white"
                 >
                   <svg
-                    className={`w-7 h-7 transition-transform ${mobileMenuOpen ? 'rotate-180' : ''}`}
+                    className={`w-8 h-8 transition-transform ${mobileMenuOpen ? 'rotate-180' : ''}`}
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"
@@ -573,7 +573,7 @@ export default function Dashboard() {
                     {/* Always show PayLinks */}
                     <Link
                       href="/my-links"
-                      className="block nav-button px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                      className="block nav-button px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <div className="flex items-center">
@@ -588,7 +588,7 @@ export default function Dashboard() {
                     {profile?.role === USER_ROLES.ADMIN && (
                       <Link
                         href="/dashboard/users"
-                        className="block nav-button px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors relative"
+                        className="block nav-button px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors relative"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <div className="flex items-center">
@@ -609,7 +609,7 @@ export default function Dashboard() {
                     {(profile?.role === USER_ROLES.ADMIN || profile?.role === USER_ROLES.STAFF) && (
                       <Link
                         href="/dashboard/payments"
-                        className="block nav-button px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                        className="block nav-button px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <div className="flex items-center">
