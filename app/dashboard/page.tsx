@@ -502,9 +502,9 @@ export default function Dashboard() {
               <div className="flex items-center justify-between p-4">
                 {/* Mobile Profile Section */}
                 <div className="flex items-center gap-3">
-                  <div 
-                    onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                    className="instagram-avatar"
+                  <div
+                    onClick={() => router.push('/payment/create')}
+                    className="instagram-avatar cursor-pointer"
                   >
                     {profile?.companyProfileImage ? (
                       <img 
@@ -568,17 +568,7 @@ export default function Dashboard() {
                 <div className="border-t border-gray-700 pt-4">
                   <nav className="space-y-2">
 
-                    {/* Always show Create PayLink button */}
-                    <button
-                      className="block w-full text-left bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] mb-2"
-                      onMouseOver={createHoverSparkles}
-                      onClick={(e) => {
-                        setMobileMenuOpen(false)
-                        handleCreatePayLinkClick(e)
-                      }}
-                    >
-                      Create PayLink
-                    </button>
+                    {/* Create PayLink button hidden on mobile */}
 
                     {/* Always show PayLinks */}
                     <Link
@@ -586,7 +576,12 @@ export default function Dashboard() {
                       className="block nav-button px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      PayLinks
+                      <div className="flex items-center">
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                        PayLinks
+                      </div>
                     </Link>
 
                     {/* Show Users for Admin users only */}
@@ -596,12 +591,17 @@ export default function Dashboard() {
                         className="block nav-button px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors relative"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Users
-                        {pendingUsersCount > 0 && (
-                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                            {pendingUsersCount}
-                          </span>
-                        )}
+                        <div className="flex items-center">
+                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                          </svg>
+                          Users
+                          {pendingUsersCount > 0 && (
+                            <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                              {pendingUsersCount}
+                            </span>
+                          )}
+                        </div>
                       </Link>
                     )}
 
@@ -612,7 +612,12 @@ export default function Dashboard() {
                         className="block nav-button px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Earnings
+                        <div className="flex items-center">
+                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                          </svg>
+                          Earnings
+                        </div>
                       </Link>
                     )}
                     
@@ -646,9 +651,9 @@ export default function Dashboard() {
                     </Link>
 
                     {/* Logout */}
-                    <button 
+                    <button
                       onClick={handleSignOut}
-                      className="block w-full text-left nav-button px-5 py-1.5 text-gray-300 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      className="block w-full text-left nav-button px-5 py-1.5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                     >
                       <div className="flex items-center">
                         <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

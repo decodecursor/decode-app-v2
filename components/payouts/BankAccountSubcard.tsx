@@ -167,7 +167,7 @@ export function BankAccountSubcard({ userId, onClick, refreshKey, bankAccountDat
         </div>
       )}
       <div className="flex items-center justify-between mb-2 md:mb-1">
-        <h4 className="text-white font-medium text-base md:text-sm">🏦 Bank Account</h4>
+        <h4 className="text-white font-medium text-base md:text-sm">Bank Account</h4>
         <div className="w-8 h-8 md:w-7 md:h-7 bg-purple-600/20 rounded-lg flex items-center justify-center">
           <svg className="w-5 h-5 md:w-4 md:h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
