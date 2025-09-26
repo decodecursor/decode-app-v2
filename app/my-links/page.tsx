@@ -1002,31 +1002,72 @@ function MyLinksContent() {
       setDeletingId(linkToDelete.id)
       setShowDeleteConfirmDialog(false)
 
-      const { error: deleteError } = await createClient()
-        .from('payment_links')
-        .delete()
-        .eq('id', linkToDelete.id)
+      console.log('🗑️ Attempting to delete payment link:', linkToDelete.id)
+      console.log('🗑️ Link details:', {
+        id: linkToDelete.id,
+        title: linkToDelete.title,
+        status: getStatus(linkToDelete),
+        is_active: linkToDelete.is_active,
+        payment_status: linkToDelete.payment_status
+      })
 
-      if (deleteError) {
-        throw deleteError
+      // Call the server-side API endpoint for deletion
+      const response = await fetch('/api/payment-links/delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ linkId: linkToDelete.id })
+      })
+
+      const result = await response.json()
+
+      console.log('🗑️ API Response:', {
+        status: response.status,
+        ok: response.ok,
+        result
+      })
+
+      if (!response.ok) {
+        console.error('🗑️ Delete failed:', result)
+
+        // Show specific error message from API
+        let errorMessage = result.error || 'Failed to delete payment link'
+
+        if (result.hasTransactions) {
+          errorMessage = 'Cannot delete: This payment link has transactions. Only links without any payment history can be deleted.'
+        }
+
+        setCopyMessage(errorMessage)
+        setTimeout(() => setCopyMessage(''), 6000) // Show error for 6 seconds
+
+        return
       }
+
+      // Successfully deleted
+      console.log('✅ Payment link deleted successfully via API')
 
       // Remove from local state
       setPaymentLinks(prev => prev.filter(link => link.id !== linkToDelete.id))
 
       setCopyMessage('Payment link deleted successfully!')
-      
+
       setTimeout(() => {
         setCopyMessage('')
       }, 3000)
 
-    } catch (error) {
-      console.error('Error deleting payment link:', error)
-      setCopyMessage('Failed to delete payment link. Please try again.')
-      
-      setTimeout(() => {
-        setCopyMessage('')
-      }, 3000)
+    } catch (error: any) {
+      console.error('🗑️ Exception in confirmDeletion:', error)
+      console.error('🗑️ Error details:', {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name
+      })
+
+      // Network or other unexpected error
+      setCopyMessage(`Failed to delete: ${error?.message || 'Network error. Please check your connection and try again.'}`)
+      setTimeout(() => setCopyMessage(''), 6000)
     } finally {
       setDeletingId(null)
       setLinkToDelete(null)
@@ -1194,6 +1235,21 @@ function MyLinksContent() {
             <div className="cosmic-card mb-8">
               <div className="text-center p-4 text-red-300 bg-red-900/20 rounded-lg">
                 {error}
+              </div>
+            </div>
+          )}
+
+          {/* Copy/Action Messages */}
+          {copyMessage && (
+            <div className="cosmic-card mb-8">
+              <div className={`text-center p-4 rounded-lg ${
+                copyMessage.includes('successfully')
+                  ? 'text-green-300 bg-green-900/20'
+                  : copyMessage.includes('Failed') || copyMessage.includes('Cannot') || copyMessage.includes('Permission')
+                    ? 'text-red-300 bg-red-900/20'
+                    : 'text-yellow-300 bg-yellow-900/20'
+              }`}>
+                {copyMessage}
               </div>
             </div>
           )}
