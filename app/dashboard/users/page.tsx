@@ -786,7 +786,7 @@ export default function UsersManagement() {
                     {/* Delete User Button - Mobile: below status, Desktop: inline */}
                     <button
                       onClick={() => handleDeleteUserClick(user, branch)}
-                      className="p-1 md:px-2 md:py-2 text-sm border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors flex items-center justify-center"
+                      className="px-0.5 py-1 md:px-2 md:py-2 text-sm border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors flex items-center justify-center"
                       title="Remove user from branch"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -802,7 +802,7 @@ export default function UsersManagement() {
                     />
                     <div className="text-white">
                       <div className="font-medium text-base md:text-sm">{user.user_name}</div>
-                      <div className="text-xs md:text-xs text-gray-400 mt-1">
+                      <div className="text-[10px] md:text-xs text-gray-400 mt-1">
                         <span className="text-purple-400 font-semibold">{user.role}</span>
                         <span className="mx-2">•</span>
                         <span>{user.email}</span>
