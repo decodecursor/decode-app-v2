@@ -556,7 +556,7 @@ export default function UsersManagement() {
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Link */}
         <div className="flex justify-center mb-8">
-          <div style={{width: '70vw'}}>
+          <div className="w-full px-4 md:w-[70vw] md:px-0">
             <Link href="/dashboard" className="inline-flex items-center text-gray-300 hover:text-white transition-colors">
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -568,22 +568,22 @@ export default function UsersManagement() {
 
         {/* Header Card */}
         <div className="flex justify-center mb-8">
-          <div style={{width: '70vw'}}>
+          <div className="w-full px-4 md:w-[70vw] md:px-0">
             <div className="cosmic-card">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                 <div>
-                  <h1 className="cosmic-heading mb-2">User Management</h1>
+                  <h1 className="cosmic-heading mb-2 text-xl md:text-2xl">User Management</h1>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-col md:flex-row gap-3">
                   <button
                     onClick={() => setShowCreateBranchModal(true)}
-                    className="text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[15px] font-medium px-5 py-2.5 cursor-pointer transition-colors"
+                    className="text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[15px] font-medium px-5 py-3 md:py-2.5 cursor-pointer transition-colors w-full md:w-auto"
                   >
                     Create Branch
                   </button>
                   <button
                     onClick={() => setShowInviteModal(true)}
-                    className="relative text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[15px] font-medium px-5 py-2.5 cursor-pointer transition-colors"
+                    className="relative text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[15px] font-medium px-5 py-3 md:py-2.5 cursor-pointer transition-colors w-full md:w-auto"
                   >
                     Invite User
                     {newUserCount > 0 && (
@@ -592,9 +592,9 @@ export default function UsersManagement() {
                       </div>
                     )}
                   </button>
-                  <Link 
+                  <Link
                     href="/payment/create"
-                    className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block"
+                    className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block text-center w-full md:w-auto"
                   >
                     Create PayLink
                   </Link>
@@ -606,8 +606,8 @@ export default function UsersManagement() {
 
         {message && (
           <div className="flex justify-center mb-8">
-            <div style={{width: '70vw'}}>
-              <div className={`p-2 rounded-lg text-sm ${message.includes('Failed') ? 'bg-red-900/20 text-red-300' : 'bg-green-900/10 text-green-400 border border-green-500/20'}`}>
+            <div className="w-full px-4 md:w-[70vw] md:px-0">
+              <div className={`p-3 md:p-2 rounded-lg text-sm md:text-sm ${message.includes('Failed') ? 'bg-red-900/20 text-red-300' : 'bg-green-900/10 text-green-400 border border-green-500/20'}`}>
                 {message}
               </div>
             </div>
@@ -616,64 +616,65 @@ export default function UsersManagement() {
 
 
         <div className="flex justify-center">
-          <div style={{width: '70vw'}}>
+          <div className="w-full px-4 md:w-[70vw] md:px-0">
             <div className="space-y-6">
               {/* Unassigned Users Section */}
               {unassignedUsers.length > 0 && (
-                <div className="cosmic-card w-1/2 mx-auto mb-6 border-2 border-red-500 !bg-red-800 shadow-lg shadow-red-500/30 ring-2 ring-red-400/40 relative z-10 overflow-visible">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold text-white">
+                <div className="cosmic-card w-full md:w-1/2 mx-auto mb-6 border-2 border-red-500 !bg-red-800 shadow-lg shadow-red-500/30 ring-2 ring-red-400/40 relative z-10 overflow-visible">
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2 mb-4">
+                    <h3 className="text-lg md:text-xl font-semibold text-white">
                       New User(s)
                     </h3>
-                    <div className="text-base font-semibold text-yellow-400 bg-yellow-400/10 px-3 py-1 rounded-lg border border-yellow-400/30">
+                    <div className="text-sm md:text-base font-semibold text-yellow-400 bg-yellow-400/10 px-3 py-2 md:py-1 rounded-lg border border-yellow-400/30">
                       ⚠️ Awaiting branch assignment
                     </div>
                   </div>
-                  
-                  <div className="space-y-3 bg-black/20 rounded-lg p-4 border-l-4 border-red-500 shadow-inner">
+
+                  <div className="space-y-4 md:space-y-3 bg-black/20 rounded-lg p-4 border-l-4 border-red-500 shadow-inner">
                     {unassignedUsers.map((user, index) => (
-                      <div key={user.id} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-700/50">
+                      <div key={user.id} className="flex flex-col md:flex-row md:items-center gap-4 md:gap-3 p-4 md:p-3 bg-gray-800/30 rounded-lg border border-gray-700/50">
                         <div className="flex items-center gap-3 flex-1">
-                          <NumberedAvatar 
+                          <NumberedAvatar
                             number={index + 1}
                             size="md"
                           />
-                          <div className="text-gray-300 text-sm">
-                            <span className="font-medium">{user.user_name}</span>
-                            <span className="text-gray-500 mx-2">•</span>
-                            <span className="text-purple-400 font-semibold">{user.role}</span>
-                            <span className="text-gray-500 mx-2">•</span>
-                            <span className="text-gray-500">{user.email}</span>
+                          <div className="text-gray-300">
+                            <div className="font-medium text-base md:text-sm">{user.user_name}</div>
+                            <div className="text-sm md:text-xs text-gray-400 mt-1">
+                              <span className="text-purple-400 font-semibold">{user.role}</span>
+                              <span className="mx-2">•</span>
+                              <span>{user.email}</span>
+                            </div>
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-3">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            user.approval_status === 'approved' 
-                              ? 'bg-green-900/20 text-green-400' 
+                        <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-3 w-full md:w-auto">
+                          <span className={`px-3 py-2 md:py-1 rounded-full text-xs font-medium text-center md:text-left ${
+                            user.approval_status === 'approved'
+                              ? 'bg-green-900/20 text-green-400'
                               : user.approval_status === 'rejected'
                               ? 'bg-red-900/20 text-red-400'
                               : 'bg-yellow-900/20 text-yellow-400'
                           }`}>
                             {user.approval_status === 'approved' ? 'Active' : user.approval_status}
                           </span>
-                          
+
                           {/* Multi-Branch Assignment Interface */}
-                          <div className="relative">
+                          <div className="relative w-full md:w-auto">
                             <details className="relative">
-                              <summary className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-1.5 cursor-pointer hover:bg-gray-600 transition-colors list-none flex items-center justify-between">
+                              <summary className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-4 py-3 md:px-3 md:py-1.5 cursor-pointer hover:bg-gray-600 transition-colors list-none flex items-center justify-between w-full">
                                 <span>Assign to branches</span>
                                 <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                 </svg>
                               </summary>
-                              <div className="absolute top-full left-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-[9999] min-w-[200px]">
+                              <div className="absolute top-full left-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-[9999] w-full md:min-w-[200px]">
                                 <div className="p-2 space-y-2 max-h-48 overflow-y-auto">
                                   {branches.map(branch => {
                                     const pendingBranches = pendingAssignments[user.id] || []
                                     const isAssigned = pendingBranches.includes(branch)
                                     return (
-                                      <label key={branch} className="flex items-center space-x-2 p-2 hover:bg-gray-600 rounded cursor-pointer">
+                                      <label key={branch} className="flex items-center space-x-2 p-3 md:p-2 hover:bg-gray-600 rounded cursor-pointer">
                                         <input
                                           type="checkbox"
                                           checked={isAssigned}
@@ -708,7 +709,7 @@ export default function UsersManagement() {
                                         [user.id]: []
                                       }))
                                     }}
-                                    className="w-full text-xs text-red-400 hover:text-red-300 py-1"
+                                    className="w-full text-xs text-red-400 hover:text-red-300 py-2 md:py-1"
                                   >
                                     Clear all branches
                                   </button>
@@ -716,18 +717,18 @@ export default function UsersManagement() {
                               </div>
                             </details>
                           </div>
-                          
+
                           {user.approval_status === 'pending' && (
-                            <div className="flex gap-2">
+                            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
                               <button
                                 onClick={() => handleApproval(user.id, 'approved')}
-                                className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs"
+                                className="px-4 py-3 md:px-3 md:py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm md:text-xs"
                               >
                                 Approve
                               </button>
                               <button
                                 onClick={() => handleApproval(user.id, 'rejected')}
-                                className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs"
+                                className="px-4 py-3 md:px-3 md:py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm md:text-xs"
                               >
                                 Reject
                               </button>
@@ -743,23 +744,23 @@ export default function UsersManagement() {
 
               {/* Users by Branch */}
               {Object.entries(usersByBranch).map(([branch, branchUsers]) => (
-                <div key={branch} className="cosmic-card w-1/2 mx-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-white">{branch}</h3>
-              <div className="flex gap-2">
+                <div key={branch} className="cosmic-card w-full md:w-1/2 mx-auto">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-4">
+              <h3 className="text-lg md:text-xl font-semibold text-white">🏢 {branch}</h3>
+              <div className="flex flex-col md:flex-row gap-2">
                 <button
                   onClick={() => {
                     setSelectedBranch(branch)
                     setShowAddUserModal(true)
                   }}
-                  className="bg-gradient-to-br from-purple-600 to-purple-800 text-white border-none rounded-lg text-[13px] font-medium px-4 py-1.5 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-purple-500 hover:to-purple-700"
+                  className="bg-gradient-to-br from-purple-600 to-purple-800 text-white border-none rounded-lg text-sm md:text-[13px] font-medium px-4 py-3 md:px-4 md:py-1.5 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-purple-500 hover:to-purple-700"
                   title="Add user to branch"
                 >
                   Add User
                 </button>
                 <button
                   onClick={() => handleDeleteBranchClick(branch)}
-                  className="px-3 py-1 text-sm border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 rounded-lg transition-colors"
+                  className="px-4 py-3 md:px-3 md:py-1 text-sm border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 rounded-lg transition-colors"
                   title="Delete branch"
                 >
                   Delete Branch
@@ -767,60 +768,62 @@ export default function UsersManagement() {
               </div>
             </div>
             
-            <div className="space-y-3">
+            <div className="space-y-4 md:space-y-3">
               {branchUsers.map((user, index) => (
-                <div key={user.id} className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
+                <div key={user.id} className="flex flex-col md:flex-row md:items-center gap-4 md:gap-3 p-4 bg-gray-800/50 rounded-lg">
                   <div className="flex items-center gap-3 flex-1">
-                    <NumberedAvatar 
+                    <NumberedAvatar
                       number={index + 1}
                       size="md"
                     />
-                    <div className="text-white text-sm">
-                      <span className="font-medium">{user.user_name}</span>
-                      <span className="text-gray-400 mx-2">•</span>
-                      <span className="text-purple-400 font-semibold">{user.role}</span>
-                      <span className="text-gray-400 mx-2">•</span>
-                      <span className="text-gray-400">{user.email}</span>
+                    <div className="text-white">
+                      <div className="font-medium text-base md:text-sm">{user.user_name}</div>
+                      <div className="text-sm md:text-xs text-gray-400 mt-1">
+                        <span className="text-purple-400 font-semibold">{user.role}</span>
+                        <span className="mx-2">•</span>
+                        <span>{user.email}</span>
+                      </div>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center gap-2 ml-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      user.approval_status === 'approved' 
-                        ? 'bg-green-900/20 text-green-400' 
+
+                  <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-2 w-full md:w-auto">
+                    <span className={`px-3 py-2 md:py-1 rounded-full text-xs font-medium text-center md:text-left ${
+                      user.approval_status === 'approved'
+                        ? 'bg-green-900/20 text-green-400'
                         : user.approval_status === 'rejected'
                         ? 'bg-red-900/20 text-red-400'
                         : 'bg-yellow-900/20 text-yellow-400'
                     }`}>
                       {user.approval_status === 'approved' ? 'Active' : user.approval_status}
                     </span>
-                    
+
                     {user.approval_status === 'pending' && (
-                      <div className="flex gap-2">
+                      <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
                         <button
                           onClick={() => handleApproval(user.id, 'approved')}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                          className="px-4 py-3 md:px-4 md:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
                         >
                           Approve
                         </button>
                         <button
                           onClick={() => handleApproval(user.id, 'rejected')}
-                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                          className="px-4 py-3 md:px-4 md:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
                         >
                           Reject
                         </button>
                       </div>
                     )}
-                    
+
                     {/* Delete User Button */}
                     <button
                       onClick={() => handleDeleteUserClick(user, branch)}
-                      className="px-2 py-2 text-sm border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors"
+                      className="px-4 py-3 md:px-2 md:py-2 text-sm border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors flex items-center justify-center w-full md:w-auto"
                       title="Remove user from branch"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 md:mr-0 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
+                      <span className="md:hidden">Remove from Branch</span>
                     </button>
                   </div>
                 </div>
@@ -855,61 +858,62 @@ export default function UsersManagement() {
 
         {/* Add User Modal */}
         {showAddUserModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="cosmic-card max-w-lg w-full">
-              <h3 className="cosmic-heading mb-4 text-white">Add User to {selectedBranch}</h3>
-              <p className="text-gray-300 text-sm mb-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end md:items-center justify-center p-0 md:p-4 z-50">
+            <div className="cosmic-card w-full md:max-w-lg md:w-full rounded-t-lg md:rounded-lg">
+              <h3 className="cosmic-heading mb-4 text-white text-lg md:text-xl">Add User to {selectedBranch}</h3>
+              <p className="text-gray-300 text-base md:text-sm mb-4">
                 Select users to add to this branch:
               </p>
-              
-              <div className="max-h-64 overflow-y-auto space-y-2 mb-6">
+
+              <div className="max-h-80 md:max-h-64 overflow-y-auto space-y-3 md:space-y-2 mb-6">
                 {users
                   .filter(u => {
                     const userBranches = (u.branch_name || '').split(',').map(b => b.trim()).filter(b => b !== '')
                     return !userBranches.includes(selectedBranch)
                   })
                   .map((user, index) => (
-                    <div key={user.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
-                      <div className="flex items-center gap-3 text-white text-sm">
-                        <NumberedAvatar 
+                    <div key={user.id} className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 p-4 md:p-3 bg-gray-800/50 rounded-lg">
+                      <div className="flex items-center gap-3 text-white">
+                        <NumberedAvatar
                           number={index + 1}
                           size="sm"
                         />
                         <div>
-                          <span className="font-medium">{user.user_name}</span>
-                          <span className="text-gray-400 mx-2">•</span>
-                          <span className="text-purple-400">{user.role}</span>
-                          <span className="text-gray-400 mx-2">•</span>
-                          <span className="text-gray-400">{user.email}</span>
+                          <div className="font-medium text-base md:text-sm">{user.user_name}</div>
+                          <div className="text-sm md:text-xs text-gray-400 mt-1">
+                            <span className="text-purple-400">{user.role}</span>
+                            <span className="mx-2">•</span>
+                            <span>{user.email}</span>
+                          </div>
                         </div>
                       </div>
                       <button
                         onClick={() => handleAddUserToBranch(user.id)}
-                        className="px-3 py-1 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                        className="px-4 py-3 md:px-3 md:py-1 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors w-full md:w-auto"
                       >
-                        Add
+                        Add to Branch
                       </button>
                     </div>
                   ))
                 }
-                
+
                 {users.filter(u => {
                   const userBranches = (u.branch_name || '').split(',').map(b => b.trim()).filter(b => b !== '')
                   return !userBranches.includes(selectedBranch)
                 }).length === 0 && (
-                  <div className="text-center text-gray-400 py-8">
+                  <div className="text-center text-gray-400 py-12 md:py-8">
                     No users available to add to this branch
                   </div>
                 )}
               </div>
-              
-              <div className="flex justify-end">
+
+              <div className="flex justify-end pt-4 border-t border-gray-700 md:border-0 md:pt-0">
                 <button
                   onClick={() => {
                     setShowAddUserModal(false)
                     setSelectedBranch('')
                   }}
-                  className="cosmic-button-secondary px-6 py-3 border border-white/30 rounded-lg"
+                  className="cosmic-button-secondary px-6 py-4 md:py-3 border border-white/30 rounded-lg w-full md:w-auto text-base md:text-sm"
                 >
                   Close
                 </button>
@@ -920,10 +924,10 @@ export default function UsersManagement() {
 
         {/* Delete Branch Modal */}
         {showDeleteBranchModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="cosmic-card max-w-md w-full">
-              <h3 className="cosmic-heading mb-4 text-white">Delete Branch</h3>
-              <p className="cosmic-body text-gray-300 mb-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end md:items-center justify-center p-0 md:p-4 z-50">
+            <div className="cosmic-card w-full md:max-w-md md:w-full rounded-t-lg md:rounded-lg">
+              <h3 className="cosmic-heading mb-4 text-white text-lg md:text-xl">Delete Branch</h3>
+              <p className="cosmic-body text-gray-300 mb-4 text-base md:text-sm">
                 Are you sure you want to delete the branch &ldquo;{branchToDelete}&rdquo;?
               </p>
               {(() => {
@@ -933,24 +937,24 @@ export default function UsersManagement() {
                 })
                 if (usersInBranch.length > 0) {
                   return (
-                    <p className="cosmic-body text-red-400 text-sm mb-6">
+                    <p className="cosmic-body text-red-400 text-base md:text-sm mb-6">
                       Cannot delete: {usersInBranch.length} user(s) still assigned to this branch
                     </p>
                   )
                 }
                 return (
-                  <p className="cosmic-body text-gray-400 text-sm mb-6">
+                  <p className="cosmic-body text-gray-400 text-base md:text-sm mb-6">
                     This action cannot be undone.
                   </p>
                 )
               })()}
-              <div className="flex space-x-4">
+              <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4 pt-4 border-t border-gray-700 md:border-0 md:pt-0">
                 <button
                   onClick={() => {
                     setShowDeleteBranchModal(false)
                     setBranchToDelete('')
                   }}
-                  className="cosmic-button-secondary flex-1 py-3 border border-white/30 rounded-lg"
+                  className="cosmic-button-secondary w-full md:flex-1 py-4 md:py-3 border border-white/30 rounded-lg text-base md:text-sm"
                 >
                   Cancel
                 </button>
@@ -960,7 +964,7 @@ export default function UsersManagement() {
                     const userBranches = (u.branch_name || '').split(',').map(b => b.trim()).filter(b => b !== '')
                     return userBranches.includes(branchToDelete)
                   }).length > 0}
-                  className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full md:flex-1 py-4 md:py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base md:text-sm"
                 >
                   Delete Branch
                 </button>
@@ -971,29 +975,29 @@ export default function UsersManagement() {
 
         {/* Delete User Modal */}
         {showDeleteUserModal && userToDelete && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="cosmic-card max-w-md w-full">
-              <h3 className="cosmic-heading mb-4 text-white">Remove User from Branch</h3>
-              <p className="cosmic-body text-gray-300 mb-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end md:items-center justify-center p-0 md:p-4 z-50">
+            <div className="cosmic-card w-full md:max-w-md md:w-full rounded-t-lg md:rounded-lg">
+              <h3 className="cosmic-heading mb-4 text-white text-lg md:text-xl">Remove User from Branch</h3>
+              <p className="cosmic-body text-gray-300 mb-4 text-base md:text-sm">
                 Are you sure you want to remove &ldquo;{userToDelete.user_name}&rdquo; from &ldquo;{branchToRemoveFrom}&rdquo;?
               </p>
-              <p className="cosmic-body text-gray-400 text-sm mb-6">
+              <p className="cosmic-body text-gray-400 text-base md:text-sm mb-6">
                 Role: {userToDelete.role} • Email: {userToDelete.email}
               </p>
-              <div className="flex space-x-4">
+              <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4 pt-4 border-t border-gray-700 md:border-0 md:pt-0">
                 <button
                   onClick={() => {
                     setShowDeleteUserModal(false)
                     setUserToDelete(null)
                     setBranchToRemoveFrom('')
                   }}
-                  className="cosmic-button-secondary flex-1 py-3 border border-white/30 rounded-lg"
+                  className="cosmic-button-secondary w-full md:flex-1 py-4 md:py-3 border border-white/30 rounded-lg text-base md:text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeleteUser}
-                  className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                  className="w-full md:flex-1 py-4 md:py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors text-base md:text-sm"
                 >
                   Remove from Branch
                 </button>
@@ -1004,11 +1008,11 @@ export default function UsersManagement() {
 
         {/* Create Branch Modal */}
         {showCreateBranchModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="cosmic-card max-w-md w-full">
-              <h3 className="cosmic-heading mb-4 text-white">Create New Branch</h3>
-              <div className="mb-4">
-                <label className="block text-gray-300 text-sm font-medium mb-2">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end md:items-center justify-center p-0 md:p-4 z-50">
+            <div className="cosmic-card w-full md:max-w-md md:w-full rounded-t-lg md:rounded-lg">
+              <h3 className="cosmic-heading mb-4 text-white text-lg md:text-xl">Create New Branch</h3>
+              <div className="mb-6">
+                <label className="block text-gray-300 text-base md:text-sm font-medium mb-3 md:mb-2">
                   Branch Name
                 </label>
                 <input
@@ -1016,24 +1020,24 @@ export default function UsersManagement() {
                   value={newBranchName}
                   onChange={(e) => setNewBranchName(e.target.value)}
                   placeholder={branches.length === 0 ? "Main Branch" : "e.g., Al Wasl Branch"}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
+                  className="w-full px-4 py-4 md:px-3 md:py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 text-base md:text-sm"
                   autoFocus
                 />
               </div>
-              <div className="flex space-x-4">
+              <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4 pt-4 border-t border-gray-700 md:border-0 md:pt-0">
                 <button
                   onClick={() => {
                     setShowCreateBranchModal(false)
                     setNewBranchName('')
                   }}
-                  className="cosmic-button-secondary flex-1 py-3 border border-white/30 rounded-lg"
+                  className="cosmic-button-secondary w-full md:flex-1 py-4 md:py-3 border border-white/30 rounded-lg text-base md:text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleCreateBranch()}
                   disabled={!newBranchName.trim()}
-                  className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full md:flex-1 py-4 md:py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base md:text-sm"
                 >
                   Create Branch
                 </button>
@@ -1044,12 +1048,12 @@ export default function UsersManagement() {
 
         {/* Invite User Modal */}
         {showInviteModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="cosmic-card max-w-md w-full flex flex-col min-h-[420px]">
-              <h3 className="cosmic-heading mb-4 text-white">Invite New User</h3>
-              <div className="space-y-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end md:items-center justify-center p-0 md:p-4 z-50">
+            <div className="cosmic-card w-full md:max-w-md md:w-full rounded-t-lg md:rounded-lg flex flex-col min-h-[500px] md:min-h-[420px]">
+              <h3 className="cosmic-heading mb-4 text-white text-lg md:text-xl">Invite New User</h3>
+              <div className="space-y-6 md:space-y-4">
                 <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                  <label className="block text-gray-300 text-base md:text-sm font-medium mb-3 md:mb-2">
                     Email Address
                   </label>
                   <input
@@ -1057,27 +1061,27 @@ export default function UsersManagement() {
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
                     placeholder="user@example.com"
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
+                    className="w-full px-4 py-4 md:px-3 md:py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 text-base md:text-sm"
                     autoFocus
                   />
                 </div>
                 <div className="relative">
-                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                  <label className="block text-gray-300 text-base md:text-sm font-medium mb-3 md:mb-2">
                     Role
                   </label>
                   <button
                     type="button"
                     onClick={() => setShowRoleDropdown(!showRoleDropdown)}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500 text-left flex items-center justify-between"
+                    className="w-full px-4 py-4 md:px-3 md:py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500 text-left flex items-center justify-between text-base md:text-sm"
                   >
                     <span>{inviteRole}</span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
-                  
+
                   {showRoleDropdown && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-50 max-h-24 overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-50 max-h-32 md:max-h-24 overflow-y-auto">
                       {['Staff', 'Admin'].map((role) => (
                         <button
                           key={role}
@@ -1085,7 +1089,7 @@ export default function UsersManagement() {
                             setInviteRole(role)
                             setShowRoleDropdown(false)
                           }}
-                          className={`w-full text-left p-3 rounded-lg transition-colors ${
+                          className={`w-full text-left p-4 md:p-3 rounded-lg transition-colors text-base md:text-sm ${
                             inviteRole === role
                               ? 'bg-purple-600 text-white'
                               : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700'
@@ -1102,7 +1106,7 @@ export default function UsersManagement() {
                     </div>
                   )}
                 </div>
-                <div className="text-sm text-gray-400">
+                <div className="text-base md:text-sm text-gray-400">
                   <p>Inviting to: <span className="text-white font-medium">{adminCompany}</span></p>
                 </div>
               </div>
@@ -1124,11 +1128,11 @@ export default function UsersManagement() {
                 <div className="mt-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400 mr-3"></div>
-                    <p className="text-blue-400 font-medium">Sending invitation email...</p>
+                    <p className="text-blue-400 font-medium text-base md:text-sm">Sending invitation email...</p>
                   </div>
                 </div>
               )}
-              <div className="flex space-x-4 mt-auto pt-10 pb-6 relative z-[60]">
+              <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4 mt-auto pt-8 md:pt-10 pb-6 relative z-[60] border-t border-gray-700 md:border-0">
                 <button
                   onClick={() => {
                     setShowInviteModal(false)
@@ -1138,7 +1142,7 @@ export default function UsersManagement() {
                     setInviteStatus('idle')
                     setInviteMessage('')
                   }}
-                  className="cosmic-button-secondary flex-1 py-3 border border-white/30 rounded-lg"
+                  className="cosmic-button-secondary w-full md:flex-1 py-4 md:py-3 border border-white/30 rounded-lg text-base md:text-sm"
                   disabled={inviteStatus === 'sending' || inviteStatus === 'success'}
                 >
                   {inviteStatus === 'success' ? 'Closing...' : 'Cancel'}
@@ -1146,7 +1150,7 @@ export default function UsersManagement() {
                 <button
                   onClick={handleInviteUser}
                   disabled={!inviteEmail.trim() || inviteStatus === 'sending' || inviteStatus === 'success'}
-                  className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full md:flex-1 py-4 md:py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base md:text-sm"
                 >
                   {inviteStatus === 'sending' ? (
                     <span className="flex items-center justify-center">
