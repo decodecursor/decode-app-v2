@@ -313,7 +313,7 @@ export default function Dashboard() {
       userId={user?.id}
       userEmail={user?.email}
     >
-      <div className="cosmic-bg">
+      <div className="cosmic-bg dashboard-page">
         <div className="min-h-screen px-4 py-2 md:py-8">
 
         {/* Navigation Menu */}
