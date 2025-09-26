@@ -589,6 +589,22 @@ export default function Dashboard() {
                       PayLinks
                     </Link>
 
+                    {/* Show Users for Admin users only */}
+                    {profile?.role === USER_ROLES.ADMIN && (
+                      <Link
+                        href="/dashboard/users"
+                        className="block nav-button px-2 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors relative"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Users
+                        {pendingUsersCount > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                            {pendingUsersCount}
+                          </span>
+                        )}
+                      </Link>
+                    )}
+
                     {/* Show Earnings for Admin and Staff roles */}
                     {(profile?.role === USER_ROLES.ADMIN || profile?.role === USER_ROLES.STAFF) && (
                       <Link
