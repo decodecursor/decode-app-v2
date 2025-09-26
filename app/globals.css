@@ -624,15 +624,33 @@ body {
     max-width: 400px;
     margin: 20px auto;
     border-radius: 20px;
+    box-shadow: none; /* Remove glow on mobile */
   }
 
-  /* Mobile user info styling */
-  .user-info-name {
-    font-size: 14px;
+  /* Remove avatar glow on mobile */
+  .instagram-avatar {
+    box-shadow: none !important;
   }
-  
+
+  .instagram-avatar:hover {
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  /* Increase avatar size on mobile */
+  .instagram-avatar img,
+  .instagram-avatar .avatar-fallback {
+    width: 56px;
+    height: 56px;
+  }
+
+  /* Mobile user info styling - increased sizes */
+  .user-info-name {
+    font-size: 15px;
+  }
+
   .user-info-company {
-    font-size: 12px;
+    font-size: 13px;
   }
   
   .cosmic-logo {

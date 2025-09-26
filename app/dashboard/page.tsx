@@ -499,7 +499,7 @@ export default function Dashboard() {
 
             {/* Mobile Navigation */}
             <div className="md:hidden">
-              <div className="flex items-center justify-between p-4">
+              <div className="flex items-center justify-between p-2">
                 {/* Mobile Profile Section */}
                 <div className="flex items-center gap-3">
                   <div
@@ -549,12 +549,12 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <button 
+                <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   className="text-white"
                 >
-                  <svg 
-                    className={`w-6 h-6 transition-transform ${mobileMenuOpen ? 'rotate-180' : ''}`}
+                  <svg
+                    className={`w-7 h-7 transition-transform ${mobileMenuOpen ? 'rotate-180' : ''}`}
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"
