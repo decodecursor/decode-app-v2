@@ -76,23 +76,40 @@ export async function DELETE(request: NextRequest) {
 
     console.log('🗑️ API: Permission check passed. User is:', isAdmin ? 'Admin' : 'Creator')
 
-    // Check for related transactions
-    const { data: transactions, error: txError } = await supabase
+    // Check for COMPLETED transactions only (not pending/failed/cancelled)
+    const { data: completedTransactions, error: txError } = await supabase
       .from('transactions')
-      .select('id')
+      .select('id, status')
       .eq('payment_link_id', linkId)
+      .eq('status', 'completed')
       .limit(1)
 
-    if (!txError && transactions && transactions.length > 0) {
-      console.warn('🗑️ API: Payment link has related transactions')
+    if (txError) {
+      console.error('🗑️ API: Error checking for completed transactions:', txError)
+    }
+
+    if (!txError && completedTransactions && completedTransactions.length > 0) {
+      console.warn('🗑️ API: Payment link has completed transactions, cannot delete')
       return NextResponse.json(
         {
-          error: 'Cannot delete payment link with existing transactions',
+          error: 'Cannot delete payment link with completed transactions. Only links without successful payments can be deleted.',
           hasTransactions: true
         },
         { status: 400 }
       )
     }
+
+    // Also check for any pending/failed transactions to log for debugging
+    const { data: allTransactions } = await supabase
+      .from('transactions')
+      .select('id, status')
+      .eq('payment_link_id', linkId)
+
+    console.log('🗑️ API: Transaction check summary:', {
+      completedTransactions: completedTransactions?.length || 0,
+      totalTransactions: allTransactions?.length || 0,
+      transactionStatuses: allTransactions?.map(t => t.status) || []
+    })
 
     // Attempt to delete the payment link
     const { data: deleteData, error: deleteError } = await supabase

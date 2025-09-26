@@ -1036,7 +1036,7 @@ function MyLinksContent() {
         let errorMessage = result.error || 'Failed to delete payment link'
 
         if (result.hasTransactions) {
-          errorMessage = 'Cannot delete: This payment link has transactions. Only links without any payment history can be deleted.'
+          errorMessage = 'Cannot delete: This payment link has completed payments. Only links without successful payment history can be deleted.'
         }
 
         setCopyMessage(errorMessage)
