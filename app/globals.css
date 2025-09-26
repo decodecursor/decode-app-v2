@@ -503,6 +503,16 @@ body {
   margin: 0 auto;
 }
 
+/* Responsive override for cosmic-card-profile on mobile */
+@media (max-width: 768px) {
+  .cosmic-card-profile {
+    width: 90vw !important;
+    max-width: 400px !important;
+    padding: 20px !important;
+    margin: 16px auto !important;
+  }
+}
+
 /* Instagram-style Profile Avatar */
 .instagram-avatar {
   position: relative;
