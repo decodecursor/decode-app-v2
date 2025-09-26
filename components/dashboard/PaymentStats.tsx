@@ -720,7 +720,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
         {/* Key Metrics */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 payments-metrics-grid">
           <div className="bg-white/5 rounded-lg p-4 payment-metric-card">
-            <div className="flex justify-between items-center mb-2">
+            <div className="flex justify-between items-center mb-1">
               <h3 className="cosmic-label text-white/70 payment-metric-label">{revenueLabel}</h3>
               {dateRange !== 'custom' && (
                 <span className={`text-xs md:text-xs font-medium payment-metric-percentage ${getChangeColor(current.revenue, previous.revenue)}`}>
@@ -740,7 +740,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
           </div>
 
           <div className="bg-white/5 rounded-lg p-4 payment-metric-card">
-            <div className="flex justify-between items-center mb-2">
+            <div className="flex justify-between items-center mb-1">
               <h3 className="cosmic-label text-white/70 payment-metric-label">{transactionLabel}</h3>
               {dateRange !== 'custom' && (
                 <span className={`text-xs md:text-xs font-medium payment-metric-percentage ${getChangeColor(current.transactions, previous.transactions)}`}>

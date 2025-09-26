@@ -1330,12 +1330,12 @@ body {
     flex-shrink: 0 !important;
   }
 
-  /* Reduce subcard label text by 4px on mobile - higher specificity */
+  /* Mobile subcard label text sizing */
   @media (max-width: 768px) {
     .cosmic-card .payment-metric-label,
     .analytics-card-mobile .payment-metric-label,
     h3.payment-metric-label {
-      font-size: 8px !important;
+      font-size: 9px !important;
       line-height: 1.2 !important;
     }
 
