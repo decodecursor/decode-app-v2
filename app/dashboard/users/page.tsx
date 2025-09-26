@@ -574,16 +574,16 @@ export default function UsersManagement() {
                 <div>
                   <h1 className="cosmic-heading mb-2 text-xl md:text-2xl">User Management</h1>
                 </div>
-                <div className="flex flex-row md:flex-row gap-2 md:gap-3">
+                <div className="flex flex-row md:flex-row gap-1 md:gap-3">
                   <button
                     onClick={() => setShowCreateBranchModal(true)}
-                    className="text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-xs md:text-[15px] font-medium px-2 py-2 md:px-5 md:py-2.5 cursor-pointer transition-colors flex-1 md:w-auto"
+                    className="text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[10px] md:text-[15px] font-medium px-1.5 py-2 md:px-5 md:py-2.5 cursor-pointer transition-colors flex-1 md:w-auto"
                   >
                     Create Branch
                   </button>
                   <button
                     onClick={() => setShowInviteModal(true)}
-                    className="relative text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-xs md:text-[15px] font-medium px-2 py-2 md:px-5 md:py-2.5 cursor-pointer transition-colors flex-1 md:w-auto"
+                    className="relative text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[10px] md:text-[15px] font-medium px-1.5 py-2 md:px-5 md:py-2.5 cursor-pointer transition-colors flex-1 md:w-auto"
                   >
                     Invite User
                     {newUserCount > 0 && (
@@ -594,7 +594,7 @@ export default function UsersManagement() {
                   </button>
                   <Link
                     href="/payment/create"
-                    className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-xs md:text-[17px] font-medium px-2 py-2 md:px-6 md:py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block text-center flex-1 md:w-auto"
+                    className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[10px] md:text-[17px] font-medium px-1.5 py-2 md:px-6 md:py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block text-center flex-1 md:w-auto"
                   >
                     Create PayLink
                   </Link>
@@ -786,7 +786,7 @@ export default function UsersManagement() {
                     {/* Delete User Button - Mobile: below status, Desktop: inline */}
                     <button
                       onClick={() => handleDeleteUserClick(user, branch)}
-                      className="p-1.5 md:px-2 md:py-2 text-sm border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors flex items-center justify-center"
+                      className="p-1 md:px-2 md:py-2 text-sm border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors flex items-center justify-center"
                       title="Remove user from branch"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -802,7 +802,7 @@ export default function UsersManagement() {
                     />
                     <div className="text-white">
                       <div className="font-medium text-base md:text-sm">{user.user_name}</div>
-                      <div className="text-sm md:text-xs text-gray-400 mt-1">
+                      <div className="text-xs md:text-xs text-gray-400 mt-1">
                         <span className="text-purple-400 font-semibold">{user.role}</span>
                         <span className="mx-2">•</span>
                         <span>{user.email}</span>
