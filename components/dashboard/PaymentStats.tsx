@@ -718,7 +718,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
         </div>
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 payments-metrics-grid">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 payments-metrics-grid" style={{gridAutoRows: '1fr'}}>
           <div className="bg-white/5 rounded-lg p-4 payment-metric-card">
             <div className="flex justify-between items-center mb-2">
               <h3 className="cosmic-label text-white/70 payment-metric-label">{revenueLabel}</h3>
@@ -759,7 +759,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             )}
           </div>
 
-          <div className="bg-white/5 rounded-lg p-4">
+          <div className="bg-white/5 rounded-lg p-4 payment-metric-card">
             {(userRole === USER_ROLES.ADMIN || userRole === 'Admin') ? (
               // Empty content for ADMIN roles - just the line/border (left-aligned)
               <div className="pt-4">
