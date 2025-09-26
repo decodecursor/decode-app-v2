@@ -1330,6 +1330,13 @@ body {
     flex-shrink: 0 !important;
   }
 
+  /* Reduce subcard label text by 4px on mobile */
+  @media (max-width: 768px) {
+    .payment-metric-label {
+      font-size: 5px !important;
+    }
+  }
+
   .payment-metric-value {
     font-size: 14px !important;
     font-weight: 700 !important;
@@ -1486,8 +1493,8 @@ body {
   /* Fix container widths on mobile to prevent horizontal scrolling */
   @media (max-width: 768px) {
     .payments-container-mobile {
-      width: 95vw !important;
-      max-width: 95vw !important;
+      width: 90vw !important;
+      max-width: 90vw !important;
       margin: 0 auto !important;
     }
     .payments-container {
