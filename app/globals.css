@@ -1335,16 +1335,18 @@ body {
     .cosmic-card .payment-metric-label,
     .analytics-card-mobile .payment-metric-label,
     h3.payment-metric-label {
-      font-size: 7px !important;
+      font-size: 8px !important;
       line-height: 1.2 !important;
     }
 
-    /* Proper center alignment on mobile */
+    /* FINAL center alignment fix - compensate for parent px-4 padding */
     .payments-container-mobile {
-      width: 92vw !important;
-      max-width: 92vw !important;
-      margin: 0 auto !important;
-      padding: 0 !important;
+      width: 100vw !important;
+      max-width: 100vw !important;
+      margin-left: -1rem !important;
+      margin-right: -1rem !important;
+      padding: 0 1rem !important;
+      box-sizing: border-box !important;
     }
   }
 
