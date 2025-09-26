@@ -533,7 +533,6 @@ body {
 
 .instagram-avatar:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(240, 148, 51, 0.4);
 }
 
 .instagram-avatar img {
@@ -635,13 +634,6 @@ body {
   .instagram-avatar:hover {
     box-shadow: none !important;
     transform: none !important;
-  }
-
-  /* Increase avatar size on mobile */
-  .instagram-avatar img,
-  .instagram-avatar .avatar-fallback {
-    width: 56px;
-    height: 56px;
   }
 
   /* Mobile user info styling - increased sizes */
