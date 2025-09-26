@@ -550,14 +550,17 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
   const formatPaymentDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
+    const datePart = date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
+      year: 'numeric'
+    })
+    const timePart = date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false
-    }).replace(/,(?=[^,]*$)/, ' –')
+    })
+    return `${datePart} – ${timePart}`
   }
 
   const exportPayLinksToCSV = () => {

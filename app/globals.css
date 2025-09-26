@@ -1330,10 +1330,22 @@ body {
     flex-shrink: 0 !important;
   }
 
-  /* Reduce subcard label text by 4px on mobile */
+  /* Reduce subcard label text by 4px on mobile - higher specificity */
   @media (max-width: 768px) {
-    .payment-metric-label {
+    .cosmic-card .payment-metric-label,
+    .analytics-card-mobile .payment-metric-label,
+    h3.payment-metric-label {
       font-size: 5px !important;
+      line-height: 1.2 !important;
+    }
+
+    /* Force center alignment on mobile */
+    .payments-container-mobile {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      width: 88vw !important;
+      margin: 0 auto !important;
     }
   }
 
@@ -1493,9 +1505,10 @@ body {
   /* Fix container widths on mobile to prevent horizontal scrolling */
   @media (max-width: 768px) {
     .payments-container-mobile {
-      width: 90vw !important;
-      max-width: 90vw !important;
+      width: 88vw !important;
+      max-width: 88vw !important;
       margin: 0 auto !important;
+      padding: 0 2vw !important;
     }
     .payments-container {
       width: 70vw !important;
