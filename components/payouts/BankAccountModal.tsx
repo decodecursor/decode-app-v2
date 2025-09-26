@@ -213,11 +213,11 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 rounded-xl border border-gray-700 p-8 w-full max-w-md relative">
+      <div className="bg-gray-900 rounded-xl border border-gray-700 md:p-8 p-6 w-full max-w-md relative">
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+          className="absolute md:top-4 md:right-4 top-2 right-2 text-gray-400 hover:text-white transition-colors"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -225,16 +225,16 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
         </button>
 
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="text-center md:mb-8 mb-6">
+          <div className="md:w-16 md:h-16 w-14 h-14 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="md:w-8 md:h-8 w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">
+          <h2 className="md:text-2xl text-xl font-bold text-white mb-2">
             {userRole === USER_ROLES.STAFF ? 'Add Your Bank Account' : 'Add Company Bank Account'}
           </h2>
-          <p className="text-gray-400 text-sm">Connect your bank account to receive payouts</p>
+          <p className="text-gray-400 md:text-sm text-xs">Connect your bank account to receive payouts</p>
         </div>
 
         {/* Message Display */}
@@ -271,7 +271,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
               value={beneficiary}
               onChange={(e) => setBeneficiary(e.target.value)}
               placeholder={userRole === USER_ROLES.STAFF ? 'Sarah Johnson' : 'Boho Beauty Salon'}
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
+              className="w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
               disabled={loading}
             />
           </div>
@@ -285,7 +285,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
               value={iban}
               onChange={(e) => setIban(e.target.value)}
               placeholder="AE 0700 3001 2769 3138 2000 1"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
+              className="w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
               disabled={loading}
             />
           </div>
@@ -299,17 +299,17 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
               value={bank}
               onChange={(e) => setBank(e.target.value)}
               placeholder="RAK Bank"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
+              className="w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
               disabled={loading}
             />
           </div>
         </div>
 
         {/* Info box */}
-        <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-4 mb-6">
-          <div className="text-blue-100 text-xs text-left">
+        <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg md:p-4 p-3 mb-6">
+          <div className="text-blue-100 md:text-xs text-[10px] text-left">
             <p className="font-medium mb-1">Important:</p>
-            <ul className="space-y-1 text-[11px]">
+            <ul className="space-y-1 md:text-[11px] text-[10px]">
               <li>• Use the IBAN format for UAE bank accounts</li>
               <li>• Beneficiary name must match your account holder name</li>
               <li>• Payouts are typically processed within 1-2 business days</li>
@@ -330,7 +330,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
             <button
               onClick={() => setShowRemoveConfirmation(true)}
               disabled={loading}
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium md:py-3 md:px-4 py-2 px-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Remove Account
             </button>
@@ -338,7 +338,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
           <button
             onClick={handleSaveBankAccount}
             disabled={loading || !beneficiary || !iban || !bank}
-            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium md:py-3 md:px-4 py-2 px-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Saving...' : isConnected ? 'Update Account' : 'Connect Bank Account'}
           </button>

@@ -183,11 +183,11 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, onMethodDelete
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 rounded-xl border border-gray-700 p-8 w-full max-w-md relative">
+      <div className="bg-gray-900 rounded-xl border border-gray-700 md:p-8 p-6 w-full max-w-md relative">
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+          className="absolute md:top-4 md:right-4 top-2 right-2 text-gray-400 hover:text-white transition-colors"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -195,14 +195,14 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, onMethodDelete
         </button>
 
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <div className="w-8 h-8 text-blue-400 font-bold text-lg flex items-center justify-center">
+        <div className="text-center md:mb-8 mb-6">
+          <div className="md:w-16 md:h-16 w-14 h-14 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="md:w-8 md:h-8 w-6 h-6 text-blue-400 font-bold md:text-lg text-base flex items-center justify-center">
               P
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Connect PayPal Account</h2>
-          <p className="text-gray-400 text-sm">Add your PayPal email to receive payouts</p>
+          <h2 className="md:text-2xl text-xl font-bold text-white mb-2">Connect PayPal Account</h2>
+          <p className="text-gray-400 md:text-sm text-xs">Add your PayPal email to receive payouts</p>
         </div>
 
         {/* Message Display */}
@@ -239,7 +239,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, onMethodDelete
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your.email@example.com"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
+              className="w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
               disabled={loading}
             />
           </div>
@@ -253,17 +253,17 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, onMethodDelete
               value={confirmEmail}
               onChange={(e) => setConfirmEmail(e.target.value)}
               placeholder="your.email@example.com"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
+              className="w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
               disabled={loading}
             />
           </div>
         </div>
 
         {/* Info box */}
-        <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-4 mb-6">
-          <div className="text-blue-100 text-xs text-left">
+        <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg md:p-4 p-3 mb-6">
+          <div className="text-blue-100 md:text-xs text-[10px] text-left">
             <p className="font-medium mb-1">Important:</p>
-            <ul className="space-y-1 text-[11px]">
+            <ul className="space-y-1 md:text-[11px] text-[10px]">
               <li>• Use the email address associated with your PayPal account</li>
               <li>• Your PayPal account must be verified to receive payouts</li>
               <li>• Payouts are typically processed within 1-2 business days</li>
@@ -284,7 +284,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, onMethodDelete
             <button
               onClick={() => setShowRemoveConfirmation(true)}
               disabled={loading}
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium md:py-3 md:px-4 py-2 px-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Remove Account
             </button>
@@ -292,7 +292,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, onMethodDelete
           <button
             onClick={handleSavePayPal}
             disabled={loading || !email || !confirmEmail}
-            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium md:py-3 md:px-4 py-2 px-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Saving...' : isConnected ? 'Update PayPal' : 'Connect PayPal'}
           </button>
