@@ -425,7 +425,7 @@ export default function ProfilePage() {
 
   return (
     <div className="cosmic-bg">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 md:py-8">
         {/* Message Display */}
         {message && (
           <div className={`mb-6 p-4 rounded-lg ${
@@ -438,9 +438,9 @@ export default function ProfilePage() {
 
         {/* Main Content */}
         <div className="space-y-6 flex justify-center">
-          <div className="w-full max-w-2xl">
+          <div className="w-full px-0 md:max-w-2xl">
             {/* Back to Dashboard Link - Positioned to align with centered cosmic cards */}
-            <div className="mb-8" style={{ width: '28vw', marginLeft: 'auto', marginRight: 'auto' }}>
+            <div className="mb-4 md:mb-8 w-full md:w-auto" style={{ maxWidth: '28vw', marginLeft: 'auto', marginRight: 'auto' }}>
               <button
                 onClick={() => router.push('/dashboard')}
                 className="flex items-center text-gray-300 hover:text-white transition-colors w-fit"
@@ -452,17 +452,17 @@ export default function ProfilePage() {
               </button>
             </div>
             
-            <div className="space-y-8">
+            <div className="space-y-4 md:space-y-8">
           {/* Profile Photo Section - Admin Only */}  
           {profile?.role === 'Admin' && (
           <div className="cosmic-card-profile h-fit">
-            <h2 className="text-xl font-semibold text-white mb-8">Company Profile Photo</h2>
+            <h2 className="text-lg md:text-xl font-semibold text-white mb-4 md:mb-8">Company Profile Photo</h2>
             
             <div className="text-center">
               {/* Profile Photo Display */}
               {!selectedImage && (
-                <div className="mb-8">
-                  <div className="w-48 h-48 mx-auto rounded-full overflow-hidden bg-gray-700 ring-4 ring-white/10">
+                <div className="mb-4 md:mb-8">
+                  <div className="w-32 h-32 md:w-48 md:h-48 mx-auto rounded-full overflow-hidden bg-gray-700 ring-4 ring-white/10">
                     {profilePhotoUrl ? (
                       <img
                         src={profilePhotoUrl}
@@ -482,10 +482,10 @@ export default function ProfilePage() {
 
               {/* React Easy Crop Image Editor */}
               {selectedImage && (
-                  <div className="mb-8">
-                    <div className="flex flex-col items-center gap-6">
+                  <div className="mb-4 md:mb-8">
+                    <div className="flex flex-col items-center gap-4 md:gap-6">
                       {/* Crop Area */}
-                      <div className="relative w-80 h-80 bg-gray-800 rounded-2xl overflow-hidden">
+                      <div className="relative w-60 h-60 md:w-80 md:h-80 bg-gray-800 rounded-2xl overflow-hidden">
                         <Cropper
                           image={selectedImage}
                           crop={crop}
@@ -500,7 +500,7 @@ export default function ProfilePage() {
                       </div>
 
                       {/* Zoom Slider */}
-                      <div className="flex items-center gap-3 w-80">
+                      <div className="flex items-center gap-3 w-60 md:w-80">
                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
@@ -524,7 +524,7 @@ export default function ProfilePage() {
                           <img
                             src={croppedImage}
                             alt="Cropped preview"
-                            className="w-32 h-32 rounded-full border-2 border-white/30"
+                            className="w-24 h-24 md:w-32 md:h-32 rounded-full border-2 border-white/30"
                           />
                           <p className="text-xs text-gray-400">Preview</p>
                         </div>
@@ -532,7 +532,7 @@ export default function ProfilePage() {
                     </div>
                     
                     {/* Action Buttons */}
-                    <div className="flex justify-center gap-4 mt-8">
+                    <div className="flex justify-center gap-3 md:gap-4 mt-4 md:mt-8">
                       <button
                         onClick={() => {
                           setSelectedImage(null)
@@ -541,14 +541,14 @@ export default function ProfilePage() {
                           setCroppedImage(null)
                           setCroppedAreaPixels(null)
                         }}
-                        className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-full font-medium transition-all duration-200 transform hover:scale-105"
+                        className="px-6 py-3 md:px-8 md:py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-full font-medium transition-all duration-200 transform hover:scale-105"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={uploadProfilePhoto}
                         disabled={photoUploading}
-                        className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-full font-medium transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
+                        className="px-6 py-3 md:px-8 md:py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-full font-medium transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
                       >
                         {photoUploading ? (
                           <div className="flex items-center gap-2">
@@ -575,7 +575,7 @@ export default function ProfilePage() {
                     />
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-2xl font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+                      className="group relative px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-2xl font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
                     >
                       <div className="flex items-center justify-center gap-3">
                         <div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center group-hover:bg-opacity-30 transition-all">
@@ -598,7 +598,7 @@ export default function ProfilePage() {
           {profile?.role === 'Admin' && (
           <div className="cosmic-card-profile">
             <div className="flex items-center gap-3 mb-6">
-              <h2 className="text-xl font-semibold text-white">Company Name</h2>
+              <h2 className="text-lg md:text-xl font-semibold text-white">Company Name</h2>
               <div className="flex items-center gap-1 px-2 py-1 bg-gray-600/20 text-gray-400 text-xs font-medium rounded-full border border-gray-500/30">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -627,7 +627,7 @@ export default function ProfilePage() {
           {/* Email Address Card */}
           <div className="cosmic-card-profile">
             <div className="flex items-center gap-3 mb-6">
-              <h2 className="text-xl font-semibold text-white">Email Address</h2>
+              <h2 className="text-lg md:text-xl font-semibold text-white">Email Address</h2>
               {user?.email_confirmed_at && (
                 <div className="flex items-center gap-1 px-2 py-1 bg-green-600/20 text-green-400 text-xs font-medium rounded-full border border-green-500/30">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -666,7 +666,7 @@ export default function ProfilePage() {
 
           {/* Password Change Card */}
           <div className="cosmic-card-profile">
-            <h2 className="text-xl font-semibold text-white mb-6">Password</h2>
+            <h2 className="text-lg md:text-xl font-semibold text-white mb-4 md:mb-6">Password</h2>
             <div className="space-y-4">
               <PasswordInput
                 value={currentPassword}
