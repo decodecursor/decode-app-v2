@@ -1373,7 +1373,7 @@ function MyLinksContent() {
                         {/* Mobile Layout - Hidden on desktop */}
                         <div className="md:hidden">
                           {/* Top row with client name and badge on same line */}
-                          <div className="flex justify-between items-start mb-1 pt-2">
+                          <div className="flex justify-between items-start mb-1 pt-4">
                             <p className="payment-link-client-mobile text-purple-400">
                               {link.client_name || ''}
                             </p>
@@ -1383,7 +1383,7 @@ function MyLinksContent() {
                           </div>
 
                           {/* Date aligned under badge - Service title removed */}
-                          <div className="flex justify-between items-start mb-1">
+                          <div className="flex justify-between items-start mb-1 pt-1">
                             <div className="flex-1"></div>
                             <div className={`text-xs ${(() => {
                               if (isDeactivated || isExpired) return 'text-red-400'
