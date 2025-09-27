@@ -319,6 +319,7 @@ class EmailService {
 
   /**
    * Send notification to creator about successful payment
+   * DISABLED - Only admin emails to sebastian@welovedecode.com are active
    */
   async sendCreatorPaymentNotification(data: {
     creatorEmail: string
@@ -330,6 +331,9 @@ class EmailService {
     buyerEmail?: string
     transactionDate: string
   }): Promise<EmailResult> {
+    // Email disabled - only admin notifications to sebastian@welovedecode.com are active
+    return { success: true, messageId: 'disabled', provider: 'disabled' };
+    /* DISABLED
     try {
       console.log(`📧 Sending creator notification to ${data.creatorEmail}`)
 
@@ -363,7 +367,7 @@ class EmailService {
         error: error instanceof Error ? error.message : 'Unknown error'
       }
     }
-    */ // END DISABLED
+    */
   }
 
   /**
