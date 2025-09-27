@@ -1225,9 +1225,9 @@ function MyLinksContent() {
               <div>
                 <h1 className="cosmic-heading mb-2">PayLinks</h1>
               </div>
-              <Link 
-                href="/payment/create" 
-                className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block"
+              <Link
+                href="/payment/create"
+                className="bg-black text-white border border-white/30 rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:bg-gray-900 hover:border-white/50 hover:shadow-[0_4px_12px_rgba(255,255,255,0.1)] inline-block"
               >
                 Create PayLink
               </Link>
@@ -1400,14 +1400,14 @@ function MyLinksContent() {
                           </div>
 
                           {/* Amount and Creator in same row */}
-                          <div className="flex justify-between items-start mb-2">
+                          <div className="flex justify-between items-start mb-1">
                             <div className="payment-link-amount-mobile text-white">
                               AED {formatAmount(link.service_amount_aed || link.amount_aed)}
                             </div>
                           </div>
 
                           {/* Mobile Action Buttons - Optimized sizing for one line */}
-                          <div className={`flex gap-1 mt-2 pt-2 border-t border-gray-700 ${isPaid || isExpired || isDeactivated ? 'opacity-50' : ''}`}>
+                          <div className={`flex gap-1 mt-1 pt-1 border-t border-gray-700 ${isPaid || isExpired || isDeactivated ? 'opacity-50' : ''}`}>
                             <button
                               onClick={() => copyToClipboard(link.id)}
                               disabled={copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
