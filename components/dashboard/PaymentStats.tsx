@@ -444,6 +444,13 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     }).format(amount)
   }
 
+  const formatYAxisValue = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(Math.round(amount))
+  }
+
   const formatPercentageChange = (current: number, previous: number) => {
     if (previous === 0) return current > 0 ? '+∞%' : '0%'
     const change = ((current - previous) / previous) * 100
@@ -888,7 +895,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                       {yAxisValues.map((value, index) => (
                         <div key={index} className="text-right">
                           <span className="text-xs text-white/50">
-                            {value > 0 ? formatCurrency(value).replace('AED', '').trim() : '0'}
+                            {value > 0 ? formatYAxisValue(value) : '0'}
                           </span>
                         </div>
                       ))}

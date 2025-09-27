@@ -126,8 +126,66 @@ export async function DELETE(request: NextRequest) {
       console.log('🗑️ API: Deleted analytics events:', analyticsEvents?.length || 0)
     }
 
-    // 2. Delete non-completed transactions (pending, failed, cancelled, expired)
+    // 2. First, get the IDs of non-completed transactions that we need to delete
     const nonCompletedStatuses = ['pending', 'failed', 'cancelled', 'expired']
+    const { data: transactionsToDelete, error: transactionFetchError } = await supabase
+      .from('transactions')
+      .select('id, status')
+      .eq('payment_link_id', linkId)
+      .in('status', nonCompletedStatuses)
+
+    if (transactionFetchError) {
+      console.error('🗑️ API: Error fetching non-completed transactions:', transactionFetchError)
+    } else {
+      console.log('🗑️ API: Found non-completed transactions to delete:', transactionsToDelete?.length || 0,
+                 'with statuses:', transactionsToDelete?.map(t => t.status))
+    }
+
+    // 3. Delete transaction-related records that prevent transaction deletion
+    if (transactionsToDelete && transactionsToDelete.length > 0) {
+      const transactionIds = transactionsToDelete.map(t => t.id)
+
+      // Delete from transfers table
+      const { data: deletedTransfers, error: transfersDeleteError } = await supabase
+        .from('transfers')
+        .delete()
+        .in('payment_id', transactionIds)
+        .select('id')
+
+      if (transfersDeleteError) {
+        console.error('🗑️ API: Error deleting transfers:', transfersDeleteError)
+      } else {
+        console.log('🗑️ API: Deleted transfers:', deletedTransfers?.length || 0)
+      }
+
+      // Delete from geographic_analytics table
+      const { data: deletedGeoAnalytics, error: geoAnalyticsDeleteError } = await supabase
+        .from('geographic_analytics')
+        .delete()
+        .in('transaction_id', transactionIds)
+        .select('id')
+
+      if (geoAnalyticsDeleteError) {
+        console.error('🗑️ API: Error deleting geographic analytics:', geoAnalyticsDeleteError)
+      } else {
+        console.log('🗑️ API: Deleted geographic analytics:', deletedGeoAnalytics?.length || 0)
+      }
+
+      // Delete from payment_analytics table
+      const { data: deletedPaymentAnalytics, error: paymentAnalyticsDeleteError } = await supabase
+        .from('payment_analytics')
+        .delete()
+        .in('transaction_id', transactionIds)
+        .select('id')
+
+      if (paymentAnalyticsDeleteError) {
+        console.error('🗑️ API: Error deleting payment analytics:', paymentAnalyticsDeleteError)
+      } else {
+        console.log('🗑️ API: Deleted payment analytics:', deletedPaymentAnalytics?.length || 0)
+      }
+    }
+
+    // 4. Now delete the non-completed transactions (should succeed after removing dependencies)
     const { data: deletedTransactions, error: transactionDeleteError } = await supabase
       .from('transactions')
       .delete()
@@ -137,12 +195,18 @@ export async function DELETE(request: NextRequest) {
 
     if (transactionDeleteError) {
       console.error('🗑️ API: Error deleting non-completed transactions:', transactionDeleteError)
+      console.error('🗑️ API: Transaction delete error details:', {
+        message: transactionDeleteError.message,
+        details: transactionDeleteError.details,
+        hint: transactionDeleteError.hint,
+        code: transactionDeleteError.code
+      })
     } else {
-      console.log('🗑️ API: Deleted non-completed transactions:', deletedTransactions?.length || 0,
+      console.log('🗑️ API: Successfully deleted non-completed transactions:', deletedTransactions?.length || 0,
                  'with statuses:', deletedTransactions?.map(t => t.status))
     }
 
-    // 3. Check for payment split recipients (should cascade delete, but let's log)
+    // 5. Check for payment split recipients (should cascade delete, but let's log)
     const { data: splitRecipients } = await supabase
       .from('payment_split_recipients')
       .select('id')
@@ -150,7 +214,7 @@ export async function DELETE(request: NextRequest) {
 
     console.log('🗑️ API: Payment split recipients found:', splitRecipients?.length || 0)
 
-    // 4. Check for email logs (should SET NULL, but let's log)
+    // 6. Check for email logs (should SET NULL, but let's log)
     const { data: emailLogs } = await supabase
       .from('email_logs')
       .select('id')
@@ -158,7 +222,7 @@ export async function DELETE(request: NextRequest) {
 
     console.log('🗑️ API: Email logs found:', emailLogs?.length || 0)
 
-    // 5. Check for wallet transactions (should SET NULL, but let's log)
+    // 7. Check for wallet transactions (should SET NULL, but let's log)
     const { data: walletTransactions } = await supabase
       .from('wallet_transactions')
       .select('id')
