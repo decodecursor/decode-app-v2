@@ -79,6 +79,7 @@ function MyLinksContent() {
   const [visibleCount, setVisibleCount] = useState(6)
   const [initialLoadComplete, setInitialLoadComplete] = useState(false)
   const [firstPollComplete, setFirstPollComplete] = useState(false)
+  const [newLinkHighlightReady, setNewLinkHighlightReady] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -428,18 +429,18 @@ function MyLinksContent() {
       setNewPayLinkId(newId)
       console.log('🌟 NEW LINK: Set newPayLinkId to:', newId)
 
-      // Only start highlighting if initial load is complete and payment links are loaded
-      if (initialLoadComplete && paymentLinks.length > 0) {
+      // Only start highlighting if new link highlighting is ready and payment links are loaded
+      if (newLinkHighlightReady && paymentLinks.length > 0) {
         console.log('🌟 NEW LINK: Prerequisites met - starting highlight effect')
         tryHighlightNewLink(newId)
       } else {
         console.log('🌟 NEW LINK: Waiting for prerequisites:', {
-          initialLoadComplete,
+          newLinkHighlightReady,
           paymentLinksCount: paymentLinks.length
         })
       }
     }
-  }, [searchParams, initialLoadComplete, paymentLinks])
+  }, [searchParams, newLinkHighlightReady, paymentLinks])
 
   // Function to try highlighting with retry logic
   const tryHighlightNewLink = (linkId: string, attempt = 1, maxAttempts = 5) => {
@@ -611,6 +612,10 @@ function MyLinksContent() {
               setError(`⚠️ No payment links found. Main API failed (${mainApiError}).`)
             }
 
+            // Mark new link highlighting as ready immediately (fallback mode)
+            console.log('✅ [MY-LINKS] Fallback: Setting newLinkHighlightReady to true immediately')
+            setNewLinkHighlightReady(true)
+
             // Mark initial load as complete for fallback mode
             setTimeout(() => {
               console.log('✅ [MY-LINKS] Fallback initial load complete - enabling heart animations')
@@ -753,7 +758,11 @@ function MyLinksContent() {
       setError('')
       console.log('✅ [MY-LINKS] Cleared any previous errors - data loaded successfully')
 
-      // Mark initial load as complete
+      // Mark new link highlighting as ready immediately (no delay)
+      console.log('✅ [MY-LINKS] Setting newLinkHighlightReady to true immediately')
+      setNewLinkHighlightReady(true)
+
+      // Mark initial load as complete after delay (for heart animations)
       setTimeout(() => {
         console.log('✅ [MY-LINKS] Initial payment links load complete - enabling heart animations')
         setInitialLoadComplete(true)
