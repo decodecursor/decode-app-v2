@@ -327,10 +327,10 @@ export default function PaymentHistoryPage() {
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Button - Above Header */}
         <div className="flex justify-center mb-8">
-          <div className="payments-container payments-container-mobile">
+          <div className="w-full px-4 md:w-[70vw] md:px-0">
             <Link
               href="/dashboard"
-              className="inline-flex items-center text-gray-300 hover:text-white transition-colors payment-back-button payments-back-button-mobile"
+              className="inline-flex items-center text-gray-300 hover:text-white transition-colors"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
