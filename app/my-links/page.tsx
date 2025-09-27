@@ -1373,7 +1373,7 @@ function MyLinksContent() {
                         {/* Mobile Layout - Hidden on desktop */}
                         <div className="md:hidden">
                           {/* Top row with client name and badge on same line */}
-                          <div className="flex justify-between items-start mb-1">
+                          <div className="flex justify-between items-start mb-1 pt-2">
                             <p className="payment-link-client-mobile text-purple-400">
                               {link.client_name || ''}
                             </p>
@@ -1400,14 +1400,14 @@ function MyLinksContent() {
                           </div>
 
                           {/* Amount and Creator in same row */}
-                          <div className="flex justify-between items-start mb-1">
+                          <div className="flex justify-between items-start mb-2">
                             <div className="payment-link-amount-mobile text-white">
                               AED {formatAmount(link.service_amount_aed || link.amount_aed)}
                             </div>
                           </div>
 
                           {/* Mobile Action Buttons - Optimized sizing for one line */}
-                          <div className={`flex gap-1 mt-1 pt-1 border-t border-gray-700 ${isPaid || isExpired || isDeactivated ? 'opacity-50' : ''}`}>
+                          <div className={`flex gap-1 mt-2 pt-2 border-t border-gray-700 ${isPaid || isExpired || isDeactivated ? 'opacity-50' : ''}`}>
                             <button
                               onClick={() => copyToClipboard(link.id)}
                               disabled={copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
