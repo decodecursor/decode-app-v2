@@ -228,6 +228,59 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
         }
       }
 
+      // Check for existing branches in the company to auto-assign if only one exists
+      let branchToAssign = role === 'Admin' ? 'Main Branch' : null
+
+      if (role === 'Staff') {
+        console.log('🔄 [ROLE MODAL] Checking company branches for auto-assignment...')
+        try {
+          // Query existing users in the company to get branches
+          const { data: companyUsers, error: fetchError } = await supabase
+            .from('users')
+            .select('branch_name')
+            .eq('company_name', companyName.trim())
+            .eq('approval_status', 'approved')
+            .not('branch_name', 'is', null)
+
+          if (!fetchError && companyUsers) {
+            // Extract unique branches
+            const branches = new Set<string>()
+            companyUsers.forEach(user => {
+              if (user.branch_name) {
+                // Handle comma-separated branches
+                const userBranches = user.branch_name.split(',').map(b => b.trim()).filter(b => b !== '')
+                userBranches.forEach(b => branches.add(b))
+              }
+            })
+
+            console.log('🔍 [ROLE MODAL] Found branches:', Array.from(branches))
+
+            // If only one branch exists and it's Main Branch, auto-assign to it
+            if (branches.size === 1 && branches.has('Main Branch')) {
+              branchToAssign = 'Main Branch'
+              console.log('✅ [ROLE MODAL] Auto-assigning Staff user to Main Branch (only branch in company)')
+            } else if (branches.size === 0) {
+              // No branches exist yet, this might be the first Staff user
+              // Check if an Admin exists with Main Branch
+              const { data: adminUser } = await supabase
+                .from('users')
+                .select('branch_name')
+                .eq('company_name', companyName.trim())
+                .eq('role', 'Admin')
+                .eq('approval_status', 'approved')
+                .single()
+
+              if (adminUser?.branch_name === 'Main Branch') {
+                branchToAssign = 'Main Branch'
+                console.log('✅ [ROLE MODAL] Auto-assigning Staff user to Main Branch (found via Admin)')
+              }
+            }
+          }
+        } catch (error) {
+          console.log('⚠️ [ROLE MODAL] Could not fetch branches, proceeding without auto-assignment:', error)
+        }
+      }
+
       // Create profile data - simple approach
       const profileData = {
         id: userIdToUse,
@@ -235,7 +288,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
         user_name: userName.trim(),
         role: role,
         company_name: companyName.trim(),
-        branch_name: role === 'Admin' ? 'Main Branch' : null,
+        branch_name: branchToAssign,
         approval_status: (role === 'Admin' || inviteData) ? 'approved' : 'pending',
         terms_accepted_at: termsAcceptedAt
       }

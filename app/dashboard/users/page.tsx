@@ -159,26 +159,36 @@ export default function UsersManagement() {
             (payload) => {
               // Only process new users for this admin's company
               if (payload.new?.company_name !== userData.company_name) {
+                console.log('🔄 Skipping user from different company:', payload.new?.company_name)
                 return; // Skip updates for other companies
               }
-              
-              console.log('👤 New user registered:', payload.new)
-              
+
+              console.log('👤 New user registered for this company:', payload.new)
+
               // Update users list in real-time
               const newUser = payload.new as User
-              setUsers(prevUsers => [newUser, ...prevUsers])
-              
+              console.log('📝 Adding new user to list. Branch:', newUser.branch_name, 'Status:', newUser.approval_status)
+
+              setUsers(prevUsers => {
+                const updatedUsers = [newUser, ...prevUsers]
+                console.log('✅ Updated users list. Total users:', updatedUsers.length)
+                return updatedUsers
+              })
+
               // Update branches if the new user has a new branch
               if (newUser.branch_name) {
                 const newUserBranches = newUser.branch_name.split(',').map(b => b.trim()).filter(b => b !== '')
+                console.log('🌿 User branches:', newUserBranches)
                 setBranches(prevBranches => {
                   const updatedBranches = [...new Set([...prevBranches, ...newUserBranches])]
+                  console.log('✅ Updated branches list:', updatedBranches)
                   return updatedBranches
                 })
               }
-              
+
               // Increment new user count for notification
               setNewUserCount(prevCount => prevCount + 1)
+              console.log('🔔 New user notification count incremented')
             }
           )
           .subscribe((status) => {
