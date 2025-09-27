@@ -146,66 +146,6 @@ export default function UsersManagement() {
         setBranches(branchNames || [])
         setLoading(false)
 
-        // Set up real-time subscription for new user registrations
-        console.log('🔄 Setting up real-time subscription for new users in company:', userData.company_name)
-        const subscription = supabase
-          .channel('new_users_notifications')
-          .on('postgres_changes',
-            {
-              event: 'INSERT',
-              schema: 'public',
-              table: 'users'
-            },
-            (payload) => {
-              // Only process new users for this admin's company
-              if (payload.new?.company_name !== userData.company_name) {
-                console.log('🔄 Skipping user from different company:', payload.new?.company_name)
-                return; // Skip updates for other companies
-              }
-
-              console.log('👤 New user registered for this company:', payload.new)
-
-              // Update users list in real-time
-              const newUser = payload.new as User
-              console.log('📝 Adding new user to list. Branch:', newUser.branch_name, 'Status:', newUser.approval_status)
-
-              setUsers(prevUsers => {
-                const updatedUsers = [newUser, ...prevUsers]
-                console.log('✅ Updated users list. Total users:', updatedUsers.length)
-                return updatedUsers
-              })
-
-              // Update branches if the new user has a new branch
-              if (newUser.branch_name) {
-                const newUserBranches = newUser.branch_name.split(',').map(b => b.trim()).filter(b => b !== '')
-                console.log('🌿 User branches:', newUserBranches)
-                setBranches(prevBranches => {
-                  const updatedBranches = [...new Set([...prevBranches, ...newUserBranches])]
-                  console.log('✅ Updated branches list:', updatedBranches)
-                  return updatedBranches
-                })
-              }
-
-              // Increment new user count for notification
-              setNewUserCount(prevCount => prevCount + 1)
-              console.log('🔔 New user notification count incremented')
-            }
-          )
-          .subscribe((status) => {
-            console.log('📡 New users subscription status:', status)
-            if (status === 'SUBSCRIBED') {
-              console.log('✅ Successfully subscribed to new user notifications')
-            } else {
-              console.warn('⚠️ New users subscription status:', status)
-            }
-          })
-
-        // Cleanup subscription on component unmount
-        return () => {
-          console.log('🧹 Cleaning up new users subscription')
-          subscription.unsubscribe()
-        }
-
       } catch (error) {
         console.error('Error loading users:', error)
         setLoading(false)
@@ -214,6 +154,77 @@ export default function UsersManagement() {
 
     loadUsers()
   }, [])
+
+  // Set up real-time subscription when adminCompany is available
+  useEffect(() => {
+    if (!adminCompany) {
+      console.log('🔄 Admin company not yet available, skipping subscription setup')
+      return
+    }
+
+    console.log('🔄 Setting up real-time subscription for new users in company:', adminCompany)
+
+    const subscription = supabase
+      .channel('new_users_notifications')
+      .on('postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'users',
+          filter: `company_name=eq.${adminCompany}` // Use Postgres filter for efficiency
+        },
+        (payload) => {
+          console.log('👤 New user registered event received:', payload)
+
+          // Double-check company match (belt and suspenders)
+          if (payload.new?.company_name !== adminCompany) {
+            console.log('🔄 Skipping user from different company:', payload.new?.company_name)
+            return
+          }
+
+          console.log('👤 New user registered for this company:', payload.new)
+
+          // Update users list in real-time
+          const newUser = payload.new as User
+          console.log('📝 Adding new user to list. Branch:', newUser.branch_name, 'Status:', newUser.approval_status)
+
+          setUsers(prevUsers => {
+            const updatedUsers = [newUser, ...prevUsers]
+            console.log('✅ Updated users list. Total users:', updatedUsers.length)
+            return updatedUsers
+          })
+
+          // Update branches if the new user has a new branch
+          if (newUser.branch_name) {
+            const newUserBranches = newUser.branch_name.split(',').map(b => b.trim()).filter(b => b !== '')
+            console.log('🌿 User branches:', newUserBranches)
+            setBranches(prevBranches => {
+              const updatedBranches = [...new Set([...prevBranches, ...newUserBranches])]
+              console.log('✅ Updated branches list:', updatedBranches)
+              return updatedBranches
+            })
+          }
+
+          // Increment new user count for notification
+          setNewUserCount(prevCount => prevCount + 1)
+          console.log('🔔 New user notification count incremented')
+        }
+      )
+      .subscribe((status) => {
+        console.log('📡 New users subscription status:', status)
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Successfully subscribed to new user notifications for company:', adminCompany)
+        } else {
+          console.warn('⚠️ New users subscription status:', status)
+        }
+      })
+
+    // Cleanup subscription on component unmount or when adminCompany changes
+    return () => {
+      console.log('🧹 Cleaning up new users subscription')
+      subscription.unsubscribe()
+    }
+  }, [adminCompany]) // Re-subscribe if adminCompany changes
 
   const handleApproval = async (userId: string, action: 'approved' | 'rejected') => {
     try {
