@@ -149,26 +149,33 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
   // Animated button sequence effect on component mount
   useEffect(() => {
-    // Start with Week highlighted, then animate through the sequence
-    const animationSequence = ['week', 'today', 'month', 'custom'] as const
-    let currentIndex = 0
+    // Wait 2 seconds before starting the animation
+    const startDelay = setTimeout(() => {
+      // Start with Week highlighted, then animate through the sequence
+      const animationSequence = ['week', 'today', 'month', 'custom'] as const
+      let currentIndex = 0
 
-    setIsAnimating(true)
-    setAnimatingButton('week') // Start with Week highlighted
+      setIsAnimating(true)
+      setAnimatingButton('week') // Start with Week highlighted
 
-    const interval = setInterval(() => {
-      currentIndex++
-      if (currentIndex < animationSequence.length) {
-        setAnimatingButton(animationSequence[currentIndex])
-      } else {
-        // Animation complete, clear animation state
-        clearInterval(interval)
-        setAnimatingButton(null)
-        setIsAnimating(false)
-      }
-    }, 300)
+      const interval = setInterval(() => {
+        currentIndex++
+        if (currentIndex < animationSequence.length) {
+          setAnimatingButton(animationSequence[currentIndex])
+        } else {
+          // Animation complete, clear animation state
+          clearInterval(interval)
+          setAnimatingButton(null)
+          setIsAnimating(false)
+        }
+      }, 400) // Changed from 300ms to 400ms
 
-    return () => clearInterval(interval)
+      // Cleanup function for the interval
+      return () => clearInterval(interval)
+    }, 2000) // 2 second delay before starting animation
+
+    // Cleanup function for the timeout
+    return () => clearTimeout(startDelay)
   }, []) // Run only on mount
 
   const calculateStats = useCallback(() => {
@@ -741,7 +748,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                   }
                 }}
                 className={`flex-1 px-2 py-1 rounded-md text-xs font-medium transition-colors ${
-                  (dateRange === range || animatingButton === range)
+                  (isAnimating ? animatingButton === range : dateRange === range)
                     ? 'bg-purple-600 text-white'
                     : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                 }`}
