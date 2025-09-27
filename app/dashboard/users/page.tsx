@@ -153,7 +153,7 @@ export default function UsersManagement() {
     }
 
     loadUsers()
-  }, [])
+  }, [router, supabase])
 
   // Set up real-time subscription when adminCompany is available
   useEffect(() => {
@@ -224,7 +224,7 @@ export default function UsersManagement() {
       console.log('🧹 Cleaning up new users subscription')
       subscription.unsubscribe()
     }
-  }, [adminCompany]) // Re-subscribe if adminCompany changes
+  }, [adminCompany, supabase]) // Re-subscribe if adminCompany changes
 
   const handleApproval = async (userId: string, action: 'approved' | 'rejected') => {
     try {
