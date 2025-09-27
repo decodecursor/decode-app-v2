@@ -89,7 +89,17 @@ export async function POST(request: NextRequest) {
 
     // Send admin notification email for new user registration
     try {
-      await emailService.sendAdminUserRegistrationNotification({
+      console.log('📧 [CREATE-PROFILE] Attempting to send admin notification email...')
+      console.log('📧 [CREATE-PROFILE] Email data:', {
+        to: 'sebastian@welovedecode.com',
+        user: profileData.user_name,
+        email: profileData.email,
+        role: profileData.role,
+        company: profileData.company_name,
+        timestamp: new Date().toISOString()
+      })
+
+      const emailResult = await emailService.sendAdminUserRegistrationNotification({
         id: profileData.id,
         email: profileData.email,
         user_name: profileData.user_name,
@@ -99,9 +109,28 @@ export async function POST(request: NextRequest) {
         approval_status: profileData.approval_status || 'approved',
         created_at: new Date().toISOString()
       })
-      console.log('✅ [CREATE-PROFILE] Admin registration notification sent')
-    } catch (emailError) {
-      console.error('⚠️ [CREATE-PROFILE] Failed to send admin notification:', emailError)
+
+      if (emailResult.success) {
+        console.log('✅ [CREATE-PROFILE] Admin registration notification sent successfully')
+        console.log('✅ [CREATE-PROFILE] Email message ID:', emailResult.messageId)
+      } else {
+        console.error('❌ [CREATE-PROFILE] Admin notification email failed:', emailResult.error)
+        console.error('❌ [CREATE-PROFILE] Email provider:', emailResult.provider)
+      }
+    } catch (emailError: any) {
+      console.error('⚠️ [CREATE-PROFILE] Failed to send admin notification - FULL ERROR:', {
+        message: emailError.message,
+        stack: emailError.stack,
+        name: emailError.name,
+        code: emailError.code,
+        timestamp: new Date().toISOString(),
+        userData: {
+          email: profileData.email,
+          name: profileData.user_name,
+          role: profileData.role,
+          company: profileData.company_name
+        }
+      })
       // Don't fail the registration if email fails
     }
 

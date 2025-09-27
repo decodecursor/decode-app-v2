@@ -3,6 +3,7 @@ import { stripeService } from '@/lib/stripe';
 import { createServiceRoleClient } from '@/utils/supabase/service-role';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { stripeTransferService } from '@/lib/stripe-transfer-service';
+import { emailService } from '@/lib/email-service';
 import type Stripe from 'stripe';
 
 export async function POST(request: NextRequest) {
@@ -175,20 +176,112 @@ async function handleCheckoutSessionManually(session: Stripe.Checkout.Session, p
   }
 
   console.log('✅ Payment marked as completed in transactions table');
-  
-  // Create transfer to connected account
+
+  // Get full payment link details for emails
+  const { data: paymentLink } = await supabaseAdmin
+    .from('payment_links')
+    .select('*')
+    .eq('id', paymentLinkId)
+    .single();
+
+  if (!paymentLink) {
+    console.error('❌ Payment link not found for emails');
+    return;
+  }
+
+  // Send email notifications
   try {
-    // Get payment link details to find the beauty professional
-    const { data: paymentLink } = await supabaseAdmin
-      .from('payment_links')
-      .select('creator_id, amount_aed')
-      .eq('id', paymentLinkId)
+    console.log('📧 Sending payment email notifications...');
+
+    // Get creator details for the emails
+    const { data: creator } = await supabaseAdmin
+      .from('users')
+      .select('user_name, email, company_name, branch_name')
+      .eq('id', paymentLink.creator_id)
       .single();
 
+    // 1. Send admin notification to sebastian@welovedecode.com
+    try {
+      const adminEmailResult = await emailService.sendAdminPaymentNotification({
+        payment_link_id: paymentLink.id,
+        paymentlink_request_id: paymentLink.paymentlink_request_id,
+        transaction_id: transaction.id,
+        service_amount_aed: paymentLink.service_amount_aed || 0,
+        decode_amount_aed: paymentLink.decode_amount_aed || 0,
+        total_amount_aed: paymentLink.total_amount_aed || session.amount_total! / 100,
+        platform_fee: paymentLink.decode_amount_aed || 0,
+        company_name: creator?.company_name || 'Unknown Company',
+        staff_name: creator?.user_name || 'Unknown Staff',
+        branch_name: creator?.branch_name,
+        client_name: paymentLink.client_name || session.customer_details?.name || 'Unknown Client',
+        client_email: paymentLink.client_email || session.customer_email || '',
+        client_phone: paymentLink.client_phone || session.customer_details?.phone || '',
+        service_name: paymentLink.title || 'Service Payment',
+        service_description: paymentLink.description,
+        payment_method: 'Card',
+        payment_processor: 'stripe',
+        processor_transaction_id: session.payment_intent as string,
+        completed_at: new Date().toISOString()
+      });
+      console.log('✅ Admin payment notification sent:', adminEmailResult.success ? 'SUCCESS' : 'FAILED');
+    } catch (adminEmailError) {
+      console.error('⚠️ Failed to send admin payment notification:', adminEmailError);
+    }
+
+    // 2. Send payment confirmation to customer
+    if (session.customer_email) {
+      try {
+        const customerEmailResult = await emailService.sendPaymentConfirmation({
+          buyerEmail: session.customer_email,
+          buyerName: session.customer_details?.name || paymentLink.client_name || 'Customer',
+          transactionId: transaction.id,
+          amount: session.amount_total! / 100,
+          currency: 'AED',
+          serviceTitle: paymentLink.title || 'Service Payment',
+          serviceDescription: paymentLink.description || '',
+          creatorName: creator?.company_name || 'Service Provider',
+          creatorEmail: creator?.email || '',
+          paymentMethod: 'Card',
+          transactionDate: new Date().toISOString(),
+          receiptUrl: `https://app.welovedecode.com/pay/success?payment_link_id=${paymentLinkId}`
+        });
+        console.log('✅ Customer payment confirmation sent:', customerEmailResult.success ? 'SUCCESS' : 'FAILED');
+      } catch (customerEmailError) {
+        console.error('⚠️ Failed to send customer payment confirmation:', customerEmailError);
+      }
+    }
+
+    // 3. Send notification to creator
+    if (creator?.email) {
+      try {
+        const creatorEmailResult = await emailService.sendCreatorPaymentNotification({
+          creatorEmail: creator.email,
+          creatorName: creator.user_name || creator.email,
+          transactionId: transaction.id,
+          amount: session.amount_total! / 100,
+          currency: 'AED',
+          serviceTitle: paymentLink.title || 'Service Payment',
+          buyerEmail: session.customer_email || paymentLink.client_email || '',
+          transactionDate: new Date().toISOString()
+        });
+        console.log('✅ Creator payment notification sent:', creatorEmailResult.success ? 'SUCCESS' : 'FAILED');
+      } catch (creatorEmailError) {
+        console.error('⚠️ Failed to send creator payment notification:', creatorEmailError);
+      }
+    }
+
+    console.log('✅ All payment email notifications processed');
+  } catch (emailError) {
+    console.error('❌ Error sending payment emails:', emailError);
+    // Don't fail the webhook if emails fail
+  }
+
+  // Create transfer to connected account
+  try {
     if (paymentLink?.creator_id) {
       // Get the service amount (before platform fee)
       const serviceAmount = paymentLink.amount_aed;
-      
+
       // Create transfer for the full service amount
       await stripeTransferService.createTransfer({
         paymentIntentId: session.payment_intent as string,
@@ -197,15 +290,15 @@ async function handleCheckoutSessionManually(session: Stripe.Checkout.Session, p
         paymentId: transaction.id,
         userId: paymentLink.creator_id
       });
-      
+
       console.log('✅ Transfer created for beauty professional');
     }
   } catch (transferError) {
     console.error('❌ Failed to create transfer:', transferError);
     // Don't fail the webhook, payment was successful
   }
-  
-  console.log('✅ Transaction completed manually:', transaction.id);
+
+  console.log('✅ Transaction completed manually with email notifications:', transaction.id);
 }
 
 // Helper function to update transaction to completed status
