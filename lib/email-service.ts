@@ -186,6 +186,7 @@ class EmailService {
         error: error instanceof Error ? error.message : 'Unknown error'
       }
     }
+    */ // END DISABLED
   }
 
   /**
