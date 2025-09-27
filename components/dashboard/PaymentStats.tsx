@@ -74,6 +74,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
   // Animation states for button sequence effect
   const [animatingButton, setAnimatingButton] = useState<'today' | 'week' | 'month' | 'custom' | null>(null)
   const [isAnimating, setIsAnimating] = useState(false)
+  const [animationComplete, setAnimationComplete] = useState(false)
   const [statsData, setStatsData] = useState<{
     current: DateRangeStats
     previous: DateRangeStats
@@ -151,12 +152,12 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
   useEffect(() => {
     // Wait 2 seconds before starting the animation
     const startDelay = setTimeout(() => {
-      // Start with Week highlighted, then animate through the sequence
-      const animationSequence = ['week', 'today', 'month', 'custom'] as const
+      // Animation sequence starting with Today
+      const animationSequence = ['today', 'week', 'month', 'custom'] as const
       let currentIndex = 0
 
       setIsAnimating(true)
-      setAnimatingButton('week') // Start with Week highlighted
+      setAnimatingButton('today') // Start with Today highlighted
 
       const interval = setInterval(() => {
         currentIndex++
@@ -167,8 +168,9 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
           clearInterval(interval)
           setAnimatingButton(null)
           setIsAnimating(false)
+          setAnimationComplete(true) // Mark animation as complete
         }
-      }, 400) // Changed from 300ms to 400ms
+      }, 400) // 400ms per button
 
       // Cleanup function for the interval
       return () => clearInterval(interval)
@@ -748,7 +750,9 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                   }
                 }}
                 className={`flex-1 px-2 py-1 rounded-md text-xs font-medium transition-colors ${
-                  (isAnimating ? animatingButton === range : dateRange === range)
+                  (isAnimating
+                    ? animatingButton === range
+                    : (animationComplete && dateRange === range))
                     ? 'bg-purple-600 text-white'
                     : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                 }`}
