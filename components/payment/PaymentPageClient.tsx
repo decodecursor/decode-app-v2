@@ -137,7 +137,8 @@ export default function PaymentPageClient() {
   // Show error state
   if (error || (!loading && !paymentData)) {
     const isExpiredLink = error && error.includes('expired')
-    
+    const isDeactivatedLink = error && error.includes('deactivated')
+
     return (
       <div className="cosmic-bg">
         <div className="min-h-screen flex items-center justify-center px-4">
@@ -155,12 +156,16 @@ export default function PaymentPageClient() {
                 </svg>
               )}
             </div>
-            <h1 className={`cosmic-logo mb-4 ${
-              isExpiredLink ? 'text-orange-400' : 'text-red-400'
-            }`}>
-              {isExpiredLink ? 'Payment Link Expired' : 'Payment Link Error'}
-            </h1>
-            <p className="cosmic-body text-white opacity-80">{error}</p>
+            {!isDeactivatedLink && (
+              <h1 className={`cosmic-logo mb-4 ${
+                isExpiredLink ? 'text-orange-400' : 'text-red-400'
+              }`}>
+                {isExpiredLink ? 'Payment Link Expired' : 'Payment Link Error'}
+              </h1>
+            )}
+            <p className="cosmic-body text-white opacity-80" style={isDeactivatedLink ? { fontSize: '18px' } : undefined}>
+              {error}
+            </p>
             {isExpiredLink && (
               <p className="cosmic-body text-gray-300 opacity-60 mt-4 text-sm">
                 Please contact the service provider for a new payment link.
