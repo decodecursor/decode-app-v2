@@ -530,13 +530,13 @@ export default function UsersManagement() {
                 <div className="flex flex-row md:flex-row gap-1 md:gap-3">
                   <button
                     onClick={() => setShowCreateBranchModal(true)}
-                    className="text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[10px] md:text-[13px] font-medium px-1.5 py-2 md:px-4 md:py-2.5 cursor-pointer transition-colors flex-1 md:w-auto whitespace-nowrap"
+                    className="text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[10px] md:text-[15px] font-medium px-1.5 py-2 md:px-4 md:py-2.5 cursor-pointer transition-colors flex-1 md:w-auto whitespace-nowrap"
                   >
                     Create Branch
                   </button>
                   <button
                     onClick={() => setShowInviteModal(true)}
-                    className="relative text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[10px] md:text-[13px] font-medium px-1.5 py-2 md:px-4 md:py-2.5 cursor-pointer transition-colors flex-1 md:w-auto whitespace-nowrap"
+                    className="relative text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[10px] md:text-[15px] font-medium px-1.5 py-2 md:px-4 md:py-2.5 cursor-pointer transition-colors flex-1 md:w-auto whitespace-nowrap"
                   >
                     Invite User
                     {newUserCount > 0 && (
