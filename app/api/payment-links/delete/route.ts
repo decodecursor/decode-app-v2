@@ -111,6 +111,61 @@ export async function DELETE(request: NextRequest) {
       transactionStatuses: allTransactions?.map(t => t.status) || []
     })
 
+    // Clean up related records that can be safely deleted
+
+    // 1. Delete analytics events for this payment link
+    const { data: analyticsEvents, error: analyticsDeleteError } = await supabase
+      .from('analytics_events')
+      .delete()
+      .eq('payment_link_id', linkId)
+      .select('id')
+
+    if (analyticsDeleteError) {
+      console.error('🗑️ API: Error deleting analytics events:', analyticsDeleteError)
+    } else {
+      console.log('🗑️ API: Deleted analytics events:', analyticsEvents?.length || 0)
+    }
+
+    // 2. Delete non-completed transactions (pending, failed, cancelled, expired)
+    const nonCompletedStatuses = ['pending', 'failed', 'cancelled', 'expired']
+    const { data: deletedTransactions, error: transactionDeleteError } = await supabase
+      .from('transactions')
+      .delete()
+      .eq('payment_link_id', linkId)
+      .in('status', nonCompletedStatuses)
+      .select('id, status')
+
+    if (transactionDeleteError) {
+      console.error('🗑️ API: Error deleting non-completed transactions:', transactionDeleteError)
+    } else {
+      console.log('🗑️ API: Deleted non-completed transactions:', deletedTransactions?.length || 0,
+                 'with statuses:', deletedTransactions?.map(t => t.status))
+    }
+
+    // 3. Check for payment split recipients (should cascade delete, but let's log)
+    const { data: splitRecipients } = await supabase
+      .from('payment_split_recipients')
+      .select('id')
+      .eq('payment_link_id', linkId)
+
+    console.log('🗑️ API: Payment split recipients found:', splitRecipients?.length || 0)
+
+    // 4. Check for email logs (should SET NULL, but let's log)
+    const { data: emailLogs } = await supabase
+      .from('email_logs')
+      .select('id')
+      .eq('payment_link_id', linkId)
+
+    console.log('🗑️ API: Email logs found:', emailLogs?.length || 0)
+
+    // 5. Check for wallet transactions (should SET NULL, but let's log)
+    const { data: walletTransactions } = await supabase
+      .from('wallet_transactions')
+      .select('id')
+      .eq('payment_link_id', linkId)
+
+    console.log('🗑️ API: Wallet transactions found:', walletTransactions?.length || 0)
+
     // Attempt to delete the payment link
     const { data: deleteData, error: deleteError } = await supabase
       .from('payment_links')
@@ -129,10 +184,45 @@ export async function DELETE(request: NextRequest) {
 
       // Handle specific error codes
       if (deleteError.code === '23503') {
+        // Foreign key constraint violation - try to identify which table is causing the issue
+        console.error('🗑️ API: Foreign key constraint violation. Checking for remaining related records...')
+
+        const relatedRecordsCheck = await Promise.all([
+          supabase.from('transactions').select('id, status').eq('payment_link_id', linkId),
+          supabase.from('analytics_events').select('id').eq('payment_link_id', linkId),
+          supabase.from('payment_split_recipients').select('id').eq('payment_link_id', linkId),
+          supabase.from('email_logs').select('id').eq('payment_link_id', linkId),
+          supabase.from('wallet_transactions').select('id').eq('payment_link_id', linkId)
+        ])
+
+        const [remainingTransactions, remainingAnalytics, remainingSplits, remainingEmails, remainingWallet] = relatedRecordsCheck
+
+        console.error('🗑️ API: Remaining related records:', {
+          transactions: remainingTransactions.data?.length || 0,
+          analytics_events: remainingAnalytics.data?.length || 0,
+          payment_split_recipients: remainingSplits.data?.length || 0,
+          email_logs: remainingEmails.data?.length || 0,
+          wallet_transactions: remainingWallet.data?.length || 0
+        })
+
+        let detailedError = 'Cannot delete: This payment link has related records that prevent deletion.'
+
+        if (remainingTransactions.data && remainingTransactions.data.length > 0) {
+          const statuses = remainingTransactions.data.map(t => t.status)
+          detailedError += ` Found ${remainingTransactions.data.length} transactions with statuses: ${statuses.join(', ')}.`
+        }
+
         return NextResponse.json(
           {
-            error: 'Cannot delete: This payment link has related records',
-            code: deleteError.code
+            error: detailedError,
+            code: deleteError.code,
+            relatedRecords: {
+              transactions: remainingTransactions.data?.length || 0,
+              analytics_events: remainingAnalytics.data?.length || 0,
+              payment_split_recipients: remainingSplits.data?.length || 0,
+              email_logs: remainingEmails.data?.length || 0,
+              wallet_transactions: remainingWallet.data?.length || 0
+            }
           },
           { status: 400 }
         )
