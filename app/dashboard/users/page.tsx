@@ -170,8 +170,8 @@ export default function UsersManagement() {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'users',
-          filter: `company_name=eq.${adminCompany}` // Use Postgres filter for efficiency
+          table: 'users'
+          // Removed filter to avoid issues with special characters
         },
         (payload) => {
           console.log('👤 New user registered event received:', payload)
