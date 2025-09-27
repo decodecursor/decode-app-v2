@@ -65,11 +65,15 @@ interface PopularAmount {
 export default function PaymentStats({ transactions, paymentLinks, user, userRole }: PaymentStatsProps) {
   console.log('📊 [PAYMENTSTATS] Component rendered - paymentLinks:', paymentLinks.length, 'transactions:', transactions.length, 'userRole:', userRole)
 
-  const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'custom'>('today')
+  const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'custom'>('week')
   const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined)
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [exportDone, setExportDone] = useState(false)
+
+  // Animation states for button sequence effect
+  const [animatingButton, setAnimatingButton] = useState<'today' | 'week' | 'month' | 'custom' | null>(null)
+  const [isAnimating, setIsAnimating] = useState(false)
   const [statsData, setStatsData] = useState<{
     current: DateRangeStats
     previous: DateRangeStats
@@ -142,6 +146,30 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       if (timer) clearTimeout(timer)
     }
   }, [exportDone])
+
+  // Animated button sequence effect on component mount
+  useEffect(() => {
+    // Start with Week highlighted, then animate through the sequence
+    const animationSequence = ['week', 'today', 'month', 'custom'] as const
+    let currentIndex = 0
+
+    setIsAnimating(true)
+    setAnimatingButton('week') // Start with Week highlighted
+
+    const interval = setInterval(() => {
+      currentIndex++
+      if (currentIndex < animationSequence.length) {
+        setAnimatingButton(animationSequence[currentIndex])
+      } else {
+        // Animation complete, clear animation state
+        clearInterval(interval)
+        setAnimatingButton(null)
+        setIsAnimating(false)
+      }
+    }, 300)
+
+    return () => clearInterval(interval)
+  }, []) // Run only on mount
 
   const calculateStats = useCallback(() => {
     // Data is now passed directly from parent (already includes company-wide data for ADMIN users)
@@ -713,7 +741,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                   }
                 }}
                 className={`flex-1 px-2 py-1 rounded-md text-xs font-medium transition-colors ${
-                  dateRange === range
+                  (dateRange === range || animatingButton === range)
                     ? 'bg-purple-600 text-white'
                     : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                 }`}
