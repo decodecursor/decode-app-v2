@@ -148,8 +148,11 @@ class EmailService {
 
   /**
    * Send payment confirmation email to buyer
+   * DISABLED - Only admin emails to sebastian@welovedecode.com are active
    */
   async sendPaymentConfirmation(data: PaymentConfirmationData): Promise<EmailResult> {
+    return { success: true, messageId: 'disabled', provider: 'disabled' }; // Email disabled
+    /* DISABLED
     try {
       console.log(`📧 Sending payment confirmation email to ${data.buyerEmail}`)
 
@@ -187,8 +190,11 @@ class EmailService {
 
   /**
    * Send payment failure notification to buyer
+   * DISABLED - Only admin emails to sebastian@welovedecode.com are active
    */
   async sendPaymentFailure(data: PaymentFailureData): Promise<EmailResult> {
+    return { success: true, messageId: 'disabled', provider: 'disabled' }; // Email disabled
+    /* DISABLED
     try {
       console.log(`📧 Sending payment failure notification to ${data.buyerEmail}`)
 
@@ -222,12 +228,16 @@ class EmailService {
         error: error instanceof Error ? error.message : 'Unknown error'
       }
     }
+    */ // END DISABLED
   }
 
   /**
    * Send detailed payment receipt
+   * DISABLED - Only admin emails to sebastian@welovedecode.com are active
    */
   async sendPaymentReceipt(data: PaymentReceiptData): Promise<EmailResult> {
+    return { success: true, messageId: 'disabled', provider: 'disabled' }; // Email disabled
+    /* DISABLED
     try {
       console.log(`📧 Sending payment receipt to ${data.buyerEmail}`)
 
@@ -261,12 +271,16 @@ class EmailService {
         error: error instanceof Error ? error.message : 'Unknown error'
       }
     }
+    */ // END DISABLED
   }
 
   /**
    * Send user invitation email
+   * DISABLED - Only admin emails to sebastian@welovedecode.com are active
    */
   async sendUserInvitation(data: UserInvitationData): Promise<EmailResult> {
+    return { success: true, messageId: 'disabled', provider: 'disabled' }; // Email disabled
+    /* DISABLED
     try {
       console.log(`📧 Sending user invitation to ${data.recipientEmail}`)
 
@@ -299,6 +313,7 @@ class EmailService {
         error: error instanceof Error ? error.message : 'Unknown error'
       }
     }
+    */ // END DISABLED
   }
 
   /**
@@ -347,6 +362,7 @@ class EmailService {
         error: error instanceof Error ? error.message : 'Unknown error'
       }
     }
+    */ // END DISABLED
   }
 
   /**

@@ -228,47 +228,7 @@ async function handleCheckoutSessionManually(session: Stripe.Checkout.Session, p
       console.error('⚠️ Failed to send admin payment notification:', adminEmailError);
     }
 
-    // 2. Send payment confirmation to customer
-    if (session.customer_email) {
-      try {
-        const customerEmailResult = await emailService.sendPaymentConfirmation({
-          buyerEmail: session.customer_email,
-          buyerName: session.customer_details?.name || paymentLink.client_name || 'Customer',
-          transactionId: transaction.id,
-          amount: session.amount_total! / 100,
-          currency: 'AED',
-          serviceTitle: paymentLink.title || 'Service Payment',
-          serviceDescription: paymentLink.description || '',
-          creatorName: creator?.company_name || 'Service Provider',
-          creatorEmail: creator?.email || '',
-          paymentMethod: 'Card',
-          transactionDate: new Date().toISOString(),
-          receiptUrl: `https://app.welovedecode.com/pay/success?payment_link_id=${paymentLinkId}`
-        });
-        console.log('✅ Customer payment confirmation sent:', customerEmailResult.success ? 'SUCCESS' : 'FAILED');
-      } catch (customerEmailError) {
-        console.error('⚠️ Failed to send customer payment confirmation:', customerEmailError);
-      }
-    }
-
-    // 3. Send notification to creator
-    if (creator?.email) {
-      try {
-        const creatorEmailResult = await emailService.sendCreatorPaymentNotification({
-          creatorEmail: creator.email,
-          creatorName: creator.user_name || creator.email,
-          transactionId: transaction.id,
-          amount: session.amount_total! / 100,
-          currency: 'AED',
-          serviceTitle: paymentLink.title || 'Service Payment',
-          buyerEmail: session.customer_email || paymentLink.client_email || '',
-          transactionDate: new Date().toISOString()
-        });
-        console.log('✅ Creator payment notification sent:', creatorEmailResult.success ? 'SUCCESS' : 'FAILED');
-      } catch (creatorEmailError) {
-        console.error('⚠️ Failed to send creator payment notification:', creatorEmailError);
-      }
-    }
+    // Customer and creator emails are disabled - only admin notifications are sent
 
     console.log('✅ All payment email notifications processed');
   } catch (emailError) {
