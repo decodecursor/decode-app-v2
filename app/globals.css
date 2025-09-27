@@ -638,7 +638,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Subtle border instead of glow */
     backdrop-filter: none !important; /* Remove blur effect */
     -webkit-backdrop-filter: none !important; /* Remove blur effect for Safari */
-    background: rgba(31, 41, 55, 0.95) !important; /* Solid dark background instead of transparent */
+    background: rgba(255, 255, 255, 0.3) !important; /* Original transparent white background */
   }
 
   /* Remove avatar glow on mobile */
