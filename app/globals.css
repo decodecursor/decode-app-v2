@@ -638,7 +638,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.4) !important; /* Same border as desktop */
     backdrop-filter: none !important; /* No blur to prevent glow */
     -webkit-backdrop-filter: none !important; /* No blur for Safari */
-    background: rgba(255, 255, 255, 0.4) !important; /* Balanced opacity for milky effect without blur */
+    background: rgba(26, 22, 37, 0.6) !important; /* Dark cosmic color with opacity for subtle overlay */
   }
 
   /* Remove avatar glow on mobile */
