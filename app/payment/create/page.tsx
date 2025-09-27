@@ -366,7 +366,7 @@ export default function CreatePayment() {
                     }
                   }}
                   placeholder="Sarah Johnson"
-                  className={`w-full px-4 py-4 md:px-3 md:py-2 bg-blue-900/20 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 text-base md:text-sm ${errors.client ? 'border-red-500' : 'border-blue-500/30'}`}
+                  className={`w-full px-4 py-4 md:px-3 md:py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 text-base md:text-sm ${errors.client ? 'border-red-500' : 'border-gray-600'}`}
                   disabled={creating}
                   autoComplete="off"
                 />
@@ -410,7 +410,7 @@ export default function CreatePayment() {
                   placeholder="0.00"
                   step="0.01"
                   min="0"
-                  className={`w-full px-4 py-4 md:px-3 md:py-2 bg-blue-900/20 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 text-xl ${errors.amount ? 'border-red-500' : 'border-blue-500/30'}`}
+                  className={`w-full px-4 py-4 md:px-3 md:py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 text-base md:text-sm ${errors.amount ? 'border-red-500' : 'border-gray-600'}`}
                   disabled={creating}
                 />
                 {errors.amount && (
