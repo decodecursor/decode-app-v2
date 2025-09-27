@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useUser } from '@/providers/UserContext'
 import { useRouter } from 'next/navigation'
@@ -32,6 +32,9 @@ export default function CreatePayment() {
   // Branch management states
   const [selectedBranch, setSelectedBranch] = useState<string>('')
   const [showBranchSelector, setShowBranchSelector] = useState(false)
+
+  // Ref for client input autofocus
+  const clientInputRef = useRef<HTMLInputElement>(null)
 
   const router = useRouter()
 
@@ -148,6 +151,17 @@ export default function CreatePayment() {
       setLoading(false)
     }
   }, [contextLoading, user, profile, router])
+
+  // Autofocus client input when page loads
+  useEffect(() => {
+    // Focus the client input once loading is complete
+    if (!loading && clientInputRef.current) {
+      // Small delay to ensure the DOM is fully ready
+      setTimeout(() => {
+        clientInputRef.current?.focus()
+      }, 100)
+    }
+  }, [loading])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -379,6 +393,7 @@ export default function CreatePayment() {
               <div className="client-input-wrapper relative">
                 <label className="cosmic-label block mb-2">Client</label>
                 <input
+                  ref={clientInputRef}
                   type="text"
                   name="client"
                   value={formData.client}
