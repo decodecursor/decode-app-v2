@@ -183,6 +183,19 @@ export async function DELETE(request: NextRequest) {
       } else {
         console.log('🗑️ API: Deleted payment analytics:', deletedPaymentAnalytics?.length || 0)
       }
+
+      // Delete from payment_split_transactions table
+      const { data: deletedSplitTransactions, error: splitTransactionsDeleteError } = await supabase
+        .from('payment_split_transactions')
+        .delete()
+        .in('transaction_id', transactionIds)
+        .select('id')
+
+      if (splitTransactionsDeleteError) {
+        console.error('🗑️ API: Error deleting payment split transactions:', splitTransactionsDeleteError)
+      } else {
+        console.log('🗑️ API: Deleted payment split transactions:', deletedSplitTransactions?.length || 0)
+      }
     }
 
     // 4. Now delete the non-completed transactions (should succeed after removing dependencies)
@@ -261,12 +274,23 @@ export async function DELETE(request: NextRequest) {
 
         const [remainingTransactions, remainingAnalytics, remainingSplits, remainingEmails, remainingWallet] = relatedRecordsCheck
 
+        // Check for payment_split_transactions if there are transactions
+        let remainingSplitTransactions = { data: [] }
+        if (remainingTransactions.data && remainingTransactions.data.length > 0) {
+          const transactionIds = remainingTransactions.data.map(t => t.id)
+          remainingSplitTransactions = await supabase
+            .from('payment_split_transactions')
+            .select('id')
+            .in('transaction_id', transactionIds)
+        }
+
         console.error('🗑️ API: Remaining related records:', {
           transactions: remainingTransactions.data?.length || 0,
           analytics_events: remainingAnalytics.data?.length || 0,
           payment_split_recipients: remainingSplits.data?.length || 0,
           email_logs: remainingEmails.data?.length || 0,
-          wallet_transactions: remainingWallet.data?.length || 0
+          wallet_transactions: remainingWallet.data?.length || 0,
+          payment_split_transactions: remainingSplitTransactions.data?.length || 0
         })
 
         let detailedError = 'Cannot delete: This payment link has related records that prevent deletion.'
@@ -285,7 +309,8 @@ export async function DELETE(request: NextRequest) {
               analytics_events: remainingAnalytics.data?.length || 0,
               payment_split_recipients: remainingSplits.data?.length || 0,
               email_logs: remainingEmails.data?.length || 0,
-              wallet_transactions: remainingWallet.data?.length || 0
+              wallet_transactions: remainingWallet.data?.length || 0,
+              payment_split_transactions: remainingSplitTransactions.data?.length || 0
             }
           },
           { status: 400 }
