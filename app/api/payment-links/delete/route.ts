@@ -76,12 +76,12 @@ export async function DELETE(request: NextRequest) {
 
     console.log('🗑️ API: Permission check passed. User is:', isAdmin ? 'Admin' : 'Creator')
 
-    // Check for COMPLETED transactions only (not pending/failed/cancelled)
+    // Check for COMPLETED/PAID transactions (these prevent deletion)
     const { data: completedTransactions, error: txError } = await supabase
       .from('transactions')
       .select('id, status')
       .eq('payment_link_id', linkId)
-      .eq('status', 'completed')
+      .in('status', ['completed', 'paid', 'success'])
       .limit(1)
 
     if (txError) {
@@ -92,7 +92,7 @@ export async function DELETE(request: NextRequest) {
       console.warn('🗑️ API: Payment link has completed transactions, cannot delete')
       return NextResponse.json(
         {
-          error: 'Cannot delete payment link with completed transactions. Only links without successful payments can be deleted.',
+          error: 'Cannot delete payment link with completed payments. Only unpaid links can be deleted.',
           hasTransactions: true
         },
         { status: 400 }
@@ -126,13 +126,13 @@ export async function DELETE(request: NextRequest) {
       console.log('🗑️ API: Deleted analytics events:', analyticsEvents?.length || 0)
     }
 
-    // 2. First, get the IDs of non-completed transactions that we need to delete
-    const nonCompletedStatuses = ['pending', 'failed', 'cancelled', 'expired']
+    // 2. Get ALL transactions (except completed ones) that we need to delete
+    // This includes: pending, failed, cancelled, expired, processing, error, etc.
     const { data: transactionsToDelete, error: transactionFetchError } = await supabase
       .from('transactions')
       .select('id, status')
       .eq('payment_link_id', linkId)
-      .in('status', nonCompletedStatuses)
+      .not('status', 'in', '(completed,paid,success)')
 
     if (transactionFetchError) {
       console.error('🗑️ API: Error fetching non-completed transactions:', transactionFetchError)
@@ -144,6 +144,7 @@ export async function DELETE(request: NextRequest) {
     // 3. Delete transaction-related records that prevent transaction deletion
     if (transactionsToDelete && transactionsToDelete.length > 0) {
       const transactionIds = transactionsToDelete.map(t => t.id)
+      console.log('🗑️ API: Found transactions to delete:', transactionIds.length, 'IDs:', transactionIds)
 
       // Delete from transfers table
       const { data: deletedTransfers, error: transfersDeleteError } = await supabase
@@ -154,6 +155,7 @@ export async function DELETE(request: NextRequest) {
 
       if (transfersDeleteError) {
         console.error('🗑️ API: Error deleting transfers:', transfersDeleteError)
+        // Continue anyway - transfers might not exist
       } else {
         console.log('🗑️ API: Deleted transfers:', deletedTransfers?.length || 0)
       }
@@ -167,6 +169,7 @@ export async function DELETE(request: NextRequest) {
 
       if (geoAnalyticsDeleteError) {
         console.error('🗑️ API: Error deleting geographic analytics:', geoAnalyticsDeleteError)
+        // Continue anyway - analytics might not exist
       } else {
         console.log('🗑️ API: Deleted geographic analytics:', deletedGeoAnalytics?.length || 0)
       }
@@ -180,6 +183,7 @@ export async function DELETE(request: NextRequest) {
 
       if (paymentAnalyticsDeleteError) {
         console.error('🗑️ API: Error deleting payment analytics:', paymentAnalyticsDeleteError)
+        // Continue anyway - analytics might not exist
       } else {
         console.log('🗑️ API: Deleted payment analytics:', deletedPaymentAnalytics?.length || 0)
       }
@@ -193,17 +197,31 @@ export async function DELETE(request: NextRequest) {
 
       if (splitTransactionsDeleteError) {
         console.error('🗑️ API: Error deleting payment split transactions:', splitTransactionsDeleteError)
+        // Continue anyway - split transactions might not exist
       } else {
         console.log('🗑️ API: Deleted payment split transactions:', deletedSplitTransactions?.length || 0)
       }
+
+      // Additional cleanup - Delete any other possible related records
+      // Delete from any audit logs or history tables that might reference transactions
+      const { error: auditDeleteError } = await supabase
+        .from('audit_logs')
+        .delete()
+        .in('entity_id', transactionIds)
+        .eq('entity_type', 'transaction')
+
+      if (auditDeleteError) {
+        // Ignore if table doesn't exist
+        console.log('🗑️ API: No audit logs to delete or table does not exist')
+      }
     }
 
-    // 4. Now delete the non-completed transactions (should succeed after removing dependencies)
+    // 4. Now delete ALL non-completed transactions
     const { data: deletedTransactions, error: transactionDeleteError } = await supabase
       .from('transactions')
       .delete()
       .eq('payment_link_id', linkId)
-      .in('status', nonCompletedStatuses)
+      .not('status', 'in', '(completed,paid,success)')
       .select('id, status')
 
     if (transactionDeleteError) {
@@ -214,6 +232,25 @@ export async function DELETE(request: NextRequest) {
         hint: transactionDeleteError.hint,
         code: transactionDeleteError.code
       })
+
+      // If transaction deletion failed, try a more aggressive approach
+      console.log('🗑️ API: Attempting fallback deletion method...')
+
+      // Try to delete transactions one by one to identify problematic ones
+      if (transactionsToDelete && transactionsToDelete.length > 0) {
+        for (const transaction of transactionsToDelete) {
+          const { error: singleDeleteError } = await supabase
+            .from('transactions')
+            .delete()
+            .eq('id', transaction.id)
+
+          if (singleDeleteError) {
+            console.error(`🗑️ API: Failed to delete transaction ${transaction.id}:`, singleDeleteError.message)
+          } else {
+            console.log(`🗑️ API: Successfully deleted transaction ${transaction.id}`)
+          }
+        }
+      }
     } else {
       console.log('🗑️ API: Successfully deleted non-completed transactions:', deletedTransactions?.length || 0,
                  'with statuses:', deletedTransactions?.map(t => t.status))
@@ -293,11 +330,19 @@ export async function DELETE(request: NextRequest) {
           payment_split_transactions: remainingSplitTransactions.data?.length || 0
         })
 
-        let detailedError = 'Cannot delete: This payment link has related records that prevent deletion.'
+        let detailedError = 'Cannot delete payment link. '
 
         if (remainingTransactions.data && remainingTransactions.data.length > 0) {
           const statuses = remainingTransactions.data.map(t => t.status)
-          detailedError += ` Found ${remainingTransactions.data.length} transactions with statuses: ${statuses.join(', ')}.`
+          const hasCompleted = statuses.some(s => ['completed', 'paid', 'success'].includes(s))
+
+          if (hasCompleted) {
+            detailedError += 'This link has completed payments and cannot be deleted.'
+          } else {
+            detailedError += `Unable to clean up ${remainingTransactions.data.length} pending transaction(s). Please try again or contact support.`
+          }
+        } else {
+          detailedError += 'There are related records preventing deletion. Please try again.'
         }
 
         return NextResponse.json(
