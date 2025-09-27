@@ -152,15 +152,39 @@ export default function CreatePayment() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
-    
+
     // Clear errors when user starts typing
     if (errors[name as keyof typeof errors]) {
       setErrors(prev => ({ ...prev, [name]: '' }))
     }
-    
+
     // Reset suggestion selection when typing
     if (name === 'client') {
       setSelectedClientSuggestionIndex(-1)
+    }
+  }
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target
+
+    // Remove all non-numeric characters except decimal point
+    const numericValue = value.replace(/[^0-9.]/g, '')
+
+    // Handle decimal cases - allow only one decimal point
+    const parts = numericValue.split('.')
+    if (parts.length > 2) return // Don't update if multiple decimal points
+
+    // Format integer part with commas
+    if (parts[0]) {
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+    }
+
+    const formattedValue = parts.join('.')
+    setFormData(prev => ({ ...prev, amount: formattedValue }))
+
+    // Clear errors when user starts typing
+    if (errors.amount) {
+      setErrors(prev => ({ ...prev, amount: '' }))
     }
   }
 
@@ -216,7 +240,7 @@ export default function CreatePayment() {
       newErrors.amount = 'Amount is required'
       isValid = false
     } else {
-      const amount = parseFloat(formData.amount)
+      const amount = parseFloat(formData.amount.replace(/,/g, ''))
       if (isNaN(amount) || amount <= 0) {
         newErrors.amount = 'Please enter a valid amount greater than AED 0'
         isValid = false
@@ -260,7 +284,7 @@ export default function CreatePayment() {
       expirationDate.setDate(expirationDate.getDate() + 7)
 
       // Calculate marketplace fees
-      const originalAmount = parseFloat(formData.amount)
+      const originalAmount = parseFloat(formData.amount.replace(/,/g, ''))
       const feeCalculation = calculateMarketplaceFee(originalAmount)
 
       // Wallet creation removed - not needed for beauty business
@@ -328,7 +352,7 @@ export default function CreatePayment() {
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Link */}
         <div className="flex justify-center mb-8">
-          <div className="w-full payment-create-container" style={{maxWidth: '30vw'}}>
+          <div className="w-full payment-create-container" style={{maxWidth: '28vw'}}>
           <Link 
             href="/dashboard" 
             className="inline-flex items-center text-gray-300 hover:text-white transition-colors payment-back-button"
@@ -348,7 +372,7 @@ export default function CreatePayment() {
 
         {/* Main Content */}
         <div className="flex justify-center">
-          <div className="cosmic-card payment-create-card" style={{width: '30vw'}}>
+          <div className="cosmic-card payment-create-card" style={{width: '28vw'}}>
             <h1 className="cosmic-heading text-center mb-8">Create PayLink</h1>
 
             <form onSubmit={generatePaymentLink} className="space-y-6">
@@ -403,13 +427,11 @@ export default function CreatePayment() {
               <div>
                 <label className="cosmic-label block mb-2">Amount in AED</label>
                 <input
-                  type="number"
+                  type="text"
                   name="amount"
                   value={formData.amount}
-                  onChange={handleInputChange}
+                  onChange={handleAmountChange}
                   placeholder="0.00"
-                  step="0.01"
-                  min="0"
                   className={`w-full px-4 py-4 md:px-3 md:py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 text-base md:text-sm ${errors.amount ? 'border-red-500' : 'border-gray-600'}`}
                   disabled={creating}
                 />
