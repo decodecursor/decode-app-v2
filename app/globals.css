@@ -635,10 +635,10 @@ body {
     margin: 20px auto;
     border-radius: 20px;
     box-shadow: none !important; /* Remove ALL glow on mobile */
-    border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Subtle border instead of glow */
+    border: 1px solid rgba(255, 255, 255, 0.4) !important; /* Same border as desktop */
     backdrop-filter: none !important; /* Remove blur effect */
     -webkit-backdrop-filter: none !important; /* Remove blur effect for Safari */
-    background: rgba(255, 255, 255, 0.15) !important; /* Milky white background without blur */
+    background: rgba(255, 255, 255, 0.3) !important; /* Same background as desktop */
   }
 
   /* Remove avatar glow on mobile */
