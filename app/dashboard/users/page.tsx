@@ -164,6 +164,7 @@ export default function UsersManagement() {
 
     console.log('🔄 Setting up real-time subscription for new users in company:', adminCompany)
 
+    // Note: No filter to avoid issues with special characters in company names
     const subscription = supabase
       .channel('new_users_notifications')
       .on('postgres_changes',
@@ -171,7 +172,6 @@ export default function UsersManagement() {
           event: 'INSERT',
           schema: 'public',
           table: 'users'
-          // Removed filter to avoid issues with special characters
         },
         (payload) => {
           console.log('👤 New user registered event received:', payload)
