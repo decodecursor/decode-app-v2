@@ -585,7 +585,7 @@ export default function UsersManagement() {
 
                   <div className="space-y-4 md:space-y-3 bg-black/20 rounded-lg p-4 border-l-4 border-red-500 shadow-inner">
                     {unassignedUsers.map((user, index) => (
-                      <div key={user.id} className="flex flex-col md:flex-row md:items-center gap-4 md:gap-3 p-4 md:p-3 bg-gray-800/30 rounded-lg border border-gray-700/50">
+                      <div key={user.id} className="flex flex-col md:flex-row md:items-center gap-4 md:gap-3 p-4 md:p-3 bg-gray-800/30 hover:bg-gray-700/50 rounded-lg border border-gray-700/50 transition-colors">
                         <div className="flex items-center gap-3 flex-1">
                           <NumberedAvatar
                             number={index + 1}
@@ -723,7 +723,7 @@ export default function UsersManagement() {
             
             <div className="space-y-4 md:space-y-3">
               {branchUsers.map((user, index) => (
-                <div key={user.id} className="flex md:flex-row md:items-center gap-4 md:gap-3 p-4 bg-gray-800/50 rounded-lg relative">
+                <div key={user.id} className="flex md:flex-row md:items-center gap-4 md:gap-3 p-4 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg relative transition-colors">
                   {/* Mobile: Status badge top-right */}
                   <div className="absolute top-3 right-3 md:relative md:top-auto md:right-auto md:order-2 flex flex-col gap-1 md:flex-row md:items-center md:gap-2">
                     <span className={`px-2 py-1 md:px-3 md:py-1 rounded-full text-xs font-medium text-center ${
@@ -825,7 +825,7 @@ export default function UsersManagement() {
                     return !userBranches.includes(selectedBranch)
                   })
                   .map((user, index) => (
-                    <div key={user.id} className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 p-4 md:p-3 bg-gray-800/50 rounded-lg">
+                    <div key={user.id} className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 p-4 md:p-3 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg transition-colors">
                       <div className="flex items-center gap-3 text-white">
                         <NumberedAvatar
                           number={index + 1}

@@ -1139,7 +1139,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                 </div>
 
                 {/* Desktop Layout */}
-                <div className="hidden md:grid gap-x-4 items-center" style={{gridTemplateColumns: '1.6fr 1.2fr 1.4fr 1.1fr 1.1fr 1.1fr'}}>
+                <div className="hidden md:grid gap-x-4 items-center" style={{gridTemplateColumns: '1.6fr 1.2fr 1.4fr 1.2fr 1.1fr 1.1fr'}}>
                   <div className="flex items-center space-x-3">
                     <span className="w-7 h-7 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">
                       {index + 1}
