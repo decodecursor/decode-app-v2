@@ -1081,10 +1081,10 @@ body {
     max-width: 28vw !important;
   }
 
-  /* Profile button desktop centering - match cosmic-card-profile alignment */
+  /* Profile button desktop alignment - match parent container layout */
   .profile-button-mobile-left {
-    width: 28vw !important;
-    margin: 0 auto !important;
+    width: 100% !important;
+    margin: 0 !important;
   }
 
   .profile-back-button {
