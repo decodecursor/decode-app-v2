@@ -1043,6 +1043,13 @@ body {
     padding: 0 20px !important;
   }
 
+  /* Override width constraint for left-aligned back button */
+  .payment-create-back-button-left .payment-create-back-button {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
   .payment-create-back-button-left {
     justify-content: flex-start !important;
   }
@@ -1061,8 +1068,10 @@ body {
   }
 
   .payments-back-button {
-    width: 90vw !important;
+    width: 100% !important;
+    max-width: none !important;
     padding: 0 !important;
+    margin-left: 0 !important;
   }
 
   .profile-back-button {

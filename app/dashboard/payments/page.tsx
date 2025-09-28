@@ -326,7 +326,7 @@ export default function PaymentHistoryPage() {
     <div className="cosmic-bg min-h-screen">
       <div className="min-h-screen px-4 py-4 md:py-8">
         {/* Back to Dashboard Button - Above Header */}
-        <div className="flex justify-center dashboard-back-button-spacing">
+        <div className="flex justify-start md:justify-center dashboard-back-button-spacing">
           <div className="w-full px-4 md:w-[70vw] md:px-0 payments-back-button">
             <Link
               href="/dashboard"
