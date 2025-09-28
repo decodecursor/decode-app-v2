@@ -628,13 +628,15 @@ body {
     overflow: hidden;
   }
 
-  /* Dashboard mobile ONLY: non-scrollable with header visible */
+  /* Dashboard mobile ONLY: header in top portion, non-scrollable */
   .dashboard-page .min-h-screen {
     display: flex !important;
     flex-direction: column !important;
-    justify-content: center !important;
+    justify-content: flex-start !important;
+    padding-top: 40px !important;
     height: 100vh !important;
-    padding: 0 16px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
     min-height: auto !important;
     overflow: hidden !important;
   }
