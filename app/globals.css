@@ -1135,6 +1135,26 @@ body {
     border-radius: 16px;
   }
 
+  /* Override for header cards on small screens */
+  .header-card-mobile-spacing {
+    margin: 0 auto 24px auto !important;
+  }
+
+  /* Override for content cards on small screens */
+  .content-card-mobile-spacing {
+    margin: 0 auto !important;
+  }
+
+  /* Ensure space-y-6 rules work on small screens */
+  .space-y-6 > .cosmic-card {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .space-y-6 > .cosmic-card:not(:first-child) {
+    margin-top: 24px !important;
+  }
+
   .amount-display-mobile {
     font-size: 28px;
   }
@@ -1192,6 +1212,26 @@ body {
     max-height: 90vh;
     overflow-y: auto;
     margin: 10px auto;
+  }
+
+  /* Override for header cards in landscape */
+  .header-card-mobile-spacing {
+    margin: 0 auto 24px auto !important;
+  }
+
+  /* Override for content cards in landscape */
+  .content-card-mobile-spacing {
+    margin: 0 auto !important;
+  }
+
+  /* Ensure space-y-6 rules work in landscape */
+  .space-y-6 > .cosmic-card {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .space-y-6 > .cosmic-card:not(:first-child) {
+    margin-top: 24px !important;
   }
 
   .mobile-payment-sheet {
