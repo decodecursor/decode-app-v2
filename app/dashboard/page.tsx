@@ -212,13 +212,17 @@ export default function Dashboard() {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setProfileDropdownOpen(false)
       }
+      // Close mobile menu when clicking outside the navigation card
+      if (mobileMenuOpen && event.target && !(event.target as Element).closest('.cosmic-card')) {
+        setMobileMenuOpen(false)
+      }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [])
+  }, [mobileMenuOpen])
 
   // Refresh profile when window regains focus (user returns from profile page)
   useEffect(() => {
