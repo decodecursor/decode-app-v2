@@ -964,7 +964,7 @@ body {
 
   /* CRITICAL: Revenue/Transactions text labels - readable size */
   .cosmic-label.payment-metric-label {
-    font-size: 10px !important;
+    font-size: 11px !important;
     margin-bottom: 1px !important;
     line-height: 1.1 !important;
     flex-shrink: 0 !important;
@@ -1047,8 +1047,12 @@ body {
     justify-content: flex-start !important;
   }
 
+  .payment-create-back-button-left .payment-create-container {
+    margin-left: 0 !important;
+  }
+
   /* Analytics date range buttons - reduce horizontal padding */
-  .flex-1.px-2 {
+  button.flex-1.px-2 {
     padding-left: 6px !important;
     padding-right: 6px !important;
   }
