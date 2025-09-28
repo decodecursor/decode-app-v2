@@ -1372,7 +1372,7 @@ function MyLinksContent() {
                       <div className={`flex flex-col gap-2 ${isPaid || isExpired || isDeactivated ? 'opacity-60 filter grayscale-[0.2]' : ''}`}>
                         {/* Mobile Layout - Hidden on desktop */}
                         <div className="md:hidden">
-                          {/* Top row with client name and badge on same line */}
+                          {/* Row with client name and status badge */}
                           <div className="flex justify-between items-start mb-0.5">
                             <p className="payment-link-client-mobile text-purple-400">
                               {link.client_name || ''}
@@ -1382,9 +1382,11 @@ function MyLinksContent() {
                             </span>
                           </div>
 
-                          {/* Date aligned under badge - Service title removed */}
-                          <div className="flex justify-between items-start mb-0.5">
-                            <div className="flex-1"></div>
+                          {/* Amount and Date in same row */}
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="payment-link-amount-mobile text-white">
+                              AED {formatAmount(link.service_amount_aed || link.amount_aed)}
+                            </div>
                             <div className={`text-xs ${(() => {
                               if (isDeactivated || isExpired) return 'text-red-400'
                               if (isPaid) return 'text-green-400'
@@ -1396,13 +1398,6 @@ function MyLinksContent() {
                                 if (isPaid) return formatDate(link.paid_at || link.expiration_date)
                                 return formatDate(link.expiration_date)
                               })()}
-                            </div>
-                          </div>
-
-                          {/* Amount and Creator in same row */}
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="payment-link-amount-mobile text-white">
-                              AED {formatAmount(link.service_amount_aed || link.amount_aed)}
                             </div>
                           </div>
 
