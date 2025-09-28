@@ -628,9 +628,15 @@ body {
     overflow: hidden;
   }
 
-  /* Dashboard mobile: push layout down to make header visible */
+  /* Dashboard mobile ONLY: non-scrollable with header visible */
   .dashboard-page .min-h-screen {
-    padding-top: 80px !important; /* Push entire layout down */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    height: 100vh !important;
+    padding: 0 16px !important;
+    min-height: auto !important;
+    overflow: hidden !important;
   }
 
   .cosmic-card {
