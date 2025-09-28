@@ -508,7 +508,7 @@ export default function UsersManagement() {
     <div className="cosmic-bg min-h-screen" onClick={resetNewUserNotifications}>
       <div className="min-h-screen px-4 py-8">
         {/* Back to Dashboard Link */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-6">
           <div className="w-full px-4 md:w-[70vw] md:px-0">
             <Link href="/dashboard" className="inline-flex items-center text-gray-300 hover:text-white transition-colors">
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -520,7 +520,7 @@ export default function UsersManagement() {
         </div>
 
         {/* Header Card */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-6">
           <div className="w-full px-4 md:w-[70vw] md:px-0">
             <div className="cosmic-card">
               <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
@@ -558,7 +558,7 @@ export default function UsersManagement() {
         </div>
 
         {message && (
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center mb-6">
             <div className="w-full px-4 md:w-[70vw] md:px-0">
               <div className={`p-3 md:p-2 rounded-lg text-sm md:text-sm ${message.includes('Failed') ? 'bg-red-900/20 text-red-300' : 'bg-green-900/10 text-green-400 border border-green-500/20'}`}>
                 {message}

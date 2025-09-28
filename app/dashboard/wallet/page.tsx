@@ -36,7 +36,7 @@ export default function WalletPage() {
     <div className="cosmic-bg">
       <div className="min-h-screen px-4 py-8">
         {/* Navigation */}
-        <div className="mx-auto mb-8" style={{maxWidth: '3000px'}}>
+        <div className="mx-auto mb-6" style={{maxWidth: '3000px'}}>
           <div className="cosmic-card p-4">
             <div className="flex items-center justify-between">
               <Link 

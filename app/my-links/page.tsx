@@ -1218,7 +1218,7 @@ function MyLinksContent() {
         </div>
 
         {/* Header */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-6">
           <div style={{width: '70vw'}} className="my-links-container">
           <div className="cosmic-card">
             <div className="flex justify-between items-center my-links-header-mobile">
@@ -1227,7 +1227,7 @@ function MyLinksContent() {
               </div>
               <Link
                 href="/payment/create"
-                className="bg-black text-white border border-white/30 rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:bg-gray-900 hover:border-white/50 hover:shadow-[0_4px_12px_rgba(255,255,255,0.1)] inline-block"
+                className="bg-black text-white border border-white/30 rounded-md text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:bg-gray-900 hover:border-white/50 hover:shadow-[0_4px_12px_rgba(255,255,255,0.1)] inline-block"
               >
                 Create PayLink
               </Link>
