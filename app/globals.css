@@ -1049,10 +1049,11 @@ body {
 
   .payment-create-back-button-left .payment-create-container {
     margin-left: 0 !important;
+    max-width: none !important;
   }
 
   /* Analytics date range buttons - reduce horizontal padding */
-  button.flex-1.px-2 {
+  .cosmic-card button.flex-1.px-2 {
     padding-left: 6px !important;
     padding-right: 6px !important;
   }
