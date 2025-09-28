@@ -918,6 +918,12 @@ body {
     line-height: 1.2 !important;
   }
 
+  /* Fix header card spacing - Override cosmic-card margin for header cards */
+  .header-card-mobile-spacing {
+    margin-bottom: 24px !important;
+    margin-top: 20px !important;
+  }
+
   /* CRITICAL: Revenue/Transactions text labels - readable size */
   .payment-metric-label {
     font-size: 10px !important;
