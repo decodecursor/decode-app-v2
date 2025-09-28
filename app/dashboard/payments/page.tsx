@@ -324,7 +324,7 @@ export default function PaymentHistoryPage() {
   // Main component return
   return (
     <div className="cosmic-bg min-h-screen">
-      <div className="min-h-screen px-4 py-8">
+      <div className="min-h-screen px-4 py-2 md:py-8">
         {/* Back to Dashboard Button - Above Header */}
         <div className="flex justify-center mb-6">
           <div className="w-full px-4 md:w-[70vw] md:px-0">
