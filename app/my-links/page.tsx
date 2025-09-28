@@ -837,6 +837,21 @@ function MyLinksContent() {
     }
   }
 
+  const getStatusBg = (status: string) => {
+    switch (status) {
+      case 'Active':
+        return 'bg-green-800/30'
+      case 'Paid':
+        return 'bg-green-800/30'
+      case 'Expired':
+        return 'bg-red-900/20'
+      case 'Deactivated':
+        return 'bg-red-900/20'
+      default:
+        return 'bg-gray-800'
+    }
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -1376,7 +1391,7 @@ function MyLinksContent() {
                             <p className="payment-link-client-mobile text-purple-400">
                               {link.client_name || ''}
                             </p>
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColor} bg-gray-800`}>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColor} ${getStatusBg(status)}`}>
                               {status}
                             </span>
                           </div>
@@ -1512,7 +1527,7 @@ function MyLinksContent() {
                             </div>
                             
                             <div className="text-right">
-                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor} bg-gray-800`}>
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor} ${getStatusBg(status)}`}>
                                 {status}
                               </span>
                             </div>

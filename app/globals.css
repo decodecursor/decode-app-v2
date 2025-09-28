@@ -860,10 +860,10 @@ body {
   /* MOBILE PAYMENT LINK STYLES - MOVED INSIDE MEDIA QUERY */
   /* Professional mobile design for my-links page */
   .my-links-container {
-    width: 100% !important;
-    max-width: 400px !important;
+    width: 90vw !important;
+    max-width: 90vw !important;
     margin: 0 auto !important;
-    padding: 0 12px !important;
+    padding: 0 !important;
     box-sizing: border-box !important;
   }
 
@@ -873,7 +873,7 @@ body {
     justify-content: space-between !important;
     align-items: center !important;
     gap: 12px !important;
-    padding: 12px 16px !important;
+    padding: 0 !important;
   }
 
   .my-links-header-mobile h1 {
