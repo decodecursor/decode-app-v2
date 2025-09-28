@@ -628,37 +628,9 @@ body {
     overflow: hidden;
   }
 
-  /* Dashboard-specific mobile layout compression */
-  .dashboard-page .cosmic-card {
-    padding: 6px 12px !important; /* Reduced from 10px */
-    margin: 0 auto 12px auto !important; /* Reduced bottom margin from 24px to 12px */
-  }
-
-  /* Compress dashboard mobile navigation spacing */
+  /* Dashboard mobile: push layout down to make header visible */
   .dashboard-page .min-h-screen {
-    padding-top: 4px !important; /* Reduced top padding */
-    padding-bottom: 4px !important; /* Reduced bottom padding */
-  }
-
-  /* Dashboard mobile menu compression */
-  .dashboard-page .md\\:hidden {
-    padding: 4px !important; /* Reduce mobile menu padding */
-  }
-
-  /* Dashboard mobile profile section compression */
-  .dashboard-page .instagram-avatar {
-    width: 48px !important;
-    height: 48px !important;
-  }
-
-  .dashboard-page .user-info-name {
-    font-size: 14px !important; /* Slightly smaller */
-    line-height: 1.1 !important;
-  }
-
-  .dashboard-page .user-info-company {
-    font-size: 12px !important; /* Slightly smaller */
-    line-height: 1.1 !important;
+    padding-top: 80px !important; /* Push entire layout down */
   }
 
   .cosmic-card {
