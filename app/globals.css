@@ -1011,6 +1011,17 @@ body {
   .dashboard-header-card-spacing {
     margin-bottom: 2px; /* 13px - 11px = 2px (additional 3mm up on mobile) */
   }
+
+  /* Square delete button fix for mobile - users page */
+  .user-delete-button-mobile {
+    width: 28px !important;
+    height: 28px !important;
+    padding: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+  }
 }
 
 /* Mobile alignment fixes for Back to Dashboard buttons */
