@@ -89,7 +89,7 @@ export function ConnectAccountManagement({ accountId }: ConnectAccountManagement
         <div className="text-center py-8">
           <div className="inline-flex items-center gap-3">
             <div className="w-6 h-6 border-3 border-purple-600 border-t-transparent rounded-full animate-spin" />
-            <span className="text-gray-400 text-sm">Loading account details...</span>
+            <span className="text-gray-400 text-sm">Loading…</span>
           </div>
         </div>
       )}

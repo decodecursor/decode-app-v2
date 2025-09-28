@@ -1227,7 +1227,7 @@ function MyLinksContent() {
               </div>
               <Link
                 href="/payment/create"
-                className="bg-black text-white border border-white/30 rounded-md text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:bg-gray-900 hover:border-white/50 hover:shadow-[0_4px_12px_rgba(255,255,255,0.1)] inline-block"
+                className="bg-black text-white border border-white/30 rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:bg-gray-900 hover:border-white/50 hover:shadow-[0_4px_12px_rgba(255,255,255,0.1)] inline-block"
               >
                 Create PayLink
               </Link>
@@ -1267,8 +1267,7 @@ function MyLinksContent() {
             /* User Context Loading */
             <div className="cosmic-card text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
-              <div className="cosmic-body text-white mb-2">Loading your account...</div>
-              <div className="cosmic-body text-gray-400 text-sm">Initializing user context</div>
+              <div className="cosmic-body text-white">Loading…</div>
             </div>
           ) : !initialLoading && paymentLinks.length === 0 ? (
             /* Empty State */

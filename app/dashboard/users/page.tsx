@@ -520,9 +520,9 @@ export default function UsersManagement() {
         </div>
 
         {/* Header Card */}
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center !mb-6">
           <div className="w-full px-4 md:w-[70vw] md:px-0">
-            <div className="cosmic-card">
+            <div className="cosmic-card" style={{marginBottom: '24px'}}>
               <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                 <div>
                   <h1 className="cosmic-heading mb-2 text-xl md:text-2xl">User Management</h1>
