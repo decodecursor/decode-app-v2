@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { UserProvider } from "@/providers/UserContext";
+import SessionMonitor from "@/components/SessionMonitor";
 
 export const metadata: Metadata = {
   title: "WeLoveDecode",
@@ -29,6 +30,7 @@ export default function RootLayout({
       <body className="antialiased">
         <AuthProvider>
           <UserProvider>
+            <SessionMonitor />
             {children}
           </UserProvider>
         </AuthProvider>

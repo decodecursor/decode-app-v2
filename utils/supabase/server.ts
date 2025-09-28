@@ -25,7 +25,7 @@ export async function createClient() {
                 secure: process.env.NODE_ENV === 'production',
                 path: '/',
                 // Extend expiry for mobile browsers
-                maxAge: options?.maxAge || 60 * 60 * 24 * 7, // 7 days
+                maxAge: options?.maxAge || 60 * 60 * 13, // 13 hours
               }
               cookieStore.set(name, value, mobileOptions)
             })
