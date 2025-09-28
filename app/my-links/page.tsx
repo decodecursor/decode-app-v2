@@ -1426,7 +1426,7 @@ function MyLinksContent() {
                             <button
                               onClick={() => generateQRCode(link)}
                               disabled={generatingQR || copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
-                              className="flex-1 px-2 py-1.5 text-xs border border-blue-500/50 text-blue-400 hover:bg-blue-500/10 hover:border-blue-500 rounded-lg transition-colors disabled:opacity-50"
+                              className="flex-1 px-2 py-1.5 text-xs border border-white/30 text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
                             >
                               {generatingQR && currentQRLink?.id === link.id ? (
                                 "Generating..."
@@ -1596,7 +1596,7 @@ function MyLinksContent() {
                             <button
                               onClick={() => generateQRCode(link)}
                               disabled={generatingQR || copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
-                              className="cosmic-button-secondary px-4 py-2 text-sm border border-blue-500/50 text-blue-400 hover:bg-blue-500/10 hover:border-blue-500 rounded-lg transition-colors disabled:opacity-50"
+                              className="cosmic-button-secondary px-4 py-2 text-sm border border-white/30 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
                             >
                               {generatingQR && currentQRLink?.id === link.id ? (
                                 <span className="flex items-center gap-2">
