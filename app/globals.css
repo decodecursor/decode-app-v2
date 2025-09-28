@@ -1022,6 +1022,17 @@ body {
     justify-content: center !important;
     flex-shrink: 0 !important;
   }
+
+  /* Permanent hover colors for header buttons - users page */
+  .user-header-create-branch-mobile {
+    color: white !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .user-header-invite-user-mobile {
+    color: white !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
 }
 
 /* Mobile alignment fixes for Back to Dashboard buttons */

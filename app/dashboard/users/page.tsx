@@ -530,13 +530,13 @@ export default function UsersManagement() {
                 <div className="flex flex-row md:flex-row gap-1 md:gap-3">
                   <button
                     onClick={() => setShowCreateBranchModal(true)}
-                    className="text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[10px] md:text-[15px] font-medium px-1.5 py-2 md:px-4 md:py-2.5 cursor-pointer transition-colors flex-1 md:w-auto whitespace-nowrap"
+                    className="text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[11px] md:text-[15px] font-medium px-1.5 py-2 md:px-4 md:py-2.5 cursor-pointer transition-colors flex-1 md:w-auto whitespace-nowrap user-header-create-branch-mobile"
                   >
                     Create Branch
                   </button>
                   <button
                     onClick={() => setShowInviteModal(true)}
-                    className="relative text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[10px] md:text-[15px] font-medium px-1.5 py-2 md:px-4 md:py-2.5 cursor-pointer transition-colors flex-1 md:w-auto whitespace-nowrap"
+                    className="relative text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[11px] md:text-[15px] font-medium px-1.5 py-2 md:px-4 md:py-2.5 cursor-pointer transition-colors flex-1 md:w-auto whitespace-nowrap user-header-invite-user-mobile"
                   >
                     Invite User
                     {newUserCount > 0 && (
@@ -547,7 +547,7 @@ export default function UsersManagement() {
                   </button>
                   <Link
                     href="/payment/create"
-                    className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[8px] md:text-[15px] font-medium px-6 py-3 md:px-5 md:py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block text-center flex-1 md:w-auto whitespace-nowrap"
+                    className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[11px] md:text-[15px] font-medium px-6 py-3 md:px-5 md:py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block text-center flex-1 md:w-auto whitespace-nowrap"
                   >
                     Create PayLink
                   </Link>
@@ -725,7 +725,7 @@ export default function UsersManagement() {
               {branchUsers.map((user, index) => (
                 <div key={user.id} className="flex md:flex-row md:items-center gap-4 md:gap-3 p-4 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg relative transition-colors">
                   {/* Mobile: Status badge top-right */}
-                  <div className="absolute top-3 right-3 md:relative md:top-auto md:right-auto md:order-2 flex flex-col gap-1 md:flex-row md:items-center md:gap-2">
+                  <div className="absolute top-3 right-3 md:relative md:top-auto md:right-auto md:order-2 flex flex-row gap-1 items-center md:flex-row md:items-center md:gap-2">
                     <span className={`px-2 py-1 md:px-3 md:py-1 rounded-full text-xs font-medium text-center ${
                       user.approval_status === 'approved'
                         ? 'bg-green-900/20 text-green-400'
