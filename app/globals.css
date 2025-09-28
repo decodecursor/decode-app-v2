@@ -881,7 +881,7 @@ body {
     margin: 0 !important;
   }
 
-  .my-links-header-mobile a {
+  .my-links-header-mobile a:not([class*="bg-black"]) {
     width: auto !important;
     padding: 8px 16px !important;
     font-size: 14px !important;
@@ -976,6 +976,17 @@ body {
     margin-bottom: 1px !important;
     line-height: 1.1 !important;
     flex-shrink: 0 !important;
+  }
+}
+
+/* Standardized Back to Dashboard button spacing (based on payouts page pattern) */
+.dashboard-back-button-spacing {
+  margin-bottom: 24px; /* mb-6 = 24px */
+}
+
+@media (min-width: 768px) {
+  .dashboard-back-button-spacing {
+    margin-bottom: 0; /* md:mb-0 = 0px */
   }
 }
 

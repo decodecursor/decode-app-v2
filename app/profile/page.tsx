@@ -440,7 +440,7 @@ export default function ProfilePage() {
         <div className="space-y-6">
           <div className="w-full md:max-w-2xl md:mx-auto">
             {/* Back to Dashboard Link - Positioned to align with centered cosmic cards */}
-            <div className="mb-4 md:mb-8 pl-5 md:pl-0">
+            <div className="dashboard-back-button-spacing pl-5 md:pl-0">
               <button
                 onClick={() => router.push('/dashboard')}
                 className="flex items-center text-gray-300 hover:text-white transition-colors w-fit"
