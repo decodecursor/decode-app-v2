@@ -393,7 +393,7 @@ export default function PayoutsPage() {
         </div>
 
         {/* Header */}
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-6 md:mb-0">
           <div className="w-full md:w-[70vw]">
             <div className="cosmic-card">
               <div>

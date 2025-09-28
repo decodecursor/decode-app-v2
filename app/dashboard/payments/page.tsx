@@ -340,7 +340,7 @@ export default function PaymentHistoryPage() {
         </div>
 
         {/* Header */}
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-6 md:mb-0">
           <div className="payments-container payments-container-mobile">
             <div className="cosmic-card">
               <div className="flex md:flex-row md:justify-between md:items-center payments-header-mobile">
