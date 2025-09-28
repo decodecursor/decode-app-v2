@@ -75,6 +75,7 @@ export interface UserInvitationData {
   role: string
   signupUrl: string
   inviteDate: string
+  invitedBy: string
 }
 
 export interface EmailResult {
@@ -325,9 +326,12 @@ class EmailService {
   }): Promise<EmailResult> {
     return this.sendUserInvitation({
       recipientEmail: data.to,
+      recipientName: '',
+      inviterName: data.invitedBy,
       companyName: data.companyName,
       role: data.role,
       signupUrl: data.signupUrl,
+      inviteDate: new Date().toISOString(),
       invitedBy: data.invitedBy
     })
   }
