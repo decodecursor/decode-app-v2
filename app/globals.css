@@ -1006,6 +1006,28 @@ body {
   margin-bottom: 13px; /* 24px - 11px = 13px (3mm up) */
 }
 
+/* Mobile alignment fixes for Back to Dashboard buttons */
+@media (max-width: 768px) {
+  .payment-create-back-button {
+    width: 90vw !important;
+    max-width: 400px !important;
+    padding: 0 20px !important;
+  }
+
+  .payments-back-button {
+    width: 90vw !important;
+    padding: 0 !important;
+  }
+
+  .profile-back-button {
+    padding-left: 0 !important;
+  }
+
+  .profile-back-button button {
+    margin-left: 0 !important;
+  }
+}
+
 /* Desktop: restore header-to-content gap */
 @media (min-width: 769px) {
   .cosmic-card {
