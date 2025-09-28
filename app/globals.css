@@ -1006,6 +1006,13 @@ body {
   margin-bottom: 13px; /* 24px - 11px = 13px (3mm up) */
 }
 
+/* Mobile: push dashboard header card additional 3mm up */
+@media (max-width: 768px) {
+  .dashboard-header-card-spacing {
+    margin-bottom: 2px; /* 13px - 11px = 2px (additional 3mm up on mobile) */
+  }
+}
+
 /* Mobile alignment fixes for Back to Dashboard buttons */
 @media (max-width: 768px) {
   .payment-create-back-button {
