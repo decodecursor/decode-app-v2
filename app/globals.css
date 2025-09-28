@@ -1059,6 +1059,20 @@ body {
     justify-content: flex-start !important;
   }
 
+  /* Profile button mobile left alignment override */
+  .profile-button-mobile-left {
+    width: auto !important;
+    margin: 0 !important;
+  }
+
+  /* Payments button mobile left alignment override */
+  .payments-back-button {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin-left: 0 !important;
+  }
+
 }
 
 /* Desktop-specific styles for payment create page */
@@ -1067,11 +1081,11 @@ body {
     max-width: 28vw !important;
   }
 
-  /* Profile button desktop centering */
+  /* Profile button desktop centering - match cosmic-card-profile alignment */
   .profile-button-mobile-left {
-    margin-left: calc((100% - 28vw) / 2) !important;
+    width: 28vw !important;
+    margin: 0 auto !important;
   }
-
 
   .profile-back-button {
     padding-left: 0 !important;
@@ -1081,17 +1095,12 @@ body {
     margin-left: 0 !important;
   }
 
-  /* Profile button mobile left alignment */
-  .profile-button-mobile-left {
-    margin-left: 0 !important;
-  }
-
-  /* Payments back button mobile left alignment */
+  /* Payments back button desktop alignment - match payments-container */
   .payments-back-button {
-    width: 100% !important;
+    width: 70vw !important;
     max-width: none !important;
     padding: 0 !important;
-    margin-left: 0 !important;
+    margin: 0 auto !important;
   }
 }
 
