@@ -366,7 +366,7 @@ export default function CreatePayment() {
       <div className="min-h-screen px-4 py-4 md:py-8">
         {/* Back to Dashboard Link */}
         <div className="flex justify-start md:justify-center dashboard-back-button-spacing payment-create-back-button-left">
-          <div className="w-full payment-create-container payment-create-back-button" style={{maxWidth: '28vw'}}>
+          <div className="w-full payment-create-container payment-create-back-button">
           <Link 
             href="/dashboard" 
             className="inline-flex items-center text-gray-300 hover:text-white transition-colors payment-back-button"
