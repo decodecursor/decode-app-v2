@@ -619,13 +619,24 @@ body {
 @media (max-width: 768px) {
   /* Crop background from top to show bottom (purple gradient and palm trees) */
   .cosmic-bg {
-    background-position: center -80px; /* Crop top part, show bottom beautiful part */
+    background-position: center -150px; /* More aggressive crop from top */
   }
 
-  /* Dashboard-specific: prevent scrolling */
+  /* Dashboard-specific: prevent scrolling and control layout */
   .dashboard-page {
-    height: 100vh;
-    overflow: hidden;
+    height: 100vh !important;
+    overflow: hidden !important;
+  }
+
+  .dashboard-page .min-h-screen {
+    height: 100vh !important;
+    padding-top: 60px !important;
+    padding-bottom: 0 !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    min-height: auto !important;
   }
 
 
