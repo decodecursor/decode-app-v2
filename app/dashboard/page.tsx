@@ -341,7 +341,7 @@ export default function Dashboard() {
         <div className="min-h-screen px-4 py-2 md:py-8">
 
         {/* Navigation Menu */}
-        <div className="mx-auto mb-6" style={{maxWidth: '3000px'}}>
+        <div className="mx-auto dashboard-header-card-spacing" style={{maxWidth: '3000px'}}>
           <div className="cosmic-card" style={{padding: '12px 17px'}}>
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center justify-between w-full">

@@ -990,6 +990,22 @@ body {
   }
 }
 
+/* Profile page specific spacing - accounts for custom layout and positioning */
+.profile-back-button-spacing {
+  margin-bottom: 24px; /* mb-6 = 24px */
+}
+
+@media (min-width: 768px) {
+  .profile-back-button-spacing {
+    margin-bottom: 24px; /* md:mb-6 = 24px - adjusted for profile layout */
+  }
+}
+
+/* Dashboard header card - push 3mm up */
+.dashboard-header-card-spacing {
+  margin-bottom: 13px; /* 24px - 11px = 13px (3mm up) */
+}
+
 /* Desktop: restore header-to-content gap */
 @media (min-width: 769px) {
   .cosmic-card {
