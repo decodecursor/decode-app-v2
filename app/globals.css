@@ -619,7 +619,7 @@ body {
 @media (max-width: 768px) {
   /* Crop background from top to show bottom (purple gradient and palm trees) */
   .cosmic-bg {
-    background-position: center -15px; /* Reduce crop even more - eliminate final grey area */
+    background-position: center -5px; /* Minimal crop - eliminate final grey area */
   }
 
   /* Dashboard-specific: prevent scrolling and control layout */
@@ -630,7 +630,7 @@ body {
 
   .dashboard-page .min-h-screen {
     height: 100vh !important;
-    padding-top: 60px !important;
+    padding-top: 50px !important;
     padding-bottom: 0 !important;
     padding-left: 16px !important;
     padding-right: 16px !important;
