@@ -365,7 +365,7 @@ export default function CreatePayment() {
     <div className="cosmic-bg">
       <div className="min-h-screen px-4 py-4 md:py-8">
         {/* Back to Dashboard Link */}
-        <div className="flex justify-center dashboard-back-button-spacing">
+        <div className="flex justify-center dashboard-back-button-spacing payment-create-back-button-left">
           <div className="w-full payment-create-container payment-create-back-button" style={{maxWidth: '28vw'}}>
           <Link 
             href="/dashboard" 
