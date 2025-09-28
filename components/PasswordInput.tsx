@@ -30,7 +30,10 @@ export default function PasswordInput({
         type={showPassword ? "text" : "password"}
         placeholder={placeholder}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          console.log('Password input changed, showPassword:', showPassword, 'type:', showPassword ? "text" : "password")
+          onChange(e.target.value)
+        }}
         className={`${className} pr-12 ${showValidation && !isValid && value.length > 0 ? 'border-red-500' : ''}`}
         required={required}
         disabled={disabled}
@@ -43,9 +46,16 @@ export default function PasswordInput({
       )}
       <button
         type="button"
-        onClick={() => setShowPassword(!showPassword)}
-        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+        onClick={() => {
+          console.log('Password toggle clicked, current state:', showPassword)
+          setShowPassword(!showPassword)
+        }}
+        onTouchStart={() => {
+          console.log('Password toggle touched')
+        }}
+        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors z-10"
         disabled={disabled}
+        tabIndex={-1}
       >
         {showPassword ? (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -195,6 +195,11 @@ input[type="checkbox"]:checked {
   background-color: #a855f7;
 }
 
+/* Terms text 11px font size */
+.terms-text-11px {
+  font-size: 11px !important;
+}
+
 /* Gray terms checkbox - match password eye icon color */
 .terms-checkbox {
   -webkit-appearance: none !important;

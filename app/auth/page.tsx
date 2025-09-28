@@ -797,7 +797,7 @@ function AuthPageContent() {
             </div>
             
             {!isLogin && (
-              <div className="flex items-center justify-center space-x-3">
+              <div className="flex items-center justify-center space-x-1.5">
                 <input
                   type="checkbox"
                   id="auth-terms-agreement"
@@ -806,7 +806,7 @@ function AuthPageContent() {
                   className="w-4 h-4 terms-checkbox"
                   disabled={loading}
                 />
-                <label htmlFor="auth-terms-agreement" className="text-xs text-gray-300 leading-relaxed text-center">
+                <label htmlFor="auth-terms-agreement" className="terms-text-11px text-gray-300 leading-relaxed text-center">
                   I agree to the{' '}
                   <a href="https://welovedecode.com/#terms" target="_blank" rel="noopener noreferrer" className="text-purple-400 underline hover:text-purple-300 transition-colors">
                     Terms of Service
