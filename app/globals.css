@@ -617,26 +617,37 @@ body {
 
 /* Mobile-specific layout adjustments - CACHE BUST 2025-09-26-v4 */
 @media (max-width: 768px) {
-  /* Crop background from top to show bottom (purple gradient and palm trees) */
-  .cosmic-bg {
-    background-position: center -5px; /* Minimal crop - eliminate final grey area */
-  }
-
-  /* Dashboard-specific: prevent scrolling and control layout */
+  /* Dashboard mobile: comprehensive viewport solution */
   .dashboard-page {
-    height: 100vh !important;
-    overflow: hidden !important;
+    /* Fallback for older browsers */
+    height: 100vh;
+    /* Custom property fallback for JS solution */
+    height: calc(var(--vh, 1vh) * 100);
+    /* Modern browsers: dynamic viewport height (accounts for Safari chrome) */
+    height: 100dvh;
+    overflow: hidden;
+    position: relative;
   }
 
   .dashboard-page .min-h-screen {
-    height: 100vh !important;
-    padding-top: 50px !important;
-    padding-bottom: 0 !important;
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-    overflow: hidden !important;
-    box-sizing: border-box !important;
-    min-height: auto !important;
+    /* Fallback for older browsers */
+    height: 100vh;
+    /* Custom property fallback for JS solution */
+    height: calc(var(--vh, 1vh) * 100);
+    /* Modern browsers: dynamic viewport height */
+    height: 100dvh;
+    padding: 50px 16px 0;
+    overflow: hidden;
+    box-sizing: border-box;
+    min-height: auto;
+  }
+
+  /* Background: proper coverage without crops */
+  .cosmic-bg {
+    background-size: cover;
+    background-position: center bottom;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
   }
 
 
