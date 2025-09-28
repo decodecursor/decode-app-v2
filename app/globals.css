@@ -1047,17 +1047,17 @@ body {
     justify-content: flex-start !important;
   }
 
-  .payment-create-back-button-left .payment-create-container {
-    margin-left: 0 !important;
-    max-width: none !important;
-  }
-
 }
 
 /* Desktop-specific styles for payment create page */
 @media (min-width: 769px) {
   .payment-create-back-button-left .payment-create-container {
     max-width: 28vw !important;
+  }
+
+  /* Profile button desktop centering */
+  .profile-button-mobile-left {
+    margin-left: calc((100% - 28vw) / 2) !important;
   }
 
   .payments-back-button {
@@ -1070,6 +1070,11 @@ body {
   }
 
   .profile-back-button button {
+    margin-left: 0 !important;
+  }
+
+  /* Profile button mobile left alignment */
+  .profile-button-mobile-left {
     margin-left: 0 !important;
   }
 }
@@ -1225,6 +1230,12 @@ body {
     width: 100% !important;
     max-width: none !important;
     padding: 0 16px;
+  }
+
+  /* Mobile left alignment for back button */
+  .payment-create-back-button-left .payment-create-container {
+    margin-left: 0 !important;
+    max-width: none !important;
   }
 
   .payment-create-card {

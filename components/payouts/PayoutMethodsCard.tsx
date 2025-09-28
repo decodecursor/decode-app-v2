@@ -74,7 +74,7 @@ export function PayoutMethodsCard({ userId, userRole = 'User', onMethodDeleted, 
           <div>
             <p className="text-gray-400 text-xs md:text-sm">Manage your payout preferences</p>
           </div>
-          <div className="flex flex-col md:flex-row gap-3">
+          <div className="flex flex-row gap-2 md:gap-3">
             <BankAccountSubcard
               key={`bank-${refreshKey}`}
               userId={userId}
