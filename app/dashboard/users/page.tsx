@@ -547,7 +547,7 @@ export default function UsersManagement() {
                   </button>
                   <Link
                     href="/payment/create"
-                    className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[11px] md:text-[15px] font-medium px-1.5 py-3 md:px-5 md:py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block text-center md:w-auto whitespace-nowrap"
+                    className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[11px] md:text-[15px] font-medium px-1.5 py-2 md:px-5 md:py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block text-center md:w-auto whitespace-nowrap"
                   >
                     Create PayLink
                   </Link>
@@ -728,7 +728,7 @@ export default function UsersManagement() {
                   <div className="absolute top-2 right-3 md:relative md:top-auto md:right-auto md:order-2 flex flex-col gap-1 items-end md:flex-row md:items-center md:gap-2">
                     <span className={`px-2 py-1 md:px-3 md:py-1 rounded-full text-xs font-medium text-center ${
                       user.approval_status === 'approved'
-                        ? 'bg-green-900/20 text-green-400'
+                        ? 'bg-green-800/30 text-green-400'
                         : user.approval_status === 'rejected'
                         ? 'bg-red-900/20 text-red-400'
                         : 'bg-yellow-900/20 text-yellow-400'
