@@ -619,7 +619,7 @@ body {
 @media (max-width: 768px) {
   /* Crop background from top to show bottom (purple gradient and palm trees) */
   .cosmic-bg {
-    background-position: center -30px; /* Reduce crop further - eliminate remaining grey area */
+    background-position: center -15px; /* Reduce crop even more - eliminate final grey area */
   }
 
   /* Dashboard-specific: prevent scrolling and control layout */
