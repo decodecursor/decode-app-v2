@@ -956,6 +956,13 @@ body {
   }
 }
 
+/* Desktop: restore header-to-content gap */
+@media (min-width: 769px) {
+  .cosmic-card {
+    margin: 20px auto !important;
+  }
+}
+
 /* Magic Button Full Effect Styles */
 .magic-button {
   background: linear-gradient(45deg, #667eea, #764ba2) !important;
