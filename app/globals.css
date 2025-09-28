@@ -1072,12 +1072,6 @@ body {
     margin-left: calc((100% - 28vw) / 2) !important;
   }
 
-  .payments-back-button {
-    width: 100% !important;
-    max-width: none !important;
-    padding: 0 !important;
-    margin-left: 0 !important;
-  }
 
   .profile-back-button {
     padding-left: 0 !important;
@@ -1089,6 +1083,14 @@ body {
 
   /* Profile button mobile left alignment */
   .profile-button-mobile-left {
+    margin-left: 0 !important;
+  }
+
+  /* Payments back button mobile left alignment */
+  .payments-back-button {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
     margin-left: 0 !important;
   }
 }

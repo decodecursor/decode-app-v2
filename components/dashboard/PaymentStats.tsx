@@ -607,9 +607,11 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     return `${datePart} – ${timePart}`
   }
 
-  const exportPayLinksToCSV = () => {
+  const exportPayLinksToCSV = async () => {
+    console.log('🔄 [EXPORT] Export button clicked/touched')
     setExporting(true)
     try {
+      console.log('🔄 [EXPORT] Starting export process')
       // Data is now passed directly from parent (already includes company-wide data for ADMIN users)
       const activePaymentLinks = paymentLinks
 
@@ -682,21 +684,55 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
         ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
       ].join('\n')
 
-      // Create and download file
+      // Create and download file with mobile compatibility
       const blob = new Blob([csvContent], { type: 'text/csv' })
+      const filename = `paid_paylinks_${new Date().toISOString().split('T')[0]}.csv`
+
+      console.log('🔄 [EXPORT] Created blob, attempting download')
+
+      // Try multiple download methods for mobile compatibility
+      if (typeof navigator !== 'undefined' && navigator.share && navigator.canShare) {
+        try {
+          const file = new File([blob], filename, { type: 'text/csv' })
+          if (navigator.canShare({ files: [file] })) {
+            console.log('🔄 [EXPORT] Using Web Share API')
+            await navigator.share({ files: [file] })
+            console.log('✅ [EXPORT] Web Share successful')
+            setExportDone(true)
+            return
+          }
+        } catch (shareError) {
+          console.log('⚠️ [EXPORT] Web Share failed, falling back to download')
+        }
+      }
+
+      // Fallback to traditional download with mobile optimizations
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `paid_paylinks_${new Date().toISOString().split('T')[0]}.csv`
+      a.download = filename
+      a.target = '_blank' // Better for mobile browsers
+      a.style.display = 'none'
       document.body.appendChild(a)
+
+      console.log('🔄 [EXPORT] Triggering download click')
       a.click()
-      document.body.removeChild(a)
-      window.URL.revokeObjectURL(url)
+
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(a)
+        window.URL.revokeObjectURL(url)
+      }, 100)
 
       // Show "Done!" feedback
+      console.log('✅ [EXPORT] Export completed successfully')
       setExportDone(true)
     } catch (error) {
-      console.error('Error exporting payment links:', error)
+      console.error('❌ [EXPORT] Error exporting payment links:', error)
+      // Mobile-friendly error notification
+      if (typeof window !== 'undefined') {
+        alert('Export failed. Please try again or contact support if the issue persists.')
+      }
     } finally {
       setExporting(false)
     }
@@ -1069,8 +1105,9 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
           {getFilteredPayments().length > 0 && (
             <button
               onClick={exportPayLinksToCSV}
+              onTouchStart={exportPayLinksToCSV}
               disabled={exporting || exportDone}
-              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors min-h-[44px] min-w-[100px] z-10"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
