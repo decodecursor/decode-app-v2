@@ -530,13 +530,13 @@ export default function UsersManagement() {
                 <div className="flex flex-row md:flex-row gap-1 md:gap-3">
                   <button
                     onClick={() => setShowCreateBranchModal(true)}
-                    className="text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[11px] md:text-[15px] font-medium px-1.5 py-2 md:px-4 md:py-2.5 cursor-pointer transition-colors md:w-auto whitespace-nowrap user-header-create-branch-mobile"
+                    className="text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[11px] md:text-[15px] font-medium px-3 py-2 md:px-4 md:py-2.5 cursor-pointer transition-colors md:w-auto whitespace-nowrap user-header-create-branch-mobile"
                   >
                     Create Branch
                   </button>
                   <button
                     onClick={() => setShowInviteModal(true)}
-                    className="relative text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[11px] md:text-[15px] font-medium px-1.5 py-2 md:px-4 md:py-2.5 cursor-pointer transition-colors md:w-auto whitespace-nowrap user-header-invite-user-mobile"
+                    className="relative text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-[11px] md:text-[15px] font-medium px-3 py-2 md:px-4 md:py-2.5 cursor-pointer transition-colors md:w-auto whitespace-nowrap user-header-invite-user-mobile"
                   >
                     Invite User
                     {newUserCount > 0 && (
@@ -547,7 +547,7 @@ export default function UsersManagement() {
                   </button>
                   <Link
                     href="/payment/create"
-                    className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[11px] md:text-[15px] font-medium px-1.5 py-2 md:px-5 md:py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block text-center md:w-auto whitespace-nowrap"
+                    className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[11px] md:text-[15px] font-medium px-3 py-2 md:px-5 md:py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block text-center md:w-auto whitespace-nowrap"
                   >
                     Create PayLink
                   </Link>

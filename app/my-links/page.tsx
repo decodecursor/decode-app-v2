@@ -1227,7 +1227,7 @@ function MyLinksContent() {
               </div>
               <Link
                 href="/payment/create"
-                className="bg-black text-white border border-white/30 !rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:bg-gray-900 hover:border-white/50 hover:shadow-[0_4px_12px_rgba(255,255,255,0.1)] inline-block"
+                className="bg-black text-white border border-white/30 !rounded-lg text-[15px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:bg-gray-900 hover:border-white/50 hover:shadow-[0_4px_12px_rgba(255,255,255,0.1)] inline-block ml-auto"
               >
                 Create PayLink
               </Link>
@@ -1253,7 +1253,7 @@ function MyLinksContent() {
             <div className="cosmic-card mb-8">
               <div className={`text-center p-4 rounded-lg ${
                 copyMessage.includes('successfully')
-                  ? 'text-green-300 bg-green-900/20'
+                  ? 'text-green-300 bg-green-800/30'
                   : copyMessage.includes('Failed') || copyMessage.includes('Cannot') || copyMessage.includes('Permission')
                     ? 'text-red-300 bg-red-900/20'
                     : 'text-yellow-300 bg-yellow-900/20'
