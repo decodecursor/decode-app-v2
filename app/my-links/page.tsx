@@ -1218,7 +1218,7 @@ function MyLinksContent() {
         </div>
 
         {/* Header */}
-        <div className="flex justify-center !mb-6">
+        <div className="flex justify-center">
           <div style={{width: '70vw'}} className="my-links-container">
           <div className="cosmic-card header-card-mobile-spacing">
             <div className="flex justify-between items-center my-links-header-mobile">
