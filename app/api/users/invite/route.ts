@@ -98,18 +98,34 @@ export async function POST(request: NextRequest) {
     console.log(`🔗 [INVITE API] Role: ${role}`)
     console.log(`🔗 [INVITE API] Signup URL: ${signupUrl}`)
 
-    // Email sending disabled - only admin notifications to sebastian@welovedecode.com are active
-    // User invitation emails are not sent
-    console.log(`📧 [INVITE API] Email sending disabled - invitation saved but email not sent`)
-    console.log(`📧 [INVITE API] User can still sign up using URL: ${signupUrl}`)
+    try {
+      // Send invitation email using email service
+      await emailService.sendInvitation({
+        to: email,
+        companyName,
+        role,
+        signupUrl,
+        invitedBy: adminData.company_name || companyName
+      })
 
-    console.log(`🔗 [INVITE API] SUCCESS: Invitation created for ${email} (no email sent)`)
-    return NextResponse.json({
-      success: true,
-      message: `Invitation created for ${email}. Please share the signup URL with them directly.`,
-      emailSent: false,
-      signupUrl: signupUrl
-    })
+      console.log(`✅ [INVITE API] Email sent successfully to ${email}`)
+      return NextResponse.json({
+        success: true,
+        message: `Invitation sent successfully to ${email}`,
+        emailSent: true
+      })
+    } catch (emailError) {
+      console.error('❌ [INVITE API] Failed to send email:', emailError)
+
+      // Provide signup URL as fallback when email fails
+      return NextResponse.json({
+        success: true,
+        message: `Invitation created for ${email}, but email failed to send. Please share this signup URL manually: ${signupUrl}`,
+        emailSent: false,
+        signupUrl: signupUrl,
+        error: 'Email delivery failed'
+      })
+    }
 
   } catch (error) {
     console.error('Invitation error:', error)

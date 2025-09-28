@@ -277,11 +277,8 @@ class EmailService {
 
   /**
    * Send user invitation email
-   * DISABLED - Only admin emails to sebastian@welovedecode.com are active
    */
   async sendUserInvitation(data: UserInvitationData): Promise<EmailResult> {
-    return { success: true, messageId: 'disabled', provider: 'disabled' }; // Email disabled
-    /* DISABLED
     try {
       console.log(`📧 Sending user invitation to ${data.recipientEmail}`)
 
@@ -314,7 +311,25 @@ class EmailService {
         error: error instanceof Error ? error.message : 'Unknown error'
       }
     }
-    */ // END DISABLED
+  }
+
+  /**
+   * Main method to send invitation email - delegates to sendUserInvitation
+   */
+  async sendInvitation(data: {
+    to: string
+    companyName: string
+    role: string
+    signupUrl: string
+    invitedBy: string
+  }): Promise<EmailResult> {
+    return this.sendUserInvitation({
+      recipientEmail: data.to,
+      companyName: data.companyName,
+      role: data.role,
+      signupUrl: data.signupUrl,
+      invitedBy: data.invitedBy
+    })
   }
 
   /**
