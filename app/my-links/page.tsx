@@ -1292,7 +1292,7 @@ function MyLinksContent() {
             </div>
           ) : !initialLoading ? (
             /* Payment Links List */
-            <div className="cosmic-card">
+            <div className="cosmic-card content-card-mobile-spacing">
               <div className="space-y-6">
                 {paymentLinks.slice(0, visibleCount).map((link) => {
                   const status = getStatus(link)

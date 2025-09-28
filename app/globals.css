@@ -920,8 +920,23 @@ body {
 
   /* Fix header card spacing - Override cosmic-card margin for header cards */
   .header-card-mobile-spacing {
-    margin-bottom: 24px !important;
-    margin-top: 20px !important;
+    margin: 0 auto 24px auto !important;
+  }
+
+  /* Remove vertical margins from content cards in space-y containers */
+  .space-y-6 > .cosmic-card {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Ensure space-y-6 spacing works correctly */
+  .space-y-6 > .cosmic-card:not(:first-child) {
+    margin-top: 24px !important;
+  }
+
+  /* Content card that follows header - remove top margin */
+  .content-card-mobile-spacing {
+    margin: 0 auto !important;
   }
 
   /* CRITICAL: Revenue/Transactions text labels - readable size */
