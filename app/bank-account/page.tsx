@@ -142,7 +142,7 @@ export default function BankAccountPage() {
 
   return (
     <div className="cosmic-bg min-h-screen">
-      <div className="min-h-screen px-4 py-2 md:py-8">
+      <div className="min-h-screen px-4 py-4 md:py-8">
         {/* Back to Dashboard Button */}
         <div className="flex justify-center dashboard-back-button-spacing">
           <div style={{width: '70vw'}}>
