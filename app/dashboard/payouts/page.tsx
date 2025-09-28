@@ -378,7 +378,7 @@ export default function PayoutsPage() {
 
       <div className="min-h-screen px-4 py-2 md:py-8">
         {/* Back to Dashboard Button */}
-        <div className="flex justify-center mb-6 md:mb-8">
+        <div className="flex justify-center mb-6 md:mb-0">
           <div className="w-full md:w-[70vw]">
             <Link
               href="/dashboard"
