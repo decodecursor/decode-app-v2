@@ -632,7 +632,7 @@ body {
     padding: 10px;
     width: 90vw;
     max-width: 400px;
-    margin: 20px auto;
+    margin: 0 auto;  /* Changed from 20px auto to 0 auto */
     border-radius: 20px;
     box-shadow: none !important; /* Remove shadow glow on mobile */
     border: 1px solid rgba(255, 255, 255, 0.4) !important; /* Same border as desktop */
@@ -918,9 +918,9 @@ body {
     line-height: 1.2 !important;
   }
 
-  /* Fix header card spacing - Override cosmic-card margin for header cards */
+  /* Add bottom margin to header cards */
   .header-card-mobile-spacing {
-    margin: 0 auto 24px auto !important;
+    margin-bottom: 24px !important;
   }
 
   /* Remove vertical margins from content cards in space-y containers */
@@ -1130,7 +1130,7 @@ body {
 /* Extra small screens */
 @media (max-width: 480px) {
   .cosmic-card {
-    margin: 16px auto;
+    margin: 0 auto;  /* Changed from 16px auto to 0 auto */
     padding: 16px;
     border-radius: 16px;
   }
@@ -1211,7 +1211,7 @@ body {
   .cosmic-card {
     max-height: 90vh;
     overflow-y: auto;
-    margin: 10px auto;
+    margin: 0 auto;  /* Changed from 10px auto to 0 auto */
   }
 
   /* Override for header cards in landscape */
