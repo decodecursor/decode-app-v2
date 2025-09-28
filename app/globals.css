@@ -617,9 +617,9 @@ body {
 
 /* Mobile-specific layout adjustments - CACHE BUST 2025-09-26-v4 */
 @media (max-width: 768px) {
-  /* Position background to show more of the bottom (purple gradient and palm trees) */
+  /* Crop background from top to show bottom (purple gradient and palm trees) */
   .cosmic-bg {
-    background-position: center bottom; /* Show more of the beautiful bottom part */
+    background-position: center -80px; /* Crop top part, show bottom beautiful part */
   }
 
   /* Dashboard-specific: prevent scrolling */
@@ -628,18 +628,6 @@ body {
     overflow: hidden;
   }
 
-  /* Dashboard mobile ONLY: header in top portion, non-scrollable */
-  .dashboard-page .min-h-screen {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: flex-start !important;
-    padding-top: 40px !important;
-    height: 100vh !important;
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-    min-height: auto !important;
-    overflow: hidden !important;
-  }
 
   .cosmic-card {
     padding: 10px;
