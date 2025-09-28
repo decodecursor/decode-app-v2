@@ -1218,9 +1218,9 @@ function MyLinksContent() {
         </div>
 
         {/* Header */}
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center !mb-6">
           <div style={{width: '70vw'}} className="my-links-container">
-          <div className="cosmic-card">
+          <div className="cosmic-card" style={{marginBottom: '24px'}}>
             <div className="flex justify-between items-center my-links-header-mobile">
               <div>
                 <h1 className="cosmic-heading mb-2">PayLinks</h1>
