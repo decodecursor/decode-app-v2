@@ -425,7 +425,7 @@ export default function ProfilePage() {
 
   return (
     <div className="cosmic-bg">
-      <div className="container mx-auto px-4 py-4 md:py-8">
+      <div className="container mx-auto px-4 py-2 md:py-8">
         {/* Message Display */}
         {message && (
           <div className={`mb-6 p-4 rounded-lg ${

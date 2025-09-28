@@ -1219,7 +1219,7 @@ function MyLinksContent() {
         targetElementId={heartAnimatingId || undefined}
       />
 
-      <div className="min-h-screen px-4 py-8">
+      <div className="min-h-screen px-4 py-2 md:py-8">
         {/* Back to Dashboard Link */}
         <div className="flex justify-center dashboard-back-button-spacing">
           <div style={{width: '70vw'}} className="my-links-container">

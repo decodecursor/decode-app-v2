@@ -506,7 +506,7 @@ export default function UsersManagement() {
 
   return (
     <div className="cosmic-bg min-h-screen" onClick={resetNewUserNotifications}>
-      <div className="min-h-screen px-4 py-8">
+      <div className="min-h-screen px-4 py-2 md:py-8">
         {/* Back to Dashboard Link */}
         <div className="flex justify-center dashboard-back-button-spacing">
           <div className="w-full px-4 md:w-[70vw] md:px-0">
