@@ -739,10 +739,7 @@ export default function UsersManagement() {
                     {/* Delete User Button - Mobile: below status, Desktop: inline */}
                     <button
                       onClick={() => handleDeleteUserClick(user, branch)}
-                      className="delete-user-btn text-xs border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50"
-                      style={{
-                        padding: '6px'
-                      }}
+                      className="flex items-center justify-center p-1.5 text-xs border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors disabled:opacity-50 delete-button-mobile"
                       title="Remove user from branch"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

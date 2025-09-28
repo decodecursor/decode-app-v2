@@ -1553,20 +1553,3 @@ body {
   }
 }
 
-/* Delete user button - force equal padding for square button */
-.delete-user-btn {
-  padding: 6px !important;
-}
-
-/* Desktop styles for delete user button */
-@media (min-width: 768px) {
-  .delete-user-btn {
-    padding: 8px !important;
-    font-size: 0.875rem !important;
-  }
-
-  .delete-user-btn svg {
-    width: 1rem !important;
-    height: 1rem !important;
-  }
-}
