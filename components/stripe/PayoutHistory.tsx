@@ -240,26 +240,26 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
                 >
                   {/* Mobile Layout - Hidden on desktop */}
                   <div className="md:hidden">
-                    {/* Row 1: AED Amount + Payout Method */}
+                    {/* Row 1: AED Amount + Request ID */}
                     <div className="flex justify-between items-start mb-2">
                       <div className="text-white text-lg font-bold">
                         AED {payout.payout_amount_aed.toFixed(2)}
                       </div>
-                      <span className="text-purple-400 font-medium">
-                        {payout.payout_method ? formatPayoutMethod(payout.payout_method) : 'N/A'}
-                      </span>
-                    </div>
-
-                    {/* Row 2: Request ID + Date */}
-                    <div className="flex justify-between items-start">
                       <div className="text-xs text-gray-400">
                         ID: {payout.payout_request_id || 'N/A'}
                       </div>
+                    </div>
+
+                    {/* Row 2: Payout Method + Date */}
+                    <div className="flex justify-between items-start">
+                      <span className="text-purple-400 font-medium">
+                        {payout.payout_method ? formatPayoutMethod(payout.payout_method) : 'N/A'}
+                      </span>
                       <div className="text-xs text-gray-400">
                         {payout.paid_at ? (
-                          <>Paid {formatDate(payout.paid_at).split(' -')[0]}</>
+                          <>Paid on {formatDate(payout.paid_at).split(' -')[0]}</>
                         ) : (
-                          <>Requested {formatDate(payout.created_at).split(' -')[0]}</>
+                          <>Requested on {formatDate(payout.created_at).split(' -')[0]}</>
                         )}
                       </div>
                     </div>
