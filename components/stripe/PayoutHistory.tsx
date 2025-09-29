@@ -238,7 +238,42 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
                     animationDelay: isHighlighted ? '0s' : undefined
                   }}
                 >
-                  <div className="grid grid-cols-4 gap-x-5 items-center">
+                  {/* Mobile Layout - Hidden on desktop */}
+                  <div className="md:hidden">
+                    {/* Row 1: Payout Method + Status Badge */}
+                    <div className="flex justify-between items-start mb-0.5">
+                      <span className="text-purple-400 font-medium">
+                        {payout.payout_method ? formatPayoutMethod(payout.payout_method) : 'N/A'}
+                      </span>
+                      {status && (
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${status.text} ${status.bg}`}>
+                          {status.label}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Row 2: Amount + Date */}
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="text-white text-lg font-bold">
+                        AED {payout.payout_amount_aed.toFixed(2)}
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {payout.paid_at ? (
+                          <>Paid {formatDate(payout.paid_at).split(' -')[0]}</>
+                        ) : (
+                          <>Requested {formatDate(payout.created_at).split(' -')[0]}</>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Row 3: Request ID */}
+                    <div className="text-xs text-white/60">
+                      ID: {payout.payout_request_id || 'N/A'}
+                    </div>
+                  </div>
+
+                  {/* Desktop Layout - Hidden on mobile */}
+                  <div className="hidden md:grid grid-cols-4 gap-x-5 items-center">
                     <div className="flex items-center space-x-3">
                       <span className="w-7 h-7 bg-gradient-to-br from-purple-500 to-purple-700 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">
                         {index + 1}
