@@ -805,7 +805,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             <div className="flex justify-between items-center mb-2">
               <h3 className="cosmic-label text-white/70 payment-metric-label">{revenueLabel}</h3>
               {dateRange !== 'custom' && (
-                <span className={`text-xs md:text-xs font-medium payment-metric-percentage ${getChangeColor(current.revenue, previous.revenue)}`}>
+                <span className={`md:text-xs font-medium payment-metric-percentage ${getChangeColor(current.revenue, previous.revenue)}`} style={{fontSize: '10px'}}>
                   {formatPercentageChange(current.revenue, previous.revenue)}
                 </span>
               )}
@@ -825,7 +825,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             <div className="flex justify-between items-center mb-2">
               <h3 className="cosmic-label text-white/70 payment-metric-label">{transactionLabel}</h3>
               {dateRange !== 'custom' && (
-                <span className={`text-xs md:text-xs font-medium payment-metric-percentage ${getChangeColor(current.transactions, previous.transactions)}`}>
+                <span className={`md:text-xs font-medium payment-metric-percentage ${getChangeColor(current.transactions, previous.transactions)}`} style={{fontSize: '10px'}}>
                   {formatPercentageChange(current.transactions, previous.transactions)}
                 </span>
               )}
@@ -858,7 +858,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="cosmic-label text-white/70 payment-metric-label">My Commission</h3>
                   {dateRange !== 'custom' && (
-                    <span className={`text-xs font-medium ${getChangeColor(current.myCommission, previous.myCommission)}`}>
+                    <span className={`md:text-xs font-medium payment-metric-percentage ${getChangeColor(current.myCommission, previous.myCommission)}`} style={{fontSize: '10px'}}>
                       {formatPercentageChange(current.myCommission, previous.myCommission)}
                     </span>
                   )}
