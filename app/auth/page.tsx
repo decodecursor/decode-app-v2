@@ -288,7 +288,7 @@ function AuthPageContent() {
           } else if (profileData) {
             // User already has profile - redirect to dashboard
             console.log('✅ [AUTH] User already has profile - redirecting to dashboard')
-            router.push('/dashboard')
+            window.location.href = '/dashboard'
           }
         } else if (justVerified) {
           // User has verified=true parameter but no authenticated user yet
@@ -545,8 +545,9 @@ function AuthPageContent() {
                 // Increased delay to ensure session cookies are fully established
                 await new Promise(resolve => setTimeout(resolve, 500))
 
-                console.log('✅ Redirecting to dashboard after proxy login')
-                router.push('/dashboard')
+                console.log('✅ Redirecting to dashboard after proxy login with full page reload')
+                // Use window.location.href for full page reload to ensure cookies are properly loaded
+                window.location.href = '/dashboard'
 
                 // Return early to avoid any error handling
                 return
@@ -574,8 +575,9 @@ function AuthPageContent() {
             // Increased delay to ensure session cookies are fully established
             await new Promise(resolve => setTimeout(resolve, 500))
 
-            console.log('✅ Redirecting to dashboard')
-            router.push('/dashboard')
+            console.log('✅ Redirecting to dashboard with full page reload')
+            // Use window.location.href for full page reload to ensure cookies are properly loaded
+            window.location.href = '/dashboard'
             return
           } else {
             throw new Error('Login failed - no user or session data returned')
