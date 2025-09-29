@@ -240,22 +240,20 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
                 >
                   {/* Mobile Layout - Hidden on desktop */}
                   <div className="md:hidden">
-                    {/* Row 1: Payout Method + Status Badge */}
-                    <div className="flex justify-between items-start mb-0.5">
-                      <span className="text-purple-400 font-medium">
-                        {payout.payout_method ? formatPayoutMethod(payout.payout_method) : 'N/A'}
-                      </span>
-                      {status && (
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${status.text} ${status.bg}`}>
-                          {status.label}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Row 2: Amount + Date */}
+                    {/* Row 1: AED Amount + Payout Method */}
                     <div className="flex justify-between items-start mb-2">
                       <div className="text-white text-lg font-bold">
                         AED {payout.payout_amount_aed.toFixed(2)}
+                      </div>
+                      <span className="text-purple-400 font-medium">
+                        {payout.payout_method ? formatPayoutMethod(payout.payout_method) : 'N/A'}
+                      </span>
+                    </div>
+
+                    {/* Row 2: Request ID + Date */}
+                    <div className="flex justify-between items-start">
+                      <div className="text-xs text-gray-400">
+                        ID: {payout.payout_request_id || 'N/A'}
                       </div>
                       <div className="text-xs text-gray-400">
                         {payout.paid_at ? (
@@ -264,11 +262,6 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
                           <>Requested {formatDate(payout.created_at).split(' -')[0]}</>
                         )}
                       </div>
-                    </div>
-
-                    {/* Row 3: Request ID */}
-                    <div className="text-xs text-white/60">
-                      ID: {payout.payout_request_id || 'N/A'}
                     </div>
                   </div>
 
