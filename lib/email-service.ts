@@ -1166,7 +1166,7 @@ Manage your payment settings in your dashboard.
 </head>
 <body>
     <div class="container">
-        <p>Hi ${data.recipientName},</p>
+        <p>Hello</p>
 
         <p>You've been invited to join ${data.companyName} on DECODE.</p>
 
@@ -1180,7 +1180,7 @@ Manage your payment settings in your dashboard.
 </html>`
 
     const text = `
-Hi ${data.recipientName},
+Hello
 
 You've been invited to join ${data.companyName} on DECODE.
 
