@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       message: 'Login successful'
     })
 
-    // Manually set session cookies on the response
+    // Get the Supabase project ref from the URL
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const projectRef = supabaseUrl.split('//')[1].split('.')[0]
 
@@ -57,51 +57,42 @@ export async function POST(request: NextRequest) {
       user: data.user
     }
 
-    // Set the session cookies in the format Supabase SSR expects
-    const sessionString = JSON.stringify(sessionData)
+    // Convert session data to base64 encoded string (Supabase SSR format)
+    const sessionString = Buffer.from(JSON.stringify(sessionData)).toString('base64')
 
     // Cookie options matching Supabase SSR defaults
+    const sameSiteValue: 'none' | 'lax' = process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     const cookieOptions = {
-      httpOnly: false, // Supabase client needs to read these
+      httpOnly: false, // Client needs to read these
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax' as const,
+      sameSite: sameSiteValue,
       path: '/',
       maxAge: 60 * 60 * 24 * 365, // 1 year
     }
 
-    // Chunk the raw JSON string using URL encoding like Supabase SSR does
-    const MAX_CHUNK_SIZE = 3180
+    // The cookie name format Supabase SSR expects
     const cookieName = `sb-${projectRef}-auth-token`
 
-    // URL encode the value for chunking
-    let encodedValue = encodeURIComponent(sessionString)
+    // Chunk size for cookies (browsers have limits)
+    const MAX_CHUNK_SIZE = 3180
 
-    if (encodedValue.length <= MAX_CHUNK_SIZE) {
+    if (sessionString.length <= MAX_CHUNK_SIZE) {
       // Single cookie if it fits
       console.log(`📝 [PROXY-LOGIN] Setting single cookie: ${cookieName}`)
       response.cookies.set(cookieName, sessionString, cookieOptions)
     } else {
-      // Multiple chunks needed
+      // Split into multiple chunks if needed
       const chunks: string[] = []
+      let currentChunk = sessionString
 
-      while (encodedValue.length > 0) {
-        let encodedChunkHead = encodedValue.slice(0, MAX_CHUNK_SIZE)
-        const lastEscapePos = encodedChunkHead.lastIndexOf('%')
-
-        // Check if we're splitting in the middle of an escape sequence
-        if (lastEscapePos > MAX_CHUNK_SIZE - 3) {
-          encodedChunkHead = encodedChunkHead.slice(0, lastEscapePos)
-        }
-
-        // Decode back to get the actual chunk value
-        const chunkValue = decodeURIComponent(encodedChunkHead)
-        chunks.push(chunkValue)
-
-        // Remove processed part from encodedValue
-        encodedValue = encodedValue.slice(encodedChunkHead.length)
+      while (currentChunk.length > 0) {
+        chunks.push(currentChunk.slice(0, MAX_CHUNK_SIZE))
+        currentChunk = currentChunk.slice(MAX_CHUNK_SIZE)
       }
 
       console.log(`📝 [PROXY-LOGIN] Setting ${chunks.length} cookie chunks for project: ${projectRef}`)
+
+      // Set each chunk as a separate cookie
       chunks.forEach((chunk, index) => {
         const chunkName = `${cookieName}.${index}`
         console.log(`  - Setting cookie: ${chunkName} (${chunk.length} chars)`)
