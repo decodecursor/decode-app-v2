@@ -98,6 +98,7 @@ export function PayoutMethodsCard({ userId, userRole = 'User', onMethodDeleted, 
         isOpen={showPayPalModal}
         onClose={() => setShowPayPalModal(false)}
         userId={userId}
+        userRole={userRole}
         onSuccess={handlePayPalSuccess}
         onMethodDeleted={handleMethodDeleted}
       />

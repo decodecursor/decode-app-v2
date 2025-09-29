@@ -12,7 +12,7 @@ import { detectRedirectLoop, clearRedirectLoop, getDeviceInfo } from '@/utils/st
 
 export default function Dashboard() {
   const supabase = createClient()
-  const { user, profile, loading: contextLoading, refreshProfile } = useUser()
+  const { user, profile, loading: contextLoading, isAuthenticating, authCompleted, refreshProfile } = useUser()
   const [pendingUsersCount, setPendingUsersCount] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
@@ -137,17 +137,20 @@ export default function Dashboard() {
   }
 
 
-  // Check authentication on mount
+  // Check authentication on mount - ONLY when authentication is fully completed
   useEffect(() => {
     console.log('🔄 [DASHBOARD] State change:', {
       contextLoading,
+      isAuthenticating,
+      authCompleted,
       hasUser: !!user,
       hasProfile: !!profile,
       profileApprovalStatus: profile?.approval_status,
       profileRole: profile?.role
     })
 
-    if (!contextLoading) {
+    // Only proceed with authentication logic when auth is fully completed
+    if (!contextLoading && !isAuthenticating && authCompleted) {
       if (!user) {
         // Check for redirect loop before redirecting
         if (detectRedirectLoop()) {
@@ -156,7 +159,7 @@ export default function Dashboard() {
           // Don't redirect, show error message instead
           return
         }
-        console.log('❌ [DASHBOARD] No user found, redirecting to auth')
+        console.log('❌ [DASHBOARD] No user found after completed auth, redirecting to auth')
         router.push('/auth')
         return
       } else {
@@ -184,7 +187,7 @@ export default function Dashboard() {
 
       console.log('✅ [DASHBOARD] Setup complete, rendering dashboard')
     }
-  }, [contextLoading, user, profile, router])
+  }, [contextLoading, isAuthenticating, authCompleted, user, profile, router])
 
   // Set up polling-based real-time updates for pending users
   useEffect(() => {
@@ -311,6 +314,8 @@ export default function Dashboard() {
   // Log dashboard state for debugging
   console.log('🏠 [DASHBOARD] Loading state check:', {
     contextLoading,
+    isAuthenticating,
+    authCompleted,
     hasUser: !!user,
     hasProfile: !!profile,
     isFromFreshLogin,
@@ -323,15 +328,32 @@ export default function Dashboard() {
     } : null
   })
 
-  if (contextLoading || (!user && !isFromFreshLogin)) {
+  // Show loading while context is loading, authentication is in progress, or if no user but auth not completed
+  if (contextLoading || isAuthenticating || (!user && !authCompleted && isFromFreshLogin)) {
     return (
       <div className="cosmic-bg">
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
             <p className="text-gray-300">
-              {contextLoading ? 'Loading dashboard...' : 'Authenticating...'}
+              {isAuthenticating ? 'Authenticating...' :
+               contextLoading ? 'Loading dashboard...' :
+               'Authenticating...'}
             </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show loading for non-fresh login scenarios
+  if (!user && !isFromFreshLogin && !authCompleted) {
+    return (
+      <div className="cosmic-bg">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-gray-300">Authenticating...</p>
           </div>
         </div>
       </div>

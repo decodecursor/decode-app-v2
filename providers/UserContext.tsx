@@ -20,6 +20,8 @@ interface UserContextType {
   user: User | null
   profile: UserProfile | null
   loading: boolean
+  isAuthenticating: boolean
+  authCompleted: boolean
   error: string | null
   refreshProfile: () => Promise<void>
 }
@@ -38,6 +40,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isAuthenticating, setIsAuthenticating] = useState(false)
+  const [authCompleted, setAuthCompleted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [authCheckAttempts, setAuthCheckAttempts] = useState(0)
 
@@ -100,9 +104,23 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const initUser = async () => {
+      const authStartTime = Date.now()
+      const maxAuthTimeout = 10000 // 10 seconds max for entire auth process
+
+      // Circuit breaker - set a maximum timeout for authentication
+      const authTimeoutId = setTimeout(() => {
+        console.error('🚨 [UserContext] Authentication timeout after 10 seconds')
+        setError('Authentication timed out. Please refresh the page.')
+        setIsAuthenticating(false)
+        setAuthCompleted(true)
+        setLoading(false)
+      }, maxAuthTimeout)
+
       try {
         setError(null)
         setAuthCheckAttempts(prev => prev + 1)
+        setIsAuthenticating(true)
+        setAuthCompleted(false)
 
         // Check if we're coming from a fresh login (reduce delays for better UX)
         const isFromLogin = typeof window !== 'undefined' &&
@@ -174,12 +192,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             }
           }
           setError(authError)
+          setIsAuthenticating(false)
+          setAuthCompleted(true)
           setLoading(false)
           return
         }
 
         if (!authUser) {
           // No user logged in - this is OK, not an error
+          setIsAuthenticating(false)
+          setAuthCompleted(true)
           setLoading(false)
           return
         }
@@ -205,12 +227,23 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         console.error('Init user error:', error)
         setError('Failed to initialize user')
+        setIsAuthenticating(false)
+        setAuthCompleted(true)
       } finally {
+        // Clear the timeout since auth completed
+        clearTimeout(authTimeoutId)
+
         // Clear fresh login flags after authentication attempt is complete
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem('fresh_login')
           sessionStorage.removeItem('fresh_login_processed')
         }
+
+        const authDuration = Date.now() - authStartTime
+        console.log(`🔍 [UserContext] Authentication completed in ${authDuration}ms`)
+
+        setIsAuthenticating(false)
+        setAuthCompleted(true)
         setLoading(false)
       }
     }
@@ -219,7 +252,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [fetchProfile])
 
   return (
-    <UserContext.Provider value={{ user, profile, loading, error, refreshProfile }}>
+    <UserContext.Provider value={{ user, profile, loading, isAuthenticating, authCompleted, error, refreshProfile }}>
       {children}
     </UserContext.Provider>
   )

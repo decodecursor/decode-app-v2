@@ -234,7 +234,9 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
           <h2 className="md:text-2xl text-xl font-bold text-white mb-2">
             {userRole === USER_ROLES.STAFF ? 'Add Your Bank Account' : 'Add Company Bank Account'}
           </h2>
-          <p className="text-gray-400 md:text-sm text-xs">Connect your bank account to receive payouts</p>
+          <p className="text-gray-400 md:text-sm text-xs">
+            {userRole === USER_ROLES.STAFF ? 'Connect your bank account to receive payouts' : 'Connect company bank account to receive payouts'}
+          </p>
         </div>
 
         {/* Message Display */}

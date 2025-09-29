@@ -2,16 +2,18 @@
 
 import { useState, useEffect } from 'react'
 import { ConfirmationModal } from './ConfirmationModal'
+import { USER_ROLES } from '@/types/user'
 
 interface PayPalModalProps {
   isOpen: boolean
   onClose: () => void
   userId: string
   onSuccess: () => void
+  userRole?: string
   onMethodDeleted?: () => void
 }
 
-export function PayPalModal({ isOpen, onClose, userId, onSuccess, onMethodDeleted }: PayPalModalProps) {
+export function PayPalModal({ isOpen, onClose, userId, onSuccess, userRole, onMethodDeleted }: PayPalModalProps) {
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
   const [confirmEmail, setConfirmEmail] = useState('')
@@ -201,8 +203,12 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, onMethodDelete
               P
             </div>
           </div>
-          <h2 className="md:text-2xl text-xl font-bold text-white mb-2">Add Your PayPal Account</h2>
-          <p className="text-gray-400 md:text-sm text-xs">Connect your PayPal account to receive payouts</p>
+          <h2 className="md:text-2xl text-xl font-bold text-white mb-2">
+            {userRole === USER_ROLES.STAFF ? 'Add Your PayPal Account' : 'Add Company PayPal Account'}
+          </h2>
+          <p className="text-gray-400 md:text-sm text-xs">
+            {userRole === USER_ROLES.STAFF ? 'Connect your PayPal account to receive payouts' : 'Connect company PayPal account to receive payouts'}
+          </p>
         </div>
 
         {/* Message Display */}
