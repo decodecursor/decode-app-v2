@@ -470,6 +470,7 @@ export default function CreatePayment() {
                   value={formData.amount}
                   onChange={handleAmountChange}
                   placeholder="0"
+                  inputMode="numeric"
                   className={`w-full px-4 py-4 md:px-3 md:py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 text-base md:text-sm ${errors.amount ? 'border-red-500' : 'border-gray-600'}`}
                   disabled={creating}
                 />
