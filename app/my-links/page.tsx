@@ -65,6 +65,7 @@ function MyLinksContent() {
   const [newPayLinkId, setNewPayLinkId] = useState<string | null>(null)
   const [highlightingId, setHighlightingId] = useState<string | null>(null)
   const [heartAnimatingId, setHeartAnimatingId] = useState<string | null>(null)
+  const [selectedPaymentLinkId, setSelectedPaymentLinkId] = useState<string | null>(null)
 
   // Debug logging for heartAnimatingId changes
   useEffect(() => {
@@ -472,11 +473,12 @@ function MyLinksContent() {
       }
     }
 
-    // Successfully found element, start highlighting
-    console.log('🌟 NEW LINK: ✅ Element found, starting highlight effect')
+    // Successfully found element, start highlighting and auto-select
+    console.log('🌟 NEW LINK: ✅ Element found, starting highlight effect and auto-selecting')
     setHighlightingId(linkId)
+    setSelectedPaymentLinkId(linkId)
 
-    // Remove highlight after 1.5 seconds
+    // Remove highlight after 1.5 seconds (but keep selection)
     setTimeout(() => {
       console.log('🌟 NEW LINK: Clearing highlight effect')
       setHighlightingId(null)
@@ -1318,6 +1320,7 @@ function MyLinksContent() {
                   const isDeactivated = status === 'Deactivated'
                   const isNewPayLink = highlightingId === link.id
                   const isHeartAnimating = heartAnimatingId === link.id
+                  const isSelected = selectedPaymentLinkId === link.id
 
                   // Debug logging for heart animation state
                   if (heartAnimatingId !== null) {
@@ -1333,14 +1336,19 @@ function MyLinksContent() {
                           createNewPayLinkHighlight(el)
                         }
                       }}
-                      className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 payment-link-card-mobile transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out ${
+                      onClick={() => {
+                        setSelectedPaymentLinkId(selectedPaymentLinkId === link.id ? null : link.id)
+                      }}
+                      className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 payment-link-card-mobile transition-all duration-300 cursor-pointer before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out ${
                         isNewPayLink
                           ? 'bg-yellow-900/10 border-l-yellow-500 border-yellow-400/60 shadow-2xl shadow-yellow-400/40 scale-[1.02] animate-pulse'
-                          : isPaid
-                            ? 'bg-blue-900/30 border-l-green-500 hover:border-green-400 hover:bg-blue-800/30 hover:shadow-2xl hover:shadow-green-400/60 hover:scale-[1.01]'
-                            : isInactive 
-                              ? 'bg-blue-900/30 border-l-red-500 hover:border-red-400 hover:bg-blue-800/30 hover:shadow-2xl hover:shadow-red-400/60 hover:scale-[1.01]'
-                              : 'bg-gray-900/80 border-l-purple-500 hover:border-purple-400 hover:bg-gray-800/80 hover:shadow-2xl hover:shadow-purple-400/60 hover:scale-[1.01]'
+                          : isSelected
+                            ? 'bg-purple-900/20 border-l-purple-400 border-purple-400/80 shadow-2xl shadow-purple-400/30 scale-[1.01] ring-2 ring-purple-400/50'
+                            : isPaid
+                              ? 'bg-blue-900/30 border-l-green-500 hover:border-green-400 hover:bg-blue-800/30 hover:shadow-2xl hover:shadow-green-400/60 hover:scale-[1.01]'
+                              : isInactive
+                                ? 'bg-blue-900/30 border-l-red-500 hover:border-red-400 hover:bg-blue-800/30 hover:shadow-2xl hover:shadow-red-400/60 hover:scale-[1.01]'
+                                : 'bg-gray-900/80 border-l-purple-500 hover:border-purple-400 hover:bg-gray-800/80 hover:shadow-2xl hover:shadow-purple-400/60 hover:scale-[1.01]'
                       }`}>
                       {/* Status Ribbon - No longer needed, all inactive states use overlays now */}
                       
