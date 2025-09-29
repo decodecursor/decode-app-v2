@@ -224,6 +224,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           console.error('Profile fetch error:', profileError)
           // Don't fail if profile fetch fails - user might need to set up profile
         }
+
+        // Set auth completed AFTER user is set (moved from finally block)
+        setIsAuthenticating(false)
+        setAuthCompleted(true)
+        setLoading(false)
       } catch (error) {
         console.error('Init user error:', error)
         setError('Failed to initialize user')
@@ -241,15 +246,22 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
         const authDuration = Date.now() - authStartTime
         console.log(`🔍 [UserContext] Authentication completed in ${authDuration}ms`)
-
-        setIsAuthenticating(false)
-        setAuthCompleted(true)
-        setLoading(false)
       }
     }
 
     initUser()
   }, [fetchProfile])
+
+  // Synchronize authCompleted state to prevent race conditions
+  // This ensures Dashboard only proceeds when user state is properly set
+  useEffect(() => {
+    // If we have a user but authCompleted is false, complete the auth
+    if (user && !authCompleted && !isAuthenticating) {
+      console.log('🔗 [UserContext] Synchronizing auth completion after user state update')
+      setAuthCompleted(true)
+      setLoading(false)
+    }
+  }, [user, authCompleted, isAuthenticating])
 
   return (
     <UserContext.Provider value={{ user, profile, loading, isAuthenticating, authCompleted, error, refreshProfile }}>
