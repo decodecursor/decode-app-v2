@@ -1333,7 +1333,13 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             className="mb-4 date-picker-custom"
             defaultMonth={new Date(new Date().getFullYear(), new Date().getMonth() - 1)}
           />
-          <div className="flex items-center justify-center gap-4" style={{ marginTop: '-40px', paddingTop: '10px' }}>
+          <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4" style={{ marginTop: '-40px', paddingTop: '10px' }}>
+            <button
+              onClick={() => setShowDatePicker(false)}
+              className="cosmic-button-secondary w-full md:flex-1 py-2 px-4 border border-white/30 rounded-lg text-gray-400 hover:text-gray-300 transition-colors"
+            >
+              Cancel
+            </button>
             <button
               onClick={() => {
                 if (customDateRange?.from) {
@@ -1342,15 +1348,9 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                 }
               }}
               disabled={!customDateRange?.from}
-              className="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 disabled:bg-purple-600/20 disabled:cursor-not-allowed"
+              className="w-full md:flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 disabled:bg-purple-600/20 disabled:cursor-not-allowed"
             >
               Apply
-            </button>
-            <button
-              onClick={() => setShowDatePicker(false)}
-              className="text-gray-400 hover:text-gray-300 underline transition-colors"
-            >
-              Cancel
             </button>
           </div>
         </div>
