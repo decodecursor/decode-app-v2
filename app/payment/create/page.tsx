@@ -178,6 +178,29 @@ export default function CreatePayment() {
     }
   }
 
+  const handleClientChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target
+
+    // Auto-capitalize first letter and letters after spaces
+    const capitalizedValue = value
+      .split(' ')
+      .map(word => {
+        if (word.length === 0) return word
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      })
+      .join(' ')
+
+    setFormData(prev => ({ ...prev, client: capitalizedValue }))
+
+    // Clear errors when user starts typing
+    if (errors.client) {
+      setErrors(prev => ({ ...prev, client: '' }))
+    }
+
+    // Reset suggestion selection when typing
+    setSelectedClientSuggestionIndex(-1)
+  }
+
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target
 
@@ -397,7 +420,7 @@ export default function CreatePayment() {
                   type="text"
                   name="client"
                   value={formData.client}
-                  onChange={handleInputChange}
+                  onChange={handleClientChange}
                   onKeyDown={handleClientKeyDown}
                   onFocus={() => {
                     if (clientSuggestions.length > 0) {
@@ -446,7 +469,7 @@ export default function CreatePayment() {
                   name="amount"
                   value={formData.amount}
                   onChange={handleAmountChange}
-                  placeholder="0.00"
+                  placeholder="0"
                   className={`w-full px-4 py-4 md:px-3 md:py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 text-base md:text-sm ${errors.amount ? 'border-red-500' : 'border-gray-600'}`}
                   disabled={creating}
                 />

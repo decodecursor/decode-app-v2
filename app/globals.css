@@ -1081,10 +1081,10 @@ body {
     max-width: 28vw !important;
   }
 
-  /* Profile button desktop alignment - match parent container layout */
+  /* Profile button desktop alignment - match cosmic-card-profile exactly */
   .profile-button-mobile-left {
-    width: 100% !important;
-    margin: 0 !important;
+    width: 28vw !important;
+    margin: 0 auto !important;
   }
 
   .profile-back-button {
@@ -1092,7 +1092,7 @@ body {
   }
 
   .profile-back-button button {
-    margin-left: 0 !important;
+    margin-left: auto !important;
   }
 
   /* Payments back button desktop alignment - match payments-container */
@@ -1574,9 +1574,9 @@ body {
     }
   }
 
-  /* Chart container for mobile - compressed */
+  /* Chart container for mobile - ensure Y-axis containment */
   .payments-chart-container {
-    padding: 8px !important;
+    padding: 12px 8px 8px 16px !important; /* left padding increased for Y-axis */
   }
 
   /* Y-axis labels smaller */
@@ -1586,7 +1586,7 @@ body {
 
   .payments-chart-mobile {
     height: 150px !important;
-    overflow: visible !important;
+    overflow: hidden !important;
   }
 
   .payments-chart-mobile .flex {
@@ -1611,10 +1611,14 @@ body {
     }
     .payments-chart-area-mobile {
       margin-left: 6px !important;
+      overflow: hidden !important;
     }
-    /* Align chart labels with bars */
+    /* Align chart labels with bars and prevent overflow */
     .chart-labels-mobile {
       margin-left: 51px !important;
+      overflow: hidden !important;
+      font-size: 8px !important;
+      padding-right: 4px !important;
     }
   }
 
