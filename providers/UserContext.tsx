@@ -104,25 +104,34 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setError(null)
         setAuthCheckAttempts(prev => prev + 1)
 
-        // Add a small delay on mobile to ensure cookies are properly set
-        if (typeof window !== 'undefined' && authCheckAttempts === 0) {
+        // Check if we're coming from a fresh login (reduce delays for better UX)
+        const isFromLogin = typeof window !== 'undefined' &&
+          (document.referrer.includes('/auth') || sessionStorage.getItem('fresh_login') === 'true')
+
+        // Only add delay on mobile for non-login flows to prevent blinking
+        if (typeof window !== 'undefined' && authCheckAttempts === 0 && !isFromLogin) {
           const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
           if (isMobile) {
-            console.log('📱 [UserContext] Mobile device detected, adding delay for cookie settlement')
-            await new Promise(resolve => setTimeout(resolve, 500))
+            console.log('📱 [UserContext] Mobile device detected, minimal delay for cookie settlement')
+            await new Promise(resolve => setTimeout(resolve, 200))
           }
+        }
+
+        // Clear fresh login flag after using it
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('fresh_login')
         }
 
         // Single auth check using proxy-first approach
         const { user: authUser, error: authError } = await getUserWithProxy()
 
         if (authError) {
-          // On mobile, retry once if this is the first attempt
-          if (authCheckAttempts === 0 && typeof window !== 'undefined') {
+          // Reduce retry logic to prevent blinking - only retry on very specific conditions
+          if (authCheckAttempts === 0 && !isFromLogin && typeof window !== 'undefined') {
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-            if (isMobile) {
-              console.log('🔄 [UserContext] Mobile auth failed, retrying once...')
-              setTimeout(() => initUser(), 1000)
+            if (isMobile && authError.includes('network')) {
+              console.log('🔄 [UserContext] Network error on mobile, single retry...')
+              setTimeout(() => initUser(), 800)
               return
             }
           }
@@ -143,7 +152,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         // Use Promise.race to timeout if profile fetch is slow
         const profilePromise = fetchProfile(authUser.id)
         const timeoutPromise = new Promise<null>((resolve) =>
-          setTimeout(() => resolve(null), 3000) // 3 second timeout
+          setTimeout(() => resolve(null), 2000) // Reduced timeout to prevent delays
         )
 
         try {

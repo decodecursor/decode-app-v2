@@ -534,8 +534,13 @@ function AuthPageContent() {
                 console.log('✅ Proxy login successful - session established via cookies')
                 // No need to call setSession - cookies are already set server-side
 
+                // Set fresh login flag to optimize UserContext initialization
+                if (typeof window !== 'undefined') {
+                  sessionStorage.setItem('fresh_login', 'true')
+                }
+
                 // Small delay to ensure session cookies are set
-                await new Promise(resolve => setTimeout(resolve, 500))
+                await new Promise(resolve => setTimeout(resolve, 300))
 
                 console.log('✅ Redirecting to dashboard after proxy login')
                 router.push('/dashboard')
@@ -555,8 +560,13 @@ function AuthPageContent() {
           if (loginSuccess && loginData) {
             console.log('✅ User logged in successfully via direct connection')
 
+            // Set fresh login flag to optimize UserContext initialization
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('fresh_login', 'true')
+            }
+
             // Small delay to ensure session cookies are set
-            await new Promise(resolve => setTimeout(resolve, 500))
+            await new Promise(resolve => setTimeout(resolve, 300))
 
             console.log('✅ Redirecting to dashboard')
             router.push('/dashboard')

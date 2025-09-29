@@ -299,7 +299,11 @@ export default function Dashboard() {
 
 
   // Show loading spinner while context is loading or if no user yet
-  if (contextLoading || !user) {
+  // For fresh logins, give UserContext more time to initialize to prevent flashing
+  const isFromFreshLogin = typeof window !== 'undefined' &&
+    (document.referrer.includes('/auth') || sessionStorage.getItem('fresh_login_processed') === 'true')
+
+  if (contextLoading || (!user && !isFromFreshLogin)) {
     return (
       <div className="cosmic-bg">
         <div className="min-h-screen flex items-center justify-center">
@@ -308,6 +312,25 @@ export default function Dashboard() {
             <p className="text-gray-300">
               {contextLoading ? 'Loading dashboard...' : 'Authenticating...'}
             </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // If no user and this was a fresh login, wait a bit more before redirecting
+  if (!user && isFromFreshLogin) {
+    // Clean up the flag after checking
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('fresh_login_processed')
+    }
+
+    return (
+      <div className="cosmic-bg">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-gray-300">Loading dashboard...</p>
           </div>
         </div>
       </div>
