@@ -604,7 +604,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
       minute: '2-digit',
       hour12: false
     })
-    return `${datePart} – ${timePart}`
+    return `${datePart} - ${timePart}`
   }
 
   const exportPayLinksToCSV = async () => {
@@ -1333,7 +1333,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             className="mb-4 date-picker-custom"
             defaultMonth={new Date(new Date().getFullYear(), new Date().getMonth() - 1)}
           />
-          <div className="flex space-x-3" style={{ marginTop: '-40px', paddingTop: '10px' }}>
+          <div className="flex items-center justify-between" style={{ marginTop: '-40px', paddingTop: '10px' }}>
             <button
               onClick={() => {
                 if (customDateRange?.from) {
@@ -1342,13 +1342,13 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
                 }
               }}
               disabled={!customDateRange?.from}
-              className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 disabled:bg-purple-600/20 disabled:cursor-not-allowed"
+              className="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 disabled:bg-purple-600/20 disabled:cursor-not-allowed"
             >
               Apply
             </button>
             <button
               onClick={() => setShowDatePicker(false)}
-              className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300"
+              className="text-gray-400 hover:text-gray-300 underline transition-colors"
             >
               Cancel
             </button>

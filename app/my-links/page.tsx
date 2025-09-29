@@ -1335,7 +1335,8 @@ function MyLinksContent() {
                           createNewPayLinkHighlight(el)
                         }
                       }}
-                      className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 payment-link-card-mobile transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out ${
+                      onClick={() => setSelectedPaymentLinkId(link.id)}
+                      className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 payment-link-card-mobile transition-all duration-300 cursor-pointer before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out ${
                         isNewPayLink
                           ? 'bg-yellow-900/10 border-l-yellow-500 border-yellow-400/60 shadow-2xl shadow-yellow-400/40 scale-[1.02] animate-pulse'
                           : isPaid
@@ -1343,7 +1344,7 @@ function MyLinksContent() {
                             : isInactive
                               ? 'bg-blue-900/30 border-l-red-500 hover:border-red-400 hover:bg-blue-800/30 hover:shadow-2xl hover:shadow-red-400/60 hover:scale-[1.01]'
                               : 'bg-gray-900/80 border-l-purple-500 hover:border-purple-400 hover:bg-gray-800/80 hover:shadow-2xl hover:shadow-purple-400/60 hover:scale-[1.01]'
-                      }`}>
+                      } ${selectedPaymentLinkId === link.id ? 'ring-2 ring-purple-500/50' : ''}`}>
                       {/* Status Ribbon - No longer needed, all inactive states use overlays now */}
                       
                       {/* PAID Overlay */}
@@ -1420,8 +1421,11 @@ function MyLinksContent() {
                           {/* Mobile Action Buttons - Optimized sizing for one line */}
                           <div className={`flex gap-1 mt-2 pt-2 border-t border-gray-700 ${isPaid || isExpired || isDeactivated ? 'opacity-50' : ''}`}>
                             <button
-                              onClick={() => copyToClipboard(link.id)}
-                              disabled={copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                copyToClipboard(link.id)
+                              }}
+                              disabled={selectedPaymentLinkId !== link.id || copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
                               className={`flex-1 px-2 py-1.5 text-xs ${copiedId === link.id ? 'border-green-500 bg-green-500/10 text-green-400' : 'border-white/30 hover:bg-white/10 text-white'} border rounded-lg transition-colors disabled:opacity-50`}
                               title="Copy Link"
                             >
@@ -1435,8 +1439,11 @@ function MyLinksContent() {
                             </button>
 
                             <button
-                              onClick={() => generateQRCode(link)}
-                              disabled={generatingQR || copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                generateQRCode(link)
+                              }}
+                              disabled={selectedPaymentLinkId !== link.id || generatingQR || copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
                               className="flex-1 px-2 py-1.5 text-xs border border-white/30 text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
                             >
                               {generatingQR && currentQRLink?.id === link.id ? (
@@ -1448,8 +1455,11 @@ function MyLinksContent() {
 
                             {status === 'Active' && (
                               <button
-                                onClick={() => handleDeactivateClick(link)}
-                                disabled={deactivatingId === link.id || copyingId === link.id || deletingId === link.id}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleDeactivateClick(link)
+                                }}
+                                disabled={selectedPaymentLinkId !== link.id || deactivatingId === link.id || copyingId === link.id || deletingId === link.id}
                                 className="flex-1 px-2 py-1.5 text-xs border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 rounded-lg transition-colors disabled:opacity-50"
                               >
                                 {deactivatingId === link.id ? (
@@ -1461,8 +1471,11 @@ function MyLinksContent() {
                             )}
 
                             <button
-                              onClick={() => handleDeleteClick(link)}
-                              disabled={deletingId === link.id || copyingId === link.id || deactivatingId === link.id}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDeleteClick(link)
+                              }}
+                              disabled={selectedPaymentLinkId !== link.id || deletingId === link.id || copyingId === link.id || deactivatingId === link.id}
                               className="flex items-center justify-center p-1.5 text-xs border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors disabled:opacity-50 delete-button-mobile"
                               title="Delete"
                             >
@@ -1568,8 +1581,11 @@ function MyLinksContent() {
                             
                             <div className={`flex gap-2 ml-4 payment-link-actions-mobile ${isPaid || isExpired || isDeactivated ? 'opacity-50' : ''}`}>
                             <button
-                              onClick={() => copyToClipboard(link.id)}
-                              disabled={copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                copyToClipboard(link.id)
+                              }}
+                              disabled={selectedPaymentLinkId !== link.id || copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
                               className={`px-4 py-2 text-sm border rounded-lg transition-colors disabled:opacity-50 ${
                                 copiedId === link.id
                                   ? 'border-green-500 bg-green-500/10'
@@ -1605,8 +1621,11 @@ function MyLinksContent() {
 
                             {/* QR Code button */}
                             <button
-                              onClick={() => generateQRCode(link)}
-                              disabled={generatingQR || copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                generateQRCode(link)
+                              }}
+                              disabled={selectedPaymentLinkId !== link.id || generatingQR || copyingId === link.id || deactivatingId === link.id || deletingId === link.id}
                               className="cosmic-button-secondary px-4 py-2 text-sm border border-white/30 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
                             >
                               {generatingQR && currentQRLink?.id === link.id ? (
@@ -1630,8 +1649,11 @@ function MyLinksContent() {
                             {/* Only show deactivate button for active links (not paid) */}
                             {status === 'Active' && (
                               <button
-                                onClick={() => handleDeactivateClick(link)}
-                                disabled={deactivatingId === link.id || copyingId === link.id || deletingId === link.id}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleDeactivateClick(link)
+                                }}
+                                disabled={selectedPaymentLinkId !== link.id || deactivatingId === link.id || copyingId === link.id || deletingId === link.id}
                                 className="px-4 py-2 text-sm border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 rounded-lg transition-colors disabled:opacity-50"
                               >
                                 {deactivatingId === link.id ? (
@@ -1673,8 +1695,11 @@ function MyLinksContent() {
 
                             {/* Delete button - compact size (20% width of other buttons) */}
                             <button
-                              onClick={() => handleDeleteClick(link)}
-                              disabled={deletingId === link.id || copyingId === link.id || deactivatingId === link.id}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDeleteClick(link)
+                              }}
+                              disabled={selectedPaymentLinkId !== link.id || deletingId === link.id || copyingId === link.id || deactivatingId === link.id}
                               className="px-2 py-2 text-sm border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors disabled:opacity-50"
                               title="Delete payment link"
                             >
