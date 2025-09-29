@@ -303,7 +303,25 @@ export default function Dashboard() {
   const isFromFreshLogin = typeof window !== 'undefined' &&
     (document.referrer.includes('/auth') ||
      sessionStorage.getItem('fresh_login') === 'true' ||
-     sessionStorage.getItem('fresh_login_processed') === 'true')
+     sessionStorage.getItem('fresh_login_processed') === 'true' ||
+     // Also check if we came from auth in the last 10 seconds (fallback detection)
+     (localStorage.getItem('last_auth_timestamp') &&
+      Date.now() - parseInt(localStorage.getItem('last_auth_timestamp') || '0') < 10000))
+
+  // Log dashboard state for debugging
+  console.log('🏠 [DASHBOARD] Loading state check:', {
+    contextLoading,
+    hasUser: !!user,
+    hasProfile: !!profile,
+    isFromFreshLogin,
+    freshLoginChecks: typeof window !== 'undefined' ? {
+      referrerCheck: document.referrer.includes('/auth'),
+      freshLoginFlag: !!sessionStorage.getItem('fresh_login'),
+      freshLoginProcessedFlag: !!sessionStorage.getItem('fresh_login_processed'),
+      timestampCheck: localStorage.getItem('last_auth_timestamp') ?
+        Date.now() - parseInt(localStorage.getItem('last_auth_timestamp') || '0') < 10000 : false
+    } : null
+  })
 
   if (contextLoading || (!user && !isFromFreshLogin)) {
     return (

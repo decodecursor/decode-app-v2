@@ -201,8 +201,8 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, onMethodDelete
               P
             </div>
           </div>
-          <h2 className="md:text-2xl text-xl font-bold text-white mb-2">Connect PayPal Account</h2>
-          <p className="text-gray-400 md:text-sm text-xs">Add your PayPal email to receive payouts</p>
+          <h2 className="md:text-2xl text-xl font-bold text-white mb-2">Add Your PayPal Account</h2>
+          <p className="text-gray-400 md:text-sm text-xs">Connect your PayPal account to receive payouts</p>
         </div>
 
         {/* Message Display */}

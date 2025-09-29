@@ -538,10 +538,12 @@ function AuthPageContent() {
                 if (typeof window !== 'undefined') {
                   sessionStorage.setItem('fresh_login', 'true')
                   sessionStorage.setItem('fresh_login_processed', 'true')
+                  // Set timestamp for fallback fresh login detection
+                  localStorage.setItem('last_auth_timestamp', Date.now().toString())
                 }
 
-                // Small delay to ensure session cookies are set
-                await new Promise(resolve => setTimeout(resolve, 300))
+                // Increased delay to ensure session cookies are fully established
+                await new Promise(resolve => setTimeout(resolve, 500))
 
                 console.log('✅ Redirecting to dashboard after proxy login')
                 router.push('/dashboard')
@@ -565,10 +567,12 @@ function AuthPageContent() {
             if (typeof window !== 'undefined') {
               sessionStorage.setItem('fresh_login', 'true')
               sessionStorage.setItem('fresh_login_processed', 'true')
+              // Set timestamp for fallback fresh login detection
+              localStorage.setItem('last_auth_timestamp', Date.now().toString())
             }
 
-            // Small delay to ensure session cookies are set
-            await new Promise(resolve => setTimeout(resolve, 300))
+            // Increased delay to ensure session cookies are fully established
+            await new Promise(resolve => setTimeout(resolve, 500))
 
             console.log('✅ Redirecting to dashboard')
             router.push('/dashboard')

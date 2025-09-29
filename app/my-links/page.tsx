@@ -1295,7 +1295,7 @@ function MyLinksContent() {
                 </div>
                 <h2 className="cosmic-heading mb-2 text-white">No PayLinks Yet</h2>
                 <p className="cosmic-body text-gray-300 mb-6">
-                  Create your first PayLink to display it here.
+                  Create your first PayLink and it will appear here.
                 </p>
                 <Link 
                   href="/payment/create" 

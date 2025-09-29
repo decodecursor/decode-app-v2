@@ -108,6 +108,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         const isFromLogin = typeof window !== 'undefined' &&
           (document.referrer.includes('/auth') || sessionStorage.getItem('fresh_login') === 'true')
 
+        console.log('🔄 [UserContext] Init user attempt:', {
+          authCheckAttempts,
+          isFromLogin,
+          referrer: typeof window !== 'undefined' ? document.referrer : 'server',
+          hasFreshLoginFlag: typeof window !== 'undefined' ? !!sessionStorage.getItem('fresh_login') : false,
+          hasFreshLoginProcessedFlag: typeof window !== 'undefined' ? !!sessionStorage.getItem('fresh_login_processed') : false
+        })
+
         // Only add delay on mobile for non-login flows to prevent blinking
         if (typeof window !== 'undefined' && authCheckAttempts === 0 && !isFromLogin) {
           const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
@@ -117,14 +125,43 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // Clear fresh login flags after using them
-        if (typeof window !== 'undefined') {
-          sessionStorage.removeItem('fresh_login')
-          sessionStorage.removeItem('fresh_login_processed')
+        // Add extra delay for fresh login to ensure session is fully established
+        if (isFromLogin && authCheckAttempts === 0) {
+          console.log('🔄 [UserContext] Fresh login detected, allowing extra time for session establishment')
+          await new Promise(resolve => setTimeout(resolve, 400))
         }
 
-        // Single auth check using proxy-first approach
-        const { user: authUser, error: authError } = await getUserWithProxy()
+        // Single auth check using proxy-first approach with retry for fresh logins
+        let authUser = null
+        let authError = null
+        let retryCount = 0
+        const maxRetries = isFromLogin ? 3 : 1
+
+        while (retryCount < maxRetries) {
+          const result = await getUserWithProxy()
+          authUser = result.user
+          authError = result.error
+
+          if (authUser || !isFromLogin) {
+            // Success or not a fresh login - stop retrying
+            break
+          }
+
+          if (retryCount < maxRetries - 1) {
+            console.log(`🔄 [UserContext] Fresh login auth attempt ${retryCount + 1} failed, retrying...`)
+            await new Promise(resolve => setTimeout(resolve, 500 * (retryCount + 1)))
+          }
+          retryCount++
+        }
+
+        console.log('🔍 [UserContext] Authentication result:', {
+          hasUser: !!authUser,
+          hasError: !!authError,
+          errorMessage: authError,
+          retriesUsed: retryCount,
+          isFromLogin,
+          userId: authUser?.id?.substring(0, 8) + '...' || 'none'
+        })
 
         if (authError) {
           // Reduce retry logic to prevent blinking - only retry on very specific conditions
@@ -169,6 +206,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         console.error('Init user error:', error)
         setError('Failed to initialize user')
       } finally {
+        // Clear fresh login flags after authentication attempt is complete
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('fresh_login')
+          sessionStorage.removeItem('fresh_login_processed')
+        }
         setLoading(false)
       }
     }
