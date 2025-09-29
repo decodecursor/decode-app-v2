@@ -1293,15 +1293,15 @@ function MyLinksContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                   </svg>
                 </div>
-                <h2 className="cosmic-heading mb-2 text-white">No Payment Links Yet</h2>
+                <h2 className="cosmic-heading mb-2 text-white">No PayLinks Yet</h2>
                 <p className="cosmic-body text-gray-300 mb-6">
-                  Create your first payment link to start accepting payments from customers.
+                  Create your first PayLink to display it here.
                 </p>
                 <Link 
                   href="/payment/create" 
                   className="cosmic-button-primary px-8 py-3"
                 >
-                  Create Your First Link
+                  Create Your First PayLink
                 </Link>
               </div>
             </div>
