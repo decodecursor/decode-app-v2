@@ -855,19 +855,19 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             ) : (
               // Full content for STAFF roles
               <>
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="cosmic-label text-white/70">My Commission</h3>
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="cosmic-label text-white/70 payment-metric-label">My Commission</h3>
                   {dateRange !== 'custom' && (
                     <span className={`text-xs font-medium ${getChangeColor(current.myCommission, previous.myCommission)}`}>
                       {formatPercentageChange(current.myCommission, previous.myCommission)}
                     </span>
                   )}
                 </div>
-                <p className="text-2xl font-bold text-white mb-1">
+                <p className="text-2xl font-bold text-white mb-1 payment-metric-value">
                   {formatCurrency(current.myCommission)}
                 </p>
                 {dateRange !== 'custom' && (
-                  <p className="text-xs text-white/50">
+                  <p className="text-xs text-white/50 payment-metric-comparison">
                     vs {formatCurrency(previous.myCommission)} previous period
                   </p>
                 )}
@@ -889,13 +889,13 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             ) : (
               // Full content for STAFF roles
               <>
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="cosmic-label text-white/70">My Next Payout</h3>
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="cosmic-label text-white/70 payment-metric-label">My Next Payout</h3>
                 </div>
-                <p className="text-2xl font-bold text-white mb-1">
+                <p className="text-2xl font-bold text-white mb-1 payment-metric-value">
                   {formatCurrency(totalAvailableBalance)}
                 </p>
-                <p className="text-xs text-white/50">
+                <p className="text-xs text-white/50 payment-metric-comparison">
                   Total available balance
                 </p>
               </>
