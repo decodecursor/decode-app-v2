@@ -155,6 +155,28 @@ export default function UsersManagement() {
     loadUsers()
   }, [router, supabase])
 
+  // Lock body scroll when any modal is open to prevent white space issues
+  useEffect(() => {
+    const isAnyModalOpen = showAddUserModal || showDeleteBranchModal ||
+                          showDeleteUserModal || showCreateBranchModal || showInviteModal
+
+    if (isAnyModalOpen) {
+      // Lock body scroll when modal opens
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+    } else {
+      // Restore body scroll when modal closes
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+  }, [showAddUserModal, showDeleteBranchModal, showDeleteUserModal, showCreateBranchModal, showInviteModal])
+
   // REAL-TIME SUBSCRIPTION TEMPORARILY DISABLED FOR STABILITY
   // Users will need to refresh page to see new users
 
@@ -506,7 +528,7 @@ export default function UsersManagement() {
 
   return (
     <div className="cosmic-bg min-h-screen" onClick={resetNewUserNotifications}>
-      <div className="min-h-screen px-4 py-4 md:py-8">
+      <div className="h-full px-4 py-4 md:py-8">
         {/* Back to Dashboard Link */}
         <div className="flex justify-center dashboard-back-button-spacing">
           <div className="w-full px-4 md:w-[70vw] md:px-0">
