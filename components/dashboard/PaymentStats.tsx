@@ -1333,7 +1333,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             className="mb-4 date-picker-custom"
             defaultMonth={new Date(new Date().getFullYear(), new Date().getMonth() - 1)}
           />
-          <div className="flex items-center justify-between" style={{ marginTop: '-40px', paddingTop: '10px' }}>
+          <div className="flex items-center justify-center gap-4" style={{ marginTop: '-40px', paddingTop: '10px' }}>
             <button
               onClick={() => {
                 if (customDateRange?.from) {
