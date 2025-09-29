@@ -693,10 +693,10 @@ body {
   }
   
   .cosmic-input {
-    padding: 14px 16px;
+    padding: 10px 16px;
     font-size: 16px; /* Prevent zoom on iOS */
     border-radius: 12px;
-    min-height: 48px; /* iOS recommended minimum touch target */
+    min-height: 42px; /* Optimized touch target */
     position: relative;
     z-index: 10;
     -webkit-appearance: none; /* Remove iOS default styling */
@@ -710,9 +710,9 @@ body {
   }
   
   .cosmic-button-primary {
-    padding: 16px 20px;
-    min-height: 56px; /* Touch target */
-    font-size: 18px;
+    padding: 12px 20px;
+    min-height: 48px; /* Optimized touch target */
+    font-size: 16px;
     border-radius: 16px;
     font-weight: 600;
   }
@@ -1321,12 +1321,12 @@ body {
   }
 
   .cosmic-button-primary {
-    min-height: 52px;
+    min-height: 48px;
     font-size: 16px;
   }
 
   .mobile-payment-button {
-    min-height: 52px;
+    min-height: 48px;
     font-size: 16px;
   }
 }
