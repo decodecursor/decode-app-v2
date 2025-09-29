@@ -534,9 +534,10 @@ function AuthPageContent() {
                 console.log('✅ Proxy login successful - session established via cookies')
                 // No need to call setSession - cookies are already set server-side
 
-                // Set fresh login flag to optimize UserContext initialization
+                // Set fresh login flags to optimize UserContext initialization and dashboard loading
                 if (typeof window !== 'undefined') {
                   sessionStorage.setItem('fresh_login', 'true')
+                  sessionStorage.setItem('fresh_login_processed', 'true')
                 }
 
                 // Small delay to ensure session cookies are set
@@ -560,9 +561,10 @@ function AuthPageContent() {
           if (loginSuccess && loginData) {
             console.log('✅ User logged in successfully via direct connection')
 
-            // Set fresh login flag to optimize UserContext initialization
+            // Set fresh login flags to optimize UserContext initialization and dashboard loading
             if (typeof window !== 'undefined') {
               sessionStorage.setItem('fresh_login', 'true')
+              sessionStorage.setItem('fresh_login_processed', 'true')
             }
 
             // Small delay to ensure session cookies are set

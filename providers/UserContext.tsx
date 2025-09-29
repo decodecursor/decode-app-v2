@@ -117,9 +117,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // Clear fresh login flag after using it
+        // Clear fresh login flags after using them
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem('fresh_login')
+          sessionStorage.removeItem('fresh_login_processed')
         }
 
         // Single auth check using proxy-first approach

@@ -301,7 +301,9 @@ export default function Dashboard() {
   // Show loading spinner while context is loading or if no user yet
   // For fresh logins, give UserContext more time to initialize to prevent flashing
   const isFromFreshLogin = typeof window !== 'undefined' &&
-    (document.referrer.includes('/auth') || sessionStorage.getItem('fresh_login_processed') === 'true')
+    (document.referrer.includes('/auth') ||
+     sessionStorage.getItem('fresh_login') === 'true' ||
+     sessionStorage.getItem('fresh_login_processed') === 'true')
 
   if (contextLoading || (!user && !isFromFreshLogin)) {
     return (
