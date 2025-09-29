@@ -875,7 +875,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
             )}
           </div>
 
-          <div className="bg-white/5 rounded-lg p-4">
+          <div className="bg-white/5 rounded-lg p-4 payment-metric-card">
             {(userRole === USER_ROLES.ADMIN || userRole === 'Admin') ? (
               // Empty content for ADMIN roles - just the line/border (left-aligned)
               <div className="pt-4">
