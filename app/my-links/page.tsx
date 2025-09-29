@@ -1333,7 +1333,7 @@ function MyLinksContent() {
                           createNewPayLinkHighlight(el)
                         }
                       }}
-                      className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 payment-link-card-mobile transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out ${
+                      className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 payment-link-card-mobile transition-all duration-300 before:absolute before:inset-0 before:pointer-events-none before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out ${
                         isNewPayLink
                           ? 'bg-yellow-900/10 border-l-yellow-500 border-yellow-400/60 shadow-2xl shadow-yellow-400/40 scale-[1.02] animate-pulse'
                           : isPaid
