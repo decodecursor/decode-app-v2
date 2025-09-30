@@ -773,7 +773,7 @@ function AuthPageContent() {
   }
 
   return (
-    <div className="cosmic-bg">
+    <div className="auth-page cosmic-bg">
       <div className="min-h-screen flex items-center justify-center px-4 py-8">
         <div className="cosmic-card-login">
           <div className="text-center mb-16">
@@ -885,7 +885,7 @@ function AuthPageContent() {
 export default function AuthPage() {
   return (
     <Suspense fallback={
-      <div className="cosmic-bg">
+      <div className="auth-page cosmic-bg">
         <div className="min-h-screen flex items-center justify-center px-4 py-8">
           <div className="cosmic-card-login">
             <div className="text-center mb-16">

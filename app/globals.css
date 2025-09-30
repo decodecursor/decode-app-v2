@@ -361,11 +361,17 @@ input[type="number"] {
 }
 
 /* Base Body Styling */
+html,
 body {
   margin: 0;
   padding: 0;
   font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
   color: var(--cosmic-text-primary);
+  /* Prevent white background from showing on mobile when keyboard opens */
+  background-color: #1a1625;
+  /* Ensure full height coverage */
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 
@@ -647,12 +653,49 @@ body {
     min-height: auto;
   }
 
-  /* Background: proper coverage without crops */
+  /* Background: proper coverage without crops - FIXED for mobile */
   .cosmic-bg {
     background-size: cover;
-    background-position: center bottom;
-    background-attachment: fixed;
+    background-position: center center;
+    /* CRITICAL: Use scroll instead of fixed on mobile - fixed is broken on iOS Safari */
+    background-attachment: scroll;
     background-repeat: no-repeat;
+    /* Extend beyond viewport to prevent white space when keyboard opens */
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* Auth page mobile: comprehensive viewport solution to eliminate white area */
+  .auth-page .cosmic-bg {
+    /* Ensure full coverage when keyboard opens */
+    min-height: 100vh;
+    min-height: calc(var(--vh, 1vh) * 100);
+    min-height: 100dvh;
+    /* Force background to cover entire scrollable area */
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .auth-page .min-h-screen {
+    /* Proper mobile viewport height handling */
+    min-height: 100vh;
+    min-height: calc(var(--vh, 1vh) * 100);
+    min-height: 100dvh;
+    /* Allow scrolling when keyboard appears */
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ensure cosmic-card-login is properly contained on mobile */
+  .auth-page .cosmic-card-login {
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+
+  /* Auth page terms text - smaller on mobile */
+  .auth-page .terms-text-11px {
+    font-size: 10px !important;
   }
 
 

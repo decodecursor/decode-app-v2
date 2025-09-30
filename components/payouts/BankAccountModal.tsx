@@ -272,7 +272,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
               type="text"
               value={beneficiary}
               onChange={(e) => setBeneficiary(e.target.value)}
-              placeholder={userRole === USER_ROLES.STAFF ? 'Sarah Johnson' : 'Boho Beauty Salon'}
+              placeholder={userRole === USER_ROLES.STAFF ? 'Sarah Johnson' : 'Glow Beauty Salon'}
               className="w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
               disabled={loading}
             />
@@ -313,8 +313,8 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
             <p className="font-medium mb-1">Important:</p>
             <ul className="space-y-1 md:text-[11px] text-[10px]">
               <li>• Use the IBAN format for UAE bank accounts</li>
-              <li>• Beneficiary name must match your account holder name</li>
-              <li>• Payouts are typically processed within 1-2 business days</li>
+              <li>• Beneficiary name must match the account holder name</li>
+              <li>• Payouts are processed within 1-2 business days</li>
             </ul>
           </div>
         </div>
@@ -342,7 +342,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
             disabled={loading || !beneficiary || !iban || !bank}
             className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium md:py-3 md:px-4 py-2 px-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Saving...' : isConnected ? 'Update Account' : 'Connect Bank Account'}
+            {loading ? 'Saving...' : isConnected ? 'Update Account' : <>Connect<br/>Bank Account</>}
           </button>
         </div>
       </div>

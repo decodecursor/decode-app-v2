@@ -270,9 +270,9 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, userRole, onMe
           <div className="text-blue-100 md:text-xs text-[10px] text-left">
             <p className="font-medium mb-1">Important:</p>
             <ul className="space-y-1 md:text-[11px] text-[10px]">
-              <li>• Use the email address associated with your PayPal account</li>
-              <li>• Your PayPal account must be verified to receive payouts</li>
-              <li>• Payouts are typically processed within 1-2 business days</li>
+              <li>• Use the PayPal account email address</li>
+              <li>• PayPal account must be verified to receive payouts</li>
+              <li>• Payouts are processed within 1-2 business days</li>
             </ul>
           </div>
         </div>
