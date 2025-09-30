@@ -27,6 +27,7 @@ function AuthPageContent() {
   const [fallbackTriggered, setFallbackTriggered] = useState(false)
   const [isPostVerificationFlow, setIsPostVerificationFlow] = useState(false)
   const [preselectedRole, setPreselectedRole] = useState<string | null>(null)
+  const [checkingAuthState, setCheckingAuthState] = useState(false)
   const supabase = createClient()
   
   // Add submission guard to prevent concurrent submissions
@@ -156,11 +157,17 @@ function AuthPageContent() {
   // Check for authenticated user on page load (handles email verification returns)
   useEffect(() => {
     const checkAuthState = async () => {
+      const justVerified = searchParams?.get('verified') === 'true'
+
+      // Only show loading state if user just verified email
+      if (justVerified) {
+        setCheckingAuthState(true)
+      }
+
       console.log('🔍 [AUTH] Starting auth state check...')
       try {
         // Use getUserWithProxy to handle both direct and proxy auth
         const { user, error } = await getUserWithProxy()
-        const justVerified = searchParams?.get('verified') === 'true'
 
         console.log('🔍 [AUTH] Auth state details:', {
           hasUser: !!user,
@@ -316,9 +323,12 @@ function AuthPageContent() {
       } catch (error) {
         // Silently continue - don't block normal auth flow
         console.error('❌ [AUTH] Auth state check error:', error)
+      } finally {
+        // Always clear loading state after check completes
+        setCheckingAuthState(false)
       }
     }
-    
+
     checkAuthState()
   }, [searchParams, router, supabase])
 
@@ -770,6 +780,26 @@ function AuthPageContent() {
 
     // Clear any temporary data
     setSignedUpUser(null)
+  }
+
+  // Show loading spinner while checking auth state after email verification
+  if (checkingAuthState) {
+    return (
+      <div className="auth-page cosmic-bg">
+        <div className="min-h-screen flex items-center justify-center px-4 py-8">
+          <div className="cosmic-card-login">
+            <div className="text-center mb-16">
+              <img src="/logo.png" alt="DECODE" className="mx-auto mb-2" style={{height: '40px', filter: 'brightness(0) invert(1)'}} />
+              <p className="cosmic-body opacity-70">Make Girls More Beautiful</p>
+            </div>
+            <div className="flex flex-col items-center justify-center py-8 space-y-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+              <p className="text-sm text-gray-300">Verifying your account...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
