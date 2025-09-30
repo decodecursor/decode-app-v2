@@ -447,11 +447,11 @@ export default function PayoutsPage() {
                     </h3>
                   </div>
 
-                  {/* Mobile: Stack, Desktop: Two-Column */}
-                  <div className="flex flex-col md:flex-row gap-4 mb-3">
+                  {/* Mobile: Horizontal, Desktop: Two-Column */}
+                  <div className="flex flex-row gap-4 mb-3">
                     {/* Available Balance - Hidden for ADMIN */}
                     {userRole !== 'Admin' && (
-                      <div className="flex-1">
+                      <div className="flex-1" style={{width: '45%'}}>
                         <p className="text-gray-400 text-xs md:text-sm mb-1">Available Balance</p>
                         <p className="text-xl md:text-2xl font-bold text-white">
                           {formatCurrency(payoutSummary?.availableBalance || 0)}

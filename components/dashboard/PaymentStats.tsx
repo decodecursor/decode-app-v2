@@ -150,7 +150,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
   // Animated button sequence effect on component mount
   useEffect(() => {
-    // Wait 2 seconds before starting the animation
+    // Start animation immediately
     const startDelay = setTimeout(() => {
       // Animation sequence starting with Today
       const animationSequence = ['today', 'week', 'month', 'custom'] as const
@@ -174,7 +174,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
       // Cleanup function for the interval
       return () => clearInterval(interval)
-    }, 2000) // 2 second delay before starting animation
+    }, 0) // Display immediately
 
     // Cleanup function for the timeout
     return () => clearTimeout(startDelay)
