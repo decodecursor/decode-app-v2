@@ -377,7 +377,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
               onChange={(e) => handleCompanyChange(e.target.value)}
               onFocus={() => !hasSelectedSuggestion && setShowSuggestions(companySuggestions.length > 0)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-              className={`cosmic-input ${companyName.trim() ? 'has-content' : ''}`}
+              className={`cosmic-input ${companyName.trim() ? 'has-content' : ''} ${inviteData && companyName ? 'border-purple-500 bg-slate-800' : ''}`}
               required
               disabled={loading || !!inviteData}
               autoComplete="off"
@@ -412,7 +412,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
               placeholder="Enter your full name"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
-              className={`cosmic-input ${userName.trim() ? 'has-content' : ''}`}
+              className={`cosmic-input border-purple-500 ${userName.trim() ? 'has-content bg-slate-800' : ''}`}
               required
               disabled={loading}
             />

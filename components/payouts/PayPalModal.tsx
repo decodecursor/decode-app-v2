@@ -244,7 +244,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, userRole, onMe
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="your.email@example.com"
+              placeholder="email@example.com"
               className="w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
               disabled={loading}
             />
@@ -258,7 +258,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, userRole, onMe
               type="email"
               value={confirmEmail}
               onChange={(e) => setConfirmEmail(e.target.value)}
-              placeholder="your.email@example.com"
+              placeholder="email@example.com"
               className="w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
               disabled={loading}
             />

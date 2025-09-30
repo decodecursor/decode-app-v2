@@ -1056,7 +1056,7 @@ export default function UsersManagement() {
                   </button>
 
                   {showRoleDropdown && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-50 max-h-32 md:max-h-24 overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-[70] max-h-32 md:max-h-24 overflow-y-auto">
                       {['Staff', 'Admin'].map((role) => (
                         <button
                           key={role}
