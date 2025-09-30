@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 console.log('🚀 PAYMENTS PAGE LOADED - VERSION 2024-01-05-16:30 - NEW CODE ACTIVE!')
 import { createClient } from '@/utils/supabase/client'
 import { getUserWithProxy } from '@/utils/auth-helper'
+import { useUser } from '@/providers/UserContext'
 import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 import PaymentLinkCard from '@/components/dashboard/PaymentLinkCard'
@@ -66,8 +67,9 @@ interface PaymentStats {
 export default function PaymentHistoryPage() {
   const supabase = createClient()
   const router = useRouter()
+  const { user: contextUser, profile } = useUser()
   const [user, setUser] = useState<User | null>(null)
-  const [userRole, setUserRole] = useState<UserRole | null>(null)
+  const [userRole, setUserRole] = useState<UserRole | null>(profile?.role || null)
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([])
   const [transactions, setTransactions] = useState<PaymentTransaction[]>([])
   const [stats, setStats] = useState<PaymentStats | null>(null)
@@ -176,6 +178,14 @@ export default function PaymentHistoryPage() {
       console.log('✅ Loading state updated - component should render now')
     }
   }
+
+  // Sync userRole from UserContext profile (instant, no API call needed)
+  useEffect(() => {
+    if (profile?.role) {
+      console.log('🔍 [PAYMENTS] Using role from UserContext:', profile.role)
+      setUserRole(profile.role)
+    }
+  }, [profile])
 
   const fetchUserRole = async () => {
     try {
