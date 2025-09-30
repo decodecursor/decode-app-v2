@@ -210,8 +210,11 @@ export default function PaymentHistoryPage() {
 
         console.log('✅ Payments: User authenticated:', user.id)
         setUser(user)
-        await fetchPaymentData(user.id)
-        await fetchUserRole()
+        // Run data fetching in parallel for faster load
+        await Promise.all([
+          fetchPaymentData(user.id),
+          fetchUserRole()
+        ])
 
         // Set up real-time subscription for payment completion events
         console.log('🔄 Setting up real-time subscription for user:', user.id)
