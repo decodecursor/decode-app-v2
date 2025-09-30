@@ -209,21 +209,18 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setUser(authUser)
 
         // Only fetch profile if we have a user
-        // Use Promise.race to timeout if profile fetch is slow
-        const profilePromise = fetchProfile(authUser.id)
-        const timeoutPromise = new Promise<null>((resolve) =>
-          setTimeout(() => resolve(null), 2000) // Reduced timeout to prevent delays
-        )
-
-        try {
-          const profileData = await Promise.race([profilePromise, timeoutPromise])
-          if (profileData !== null) {
-            setProfile(profileData)
-          }
-        } catch (profileError) {
-          console.error('Profile fetch error:', profileError)
-          // Don't fail if profile fetch fails - user might need to set up profile
-        }
+        // Fetch profile in background without blocking - it will update state when complete
+        fetchProfile(authUser.id)
+          .then(profileData => {
+            if (profileData) {
+              setProfile(profileData)
+              console.log('✅ [UserContext] Profile loaded successfully')
+            }
+          })
+          .catch(profileError => {
+            console.error('Profile fetch error:', profileError)
+            // Don't fail if profile fetch fails - user might need to set up profile
+          })
       } catch (error) {
         console.error('Init user error:', error)
         setError('Failed to initialize user')
