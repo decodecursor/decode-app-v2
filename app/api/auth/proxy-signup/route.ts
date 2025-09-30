@@ -163,12 +163,13 @@ export async function POST(request: NextRequest) {
           email,
           password,
           options: {
+            emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.welovedecode.com'}/auth/verify`,
             data: {
               email_confirm: true
             }
           }
         }),
-        new Promise<never>((_, reject) => 
+        new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('Signup timeout after 20 seconds')), 20000)
         )
       ])
