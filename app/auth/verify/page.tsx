@@ -81,6 +81,21 @@ function VerifyContent() {
         }
 
         if (!token) {
+          // No token in URL - check if user is already logged in (email change may have succeeded)
+          const supabase = createClient()
+          const { data: { user } } = await supabase.auth.getUser()
+
+          if (user && user.email_confirmed_at) {
+            console.log('✅ User is logged in with confirmed email - email change succeeded')
+            setSuccess(true)
+            setMessage('Email verified successfully! Redirecting to your profile...')
+            setTimeout(() => {
+              router.push('/profile')
+            }, 2000)
+            setLoading(false)
+            return
+          }
+
           setMessage('Invalid verification link - no token provided')
           setLoading(false)
           return
