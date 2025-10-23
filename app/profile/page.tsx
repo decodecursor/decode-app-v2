@@ -54,6 +54,7 @@ export default function ProfilePage() {
   // Feedback states
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
   const [companyNameSaved, setCompanyNameSaved] = useState(false)
+  const [passwordChangedSuccess, setPasswordChangedSuccess] = useState(false)
 
   // Load profile data when user is available
   // Check auth on mount
@@ -384,7 +385,6 @@ export default function ProfilePage() {
       if (!response.ok) throw new Error(result.error)
 
       setEmailVerificationSent(true)
-      setMessage({ type: 'success', text: 'Verification email sent. Please check your new email address.' })
     } catch (error) {
       console.error('Error changing email:', error)
       setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to change email' })
@@ -420,7 +420,12 @@ export default function ProfilePage() {
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
-      setMessage({ type: 'success', text: 'Password updated successfully' })
+
+      // Show success on button for 3 seconds
+      setPasswordChangedSuccess(true)
+      setTimeout(() => {
+        setPasswordChangedSuccess(false)
+      }, 3000)
     } catch (error) {
       console.error('Error changing password:', error)
       setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to change password' })
@@ -718,6 +723,14 @@ export default function ProfilePage() {
               >
                 {passwordChanging ? 'Changing...' : 'Change'}
               </button>
+
+              {passwordChangedSuccess && (
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                  <p className="text-green-400 text-sm">
+                    Password changed successfully!
+                  </p>
+                </div>
+              )}
             </div>
             </div>
           </div>
