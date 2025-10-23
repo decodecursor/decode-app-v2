@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { v4 as uuidv4 } from 'uuid'
-import crypto from 'crypto'
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,10 +12,19 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(newEmail)) {
+      return NextResponse.json(
+        { error: 'Please provide a valid email address' },
+        { status: 400 }
+      )
+    }
+
     // Get current user from auth
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -39,45 +46,36 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Generate verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex')
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+    console.log('📧 Attempting email change for user:', user.id)
+    console.log('📧 Old email:', user.email)
+    console.log('📧 New email:', newEmail.toLowerCase().trim())
 
-    // Get current user data
-    const { data: userData } = await supabase
-      .from('users')
-      .select('email')
-      .eq('id', user.id)
-      .single()
-
-    // The verification process is handled through email_verification_logs table
-    // No need to update user table with pending email fields
-    const updateError = null // Removed user table update since verification fields don't exist
+    // Use Supabase auth to update email (sends verification email automatically)
+    const { error: updateError } = await supabase.auth.updateUser(
+      { email: newEmail.toLowerCase().trim() },
+      {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.welovedecode.com'}/auth/verify`
+      }
+    )
 
     if (updateError) {
-      console.error('Error updating user:', updateError)
+      console.error('❌ Email change error:', updateError)
+
+      // Map common errors to user-friendly messages
+      let userMessage = updateError.message
+      if (updateError.message?.includes('Email rate limit exceeded') || updateError.message?.includes('rate limit')) {
+        userMessage = 'Email rate limit reached. Please wait a few minutes before trying again.'
+      } else if (updateError.message?.includes('same email')) {
+        userMessage = 'This is already your current email address.'
+      }
+
       return NextResponse.json(
-        { error: 'Failed to initiate email change' },
-        { status: 500 }
+        { error: userMessage },
+        { status: 400 }
       )
     }
 
-    // Log the verification attempt (logging to console since email_verification_logs table doesn't exist)
-    console.log('Email change verification attempt:', {
-      user_id: user.id,
-      email_type: 'email_change',
-      old_email: userData?.email,
-      new_email: newEmail.toLowerCase().trim(),
-      verification_token: verificationToken,
-      expires_at: expiresAt.toISOString(),
-      ip_address: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
-      user_agent: req.headers.get('user-agent') || 'unknown'
-    })
-
-    // In a real implementation, you would send an email here
-    // For now, we'll just return success
-    console.log(`Email verification token for ${newEmail}: ${verificationToken}`)
-    console.log(`Verification URL: ${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`)
+    console.log('✅ Email change initiated successfully - verification email sent to:', newEmail.toLowerCase().trim())
 
     return NextResponse.json({
       success: true,

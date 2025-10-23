@@ -657,7 +657,7 @@ export default function ProfilePage() {
               {emailVerificationSent && (
                 <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
                   <p className="text-blue-400 text-sm">
-                    Verification email sent! Check your inbox and click the link to confirm your new email.
+                    Verification email sent to your new address. Check your inbox to confirm.
                   </p>
                 </div>
               )}
