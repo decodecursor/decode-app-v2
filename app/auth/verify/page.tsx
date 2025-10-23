@@ -26,6 +26,44 @@ function VerifyContent() {
 
         console.log('🔍 Processing verification:', { token: token?.substring(0, 20) + '...', type })
 
+        // Handle email change verification
+        if (type === 'email_change') {
+          const supabase = createClient()
+
+          console.log('📧 Processing email change verification...')
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: token,
+            type: 'email_change'
+          })
+
+          if (error) {
+            console.error('❌ Email change verification error:', error)
+            if (error.message?.includes('expired')) {
+              setMessage('Verification link has expired. Please request a new email change.')
+            } else if (error.message?.includes('invalid')) {
+              setMessage('Invalid verification link. Please try changing your email again.')
+            } else {
+              setMessage(`Email change verification failed: ${error.message}`)
+            }
+            setLoading(false)
+            return
+          }
+
+          if (data?.user) {
+            console.log('✅ Email changed successfully for user:', data.user.id)
+            console.log('📧 New email:', data.user.email)
+            setSuccess(true)
+            setMessage('Email changed successfully! Redirecting to your profile...')
+            setTimeout(() => {
+              router.push('/profile')
+            }, 2000)
+          } else {
+            setMessage('Email change completed but no user data returned.')
+          }
+          setLoading(false)
+          return
+        }
+
         // For signup verification, use verifyOtp
         if (type === 'signup') {
           const supabase = createClient()
