@@ -278,8 +278,8 @@ export default function CreatePayment() {
       isValid = false
     } else {
       const amount = parseFloat(formData.amount.replace(/,/g, ''))
-      if (isNaN(amount) || amount <= 0) {
-        newErrors.amount = 'Please enter a valid amount greater than AED 0'
+      if (isNaN(amount) || amount < 5) {
+        newErrors.amount = 'Minimum amount is AED 5'
         isValid = false
       }
     }
