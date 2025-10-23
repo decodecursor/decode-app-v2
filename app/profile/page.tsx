@@ -128,9 +128,34 @@ export default function ProfilePage() {
       }
 
       if (profileData) {
-        setProfile(profileData)
+        // Use Auth email as source of truth (in case email was changed in Auth but not synced to DB)
+        const currentEmail = user.email || profileData.email || ''
+
+        // Sync email to database if it doesn't match
+        if (user.email && profileData.email !== user.email) {
+          console.log('📧 Email mismatch detected - syncing Auth email to database')
+          console.log('📧 Auth email:', user.email)
+          console.log('📧 DB email:', profileData.email)
+
+          supabase
+            .from('users')
+            .update({ email: user.email })
+            .eq('id', user.id)
+            .then(({ error }) => {
+              if (error) {
+                console.error('Failed to sync email to database:', error)
+              } else {
+                console.log('✅ Email synced to database successfully')
+              }
+            })
+        }
+
+        setProfile({
+          ...profileData,
+          email: currentEmail // Use current auth email
+        })
         setProfessionalCenterName(profileData.company_name || profileData.professional_center_name || '')
-        setNewEmail(profileData.email || user.email || '')
+        setNewEmail(currentEmail)
         setProfilePhotoUrl(profileData.profile_photo_url || null)
       } else {
         setMessage({ type: 'error', text: 'No profile data found' })
