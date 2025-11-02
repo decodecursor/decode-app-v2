@@ -88,19 +88,14 @@ export class BiddingService {
         user_role: 'Beauty Model',
         amount: params.amount,
         description: auction.title,
-        metadata: {
-          auction_id: params.auction_id,
-          bidder_email: params.bidder_email,
-          bidder_name: params.bidder_name,
-          is_guest: params.is_guest,
-        },
+        metadata: {},
         auction_id: params.auction_id,
         bid_id: '', // Will be filled after bid creation
         bidder_email: params.bidder_email,
         bidder_name: params.bidder_name,
         is_guest: params.is_guest,
         guest_stripe_customer_id: stripeCustomerId,
-      });
+      } as any);
 
       if (!paymentResult.success) {
         return { success: false, error: paymentResult.error };
