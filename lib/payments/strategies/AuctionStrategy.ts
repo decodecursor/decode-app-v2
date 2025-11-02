@@ -108,7 +108,7 @@ export class AuctionStrategy implements IPaymentStrategy {
         success: true,
         payment_intent_id: paymentIntent.id,
         metadata: {
-          amount_captured: paymentIntent.amount_captured,
+          amount: paymentIntent.amount,
           status: paymentIntent.status,
         },
       };
