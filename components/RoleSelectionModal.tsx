@@ -366,7 +366,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {selectedRole !== 'Beauty Model' && (
+          {role !== 'Beauty Model' && (
             <div className="relative">
               <label className="block text-sm font-medium text-gray-300 mb-3">
                 Company
