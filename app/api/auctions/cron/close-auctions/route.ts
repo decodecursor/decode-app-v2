@@ -105,14 +105,9 @@ export async function POST(request: NextRequest) {
         }
 
         // Send auction ended notification to creator
-        await notificationService.notifyAuctionEnded({
-          auction_id: auction.id,
-          auction_title: auction.title,
-          creator_email: auction.creator?.email || '',
-          creator_name: auction.creator?.full_name || '',
-          winner_name: winningBid?.bidder_name,
-          winning_amount: winningBid ? Number(winningBid.amount) : undefined,
-        });
+        // TODO: Fetch creator details from users table using auction.creator_id
+        // For now, skip creator notification in cron job
+        // Creators can check dashboard for results
 
         closedCount++;
       } catch (error) {
