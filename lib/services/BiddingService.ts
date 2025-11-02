@@ -3,7 +3,7 @@
  * Handles bid placement, validation, and anti-sniping logic
  */
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 import type { CreateBidDto, Bid, calculateMinimumBid } from '@/lib/models/Bid.model';
 import { AuctionService } from './AuctionService';
 import { GuestBidderService } from './GuestBidderService';

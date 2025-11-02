@@ -3,7 +3,7 @@
  * Handles CRUD operations and business logic for auctions
  */
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 import type {
   Auction,
   CreateAuctionDto,

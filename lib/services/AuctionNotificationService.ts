@@ -3,7 +3,7 @@
  * Handles email notifications and in-page notifications for auction events
  */
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 import { sendEmail } from '@/lib/email-service';
 
 export class AuctionNotificationService {

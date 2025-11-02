@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 import { AuctionService } from '@/lib/services/AuctionService';
 import type { UpdateAuctionDto } from '@/lib/models/Auction.model';
 

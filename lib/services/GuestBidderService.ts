@@ -3,7 +3,7 @@
  * Handles guest bidder profile management and reuse
  */
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 import type { GuestBidder, CreateGuestBidderDto } from '@/lib/models/GuestBidder.model';
 import { normalizeEmail, validateEmail, validateGuestName } from '@/lib/models/GuestBidder.model';
 
