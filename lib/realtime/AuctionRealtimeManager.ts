@@ -3,7 +3,7 @@
  * Manages Supabase Realtime subscriptions for auctions and bids
  */
 
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/utils/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { Auction } from '@/lib/models/Auction.model';
 import type { Bid } from '@/lib/models/Bid.model';

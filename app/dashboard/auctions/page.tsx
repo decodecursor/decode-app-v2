@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/utils/supabase/client';
 import { CreateAuctionModal } from '@/components/auctions/CreateAuctionModal';
 import { AuctionCard } from '@/components/auctions/AuctionCard';
 import type { Auction } from '@/lib/models/Auction.model';

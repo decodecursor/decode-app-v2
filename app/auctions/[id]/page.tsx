@@ -15,7 +15,7 @@ import { BiddingInterface } from '@/components/auctions/BiddingInterface';
 import { WinnerNotification } from '@/components/auctions/WinnerNotification';
 import { VideoPlayback } from '@/components/auctions/VideoPlayback';
 import { formatBidAmount } from '@/lib/models/Bid.model';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/utils/supabase/client';
 
 export default function AuctionDetailPage() {
   const params = useParams();
