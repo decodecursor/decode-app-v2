@@ -110,23 +110,6 @@ export default function AuctionDetailPage() {
               {auction.description && (
                 <p className="text-gray-600 text-lg">{auction.description}</p>
               )}
-
-              {/* Creator Info */}
-              {auction.creator && (
-                <div className="mt-4 flex items-center gap-3">
-                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-medium text-indigo-700">
-                      {auction.creator.full_name?.[0] || auction.creator.email[0].toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {auction.creator.full_name || auction.creator.email}
-                    </p>
-                    <p className="text-xs text-gray-500">Auction Creator</p>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Status Badge */}
