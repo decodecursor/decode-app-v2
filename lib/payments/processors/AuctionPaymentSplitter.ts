@@ -3,7 +3,7 @@
  * Handles payment splits and payouts for auction winnings
  */
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 import {
   calculatePlatformFee,
   calculateNetAmount,

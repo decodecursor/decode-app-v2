@@ -8,7 +8,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { VideoRecorder } from '@/components/auctions/VideoRecorder';
-import { AuctionVideoService } from '@/lib/services/AuctionVideoService';
 
 export default function VideoRecordingPage() {
   const params = useParams();
@@ -31,10 +30,15 @@ export default function VideoRecordingPage() {
       setIsValidating(true);
       setError(null);
 
-      const videoService = new AuctionVideoService();
-      const result = await videoService.validateToken(token);
+      const response = await fetch('/api/auctions/video/validate-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
 
-      if (result.valid && result.auction_id && result.bid_id) {
+      const result = await response.json();
+
+      if (result.success && result.valid && result.auction_id && result.bid_id) {
         setIsValid(true);
         setAuctionId(result.auction_id);
         setBidId(result.bid_id);

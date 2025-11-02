@@ -4,7 +4,7 @@
  */
 
 import { AuctionStrategy } from '../strategies/AuctionStrategy';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 import type { Bid, BidStatus } from '@/lib/models/Bid.model';
 
 export class AuctionPaymentProcessor {
