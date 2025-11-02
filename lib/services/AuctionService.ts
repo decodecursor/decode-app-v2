@@ -20,10 +20,18 @@ export class AuctionService {
     const supabase = await createClient();
 
     try {
+      console.log('🔧 [AuctionService] createAuction called with DTO:', dto);
+
       // Calculate end time based on duration
       const startTime = dto.start_time ? new Date(dto.start_time) : new Date();
       const endTime = new Date(startTime);
       endTime.setMinutes(endTime.getMinutes() + dto.duration);
+
+      console.log('⏰ [AuctionService] Calculated times:', {
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        duration: dto.duration
+      });
 
       // Build insert object with only defined fields
       const insertData: any = {
@@ -40,10 +48,14 @@ export class AuctionService {
       // Only add optional fields if they're defined
       if (dto.description !== undefined && dto.description !== null) {
         insertData.description = dto.description;
+        console.log('📝 [AuctionService] Adding description field');
       }
       if (dto.buy_now_price !== undefined && dto.buy_now_price !== null) {
         insertData.buy_now_price = dto.buy_now_price;
+        console.log('💰 [AuctionService] Adding buy_now_price field');
       }
+
+      console.log('📤 [AuctionService] Inserting data to Supabase:', insertData);
 
       const { data, error } = await supabase
         .from('auctions')
@@ -51,11 +63,25 @@ export class AuctionService {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [AuctionService] Supabase insert error:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          fullError: error
+        });
+        throw error;
+      }
+
+      console.log('✅ [AuctionService] Auction created successfully:', {
+        auctionId: data.id,
+        title: data.title
+      });
 
       return { success: true, auction_id: data.id };
     } catch (error) {
-      console.error('Error creating auction:', error);
+      console.error('💥 [AuctionService] Error creating auction:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to create auction',

@@ -53,28 +53,44 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
     setIsSubmitting(true);
 
     try {
+      const requestPayload = {
+        title: formData.title.trim(),
+        start_price: parseFloat(formData.start_price),
+        duration: formData.duration,
+      };
+
+      console.log('🚀 [CreateAuction] Sending request:', requestPayload);
+
       const response = await fetch('/api/auctions/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: formData.title.trim(),
-          start_price: parseFloat(formData.start_price),
-          duration: formData.duration,
-        }),
+        body: JSON.stringify(requestPayload),
       });
 
+      console.log('📥 [CreateAuction] Response status:', response.status, response.statusText);
+
       const data = await response.json();
+      console.log('📋 [CreateAuction] Response data:', data);
 
       if (!response.ok) {
+        console.error('❌ [CreateAuction] Request failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: data.error,
+          details: data.details,
+          fullResponse: data
+        });
         throw new Error(data.error || 'Failed to create auction');
       }
 
       // Success
+      console.log('✅ [CreateAuction] Auction created successfully:', data.auction_id);
       if (onSuccess) {
         onSuccess(data.auction_id);
       }
       handleClose();
     } catch (err) {
+      console.error('💥 [CreateAuction] Exception caught:', err);
       setSubmitError(err instanceof Error ? err.message : 'Failed to create auction');
     } finally {
       setIsSubmitting(false);

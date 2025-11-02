@@ -11,6 +11,7 @@ import { USER_ROLES, normalizeRole } from '@/types/user';
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔵 [API /auctions/create] Request received');
     const supabase = await createClient();
 
     // Verify authentication
@@ -19,7 +20,15 @@ export async function POST(request: NextRequest) {
       error: authError,
     } = await supabase.auth.getUser();
 
+    console.log('🔐 [API /auctions/create] Auth check:', {
+      hasUser: !!user,
+      userId: user?.id,
+      hasError: !!authError,
+      error: authError?.message
+    });
+
     if (authError || !user) {
+      console.error('❌ [API /auctions/create] Unauthorized - no user');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -30,7 +39,15 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
+    console.log('👤 [API /auctions/create] User role fetch:', {
+      hasData: !!userData,
+      role: userData?.role,
+      hasError: !!userError,
+      error: userError?.message
+    });
+
     if (userError || !userData) {
+      console.error('❌ [API /auctions/create] User not found in database');
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -39,7 +56,15 @@ export async function POST(request: NextRequest) {
 
     // Normalize role and check if MODEL
     const normalizedRole = normalizeRole(userData.role);
+    console.log('🔍 [API /auctions/create] Role check:', {
+      rawRole: userData.role,
+      normalizedRole: normalizedRole,
+      expectedRole: USER_ROLES.MODEL,
+      matches: normalizedRole === USER_ROLES.MODEL
+    });
+
     if (normalizedRole !== USER_ROLES.MODEL) {
+      console.error('❌ [API /auctions/create] Access denied - user is not MODEL');
       return NextResponse.json(
         { error: 'Only MODEL users can create auctions' },
         { status: 403 }
@@ -48,9 +73,11 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
+    console.log('📦 [API /auctions/create] Request body:', body);
 
     // Validate required fields
     if (!body.title || !body.start_price || !body.duration) {
+      console.error('❌ [API /auctions/create] Validation failed - missing fields');
       return NextResponse.json(
         { error: 'Missing required fields: title, start_price, duration' },
         { status: 400 }
@@ -60,6 +87,7 @@ export async function POST(request: NextRequest) {
     // Validate duration
     const validDurations = [30, 60, 180, 1440];
     if (!validDurations.includes(body.duration)) {
+      console.error('❌ [API /auctions/create] Validation failed - invalid duration:', body.duration);
       return NextResponse.json(
         { error: 'Invalid duration. Must be 30, 60, 180, or 1440 minutes' },
         { status: 400 }
@@ -78,18 +106,29 @@ export async function POST(request: NextRequest) {
       start_time: body.start_time,
     };
 
+    console.log('🎯 [API /auctions/create] Calling AuctionService with DTO:', dto);
+
     const result = await auctionService.createAuction(dto);
 
+    console.log('📊 [API /auctions/create] Service result:', {
+      success: result.success,
+      auctionId: result.auction_id,
+      error: result.error
+    });
+
     if (!result.success) {
+      console.error('❌ [API /auctions/create] Service returned error:', result.error);
       return NextResponse.json({ error: result.error }, { status: 500 });
     }
 
     // Start auction immediately if start_time is now or in the past
     const startTime = body.start_time ? new Date(body.start_time) : new Date();
     if (startTime <= new Date()) {
+      console.log('▶️ [API /auctions/create] Starting auction immediately');
       await auctionService.startAuction(result.auction_id!);
     }
 
+    console.log('✅ [API /auctions/create] Auction created successfully:', result.auction_id);
     return NextResponse.json(
       {
         success: true,
@@ -99,9 +138,12 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Error in POST /api/auctions/create:', error);
+    console.error('💥 [API /auctions/create] Unhandled exception:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }
