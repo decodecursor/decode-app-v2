@@ -366,41 +366,43 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="relative">
-            <label className="block text-sm font-medium text-gray-300 mb-3">
-              Company
-            </label>
-            <input
-              type="text"
-              placeholder="Enter company name"
-              value={companyName}
-              onChange={(e) => handleCompanyChange(e.target.value)}
-              onFocus={() => !hasSelectedSuggestion && setShowSuggestions(companySuggestions.length > 0)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-              className={`cosmic-input border-purple-500 ${companyName.trim() ? 'has-content bg-slate-800' : ''} ${inviteData && companyName ? 'bg-slate-800' : ''}`}
-              required
-              disabled={loading || !!inviteData}
-              autoComplete="off"
-            />
-            {inviteData && (
-              <p className="text-xs text-green-400 mt-1">✓ Pre-filled from invitation</p>
-            )}
-            
-            {showSuggestions && companySuggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 bg-gray-800 border border-gray-600 rounded-lg mt-1 z-10 max-h-32 overflow-y-auto">
-                {companySuggestions.map((suggestion, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    className="w-full text-left px-4 py-2 text-white hover:bg-purple-600 transition-colors first:rounded-t-lg last:rounded-b-lg"
-                    onClick={() => handleCompanySelect(suggestion)}
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {selectedRole !== 'Beauty Model' && (
+            <div className="relative">
+              <label className="block text-sm font-medium text-gray-300 mb-3">
+                Company
+              </label>
+              <input
+                type="text"
+                placeholder="Enter company name"
+                value={companyName}
+                onChange={(e) => handleCompanyChange(e.target.value)}
+                onFocus={() => !hasSelectedSuggestion && setShowSuggestions(companySuggestions.length > 0)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                className={`cosmic-input border-purple-500 ${companyName.trim() ? 'has-content bg-slate-800' : ''} ${inviteData && companyName ? 'bg-slate-800' : ''}`}
+                required
+                disabled={loading || !!inviteData}
+                autoComplete="off"
+              />
+              {inviteData && (
+                <p className="text-xs text-green-400 mt-1">✓ Pre-filled from invitation</p>
+              )}
+
+              {showSuggestions && companySuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 bg-gray-800 border border-gray-600 rounded-lg mt-1 z-10 max-h-32 overflow-y-auto">
+                  {companySuggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className="w-full text-left px-4 py-2 text-white hover:bg-purple-600 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                      onClick={() => handleCompanySelect(suggestion)}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="relative">
             <label className="block text-sm font-medium text-gray-300 mb-3">
