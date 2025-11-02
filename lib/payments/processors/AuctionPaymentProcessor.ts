@@ -19,7 +19,7 @@ export class AuctionPaymentProcessor {
    * Keep top 2 bids pre-authorized, cancel all others
    */
   async manageDualPreAuth(auctionId: string, newBidId: string): Promise<void> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       // Get all active pre-authorized bids for this auction, sorted by amount
@@ -82,7 +82,7 @@ export class AuctionPaymentProcessor {
    * Capture winning bid payment
    */
   async captureWinningBid(bidId: string): Promise<{ success: boolean; error?: string }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       // Get the bid
@@ -125,7 +125,7 @@ export class AuctionPaymentProcessor {
    * Attempt fallback capture (capture second highest bid if first fails)
    */
   async attemptFallbackCapture(auctionId: string): Promise<{ success: boolean; bid_id?: string; error?: string }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       // Get top 2 pre-authorized bids
@@ -181,7 +181,7 @@ export class AuctionPaymentProcessor {
    * Cancel all remaining pre-authorizations for an auction
    */
   async cancelAllPreAuths(auctionId: string): Promise<void> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const { data: bids, error } = await supabase
@@ -205,7 +205,7 @@ export class AuctionPaymentProcessor {
    * Helper: Update bid status
    */
   private async updateBidStatus(bidId: string, status: BidStatus): Promise<void> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     await supabase
       .from('bids')
@@ -220,7 +220,7 @@ export class AuctionPaymentProcessor {
     bidId: string,
     status: 'requires_capture' | 'captured' | 'cancelled' | 'failed'
   ): Promise<void> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     await supabase
       .from('bids')

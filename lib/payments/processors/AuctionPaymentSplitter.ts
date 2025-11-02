@@ -46,7 +46,7 @@ export class AuctionPaymentSplitter {
     winningBidAmount: number,
     feePercentage?: number
   ): Promise<{ success: boolean; payout_id?: string; error?: string }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const calculation = this.calculatePayout(winningBidAmount, feePercentage);
@@ -89,7 +89,7 @@ export class AuctionPaymentSplitter {
       notes?: string;
     }
   ): Promise<{ success: boolean; error?: string }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const updateData: any = {
@@ -126,7 +126,7 @@ export class AuctionPaymentSplitter {
    * Get payouts for a MODEL user
    */
   async getModelPayouts(modelId: string, status?: string): Promise<any[]> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       let query = supabase
@@ -163,7 +163,7 @@ export class AuctionPaymentSplitter {
     pending_amount: number;
     transferred_amount: number;
   }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const { data, error } = await supabase
