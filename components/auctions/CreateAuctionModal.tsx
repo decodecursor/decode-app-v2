@@ -18,9 +18,7 @@ interface CreateAuctionModalProps {
 export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuctionModalProps) {
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
     start_price: '',
-    buy_now_price: '',
     duration: 60 as AuctionDuration,
   });
 
@@ -42,13 +40,6 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
       newErrors.start_price = 'Please enter a valid starting price';
     }
 
-    if (formData.buy_now_price) {
-      const buyNowPrice = parseFloat(formData.buy_now_price);
-      if (isNaN(buyNowPrice) || buyNowPrice <= startPrice) {
-        newErrors.buy_now_price = 'Buy now price must be higher than starting price';
-      }
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -67,11 +58,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: formData.title.trim(),
-          description: formData.description.trim() || undefined,
           start_price: parseFloat(formData.start_price),
-          buy_now_price: formData.buy_now_price
-            ? parseFloat(formData.buy_now_price)
-            : undefined,
           duration: formData.duration,
         }),
       });
@@ -98,9 +85,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
     // Reset form
     setFormData({
       title: '',
-      description: '',
       start_price: '',
-      buy_now_price: '',
       duration: 60,
     });
     setErrors({});
@@ -120,7 +105,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
+          <div className="fixed inset-0 bg-black/50" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -134,18 +119,40 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
-                <Dialog.Title
-                  as="h3"
-                  className="text-xl font-semibold leading-6 text-gray-900 mb-4"
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-gray-900 border border-gray-700 md:p-8 p-6 shadow-xl transition-all relative">
+                {/* Close button */}
+                <button
+                  onClick={handleClose}
+                  className="absolute md:top-4 md:right-4 top-2 right-2 text-gray-400 hover:text-white transition-colors"
+                  disabled={isSubmitting}
                 >
-                  Create New Auction
-                </Dialog.Title>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Header */}
+                <div className="text-center md:mb-8 mb-6">
+                  <div className="md:w-16 md:h-16 w-14 h-14 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="md:w-8 md:h-8 w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <Dialog.Title
+                    as="h2"
+                    className="md:text-2xl text-xl font-bold text-white mb-2"
+                  >
+                    Create New Auction
+                  </Dialog.Title>
+                  <p className="text-gray-400 md:text-sm text-xs">
+                    Set up a new auction for your services
+                  </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4 mb-6">
                   {/* Title */}
                   <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
                       Auction Title *
                     </label>
                     <input
@@ -156,38 +163,22 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                         setFormData({ ...formData, title: e.target.value });
                         if (errors.title) setErrors({ ...errors, title: undefined });
                       }}
-                      className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        errors.title ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
+                        errors.title ? 'border-red-500' : 'border-gray-700 focus:border-purple-500'
                       }`}
                       placeholder="e.g., Exclusive Beauty Session"
                       disabled={isSubmitting}
                     />
-                    {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
-                  </div>
-
-                  {/* Description */}
-                  <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                      Description (Optional)
-                    </label>
-                    <textarea
-                      id="description"
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Describe what bidders will receive..."
-                      disabled={isSubmitting}
-                    />
+                    {errors.title && <p className="mt-1 text-sm text-red-100">{errors.title}</p>}
                   </div>
 
                   {/* Starting Price */}
                   <div>
-                    <label htmlFor="start_price" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="start_price" className="block text-sm font-medium text-gray-300 mb-2">
                       Starting Price *
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                      <span className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400">AED</span>
                       <input
                         type="number"
                         id="start_price"
@@ -198,50 +189,21 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                         }}
                         min="0"
                         step="0.01"
-                        className={`w-full pl-8 pr-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.start_price ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full pl-14 md:pl-16 md:pr-4 pr-3 md:py-3 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
+                          errors.start_price ? 'border-red-500' : 'border-gray-700 focus:border-purple-500'
                         }`}
                         placeholder="10.00"
                         disabled={isSubmitting}
                       />
                     </div>
                     {errors.start_price && (
-                      <p className="mt-1 text-sm text-red-600">{errors.start_price}</p>
-                    )}
-                  </div>
-
-                  {/* Buy Now Price (Optional) */}
-                  <div>
-                    <label htmlFor="buy_now_price" className="block text-sm font-medium text-gray-700 mb-1">
-                      Buy Now Price (Optional)
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
-                      <input
-                        type="number"
-                        id="buy_now_price"
-                        value={formData.buy_now_price}
-                        onChange={(e) => {
-                          setFormData({ ...formData, buy_now_price: e.target.value });
-                          if (errors.buy_now_price) setErrors({ ...errors, buy_now_price: undefined });
-                        }}
-                        min="0"
-                        step="0.01"
-                        className={`w-full pl-8 pr-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.buy_now_price ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                        placeholder="100.00"
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                    {errors.buy_now_price && (
-                      <p className="mt-1 text-sm text-red-600">{errors.buy_now_price}</p>
+                      <p className="mt-1 text-sm text-red-100">{errors.start_price}</p>
                     )}
                   </div>
 
                   {/* Duration */}
                   <div>
-                    <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="duration" className="block text-sm font-medium text-gray-300 mb-2">
                       Auction Duration *
                     </label>
                     <select
@@ -250,7 +212,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                       onChange={(e) =>
                         setFormData({ ...formData, duration: parseInt(e.target.value) as AuctionDuration })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:outline-none transition-colors"
                       disabled={isSubmitting}
                     >
                       {AUCTION_DURATIONS.map((option) => (
@@ -263,8 +225,8 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
 
                   {/* Submit Error */}
                   {submitError && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                      <p className="text-sm text-red-600">{submitError}</p>
+                    <div className="p-4 bg-red-600/20 border border-red-500/30 rounded-lg text-red-100">
+                      {submitError}
                     </div>
                   )}
 
@@ -274,14 +236,14 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                       type="button"
                       onClick={handleClose}
                       disabled={isSubmitting}
-                      className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                      className="flex-1 cosmic-button-secondary"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium md:py-3 md:px-4 py-2 px-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSubmitting ? 'Creating...' : 'Create Auction'}
                     </button>
