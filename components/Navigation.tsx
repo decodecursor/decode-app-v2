@@ -37,6 +37,10 @@ export default function Navigation() {
     // Add USERS page for admin users only
     ...(profile?.role === USER_ROLES.ADMIN ? [
       { href: '/dashboard/users', label: 'Users' }
+    ] : []),
+    // Add AUCTIONS page for MODEL users only
+    ...(profile?.role === USER_ROLES.MODEL ? [
+      { href: '/dashboard/auctions', label: 'Auctions' }
     ] : [])
   ]
 

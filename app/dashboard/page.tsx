@@ -470,9 +470,11 @@ export default function Dashboard() {
                   <div className="user-info-name">
                     {profile?.user_name || 'Loading...'}
                   </div>
-                  <div className="user-info-company">
-                    {profile?.company_name || 'Loading...'}
-                  </div>
+                  {profile?.role !== USER_ROLES.MODEL && (
+                    <div className="user-info-company">
+                      {profile?.company_name || 'Loading...'}
+                    </div>
+                  )}
                   {profile?.role ? (
                     <div className="text-xs text-gray-400">
                       {profile?.role}
@@ -539,6 +541,49 @@ export default function Dashboard() {
               ) : profile?.role === USER_ROLES.STAFF ? (
                 <div className="flex gap-4 items-center">
                   {/* Payment History */}
+                  <Link
+                    href="/dashboard/payments"
+                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    Earnings
+                  </Link>
+
+                  {/* My PayLinks */}
+                  <Link
+                    href="/my-links"
+                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    PayLinks
+                  </Link>
+
+                  {/* Create PayLink - Black Button */}
+                  <button
+                    className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+                    onMouseOver={createHoverSparkles}
+                    onClick={handleCreatePayLinkClick}
+                  >
+                    Create PayLink
+                  </button>
+                </div>
+              ) : profile?.role === USER_ROLES.MODEL ? (
+                <div className="flex gap-4 items-center">
+                  {/* Auctions */}
+                  <Link
+                    href="/dashboard/auctions"
+                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    Auctions
+                  </Link>
+
+                  {/* Analytics */}
+                  <Link
+                    href="/dashboard/analytics"
+                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    Analytics
+                  </Link>
+
+                  {/* Earnings */}
                   <Link
                     href="/dashboard/payments"
                     className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
@@ -694,8 +739,40 @@ export default function Dashboard() {
                       </Link>
                     )}
 
-                    {/* Show Earnings for Admin and Staff roles */}
-                    {(profile?.role === USER_ROLES.ADMIN || profile?.role === USER_ROLES.STAFF) && (
+                    {/* Show Auctions for MODEL users */}
+                    {profile?.role === USER_ROLES.MODEL && (
+                      <Link
+                        href="/dashboard/auctions"
+                        className="block nav-button px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <div className="flex items-center">
+                          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                          </svg>
+                          Auctions
+                        </div>
+                      </Link>
+                    )}
+
+                    {/* Show Analytics for MODEL users */}
+                    {profile?.role === USER_ROLES.MODEL && (
+                      <Link
+                        href="/dashboard/analytics"
+                        className="block nav-button px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <div className="flex items-center">
+                          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                          </svg>
+                          Analytics
+                        </div>
+                      </Link>
+                    )}
+
+                    {/* Show Earnings for Admin, Staff, and MODEL roles */}
+                    {(profile?.role === USER_ROLES.ADMIN || profile?.role === USER_ROLES.STAFF || profile?.role === USER_ROLES.MODEL) && (
                       <Link
                         href="/dashboard/payments"
                         className="block nav-button px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"

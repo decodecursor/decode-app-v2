@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { AuctionService } from '@/lib/services/AuctionService';
 import type { CreateAuctionDto } from '@/lib/models/Auction.model';
+import { USER_ROLES, normalizeRole } from '@/types/user';
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,14 +23,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Verify user is a MODEL (Beauty Model role)
+    // Verify user is a MODEL
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('role')
       .eq('id', user.id)
       .single();
 
-    if (userError || !userData || userData.role !== 'Beauty Model') {
+    if (userError || !userData) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // Normalize role and check if MODEL
+    const normalizedRole = normalizeRole(userData.role);
+    if (normalizedRole !== USER_ROLES.MODEL) {
       return NextResponse.json(
         { error: 'Only MODEL users can create auctions' },
         { status: 403 }

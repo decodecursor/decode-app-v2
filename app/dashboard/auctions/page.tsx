@@ -11,6 +11,7 @@ import { createClient } from '@/utils/supabase/client';
 import { CreateAuctionModal } from '@/components/auctions/CreateAuctionModal';
 import { AuctionCard } from '@/components/auctions/AuctionCard';
 import type { Auction } from '@/lib/models/Auction.model';
+import { USER_ROLES } from '@/types/user';
 
 export default function AuctionsDashboardPage() {
   const router = useRouter();
@@ -39,7 +40,7 @@ export default function AuctionsDashboardPage() {
       .eq('id', user.id)
       .single();
 
-    if (userData?.role !== 'Beauty Model') {
+    if (userData?.role !== USER_ROLES.MODEL) {
       router.push('/dashboard');
       return;
     }

@@ -85,7 +85,7 @@ export class BiddingService {
       // 4. Create Stripe PaymentIntent (pre-authorization)
       const paymentResult = await this.auctionStrategy.createPayment({
         user_id: params.user_id || '',
-        user_role: 'Beauty Model',
+        user_role: 'Model',
         amount: params.amount,
         description: auction.title,
         metadata: {},

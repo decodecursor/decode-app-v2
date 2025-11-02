@@ -20,7 +20,7 @@ export interface RefundResult {
 
 export interface PaymentContext {
   user_id: string;
-  user_role: 'Beauty Professional' | 'Beauty Model' | 'Admin';
+  user_role: 'Admin' | 'Staff' | 'Model';
   amount: number;
   description?: string;
   metadata?: Record<string, any>;
