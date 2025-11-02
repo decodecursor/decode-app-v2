@@ -390,6 +390,23 @@ class EmailService {
   }
 
   /**
+   * Generic send method for custom emails (e.g., auction notifications)
+   */
+  async send(params: {
+    to: string
+    subject: string
+    html: string
+    text?: string
+    cc?: string[]
+    bcc?: string[]
+  }): Promise<EmailResult> {
+    return this.sendEmail({
+      ...params,
+      text: params.text || params.html.replace(/<[^>]*>/g, ''), // Strip HTML as fallback
+    });
+  }
+
+  /**
    * Core email sending function
    */
   private async sendEmail(params: {
