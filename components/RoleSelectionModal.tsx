@@ -184,18 +184,21 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
       setMessage('Please select your role')
       return
     }
-    
-    if (!companyName.trim()) {
-      setMessage('Please enter your company name')
-      return
+
+    // Only validate company for non-Model roles
+    if (role !== 'Model') {
+      if (!companyName.trim()) {
+        setMessage('Please enter your company name')
+        return
+      }
+
+      // Additional validation to ensure company name is not just spaces
+      if (companyName.trim().length < 2) {
+        setMessage('Company name must be at least 2 characters long')
+        return
+      }
     }
-    
-    // Additional validation to ensure company name is not just spaces
-    if (companyName.trim().length < 2) {
-      setMessage('Company name must be at least 2 characters long')
-      return
-    }
-    
+
     if (!userName.trim()) {
       setMessage('Please enter your name')
       return
@@ -366,7 +369,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {role !== 'Beauty Model' && (
+          {role !== 'Model' && (
             <div className="relative">
               <label className="block text-sm font-medium text-gray-300 mb-3">
                 Company
