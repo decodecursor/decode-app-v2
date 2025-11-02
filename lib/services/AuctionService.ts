@@ -96,6 +96,8 @@ export class AuctionService {
     const supabase = await createClient();
 
     try {
+      console.log('🔧 [AuctionService] getAuction called with ID:', auctionId);
+
       const { data, error } = await supabase
         .from('auctions')
         .select(`
@@ -105,11 +107,27 @@ export class AuctionService {
         .eq('id', auctionId)
         .single();
 
-      if (error) throw error;
+      console.log('📤 [AuctionService] Supabase query result:', {
+        hasData: !!data,
+        hasError: !!error,
+        auctionId: data?.id,
+        status: data?.status
+      });
 
+      if (error) {
+        console.error('❌ [AuctionService] Supabase error:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        throw error;
+      }
+
+      console.log('✅ [AuctionService] Auction retrieved:', data.id);
       return data;
     } catch (error) {
-      console.error('Error getting auction:', error);
+      console.error('💥 [AuctionService] Error getting auction:', error);
       return null;
     }
   }

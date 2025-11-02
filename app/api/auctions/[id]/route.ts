@@ -13,19 +13,29 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    console.log('🔵 [API /auctions/[id]] GET request for auction:', params.id);
+
     const auctionService = new AuctionService();
     const auction = await auctionService.getAuction(params.id);
 
+    console.log('📊 [API /auctions/[id]] Service result:', {
+      found: !!auction,
+      auctionId: auction?.id,
+      status: auction?.status
+    });
+
     if (!auction) {
+      console.error('❌ [API /auctions/[id]] Auction not found:', params.id);
       return NextResponse.json({ error: 'Auction not found' }, { status: 404 });
     }
 
+    console.log('✅ [API /auctions/[id]] Returning auction:', auction.id);
     return NextResponse.json({
       success: true,
       auction,
     });
   } catch (error) {
-    console.error('Error in GET /api/auctions/[id]:', error);
+    console.error('💥 [API /auctions/[id]] Unhandled exception:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

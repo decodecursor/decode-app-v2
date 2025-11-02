@@ -17,13 +17,25 @@ export function useAuctionRealtime(auctionId: string, initialAuction?: Auction) 
   // Fetch auction data
   const fetchAuction = useCallback(async () => {
     try {
+      console.log('🔍 [useAuctionRealtime] Fetching auction:', auctionId);
       const response = await fetch(`/api/auctions/${auctionId}`);
+      console.log('📥 [useAuctionRealtime] Response status:', response.status, response.statusText);
+
+      const data = await response.json();
+      console.log('📋 [useAuctionRealtime] Response data:', data);
+
       if (response.ok) {
-        const data = await response.json();
+        console.log('✅ [useAuctionRealtime] Auction loaded:', data.auction);
         setAuction(data.auction);
+      } else {
+        console.error('❌ [useAuctionRealtime] Failed to fetch auction:', {
+          status: response.status,
+          error: data.error,
+          fullResponse: data
+        });
       }
     } catch (error) {
-      console.error('Error fetching auction:', error);
+      console.error('💥 [useAuctionRealtime] Exception fetching auction:', error);
     }
   }, [auctionId]);
 
