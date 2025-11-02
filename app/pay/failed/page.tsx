@@ -147,12 +147,12 @@ function PaymentFailedContent() {
               href="/dashboard" 
               className="cosmic-button-primary inline-block payment-back-button"
               onClick={(e) => {
-                console.log('Back to Dashboard clicked from failed page');
+                console.log('Back clicked from failed page');
                 e.preventDefault();
                 window.location.href = '/dashboard';
               }}
             >
-              Back to Dashboard
+              Back
             </Link>
           </div>
         </div>
@@ -242,11 +242,11 @@ function PaymentFailedContent() {
                 </button>
               )}
               
-              <Link 
-                href="/dashboard" 
+              <Link
+                href="/dashboard"
                 className="cosmic-input text-center cosmic-body font-medium hover:bg-white/10 transition-colors block"
               >
-                Back to Dashboard
+                Back
               </Link>
             </div>
 
