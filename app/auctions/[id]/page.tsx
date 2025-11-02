@@ -21,6 +21,7 @@ export default function AuctionDetailPage() {
   const params = useParams();
   const auctionId = params.id as string;
 
+  const [userId, setUserId] = useState<string | undefined>();
   const [userEmail, setUserEmail] = useState<string | undefined>();
   const [userName, setUserName] = useState<string | undefined>();
   const [isCreator, setIsCreator] = useState(false);
@@ -35,6 +36,7 @@ export default function AuctionDetailPage() {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
+        setUserId(user.id);
         setUserEmail(user.email);
         const { data: userData } = await supabase
           .from('users')
@@ -50,10 +52,10 @@ export default function AuctionDetailPage() {
 
   // Check if current user is the creator
   useEffect(() => {
-    if (auction && userEmail) {
-      setIsCreator(auction.creator?.email === userEmail);
+    if (auction && userId) {
+      setIsCreator(auction.creator_id === userId);
     }
-  }, [auction, userEmail]);
+  }, [auction, userId]);
 
   // Winner notification
   const { hasWon, recordingToken, winningAmount } = useWinnerNotification(
