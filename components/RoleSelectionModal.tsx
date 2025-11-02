@@ -414,7 +414,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
               placeholder="Enter your full name"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
-              className={`cosmic-input ${userName.trim() ? 'has-content border-purple-500 bg-slate-800' : ''}`}
+              className={`cosmic-input border-purple-500 ${userName.trim() ? 'has-content bg-slate-800' : ''}`}
               required
               disabled={loading}
             />
