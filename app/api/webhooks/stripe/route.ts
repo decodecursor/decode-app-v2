@@ -4,6 +4,7 @@ import { createServiceRoleClient } from '@/utils/supabase/service-role';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { stripeTransferService } from '@/lib/stripe-transfer-service';
 import { emailService } from '@/lib/email-service';
+import { AuctionStrategy } from '@/lib/payments/strategies/AuctionStrategy';
 import type Stripe from 'stripe';
 
 export async function POST(request: NextRequest) {
@@ -61,27 +62,37 @@ export async function POST(request: NextRequest) {
 
     // Handle different event types with proper error handling
     try {
-      switch (event.type) {
-        case 'checkout.session.completed':
-          await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
-          break;
-        
-        case 'payment_intent.succeeded':
-          await handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
-          break;
-        
-        case 'payment_intent.payment_failed':
-          await handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
-          break;
-        
-        case 'invoice.payment_succeeded':
-          console.log('💰 Invoice payment succeeded');
-          break;
-        
-        default:
-          console.log(`⚠️ Unhandled Stripe webhook event type: ${event.type}`);
-          await markWebhookEventStatus(event.id, 'unhandled');
-          return NextResponse.json({ received: true, unhandled: true });
+      // Check if this is an auction-related event
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const isAuctionEvent = paymentIntent?.metadata?.type === 'auction_bid';
+
+      if (isAuctionEvent) {
+        // Route to auction strategy
+        await handleAuctionEvent(event);
+      } else {
+        // Handle regular payment link events
+        switch (event.type) {
+          case 'checkout.session.completed':
+            await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
+            break;
+
+          case 'payment_intent.succeeded':
+            await handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
+            break;
+
+          case 'payment_intent.payment_failed':
+            await handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
+            break;
+
+          case 'invoice.payment_succeeded':
+            console.log('💰 Invoice payment succeeded');
+            break;
+
+          default:
+            console.log(`⚠️ Unhandled Stripe webhook event type: ${event.type}`);
+            await markWebhookEventStatus(event.id, 'unhandled');
+            return NextResponse.json({ received: true, unhandled: true });
+        }
       }
 
       // Mark webhook as successfully processed
@@ -101,6 +112,23 @@ export async function POST(request: NextRequest) {
       { error: 'Webhook processing failed' },
       { status: 500 }
     );
+  }
+}
+
+/**
+ * Handle auction-related webhook events
+ */
+async function handleAuctionEvent(event: Stripe.Event) {
+  try {
+    console.log(`🎯 Auction webhook event: ${event.type}`);
+
+    const auctionStrategy = new AuctionStrategy();
+    await auctionStrategy.handleWebhook(event);
+
+    console.log(`✅ Auction webhook event processed: ${event.type}`);
+  } catch (error) {
+    console.error('❌ Error handling auction webhook event:', error);
+    throw error;
   }
 }
 

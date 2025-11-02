@@ -1,0 +1,188 @@
+/**
+ * Auction Card Component
+ * Display auction summary with live timer and current price
+ */
+
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { CompactAuctionTimer } from './AuctionTimer';
+import { formatBidAmount } from '@/lib/models/Bid.model';
+import type { Auction } from '@/lib/models/Auction.model';
+
+interface AuctionCardProps {
+  auction: Auction;
+  showCreator?: boolean;
+}
+
+export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) {
+  const currentPrice = Number(auction.current_price);
+  const startPrice = Number(auction.start_price);
+  const hasBids = auction.total_bids > 0;
+
+  // Status badge
+  const getStatusBadge = () => {
+    switch (auction.status) {
+      case 'active':
+        return (
+          <span className="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full">
+            Live
+          </span>
+        );
+      case 'pending':
+        return (
+          <span className="px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-full">
+            Upcoming
+          </span>
+        );
+      case 'ended':
+      case 'completed':
+        return (
+          <span className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-full">
+            Ended
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Link href={`/auctions/${auction.id}`}>
+      <div className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer">
+        {/* Header */}
+        <div className="p-4 border-b border-gray-100">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg font-semibold text-gray-900 truncate">
+                {auction.title}
+              </h3>
+              {auction.description && (
+                <p className="mt-1 text-sm text-gray-600 line-clamp-2">
+                  {auction.description}
+                </p>
+              )}
+            </div>
+            {getStatusBadge()}
+          </div>
+
+          {/* Creator Info */}
+          {showCreator && auction.creator && (
+            <div className="mt-2 flex items-center gap-2">
+              <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center">
+                <span className="text-xs font-medium text-indigo-700">
+                  {auction.creator.full_name?.[0] || auction.creator.email[0].toUpperCase()}
+                </span>
+              </div>
+              <span className="text-sm text-gray-600">
+                {auction.creator.full_name || auction.creator.email}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Pricing */}
+        <div className="p-4">
+          <div className="grid grid-cols-2 gap-4">
+            {/* Current/Starting Price */}
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wide">
+                {hasBids ? 'Current Bid' : 'Starting Price'}
+              </p>
+              <p className="mt-1 text-2xl font-bold text-gray-900">
+                {formatBidAmount(hasBids ? currentPrice : startPrice)}
+              </p>
+            </div>
+
+            {/* Bid Count */}
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Bids</p>
+              <p className="mt-1 text-2xl font-bold text-gray-900">
+                {auction.total_bids}
+              </p>
+            </div>
+          </div>
+
+          {/* Bid Activity */}
+          {auction.unique_bidders > 0 && (
+            <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+              <span>{auction.unique_bidders} bidder{auction.unique_bidders !== 1 ? 's' : ''}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Footer - Timer */}
+        {auction.status === 'active' && (
+          <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
+            <CompactAuctionTimer auction={auction} />
+          </div>
+        )}
+
+        {/* Winner Info */}
+        {(auction.status === 'ended' || auction.status === 'completed') && auction.winner_name && (
+          <div className="px-4 py-3 bg-green-50 border-t border-green-100">
+            <div className="flex items-center gap-2 text-sm">
+              <svg
+                className="w-4 h-4 text-green-600"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="text-green-700 font-medium">
+                Won by {auction.winner_name}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+/**
+ * Auction Card Skeleton (loading state)
+ */
+export function AuctionCardSkeleton() {
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden animate-pulse">
+      <div className="p-4 border-b border-gray-100">
+        <div className="h-6 bg-gray-200 rounded w-3/4 mb-2" />
+        <div className="h-4 bg-gray-200 rounded w-full" />
+      </div>
+      <div className="p-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <div className="h-3 bg-gray-200 rounded w-20 mb-2" />
+            <div className="h-8 bg-gray-200 rounded w-24" />
+          </div>
+          <div>
+            <div className="h-3 bg-gray-200 rounded w-16 mb-2" />
+            <div className="h-8 bg-gray-200 rounded w-12" />
+          </div>
+        </div>
+      </div>
+      <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
+        <div className="h-4 bg-gray-200 rounded w-32" />
+      </div>
+    </div>
+  );
+}
