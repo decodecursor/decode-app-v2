@@ -420,26 +420,15 @@ function VerifyContent() {
               )}
             </div>
 
-            {!loading && !success && (
+            {!loading && !success && email && (
               <div className="space-y-3">
-                {email && (
-                  <button
-                    onClick={handleResendVerification}
-                    disabled={loading}
-                    className="cosmic-button-primary w-full"
-                  >
-                    Resend Verification Email
-                  </button>
-                )}
-
-                <div className="text-center">
-                  <a 
-                    href="/auth" 
-                    className="cosmic-button-secondary inline-block"
-                  >
-                    Back to Login
-                  </a>
-                </div>
+                <button
+                  onClick={handleResendVerification}
+                  disabled={loading}
+                  className="cosmic-button-primary w-full"
+                >
+                  Resend Verification Email
+                </button>
               </div>
             )}
           </div>

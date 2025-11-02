@@ -80,15 +80,6 @@ export default function VerifyEmailPage() {
               >
                 {loading ? 'Sending...' : 'Resend Verification Email'}
               </button>
-
-              <div className="text-center">
-                <a 
-                  href="/auth" 
-                  className="cosmic-button-secondary inline-block"
-                >
-                  Back to Login
-                </a>
-              </div>
             </div>
           </div>
         </div>
