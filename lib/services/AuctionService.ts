@@ -17,7 +17,7 @@ export class AuctionService {
    * Create a new auction
    */
   async createAuction(dto: CreateAuctionDto): Promise<{ success: boolean; auction_id?: string; error?: string }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       // Calculate end time based on duration
@@ -58,7 +58,7 @@ export class AuctionService {
    * Get auction by ID
    */
   async getAuction(auctionId: string): Promise<Auction | null> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const { data, error } = await supabase
@@ -88,7 +88,7 @@ export class AuctionService {
     limit?: number;
     offset?: number;
   }): Promise<Auction[]> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       let query = supabase
@@ -133,7 +133,7 @@ export class AuctionService {
     auctionId: string,
     dto: UpdateAuctionDto
   ): Promise<{ success: boolean; error?: string }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const { error } = await supabase
@@ -164,7 +164,7 @@ export class AuctionService {
    * End an auction
    */
   async endAuction(auctionId: string, winnerBidId?: string): Promise<{ success: boolean; error?: string }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const updateData: any = {
@@ -225,7 +225,7 @@ export class AuctionService {
    * Extend auction time (anti-sniping)
    */
   async extendAuctionTime(auctionId: string, extensionSeconds: number): Promise<{ success: boolean; error?: string }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const { data: auction, error: fetchError } = await supabase
@@ -260,7 +260,7 @@ export class AuctionService {
    * Get active auctions (for cron job processing)
    */
   async getActiveAuctions(): Promise<Auction[]> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const { data, error } = await supabase
@@ -282,7 +282,7 @@ export class AuctionService {
    * Get auctions that need to start
    */
   async getAuctionsToStart(): Promise<Auction[]> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const { data, error } = await supabase
@@ -304,7 +304,7 @@ export class AuctionService {
    * Delete an auction (only if no bids)
    */
   async deleteAuction(auctionId: string): Promise<{ success: boolean; error?: string }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       // Check if there are any bids

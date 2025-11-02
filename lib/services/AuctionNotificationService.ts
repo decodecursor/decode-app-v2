@@ -4,7 +4,7 @@
  */
 
 import { createClient } from '@/utils/supabase/server';
-import { sendEmail } from '@/lib/email-service';
+import { emailService } from '@/lib/email-service';
 
 export class AuctionNotificationService {
   /**
@@ -23,7 +23,7 @@ export class AuctionNotificationService {
       const recordingUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auctions/video/${params.recording_token}`;
 
       // Send email notification
-      await sendEmail({
+      await emailService.send({
         to: params.winner_email,
         subject: `Congratulations! You won "${params.auction_title}"`,
         html: this.getWinnerEmailTemplate({
@@ -59,7 +59,7 @@ export class AuctionNotificationService {
     try {
       const auctionUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auctions/${params.auction_id}`;
 
-      await sendEmail({
+      await emailService.send({
         to: params.bidder_email,
         subject: `You've been outbid on "${params.auction_title}"`,
         html: this.getOutbidEmailTemplate({
@@ -90,7 +90,7 @@ export class AuctionNotificationService {
       const auctionUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auctions/${params.auction_id}`;
 
       for (const email of params.bidder_emails) {
-        await sendEmail({
+        await emailService.send({
           to: email,
           subject: `"${params.auction_title}" ending in ${params.minutes_remaining} minutes!`,
           html: this.getEndingSoonEmailTemplate({
@@ -121,7 +121,7 @@ export class AuctionNotificationService {
     try {
       const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/auctions`;
 
-      await sendEmail({
+      await emailService.send({
         to: params.creator_email,
         subject: `Your auction "${params.auction_title}" has ended`,
         html: this.getAuctionEndedEmailTemplate({

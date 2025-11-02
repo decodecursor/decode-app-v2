@@ -21,7 +21,7 @@ export class AuctionVideoService {
     auction_id: string;
     bid_id: string;
   }): Promise<{ success: boolean; session?: VideoRecordingSession; error?: string }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       // Check if video already exists
@@ -71,7 +71,7 @@ export class AuctionVideoService {
     recording_method: 'in_page' | 'email_link';
     recording_token?: string;
   }): Promise<{ success: boolean; video_id?: string; file_url?: string; error?: string }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       // Check if existing video and retake count
@@ -161,7 +161,7 @@ export class AuctionVideoService {
    * Get video for viewing (creator only)
    */
   async getVideo(auctionId: string): Promise<AuctionVideo | null> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const { data, error } = await supabase
@@ -189,7 +189,7 @@ export class AuctionVideoService {
     bid_id?: string;
     error?: string;
   }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const { data, error } = await supabase
@@ -221,7 +221,7 @@ export class AuctionVideoService {
    * Delete expired videos (cron job)
    */
   async deleteExpiredVideos(): Promise<{ deleted_count: number }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       // Get expired videos

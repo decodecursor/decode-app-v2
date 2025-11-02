@@ -10,7 +10,7 @@ import type { CreateAuctionDto } from '@/lib/models/Auction.model';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Verify authentication
     const {

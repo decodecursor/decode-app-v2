@@ -41,7 +41,7 @@ export class BiddingService {
     ip_address?: string;
     user_agent?: string;
   }): Promise<{ success: boolean; bid_id?: string; client_secret?: string; error?: string }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       // 1. Validate auction
@@ -155,7 +155,7 @@ export class BiddingService {
     auctionId: string,
     limit: number = 10
   ): Promise<Bid[]> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const { data, error } = await supabase
@@ -179,7 +179,7 @@ export class BiddingService {
    * Get user's bids on an auction
    */
   async getUserBids(auctionId: string, email: string): Promise<Bid[]> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const { data, error } = await supabase
@@ -202,7 +202,7 @@ export class BiddingService {
    * Get winning bid for an auction
    */
   async getWinningBid(auctionId: string): Promise<Bid | null> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const { data, error } = await supabase
@@ -270,7 +270,7 @@ export class BiddingService {
     lowest_bid: number;
     average_bid: number;
   }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const { data, error } = await supabase

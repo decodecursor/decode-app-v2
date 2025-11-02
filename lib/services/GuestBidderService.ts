@@ -15,7 +15,7 @@ export class GuestBidderService {
     email: string;
     name: string;
   }): Promise<{ success: boolean; guest_bidder_id?: string; stripe_customer_id?: string; error?: string }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       // Validate inputs
@@ -73,7 +73,7 @@ export class GuestBidderService {
    * Update guest bidder Stripe customer ID
    */
   async updateStripeCustomerId(guestBidderId: string, stripeCustomerId: string): Promise<void> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       await supabase
@@ -89,7 +89,7 @@ export class GuestBidderService {
    * Get guest bidder by email
    */
   async getGuestBidderByEmail(email: string): Promise<GuestBidder | null> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const normalizedEmail = normalizeEmail(email);
@@ -118,7 +118,7 @@ export class GuestBidderService {
     won_auctions: number;
     total_spent: number;
   }> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       // Get bid counts
@@ -156,7 +156,7 @@ export class GuestBidderService {
    * Update guest bidder stats after winning
    */
   async updateGuestWinStats(guestBidderId: string, winningAmount: number): Promise<void> {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     try {
       const { data: guest } = await supabase
