@@ -25,20 +25,29 @@ export class AuctionService {
       const endTime = new Date(startTime);
       endTime.setMinutes(endTime.getMinutes() + dto.duration);
 
+      // Build insert object with only defined fields
+      const insertData: any = {
+        creator_id: dto.creator_id,
+        title: dto.title,
+        start_price: dto.start_price,
+        current_price: 0,
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        duration: dto.duration,
+        status: 'pending',
+      };
+
+      // Only add optional fields if they're defined
+      if (dto.description !== undefined && dto.description !== null) {
+        insertData.description = dto.description;
+      }
+      if (dto.buy_now_price !== undefined && dto.buy_now_price !== null) {
+        insertData.buy_now_price = dto.buy_now_price;
+      }
+
       const { data, error } = await supabase
         .from('auctions')
-        .insert({
-          creator_id: dto.creator_id,
-          title: dto.title,
-          description: dto.description,
-          start_price: dto.start_price,
-          current_price: 0,
-          buy_now_price: dto.buy_now_price,
-          start_time: startTime.toISOString(),
-          end_time: endTime.toISOString(),
-          duration: dto.duration,
-          status: 'pending',
-        })
+        .insert(insertData)
         .select()
         .single();
 
