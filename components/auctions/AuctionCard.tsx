@@ -66,20 +66,6 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </div>
             {getStatusBadge()}
           </div>
-
-          {/* Creator Info */}
-          {showCreator && auction.creator && (
-            <div className="mt-2 flex items-center gap-2">
-              <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center">
-                <span className="text-xs font-medium text-indigo-700">
-                  {auction.creator.full_name?.[0] || auction.creator.email[0].toUpperCase()}
-                </span>
-              </div>
-              <span className="text-sm text-gray-600">
-                {auction.creator.full_name || auction.creator.email}
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Pricing */}
