@@ -229,7 +229,7 @@ export class AuctionStrategy implements IPaymentStrategy {
     console.log('Auction payment captured successfully:', {
       payment_intent_id: paymentIntent.id,
       auction_id: paymentIntent.metadata.auction_id,
-      amount_captured: paymentIntent.amount_captured! / 100,
+      amount: paymentIntent.amount / 100,
     });
 
     // Update auction and payout records
