@@ -106,9 +106,9 @@ export function calculateMinimumBid(currentPrice: number, startPrice: number): n
 }
 
 export function formatBidAmount(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('ar-AE', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'AED',
   }).format(amount);
 }
 

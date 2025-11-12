@@ -145,7 +145,7 @@ export function BiddingInterface({
               Bid Amount
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">د.إ</span>
               <input
                 type="number"
                 id="bid-amount"
