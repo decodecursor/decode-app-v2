@@ -145,7 +145,7 @@ export function BiddingInterface({
               Bid Amount
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">د.إ</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">AED</span>
               <input
                 type="number"
                 id="bid-amount"
@@ -156,7 +156,7 @@ export function BiddingInterface({
                 }}
                 min={minimumBid}
                 step="0.01"
-                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-14 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder={minimumBid.toString()}
               />
             </div>
