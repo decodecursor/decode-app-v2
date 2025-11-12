@@ -483,10 +483,12 @@ export default function ProfilePage() {
             </div>
             
             <div className="space-y-4 md:space-y-8">
-          {/* Profile Photo Section - Admin Only */}  
-          {profile?.role === 'Admin' && (
+          {/* Profile Photo Section - Admin and Model */}
+          {(profile?.role === 'Admin' || profile?.role === USER_ROLES.MODEL) && (
           <div className="cosmic-card-profile h-fit w-full">
-            <h2 className="text-lg md:text-xl font-semibold text-white mb-4 md:mb-8">Company Profile Photo</h2>
+            <h2 className="text-lg md:text-xl font-semibold text-white mb-4 md:mb-8">
+              {profile?.role === 'Admin' ? 'Company Profile Photo' : 'Profile Photo'}
+            </h2>
             
             <div className="text-center">
               {/* Profile Photo Display */}
