@@ -45,6 +45,7 @@ export interface UserProfile {
   branch_name?: string
   approval_status: 'pending' | 'approved' | 'rejected'
   companyProfileImage?: string | null
+  profile_photo_url?: string | null
   pendingUsersCount?: number
 }
 
@@ -78,6 +79,7 @@ export function validateUserProfile(data: any): UserProfile {
     branch_name: data.branch_name || null,
     approval_status: data.approval_status || 'pending',
     companyProfileImage: data.companyProfileImage || null,
+    profile_photo_url: data.profile_photo_url || null,
     pendingUsersCount: data.pendingUsersCount || 0
   }
 }
