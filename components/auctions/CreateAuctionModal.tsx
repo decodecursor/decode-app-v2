@@ -158,18 +158,15 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                     as="h2"
                     className="md:text-2xl text-xl font-bold text-white mb-2"
                   >
-                    Create New Auction
+                    Create Auction
                   </Dialog.Title>
-                  <p className="text-gray-400 md:text-sm text-xs">
-                    Set up a new auction for your services
-                  </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4 mb-6">
                   {/* Title */}
                   <div>
                     <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
-                      Auction Title *
+                      Auction Title
                     </label>
                     <input
                       type="text"
@@ -182,7 +179,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                       className={`w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
                         errors.title ? 'border-red-500' : 'border-gray-700 focus:border-purple-500'
                       }`}
-                      placeholder="e.g., Exclusive Beauty Session"
+                      placeholder="Russian Lips"
                       disabled={isSubmitting}
                     />
                     {errors.title && <p className="mt-1 text-sm text-red-100">{errors.title}</p>}
@@ -191,7 +188,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                   {/* Starting Price */}
                   <div>
                     <label htmlFor="start_price" className="block text-sm font-medium text-gray-300 mb-2">
-                      Starting Price *
+                      Starting Price
                     </label>
                     <div className="relative">
                       <span className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400">AED</span>
@@ -220,7 +217,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                   {/* Duration */}
                   <div>
                     <label htmlFor="duration" className="block text-sm font-medium text-gray-300 mb-2">
-                      Auction Duration *
+                      Auction Duration
                     </label>
                     <select
                       id="duration"
