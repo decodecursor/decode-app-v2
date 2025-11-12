@@ -8,6 +8,7 @@ import { User } from '@supabase/supabase-js'
 import PasswordInput from '@/components/PasswordInput'
 import Cropper from 'react-easy-crop'
 import { useUser } from '@/providers/UserContext'
+import { USER_ROLES } from '@/types/user'
 
 interface UserProfile {
   id: string
