@@ -89,7 +89,7 @@ export default function AuctionDetailPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-4 mb-4">
             <a
-              href="/auctions"
+              href="/dashboard"
               className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,7 +100,7 @@ export default function AuctionDetailPage() {
                   d="M15 19l-7-7 7-7"
                 />
               </svg>
-              Back to Auctions
+              Back to Dashboard
             </a>
           </div>
 
