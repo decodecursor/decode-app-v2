@@ -413,14 +413,14 @@ export default function Dashboard() {
               {/* Left side - Profile Section */}
               <div className="flex items-center gap-4">
                 <div className="relative" ref={dropdownRef}>
-                  <div 
+                  <div
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                     className="instagram-avatar"
                   >
-                    {profile?.companyProfileImage ? (
-                      <img 
-                        src={profile?.companyProfileImage} 
-                        alt="Company Profile" 
+                    {(profile?.profile_photo_url || profile?.companyProfileImage) ? (
+                      <img
+                        src={profile?.profile_photo_url || profile?.companyProfileImage}
+                        alt="Profile"
                       />
                     ) : (
                       <div className="avatar-fallback">
@@ -640,10 +640,10 @@ export default function Dashboard() {
                     onClick={() => router.push('/payment/create')}
                     className="instagram-avatar cursor-pointer"
                   >
-                    {profile?.companyProfileImage ? (
-                      <img 
-                        src={profile?.companyProfileImage} 
-                        alt="Company Profile" 
+                    {(profile?.profile_photo_url || profile?.companyProfileImage) ? (
+                      <img
+                        src={profile?.profile_photo_url || profile?.companyProfileImage}
+                        alt="Profile"
                       />
                     ) : (
                       <div className="avatar-fallback">

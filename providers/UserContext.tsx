@@ -13,6 +13,7 @@ interface UserProfile {
   branches: string[]
   approval_status: string | null
   companyProfileImage: string | null
+  profile_photo_url?: string | null
   pendingUsersCount?: number
 }
 
@@ -81,6 +82,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         branches,
         approval_status: validatedProfile.approval_status,
         companyProfileImage: validatedProfile.companyProfileImage,
+        profile_photo_url: validatedProfile.profile_photo_url,
         pendingUsersCount: validatedProfile.pendingUsersCount
       }
 

@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     // Fetch user profile data
     const { data: userData, error } = await supabase
       .from('users')
-      .select('role, professional_center_name, user_name, company_name, approval_status, branch_name, preferred_payout_method')
+      .select('role, professional_center_name, user_name, company_name, approval_status, branch_name, preferred_payout_method, profile_photo_url')
       .eq('id', user.id)
       .single()
 
