@@ -659,9 +659,11 @@ export default function Dashboard() {
                     <div className="user-info-name text-base">
                       {profile?.user_name || 'Loading...'}
                     </div>
-                    <div className="user-info-company text-xs">
-                      {profile?.company_name || 'Loading...'}
-                    </div>
+                    {profile?.role !== USER_ROLES.MODEL && (
+                      <div className="user-info-company text-xs">
+                        {profile?.company_name || 'Loading...'}
+                      </div>
+                    )}
                     {profile?.role ? (
                       <div className="text-xs text-gray-400">
                         {profile?.role}
