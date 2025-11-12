@@ -87,7 +87,7 @@ export default function AuctionsDashboardPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-[46px] md:text-3xl font-bold text-white">My Auctions</h1>
+            <h1 className="text-[32px] md:text-3xl font-bold text-white">My Auctions</h1>
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
