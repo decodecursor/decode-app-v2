@@ -15,6 +15,17 @@ export async function GET(
   try {
     console.log('🔵 [API /auctions/[id]] GET request for auction:', params.id);
 
+    // Check auth status for debugging
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    console.log('🔐 [API /auctions/[id]] Auth status:', {
+      hasUser: !!user,
+      userId: user?.id,
+      authError: authError?.message,
+      timestamp: new Date().toISOString()
+    });
+
     const auctionService = new AuctionService();
     const auction = await auctionService.getAuction(params.id);
 
