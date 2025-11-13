@@ -281,6 +281,9 @@ export default function CreatePayment() {
       if (isNaN(amount) || amount < 5) {
         newErrors.amount = 'Minimum amount is AED 5'
         isValid = false
+      } else if (amount > 100000) {
+        newErrors.amount = 'Amount must be between AED 5 and AED 100,000'
+        isValid = false
       }
     }
 

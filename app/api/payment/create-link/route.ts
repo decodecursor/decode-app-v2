@@ -27,9 +27,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate amount
-    if (original_amount_aed <= 0 || original_amount_aed > 10000) {
+    if (original_amount_aed < 5 || original_amount_aed > 100000) {
       return NextResponse.json(
-        { error: 'Amount must be between AED 0.01 and AED 10,000' },
+        { error: 'Amount must be between AED 5 and AED 100,000' },
         { status: 400 }
       );
     }

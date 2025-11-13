@@ -248,15 +248,25 @@ class StripeService {
    * Get tiered fee percentage based on amount
    */
   private getTieredFeePercentage(amount: number): number {
-    if (amount >= 1 && amount <= 1999) {
-      return 9; // 9% for AED 1-1999
-    } else if (amount >= 2000 && amount <= 4999) {
-      return 7.5; // 7.5% for AED 2000-4999
-    } else if (amount >= 5000 && amount <= 100000) {
-      return 6; // 6% for AED 5000-100000
+    if (amount >= 5 && amount <= 999) {
+      return 7; // 7% for AED 5-999
+    } else if (amount >= 1000 && amount <= 2499) {
+      return 6; // 6% for AED 1,000-2,499
+    } else if (amount >= 2500 && amount <= 4999) {
+      return 5; // 5% for AED 2,500-4,999
+    } else if (amount >= 5000 && amount <= 9999) {
+      return 4; // 4% for AED 5,000-9,999
+    } else if (amount >= 10000 && amount <= 24999) {
+      return 3.5; // 3.5% for AED 10,000-24,999
+    } else if (amount >= 25000 && amount <= 49999) {
+      return 3.4; // 3.4% for AED 25,000-49,999
+    } else if (amount >= 50000 && amount <= 74999) {
+      return 3.3; // 3.3% for AED 50,000-74,999
+    } else if (amount >= 75000 && amount <= 100000) {
+      return 3.2; // 3.2% for AED 75,000-100,000
     } else {
-      // Default to 9% for amounts outside defined ranges
-      return 9;
+      // Default to 7% for amounts outside defined ranges
+      return 7;
     }
   }
 

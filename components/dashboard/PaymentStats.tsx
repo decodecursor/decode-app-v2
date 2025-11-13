@@ -281,7 +281,8 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
     console.log(`📊 Previous Period Links: ${previousPeriodLinks.length}`)
 
     // Calculate current period stats from payment links
-    // If service_amount_aed is missing, calculate as 91% of amount_aed (after 9% platform fee)
+    // If service_amount_aed is missing, use legacy fallback: 91% of amount_aed (assumes old 9% fee)
+    // Note: This fallback is for legacy data only and may not reflect the current 8-tier fee structure
     const currentRevenue = currentPeriodLinks.reduce((sum, link) => {
       const serviceAmount = link.service_amount_aed || (link.amount_aed * 0.91)
       console.log(`💰 Link ${link.id}: service_amount=${link.service_amount_aed}, amount=${link.amount_aed}, calculated=${serviceAmount}`)
@@ -422,7 +423,7 @@ export default function PaymentStats({ transactions, paymentLinks, user, userRol
 
           // If service_amount_aed is missing or suspiciously equal to total amount, calculate it
           if (!serviceAmount || serviceAmount === link.amount_aed) {
-            // Calculate service amount: total - 9% platform fee
+            // Legacy fallback: assumes old 9% fixed fee (not accurate for current 8-tier structure)
             serviceAmount = link.amount_aed ? link.amount_aed * 0.91 : 0
             console.log(`📊 Calculated service amount for ${link.title}: ${serviceAmount} (from total: ${link.amount_aed})`)
           }
