@@ -136,9 +136,15 @@ export class BiddingService {
       };
     } catch (error) {
       console.error('Error placing bid:', error);
+      let errorMessage = 'Failed to place bid';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = String((error as { message: unknown }).message);
+      }
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to place bid',
+        error: errorMessage,
       };
     }
   }

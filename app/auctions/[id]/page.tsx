@@ -174,9 +174,9 @@ export default function AuctionDetailPage() {
                 </span>
               ) : auction.status === 'active' ? (
                 <span className="px-4 py-2 text-sm font-semibold text-green-700 bg-green-100 rounded-full flex items-center gap-2">
-                  <span className="relative flex h-3 w-3">
+                  <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                   </span>
                   Live Auction
                 </span>
