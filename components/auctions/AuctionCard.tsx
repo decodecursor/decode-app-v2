@@ -84,7 +84,11 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             {/* Current/Starting Price */}
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide">
-                {hasBids ? 'Current Bid' : 'Starting Price'}
+                {isAuctionEnded(auction) && auction.winner_name
+                  ? 'Winning Bid'
+                  : hasBids
+                  ? 'Current Bid'
+                  : 'Starting Price'}
               </p>
               <p className="mt-1 text-2xl font-bold text-gray-900">
                 {formatBidAmount(hasBids ? currentPrice : startPrice)}
@@ -92,7 +96,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </div>
 
             {/* Bid Count */}
-            <div className="text-center">
+            <div className="text-center pl-6">
               <p className="text-xs text-gray-500 uppercase tracking-wide">Bids</p>
               <p className="mt-1 text-2xl font-bold text-gray-900">
                 {auction.total_bids}
