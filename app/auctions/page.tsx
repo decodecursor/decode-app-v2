@@ -32,18 +32,6 @@ export default function AuctionsPage() {
                 Bid on exclusive beauty experiences and services
               </p>
             </div>
-
-            {/* Connection Status */}
-            <div className="flex items-center gap-2">
-              <div
-                className={`w-2.5 h-2.5 rounded-full ${
-                  isConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-300'
-                }`}
-              />
-              <span className="text-sm text-gray-600">
-                {isConnected ? 'Live Updates' : 'Connecting...'}
-              </span>
-            </div>
           </div>
 
           {/* Filter Tabs */}

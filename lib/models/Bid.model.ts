@@ -86,23 +86,33 @@ export interface BidStatistics {
 
 // Helper functions
 export function calculateMinimumBid(currentPrice: number, startPrice: number): number {
-  // Percentage-based minimum increment that scales with current bid
+  // Fixed AED increment based on current bid amount
   if (currentPrice === 0) {
     return startPrice;
   }
 
-  // 5% increment for bids under $100
-  if (currentPrice < 100) {
-    return Math.ceil(currentPrice * 1.05);
+  // 5 AED increment for bids 5-999
+  if (currentPrice < 1000) {
+    return currentPrice + 5;
   }
 
-  // 3% increment for bids $100-$500
-  if (currentPrice < 500) {
-    return Math.ceil(currentPrice * 1.03);
+  // 10 AED increment for bids 1,000-2,499
+  if (currentPrice < 2500) {
+    return currentPrice + 10;
   }
 
-  // 2% increment for bids over $500
-  return Math.ceil(currentPrice * 1.02);
+  // 25 AED increment for bids 2,500-4,999
+  if (currentPrice < 5000) {
+    return currentPrice + 25;
+  }
+
+  // 50 AED increment for bids 5,000-9,999
+  if (currentPrice < 10000) {
+    return currentPrice + 50;
+  }
+
+  // 100 AED increment for bids 10,000+
+  return currentPrice + 100;
 }
 
 export function formatBidAmount(amount: number): string {

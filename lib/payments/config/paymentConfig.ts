@@ -16,11 +16,13 @@ export const PAYMENT_CONFIG = {
       antiSnipingThreshold: 60, // seconds - if bid in last 60s, extend time
       antiSnipingExtension: 60, // seconds - extend by this amount
 
-      // Bid increment settings
-      minIncrementPercentages: {
-        under100: 5, // 5% for bids under $100
-        under500: 3, // 3% for bids $100-$500
-        over500: 2, // 2% for bids over $500
+      // Bid increment settings (fixed AED amounts)
+      minIncrements: {
+        under1000: 5, // 5 AED for bids 5-999
+        under2500: 10, // 10 AED for bids 1,000-2,499
+        under5000: 25, // 25 AED for bids 2,500-4,999
+        under10000: 50, // 50 AED for bids 5,000-9,999
+        over10000: 100, // 100 AED for bids 10,000+
       },
 
       // Platform fees

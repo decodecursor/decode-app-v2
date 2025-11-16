@@ -224,17 +224,30 @@ export class BiddingService {
       return startPrice;
     }
 
-    const config = this.config.settings.minIncrementPercentages;
+    const increments = this.config.settings.minIncrements;
 
-    if (currentPrice < 100) {
-      return Math.ceil(currentPrice * (1 + config.under100 / 100));
+    // 5 AED increment for bids 5-999
+    if (currentPrice < 1000) {
+      return currentPrice + increments.under1000;
     }
 
-    if (currentPrice < 500) {
-      return Math.ceil(currentPrice * (1 + config.under500 / 100));
+    // 10 AED increment for bids 1,000-2,499
+    if (currentPrice < 2500) {
+      return currentPrice + increments.under2500;
     }
 
-    return Math.ceil(currentPrice * (1 + config.over500 / 100));
+    // 25 AED increment for bids 2,500-4,999
+    if (currentPrice < 5000) {
+      return currentPrice + increments.under5000;
+    }
+
+    // 50 AED increment for bids 5,000-9,999
+    if (currentPrice < 10000) {
+      return currentPrice + increments.under10000;
+    }
+
+    // 100 AED increment for bids 10,000+
+    return currentPrice + increments.over10000;
   }
 
   /**
