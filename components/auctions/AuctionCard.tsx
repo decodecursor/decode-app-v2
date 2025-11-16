@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { CompactAuctionTimer } from './AuctionTimer';
 import { formatBidAmount } from '@/lib/models/Bid.model';
 import type { Auction } from '@/lib/models/Auction.model';
+import { isAuctionEnded } from '@/lib/models/Auction.model';
 
 interface AuctionCardProps {
   auction: Auction;
@@ -23,6 +24,15 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
   // Status badge
   const getStatusBadge = () => {
+    // Check actual end time first, regardless of database status
+    if (isAuctionEnded(auction)) {
+      return (
+        <span className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-full">
+          Ended
+        </span>
+      );
+    }
+
     switch (auction.status) {
       case 'active':
         return (
@@ -82,7 +92,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </div>
 
             {/* Bid Count */}
-            <div>
+            <div className="text-right">
               <p className="text-xs text-gray-500 uppercase tracking-wide">Bids</p>
               <p className="mt-1 text-2xl font-bold text-gray-900">
                 {auction.total_bids}
@@ -112,14 +122,14 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
         </div>
 
         {/* Footer - Timer */}
-        {auction.status === 'active' && (
+        {auction.status === 'active' && !isAuctionEnded(auction) && (
           <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
             <CompactAuctionTimer auction={auction} />
           </div>
         )}
 
         {/* Winner Info */}
-        {(auction.status === 'ended' || auction.status === 'completed') && auction.winner_name && (
+        {(auction.status === 'ended' || auction.status === 'completed' || isAuctionEnded(auction)) && auction.winner_name && (
           <div className="px-4 py-3 bg-green-50 border-t border-green-100">
             <div className="flex items-center gap-2 text-sm">
               <svg
