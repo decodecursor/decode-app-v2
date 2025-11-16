@@ -96,7 +96,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </div>
 
             {/* Bid Count */}
-            <div className="text-center pl-6">
+            <div className="text-center pl-10">
               <p className="text-xs text-gray-500 uppercase tracking-wide">Bids</p>
               <p className="mt-1 text-2xl font-bold text-gray-900">
                 {auction.total_bids}
