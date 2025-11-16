@@ -10,6 +10,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuctionRealtime } from '@/lib/hooks/useAuctionRealtime';
 import { isAuctionEnded } from '@/lib/models/Auction.model';
 import { useBidNotifications, useWinnerNotification } from '@/lib/hooks/useBidNotifications';
+import { useAuctionTimer } from '@/lib/hooks/useAuctionTimer';
 import { AuctionTimer } from '@/components/auctions/AuctionTimer';
 import { LiveLeaderboard } from '@/components/auctions/LiveLeaderboard';
 import { BiddingInterface } from '@/components/auctions/BiddingInterface';
@@ -70,6 +71,9 @@ export default function AuctionDetailPage() {
 
   // Bid notifications (toast notifications would be handled by parent layout)
   useBidNotifications(auction, userEmail);
+
+  // Timer state for real-time status badge updates
+  const { hasEnded: timerEnded } = useAuctionTimer(auction);
 
   // Copy link to clipboard
   const handleCopyLink = async () => {
@@ -168,7 +172,7 @@ export default function AuctionDetailPage() {
                   </>
                 )}
               </button>
-              {isAuctionEnded(auction) ? (
+              {isAuctionEnded(auction) || timerEnded ? (
                 <span className="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-full">
                   Auction Ended
                 </span>
