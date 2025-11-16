@@ -113,8 +113,8 @@ export class BiddingService {
           guest_bidder_id: guestBidderId,
           amount: params.amount,
           payment_intent_id: paymentResult.payment_intent_id!,
-          payment_intent_status: 'requires_payment_method', // Not authorized yet
-          status: 'pending',
+          payment_intent_status: 'requires_capture',
+          status: 'pending', // Not authorized yet, won't appear in leaderboard
           ip_address: params.ip_address,
           user_agent: params.user_agent,
         })
@@ -164,7 +164,7 @@ export class BiddingService {
         .from('bids')
         .select('*')
         .eq('auction_id', auctionId)
-        .eq('payment_intent_status', 'requires_capture') // Only show authorized bids
+        .in('status', ['active', 'winning']) // Only show bids with confirmed payment
         .order('amount', { ascending: false })
         .order('placed_at', { ascending: true })
         .limit(limit);
