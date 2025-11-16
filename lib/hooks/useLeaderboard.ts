@@ -55,8 +55,11 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
 
   // Update leaderboard from bids
   const updateLeaderboard = useCallback((bids: Bid[]) => {
+    // Filter to only include bids with confirmed payment
+    const validBids = bids.filter((b) => b.status === 'active' || b.status === 'winning');
+
     // Sort bids by amount (descending) and placed_at (ascending for tie-breaking)
-    const sorted = [...bids].sort((a, b) => {
+    const sorted = [...validBids].sort((a, b) => {
       const amountDiff = Number(b.amount) - Number(a.amount);
       if (amountDiff !== 0) return amountDiff;
       return new Date(a.placed_at).getTime() - new Date(b.placed_at).getTime();

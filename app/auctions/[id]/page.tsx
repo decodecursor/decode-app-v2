@@ -31,6 +31,8 @@ export default function AuctionDetailPage() {
   const [showWinnerModal, setShowWinnerModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const { auction, isConnected, refresh } = useAuctionRealtime(auctionId);
 
@@ -93,6 +95,30 @@ export default function AuctionDetailPage() {
     setTimeout(() => setIsRefreshing(false), 500);
   };
 
+  // Cancel auction
+  const handleCancelAuction = async () => {
+    setIsCancelling(true);
+    try {
+      const response = await fetch(`/api/auctions/${auctionId}/cancel`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to cancel auction');
+      }
+
+      alert('Auction cancelled successfully. All payment authorizations have been released.');
+      await refresh();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to cancel auction');
+    } finally {
+      setIsCancelling(false);
+      setShowCancelConfirm(false);
+    }
+  };
+
   if (!auction) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -133,13 +159,29 @@ export default function AuctionDetailPage() {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{auction.title}</h1>
+              <p className="text-gray-500 text-sm mb-2">
+                by {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
+              </p>
               {auction.description && (
                 <p className="text-gray-600 text-lg">{auction.description}</p>
               )}
             </div>
 
-            {/* Status Badge and Copy Button */}
+            {/* Status Badge and Action Buttons */}
             <div className="flex items-center gap-3">
+              {/* Cancel Auction Button (only for creator of active auctions) */}
+              {isCreator && auction.status !== 'cancelled' && auction.status !== 'completed' && !isAuctionEnded(auction) && (
+                <button
+                  onClick={() => setShowCancelConfirm(true)}
+                  disabled={isCancelling}
+                  className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-full transition-colors disabled:opacity-50"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span>Cancel Auction</span>
+                </button>
+              )}
               <button
                 onClick={handleRefresh}
                 disabled={isRefreshing}
@@ -172,7 +214,11 @@ export default function AuctionDetailPage() {
                   </>
                 )}
               </button>
-              {isAuctionEnded(auction) || timerEnded ? (
+              {auction.status === 'cancelled' ? (
+                <span className="px-4 py-2 text-sm font-semibold text-red-700 bg-red-100 rounded-full">
+                  Cancelled
+                </span>
+              ) : isAuctionEnded(auction) || timerEnded ? (
                 <span className="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-full">
                   Auction Ended
                 </span>
@@ -297,6 +343,35 @@ export default function AuctionDetailPage() {
           recordingToken={recordingToken || undefined}
           onClose={() => setShowWinnerModal(false)}
         />
+      )}
+
+      {/* Cancel Confirmation Dialog */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Cancel Auction?</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to cancel this auction? All payment authorizations will be
+              released and no winner will be selected.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCancelConfirm(false)}
+                disabled={isCancelling}
+                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md disabled:opacity-50"
+              >
+                No, Keep Auction
+              </button>
+              <button
+                onClick={handleCancelAuction}
+                disabled={isCancelling}
+                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50"
+              >
+                {isCancelling ? 'Cancelling...' : 'Yes, Cancel'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
