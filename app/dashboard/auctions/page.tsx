@@ -83,6 +83,17 @@ export default function AuctionsDashboardPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Back Button */}
+      <button
+        onClick={() => router.back()}
+        className="mb-4 flex items-center text-gray-400 hover:text-white"
+      >
+        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Back
+      </button>
+
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
@@ -113,7 +124,7 @@ export default function AuctionsDashboardPage() {
           }
         />
         <StatCard
-          label="Active"
+          label="Active Auctions"
           value={auctions.filter((a) => a.status === 'active').length}
           icon={
             <path
@@ -126,8 +137,8 @@ export default function AuctionsDashboardPage() {
           color="green"
         />
         <StatCard
-          label="Completed"
-          value={auctions.filter((a) => a.status === 'completed').length}
+          label="Funds Collected"
+          value={`AED ${auctions.filter((a) => a.status === 'completed').reduce((sum, a) => sum + Number(a.current_price), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           icon={
             <path
               strokeLinecap="round"
@@ -218,7 +229,7 @@ function StatCard({
   color = 'gray',
 }: {
   label: string;
-  value: number;
+  value: number | string;
   icon: React.ReactNode;
   color?: 'gray' | 'green' | 'blue' | 'purple';
 }) {
