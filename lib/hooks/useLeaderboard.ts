@@ -65,7 +65,7 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
     // Take top N and convert to leaderboard entries
     const entries: LeaderboardEntry[] = sorted.slice(0, limit).map((bid, index) => ({
       id: bid.id,
-      bidder_name: formatBidderNameForLeaderboard(bid.bidder_name, true),
+      bidder_name: formatBidderNameForLeaderboard(bid.bidder_name, false),
       amount: Number(bid.amount),
       placed_at: bid.placed_at,
       is_current_user: userEmail ? bid.bidder_email === userEmail : false,
