@@ -80,26 +80,6 @@ export function AuctionTimer({ auction, showProgress = false, className = '' }: 
           />
         </div>
       )}
-
-      {/* Detailed Time Units (for large displays) */}
-      {!hasEnded && isEnding && (
-        <div className="flex gap-3 text-center">
-          {timeUnits.hours > 0 && (
-            <div className="flex flex-col">
-              <span className="text-2xl font-bold text-gray-900">{timeUnits.hours}</span>
-              <span className="text-xs text-gray-500">Hours</span>
-            </div>
-          )}
-          <div className="flex flex-col">
-            <span className="text-2xl font-bold text-gray-900">{timeUnits.minutes}</span>
-            <span className="text-xs text-gray-500">Minutes</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-2xl font-bold text-gray-900">{timeUnits.seconds}</span>
-            <span className="text-xs text-gray-500">Seconds</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

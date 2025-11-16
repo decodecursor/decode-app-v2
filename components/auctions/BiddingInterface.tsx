@@ -87,16 +87,23 @@ export function BiddingInterface({
       });
 
       const data = await response.json();
+      console.log('Bid API response:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to place bid');
+      }
+
+      if (!data.client_secret) {
+        throw new Error('Failed to initialize payment. Please try again.');
       }
 
       // Set client secret for Stripe payment
       setClientSecret(data.client_secret);
       setStep('payment');
     } catch (err) {
+      console.error('Bid error:', err);
       setError(err instanceof Error ? err.message : 'Failed to place bid');
+      setStep('amount'); // Reset to amount step on error
     } finally {
       setIsProcessing(false);
     }
@@ -176,7 +183,7 @@ export function BiddingInterface({
             disabled={isProcessing || !bidAmount}
             className="w-full px-4 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Continue to Payment
+            Continue
           </button>
         </form>
       )}
