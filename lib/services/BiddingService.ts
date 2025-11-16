@@ -113,7 +113,7 @@ export class BiddingService {
           guest_bidder_id: guestBidderId,
           amount: params.amount,
           payment_intent_id: paymentResult.payment_intent_id!,
-          payment_intent_status: 'requires_capture',
+          payment_intent_status: 'requires_payment_method', // Not authorized yet
           status: 'pending',
           ip_address: params.ip_address,
           user_agent: params.user_agent,
@@ -151,6 +151,7 @@ export class BiddingService {
 
   /**
    * Get bids for an auction (leaderboard)
+   * Only returns bids with authorized payment (requires_capture)
    */
   async getAuctionBids(
     auctionId: string,
@@ -163,6 +164,7 @@ export class BiddingService {
         .from('bids')
         .select('*')
         .eq('auction_id', auctionId)
+        .eq('payment_intent_status', 'requires_capture') // Only show authorized bids
         .order('amount', { ascending: false })
         .order('placed_at', { ascending: true })
         .limit(limit);
@@ -196,6 +198,45 @@ export class BiddingService {
     } catch (error) {
       console.error('Error getting user bids:', error);
       return [];
+    }
+  }
+
+  /**
+   * Confirm bid payment authorization
+   * Updates the payment_intent_status to 'requires_capture' after client confirms
+   */
+  async confirmBidPayment(bidId: string): Promise<{ success: boolean; error?: string }> {
+    const supabase = createServiceRoleClient();
+
+    try {
+      const { data: bid, error: fetchError } = await supabase
+        .from('bids')
+        .select('payment_intent_id')
+        .eq('id', bidId)
+        .single();
+
+      if (fetchError || !bid) {
+        return { success: false, error: 'Bid not found' };
+      }
+
+      // Update bid status to authorized
+      const { error: updateError } = await supabase
+        .from('bids')
+        .update({
+          payment_intent_status: 'requires_capture',
+          status: 'active',
+        })
+        .eq('id', bidId);
+
+      if (updateError) throw updateError;
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error confirming bid payment:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to confirm payment',
+      };
     }
   }
 

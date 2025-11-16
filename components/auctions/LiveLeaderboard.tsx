@@ -129,7 +129,7 @@ export function LiveLeaderboard({
                       {formatted.amount}
                     </p>
                     {isWinning && (
-                      <span className="text-xs text-green-600 font-medium">Winning</span>
+                      <span className="text-xs text-green-600 font-medium">Highest Bid</span>
                     )}
                   </div>
                 </div>
@@ -142,7 +142,7 @@ export function LiveLeaderboard({
       {/* Statistics */}
       {showStats && stats && stats.total_bids > 0 && (
         <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-2 gap-4 text-center">
             <div>
               <p className="text-xs text-gray-500 uppercase">Total Bids</p>
               <p className="text-lg font-semibold text-gray-900">{stats.total_bids}</p>
@@ -150,12 +150,6 @@ export function LiveLeaderboard({
             <div>
               <p className="text-xs text-gray-500 uppercase">Bidders</p>
               <p className="text-lg font-semibold text-gray-900">{stats.unique_bidders}</p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 uppercase">Avg Bid</p>
-              <p className="text-lg font-semibold text-gray-900">
-                {formatBidAmount(stats.average_bid)}
-              </p>
             </div>
           </div>
         </div>

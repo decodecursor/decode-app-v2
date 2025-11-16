@@ -210,12 +210,6 @@ export default function AuctionDetailPage() {
                   <p className="text-4xl font-bold text-gray-900">
                     {formatBidAmount(hasBids ? currentPrice : startPrice)}
                   </p>
-                  {hasBids && (
-                    <p className="mt-2 text-sm text-gray-600">
-                      {auction.total_bids} bid{auction.total_bids !== 1 ? 's' : ''} •{' '}
-                      {auction.unique_bidders} bidder{auction.unique_bidders !== 1 ? 's' : ''}
-                    </p>
-                  )}
                 </div>
 
                 {/* Timer */}

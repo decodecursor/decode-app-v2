@@ -84,7 +84,7 @@ export function useAuctionRealtime(auctionId: string, initialAuction?: Auction) 
 
   // Refresh auction data
   const refresh = useCallback(() => {
-    fetchAuction();
+    return fetchAuction();
   }, [fetchAuction]);
 
   return {

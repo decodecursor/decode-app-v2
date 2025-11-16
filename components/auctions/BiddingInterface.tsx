@@ -6,8 +6,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { loadStripe, StripeElementsOptions } from '@stripe/stripe-js';
+import { Elements, PaymentElement, ExpressCheckoutElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { GuestBidderForm } from './GuestBidderForm';
 import { calculateMinimumBid, formatBidAmount } from '@/lib/models/Bid.model';
 import type { Auction } from '@/lib/models/Auction.model';
@@ -31,6 +31,7 @@ export function BiddingInterface({
   const [bidAmount, setBidAmount] = useState<string>('');
   const [guestInfo, setGuestInfo] = useState<{ name: string; email: string } | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [bidId, setBidId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -97,8 +98,9 @@ export function BiddingInterface({
         throw new Error('Failed to initialize payment. Please try again.');
       }
 
-      // Set client secret for Stripe payment
+      // Set client secret and bid ID for Stripe payment
       setClientSecret(data.client_secret);
+      setBidId(data.bid_id);
       setStep('payment');
     } catch (err) {
       console.error('Bid error:', err);
@@ -115,6 +117,7 @@ export function BiddingInterface({
     setBidAmount('');
     setGuestInfo(null);
     setClientSecret(null);
+    setBidId(null);
     setError(null);
   };
 
@@ -205,7 +208,7 @@ export function BiddingInterface({
       )}
 
       {/* Step: Payment */}
-      {step === 'payment' && clientSecret && (
+      {step === 'payment' && clientSecret && bidId && (
         <div>
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-700">
@@ -213,8 +216,19 @@ export function BiddingInterface({
             </p>
           </div>
 
-          <Elements stripe={stripePromise} options={{ clientSecret }}>
+          <Elements stripe={stripePromise} options={{
+            clientSecret,
+            appearance: {
+              theme: 'stripe',
+              variables: {
+                colorPrimary: '#2563eb',
+                fontSizeBase: '16px',
+              },
+            },
+          }}>
             <PaymentForm
+              auctionId={auction.id}
+              bidId={bidId}
               onSuccess={() => {
                 if (onBidPlaced) onBidPlaced();
                 handleReset();
@@ -230,13 +244,131 @@ export function BiddingInterface({
 
 /**
  * Payment Form Component (inside Stripe Elements)
+ * Includes Apple Pay/Google Pay support with card fallback
  */
-function PaymentForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: () => void }) {
+function PaymentForm({
+  auctionId,
+  bidId,
+  onSuccess,
+  onCancel,
+}: {
+  auctionId: string;
+  bidId: string;
+  onSuccess: () => void;
+  onCancel: () => void;
+}) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Device detection for payment capabilities
+  const detectPaymentCapabilities = () => {
+    const userAgent = navigator.userAgent;
+    const platform = navigator.platform || '';
+
+    const isIOS =
+      /iPhone|iPad|iPod/.test(userAgent) ||
+      /iPhone|iPad|iPod/.test(platform) ||
+      (platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    const isAndroid = /Android/.test(userAgent);
+
+    return { isIOS, isAndroid };
+  };
+
+  // Get ExpressCheckout options based on device
+  const getExpressCheckoutOptions = () => {
+    const { isIOS, isAndroid } = detectPaymentCapabilities();
+
+    const baseConfig = {
+      buttonTheme: {
+        applePay: 'black' as const,
+        googlePay: 'black' as const,
+      },
+      buttonType: {
+        applePay: 'plain' as const,
+        googlePay: 'plain' as const,
+      },
+    };
+
+    if (isIOS) {
+      return {
+        ...baseConfig,
+        paymentMethods: {
+          applePay: 'always' as const,
+          googlePay: 'never' as const,
+        },
+        paymentMethodOrder: ['applePay'],
+      };
+    } else if (isAndroid) {
+      return {
+        ...baseConfig,
+        paymentMethods: {
+          applePay: 'auto' as const,
+          googlePay: 'always' as const,
+        },
+        paymentMethodOrder: ['googlePay', 'applePay'],
+      };
+    } else {
+      return {
+        ...baseConfig,
+        paymentMethods: {
+          applePay: 'auto' as const,
+          googlePay: 'always' as const,
+        },
+        paymentMethodOrder: ['googlePay', 'applePay'],
+      };
+    }
+  };
+
+  // Confirm bid payment after successful authorization
+  const confirmBidPayment = async () => {
+    try {
+      const response = await fetch(`/api/auctions/${auctionId}/bid/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bid_id: bidId }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to confirm payment');
+      }
+
+      onSuccess();
+    } catch (err) {
+      console.error('Error confirming bid payment:', err);
+      setError(err instanceof Error ? err.message : 'Failed to confirm payment');
+    }
+  };
+
+  // Handle Express Checkout (Apple Pay/Google Pay) confirmation
+  const handleExpressCheckoutConfirm = async () => {
+    if (!stripe || !elements) return;
+
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      const { error: confirmError } = await stripe.confirmPayment({
+        elements,
+        redirect: 'if_required',
+      });
+
+      if (confirmError) {
+        setError(confirmError.message || 'Payment failed');
+      } else {
+        await confirmBidPayment();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Payment failed');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Handle card form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -248,15 +380,20 @@ function PaymentForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel:
     setError(null);
 
     try {
-      const { error: submitError } = await stripe.confirmPayment({
+      const { error: submitError } = await elements.submit();
+      if (submitError) {
+        throw new Error(submitError.message);
+      }
+
+      const { error: confirmError } = await stripe.confirmPayment({
         elements,
         redirect: 'if_required',
       });
 
-      if (submitError) {
-        setError(submitError.message || 'Payment failed');
+      if (confirmError) {
+        setError(confirmError.message || 'Payment failed');
       } else {
-        onSuccess();
+        await confirmBidPayment();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Payment failed');
@@ -266,12 +403,41 @@ function PaymentForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel:
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="space-y-4">
       <div className="p-4 bg-gray-50 rounded-md">
         <p className="text-sm text-gray-700 mb-3">
-          We'll pre-authorize your payment method. You'll only be charged if you win the auction.
+          We&apos;ll pre-authorize your payment method. You&apos;ll only be charged if you win the auction.
         </p>
-        <PaymentElement />
+
+        {/* Express Checkout (Apple Pay / Google Pay) */}
+        <div className="mb-4" style={{ minHeight: '50px' }}>
+          <ExpressCheckoutElement
+            options={getExpressCheckoutOptions()}
+            onReady={(event) => {
+              console.log('Express Checkout ready:', event.availablePaymentMethods);
+            }}
+            onConfirm={handleExpressCheckoutConfirm}
+          />
+        </div>
+
+        {/* Divider */}
+        <div className="flex items-center my-4">
+          <div className="flex-1 h-px bg-gray-300"></div>
+          <span className="px-3 text-sm text-gray-500">or pay with card</span>
+          <div className="flex-1 h-px bg-gray-300"></div>
+        </div>
+
+        {/* Card Payment Element */}
+        <PaymentElement
+          options={{
+            layout: 'tabs',
+            paymentMethodOrder: ['card'],
+            wallets: {
+              applePay: 'never',
+              googlePay: 'never',
+            },
+          }}
+        />
       </div>
 
       {error && (
@@ -290,7 +456,8 @@ function PaymentForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel:
           Cancel
         </button>
         <button
-          type="submit"
+          type="button"
+          onClick={handleSubmit}
           disabled={!stripe || isProcessing}
           className="flex-1 px-4 py-3 text-base font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -299,8 +466,8 @@ function PaymentForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel:
       </div>
 
       <p className="text-xs text-gray-500 text-center">
-        Your payment method will be pre-authorized. You'll only be charged if you win.
+        Your payment method will be pre-authorized. You&apos;ll only be charged if you win.
       </p>
-    </form>
+    </div>
   );
 }
