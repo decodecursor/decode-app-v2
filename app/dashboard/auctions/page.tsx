@@ -11,6 +11,7 @@ import { createClient } from '@/utils/supabase/client';
 import { CreateAuctionModal } from '@/components/auctions/CreateAuctionModal';
 import { AuctionCard } from '@/components/auctions/AuctionCard';
 import type { Auction } from '@/lib/models/Auction.model';
+import { isAuctionActive } from '@/lib/models/Auction.model';
 import { USER_ROLES } from '@/types/user';
 
 export default function AuctionsDashboardPage() {
@@ -125,7 +126,7 @@ export default function AuctionsDashboardPage() {
         />
         <StatCard
           label="Active Auctions"
-          value={auctions.filter((a) => a.status === 'active').length}
+          value={auctions.filter((a) => isAuctionActive(a)).length}
           icon={
             <path
               strokeLinecap="round"

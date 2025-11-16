@@ -6,8 +6,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useAuctionRealtime } from '@/lib/hooks/useAuctionRealtime';
+import { isAuctionEnded } from '@/lib/models/Auction.model';
 import { useBidNotifications, useWinnerNotification } from '@/lib/hooks/useBidNotifications';
 import { AuctionTimer } from '@/components/auctions/AuctionTimer';
 import { LiveLeaderboard } from '@/components/auctions/LiveLeaderboard';
@@ -19,6 +20,7 @@ import { createClient } from '@/utils/supabase/client';
 
 export default function AuctionDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const auctionId = params.id as string;
 
   const [userId, setUserId] = useState<string | undefined>();
@@ -88,8 +90,8 @@ export default function AuctionDetailPage() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-4 mb-4">
-            <a
-              href="/dashboard"
+            <button
+              onClick={() => router.back()}
               className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,8 +102,8 @@ export default function AuctionDetailPage() {
                   d="M15 19l-7-7 7-7"
                 />
               </svg>
-              Back to Dashboard
-            </a>
+              Back
+            </button>
           </div>
 
           <div className="flex items-start justify-between">
@@ -114,13 +116,13 @@ export default function AuctionDetailPage() {
 
             {/* Status Badge */}
             <div>
-              {auction.status === 'active' ? (
-                <span className="px-4 py-2 text-sm font-semibold text-green-700 bg-green-100 rounded-full">
-                  Live Auction
-                </span>
-              ) : auction.status === 'ended' || auction.status === 'completed' ? (
+              {isAuctionEnded(auction) ? (
                 <span className="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-full">
                   Auction Ended
+                </span>
+              ) : auction.status === 'active' ? (
+                <span className="px-4 py-2 text-sm font-semibold text-green-700 bg-green-100 rounded-full">
+                  Live Auction
                 </span>
               ) : (
                 <span className="px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-100 rounded-full">
@@ -165,27 +167,29 @@ export default function AuctionDetailPage() {
                 </div>
               </div>
 
-              {/* Connection Status */}
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-2 h-2 rounded-full ${
-                        isConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-300'
-                      }`}
-                    />
-                    <span className="text-gray-600">
-                      {isConnected ? 'Live updates active' : 'Connecting...'}
-                    </span>
+              {/* Connection Status - only show for active auctions */}
+              {!isAuctionEnded(auction) && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          isConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-300'
+                        }`}
+                      />
+                      <span className="text-gray-600">
+                        {isConnected ? 'Live updates active' : 'Connecting...'}
+                      </span>
+                    </div>
+                    <button
+                      onClick={refresh}
+                      className="text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      Refresh
+                    </button>
                   </div>
-                  <button
-                    onClick={refresh}
-                    className="text-blue-600 hover:text-blue-700 font-medium"
-                  >
-                    Refresh
-                  </button>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Bidding Interface */}
@@ -213,18 +217,26 @@ export default function AuctionDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-gray-600">Duration</dt>
-                  <dd className="font-medium text-gray-900">{auction.duration} minutes</dd>
+                  <dd className="font-medium text-gray-900">
+                    {(() => {
+                      const hours = Math.floor(auction.duration / 60);
+                      const minutes = auction.duration % 60;
+                      if (hours === 0) return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+                      if (minutes === 0) return `${hours} hour${hours !== 1 ? 's' : ''}`;
+                      return `${hours} hour${hours !== 1 ? 's' : ''} ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+                    })()}
+                  </dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-gray-600">Started</dt>
                   <dd className="font-medium text-gray-900">
-                    {new Date(auction.start_time).toLocaleString()}
+                    {new Date(auction.start_time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} at {new Date(auction.start_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}
                   </dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-gray-600">Ends</dt>
+                  <dt className="text-gray-600">{isAuctionEnded(auction) ? 'Ended' : 'Ends'}</dt>
                   <dd className="font-medium text-gray-900">
-                    {new Date(auction.end_time).toLocaleString()}
+                    {new Date(auction.end_time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} at {new Date(auction.end_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}
                   </dd>
                 </div>
                 {auction.winner_name && (
