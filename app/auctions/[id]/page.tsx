@@ -28,6 +28,7 @@ export default function AuctionDetailPage() {
   const [userName, setUserName] = useState<string | undefined>();
   const [isCreator, setIsCreator] = useState(false);
   const [showWinnerModal, setShowWinnerModal] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const { auction, isConnected, refresh } = useAuctionRealtime(auctionId);
 
@@ -68,6 +69,17 @@ export default function AuctionDetailPage() {
 
   // Bid notifications (toast notifications would be handled by parent layout)
   useBidNotifications(auction, userEmail);
+
+  // Copy link to clipboard
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+    }
+  };
 
   if (!auction) {
     return (
@@ -114,8 +126,29 @@ export default function AuctionDetailPage() {
               )}
             </div>
 
-            {/* Status Badge */}
-            <div>
+            {/* Status Badge and Copy Button */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleCopyLink}
+                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                title="Copy auction link"
+              >
+                {copied ? (
+                  <>
+                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-green-600">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                    </svg>
+                    <span>Copy Link</span>
+                  </>
+                )}
+              </button>
               {isAuctionEnded(auction) ? (
                 <span className="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-full">
                   Auction Ended

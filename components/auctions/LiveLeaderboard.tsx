@@ -39,20 +39,7 @@ export function LiveLeaderboard({
       {/* Header */}
       <div className="px-4 py-3 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Live Leaderboard</h3>
-          <div className="flex items-center gap-2">
-            {/* Connection indicator */}
-            <div className="flex items-center gap-1.5">
-              <div
-                className={`w-2 h-2 rounded-full ${
-                  isConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-300'
-                }`}
-              />
-              <span className="text-xs text-gray-500">
-                {isConnected ? 'Live' : 'Disconnected'}
-              </span>
-            </div>
-          </div>
+          <h3 className="text-lg font-semibold text-gray-900">Leaderboard</h3>
         </div>
 
         {/* User's position */}
