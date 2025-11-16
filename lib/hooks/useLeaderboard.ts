@@ -56,7 +56,7 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
   // Update leaderboard from bids
   const updateLeaderboard = useCallback((bids: Bid[]) => {
     // Filter to only include bids with confirmed payment
-    const validBids = bids.filter((b) => b.status === 'active' || b.status === 'winning');
+    const validBids = bids.filter((b) => b.status === 'winning' || b.status === 'outbid' || b.status === 'captured');
 
     // Sort bids by amount (descending) and placed_at (ascending for tie-breaking)
     const sorted = [...validBids].sort((a, b) => {

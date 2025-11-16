@@ -224,7 +224,7 @@ export class BiddingService {
         .from('bids')
         .update({
           payment_intent_status: 'requires_capture',
-          status: 'active',
+          status: 'winning',
         })
         .eq('id', bidId);
 
