@@ -146,9 +146,12 @@ export function VideoRecorder({
         setRecordedBlob(blob);
         setRecordingState('stopped');
 
-        // Show preview
+        // Show preview - Firefox needs explicit load() call
         if (previewRef.current) {
-          previewRef.current.src = URL.createObjectURL(blob);
+          const url = URL.createObjectURL(blob);
+          previewRef.current.src = url;
+          previewRef.current.load(); // Required for Firefox
+          console.log('Preview URL set:', url);
         }
       };
 
