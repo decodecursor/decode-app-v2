@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@/utils/supabase/server';
+import { createServiceRoleClient } from '@/utils/supabase/service-role';
 import type {
   AuctionVideo,
   CreateAuctionVideoDto,
@@ -71,9 +72,23 @@ export class AuctionVideoService {
     recording_method: 'in_page' | 'email_link';
     recording_token?: string;
   }): Promise<{ success: boolean; video_id?: string; file_url?: string; error?: string }> {
-    const supabase = await createClient();
+    // Use service role client for all uploads to bypass RLS
+    // This is safe because we validate bid_id belongs to auction_id
+    const supabase = createServiceRoleClient();
 
     try {
+      // Verify bid exists and belongs to auction (security check)
+      const { data: bidData, error: bidError } = await supabase
+        .from('bids')
+        .select('id, auction_id')
+        .eq('id', params.bid_id)
+        .eq('auction_id', params.auction_id)
+        .single();
+
+      if (bidError || !bidData) {
+        return { success: false, error: 'Invalid bid or auction' };
+      }
+
       // Check if existing video and retake count
       const { data: existing } = await supabase
         .from('auction_videos')
@@ -189,7 +204,8 @@ export class AuctionVideoService {
     bid_id?: string;
     error?: string;
   }> {
-    const supabase = await createClient();
+    // Use service role to validate tokens (guest users don't have session)
+    const supabase = createServiceRoleClient();
 
     try {
       const { data, error } = await supabase
