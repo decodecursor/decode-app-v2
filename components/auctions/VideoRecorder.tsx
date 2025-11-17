@@ -342,8 +342,8 @@ export function VideoRecorder({
                     d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
                   />
                 </svg>
-                <p className="text-base font-medium">Ready to record?</p>
-                <p className="text-xs opacity-75 mt-1">
+                <p className="text-sm sm:text-base font-medium">Ready to record?</p>
+                <p className="text-[10px] sm:text-xs opacity-75 mt-1">
                   Record a {MAX_VIDEO_DURATION_SECONDS}-second video message
                 </p>
               </div>
@@ -383,7 +383,7 @@ export function VideoRecorder({
           {recordingState === 'recording' && (
             <div className="absolute top-4 left-4 flex items-center gap-2 bg-red-600 text-white px-3 py-2 rounded-full">
               <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
-              <span className="font-semibold">{countdown}s remaining</span>
+              <span className="text-xs sm:text-sm font-semibold">{countdown}s remaining</span>
             </div>
           )}
 
@@ -405,8 +405,8 @@ export function VideoRecorder({
 
           {/* Instructions */}
           <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-            <h4 className="text-sm font-semibold text-blue-900 mb-2">Instructions</h4>
-            <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
+            <h4 className="text-xs sm:text-sm font-semibold text-blue-900 mb-2">Instructions</h4>
+            <ul className="text-xs sm:text-sm text-blue-700 space-y-1 list-disc list-inside">
               <li>Recording will automatically stop after {MAX_VIDEO_DURATION_SECONDS} seconds</li>
               <li>You can retake once if needed</li>
               <li>Make sure you have good lighting and audio</li>
@@ -420,14 +420,14 @@ export function VideoRecorder({
                 {onCancel && (
                   <button
                     onClick={onCancel}
-                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    className="flex-1 px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                   >
                     Cancel
                   </button>
                 )}
                 <button
                   onClick={requestCamera}
-                  className="flex-1 px-4 py-3 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                  className="flex-1 px-4 py-3 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
                 >
                   Start Camera
                 </button>
@@ -441,13 +441,13 @@ export function VideoRecorder({
                     stopRecording();
                     setRecordingState('idle');
                   }}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={startRecording}
-                  className="flex-1 px-4 py-3 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-3 text-xs sm:text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 flex items-center justify-center gap-2"
                 >
                   <div className="w-4 h-4 bg-white rounded-full" />
                   Start Recording
@@ -458,7 +458,7 @@ export function VideoRecorder({
             {recordingState === 'recording' && (
               <button
                 onClick={stopRecording}
-                className="w-full px-4 py-3 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-900"
+                className="w-full px-4 py-3 text-xs sm:text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-900"
               >
                 Stop Recording
               </button>
@@ -469,14 +469,14 @@ export function VideoRecorder({
                 {retakeCount < maxRetakes && (
                   <button
                     onClick={retake}
-                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    className="flex-1 px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                   >
                     Retake ({maxRetakes - retakeCount} left)
                   </button>
                 )}
                 <button
                   onClick={uploadVideo}
-                  className="flex-1 px-4 py-3 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
+                  className="flex-1 px-4 py-3 text-xs sm:text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
                 >
                   Upload Video
                 </button>
