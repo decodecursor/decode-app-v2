@@ -119,8 +119,8 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
           disabled={isLoading}
         />
         {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
-        <p className="mt-1 text-xs text-gray-500">
-          We'll use this to notify you if you win or get outbid
+        <p className="mt-1 text-[10px] text-gray-500">
+          We'll use this email to notify you if you win the auction
         </p>
       </div>
 
@@ -164,14 +164,6 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
             'Continue'
           )}
         </button>
-      </div>
-
-      <div className="pt-4 border-t border-gray-200">
-        <p className="text-xs text-gray-500 text-center">
-          By continuing, you agree to receive email notifications about this auction.
-          <br />
-          Your information is kept private and secure.
-        </p>
       </div>
     </form>
   );

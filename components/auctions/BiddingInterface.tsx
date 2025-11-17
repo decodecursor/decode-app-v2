@@ -402,8 +402,8 @@ function PaymentForm({
   return (
     <div className="space-y-4">
       <div className="p-4 bg-gray-50 rounded-md">
-        <p className="text-sm text-gray-700 mb-3">
-          We&apos;ll pre-authorize your payment method. You&apos;ll only be charged if you win the auction.
+        <p className="text-xs text-gray-700 mb-3 text-center">
+          We&apos;ll pre-authorize — you&apos;re charged only if you win.
         </p>
 
         {/* Express Checkout (Apple Pay / Google Pay) */}
@@ -461,10 +461,6 @@ function PaymentForm({
           {isProcessing ? 'Processing...' : 'Confirm Bid'}
         </button>
       </div>
-
-      <p className="text-xs text-gray-500 text-center">
-        Your payment method will be pre-authorized. You&apos;ll only be charged if you win.
-      </p>
     </div>
   );
 }

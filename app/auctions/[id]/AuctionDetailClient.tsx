@@ -234,7 +234,7 @@ export default function AuctionDetailClient() {
             </div>
           </div>
           <p className="text-gray-500 text-xs sm:text-sm mt-[3px] mb-2">
-            by {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
+            For {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
           </p>
           {auction.description && (
             <p className="text-gray-600 text-sm sm:text-lg">{auction.description}</p>

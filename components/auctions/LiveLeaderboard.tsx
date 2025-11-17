@@ -60,7 +60,7 @@ export function LiveLeaderboard({
         {leaderboard.length === 0 ? (
           <div className="px-4 py-8 text-center text-gray-500">
             <svg
-              className="mx-auto w-12 h-12 text-gray-300 mb-2"
+              className="mx-auto w-9 h-9 text-gray-300 mb-2"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -72,7 +72,7 @@ export function LiveLeaderboard({
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
               />
             </svg>
-            <p>No bids yet. Be the first to bid!</p>
+            <p className="text-xs">No bids yet. Be the first to bid!</p>
           </div>
         ) : (
           leaderboard.map((entry) => {
