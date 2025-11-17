@@ -77,16 +77,15 @@ export class AuctionVideoService {
     const supabase = createServiceRoleClient();
 
     try {
-      // Verify bid exists and belongs to auction (security check)
-      const { data: bidData, error: bidError } = await supabase
-        .from('bids')
-        .select('id, auction_id')
-        .eq('id', params.bid_id)
-        .eq('auction_id', params.auction_id)
+      // Verify auction exists (security check)
+      const { data: auctionData, error: auctionError } = await supabase
+        .from('auctions')
+        .select('id')
+        .eq('id', params.auction_id)
         .single();
 
-      if (bidError || !bidData) {
-        return { success: false, error: 'Invalid bid or auction' };
+      if (auctionError || !auctionData) {
+        return { success: false, error: 'Invalid auction' };
       }
 
       // Check if existing video and retake count
