@@ -157,9 +157,9 @@ export default function AuctionDetailClient() {
             </div>
           )}
 
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-1 break-words">{auction.title}</h1>
+              <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-[3px] break-words">{auction.title}</h1>
               <p className="text-gray-500 text-xs sm:text-sm mb-2">
                 by {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
               </p>
@@ -299,12 +299,12 @@ export default function AuctionDetailClient() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Auction Details</h3>
               <dl className="space-y-3">
                 <div className="flex justify-between">
-                  <dt className="text-gray-600">Starting Price</dt>
-                  <dd className="font-medium text-gray-900">{formatBidAmount(startPrice)}</dd>
+                  <dt className="text-sm text-gray-600">Starting Price</dt>
+                  <dd className="text-sm font-medium text-gray-900">{formatBidAmount(startPrice)}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-gray-600">Duration</dt>
-                  <dd className="font-medium text-gray-900">
+                  <dt className="text-sm text-gray-600">Duration</dt>
+                  <dd className="text-sm font-medium text-gray-900">
                     {(() => {
                       const hours = Math.floor(auction.duration / 60);
                       const minutes = auction.duration % 60;
@@ -315,21 +315,21 @@ export default function AuctionDetailClient() {
                   </dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-gray-600">Started</dt>
-                  <dd className="font-medium text-gray-900">
+                  <dt className="text-sm text-gray-600">Started</dt>
+                  <dd className="text-sm font-medium text-gray-900">
                     {new Date(auction.start_time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} at {new Date(auction.start_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}
                   </dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-gray-600">{isAuctionEnded(auction) ? 'Ended' : 'Ends'}</dt>
-                  <dd className="font-medium text-gray-900">
+                  <dt className="text-sm text-gray-600">{isAuctionEnded(auction) ? 'Ended' : 'Ends'}</dt>
+                  <dd className="text-sm font-medium text-gray-900">
                     {new Date(auction.end_time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} at {new Date(auction.end_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}
                   </dd>
                 </div>
                 {auction.winner_name && (
                   <div className="flex justify-between pt-3 border-t border-gray-200">
-                    <dt className="text-gray-600">Winner</dt>
-                    <dd className="font-medium text-green-700">{auction.winner_name}</dd>
+                    <dt className="text-sm text-gray-600">Winner</dt>
+                    <dd className="text-sm font-medium text-green-700">{auction.winner_name}</dd>
                   </div>
                 )}
               </dl>

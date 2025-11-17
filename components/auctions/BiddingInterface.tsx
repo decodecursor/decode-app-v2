@@ -145,7 +145,7 @@ export function BiddingInterface({
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">Place Your Bid</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Place Your Bid</h3>
 
       {/* Step: Enter Bid Amount */}
       {step === 'amount' && (
