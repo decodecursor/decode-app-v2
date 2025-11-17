@@ -303,7 +303,7 @@ export function VideoRecorder({
     <div className="max-w-2xl mx-auto">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Video Display */}
-        <div className="relative bg-black aspect-[9/16] max-h-[70vh]">
+        <div className="relative bg-black aspect-[9/16] max-h-[400px] sm:max-h-[70vh] mx-auto">
           {/* Live Preview */}
           {(recordingState === 'ready' || recordingState === 'recording') && (
             <video
