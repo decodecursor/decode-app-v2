@@ -71,6 +71,13 @@ export function VideoRecorder({
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Connect stream to video element when available
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+
   // Request camera permission and setup preview
   const requestCamera = async () => {
     try {
