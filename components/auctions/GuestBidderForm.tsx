@@ -5,7 +5,9 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+const GUEST_BIDDER_STORAGE_KEY = 'decode_guest_bidder';
 
 interface GuestBidderFormProps {
   onSubmit: (data: { name: string; email: string }) => void;
@@ -17,6 +19,20 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+
+  // Load saved guest info from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(GUEST_BIDDER_STORAGE_KEY);
+      if (saved) {
+        const { name: savedName, email: savedEmail } = JSON.parse(saved);
+        if (savedName) setName(savedName);
+        if (savedEmail) setEmail(savedEmail);
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, []);
 
   const validate = (): boolean => {
     const newErrors: { name?: string; email?: string } = {};
@@ -44,7 +60,20 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
     e.preventDefault();
 
     if (validate()) {
-      onSubmit({ name: name.trim(), email: email.toLowerCase().trim() });
+      const trimmedName = name.trim();
+      const trimmedEmail = email.toLowerCase().trim();
+
+      // Save to localStorage for future visits
+      try {
+        localStorage.setItem(
+          GUEST_BIDDER_STORAGE_KEY,
+          JSON.stringify({ name: trimmedName, email: trimmedEmail })
+        );
+      } catch {
+        // Ignore localStorage errors
+      }
+
+      onSubmit({ name: trimmedName, email: trimmedEmail });
     }
   };
 

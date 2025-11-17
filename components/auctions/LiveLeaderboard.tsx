@@ -106,7 +106,7 @@ export function LiveLeaderboard({
                   {/* Bidder Name */}
                   <div className="flex-1 min-w-0">
                     <p
-                      className={`text-sm font-medium truncate ${
+                      className={`text-sm font-medium ${
                         isUser ? 'text-blue-900' : 'text-gray-900'
                       }`}
                     >
