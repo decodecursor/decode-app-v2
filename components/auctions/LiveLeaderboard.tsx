@@ -91,11 +91,17 @@ export function LiveLeaderboard({
                   {/* Rank */}
                   <div className="flex-shrink-0 w-8">
                     {entry.rank === 1 ? (
-                      <span className="text-xl">🥇</span>
+                      <div className="w-7 h-7 rounded-full bg-yellow-400 flex items-center justify-center shadow-sm">
+                        <span className="text-sm font-bold text-yellow-900">1</span>
+                      </div>
                     ) : entry.rank === 2 ? (
-                      <span className="text-xl">🥈</span>
+                      <div className="w-7 h-7 rounded-full bg-gray-300 flex items-center justify-center shadow-sm">
+                        <span className="text-sm font-bold text-gray-700">2</span>
+                      </div>
                     ) : entry.rank === 3 ? (
-                      <span className="text-xl">🥉</span>
+                      <div className="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center shadow-sm">
+                        <span className="text-sm font-bold text-amber-100">3</span>
+                      </div>
                     ) : (
                       <span className="text-sm font-medium text-gray-500">
                         #{entry.rank}
