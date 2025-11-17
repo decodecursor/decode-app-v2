@@ -23,10 +23,15 @@ type RecordingState = 'idle' | 'requesting_permission' | 'ready' | 'recording' |
 // Get best supported MIME type for current browser
 function getSupportedMimeType(): { mimeType: string; extension: string } {
   const types = [
+    // Video + Audio codecs (required for Firefox and proper audio recording)
+    { mimeType: 'video/webm;codecs=vp9,opus', extension: 'webm' },
+    { mimeType: 'video/webm;codecs=vp8,opus', extension: 'webm' },
+    { mimeType: 'video/webm;codecs=h264,opus', extension: 'webm' },
+    // Video only codecs (Chrome might work with these)
     { mimeType: 'video/webm;codecs=vp9', extension: 'webm' },
     { mimeType: 'video/webm;codecs=vp8', extension: 'webm' },
+    // Generic formats
     { mimeType: 'video/webm', extension: 'webm' },
-    { mimeType: 'video/mp4;codecs=h264', extension: 'mp4' },
     { mimeType: 'video/mp4', extension: 'mp4' },
   ];
 
