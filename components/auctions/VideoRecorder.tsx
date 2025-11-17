@@ -342,8 +342,8 @@ export function VideoRecorder({
                     d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
                   />
                 </svg>
-                <p className="text-lg font-medium">Ready to record?</p>
-                <p className="text-sm opacity-75 mt-1">
+                <p className="text-base font-medium">Ready to record?</p>
+                <p className="text-xs opacity-75 mt-1">
                   Record a {MAX_VIDEO_DURATION_SECONDS}-second video message
                 </p>
               </div>
@@ -427,7 +427,7 @@ export function VideoRecorder({
                 )}
                 <button
                   onClick={requestCamera}
-                  className="flex-1 px-4 py-3 text-base font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                  className="flex-1 px-4 py-3 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
                 >
                   Start Camera
                 </button>
@@ -447,7 +447,7 @@ export function VideoRecorder({
                 </button>
                 <button
                   onClick={startRecording}
-                  className="flex-1 px-4 py-3 text-base font-medium text-white bg-red-600 rounded-md hover:bg-red-700 flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-3 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 flex items-center justify-center gap-2"
                 >
                   <div className="w-4 h-4 bg-white rounded-full" />
                   Start Recording
@@ -458,7 +458,7 @@ export function VideoRecorder({
             {recordingState === 'recording' && (
               <button
                 onClick={stopRecording}
-                className="w-full px-4 py-3 text-base font-medium text-white bg-gray-800 rounded-md hover:bg-gray-900"
+                className="w-full px-4 py-3 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-900"
               >
                 Stop Recording
               </button>
@@ -476,7 +476,7 @@ export function VideoRecorder({
                 )}
                 <button
                   onClick={uploadVideo}
-                  className="flex-1 px-4 py-3 text-base font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
+                  className="flex-1 px-4 py-3 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
                 >
                   Upload Video
                 </button>
