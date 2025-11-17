@@ -331,7 +331,8 @@ export class BiddingService {
       const { data, error } = await supabase
         .from('bids')
         .select('amount, bidder_email')
-        .eq('auction_id', auctionId);
+        .eq('auction_id', auctionId)
+        .in('status', ['winning', 'outbid', 'captured']); // Only count confirmed bids
 
       if (error) throw error;
 
