@@ -80,7 +80,12 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                 </p>
               )}
             </div>
-            {getStatusBadge()}
+            <div className="flex items-center gap-2">
+              {auction.status === 'active' && !isAuctionEnded(auction) && (
+                <CompactAuctionTimer auction={auction} />
+              )}
+              {getStatusBadge()}
+            </div>
           </div>
         </div>
 
@@ -118,13 +123,6 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </div>
           </div>
         </div>
-
-        {/* Footer - Timer */}
-        {auction.status === 'active' && !isAuctionEnded(auction) && (
-          <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
-            <CompactAuctionTimer auction={auction} />
-          </div>
-        )}
 
         {/* Winner Info */}
         {(auction.status === 'ended' || auction.status === 'completed' || isAuctionEnded(auction)) && auction.winner_name && (
