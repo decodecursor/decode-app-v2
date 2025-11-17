@@ -10,7 +10,7 @@ import {
   PaymentResult,
   RefundResult,
 } from '../core/PaymentStrategy.interface';
-import { getAuctionConfig } from '../config/paymentConfig';
+import { getAuctionConfig, PAYMENT_CONFIG } from '../config/paymentConfig';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-06-30.basil',
@@ -59,9 +59,14 @@ export class AuctionStrategy implements IPaymentStrategy {
         customerId = customer.id;
       }
 
+      // Convert AED amount to USD (Stripe doesn't support AED directly)
+      const aedAmount = context.amount;
+      const usdAmount = aedAmount / PAYMENT_CONFIG.currency.AED_TO_USD_RATE;
+      const usdCents = Math.round(usdAmount * 100);
+
       // Create PaymentIntent with manual capture (pre-authorization)
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(context.amount * 100), // Convert to cents
+        amount: usdCents, // Amount in USD cents
         currency: 'usd',
         customer: customerId || auctionContext.user_id,
         capture_method: 'manual', // Pre-authorize only, capture later
@@ -76,6 +81,8 @@ export class AuctionStrategy implements IPaymentStrategy {
           bidder_email: auctionContext.bidder_email,
           bidder_name: auctionContext.bidder_name,
           is_guest: auctionContext.is_guest.toString(),
+          original_amount_aed: aedAmount.toString(),
+          converted_amount_usd: usdAmount.toFixed(2),
         },
         description: `Bid on auction: ${context.description || auctionContext.auction_id}`,
       });

@@ -170,7 +170,7 @@ export function BiddingInterface({
                 placeholder={minimumBid.toString()}
               />
             </div>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-gray-500" style={{ fontSize: '11px' }}>
               Minimum bid: {formatBidAmount(minimumBid)}
             </p>
           </div>

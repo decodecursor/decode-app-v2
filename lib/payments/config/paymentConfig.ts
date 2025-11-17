@@ -59,6 +59,13 @@ export const PAYMENT_CONFIG = {
       fixedPrice: 'automatic', // Automatic for regular payments
     },
   },
+
+  // Currency conversion (Stripe doesn't support AED directly)
+  currency: {
+    display: 'AED', // Display currency in UI
+    processing: 'usd', // Stripe processing currency
+    AED_TO_USD_RATE: 3.67, // 1 USD = 3.67 AED
+  },
 } as const;
 
 export type PaymentConfig = typeof PAYMENT_CONFIG;
