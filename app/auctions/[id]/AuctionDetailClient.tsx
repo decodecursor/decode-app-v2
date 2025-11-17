@@ -234,7 +234,7 @@ export default function AuctionDetailClient() {
             </div>
           </div>
           <p className="text-gray-500 text-xs sm:text-sm mt-[3px] mb-2">
-            For {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
+            for {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
           </p>
           {auction.description && (
             <p className="text-gray-600 text-sm sm:text-lg">{auction.description}</p>
@@ -342,7 +342,7 @@ export default function AuctionDetailClient() {
           </div>
 
           {/* Right Column - Leaderboard (desktop only) */}
-          <div className="hidden lg:block lg:col-span-1 lg:mt-12">
+          <div className="hidden lg:block lg:col-span-1 lg:mt-11">
             <div className="sticky top-4">
               <LiveLeaderboard auctionId={auctionId} userEmail={userEmail} />
             </div>

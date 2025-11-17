@@ -402,8 +402,8 @@ function PaymentForm({
   return (
     <div className="space-y-4">
       <div className="p-4 bg-gray-50 rounded-md">
-        <p className="text-xs text-gray-700 mb-3 text-center">
-          We&apos;ll pre-authorize — you&apos;re charged only if you win.
+        <p className="text-[11px] sm:text-[13px] text-gray-700 mb-3 text-center">
+          We&apos;ll pre-authorize. You&apos;re charged only if you win.
         </p>
 
         {/* Express Checkout (Apple Pay / Google Pay) */}
