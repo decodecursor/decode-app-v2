@@ -146,13 +146,29 @@ export function VideoRecorder({
         setRecordedBlob(blob);
         setRecordingState('stopped');
 
-        // Show preview - Firefox needs explicit load() call
-        if (previewRef.current) {
-          const url = URL.createObjectURL(blob);
-          previewRef.current.src = url;
-          previewRef.current.load(); // Required for Firefox
-          console.log('Preview URL set:', url);
-        }
+        // Show preview - wait a tick for React to render the video element
+        setTimeout(() => {
+          if (previewRef.current) {
+            const url = URL.createObjectURL(blob);
+            console.log('Preview URL set:', url);
+
+            // Clear any previous src first
+            previewRef.current.src = '';
+            previewRef.current.removeAttribute('src');
+
+            // Set new source
+            previewRef.current.src = url;
+            previewRef.current.load();
+
+            // For Firefox: explicitly handle the load
+            previewRef.current.onloadeddata = () => {
+              console.log('Video data loaded successfully');
+            };
+            previewRef.current.onerror = (e) => {
+              console.error('Video preview error:', e);
+            };
+          }
+        }, 100);
       };
 
       mediaRecorder.onerror = (event) => {
