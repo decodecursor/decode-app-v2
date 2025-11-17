@@ -89,10 +89,9 @@ export default function AuctionDetailPage() {
   };
 
   // Refresh auction data with visual feedback
-  const handleRefresh = async () => {
+  const handleRefresh = () => {
     setIsRefreshing(true);
-    await refresh();
-    setTimeout(() => setIsRefreshing(false), 500);
+    window.location.reload();
   };
 
   // Cancel auction
