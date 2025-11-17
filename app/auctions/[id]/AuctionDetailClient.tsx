@@ -186,32 +186,32 @@ export default function AuctionDetailClient() {
               <button
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="flex items-center justify-center p-1.5 sm:px-3 sm:py-2 sm:gap-1 text-xs sm:text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50"
+                className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-2 text-[10px] sm:text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50"
                 title="Refresh auction data"
               >
-                <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-3 h-3 sm:w-4 sm:h-4 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                <span className="hidden sm:inline">{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+                <span>{isRefreshing ? '...' : 'Refresh'}</span>
               </button>
               <button
                 onClick={handleCopyLink}
-                className="flex items-center justify-center p-1.5 sm:px-3 sm:py-2 sm:gap-1 text-xs sm:text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-2 text-[10px] sm:text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
                 title="Share auction link"
               >
                 {copied ? (
                   <>
-                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    <span className="hidden sm:inline text-green-600">Copied!</span>
+                    <span className="text-green-600">Copied!</span>
                   </>
                 ) : (
                   <>
-                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
                     </svg>
-                    <span className="hidden sm:inline">Share</span>
+                    <span>Share</span>
                   </>
                 )}
               </button>
@@ -274,6 +274,11 @@ export default function AuctionDetailClient() {
               </div>
             </div>
 
+            {/* Mobile Leaderboard - shown only on small screens */}
+            <div className="lg:hidden">
+              <LiveLeaderboard auctionId={auctionId} userEmail={userEmail} />
+            </div>
+
             {/* Bidding Interface */}
             {!isCreator && !isAuctionEnded(auction) && (
               <BiddingInterface
@@ -331,8 +336,8 @@ export default function AuctionDetailClient() {
             </div>
           </div>
 
-          {/* Right Column - Leaderboard */}
-          <div className="lg:col-span-1">
+          {/* Right Column - Leaderboard (desktop only) */}
+          <div className="hidden lg:block lg:col-span-1">
             <div className="sticky top-4">
               <LiveLeaderboard auctionId={auctionId} userEmail={userEmail} />
             </div>
