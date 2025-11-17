@@ -133,8 +133,8 @@ export function formatVideoDuration(seconds?: number): string {
 }
 
 export function validateVideoFile(file: File): { valid: boolean; error?: string } {
-  // Check file type
-  if (!ALLOWED_VIDEO_FORMATS.includes(file.type)) {
+  // Check file type (use startsWith to handle codec suffixes like video/webm;codecs=vp8,opus)
+  if (!ALLOWED_VIDEO_FORMATS.some(format => file.type.startsWith(format))) {
     return {
       valid: false,
       error: `Invalid file type. Allowed formats: ${ALLOWED_VIDEO_FORMATS.join(', ')}`,
