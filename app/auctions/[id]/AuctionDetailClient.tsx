@@ -157,19 +157,19 @@ export default function AuctionDetailClient() {
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 break-words">{auction.title}</h1>
-              <p className="text-gray-500 text-sm mb-2">
+              <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-1 break-words">{auction.title}</h1>
+              <p className="text-gray-500 text-xs sm:text-sm mb-2">
                 by {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
               </p>
               {auction.description && (
-                <p className="text-gray-600 text-base sm:text-lg">{auction.description}</p>
+                <p className="text-gray-600 text-sm sm:text-lg">{auction.description}</p>
               )}
             </div>
 
             {/* Status Badge and Action Buttons */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
               {/* Cancel Auction Button (only for creator of active auctions) */}
               {isCreator && auction.status !== 'cancelled' && auction.status !== 'completed' && !isAuctionEnded(auction) && (
                 <button
@@ -186,56 +186,54 @@ export default function AuctionDetailClient() {
               <button
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="flex items-center gap-1 px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50"
+                className="flex items-center justify-center p-1.5 sm:px-3 sm:py-2 sm:gap-1 text-xs sm:text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50"
                 title="Refresh auction data"
               >
                 <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
                 <span className="hidden sm:inline">{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
-                <span className="sm:hidden">{isRefreshing ? '...' : 'Refresh'}</span>
               </button>
               <button
                 onClick={handleCopyLink}
-                className="flex items-center gap-1 px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
-                title="Copy auction link"
+                className="flex items-center justify-center p-1.5 sm:px-3 sm:py-2 sm:gap-1 text-xs sm:text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                title="Share auction link"
               >
                 {copied ? (
                   <>
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    <span className="text-green-600">Copied!</span>
+                    <span className="hidden sm:inline text-green-600">Copied!</span>
                   </>
                 ) : (
                   <>
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
                     </svg>
-                    <span className="hidden sm:inline">Copy Link</span>
-                    <span className="sm:hidden">Copy</span>
+                    <span className="hidden sm:inline">Share</span>
                   </>
                 )}
               </button>
               {auction.status === 'cancelled' ? (
-                <span className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-red-700 bg-red-100 rounded-full">
+                <span className="px-2 py-1 sm:px-4 sm:py-2 text-[10px] sm:text-sm font-semibold text-red-700 bg-red-100 rounded-full">
                   Cancelled
                 </span>
               ) : isAuctionEnded(auction) || timerEnded ? (
-                <span className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-gray-700 bg-gray-100 rounded-full">
+                <span className="px-2 py-1 sm:px-4 sm:py-2 text-[10px] sm:text-sm font-semibold text-gray-700 bg-gray-100 rounded-full">
                   Ended
                 </span>
               ) : auction.status === 'active' ? (
-                <span className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-green-700 bg-green-100 rounded-full flex items-center gap-1.5 sm:gap-2">
-                  <span className="relative flex h-2 w-2">
+                <span className="px-2 py-1 sm:px-4 sm:py-2 text-[10px] sm:text-sm font-semibold text-green-700 bg-green-100 rounded-full flex items-center gap-1 sm:gap-2">
+                  <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-green-500"></span>
                   </span>
                   <span className="hidden sm:inline">Live Auction</span>
                   <span className="sm:hidden">Live</span>
                 </span>
               ) : (
-                <span className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-blue-700 bg-blue-100 rounded-full">
+                <span className="px-2 py-1 sm:px-4 sm:py-2 text-[10px] sm:text-sm font-semibold text-blue-700 bg-blue-100 rounded-full">
                   Upcoming
                 </span>
               )}
@@ -250,25 +248,25 @@ export default function AuctionDetailClient() {
           {/* Left Column - Auction Info & Bidding */}
           <div className="lg:col-span-2 space-y-6">
             {/* Timer & Price Card */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <div className="grid grid-cols-2 gap-4 sm:gap-6">
                 {/* Current Price */}
                 <div>
-                  <p className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+                  <p className="text-[10px] sm:text-sm text-gray-500 uppercase tracking-wide mb-1 sm:mb-2">
                     {hasBids ? 'Current Bid' : 'Starting Price'}
                   </p>
-                  <p className="text-4xl font-bold text-gray-900">
+                  <p className="text-2xl sm:text-4xl font-bold text-gray-900">
                     {formatBidAmount(hasBids ? currentPrice : startPrice)}
                   </p>
                 </div>
 
                 {/* Timer */}
                 <div>
-                  <p className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+                  <p className="text-[10px] sm:text-sm text-gray-500 uppercase tracking-wide mb-1 sm:mb-2">
                     Time Remaining
                   </p>
                   {auction.status === 'cancelled' ? (
-                    <p className="text-2xl font-bold text-red-600">Cancelled</p>
+                    <p className="text-lg sm:text-2xl font-bold text-red-600">Cancelled</p>
                   ) : (
                     <AuctionTimer auction={auction} showProgress />
                   )}
