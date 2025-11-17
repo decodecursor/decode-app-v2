@@ -104,17 +104,28 @@ export function VideoRecorder({
       const supportedMime = getSupportedMimeType();
       setMimeInfo(supportedMime);
 
-      // Create MediaRecorder with detected format
-      const options: MediaRecorderOptions = {
-        videoBitsPerSecond: 1000000, // 1 Mbps for compression
-      };
+      let mediaRecorder: MediaRecorder;
 
-      // Only set mimeType if we found a supported one
-      if (supportedMime.mimeType) {
-        options.mimeType = supportedMime.mimeType;
+      // Try with detected MIME type first, fallback to no options
+      try {
+        if (supportedMime.mimeType) {
+          const options: MediaRecorderOptions = {
+            mimeType: supportedMime.mimeType,
+            videoBitsPerSecond: 1000000, // 1 Mbps for compression
+          };
+          mediaRecorder = new MediaRecorder(stream, options);
+          console.log('MediaRecorder created with:', supportedMime.mimeType);
+        } else {
+          mediaRecorder = new MediaRecorder(stream);
+          console.log('MediaRecorder created with default settings');
+        }
+      } catch (codecError) {
+        // Fallback: create without any options (let browser decide)
+        console.warn('Failed with codec options, trying default:', codecError);
+        mediaRecorder = new MediaRecorder(stream);
+        setMimeInfo({ mimeType: '', extension: 'webm' });
+        console.log('MediaRecorder created with browser default');
       }
-
-      const mediaRecorder = new MediaRecorder(stream, options);
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -123,9 +134,10 @@ export function VideoRecorder({
       };
 
       mediaRecorder.onstop = () => {
-        // Use the actual MIME type from the recorder or detected type
-        const blobType = supportedMime.mimeType || mediaRecorder.mimeType || 'video/webm';
+        // Use the actual MIME type from the recorder
+        const blobType = mediaRecorder.mimeType || supportedMime.mimeType || 'video/webm';
         const blob = new Blob(chunksRef.current, { type: blobType });
+        console.log('Recording completed. Blob type:', blobType, 'Size:', blob.size);
         setRecordedBlob(blob);
         setRecordingState('stopped');
 
@@ -144,6 +156,7 @@ export function VideoRecorder({
       mediaRecorderRef.current = mediaRecorder;
       mediaRecorder.start(100); // Collect data every 100ms
       setRecordingState('recording');
+      console.log('Recording started');
 
       // Auto-stop after MAX_VIDEO_DURATION_SECONDS
       recordingTimerRef.current = setTimeout(() => {
@@ -165,7 +178,7 @@ export function VideoRecorder({
       }, 1000);
     } catch (err) {
       console.error('Recording error:', err);
-      setError('Failed to start recording. Please try again.');
+      setError(`Failed to start recording: ${err instanceof Error ? err.message : 'Unknown error'}`);
       setRecordingState('ready');
     }
   };
