@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     const modelName = (auction as any).creator?.user_name || (auction as any).creator?.email || 'Model';
 
     const personalizedTitle = "It's Auction Time";
-    const personalizedDescription = `Bid on ${auctionTitle} by ${modelName}`;
+    const personalizedDescription = `Bid on ${auctionTitle} for ${modelName}`;
 
     return {
       title: personalizedTitle,
