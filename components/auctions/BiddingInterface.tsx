@@ -151,9 +151,6 @@ export function BiddingInterface({
       {step === 'amount' && (
         <form onSubmit={handleAmountSubmit} className="space-y-4">
           <div>
-            <label htmlFor="bid-amount" className="block text-sm font-medium text-gray-700 mb-1">
-              Bid Amount
-            </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">AED</span>
               <input
