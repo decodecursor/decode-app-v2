@@ -33,6 +33,7 @@ export default function AuctionDetailClient() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelSuccess, setCancelSuccess] = useState(false);
 
   const { auction, isConnected, refresh } = useAuctionRealtime(auctionId);
 
@@ -108,13 +109,13 @@ export default function AuctionDetailClient() {
         throw new Error(data.error || 'Failed to cancel auction');
       }
 
-      alert('Auction cancelled successfully. All payment authorizations have been released.');
+      setCancelSuccess(true);
       await refresh();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to cancel auction');
+      setShowCancelConfirm(false);
     } finally {
       setIsCancelling(false);
-      setShowCancelConfirm(false);
     }
   };
 
@@ -365,27 +366,52 @@ export default function AuctionDetailClient() {
       {showCancelConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Cancel Auction?</h3>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to cancel this auction? All payment authorizations will be
-              released and no winner will be selected.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowCancelConfirm(false)}
-                disabled={isCancelling}
-                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md disabled:opacity-50"
-              >
-                No, Keep Auction
-              </button>
-              <button
-                onClick={handleCancelAuction}
-                disabled={isCancelling}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50"
-              >
-                {isCancelling ? 'Cancelling...' : 'Yes, Cancel'}
-              </button>
-            </div>
+            {cancelSuccess ? (
+              <>
+                <div className="text-center">
+                  <svg className="mx-auto w-12 h-12 text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Auction Cancelled</h3>
+                  <p className="text-gray-600 mb-6">
+                    All payment authorizations have been released.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowCancelConfirm(false);
+                    setCancelSuccess(false);
+                  }}
+                  className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
+                >
+                  OK
+                </button>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Cancel Auction?</h3>
+                <p className="text-gray-600 mb-6">
+                  Are you sure you want to cancel this auction? All payment authorizations will be
+                  released and no winner will be selected.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowCancelConfirm(false)}
+                    disabled={isCancelling}
+                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md disabled:opacity-50"
+                  >
+                    No, Keep Auction
+                  </button>
+                  <button
+                    onClick={handleCancelAuction}
+                    disabled={isCancelling}
+                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50"
+                  >
+                    {isCancelling ? 'Cancelling...' : 'Yes, Cancel'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
