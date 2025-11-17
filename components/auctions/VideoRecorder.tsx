@@ -86,8 +86,8 @@ export function VideoRecorder({
 
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
+          width: { ideal: 720 },
+          height: { ideal: 1280 },
           facingMode: 'user',
         },
         audio: true,
@@ -303,7 +303,7 @@ export function VideoRecorder({
     <div className="max-w-2xl mx-auto">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Video Display */}
-        <div className="relative bg-black aspect-video">
+        <div className="relative bg-black aspect-[9/16] max-h-[70vh]">
           {/* Live Preview */}
           {(recordingState === 'ready' || recordingState === 'recording') && (
             <video
