@@ -58,6 +58,11 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
     // Filter to only include bids with confirmed payment
     const validBids = bids.filter((b) => b.status === 'winning' || b.status === 'outbid' || b.status === 'captured');
 
+    // Only update if we have valid bids, otherwise keep existing leaderboard
+    if (validBids.length === 0) {
+      return;
+    }
+
     // Sort bids by amount (descending) and placed_at (ascending for tie-breaking)
     const sorted = [...validBids].sort((a, b) => {
       const amountDiff = Number(b.amount) - Number(a.amount);
@@ -103,6 +108,10 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
           return updated;
         });
       } else if (event.type === 'bid_updated') {
+        // If bid is now valid (winning/outbid/captured), refresh from API
+        if (event.bid.status === 'winning' || event.bid.status === 'outbid' || event.bid.status === 'captured') {
+          fetchLeaderboard();
+        }
         // Update existing bid
         setAllBids((prev) => {
           const updated = prev.map((b) => (b.id === event.bid.id ? event.bid : b));
@@ -111,7 +120,7 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
         });
       }
     },
-    [updateLeaderboard]
+    [updateLeaderboard, fetchLeaderboard]
   );
 
   useEffect(() => {
