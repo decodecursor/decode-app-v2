@@ -19,12 +19,10 @@ export async function GET(
     const biddingService = new BiddingService();
     const bids = await biddingService.getAuctionBids(params.id, limit);
 
-    // Format leaderboard with privacy protection
+    // Format leaderboard - show full names
     const leaderboard = bids.map((bid, index) => ({
       rank: index + 1,
-      bidder_name: showFullNames
-        ? bid.bidder_name
-        : formatBidderNameForLeaderboard(bid.bidder_name, true),
+      bidder_name: bid.bidder_name,
       amount: Number(bid.amount),
       placed_at: bid.placed_at,
       status: bid.status,

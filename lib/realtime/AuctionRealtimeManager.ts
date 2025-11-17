@@ -9,7 +9,7 @@ import type { Auction } from '@/lib/models/Auction.model';
 import type { Bid } from '@/lib/models/Bid.model';
 
 export type AuctionEvent = {
-  type: 'auction_updated' | 'auction_ended' | 'auction_started';
+  type: 'auction_updated' | 'auction_ended' | 'auction_started' | 'auction_cancelled';
   auction: Auction;
 };
 
@@ -198,6 +198,8 @@ export class AuctionRealtimeManager {
     // Determine event type
     if (payload.eventType === 'INSERT') {
       eventType = 'auction_started';
+    } else if (auction.status === 'cancelled') {
+      eventType = 'auction_cancelled';
     } else if (
       oldAuction?.status === 'active' &&
       (auction.status === 'ended' || auction.status === 'completed')

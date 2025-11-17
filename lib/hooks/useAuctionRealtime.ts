@@ -55,6 +55,9 @@ export function useAuctionRealtime(auctionId: string, initialAuction?: Auction) 
         case 'auction_ended':
           console.log('Auction ended:', event.auction.id);
           break;
+        case 'auction_cancelled':
+          console.log('Auction cancelled:', event.auction.id);
+          break;
         case 'auction_updated':
           console.log('Auction updated:', event.auction.id);
           break;
