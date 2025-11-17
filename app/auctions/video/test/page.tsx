@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { VideoRecorder } from '@/components/auctions/VideoRecorder';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/utils/supabase/client';
 
 export default function TestVideoRecordingPage() {
   const [auctionId, setAuctionId] = useState<string | null>(null);
