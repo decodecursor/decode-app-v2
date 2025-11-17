@@ -157,15 +157,9 @@ export default function AuctionDetailClient() {
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-[3px] break-words">{auction.title}</h1>
-              <p className="text-gray-500 text-xs sm:text-sm mb-2">
-                by {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
-              </p>
-              {auction.description && (
-                <p className="text-gray-600 text-sm sm:text-lg">{auction.description}</p>
-              )}
+              <h1 className="text-xl sm:text-3xl font-bold text-gray-900 break-words">{auction.title}</h1>
             </div>
 
             {/* Status Badge and Action Buttons */}
@@ -239,6 +233,12 @@ export default function AuctionDetailClient() {
               )}
             </div>
           </div>
+          <p className="text-gray-500 text-xs sm:text-sm mt-[3px] mb-2">
+            by {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
+          </p>
+          {auction.description && (
+            <p className="text-gray-600 text-sm sm:text-lg">{auction.description}</p>
+          )}
         </div>
       </div>
 
@@ -249,7 +249,7 @@ export default function AuctionDetailClient() {
           <div className="lg:col-span-2 space-y-6">
             {/* Winner requirement notice */}
             <p className="text-sm text-gray-600 italic">
-              Winner can record a 10sec video that I must view to unlock the funds
+              The winner can record a 10sec video that I must view to unlock the funds as a gift to cover my beauty service
             </p>
 
             {/* Timer & Price Card */}
@@ -342,7 +342,7 @@ export default function AuctionDetailClient() {
           </div>
 
           {/* Right Column - Leaderboard (desktop only) */}
-          <div className="hidden lg:block lg:col-span-1">
+          <div className="hidden lg:block lg:col-span-1 lg:mt-10">
             <div className="sticky top-4">
               <LiveLeaderboard auctionId={auctionId} userEmail={userEmail} />
             </div>
