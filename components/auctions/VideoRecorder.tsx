@@ -20,6 +20,28 @@ interface VideoRecorderProps {
 
 type RecordingState = 'idle' | 'requesting_permission' | 'ready' | 'recording' | 'stopped' | 'uploading';
 
+// Get best supported MIME type for current browser
+function getSupportedMimeType(): { mimeType: string; extension: string } {
+  const types = [
+    { mimeType: 'video/webm;codecs=vp9', extension: 'webm' },
+    { mimeType: 'video/webm;codecs=vp8', extension: 'webm' },
+    { mimeType: 'video/webm', extension: 'webm' },
+    { mimeType: 'video/mp4;codecs=h264', extension: 'mp4' },
+    { mimeType: 'video/mp4', extension: 'mp4' },
+  ];
+
+  for (const type of types) {
+    if (MediaRecorder.isTypeSupported(type.mimeType)) {
+      console.log('Using MIME type:', type.mimeType);
+      return type;
+    }
+  }
+
+  // Fallback - let browser choose
+  console.log('No specific MIME type supported, using browser default');
+  return { mimeType: '', extension: 'webm' };
+}
+
 export function VideoRecorder({
   auctionId,
   bidId,
@@ -35,12 +57,14 @@ export function VideoRecorder({
   const [countdown, setCountdown] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [retakeCount, setRetakeCount] = useState(0);
+  const [mimeInfo, setMimeInfo] = useState<{ mimeType: string; extension: string } | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const previewRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Request camera permission and setup preview
   const requestCamera = async () => {
@@ -76,15 +100,18 @@ export function VideoRecorder({
     try {
       chunksRef.current = [];
 
-      // Create MediaRecorder with WebM format
+      // Get best supported MIME type for this browser
+      const supportedMime = getSupportedMimeType();
+      setMimeInfo(supportedMime);
+
+      // Create MediaRecorder with detected format
       const options: MediaRecorderOptions = {
-        mimeType: 'video/webm;codecs=vp9',
         videoBitsPerSecond: 1000000, // 1 Mbps for compression
       };
 
-      // Fallback for browsers that don't support vp9
-      if (!MediaRecorder.isTypeSupported(options.mimeType!)) {
-        options.mimeType = 'video/webm';
+      // Only set mimeType if we found a supported one
+      if (supportedMime.mimeType) {
+        options.mimeType = supportedMime.mimeType;
       }
 
       const mediaRecorder = new MediaRecorder(stream, options);
@@ -96,7 +123,9 @@ export function VideoRecorder({
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+        // Use the actual MIME type from the recorder or detected type
+        const blobType = supportedMime.mimeType || mediaRecorder.mimeType || 'video/webm';
+        const blob = new Blob(chunksRef.current, { type: blobType });
         setRecordedBlob(blob);
         setRecordingState('stopped');
 
@@ -104,6 +133,12 @@ export function VideoRecorder({
         if (previewRef.current) {
           previewRef.current.src = URL.createObjectURL(blob);
         }
+      };
+
+      mediaRecorder.onerror = (event) => {
+        console.error('MediaRecorder error:', event);
+        setError('Recording failed. Please try a different browser.');
+        setRecordingState('ready');
       };
 
       mediaRecorderRef.current = mediaRecorder;
@@ -119,11 +154,13 @@ export function VideoRecorder({
       let timeLeft = MAX_VIDEO_DURATION_SECONDS;
       setCountdown(timeLeft);
 
-      const countdownInterval = setInterval(() => {
+      countdownIntervalRef.current = setInterval(() => {
         timeLeft -= 1;
         setCountdown(timeLeft);
         if (timeLeft <= 0) {
-          clearInterval(countdownInterval);
+          if (countdownIntervalRef.current) {
+            clearInterval(countdownIntervalRef.current);
+          }
         }
       }, 1000);
     } catch (err) {
@@ -160,7 +197,9 @@ export function VideoRecorder({
 
     try {
       const formData = new FormData();
-      formData.append('video', recordedBlob, 'recording.webm');
+      // Use correct file extension based on detected MIME type
+      const extension = mimeInfo?.extension || 'webm';
+      formData.append('video', recordedBlob, `recording.${extension}`);
       formData.append('bid_id', bidId);
       formData.append('recording_method', recordingMethod);
       if (recordingToken) {
@@ -209,6 +248,9 @@ export function VideoRecorder({
       }
       if (recordingTimerRef.current) {
         clearTimeout(recordingTimerRef.current);
+      }
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
       }
     };
   }, [stream]);
