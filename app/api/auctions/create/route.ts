@@ -85,11 +85,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate duration
-    const validDurations = [30, 60, 180, 1440];
+    const validDurations = [5, 30, 60, 180, 1440];
     if (!validDurations.includes(body.duration)) {
       console.error('❌ [API /auctions/create] Validation failed - invalid duration:', body.duration);
       return NextResponse.json(
-        { error: 'Invalid duration. Must be 30, 60, 180, or 1440 minutes' },
+        { error: 'Invalid duration. Must be 5, 30, 60, 180, or 1440 minutes' },
         { status: 400 }
       );
     }
