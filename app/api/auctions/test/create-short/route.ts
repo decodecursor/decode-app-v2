@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     // Schedule EventBridge close
     console.log('📅 [Test] Scheduling EventBridge close event');
-    const auction = await auctionService.getAuctionById(result.auction_id!);
+    const auction = await auctionService.getAuction(result.auction_id!);
 
     if (auction && auction.end_time) {
       const scheduler = getEventBridgeScheduler();

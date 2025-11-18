@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     const videoService = new AuctionVideoService();
 
     // Get auction details
-    const auction = await auctionService.getAuctionById(auctionId);
+    const auction = await auctionService.getAuction(auctionId);
 
     if (!auction) {
       console.error(`[EventBridge] Auction ${auctionId} not found`);

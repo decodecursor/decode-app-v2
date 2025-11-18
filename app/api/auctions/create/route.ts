@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
       console.log('📅 [API /auctions/create] Scheduling EventBridge close event');
 
       // Get the auction to retrieve end_time
-      const auction = await auctionService.getAuctionById(result.auction_id!);
+      const auction = await auctionService.getAuction(result.auction_id!);
 
       if (auction && auction.end_time) {
         const scheduler = getEventBridgeScheduler();
