@@ -1,12 +1,3 @@
 {
-  "crons": [
-    {
-      "path": "/api/auctions/cron/cleanup-videos",
-      "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/api/cron/weekly-payouts",
-      "schedule": "0 20 * * 0"
-    }
-  ]
+  "crons": []
 }
