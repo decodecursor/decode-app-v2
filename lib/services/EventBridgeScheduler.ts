@@ -109,8 +109,7 @@ export class EventBridgeScheduler {
             scheduledTime: endTime.toISOString(),
           }),
           RetryPolicy: {
-            MaximumEventAge: 86400, // 24 hours
-            MaximumRetryAttempts: 185, // AWS maximum
+            MaximumRetryAttempts: 185, // AWS maximum (retries up to 24 hours)
           },
         },
 
