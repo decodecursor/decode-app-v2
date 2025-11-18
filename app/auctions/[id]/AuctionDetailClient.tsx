@@ -18,7 +18,7 @@ import { WinnerNotification } from '@/components/auctions/WinnerNotification';
 import { VideoPlayback } from '@/components/auctions/VideoPlayback';
 import { formatBidAmount } from '@/lib/models/Bid.model';
 import { createClient } from '@/utils/supabase/client';
-import { HeartAnimation } from '@/components/effects/HeartAnimation';
+import HeartAnimation from '@/components/effects/HeartAnimation';
 
 export default function AuctionDetailClient() {
   const params = useParams();

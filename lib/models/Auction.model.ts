@@ -43,6 +43,9 @@ export interface Auction {
   total_bids: number;
   unique_bidders: number;
 
+  // EventBridge Scheduler
+  scheduler_event_id?: string;
+
   created_at: string;
   updated_at: string;
 }
@@ -66,6 +69,7 @@ export interface UpdateAuctionDto {
   winner_email?: string;
   payment_captured_at?: string;
   payout_status?: PayoutStatus;
+  scheduler_event_id?: string;
 }
 
 export interface AuctionWithCreator extends Auction {
