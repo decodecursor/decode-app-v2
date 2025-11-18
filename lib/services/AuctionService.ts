@@ -11,6 +11,7 @@ import type {
   AuctionStatus,
   getAuctionEndTime,
 } from '@/lib/models/Auction.model';
+import { getEventBridgeScheduler } from './EventBridgeScheduler';
 
 export class AuctionService {
   /**
@@ -283,18 +284,48 @@ export class AuctionService {
     try {
       const { data: auction, error: fetchError } = await supabase
         .from('auctions')
-        .select('end_time')
+        .select('end_time, scheduler_event_id')
         .eq('id', auctionId)
         .single();
 
       if (fetchError) throw fetchError;
 
+      const oldSchedulerId = auction.scheduler_event_id;
       const newEndTime = new Date(auction.end_time);
       newEndTime.setSeconds(newEndTime.getSeconds() + extensionSeconds);
 
+      // Update EventBridge schedule if it exists
+      let newSchedulerId = oldSchedulerId;
+      if (oldSchedulerId) {
+        try {
+          console.log(`[Anti-Sniping] Updating EventBridge schedule for auction ${auctionId}`);
+          const scheduler = getEventBridgeScheduler();
+          const scheduleResult = await scheduler.updateSchedule(
+            auctionId,
+            oldSchedulerId,
+            newEndTime
+          );
+
+          if (scheduleResult.success && scheduleResult.schedulerEventId) {
+            newSchedulerId = scheduleResult.schedulerEventId;
+            console.log(`[Anti-Sniping] EventBridge schedule updated: ${newSchedulerId}`);
+          } else {
+            console.error(`[Anti-Sniping] Failed to update EventBridge schedule:`, scheduleResult.error);
+          }
+        } catch (scheduleError) {
+          console.error('[Anti-Sniping] Error updating EventBridge schedule:', scheduleError);
+          // Don't fail the extension if EventBridge update fails
+        }
+      }
+
+      // Update auction in database
       const { error } = await supabase
         .from('auctions')
-        .update({ end_time: newEndTime.toISOString(), updated_at: new Date().toISOString() })
+        .update({
+          end_time: newEndTime.toISOString(),
+          scheduler_event_id: newSchedulerId,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', auctionId);
 
       if (error) throw error;

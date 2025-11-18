@@ -8,6 +8,7 @@ import { createClient } from '@/utils/supabase/server';
 import { AuctionService } from '@/lib/services/AuctionService';
 import type { CreateAuctionDto } from '@/lib/models/Auction.model';
 import { USER_ROLES, normalizeRole } from '@/types/user';
+import { getEventBridgeScheduler } from '@/lib/services/EventBridgeScheduler';
 
 export async function POST(request: NextRequest) {
   try {
@@ -126,6 +127,38 @@ export async function POST(request: NextRequest) {
     if (startTime <= new Date()) {
       console.log('▶️ [API /auctions/create] Starting auction immediately');
       await auctionService.startAuction(result.auction_id!);
+    }
+
+    // Schedule auction close with EventBridge
+    try {
+      console.log('📅 [API /auctions/create] Scheduling EventBridge close event');
+
+      // Get the auction to retrieve end_time
+      const auction = await auctionService.getAuctionById(result.auction_id!);
+
+      if (auction && auction.end_time) {
+        const scheduler = getEventBridgeScheduler();
+        const scheduleResult = await scheduler.scheduleAuctionClose({
+          auctionId: auction.id,
+          endTime: new Date(auction.end_time),
+        });
+
+        if (scheduleResult.success && scheduleResult.schedulerEventId) {
+          console.log('✅ [API /auctions/create] EventBridge schedule created:', scheduleResult.schedulerEventId);
+
+          // Store scheduler_event_id in database
+          await auctionService.updateAuction(auction.id, {
+            scheduler_event_id: scheduleResult.schedulerEventId,
+          });
+        } else {
+          console.error('❌ [API /auctions/create] Failed to create EventBridge schedule:', scheduleResult.error);
+          // Don't fail the entire request - auction is still created
+          // Fallback cron will handle it if EventBridge fails
+        }
+      }
+    } catch (scheduleError) {
+      console.error('❌ [API /auctions/create] Error scheduling EventBridge:', scheduleError);
+      // Don't fail the entire request
     }
 
     console.log('✅ [API /auctions/create] Auction created successfully:', result.auction_id);

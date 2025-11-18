@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { AuctionService } from '@/lib/services/AuctionService';
 import { AuctionPaymentProcessor } from '@/lib/payments/processors/AuctionPaymentProcessor';
+import { getEventBridgeScheduler } from '@/lib/services/EventBridgeScheduler';
 
 export async function POST(
   request: NextRequest,
@@ -61,6 +62,19 @@ export async function POST(
         { error: 'Cannot cancel a completed auction' },
         { status: 400 }
       );
+    }
+
+    // Delete EventBridge schedule if it exists
+    if (auction.scheduler_event_id) {
+      try {
+        console.log(`[Auction Cancel] Deleting EventBridge schedule: ${auction.scheduler_event_id}`);
+        const scheduler = getEventBridgeScheduler();
+        await scheduler.cancelSchedule(auction.scheduler_event_id);
+        console.log(`[Auction Cancel] EventBridge schedule deleted successfully`);
+      } catch (scheduleError) {
+        console.error('[Auction Cancel] Error deleting EventBridge schedule:', scheduleError);
+        // Don't fail the cancellation if EventBridge deletion fails
+      }
     }
 
     // Cancel all payment authorizations

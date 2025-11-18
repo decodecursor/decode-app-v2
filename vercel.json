@@ -1,10 +1,6 @@
 {
   "crons": [
     {
-      "path": "/api/auctions/cron/close-auctions",
-      "schedule": "*/5 * * * *"
-    },
-    {
       "path": "/api/auctions/cron/cleanup-videos",
       "schedule": "0 0 * * *"
     },
