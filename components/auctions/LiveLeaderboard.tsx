@@ -15,6 +15,7 @@ interface LiveLeaderboardProps {
   limit?: number;
   showStats?: boolean;
   className?: string;
+  isAuctionEnded?: boolean;
 }
 
 export function LiveLeaderboard({
@@ -23,6 +24,7 @@ export function LiveLeaderboard({
   limit = 10,
   showStats = true,
   className = '',
+  isAuctionEnded = false,
 }: LiveLeaderboardProps) {
   const { leaderboard, stats, isConnected, isLoading, userRank, userHighestBid } = useLeaderboard(
     auctionId,
@@ -106,7 +108,7 @@ export function LiveLeaderboard({
                   {/* Bidder Name */}
                   <div className="flex-1 min-w-0">
                     <p
-                      className={`text-sm font-medium ${
+                      className={`text-sm font-medium truncate ${
                         isUser ? 'text-blue-900' : 'text-gray-900'
                       }`}
                     >
@@ -129,7 +131,9 @@ export function LiveLeaderboard({
                       {formatted.amount}
                     </p>
                     {isWinning && (
-                      <span className="text-xs text-green-600 font-medium">Highest Bid</span>
+                      <p className="text-xs text-green-600 font-medium">
+                        {isAuctionEnded ? 'Winning Bid' : 'Highest Bid'}
+                      </p>
                     )}
                   </div>
                 </div>

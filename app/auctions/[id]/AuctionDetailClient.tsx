@@ -18,6 +18,7 @@ import { WinnerNotification } from '@/components/auctions/WinnerNotification';
 import { VideoPlayback } from '@/components/auctions/VideoPlayback';
 import { formatBidAmount } from '@/lib/models/Bid.model';
 import { createClient } from '@/utils/supabase/client';
+import { HeartAnimation } from '@/components/effects/HeartAnimation';
 
 export default function AuctionDetailClient() {
   const params = useParams();
@@ -34,6 +35,7 @@ export default function AuctionDetailClient() {
   const [isCancelling, setIsCancelling] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelSuccess, setCancelSuccess] = useState(false);
+  const [showHeartAnimation, setShowHeartAnimation] = useState(false);
 
   const { auction, isConnected, refresh } = useAuctionRealtime(auctionId);
 
@@ -77,6 +79,13 @@ export default function AuctionDetailClient() {
 
   // Timer state for real-time status badge updates
   const { hasEnded: timerEnded } = useAuctionTimer(auction);
+
+  // Trigger heart animation when auction ends
+  useEffect(() => {
+    if (timerEnded) {
+      setShowHeartAnimation(true);
+    }
+  }, [timerEnded]);
 
   // Copy link to clipboard
   const handleCopyLink = async () => {
@@ -248,18 +257,23 @@ export default function AuctionDetailClient() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Auction Info & Bidding */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Winner requirement notice */}
-            <p className="text-sm text-gray-600 italic">
-              The winner can record a 10sec video that I must view to unlock the funds as a gift to cover my beauty service
-            </p>
+            {/* Winner requirement notice - only show during active auction */}
+            {!isAuctionEnded(auction) && !timerEnded && (
+              <p className="text-sm text-gray-600 italic">
+                The winner can record a 10sec video that I must view to unlock the funds as a gift to cover my beauty service
+              </p>
+            )}
 
             {/* Timer & Price Card */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div id="auction-timer" className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="grid grid-cols-2 gap-4 sm:gap-6">
                 {/* Current Price */}
                 <div>
                   <p className="text-[10px] sm:text-sm text-gray-500 uppercase tracking-wide mb-1 sm:mb-2">
-                    {hasBids ? 'Current Bid' : 'Starting Price'}
+                    {isAuctionEnded(auction) || timerEnded
+                      ? (hasBids ? 'Winning Bid' : 'Starting Price')
+                      : (hasBids ? 'Current Bid' : 'Starting Price')
+                    }
                   </p>
                   <p className="text-2xl sm:text-4xl font-bold text-gray-900">
                     {formatBidAmount(hasBids ? currentPrice : startPrice)}
@@ -282,7 +296,7 @@ export default function AuctionDetailClient() {
 
             {/* Mobile Leaderboard - shown only on small screens */}
             <div className="lg:hidden">
-              <LiveLeaderboard auctionId={auctionId} userEmail={userEmail} />
+              <LiveLeaderboard auctionId={auctionId} userEmail={userEmail} isAuctionEnded={isAuctionEnded(auction) || timerEnded} />
             </div>
 
             {/* Bidding Interface */}
@@ -345,7 +359,7 @@ export default function AuctionDetailClient() {
           {/* Right Column - Leaderboard (desktop only) */}
           <div className="hidden lg:block lg:col-span-1 lg:mt-11">
             <div className="sticky top-4">
-              <LiveLeaderboard auctionId={auctionId} userEmail={userEmail} />
+              <LiveLeaderboard auctionId={auctionId} userEmail={userEmail} isAuctionEnded={isAuctionEnded(auction) || timerEnded} />
             </div>
           </div>
         </div>
@@ -415,6 +429,9 @@ export default function AuctionDetailClient() {
           </div>
         </div>
       )}
+
+      {/* Heart Animation on Auction End */}
+      <HeartAnimation isActive={showHeartAnimation} targetElementId="auction-timer" />
     </div>
   );
 }

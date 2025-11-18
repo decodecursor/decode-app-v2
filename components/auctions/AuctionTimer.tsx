@@ -53,7 +53,7 @@ export function AuctionTimer({ auction, showProgress = false, className = '' }: 
           />
         </svg>
         <span className={`text-sm sm:text-lg ${getTimerColor()}`}>
-          {hasEnded ? 'Ended' : formatted}
+          {hasEnded ? 'Auction Ended' : formatted}
         </span>
 
         {/* Anti-sniping indicator */}
