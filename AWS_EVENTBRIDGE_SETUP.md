@@ -109,15 +109,75 @@ aws scheduler create-schedule-group \
 
 ---
 
-## Step 3: Create IAM User for Programmatic Access
+## Step 3: Deploy Lambda Function
 
-### 3.1 Create IAM User
+EventBridge Scheduler cannot invoke HTTP endpoints directly. We use a Lambda function as a proxy.
+
+### 3.1 Create Lambda Function (AWS Console - Easiest)
+
+1. Go to **AWS Lambda Console** → **Create function**
+2. Choose **"Author from scratch"**
+3. Settings:
+   - **Function name:** `auction-closer`
+   - **Runtime:** Node.js 20.x
+   - **Architecture:** x86_64
+4. Click **"Create function"**
+
+### 3.2 Deploy Function Code
+
+1. In the Lambda function page, go to **Code** tab
+2. Copy the contents of `aws-lambda/auction-closer/index.mjs` from your repo
+3. Paste into the code editor (replace the default code)
+4. Click **"Deploy"**
+
+### 3.3 Set Environment Variables
+
+1. Go to **Configuration** → **Environment variables**
+2. Click **"Edit"** → **"Add environment variable"**
+3. Add:
+   - **Key:** `API_ENDPOINT`
+   - **Value:** `https://your-app.vercel.app/api/auctions/eventbridge/close`
+4. Click **"Save"**
+
+### 3.4 Add EventBridge Permission
+
+Allow EventBridge Scheduler to invoke this Lambda:
+
+```bash
+aws lambda add-permission \
+  --function-name auction-closer \
+  --statement-id AllowEventBridgeInvoke \
+  --action lambda:InvokeFunction \
+  --principal scheduler.amazonaws.com
+```
+
+Or via Console:
+1. Lambda → auction-closer → **Configuration** → **Permissions**
+2. **Resource-based policy statements** → **Add permissions**
+3. **Service:** EventBridge Scheduler
+4. **Action:** lambda:InvokeFunction
+5. **Principal:** scheduler.amazonaws.com
+
+### 3.5 Get Lambda ARN
+
+Copy the **Function ARN** (top right of the Lambda page):
+```
+arn:aws:lambda:us-east-1:123456789012:function:auction-closer
+```
+
+**Save this ARN** - you'll need it for Vercel environment variables.
+
+---
+
+## Step 4: Create IAM User for Programmatic Access
+
+### 4.1 Create IAM User
 
 ```bash
 aws iam create-user --user-name eventbridge-scheduler-user
 ```
 
-### 3.2 Create Access Policy
+### 4.2 Create Access Policy
 
 Create a file `user-access-policy.json`:
 
@@ -146,7 +206,7 @@ Create a file `user-access-policy.json`:
 
 **Replace `YOUR_ACCOUNT_ID` with your AWS account ID.**
 
-### 3.3 Attach Policy
+### 4.3 Attach Policy
 
 ```bash
 aws iam put-user-policy \
@@ -155,7 +215,7 @@ aws iam put-user-policy \
   --policy-document file://user-access-policy.json
 ```
 
-### 3.4 Create Access Keys
+### 4.4 Create Access Keys
 
 ```bash
 aws iam create-access-key --user-name eventbridge-scheduler-user
@@ -165,9 +225,9 @@ Save the `AccessKeyId` and `SecretAccessKey` - you'll need these for environment
 
 ---
 
-## Step 4: Add Environment Variables
+## Step 5: Add Environment Variables
 
-### 4.1 Locally (.env.local)
+### 5.1 Locally (.env.local)
 
 Add these to your `.env.local` file:
 
@@ -178,12 +238,13 @@ AWS_ACCESS_KEY_ID=AKIA...your-access-key
 AWS_SECRET_ACCESS_KEY=...your-secret-key
 EVENTBRIDGE_SCHEDULE_GROUP=decode-auctions
 EVENTBRIDGE_ROLE_ARN=arn:aws:iam::YOUR_ACCOUNT_ID:role/EventBridgeSchedulerRole
+LAMBDA_AUCTION_CLOSER_ARN=arn:aws:lambda:us-east-1:YOUR_ACCOUNT_ID:function:auction-closer
 
 # Already exists - make sure it's set
 NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
 ```
 
-### 4.2 On Vercel
+### 5.2 On Vercel
 
 Go to your Vercel project → Settings → Environment Variables and add:
 
@@ -194,10 +255,11 @@ Go to your Vercel project → Settings → Environment Variables and add:
 | `AWS_SECRET_ACCESS_KEY` | `...` | Production, Preview, Development |
 | `EVENTBRIDGE_SCHEDULE_GROUP` | `decode-auctions` | Production, Preview, Development |
 | `EVENTBRIDGE_ROLE_ARN` | `arn:aws:iam::...` | Production, Preview, Development |
+| `LAMBDA_AUCTION_CLOSER_ARN` | `arn:aws:lambda:...` | Production, Preview, Development |
 
 ---
 
-## Step 5: Run Database Migration
+## Step 6: Run Database Migration
 
 Run the migration to add the `scheduler_event_id` column:
 
@@ -211,7 +273,7 @@ psql $DATABASE_URL -f migrations/20250118_add_scheduler_event_id.sql
 
 ---
 
-## Step 6: Deploy to Vercel
+## Step 7: Deploy to Vercel
 
 ```bash
 npm install
@@ -224,9 +286,9 @@ Vercel will automatically deploy. The 5-minute cron error should now be gone.
 
 ---
 
-## Step 7: Test the Integration
+## Step 8: Test the Integration
 
-### 7.1 Create a Test Auction (Development Only)
+### 8.1 Create a Test Auction (Development Only)
 
 ```bash
 curl -X POST https://your-app.vercel.app/api/auctions/test/create-short \
@@ -236,7 +298,7 @@ curl -X POST https://your-app.vercel.app/api/auctions/test/create-short \
 
 This creates a 5-minute test auction.
 
-### 7.2 Verify EventBridge Schedule Created
+### 8.2 Verify EventBridge Schedule Created
 
 ```bash
 aws scheduler list-schedules \
@@ -246,7 +308,7 @@ aws scheduler list-schedules \
 
 You should see a schedule named `auction-close-<auction-id>`.
 
-### 7.3 Wait for Auction to End
+### 8.3 Wait for Auction to End
 
 After 5 minutes, check:
 1. **EventBridge Logs** - Verify the schedule fired

@@ -28,7 +28,7 @@ export class EventBridgeScheduler {
   private client: SchedulerClient;
   private scheduleGroup: string;
   private roleArn: string;
-  private targetUrl: string;
+  private lambdaArn: string;
 
   constructor() {
     // Validate required environment variables
@@ -38,7 +38,7 @@ export class EventBridgeScheduler {
       'AWS_SECRET_ACCESS_KEY',
       'EVENTBRIDGE_SCHEDULE_GROUP',
       'EVENTBRIDGE_ROLE_ARN',
-      'NEXT_PUBLIC_APP_URL',
+      'LAMBDA_AUCTION_CLOSER_ARN',
     ];
 
     const missing = requiredEnvVars.filter((varName) => !process.env[varName]);
@@ -58,7 +58,7 @@ export class EventBridgeScheduler {
 
     this.scheduleGroup = process.env.EVENTBRIDGE_SCHEDULE_GROUP!;
     this.roleArn = process.env.EVENTBRIDGE_ROLE_ARN!;
-    this.targetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/auctions/eventbridge/close`;
+    this.lambdaArn = process.env.LAMBDA_AUCTION_CLOSER_ARN!;
   }
 
   /**
@@ -83,7 +83,7 @@ export class EventBridgeScheduler {
         scheduleName,
         scheduleExpression,
         endTime: endTime.toISOString(),
-        targetUrl: this.targetUrl,
+        lambdaArn: this.lambdaArn,
       });
 
       const command = new CreateScheduleCommand({
@@ -99,20 +99,18 @@ export class EventBridgeScheduler {
           Mode: FlexibleTimeWindowMode.OFF,
         },
 
-        // Target: HTTP POST to our close endpoint
+        // Target: Lambda function
         Target: {
-          Arn: this.roleArn,
+          Arn: this.lambdaArn,
           RoleArn: this.roleArn,
           Input: JSON.stringify({
             auctionId,
             source: 'eventbridge-scheduler',
             scheduledTime: endTime.toISOString(),
           }),
-          HttpParameters: {
-            HeaderParameters: {
-              'Content-Type': 'application/json',
-              'X-EventBridge-Source': 'aws.scheduler',
-            },
+          RetryPolicy: {
+            MaximumEventAge: 86400, // 24 hours
+            MaximumRetryAttempts: 185, // AWS maximum
           },
         },
 
