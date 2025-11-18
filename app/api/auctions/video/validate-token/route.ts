@@ -21,10 +21,24 @@ export async function POST(request: NextRequest) {
     const result = await videoService.validateToken(token);
 
     if (!result.valid) {
+      // Special handling for already uploaded videos
+      if (result.already_uploaded) {
+        return NextResponse.json(
+          {
+            success: true,
+            valid: false,
+            already_uploaded: true,
+            error: result.error || 'Video already uploaded',
+          },
+          { status: 200 } // 200 not 400, since this is a "success" state (video was uploaded)
+        );
+      }
+
       return NextResponse.json(
         {
           success: false,
           valid: false,
+          already_uploaded: false,
           error: result.error || 'Invalid or expired token',
         },
         { status: 400 }
@@ -34,6 +48,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       valid: true,
+      already_uploaded: false,
       auction_id: result.auction_id,
       bid_id: result.bid_id,
     });

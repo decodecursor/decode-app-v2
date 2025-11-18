@@ -219,6 +219,7 @@ export class AuctionVideoService {
     valid: boolean;
     auction_id?: string;
     bid_id?: string;
+    already_uploaded?: boolean;
     error?: string;
   }> {
     // Use service role to validate tokens (guest users don't have session)
@@ -227,7 +228,7 @@ export class AuctionVideoService {
     try {
       const { data, error } = await supabase
         .from('auction_videos')
-        .select('auction_id, bid_id, token_expires_at')
+        .select('auction_id, bid_id, token_expires_at, file_url, retake_count')
         .eq('recording_token', token)
         .single();
 
@@ -239,10 +240,22 @@ export class AuctionVideoService {
         return { valid: false, error: 'Token expired' };
       }
 
+      // Check if video has already been uploaded (file_url is not empty and retake limit reached)
+      const alreadyUploaded = data.file_url && data.file_url.trim() !== '' && data.retake_count >= 1;
+
+      if (alreadyUploaded) {
+        return {
+          valid: false,
+          already_uploaded: true,
+          error: 'Video already uploaded. Maximum retakes reached.',
+        };
+      }
+
       return {
         valid: true,
         auction_id: data.auction_id,
         bid_id: data.bid_id,
+        already_uploaded: false,
       };
     } catch (error) {
       console.error('Error validating token:', error);

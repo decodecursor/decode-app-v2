@@ -38,6 +38,12 @@ export default function VideoRecordingPage() {
 
       const result = await response.json();
 
+      // Check if video already uploaded
+      if (result.already_uploaded) {
+        setUploadSuccess(true);
+        return;
+      }
+
       if (result.success && result.valid && result.auction_id && result.bid_id) {
         setIsValid(true);
         setAuctionId(result.auction_id);
