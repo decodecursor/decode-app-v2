@@ -44,12 +44,30 @@ export class AuctionVideoService {
       const token = this.generateToken();
       const expiresAt = this.getTokenExpiry();
 
+      // Create placeholder record with token (video will be uploaded later)
+      // Note: file_url is set to empty string as placeholder until video is uploaded
+      const { data, error: insertError } = await supabase
+        .from('auction_videos')
+        .insert({
+          auction_id: params.auction_id,
+          bid_id: params.bid_id,
+          file_url: '', // Placeholder - will be updated when video is uploaded
+          recording_token: token,
+          token_expires_at: expiresAt.toISOString(),
+          expires_at: this.getVideoExpiry().toISOString(),
+          retake_count: 0,
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
       const session: VideoRecordingSession = {
         auction_id: params.auction_id,
         bid_id: params.bid_id,
         token,
         expires_at: expiresAt.toISOString(),
-        can_retake: existing ? existing.retake_count < 1 : true,
+        can_retake: true,
       };
 
       return { success: true, session };

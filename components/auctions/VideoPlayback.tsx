@@ -74,7 +74,7 @@ export function VideoPlayback({ auctionId, className = '' }: VideoPlaybackProps)
     );
   }
 
-  if (!video) {
+  if (!video || !video.file_url) {
     return null;
   }
 
