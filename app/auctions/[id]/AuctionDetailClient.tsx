@@ -223,23 +223,21 @@ export default function AuctionDetailClient() {
                 <span className="px-2 py-1 sm:px-4 sm:py-2 text-[10px] sm:text-sm font-semibold text-red-700 bg-red-100 rounded-full">
                   Cancelled
                 </span>
-              ) : isAuctionEnded(auction) || timerEnded ? (
-                <span className="px-2 py-1 sm:px-4 sm:py-2 text-[10px] sm:text-sm font-semibold text-gray-700 bg-gray-100 rounded-full">
-                  Ended
-                </span>
-              ) : auction.status === 'active' ? (
-                <span className="px-2 py-1 sm:px-4 sm:py-2 text-[10px] sm:text-sm font-semibold text-green-700 bg-green-100 rounded-full flex items-center gap-1 sm:gap-2">
-                  <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-green-500"></span>
+              ) : !isAuctionEnded(auction) && !timerEnded && (
+                auction.status === 'active' ? (
+                  <span className="px-2 py-1 sm:px-4 sm:py-2 text-[10px] sm:text-sm font-semibold text-green-700 bg-green-100 rounded-full flex items-center gap-1 sm:gap-2">
+                    <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-green-500"></span>
+                    </span>
+                    <span className="hidden sm:inline">Live Auction</span>
+                    <span className="sm:hidden">Live</span>
                   </span>
-                  <span className="hidden sm:inline">Live Auction</span>
-                  <span className="sm:hidden">Live</span>
-                </span>
-              ) : (
-                <span className="px-2 py-1 sm:px-4 sm:py-2 text-[10px] sm:text-sm font-semibold text-blue-700 bg-blue-100 rounded-full">
-                  Upcoming
-                </span>
+                ) : (
+                  <span className="px-2 py-1 sm:px-4 sm:py-2 text-[10px] sm:text-sm font-semibold text-blue-700 bg-blue-100 rounded-full">
+                    Upcoming
+                  </span>
+                )
               )}
             </div>
           </div>
