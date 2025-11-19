@@ -269,6 +269,19 @@ export function BiddingInterface({
             <p className="text-sm text-blue-700">
               Your bid: <span className="font-semibold">{formatBidAmount(parseFloat(bidAmount))}</span>
             </p>
+            {guestInfo && (
+              <>
+                <p className="text-sm text-blue-700 mt-1">
+                  Name: <span className="font-semibold">{guestInfo.name}</span>
+                </p>
+                <p className="text-sm text-blue-700 mt-1">
+                  {guestInfo.contactMethod === 'whatsapp' ? 'WhatsApp' : 'Email'}:
+                  <span className="font-semibold ml-1">
+                    {guestInfo.contactMethod === 'whatsapp' ? guestInfo.whatsappNumber : guestInfo.email}
+                  </span>
+                </p>
+              </>
+            )}
           </div>
 
           <Elements stripe={stripePromise} options={{
