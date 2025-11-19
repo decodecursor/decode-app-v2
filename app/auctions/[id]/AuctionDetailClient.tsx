@@ -310,7 +310,7 @@ export default function AuctionDetailClient() {
             )}
 
             {/* Creator View - Video Playback */}
-            {isCreator && (auction.status === 'ended' || auction.status === 'completed') && (
+            {isCreator && (isAuctionEnded(auction) || timerEnded) && (
               <VideoPlayback auctionId={auctionId} />
             )}
 
