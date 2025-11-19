@@ -145,7 +145,7 @@ export function LiveLeaderboard({
 
       {/* Statistics */}
       {showStats && stats && stats.total_bids > 0 && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+        <div className="px-4 py-3 bg-white border-t border-gray-200">
           <div className="grid grid-cols-2 gap-4 text-center">
             <div>
               <p className="text-xs text-gray-500 uppercase">Total Bids</p>
