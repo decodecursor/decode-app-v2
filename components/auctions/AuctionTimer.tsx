@@ -40,7 +40,7 @@ export function AuctionTimer({ auction, showProgress = false, className = '' }: 
       {/* Timer Display */}
       <div className="flex items-center gap-2">
         <svg
-          className={`w-[19px] h-[19px] sm:w-[27px] sm:h-[27px] ${hasEnded ? 'text-gray-900' : 'text-gray-400'}`}
+          className={`w-[19px] h-[19px] sm:w-[29px] sm:h-[29px] ${hasEnded ? 'text-gray-900' : 'text-gray-400'}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -52,7 +52,7 @@ export function AuctionTimer({ auction, showProgress = false, className = '' }: 
             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <span className={`text-[17px] sm:text-[25px] font-bold ${getTimerColor()}`}>
+        <span className={`text-[17px] sm:text-[27px] font-bold ${getTimerColor()}`}>
           {hasEnded ? 'Auction Ended' : formatted}
         </span>
 
