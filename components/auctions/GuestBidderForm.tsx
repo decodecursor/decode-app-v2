@@ -7,11 +7,10 @@
 
 import React, { useState, useEffect } from 'react';
 
-const GUEST_BIDDER_STORAGE_KEY = 'decode_guest_bidder';
-
 type ContactMethod = 'whatsapp' | 'email';
 
 interface GuestBidderFormProps {
+  auctionId: string;
   onSubmit: (data: {
     name: string;
     contactMethod: ContactMethod;
@@ -22,7 +21,8 @@ interface GuestBidderFormProps {
   isLoading?: boolean;
 }
 
-export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: GuestBidderFormProps) {
+export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = false }: GuestBidderFormProps) {
+  const GUEST_BIDDER_STORAGE_KEY = `decode_guest_bidder_${auctionId}`;
   const [name, setName] = useState('');
   const [contactMethod, setContactMethod] = useState<ContactMethod | null>(null);
   const [email, setEmail] = useState('');
@@ -45,7 +45,7 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
     } catch {
       // Ignore localStorage errors
     }
-  }, []);
+  }, [GUEST_BIDDER_STORAGE_KEY]);
 
   const validate = (): boolean => {
     const newErrors: { name?: string; contact?: string; method?: string } = {};

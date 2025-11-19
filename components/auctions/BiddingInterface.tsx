@@ -224,6 +224,7 @@ export function BiddingInterface({
             </p>
           </div>
           <GuestBidderForm
+            auctionId={auction.id}
             onSubmit={handleGuestInfoSubmit}
             onCancel={() => setStep('amount')}
             isLoading={isProcessing}
