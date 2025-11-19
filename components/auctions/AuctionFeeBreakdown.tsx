@@ -28,7 +28,7 @@ export function AuctionFeeBreakdown({
 }: AuctionFeeBreakdownProps) {
   const profit = calculateProfit(currentBid, auctionStartPrice);
   const decodeFee = calculatePlatformFee(currentBid, auctionStartPrice);
-  const modelEarnings = calculateModelAmount(currentBid, decodeFee);
+  const modelEarnings = calculateModelAmount(profit, decodeFee);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-AE', {
@@ -101,7 +101,7 @@ export function AuctionFeeBreakdown({
             <p>Service Cost: {formatCurrency(auctionStartPrice)}</p>
             <p>Profit: {formatCurrency(currentBid)} - {formatCurrency(auctionStartPrice)} = {formatCurrency(profit)}</p>
             <p>DECODE Fee: {formatCurrency(profit)} × 25% = {formatCurrency(decodeFee)}</p>
-            <p>Your Earnings: {formatCurrency(auctionStartPrice)} + {formatCurrency(profit - decodeFee)} = {formatCurrency(modelEarnings)}</p>
+            <p>Your Earnings: {formatCurrency(profit)} - {formatCurrency(decodeFee)} = {formatCurrency(modelEarnings)}</p>
           </div>
         )}
       </div>

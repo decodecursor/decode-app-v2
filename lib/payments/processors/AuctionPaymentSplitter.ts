@@ -31,7 +31,7 @@ export class AuctionPaymentSplitter {
   ): PayoutCalculation {
     const profit = calculateProfit(winningBidAmount, startPrice);
     const platformFee = calculatePlatformFee(winningBidAmount, startPrice, feePercentage);
-    const modelAmount = calculateModelAmount(winningBidAmount, platformFee);
+    const modelAmount = calculateModelAmount(profit, platformFee);
 
     return {
       auction_winning_amount: winningBidAmount,
