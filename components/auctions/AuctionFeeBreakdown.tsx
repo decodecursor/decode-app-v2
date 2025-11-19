@@ -47,7 +47,7 @@ export function AuctionFeeBreakdown({
       <div className="space-y-3">
         {/* Starting Price */}
         <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">Auction Start Price (Base Service Cost):</span>
+          <span className="text-gray-600">Auction Starting Price (Beauty Service Cost):</span>
           <span className="font-medium text-gray-900">{formatCurrency(auctionStartPrice)}</span>
         </div>
 
@@ -98,7 +98,7 @@ export function AuctionFeeBreakdown({
         {isCompleted && profit > 0 && (
           <div className="mt-4 p-3 bg-gray-50 rounded-md text-xs text-gray-600">
             <p className="font-medium mb-1">Calculation:</p>
-            <p>Service Cost: {formatCurrency(auctionStartPrice)}</p>
+            <p>Beauty Service Cost: {formatCurrency(auctionStartPrice)}</p>
             <p>Profit: {formatCurrency(currentBid)} - {formatCurrency(auctionStartPrice)} = {formatCurrency(profit)}</p>
             <p>DECODE Fee: {formatCurrency(profit)} × 25% = {formatCurrency(decodeFee)}</p>
             <p>Your Earnings: {formatCurrency(profit)} - {formatCurrency(decodeFee)} = {formatCurrency(modelEarnings)}</p>
