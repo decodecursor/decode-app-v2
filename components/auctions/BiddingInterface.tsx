@@ -29,7 +29,12 @@ export function BiddingInterface({
 }: BiddingInterfaceProps) {
   const [step, setStep] = useState<'amount' | 'guest_info' | 'payment'>('amount');
   const [bidAmount, setBidAmount] = useState<string>('');
-  const [guestInfo, setGuestInfo] = useState<{ name: string; email: string } | null>(null);
+  const [guestInfo, setGuestInfo] = useState<{
+    name: string;
+    contactMethod: 'whatsapp' | 'email';
+    email?: string;
+    whatsappNumber?: string;
+  } | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [bidId, setBidId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -58,33 +63,55 @@ export function BiddingInterface({
 
     // If user is logged in, skip guest info step
     if (userEmail && userName) {
-      await createBid(userName, userEmail, amount);
+      await createBid(userName, 'email', userEmail, undefined, amount);
     } else {
       setStep('guest_info');
     }
   };
 
   // Handle guest info submission
-  const handleGuestInfoSubmit = async (info: { name: string; email: string }) => {
+  const handleGuestInfoSubmit = async (info: {
+    name: string;
+    contactMethod: 'whatsapp' | 'email';
+    email?: string;
+    whatsappNumber?: string;
+  }) => {
     setGuestInfo(info);
     const amount = parseFloat(bidAmount);
-    await createBid(info.name, info.email, amount);
+    await createBid(info.name, info.contactMethod, info.email, info.whatsappNumber, amount);
   };
 
   // Create bid and get payment intent
-  const createBid = async (name: string, email: string, amount: number) => {
+  const createBid = async (
+    name: string,
+    contactMethod: 'whatsapp' | 'email',
+    email?: string,
+    whatsappNumber?: string,
+    amount?: number
+  ) => {
     setIsProcessing(true);
     setError(null);
+
+    const bidData: any = {
+      bidder_name: name,
+      contact_method: contactMethod,
+      amount: amount || parseFloat(bidAmount),
+    };
+
+    // Add contact info based on method
+    if (contactMethod === 'email' && email) {
+      bidData.bidder_email = email;
+    } else if (contactMethod === 'whatsapp' && whatsappNumber) {
+      bidData.whatsapp_number = whatsappNumber;
+      // Still set bidder_email to whatsapp number for backward compatibility
+      bidData.bidder_email = `whatsapp:${whatsappNumber}`;
+    }
 
     try {
       const response = await fetch(`/api/auctions/${auction.id}/bid`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bidder_name: name,
-          bidder_email: email,
-          amount,
-        }),
+        body: JSON.stringify(bidData),
       });
 
       const data = await response.json();
