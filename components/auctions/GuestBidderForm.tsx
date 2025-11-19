@@ -269,7 +269,7 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
               📧 You'll receive updates via email
             </p>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Submit Buttons */}
