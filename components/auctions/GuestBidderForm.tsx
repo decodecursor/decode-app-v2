@@ -212,7 +212,7 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
                 disabled={isLoading}
-                className="w-24 px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                className="w-[108px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               >
                 <option value="+971">🇦🇪 +971</option>
                 <option value="+1">🇺🇸 +1</option>
