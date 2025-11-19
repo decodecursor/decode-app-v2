@@ -355,7 +355,7 @@ export default function AuctionDetailClient() {
           </div>
 
           {/* Right Column - Leaderboard (desktop only) */}
-          <div className="hidden lg:block lg:col-span-1 lg:mt-11">
+          <div className="hidden lg:block lg:col-span-1">
             <div className="sticky top-4">
               <LiveLeaderboard auctionId={auctionId} userEmail={userEmail} isAuctionEnded={isAuctionEnded(auction) || timerEnded} />
             </div>
