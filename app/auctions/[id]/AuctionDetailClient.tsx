@@ -315,7 +315,7 @@ export default function AuctionDetailClient() {
             {/* Auction Details */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Auction Details</h3>
-              <dl className="space-y-3">
+              <dl className="space-y-1.5">
                 <div className="flex justify-between">
                   <dt className="text-sm text-gray-600">Starting Price</dt>
                   <dd className="text-sm font-medium text-gray-900">{formatBidAmount(startPrice)}</dd>
