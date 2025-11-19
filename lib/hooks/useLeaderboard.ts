@@ -180,6 +180,7 @@ export function formatLeaderboardEntry(entry: LeaderboardEntry): {
     time: new Date(entry.placed_at).toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
+      second: '2-digit',
       hour12: true
     }),
   };
