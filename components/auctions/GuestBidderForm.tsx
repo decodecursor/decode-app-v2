@@ -131,7 +131,7 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Name Input */}
       <div>
-        <label htmlFor="guest-name" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="guest-name" className="block text-xs font-medium text-gray-700 mb-1">
           Your Name (for Leaderboard)
         </label>
         <input
@@ -153,7 +153,7 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
 
       {/* Contact Method Selection */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-xs font-medium text-gray-700 mb-2">
           How would you like to receive auction updates?
         </label>
 
@@ -204,7 +204,7 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
         {/* Dynamic Input Field */}
         {contactMethod === 'whatsapp' ? (
           <div>
-            <label htmlFor="whatsapp-number" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="whatsapp-number" className="block text-xs font-medium text-gray-700 mb-1">
               WhatsApp Number
             </label>
             <div className="flex gap-2">
@@ -247,7 +247,7 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
           </div>
         ) : contactMethod === 'email' ? (
           <div>
-            <label htmlFor="guest-email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="guest-email" className="block text-xs font-medium text-gray-700 mb-1">
               Email Address
             </label>
             <input
