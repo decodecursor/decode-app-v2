@@ -111,8 +111,10 @@ export async function POST(
       bidData.bidder_email = body.bidder_email.toLowerCase().trim();
     } else if (body.contact_method === 'whatsapp') {
       bidData.whatsapp_number = body.whatsapp_number;
-      // For backward compatibility, also set bidder_email with whatsapp prefix
-      bidData.bidder_email = `whatsapp:${body.whatsapp_number}`;
+      // Generate a placeholder email for Stripe (requires email for customer creation)
+      // Format: noemail+[phone_number]@welovedecode.com
+      const sanitizedPhone = body.whatsapp_number.replace(/\+/g, '');
+      bidData.bidder_email = `noemail+${sanitizedPhone}@welovedecode.com`;
     }
 
     const result = await biddingService.placeBid(bidData);
