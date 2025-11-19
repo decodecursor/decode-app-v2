@@ -128,11 +128,12 @@ export async function POST(request: NextRequest) {
           // Complete auction (mark payment captured)
           await auctionService.completeAuction(auctionId);
 
-          // Create payout record (platform fee deduction)
+          // Create payout record with profit-based fee calculation
           await paymentSplitter.createPayout(
             auction.creator_id,
             auctionId,
-            Number(capturedBid.amount)
+            Number(capturedBid.bid_amount),
+            Number(auction.auction_start_price)
           );
 
           // Create video recording session (generates secure token)
@@ -149,7 +150,7 @@ export async function POST(request: NextRequest) {
               winner_email: capturedBid.bidder_email,
               winner_name: capturedBid.bidder_name,
               auction_title: auction.title,
-              winning_amount: Number(capturedBid.amount),
+              winning_amount: Number(capturedBid.bid_amount),
               recording_token: sessionResult.session.token,
             });
 

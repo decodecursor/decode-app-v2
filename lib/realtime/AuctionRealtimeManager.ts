@@ -284,6 +284,131 @@ export class AuctionRealtimeManager {
     const channel = this.channels.get(channelName);
     return channel?.state || 'disconnected';
   }
+
+  /**
+   * Force reconnect all active channels
+   * Critical for mobile: when page returns from background, WebSocket may be stale
+   */
+  async reconnectAll(): Promise<void> {
+    console.log('Reconnecting all realtime channels...');
+
+    const reconnectPromises: Promise<void>[] = [];
+
+    this.channels.forEach((channel, channelName) => {
+      const promise = new Promise<void>((resolve) => {
+        // Unsubscribe and resubscribe
+        channel.unsubscribe();
+
+        // Small delay to ensure clean disconnect
+        setTimeout(() => {
+          // Resubscribe with same configuration
+          if (channelName.startsWith('auction:') && !channelName.includes('active')) {
+            const auctionId = channelName.replace('auction:', '');
+            const callbacks = this.auctionCallbacks.get(channelName);
+
+            if (callbacks && callbacks.size > 0) {
+              const newChannel = this.supabase
+                .channel(channelName)
+                .on(
+                  'postgres_changes',
+                  {
+                    event: '*',
+                    schema: 'public',
+                    table: 'auctions',
+                    filter: `id=eq.${auctionId}`,
+                  },
+                  (payload) => {
+                    this.handleAuctionChange(payload, auctionId);
+                  }
+                )
+                .subscribe((status) => {
+                  console.log(`Reconnected auction channel ${channelName}:`, status);
+                  resolve();
+                });
+
+              this.channels.set(channelName, newChannel);
+            } else {
+              resolve();
+            }
+          } else if (channelName.startsWith('bids:')) {
+            const auctionId = channelName.replace('bids:', '');
+            const callbacks = this.bidCallbacks.get(channelName);
+
+            if (callbacks && callbacks.size > 0) {
+              const newChannel = this.supabase
+                .channel(channelName)
+                .on(
+                  'postgres_changes',
+                  {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'bids',
+                    filter: `auction_id=eq.${auctionId}`,
+                  },
+                  (payload) => {
+                    this.handleBidInsert(payload, auctionId);
+                  }
+                )
+                .on(
+                  'postgres_changes',
+                  {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'bids',
+                    filter: `auction_id=eq.${auctionId}`,
+                  },
+                  (payload) => {
+                    this.handleBidUpdate(payload, auctionId);
+                  }
+                )
+                .subscribe((status) => {
+                  console.log(`Reconnected bids channel ${channelName}:`, status);
+                  resolve();
+                });
+
+              this.channels.set(channelName, newChannel);
+            } else {
+              resolve();
+            }
+          } else if (channelName === 'auctions:active') {
+            const callbacks = this.auctionCallbacks.get(channelName);
+
+            if (callbacks && callbacks.size > 0) {
+              const newChannel = this.supabase
+                .channel(channelName)
+                .on(
+                  'postgres_changes',
+                  {
+                    event: '*',
+                    schema: 'public',
+                    table: 'auctions',
+                    filter: 'status=eq.active',
+                  },
+                  (payload) => {
+                    this.handleAuctionChange(payload, null);
+                  }
+                )
+                .subscribe((status) => {
+                  console.log(`Reconnected active auctions channel:`, status);
+                  resolve();
+                });
+
+              this.channels.set(channelName, newChannel);
+            } else {
+              resolve();
+            }
+          } else {
+            resolve();
+          }
+        }, 100);
+      });
+
+      reconnectPromises.push(promise);
+    });
+
+    await Promise.all(reconnectPromises);
+    console.log('All channels reconnected');
+  }
 }
 
 // Singleton instance

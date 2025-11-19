@@ -40,8 +40,8 @@ export function BiddingInterface({
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const currentPrice = Number(auction.current_price);
-  const startPrice = Number(auction.start_price);
+  const currentPrice = Number(auction.auction_current_price);
+  const startPrice = Number(auction.auction_start_price);
   const minimumBid = calculateMinimumBid(currentPrice, startPrice);
 
   // Check if auction is still active
@@ -125,7 +125,7 @@ export function BiddingInterface({
     const bidData: any = {
       bidder_name: name,
       contact_method: contactMethod,
-      amount: finalAmount,
+      bid_amount: finalAmount,
     };
 
     // Add contact info based on method

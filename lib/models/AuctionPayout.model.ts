@@ -14,10 +14,11 @@ export interface AuctionPayout {
   auction_id: string;
 
   // Payment amounts
-  gross_amount: number;
-  platform_fee: number;
-  platform_fee_percentage: number;
-  net_amount: number;
+  auction_winning_amount: number;
+  auction_profit_amount: number;
+  auction_profit_decode_amount: number;
+  auction_profit_decode_percentage: number;
+  auction_profit_model_amount: number;
 
   // Payout status
   status: PayoutStatus;
@@ -37,8 +38,9 @@ export interface AuctionPayout {
 export interface CreateAuctionPayoutDto {
   model_id: string;
   auction_id: string;
-  gross_amount: number;
-  platform_fee_percentage: number;
+  auction_winning_amount: number;
+  auction_start_price: number;
+  auction_profit_decode_percentage: number;
 }
 
 export interface UpdateAuctionPayoutDto {
@@ -74,31 +76,47 @@ export interface PayoutSummary {
 }
 
 // Default platform fee percentage for auctions
-export const DEFAULT_AUCTION_FEE_PERCENTAGE = 10; // 10% platform fee
+export const DEFAULT_AUCTION_FEE_PERCENTAGE = 25; // 25% platform fee on profit
 
-// Helper functions
-export function calculatePlatformFee(
-  grossAmount: number,
-  feePercentage: number = DEFAULT_AUCTION_FEE_PERCENTAGE
+// Helper functions for profit-based fee calculation
+export function calculateProfit(
+  winningAmount: number,
+  startPrice: number
 ): number {
-  return Math.round((grossAmount * feePercentage) / 100 * 100) / 100;
+  const profit = winningAmount - startPrice;
+  return Math.max(0, Math.round(profit * 100) / 100);
 }
 
-export function calculateNetAmount(grossAmount: number, platformFee: number): number {
-  return Math.round((grossAmount - platformFee) * 100) / 100;
+export function calculatePlatformFee(
+  winningAmount: number,
+  startPrice: number,
+  feePercentage: number = DEFAULT_AUCTION_FEE_PERCENTAGE
+): number {
+  const profit = calculateProfit(winningAmount, startPrice);
+  if (profit <= 0) return 0; // No profit, no fee
+  return Math.round((profit * feePercentage) / 100 * 100) / 100;
+}
+
+export function calculateModelAmount(
+  winningAmount: number,
+  platformFee: number
+): number {
+  return Math.round((winningAmount - platformFee) * 100) / 100;
 }
 
 export function createPayoutFromAuction(
   modelId: string,
   auctionId: string,
   winningBidAmount: number,
+  startPrice: number,
   feePercentage: number = DEFAULT_AUCTION_FEE_PERCENTAGE
 ): CreateAuctionPayoutDto {
   return {
     model_id: modelId,
     auction_id: auctionId,
-    gross_amount: winningBidAmount,
-    platform_fee_percentage: feePercentage,
+    auction_winning_amount: winningBidAmount,
+    auction_start_price: startPrice,
+    auction_profit_decode_percentage: feePercentage,
   };
 }
 
@@ -146,19 +164,19 @@ export function calculatePayoutSummary(payouts: AuctionPayout[]): PayoutSummary 
   return payouts.reduce(
     (summary, payout) => ({
       total_payouts: summary.total_payouts + 1,
-      total_gross: summary.total_gross + payout.gross_amount,
-      total_fees: summary.total_fees + payout.platform_fee,
-      total_net: summary.total_net + payout.net_amount,
+      total_gross: summary.total_gross + payout.auction_winning_amount,
+      total_fees: summary.total_fees + payout.auction_profit_decode_amount,
+      total_net: summary.total_net + payout.auction_profit_model_amount,
       pending_count:
         summary.pending_count + (payout.status === 'pending' ? 1 : 0),
       pending_amount:
         summary.pending_amount +
-        (payout.status === 'pending' ? payout.net_amount : 0),
+        (payout.status === 'pending' ? payout.auction_profit_model_amount : 0),
       transferred_count:
         summary.transferred_count + (payout.status === 'transferred' ? 1 : 0),
       transferred_amount:
         summary.transferred_amount +
-        (payout.status === 'transferred' ? payout.net_amount : 0),
+        (payout.status === 'transferred' ? payout.auction_profit_model_amount : 0),
     }),
     {
       total_payouts: 0,

@@ -22,13 +22,13 @@ export class AuctionPaymentProcessor {
     const supabase = await createClient();
 
     try {
-      // Get all active pre-authorized bids for this auction, sorted by amount
+      // Get all active pre-authorized bids for this auction, sorted by bid_amount
       const { data: bids, error } = await supabase
         .from('bids')
         .select('*')
         .eq('auction_id', auctionId)
         .in('payment_intent_status', ['requires_capture'])
-        .order('amount', { ascending: false });
+        .order('bid_amount', { ascending: false });
 
       if (error) throw error;
 
@@ -45,7 +45,7 @@ export class AuctionPaymentProcessor {
           await this.updateBidStatus(bid.id, 'winning');
         } else if (topTwoBids.find(b => b.id === bid.id)) {
           // Second highest bid
-          await this.updateBidStatus(bid.id, 'pending');
+          await this.updateBidStatus(bid.id, 'outbid');
         } else {
           // Cancel this bid's pre-auth
           await this.cancelBidPreAuth(bid);
@@ -134,7 +134,7 @@ export class AuctionPaymentProcessor {
         .select('*')
         .eq('auction_id', auctionId)
         .eq('payment_intent_status', 'requires_capture')
-        .order('amount', { ascending: false })
+        .order('bid_amount', { ascending: false })
         .limit(2);
 
       if (error) throw error;

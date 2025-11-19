@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuctionRealtime } from '@/lib/hooks/useAuctionRealtime';
 import { isAuctionEnded } from '@/lib/models/Auction.model';
@@ -16,6 +16,7 @@ import { LiveLeaderboard } from '@/components/auctions/LiveLeaderboard';
 import { BiddingInterface } from '@/components/auctions/BiddingInterface';
 import { WinnerNotification } from '@/components/auctions/WinnerNotification';
 import { VideoPlayback } from '@/components/auctions/VideoPlayback';
+import { AuctionFeeBreakdown } from '@/components/auctions/AuctionFeeBreakdown';
 import { formatBidAmount } from '@/lib/models/Bid.model';
 import { createClient } from '@/utils/supabase/client';
 import HeartAnimation from '@/components/effects/HeartAnimation';
@@ -80,11 +81,21 @@ export default function AuctionDetailClient() {
   // Timer state for real-time status badge updates
   const { hasEnded: timerEnded } = useAuctionTimer(auction);
 
-  // Trigger heart animation when auction ends
+  // Track previous timerEnded value to detect transitions
+  const prevTimerEndedRef = useRef(timerEnded);
+
+  // Trigger heart animation only when auction JUST ended (not on refresh)
   useEffect(() => {
-    if (timerEnded) {
+    const prevTimerEnded = prevTimerEndedRef.current;
+
+    // Only trigger if timer transitioned from false to true (live end event)
+    // Don't trigger on mount if already ended (page refresh case)
+    if (!prevTimerEnded && timerEnded) {
       setShowHeartAnimation(true);
     }
+
+    // Update ref for next render
+    prevTimerEndedRef.current = timerEnded;
   }, [timerEnded]);
 
   // Copy link to clipboard
@@ -99,9 +110,14 @@ export default function AuctionDetailClient() {
   };
 
   // Refresh auction data with visual feedback
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    window.location.reload();
+    try {
+      await refresh();
+    } finally {
+      // Keep the loading state for a brief moment for visual feedback
+      setTimeout(() => setIsRefreshing(false), 500);
+    }
   };
 
   // Cancel auction
@@ -139,8 +155,8 @@ export default function AuctionDetailClient() {
     );
   }
 
-  const currentPrice = Number(auction.current_price);
-  const startPrice = Number(auction.start_price);
+  const currentPrice = Number(auction.auction_current_price);
+  const startPrice = Number(auction.auction_start_price);
   const hasBids = auction.total_bids > 0;
 
   return (
@@ -291,6 +307,16 @@ export default function AuctionDetailClient() {
                 </div>
               </div>
             </div>
+
+            {/* Fee Breakdown - Only visible to MODEL creator */}
+            {isCreator && hasBids && (
+              <AuctionFeeBreakdown
+                auctionStartPrice={startPrice}
+                currentBid={currentPrice}
+                isCompleted={isAuctionEnded(auction) || timerEnded}
+                className="mb-6"
+              />
+            )}
 
             {/* Mobile Leaderboard - shown only on small screens */}
             <div className="lg:hidden">

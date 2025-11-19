@@ -18,7 +18,7 @@ interface CreateAuctionModalProps {
 export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuctionModalProps) {
   const [formData, setFormData] = useState({
     title: '',
-    start_price: '',
+    auction_start_price: '',
     duration: 60 as AuctionDuration,
   });
 
@@ -35,9 +35,9 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
       newErrors.title = 'Title must be at least 3 characters';
     }
 
-    const startPrice = parseFloat(formData.start_price);
-    if (!formData.start_price || isNaN(startPrice) || startPrice <= 0) {
-      newErrors.start_price = 'Please enter a valid starting price';
+    const startPrice = parseFloat(formData.auction_start_price);
+    if (!formData.auction_start_price || isNaN(startPrice) || startPrice <= 0) {
+      newErrors.auction_start_price = 'Please enter a valid starting price';
     }
 
     setErrors(newErrors);
@@ -55,7 +55,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
     try {
       const requestPayload = {
         title: formData.title.trim(),
-        start_price: parseFloat(formData.start_price),
+        auction_start_price: parseFloat(formData.auction_start_price),
         duration: formData.duration,
       };
 
@@ -101,7 +101,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
     // Reset form
     setFormData({
       title: '',
-      start_price: '',
+      auction_start_price: '',
       duration: 60,
     });
     setErrors({});
@@ -187,30 +187,30 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
 
                   {/* Starting Price */}
                   <div>
-                    <label htmlFor="start_price" className="block text-sm font-medium text-gray-300 mb-2">
+                    <label htmlFor="auction_start_price" className="block text-sm font-medium text-gray-300 mb-2">
                       Starting Price
                     </label>
                     <div className="relative">
                       <span className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400">AED</span>
                       <input
                         type="number"
-                        id="start_price"
-                        value={formData.start_price}
+                        id="auction_start_price"
+                        value={formData.auction_start_price}
                         onChange={(e) => {
-                          setFormData({ ...formData, start_price: e.target.value });
-                          if (errors.start_price) setErrors({ ...errors, start_price: undefined });
+                          setFormData({ ...formData, auction_start_price: e.target.value });
+                          if (errors.auction_start_price) setErrors({ ...errors, auction_start_price: undefined });
                         }}
                         min="0"
                         step="0.01"
                         className={`w-full pl-14 md:pl-16 md:pr-4 pr-3 md:py-3 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
-                          errors.start_price ? 'border-red-500' : 'border-gray-700 focus:border-purple-500'
+                          errors.auction_start_price ? 'border-red-500' : 'border-gray-700 focus:border-purple-500'
                         }`}
                         placeholder="10.00"
                         disabled={isSubmitting}
                       />
                     </div>
-                    {errors.start_price && (
-                      <p className="mt-1 text-sm text-red-100">{errors.start_price}</p>
+                    {errors.auction_start_price && (
+                      <p className="mt-1 text-sm text-red-100">{errors.auction_start_price}</p>
                     )}
                   </div>
 

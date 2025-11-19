@@ -38,8 +38,8 @@ export class AuctionService {
       const insertData: any = {
         creator_id: dto.creator_id,
         title: dto.title,
-        start_price: dto.start_price,
-        current_price: 0,
+        auction_start_price: dto.auction_start_price,
+        auction_current_price: 0,
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
         duration: dto.duration,
@@ -51,9 +51,9 @@ export class AuctionService {
         insertData.description = dto.description;
         console.log('📝 [AuctionService] Adding description field');
       }
-      if (dto.buy_now_price !== undefined && dto.buy_now_price !== null) {
-        insertData.buy_now_price = dto.buy_now_price;
-        console.log('💰 [AuctionService] Adding buy_now_price field');
+      if (dto.auction_buy_now_price !== undefined && dto.auction_buy_now_price !== null) {
+        insertData.auction_buy_now_price = dto.auction_buy_now_price;
+        console.log('💰 [AuctionService] Adding auction_buy_now_price field');
       }
 
       console.log('📤 [AuctionService] Inserting data to Supabase:', insertData);

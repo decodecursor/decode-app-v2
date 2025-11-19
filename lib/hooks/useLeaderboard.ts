@@ -9,6 +9,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { getAuctionRealtimeManager, type BidEvent } from '@/lib/realtime/AuctionRealtimeManager';
 import type { Bid, LeaderboardEntry } from '@/lib/models/Bid.model';
 import { formatBidderNameForLeaderboard, formatBidAmount } from '@/lib/models/Bid.model';
+import { usePageVisibility } from './usePageVisibility';
 
 interface LeaderboardStats {
   total_bids: number;
@@ -24,6 +25,7 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
   const [stats, setStats] = useState<LeaderboardStats | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { visibilityChangeCount } = usePageVisibility();
 
   // Fetch initial leaderboard data
   const fetchLeaderboard = useCallback(async () => {
@@ -37,7 +39,7 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
         const entries: LeaderboardEntry[] = data.leaderboard.map((item: any, index: number) => ({
           id: `bid-${index}`,
           bidder_name: item.bidder_name,
-          amount: item.amount,
+          bid_amount: item.bid_amount,
           placed_at: item.placed_at,
           is_current_user: userEmail ? item.bidder_email === userEmail : false,
           rank: item.rank,
@@ -63,9 +65,9 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
       return;
     }
 
-    // Sort bids by amount (descending) and placed_at (ascending for tie-breaking)
+    // Sort bids by bid_amount (descending) and placed_at (ascending for tie-breaking)
     const sorted = [...validBids].sort((a, b) => {
-      const amountDiff = Number(b.amount) - Number(a.amount);
+      const amountDiff = Number(b.bid_amount) - Number(a.bid_amount);
       if (amountDiff !== 0) return amountDiff;
       return new Date(a.placed_at).getTime() - new Date(b.placed_at).getTime();
     });
@@ -74,7 +76,7 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
     const entries: LeaderboardEntry[] = sorted.slice(0, limit).map((bid, index) => ({
       id: bid.id,
       bidder_name: formatBidderNameForLeaderboard(bid.bidder_name, false),
-      amount: Number(bid.amount),
+      bid_amount: Number(bid.bid_amount),
       placed_at: bid.placed_at,
       is_current_user: userEmail ? bid.bidder_email === userEmail : false,
       rank: index + 1,
@@ -84,7 +86,7 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
 
     // Calculate stats
     if (sorted.length > 0) {
-      const amounts = sorted.map((b) => Number(b.amount));
+      const amounts = sorted.map((b) => Number(b.bid_amount));
       const uniqueBidders = new Set(sorted.map((b) => b.bidder_email)).size;
 
       setStats({
@@ -145,13 +147,22 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
     };
   }, [auctionId, fetchLeaderboard, handleBidEvent]);
 
+  // Handle page visibility changes (critical for mobile)
+  useEffect(() => {
+    if (visibilityChangeCount > 0) {
+      console.log('📱 [useLeaderboard] Page became visible, refreshing leaderboard...');
+      // Fetch fresh leaderboard data when page becomes visible
+      fetchLeaderboard();
+    }
+  }, [visibilityChangeCount, fetchLeaderboard]);
+
   // Get user's rank
   const userRank = leaderboard.find((entry) => entry.is_current_user)?.rank || null;
 
   // Get user's highest bid
   const userHighestBid = allBids
     .filter((bid) => bid.bidder_email === userEmail)
-    .sort((a, b) => Number(b.amount) - Number(a.amount))[0];
+    .sort((a, b) => Number(b.bid_amount) - Number(a.bid_amount))[0];
 
   return {
     leaderboard,
@@ -159,7 +170,7 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
     isConnected,
     isLoading,
     userRank,
-    userHighestBid: userHighestBid ? Number(userHighestBid.amount) : null,
+    userHighestBid: userHighestBid ? Number(userHighestBid.bid_amount) : null,
     refresh: fetchLeaderboard,
   };
 }
@@ -176,7 +187,7 @@ export function formatLeaderboardEntry(entry: LeaderboardEntry): {
   return {
     rank: `#${entry.rank}`,
     bidder: entry.is_current_user ? `${entry.bidder_name} (You)` : entry.bidder_name,
-    amount: formatBidAmount(entry.amount),
+    amount: formatBidAmount(entry.bid_amount),
     time: new Date(entry.placed_at).toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',

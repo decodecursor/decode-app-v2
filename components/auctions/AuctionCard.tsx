@@ -18,8 +18,8 @@ interface AuctionCardProps {
 }
 
 export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) {
-  const currentPrice = Number(auction.current_price);
-  const startPrice = Number(auction.start_price);
+  const currentPrice = Number(auction.auction_current_price);
+  const startPrice = Number(auction.auction_start_price);
   const hasBids = auction.total_bids > 0;
 
   // Status badge

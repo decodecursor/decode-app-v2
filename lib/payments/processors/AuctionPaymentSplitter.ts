@@ -5,35 +5,40 @@
 
 import { createClient } from '@/utils/supabase/server';
 import {
+  calculateProfit,
   calculatePlatformFee,
-  calculateNetAmount,
+  calculateModelAmount,
   DEFAULT_AUCTION_FEE_PERCENTAGE,
   type CreateAuctionPayoutDto,
 } from '@/lib/models/AuctionPayout.model';
 
 export interface PayoutCalculation {
-  gross_amount: number;
-  platform_fee: number;
-  platform_fee_percentage: number;
-  net_amount: number;
+  auction_winning_amount: number;
+  auction_profit_amount: number;
+  auction_profit_decode_amount: number;
+  auction_profit_decode_percentage: number;
+  auction_profit_model_amount: number;
 }
 
 export class AuctionPaymentSplitter {
   /**
-   * Calculate payout amounts
+   * Calculate payout amounts using profit-based fee model
    */
   calculatePayout(
     winningBidAmount: number,
+    startPrice: number,
     feePercentage: number = DEFAULT_AUCTION_FEE_PERCENTAGE
   ): PayoutCalculation {
-    const platformFee = calculatePlatformFee(winningBidAmount, feePercentage);
-    const netAmount = calculateNetAmount(winningBidAmount, platformFee);
+    const profit = calculateProfit(winningBidAmount, startPrice);
+    const platformFee = calculatePlatformFee(winningBidAmount, startPrice, feePercentage);
+    const modelAmount = calculateModelAmount(winningBidAmount, platformFee);
 
     return {
-      gross_amount: winningBidAmount,
-      platform_fee: platformFee,
-      platform_fee_percentage: feePercentage,
-      net_amount: netAmount,
+      auction_winning_amount: winningBidAmount,
+      auction_profit_amount: profit,
+      auction_profit_decode_amount: platformFee,
+      auction_profit_decode_percentage: feePercentage,
+      auction_profit_model_amount: modelAmount,
     };
   }
 
@@ -44,22 +49,24 @@ export class AuctionPaymentSplitter {
     modelId: string,
     auctionId: string,
     winningBidAmount: number,
+    startPrice: number,
     feePercentage?: number
   ): Promise<{ success: boolean; payout_id?: string; error?: string }> {
     const supabase = await createClient();
 
     try {
-      const calculation = this.calculatePayout(winningBidAmount, feePercentage);
+      const calculation = this.calculatePayout(winningBidAmount, startPrice, feePercentage);
 
       const { data, error } = await supabase
         .from('auction_payouts')
         .insert({
           model_id: modelId,
           auction_id: auctionId,
-          gross_amount: calculation.gross_amount,
-          platform_fee: calculation.platform_fee,
-          platform_fee_percentage: calculation.platform_fee_percentage,
-          net_amount: calculation.net_amount,
+          auction_winning_amount: calculation.auction_winning_amount,
+          auction_profit_amount: calculation.auction_profit_amount,
+          auction_profit_decode_amount: calculation.auction_profit_decode_amount,
+          auction_profit_decode_percentage: calculation.auction_profit_decode_percentage,
+          auction_profit_model_amount: calculation.auction_profit_model_amount,
           status: 'pending',
         })
         .select()
@@ -168,7 +175,7 @@ export class AuctionPaymentSplitter {
     try {
       const { data, error } = await supabase
         .from('auction_payouts')
-        .select('gross_amount, platform_fee, net_amount, status')
+        .select('auction_winning_amount, auction_profit_decode_amount, auction_profit_model_amount, status')
         .eq('model_id', modelId);
 
       if (error) throw error;
@@ -185,15 +192,15 @@ export class AuctionPaymentSplitter {
 
       return data.reduce(
         (summary, payout) => ({
-          total_earned: summary.total_earned + Number(payout.gross_amount),
-          total_fees: summary.total_fees + Number(payout.platform_fee),
-          total_net: summary.total_net + Number(payout.net_amount),
+          total_earned: summary.total_earned + Number(payout.auction_winning_amount),
+          total_fees: summary.total_fees + Number(payout.auction_profit_decode_amount),
+          total_net: summary.total_net + Number(payout.auction_profit_model_amount),
           pending_amount:
             summary.pending_amount +
-            (payout.status === 'pending' ? Number(payout.net_amount) : 0),
+            (payout.status === 'pending' ? Number(payout.auction_profit_model_amount) : 0),
           transferred_amount:
             summary.transferred_amount +
-            (payout.status === 'transferred' ? Number(payout.net_amount) : 0),
+            (payout.status === 'transferred' ? Number(payout.auction_profit_model_amount) : 0),
         }),
         {
           total_earned: 0,

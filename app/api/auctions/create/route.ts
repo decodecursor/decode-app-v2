@@ -77,10 +77,10 @@ export async function POST(request: NextRequest) {
     console.log('📦 [API /auctions/create] Request body:', body);
 
     // Validate required fields
-    if (!body.title || !body.start_price || !body.duration) {
+    if (!body.title || !body.auction_start_price || !body.duration) {
       console.error('❌ [API /auctions/create] Validation failed - missing fields');
       return NextResponse.json(
-        { error: 'Missing required fields: title, start_price, duration' },
+        { error: 'Missing required fields: title, auction_start_price, duration' },
         { status: 400 }
       );
     }
@@ -101,8 +101,8 @@ export async function POST(request: NextRequest) {
       creator_id: user.id,
       title: body.title,
       description: body.description,
-      start_price: parseFloat(body.start_price),
-      buy_now_price: body.buy_now_price ? parseFloat(body.buy_now_price) : undefined,
+      auction_start_price: parseFloat(body.auction_start_price),
+      auction_buy_now_price: body.auction_buy_now_price ? parseFloat(body.auction_buy_now_price) : undefined,
       duration: body.duration,
       start_time: body.start_time,
     };

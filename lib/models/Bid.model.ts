@@ -26,7 +26,7 @@ export interface Bid {
   guest_bidder_id?: string;
 
   // Bid details
-  amount: number;
+  bid_amount: number;
 
   // Stripe pre-authorization
   payment_intent_id: string;
@@ -50,7 +50,7 @@ export interface CreateBidDto {
   bidder_name: string;
   contact_method: 'whatsapp' | 'email';
   whatsapp_number?: string;
-  amount: number;
+  bid_amount: number;
   is_guest: boolean;
   user_id?: string;
   guest_bidder_id?: string;
@@ -76,7 +76,7 @@ export interface BidWithAuction extends Bid {
 export interface LeaderboardEntry {
   id: string;
   bidder_name: string;
-  amount: number;
+  bid_amount: number;
   placed_at: string;
   is_current_user: boolean;
   rank: number;

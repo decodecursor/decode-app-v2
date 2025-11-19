@@ -37,7 +37,7 @@ export class BiddingService {
     bidder_name: string;
     contact_method: 'whatsapp' | 'email';
     whatsapp_number?: string;
-    amount: number;
+    bid_amount: number;
     is_guest: boolean;
     user_id?: string;
     ip_address?: string;
@@ -61,8 +61,8 @@ export class BiddingService {
       }
 
       // 2. Validate bid amount
-      const minBid = this.calculateMinimumBid(auction.current_price, auction.start_price);
-      if (params.amount < minBid) {
+      const minBid = this.calculateMinimumBid(auction.auction_current_price, auction.auction_start_price);
+      if (params.bid_amount < minBid) {
         return { success: false, error: `Minimum bid is $${minBid}` };
       }
 
@@ -90,7 +90,7 @@ export class BiddingService {
       const paymentResult = await this.auctionStrategy.createPayment({
         user_id: params.user_id || '',
         user_role: 'Model',
-        amount: params.amount,
+        amount: params.bid_amount,
         description: auction.title,
         metadata: {},
         auction_id: params.auction_id,
@@ -117,7 +117,7 @@ export class BiddingService {
           is_guest: params.is_guest,
           user_id: params.user_id,
           guest_bidder_id: guestBidderId,
-          amount: params.amount,
+          bid_amount: params.bid_amount,
           payment_intent_id: paymentResult.payment_intent_id!,
           payment_intent_status: 'requires_capture',
           status: 'pending', // Not authorized yet, won't appear in leaderboard
@@ -129,12 +129,12 @@ export class BiddingService {
 
       if (bidError) throw bidError;
 
-      // Update auction current_price immediately to prevent race conditions
+      // Update auction auction_current_price immediately to prevent race conditions
       // This ensures other bidders see the new price right away, even before payment confirmation
       const { error: priceUpdateError } = await supabase
         .from('auctions')
         .update({
-          current_price: params.amount,
+          auction_current_price: params.bid_amount,
           updated_at: new Date().toISOString(),
         })
         .eq('id', params.auction_id);
@@ -185,8 +185,8 @@ export class BiddingService {
         .from('bids')
         .select('*')
         .eq('auction_id', auctionId)
-        .in('status', ['active', 'winning']) // Only show bids with confirmed payment
-        .order('amount', { ascending: false })
+        .in('status', ['winning', 'outbid', 'captured']) // Only show bids with confirmed payment
+        .order('bid_amount', { ascending: false })
         .order('placed_at', { ascending: true })
         .limit(limit);
 
@@ -353,7 +353,7 @@ export class BiddingService {
     try {
       const { data, error } = await supabase
         .from('bids')
-        .select('amount, bidder_email')
+        .select('bid_amount, bidder_email')
         .eq('auction_id', auctionId)
         .in('status', ['winning', 'outbid', 'captured']); // Only count confirmed bids
 
@@ -369,7 +369,7 @@ export class BiddingService {
         };
       }
 
-      const amounts = data.map(b => Number(b.amount));
+      const amounts = data.map(b => Number(b.bid_amount));
       const uniqueEmails = new Set(data.map(b => b.bidder_email));
 
       return {

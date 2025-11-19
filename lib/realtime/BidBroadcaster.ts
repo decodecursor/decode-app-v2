@@ -87,8 +87,8 @@ export class BidBroadcaster {
    * Handle new bid
    */
   private handleNewBid(bid: Bid, auction: Auction, userEmail?: string) {
-    const lastHighest = this.lastHighestBids.get(auction.id) || auction.current_price;
-    const newHighest = Number(bid.amount);
+    const lastHighest = this.lastHighestBids.get(auction.id) || auction.auction_current_price;
+    const newHighest = Number(bid.bid_amount);
 
     // Update last highest bid
     this.lastHighestBids.set(auction.id, newHighest);

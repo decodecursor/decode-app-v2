@@ -8,11 +8,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { getAuctionRealtimeManager, type AuctionEvent } from '@/lib/realtime/AuctionRealtimeManager';
 import type { Auction } from '@/lib/models/Auction.model';
+import { usePageVisibility } from './usePageVisibility';
 
 export function useAuctionRealtime(auctionId: string, initialAuction?: Auction) {
   const [auction, setAuction] = useState<Auction | null>(initialAuction || null);
   const [isConnected, setIsConnected] = useState(false);
   const [lastEvent, setLastEvent] = useState<AuctionEvent | null>(null);
+  const { visibilityChangeCount } = usePageVisibility();
 
   // Fetch auction data
   const fetchAuction = useCallback(async () => {
@@ -85,6 +87,20 @@ export function useAuctionRealtime(auctionId: string, initialAuction?: Auction) 
     };
   }, [auctionId, initialAuction, fetchAuction]);
 
+  // Handle page visibility changes (critical for mobile)
+  useEffect(() => {
+    if (visibilityChangeCount > 0) {
+      console.log('📱 [useAuctionRealtime] Page became visible, reconnecting and refreshing...');
+      const realtimeManager = getAuctionRealtimeManager();
+
+      // Reconnect WebSocket channels first
+      realtimeManager.reconnectAll().then(() => {
+        // Then fetch fresh data
+        fetchAuction();
+      });
+    }
+  }, [visibilityChangeCount, fetchAuction]);
+
   // Refresh auction data
   const refresh = useCallback(() => {
     return fetchAuction();
@@ -105,6 +121,7 @@ export function useAuctionRealtime(auctionId: string, initialAuction?: Auction) 
 export function useActiveAuctions() {
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const { visibilityChangeCount } = usePageVisibility();
 
   // Fetch all active auctions
   const fetchAuctions = useCallback(async () => {
@@ -160,6 +177,20 @@ export function useActiveAuctions() {
       clearInterval(checkConnection);
     };
   }, [fetchAuctions]);
+
+  // Handle page visibility changes (critical for mobile)
+  useEffect(() => {
+    if (visibilityChangeCount > 0) {
+      console.log('📱 [useActiveAuctions] Page became visible, reconnecting and refreshing...');
+      const realtimeManager = getAuctionRealtimeManager();
+
+      // Reconnect WebSocket channels first
+      realtimeManager.reconnectAll().then(() => {
+        // Then fetch fresh data
+        fetchAuctions();
+      });
+    }
+  }, [visibilityChangeCount, fetchAuctions]);
 
   return {
     auctions,

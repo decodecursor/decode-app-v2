@@ -23,9 +23,9 @@ export async function POST(
     const body = await request.json();
 
     // Validate required fields
-    if (!body.bidder_name || !body.amount || !body.contact_method) {
+    if (!body.bidder_name || !body.bid_amount || !body.contact_method) {
       return NextResponse.json(
-        { error: 'Missing required fields: bidder_name, amount, contact_method' },
+        { error: 'Missing required fields: bidder_name, bid_amount, contact_method' },
         { status: 400 }
       );
     }
@@ -78,9 +78,9 @@ export async function POST(
       );
     }
 
-    // Validate amount
-    const amount = parseFloat(body.amount);
-    if (isNaN(amount) || amount <= 0) {
+    // Validate bid amount
+    const bid_amount = parseFloat(body.bid_amount);
+    if (isNaN(bid_amount) || bid_amount <= 0) {
       return NextResponse.json(
         { error: 'Invalid bid amount' },
         { status: 400 }
@@ -99,7 +99,7 @@ export async function POST(
       auction_id: params.id,
       bidder_name: body.bidder_name.trim(),
       contact_method: body.contact_method,
-      amount,
+      bid_amount,
       is_guest: !user,
       user_id: user?.id,
       ip_address,

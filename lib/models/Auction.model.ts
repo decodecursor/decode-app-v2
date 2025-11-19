@@ -18,9 +18,9 @@ export interface Auction {
   description?: string;
 
   // Pricing
-  start_price: number;
-  current_price: number;
-  buy_now_price?: number;
+  auction_start_price: number;
+  auction_current_price: number;
+  auction_buy_now_price?: number;
 
   // Timing
   start_time: string; // ISO timestamp
@@ -54,8 +54,8 @@ export interface CreateAuctionDto {
   creator_id: string;
   title: string;
   description?: string;
-  start_price: number;
-  buy_now_price?: number;
+  auction_start_price: number;
+  auction_buy_now_price?: number;
   duration: AuctionDuration;
   start_time?: string; // Optional, defaults to NOW
 }
@@ -85,8 +85,8 @@ export interface AuctionListItem {
   id: string;
   title: string;
   description?: string;
-  start_price: number;
-  current_price: number;
+  auction_start_price: number;
+  auction_current_price: number;
   status: AuctionStatus;
   end_time: string;
   total_bids: number;
