@@ -16,6 +16,10 @@ export interface Bid {
   bidder_email: string;
   bidder_name: string;
 
+  // Contact method preference
+  contact_method: 'whatsapp' | 'email';
+  whatsapp_number?: string;
+
   // User or guest
   is_guest: boolean;
   user_id?: string;
@@ -44,6 +48,8 @@ export interface CreateBidDto {
   auction_id: string;
   bidder_email: string;
   bidder_name: string;
+  contact_method: 'whatsapp' | 'email';
+  whatsapp_number?: string;
   amount: number;
   is_guest: boolean;
   user_id?: string;
