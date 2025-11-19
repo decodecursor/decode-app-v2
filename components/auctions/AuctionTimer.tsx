@@ -52,7 +52,7 @@ export function AuctionTimer({ auction, showProgress = false, className = '' }: 
             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <span className={`text-[17px] sm:text-[27px] font-bold ${getTimerColor()}`}>
+        <span className={`${isEnding ? 'text-[15px]' : 'text-[17px]'} sm:text-[27px] font-bold ${getTimerColor()}`}>
           {hasEnded ? 'Auction Ended' : formatted}
         </span>
 
@@ -65,7 +65,7 @@ export function AuctionTimer({ auction, showProgress = false, className = '' }: 
 
         {/* Status badges */}
         {isEnding && !hasEnded && (
-          <span className="px-1.5 py-0.5 text-[9px] font-medium text-orange-700 bg-orange-100 rounded-full">
+          <span className="px-1.5 py-0.5 text-[9px] sm:text-[11px] font-medium text-orange-700 bg-orange-100 rounded-full">
             Ending Soon!
           </span>
         )}
