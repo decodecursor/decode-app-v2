@@ -21,7 +21,7 @@ export function AuctionTimer({ auction, showProgress = false, className = '' }: 
 
   // Determine color based on time remaining
   const getTimerColor = () => {
-    if (hasEnded) return 'text-gray-500';
+    if (hasEnded) return 'text-gray-900';
     if (isCritical) return 'text-red-600 font-bold animate-pulse';
     if (isEnding) return 'text-orange-500 font-semibold';
     return 'text-gray-900';
@@ -40,7 +40,7 @@ export function AuctionTimer({ auction, showProgress = false, className = '' }: 
       {/* Timer Display */}
       <div className="flex items-center gap-2">
         <svg
-          className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+          className={`w-[19px] h-[19px] sm:w-[23px] sm:h-[23px] ${hasEnded ? 'text-gray-900' : 'text-gray-400'}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -52,7 +52,7 @@ export function AuctionTimer({ auction, showProgress = false, className = '' }: 
             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <span className={`text-sm sm:text-lg ${getTimerColor()}`}>
+        <span className={`text-[17px] sm:text-[21px] ${getTimerColor()}`}>
           {hasEnded ? 'Auction Ended' : formatted}
         </span>
 
