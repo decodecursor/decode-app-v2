@@ -45,16 +45,16 @@ export function AuctionFeeBreakdown({
       </h3>
 
       <div className="space-y-3">
-        {/* Starting Price */}
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">Auction Starting Price (Beauty Service Cost):</span>
-          <span className="font-medium text-gray-900">{formatCurrency(auctionStartPrice)}</span>
-        </div>
-
         {/* Current/Winning Bid */}
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-600">{isCompleted ? 'Winning Bid:' : 'Current Highest Bid:'}</span>
           <span className="font-semibold text-green-600">{formatCurrency(currentBid)}</span>
+        </div>
+
+        {/* Starting Price */}
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-gray-600">Auction Starting Price (Beauty Service Cost):</span>
+          <span className="font-medium text-gray-900">{formatCurrency(auctionStartPrice)}</span>
         </div>
 
         <div className="border-t border-gray-200 my-3"></div>
