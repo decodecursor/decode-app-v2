@@ -177,6 +177,10 @@ export function formatLeaderboardEntry(entry: LeaderboardEntry): {
     rank: `#${entry.rank}`,
     bidder: entry.is_current_user ? `${entry.bidder_name} (You)` : entry.bidder_name,
     amount: formatBidAmount(entry.amount),
-    time: new Date(entry.placed_at).toLocaleTimeString(),
+    time: new Date(entry.placed_at).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }),
   };
 }
