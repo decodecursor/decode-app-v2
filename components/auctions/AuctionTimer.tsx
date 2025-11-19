@@ -48,11 +48,11 @@ export function AuctionTimer({ auction, showProgress = false, className = '' }: 
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeWidth={2}
+            strokeWidth={2.5}
             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <span className={`text-[17px] sm:text-[21px] ${getTimerColor()}`}>
+        <span className={`text-[17px] sm:text-[21px] font-bold ${getTimerColor()}`}>
           {hasEnded ? 'Auction Ended' : formatted}
         </span>
 
