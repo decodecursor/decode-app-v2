@@ -104,8 +104,8 @@ export function BiddingInterface({
       const freshAuction = freshAuctionData.auction;
 
       // Re-validate bid amount against fresh current price
-      const freshCurrentPrice = Number(freshAuction.current_price);
-      const freshStartPrice = Number(freshAuction.start_price);
+      const freshCurrentPrice = Number(freshAuction.auction_current_price);
+      const freshStartPrice = Number(freshAuction.auction_start_price);
       const freshMinBid = calculateMinimumBid(freshCurrentPrice, freshStartPrice);
 
       if (finalAmount < freshMinBid) {

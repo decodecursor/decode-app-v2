@@ -139,7 +139,7 @@ export default function AuctionsDashboardPage() {
         />
         <StatCard
           label="Funds Collected"
-          value={`AED ${auctions.filter((a) => a.status === 'completed').reduce((sum, a) => sum + Number(a.current_price), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          value={`AED ${auctions.filter((a) => a.status === 'completed').reduce((sum, a) => sum + Number(a.auction_current_price), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           icon={
             <path
               strokeLinecap="round"

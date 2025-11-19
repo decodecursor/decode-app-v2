@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       creator_id: user.id,
       title: `[TEST] 1-Minute Auction ${new Date().toISOString()}`,
       description: 'Test auction for EventBridge scheduler validation',
-      start_price: 5.0,
+      auction_start_price: 5.0,
       duration: 5, // 5 minutes (minimum allowed duration)
       start_time: new Date().toISOString(), // Start immediately
     };

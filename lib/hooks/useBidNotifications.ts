@@ -197,6 +197,6 @@ export function useWinnerNotification(
   return {
     hasWon,
     recordingToken,
-    winningAmount: hasWon && auction ? Number(auction.current_price) : null,
+    winningAmount: hasWon && auction ? Number(auction.auction_current_price) : null,
   };
 }
