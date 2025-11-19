@@ -85,8 +85,8 @@ async function fetchPaymentDataForMetadata(linkId: string): Promise<PaymentLinkD
 }
 
 // Generate dynamic metadata for social sharing
-export async function generateMetadata({ params }: { params: { linkId: string } }): Promise<Metadata> {
-  const linkId = params.linkId
+export async function generateMetadata({ params }: { params: Promise<{ linkId: string }> }): Promise<Metadata> {
+  const { linkId } = await params
   const paymentData = await fetchPaymentDataForMetadata(linkId)
 
   // Default metadata

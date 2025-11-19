@@ -226,13 +226,15 @@ export class BiddingService {
       }
 
       // Update bid status to authorized
-      const { error: updateError } = await supabase
+      const { data: updatedBid, error: updateError } = await supabase
         .from('bids')
         .update({
           payment_intent_status: 'requires_capture',
           status: 'winning',
         })
-        .eq('id', bidId);
+        .eq('id', bidId)
+        .select()
+        .single();
 
       if (updateError) throw updateError;
 

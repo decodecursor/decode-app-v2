@@ -20,8 +20,8 @@ async function fetchAuctionForMetadata(auctionId: string) {
 }
 
 // Generate dynamic metadata for social sharing (WhatsApp, etc.)
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const auctionId = params.id;
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id: auctionId } = await params;
   const auction = await fetchAuctionForMetadata(auctionId);
 
   // Default metadata
