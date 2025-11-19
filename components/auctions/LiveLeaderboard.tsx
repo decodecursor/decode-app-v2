@@ -131,7 +131,7 @@ export function LiveLeaderboard({
                       {formatted.amount}
                     </p>
                     {isWinning && (
-                      <p className="text-xs text-green-600 font-medium">
+                      <p className="text-xs text-green-600 font-medium -mt-1">
                         {isAuctionEnded ? 'Winning Bid' : 'Highest Bid'}
                       </p>
                     )}
