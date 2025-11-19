@@ -54,7 +54,7 @@ export function AuctionFeeBreakdown({
         {/* Current/Winning Bid */}
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-600">{isCompleted ? 'Winning Bid:' : 'Current Highest Bid:'}</span>
-          <span className="font-semibold text-blue-600">{formatCurrency(currentBid)}</span>
+          <span className="font-semibold text-green-600">{formatCurrency(currentBid)}</span>
         </div>
 
         <div className="border-t border-gray-200 my-3"></div>
@@ -70,7 +70,7 @@ export function AuctionFeeBreakdown({
           <span className="text-gray-600">
             DECODE Service Fee ({DEFAULT_AUCTION_FEE_PERCENTAGE}% of Profit):
           </span>
-          <span className="font-medium text-red-600">-{formatCurrency(decodeFee)}</span>
+          <span className="font-medium text-gray-900">-{formatCurrency(decodeFee)}</span>
         </div>
 
         <div className="border-t border-gray-300 my-3"></div>
@@ -78,7 +78,7 @@ export function AuctionFeeBreakdown({
         {/* Model Net Earnings */}
         <div className="flex justify-between items-center bg-green-50 p-3 rounded-md">
           <span className="font-semibold text-gray-900">Your Net Profit (+ FREE Russian Lips) :</span>
-          <span className="text-xl font-bold text-green-600">{formatCurrency(modelEarnings)}</span>
+          <span className="text-xl font-bold text-gray-900">{formatCurrency(modelEarnings)}</span>
         </div>
 
         {/* Explanation */}
