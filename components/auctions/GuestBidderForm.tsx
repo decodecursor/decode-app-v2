@@ -24,11 +24,11 @@ interface GuestBidderFormProps {
 
 export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: GuestBidderFormProps) {
   const [name, setName] = useState('');
-  const [contactMethod, setContactMethod] = useState<ContactMethod>('whatsapp');
+  const [contactMethod, setContactMethod] = useState<ContactMethod | null>(null);
   const [email, setEmail] = useState('');
   const [countryCode, setCountryCode] = useState('+971'); // UAE default
   const [whatsappNumber, setWhatsappNumber] = useState('');
-  const [errors, setErrors] = useState<{ name?: string; contact?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; contact?: string; method?: string }>({});
 
   // Load saved guest info from localStorage on mount
   useEffect(() => {
@@ -48,7 +48,7 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
   }, []);
 
   const validate = (): boolean => {
-    const newErrors: { name?: string; contact?: string } = {};
+    const newErrors: { name?: string; contact?: string; method?: string } = {};
 
     // Validate name
     if (!name.trim()) {
@@ -57,8 +57,10 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
       newErrors.name = 'Name must be at least 2 characters';
     }
 
-    // Validate contact method
-    if (contactMethod === 'email') {
+    // Validate contact method selected
+    if (!contactMethod) {
+      newErrors.method = 'Please select a contact method';
+    } else if (contactMethod === 'email') {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!email.trim()) {
         newErrors.contact = 'Email is required';
@@ -130,7 +132,7 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
       {/* Name Input */}
       <div>
         <label htmlFor="guest-name" className="block text-sm font-medium text-gray-700 mb-1">
-          Your Name *
+          Your Name (for Leaderboard)
         </label>
         <input
           type="text"
@@ -152,7 +154,7 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
       {/* Contact Method Selection */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          How would you like to receive bid updates? *
+          How would you like to receive auction updates?
         </label>
 
         {/* Button Selection */}
@@ -170,7 +172,6 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
                 : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
             } disabled:opacity-50`}
           >
-            <span className="text-2xl mb-1">💬</span>
             <span className="font-medium text-sm">WhatsApp</span>
             <span className="text-xs opacity-90 mt-1">
               {contactMethod === 'whatsapp' ? 'Instant notifications' : 'Get instant updates'}
@@ -190,7 +191,6 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
                 : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
             } disabled:opacity-50`}
           >
-            <span className="text-2xl mb-1">📧</span>
             <span className="font-medium text-sm">Email</span>
             <span className="text-xs opacity-90 mt-1">
               {contactMethod === 'email' ? 'Traditional updates' : 'Email notifications'}
@@ -198,11 +198,14 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
           </button>
         </div>
 
+        {/* Method selection error */}
+        {errors.method && <p className="mt-1 text-sm text-red-600">{errors.method}</p>}
+
         {/* Dynamic Input Field */}
         {contactMethod === 'whatsapp' ? (
           <div>
             <label htmlFor="whatsapp-number" className="block text-sm font-medium text-gray-700 mb-1">
-              WhatsApp Number *
+              WhatsApp Number
             </label>
             <div className="flex gap-2">
               <select
@@ -211,16 +214,16 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
                 disabled={isLoading}
                 className="w-24 px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               >
-                <option value="+971">🇦🇪 +971</option>
-                <option value="+1">🇺🇸 +1</option>
-                <option value="+44">🇬🇧 +44</option>
-                <option value="+91">🇮🇳 +91</option>
-                <option value="+966">🇸🇦 +966</option>
-                <option value="+20">🇪🇬 +20</option>
-                <option value="+974">🇶🇦 +974</option>
-                <option value="+965">🇰🇼 +965</option>
-                <option value="+968">🇴🇲 +968</option>
-                <option value="+973">🇧🇭 +973</option>
+                <option value="+971">🇦🇪</option>
+                <option value="+1">🇺🇸</option>
+                <option value="+44">🇬🇧</option>
+                <option value="+91">🇮🇳</option>
+                <option value="+966">🇸🇦</option>
+                <option value="+20">🇪🇬</option>
+                <option value="+974">🇶🇦</option>
+                <option value="+965">🇰🇼</option>
+                <option value="+968">🇴🇲</option>
+                <option value="+973">🇧🇭</option>
               </select>
               <input
                 type="tel"
@@ -242,10 +245,10 @@ export function GuestBidderForm({ onSubmit, onCancel, isLoading = false }: Guest
               💬 You'll get instant updates on your bid status via WhatsApp
             </p>
           </div>
-        ) : (
+        ) : contactMethod === 'email' ? (
           <div>
             <label htmlFor="guest-email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address *
+              Email Address
             </label>
             <input
               type="email"

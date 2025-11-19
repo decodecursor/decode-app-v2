@@ -23,20 +23,51 @@ export async function POST(
     const body = await request.json();
 
     // Validate required fields
-    if (!body.bidder_email || !body.bidder_name || !body.amount) {
+    if (!body.bidder_name || !body.amount || !body.contact_method) {
       return NextResponse.json(
-        { error: 'Missing required fields: bidder_email, bidder_name, amount' },
+        { error: 'Missing required fields: bidder_name, amount, contact_method' },
         { status: 400 }
       );
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(body.bidder_email)) {
+    // Validate contact method
+    if (!['email', 'whatsapp'].includes(body.contact_method)) {
       return NextResponse.json(
-        { error: 'Invalid email address' },
+        { error: 'Invalid contact method. Must be "email" or "whatsapp"' },
         { status: 400 }
       );
+    }
+
+    // Validate contact info based on method
+    if (body.contact_method === 'email') {
+      if (!body.bidder_email) {
+        return NextResponse.json(
+          { error: 'Email address is required when contact method is email' },
+          { status: 400 }
+        );
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(body.bidder_email)) {
+        return NextResponse.json(
+          { error: 'Invalid email address' },
+          { status: 400 }
+        );
+      }
+    } else if (body.contact_method === 'whatsapp') {
+      if (!body.whatsapp_number) {
+        return NextResponse.json(
+          { error: 'WhatsApp number is required when contact method is whatsapp' },
+          { status: 400 }
+        );
+      }
+      // Validate phone number format (should include country code)
+      const phoneRegex = /^\+[0-9]{1,4}[0-9]{7,15}$/;
+      if (!phoneRegex.test(body.whatsapp_number)) {
+        return NextResponse.json(
+          { error: 'Invalid WhatsApp number format. Must include country code (e.g., +971501234567)' },
+          { status: 400 }
+        );
+      }
     }
 
     // Validate name
@@ -64,16 +95,27 @@ export async function POST(
 
     // Place bid
     const biddingService = new BiddingService();
-    const result = await biddingService.placeBid({
+    const bidData: any = {
       auction_id: params.id,
-      bidder_email: body.bidder_email.toLowerCase().trim(),
       bidder_name: body.bidder_name.trim(),
+      contact_method: body.contact_method,
       amount,
       is_guest: !user,
       user_id: user?.id,
       ip_address,
       user_agent,
-    });
+    };
+
+    // Add contact info based on method
+    if (body.contact_method === 'email') {
+      bidData.bidder_email = body.bidder_email.toLowerCase().trim();
+    } else if (body.contact_method === 'whatsapp') {
+      bidData.whatsapp_number = body.whatsapp_number;
+      // For backward compatibility, also set bidder_email with whatsapp prefix
+      bidData.bidder_email = `whatsapp:${body.whatsapp_number}`;
+    }
+
+    const result = await biddingService.placeBid(bidData);
 
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 });

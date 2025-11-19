@@ -46,6 +46,14 @@ export interface GuestBidderWithStats extends GuestBidder {
 
 // Helper functions
 export function validateEmail(email: string): boolean {
+  // Allow whatsapp: prefix for WhatsApp contact method
+  if (email.startsWith('whatsapp:')) {
+    const phoneNumber = email.replace('whatsapp:', '');
+    const phoneRegex = /^\+[0-9]{1,4}[0-9]{7,15}$/;
+    return phoneRegex.test(phoneNumber);
+  }
+
+  // Standard email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
