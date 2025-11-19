@@ -129,6 +129,21 @@ export class BiddingService {
 
       if (bidError) throw bidError;
 
+      // Update auction current_price immediately to prevent race conditions
+      // This ensures other bidders see the new price right away, even before payment confirmation
+      const { error: priceUpdateError } = await supabase
+        .from('auctions')
+        .update({
+          current_price: params.amount,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', params.auction_id);
+
+      if (priceUpdateError) {
+        console.error('Failed to update auction price:', priceUpdateError);
+        // Don't throw - bid is already created, this is just a race condition prevention
+      }
+
       // 6. Manage dual pre-authorizations
       await this.paymentProcessor.manageDualPreAuth(params.auction_id, bid.id);
 

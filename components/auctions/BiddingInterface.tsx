@@ -92,10 +92,40 @@ export function BiddingInterface({
     setIsProcessing(true);
     setError(null);
 
+    const finalAmount = amount || parseFloat(bidAmount);
+
+    // Fetch fresh auction data to prevent stale price issues
+    try {
+      const freshAuctionResponse = await fetch(`/api/auctions/${auction.id}`);
+      if (!freshAuctionResponse.ok) {
+        throw new Error('Failed to fetch current auction data');
+      }
+      const freshAuctionData = await freshAuctionResponse.json();
+      const freshAuction = freshAuctionData.auction;
+
+      // Re-validate bid amount against fresh current price
+      const freshCurrentPrice = Number(freshAuction.current_price);
+      const freshStartPrice = Number(freshAuction.start_price);
+      const freshMinBid = calculateMinimumBid(freshCurrentPrice, freshStartPrice);
+
+      if (finalAmount < freshMinBid) {
+        setError(`Bid too low. Current minimum bid is ${formatBidAmount(freshMinBid)}. The auction price has changed.`);
+        setStep('amount');
+        setIsProcessing(false);
+        return;
+      }
+    } catch (err) {
+      console.error('Error fetching fresh auction data:', err);
+      setError('Failed to validate bid. Please try again.');
+      setStep('amount');
+      setIsProcessing(false);
+      return;
+    }
+
     const bidData: any = {
       bidder_name: name,
       contact_method: contactMethod,
-      amount: amount || parseFloat(bidAmount),
+      amount: finalAmount,
     };
 
     // Add contact info based on method

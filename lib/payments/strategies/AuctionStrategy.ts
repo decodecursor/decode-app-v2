@@ -64,6 +64,16 @@ export class AuctionStrategy implements IPaymentStrategy {
       const usdAmount = aedAmount / PAYMENT_CONFIG.currency.AED_TO_USD_RATE;
       const usdCents = Math.round(usdAmount * 100);
 
+      // Validate Stripe minimum charge amount ($0.50 USD)
+      const STRIPE_MINIMUM_USD = 0.50;
+      if (usdAmount < STRIPE_MINIMUM_USD) {
+        const minimumAED = Math.ceil(STRIPE_MINIMUM_USD * PAYMENT_CONFIG.currency.AED_TO_USD_RATE);
+        return {
+          success: false,
+          error: `Bid amount too low. Minimum bid is AED ${minimumAED} (Stripe minimum charge is $${STRIPE_MINIMUM_USD} USD)`,
+        };
+      }
+
       // Create PaymentIntent with manual capture (pre-authorization)
       const paymentIntent = await stripe.paymentIntents.create({
         amount: usdCents, // Amount in USD cents
