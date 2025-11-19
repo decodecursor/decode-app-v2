@@ -61,14 +61,14 @@ export function AuctionFeeBreakdown({
 
         {/* Profit Calculation */}
         <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">Profit (Bid - Start Price):</span>
+          <span className="text-gray-600">Profit (Highest Bid – Auction Starting Price):</span>
           <span className="font-medium text-gray-900">{formatCurrency(profit)}</span>
         </div>
 
         {/* DECODE Fee */}
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-600">
-            DECODE Auction Fee ({DEFAULT_AUCTION_FEE_PERCENTAGE}% of profit):
+            DECODE Service Fee ({DEFAULT_AUCTION_FEE_PERCENTAGE}% of Profit):
           </span>
           <span className="font-medium text-red-600">-{formatCurrency(decodeFee)}</span>
         </div>
@@ -77,7 +77,7 @@ export function AuctionFeeBreakdown({
 
         {/* Model Net Earnings */}
         <div className="flex justify-between items-center bg-green-50 p-3 rounded-md">
-          <span className="font-semibold text-gray-900">Your Net Earnings:</span>
+          <span className="font-semibold text-gray-900">Your Net Profit (+ FREE Russian Lips) :</span>
           <span className="text-xl font-bold text-green-600">{formatCurrency(modelEarnings)}</span>
         </div>
 
