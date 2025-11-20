@@ -179,6 +179,16 @@ export function BiddingInterface({
   }) => {
     setGuestInfo(info);
 
+    // Save guest info to localStorage for consecutive bids
+    // This ensures the correct format (with combined whatsappNumber) is cached
+    try {
+      const cacheKey = `decode_guest_bidder_${auction.id}`;
+      localStorage.setItem(cacheKey, JSON.stringify(info));
+      console.log('💾 [BiddingInterface] Saved guest info to cache');
+    } catch (error) {
+      console.error('Error saving guest info to cache:', error);
+    }
+
     // Check if this guest has bid before on this auction
     const email = info.contactMethod === 'email' ? info.email : `whatsapp:${info.whatsappNumber}`;
     if (email) {
@@ -331,10 +341,15 @@ export function BiddingInterface({
       if (cachedGuestInfo) {
         console.log('💾 [BiddingInterface] Loaded cached guest info for consecutive bid');
         setGuestInfo(cachedGuestInfo);
-        // Don't reset Instagram username - will be checked by repeat bidder logic
+        // Cache exists = guest has bid before = repeat bidder
+        // Set flag immediately (don't wait for async API check)
+        setIsRepeatBidder(true);
+        console.log('✅ [BiddingInterface] Marked as repeat bidder based on cache');
+        // Instagram username will be loaded by the async useEffect check
       } else {
         setGuestInfo(null);
         setInstagramUsername(undefined);
+        setIsRepeatBidder(false);
       }
     } else {
       setGuestInfo(null);

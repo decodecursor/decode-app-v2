@@ -25,13 +25,18 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
   const [stats, setStats] = useState<LeaderboardStats | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [lastRealtimeEvent, setLastRealtimeEvent] = useState<number>(Date.now());
   const { visibilityChangeCount } = usePageVisibility();
 
   // Fetch initial leaderboard data
   const fetchLeaderboard = useCallback(async () => {
     try {
-      setIsLoading(true);
+      // Only show loading skeleton on initial load, not on background refreshes
+      if (isInitialLoad) {
+        setIsLoading(true);
+      }
+
       const response = await fetch(`/api/auctions/${auctionId}/leaderboard?limit=${limit}`);
       if (response.ok) {
         const data = await response.json();
@@ -53,9 +58,13 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
     } finally {
-      setIsLoading(false);
+      // Only clear loading state on initial load
+      if (isInitialLoad) {
+        setIsLoading(false);
+        setIsInitialLoad(false);
+      }
     }
-  }, [auctionId, limit, userEmail]);
+  }, [auctionId, limit, userEmail, isInitialLoad]);
 
   // Update leaderboard from bids
   const updateLeaderboard = useCallback((bids: Bid[]) => {
