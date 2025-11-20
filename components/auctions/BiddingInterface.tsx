@@ -298,7 +298,7 @@ export function BiddingInterface({
                 </p>
                 <p className="text-sm text-blue-700 mt-1">
                   {guestInfo.contactMethod === 'whatsapp' ? 'WhatsApp' : 'Email'}:
-                  <span className="font-semibold ml-1">
+                  <span className="font-semibold ml-1 no-underline">
                     {guestInfo.contactMethod === 'whatsapp' ? guestInfo.whatsappNumber : guestInfo.email}
                   </span>
                 </p>
@@ -327,7 +327,7 @@ export function BiddingInterface({
                 </p>
                 <p className="text-sm text-blue-700 mt-1">
                   {guestInfo.contactMethod === 'whatsapp' ? 'WhatsApp' : 'Email'}:
-                  <span className="font-semibold ml-1">
+                  <span className="font-semibold ml-1 no-underline">
                     {guestInfo.contactMethod === 'whatsapp' ? guestInfo.whatsappNumber : guestInfo.email}
                   </span>
                 </p>

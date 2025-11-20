@@ -8,6 +8,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuctionRealtime } from '@/lib/hooks/useAuctionRealtime';
+import { useLeaderboard } from '@/lib/hooks/useLeaderboard';
 import { isAuctionEnded } from '@/lib/models/Auction.model';
 import { useBidNotifications, useWinnerNotification } from '@/lib/hooks/useBidNotifications';
 import { useAuctionTimer } from '@/lib/hooks/useAuctionTimer';
@@ -39,6 +40,7 @@ export default function AuctionDetailClient() {
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
 
   const { auction, isConnected, refresh } = useAuctionRealtime(auctionId);
+  const { refresh: refreshLeaderboard } = useLeaderboard(auctionId, userEmail);
 
   // Check if user is authenticated
   useEffect(() => {
@@ -90,13 +92,14 @@ export default function AuctionDetailClient() {
 
     // Only trigger if timer transitioned from false to true (live end event)
     // Don't trigger on mount if already ended (page refresh case)
-    if (!prevTimerEnded && timerEnded) {
+    // Don't trigger for cancelled auctions
+    if (!prevTimerEnded && timerEnded && auction?.status !== 'cancelled') {
       setShowHeartAnimation(true);
     }
 
     // Update ref for next render
     prevTimerEndedRef.current = timerEnded;
-  }, [timerEnded]);
+  }, [timerEnded, auction]);
 
   // Copy link to clipboard
   const handleCopyLink = async () => {
@@ -118,6 +121,14 @@ export default function AuctionDetailClient() {
       // Keep the loading state for a brief moment for visual feedback
       setTimeout(() => setIsRefreshing(false), 500);
     }
+  };
+
+  // Combined refresh for both auction and leaderboard after bid placement
+  const handleBidPlaced = async () => {
+    await Promise.all([
+      refresh(),
+      refreshLeaderboard()
+    ]);
   };
 
   // Cancel auction
@@ -329,7 +340,7 @@ export default function AuctionDetailClient() {
                 auction={auction}
                 userEmail={userEmail}
                 userName={userName}
-                onBidPlaced={refresh}
+                onBidPlaced={handleBidPlaced}
               />
             )}
 
