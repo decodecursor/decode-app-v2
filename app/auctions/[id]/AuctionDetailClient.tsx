@@ -324,6 +324,7 @@ export default function AuctionDetailClient() {
               <AuctionFeeBreakdown
                 auctionStartPrice={startPrice}
                 currentBid={currentPrice}
+                serviceName={auction.title}
                 isCompleted={isAuctionEnded(auction) || timerEnded}
                 className="mb-6"
               />

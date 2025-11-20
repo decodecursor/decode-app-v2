@@ -5,6 +5,7 @@ import { calculateProfit, calculatePlatformFee, calculateModelAmount, DEFAULT_AU
 interface AuctionFeeBreakdownProps {
   auctionStartPrice: number;
   currentBid: number;
+  serviceName: string;
   isCompleted?: boolean;
   className?: string;
 }
@@ -23,6 +24,7 @@ interface AuctionFeeBreakdownProps {
 export function AuctionFeeBreakdown({
   auctionStartPrice,
   currentBid,
+  serviceName,
   isCompleted = false,
   className = ''
 }: AuctionFeeBreakdownProps) {
@@ -77,7 +79,7 @@ export function AuctionFeeBreakdown({
 
         {/* Model Net Earnings */}
         <div className="flex justify-between items-center">
-          <span className="font-bold text-gray-900" style={{ fontSize: '15px' }}>Your Net Profit (+FREE Russian Lips):</span>
+          <span className="font-bold text-gray-900" style={{ fontSize: '15px' }}>Your Net Profit (+FREE {serviceName}):</span>
           <span className="text-xl font-bold text-gray-900">{formatCurrency(modelEarnings)}</span>
         </div>
 

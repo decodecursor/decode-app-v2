@@ -55,7 +55,7 @@ export function InstagramUsernameForm({ onSubmit, onSkip, isLoading = false }: I
       {/* Instagram Username Input */}
       <div>
         <label htmlFor="instagram-username" className="block text-xs font-medium text-gray-700 mb-1">
-          Instagram Username <span className="text-gray-500 font-normal">(Optional)</span>
+          Your Instagram Username <span className="text-gray-500 font-normal">(Optional)</span>
         </label>
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">@</span>
@@ -73,11 +73,14 @@ export function InstagramUsernameForm({ onSubmit, onSkip, isLoading = false }: I
             placeholder="yourhandle"
             disabled={isLoading}
             maxLength={30}
+            autoCapitalize="none"
+            autoCorrect="off"
+            autoComplete="username"
           />
         </div>
         {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
         <p className="mt-1 text-[10px] text-gray-500">
-          📸 Share your Instagram to help us connect with you and feature your winning bids
+          Display your Instagram on the leaderboard for others to click and view
         </p>
       </div>
 

@@ -23,9 +23,11 @@ export async function GET(
     const leaderboard = bids.map((bid, index) => ({
       rank: index + 1,
       bidder_name: bid.bidder_name,
+      bidder_email: bid.bidder_email,
       bid_amount: Number(bid.bid_amount),
       placed_at: bid.placed_at,
       status: bid.status,
+      bidder_instagram_username: bid.bidder_instagram_username,
     }));
 
     // Get statistics
