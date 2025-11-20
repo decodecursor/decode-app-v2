@@ -135,8 +135,8 @@ function AuthPageContent() {
   }
 
   // Email magic link handler
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleEmailSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     setLoading(true)
     setMessage('')
 
@@ -154,6 +154,8 @@ function AuthPageContent() {
       // Store email for role modal
       setAuthenticatedEmail(email)
 
+      // Switch to email verify screen
+      setAuthMethod('email')
       setAuthStep('verify')
       setMessage('Magic link sent! Check your email and click the link to sign in.')
       setResendCooldown(60)
@@ -166,8 +168,8 @@ function AuthPageContent() {
   }
 
   // WhatsApp OTP send handler
-  const handleWhatsAppSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleWhatsAppSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     setLoading(true)
     setMessage('')
 
@@ -184,6 +186,8 @@ function AuthPageContent() {
 
       if (!response.ok) throw new Error(data.error || 'Failed to send OTP')
 
+      // Switch to WhatsApp verify screen
+      setAuthMethod('whatsapp')
       setAuthStep('verify')
       setMessage('OTP sent to your WhatsApp! Enter the 6-digit code.')
       setResendCooldown(60)
@@ -309,7 +313,7 @@ function AuthPageContent() {
     setOtpCode(['', '', '', '', '', ''])
   }
 
-  // Render method selection
+  // Render single-page auth with both options
   if (authMethod === 'select') {
     return (
       <>
@@ -325,7 +329,8 @@ function AuthPageContent() {
       <div className="auth-page cosmic-bg">
         <div className="min-h-screen flex items-center justify-center px-4 py-8">
           <div className="cosmic-card-login">
-            <div className="text-center mb-16">
+            {/* Logo and Tagline */}
+            <div className="text-center mb-12">
               <img
                 src="/logo.png"
                 alt="DECODE"
@@ -335,24 +340,88 @@ function AuthPageContent() {
               <p className="cosmic-body opacity-70">Make Girls More Beautiful</p>
             </div>
 
-            <div className="space-y-4">
-              <button
-                onClick={() => setAuthMethod('email')}
-                className="cosmic-btn-primary w-full py-4 text-lg flex items-center justify-center"
-                disabled={loading}
-              >
-                <span>Continue with Email</span>
-              </button>
+            {/* WhatsApp Section */}
+            <div className="space-y-4 mb-6">
+              <div className="flex space-x-2">
+                <select
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  className="cosmic-input w-32 text-sm"
+                  disabled={loading}
+                >
+                  {COUNTRY_CODES.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.flag} {country.code}
+                    </option>
+                  ))}
+                </select>
+
+                <input
+                  type="tel"
+                  placeholder="50 123 4567"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                  className="cosmic-input flex-1"
+                  disabled={loading}
+                  autoComplete="tel"
+                />
+              </div>
 
               <button
-                onClick={() => setAuthMethod('whatsapp')}
-                className="cosmic-btn-primary w-full py-4 text-lg flex items-center justify-center"
-                disabled={loading}
+                onClick={handleWhatsAppSubmit}
+                className="cosmic-btn-primary w-full py-4 text-lg"
+                disabled={loading || !phoneNumber}
               >
-                <span>Continue with WhatsApp</span>
+                {loading ? (
+                  <span className="flex items-center justify-center space-x-2">
+                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                    <span>Sending...</span>
+                  </span>
+                ) : (
+                  'Continue with WhatsApp'
+                )}
               </button>
             </div>
 
+            {/* OR Divider */}
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-600"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-[#2a2438] text-gray-400">OR</span>
+              </div>
+            </div>
+
+            {/* Email Section */}
+            <div className="space-y-4">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="cosmic-input"
+                disabled={loading}
+                autoComplete="email"
+              />
+
+              <button
+                onClick={handleEmailSubmit}
+                className="cosmic-btn-primary w-full py-4 text-lg"
+                disabled={loading || !email}
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center space-x-2">
+                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                    <span>Sending...</span>
+                  </span>
+                ) : (
+                  'Continue with Email'
+                )}
+              </button>
+            </div>
+
+            {/* Error/Success Messages */}
             {message && (
               <div className={`mt-6 p-3 rounded-lg text-sm text-center ${
                 message.toLowerCase().includes('error')
@@ -363,11 +432,13 @@ function AuthPageContent() {
               </div>
             )}
 
+            {/* Terms and Privacy */}
             <p className="text-center text-xs text-gray-400 mt-8">
               By continuing, you agree to DECODE's<br />
               <a href="https://welovedecode.com/#terms" className="text-purple-400 hover:underline">Terms of Service</a>
               {' '}and{' '}
               <a href="https://welovedecode.com/#privacy" className="text-purple-400 hover:underline">Privacy Policy</a>
+              <span className="text-gray-400">.</span>
             </p>
           </div>
         </div>
