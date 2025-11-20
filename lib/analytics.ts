@@ -1,5 +1,5 @@
 // Simplified analytics for deployment - complex features disabled due to schema mismatch
-import { supabase } from './supabase'
+// Using API route to avoid client-side Supabase service role key exposure
 
 export interface AnalyticsFilter {
   startDate?: Date
@@ -172,59 +172,31 @@ export async function generateAnalytics(filter: AnalyticsFilter): Promise<Analyt
 
 async function generateBasicAnalytics(filter: AnalyticsFilter): Promise<Partial<AnalyticsData>> {
   try {
-    // Basic queries using available database schema
-    let transactionsQuery = supabase
-      .from('transactions')
-      .select('*')
+    // Call the server-side API route instead of querying directly
+    const response = await fetch('/api/analytics/data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        startDate: filter.startDate?.toISOString(),
+        endDate: filter.endDate?.toISOString(),
+        creatorId: filter.creatorId
+      })
+    })
 
-    let paymentLinksQuery = supabase
-      .from('payment_links')
-      .select('*')
-
-    if (filter.creatorId) {
-      paymentLinksQuery = paymentLinksQuery.eq('creator_id', filter.creatorId)
+    if (!response.ok) {
+      throw new Error(`Analytics API failed with status ${response.status}`)
     }
 
-    if (filter.startDate) {
-      transactionsQuery = transactionsQuery.gte('created_at', filter.startDate.toISOString())
+    const result = await response.json()
+
+    if (!result.success) {
+      throw new Error('Analytics API returned unsuccessful response')
     }
 
-    if (filter.endDate) {
-      transactionsQuery = transactionsQuery.lte('created_at', filter.endDate.toISOString())
-    }
-
-    const [transactionsResult, paymentLinksResult] = await Promise.all([
-      transactionsQuery,
-      paymentLinksQuery
-    ])
-
-    const transactions = transactionsResult.data || []
-    const paymentLinks = paymentLinksResult.data || []
-
-    // Calculate basic metrics
-    const totalRevenue = transactions
-      .filter(t => t.status === 'completed')
-      .reduce((sum, t) => sum + t.amount_aed, 0)
-
-    const totalTransactions = transactions.filter(t => t.status === 'completed').length
-    const averageTransactionValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0
-    const uniqueCustomers = new Set(transactions.map(t => t.buyer_email).filter(Boolean)).size
-    const totalPaymentLinks = paymentLinks.length
-    const activePaymentLinks = paymentLinks.filter(pl => pl.is_active).length
-    const conversionRate = totalPaymentLinks > 0 ? (totalTransactions / totalPaymentLinks) * 100 : 0
-
-    return {
-      totalRevenue,
-      totalTransactions,
-      averageTransactionValue,
-      uniqueCustomers,
-      totalPaymentLinks,
-      activePaymentLinks,
-      conversionRate,
-      revenueByPeriod: [],
-      topPaymentLinks: [],
-      customerRetention: 0
-    }
+    return result.data
   } catch (error) {
     console.error('Error in basic analytics:', error)
     return {
