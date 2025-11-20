@@ -335,26 +335,20 @@ function AuthPageContent() {
               <p className="cosmic-body opacity-70">Make Girls More Beautiful</p>
             </div>
 
-            <h2 className="text-2xl font-bold text-white text-center mb-8">
-              Sign in to DECODE
-            </h2>
-
             <div className="space-y-4">
               <button
                 onClick={() => setAuthMethod('email')}
-                className="cosmic-btn-primary w-full py-4 text-lg flex items-center justify-center space-x-3"
+                className="cosmic-btn-primary w-full py-4 text-lg flex items-center justify-center"
                 disabled={loading}
               >
-                <span>📧</span>
                 <span>Continue with Email</span>
               </button>
 
               <button
                 onClick={() => setAuthMethod('whatsapp')}
-                className="cosmic-btn-primary w-full py-4 text-lg flex items-center justify-center space-x-3"
+                className="cosmic-btn-primary w-full py-4 text-lg flex items-center justify-center"
                 disabled={loading}
               >
-                <span>💬</span>
                 <span>Continue with WhatsApp</span>
               </button>
             </div>
@@ -369,11 +363,11 @@ function AuthPageContent() {
               </div>
             )}
 
-            <p className="text-center text-sm text-gray-400 mt-8">
+            <p className="text-center text-xs text-gray-400 mt-8">
               By continuing, you agree to DECODE's{' '}
-              <a href="/terms" className="text-blue-400 hover:underline">Terms of Service</a>
+              <a href="https://welovedecode.com/#terms" className="text-purple-400 hover:underline">Terms of Service</a>
               {' '}and{' '}
-              <a href="/privacy" className="text-blue-400 hover:underline">Privacy Policy</a>
+              <a href="https://welovedecode.com/#privacy" className="text-purple-400 hover:underline">Privacy Policy</a>
             </p>
           </div>
         </div>
