@@ -43,6 +43,7 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
           placed_at: item.placed_at,
           is_current_user: userEmail ? item.bidder_email === userEmail : false,
           rank: item.rank,
+          bidder_instagram_username: item.bidder_instagram_username,
         }));
 
         setLeaderboard(entries);
@@ -80,6 +81,7 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
       placed_at: bid.placed_at,
       is_current_user: userEmail ? bid.bidder_email === userEmail : false,
       rank: index + 1,
+      bidder_instagram_username: bid.bidder_instagram_username,
     }));
 
     setLeaderboard(entries);

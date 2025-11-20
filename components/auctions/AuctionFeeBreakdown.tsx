@@ -54,7 +54,7 @@ export function AuctionFeeBreakdown({
         {/* Starting Price */}
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-600">Auction Starting Price (Beauty Service Cost):</span>
-          <span className="font-medium text-gray-900">{formatCurrency(auctionStartPrice)}</span>
+          <span className="font-medium text-gray-900">- {formatCurrency(auctionStartPrice)}</span>
         </div>
 
         <div className="border-t border-gray-200 my-3"></div>
@@ -70,14 +70,14 @@ export function AuctionFeeBreakdown({
           <span className="text-gray-600">
             DECODE Service Fee ({DEFAULT_AUCTION_FEE_PERCENTAGE}% of Profit):
           </span>
-          <span className="font-medium text-gray-900">-{formatCurrency(decodeFee)}</span>
+          <span className="font-medium text-gray-900">- {formatCurrency(decodeFee)}</span>
         </div>
 
         <div className="border-t border-gray-300 my-3"></div>
 
         {/* Model Net Earnings */}
-        <div className="flex justify-between items-center bg-green-50 p-3 rounded-md">
-          <span className="font-semibold text-gray-900">Your Net Profit (+ FREE Russian Lips) :</span>
+        <div className="flex justify-between items-center">
+          <span className="font-bold text-gray-900" style={{ fontSize: '15px' }}>Your Net Profit (+FREE Russian Lips):</span>
           <span className="text-xl font-bold text-gray-900">{formatCurrency(modelEarnings)}</span>
         </div>
 

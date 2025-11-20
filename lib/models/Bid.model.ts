@@ -82,6 +82,7 @@ export interface LeaderboardEntry {
   placed_at: string;
   is_current_user: boolean;
   rank: number;
+  bidder_instagram_username?: string;
 }
 
 export interface BidStatistics {
