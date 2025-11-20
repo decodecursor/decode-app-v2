@@ -117,6 +117,7 @@ export class AuctionNotificationService {
     creator_name: string;
     winner_name?: string;
     winning_amount?: number;
+    winner_instagram_username?: string;
   }): Promise<void> {
     try {
       const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/auctions`;
@@ -129,6 +130,7 @@ export class AuctionNotificationService {
           auction_title: params.auction_title,
           winner_name: params.winner_name,
           winning_amount: params.winning_amount,
+          winner_instagram_username: params.winner_instagram_username,
           dashboard_url: dashboardUrl,
         }),
       });
@@ -163,6 +165,8 @@ export class AuctionNotificationService {
             <p><a href="${params.recording_url}" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Record Video Now</a></p>
             <p style="font-size: 14px; color: #6B7280;">This link expires in 24 hours. You can retake once if needed.</p>
           </div>
+
+          <p style="font-size: 14px; color: #6B7280;">The auction creator may reach out to you via the contact information you provided during bidding.</p>
 
           <p>Thank you for participating!</p>
 
@@ -238,12 +242,20 @@ export class AuctionNotificationService {
     auction_title: string;
     winner_name?: string;
     winning_amount?: number;
+    winner_instagram_username?: string;
     dashboard_url: string;
   }): string {
+    const instagramInfo = params.winner_instagram_username
+      ? `<p><strong>Instagram:</strong> <a href="https://instagram.com/${params.winner_instagram_username}" style="color: #4F46E5;">@${params.winner_instagram_username}</a></p>`
+      : '';
+
     const winnerInfo = params.winner_name
       ? `
-        <p><strong>Winner:</strong> ${params.winner_name}</p>
-        <p><strong>Winning Bid:</strong> $${params.winning_amount?.toFixed(2)}</p>
+        <div style="background: #F3F4F6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 5px 0;"><strong>Winner:</strong> ${params.winner_name}</p>
+          <p style="margin: 5px 0;"><strong>Winning Bid:</strong> $${params.winning_amount?.toFixed(2)}</p>
+          ${instagramInfo}
+        </div>
       `
       : `<p>No bids were placed on this auction.</p>`;
 

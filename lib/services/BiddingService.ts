@@ -37,6 +37,7 @@ export class BiddingService {
     bidder_name: string;
     contact_method: 'whatsapp' | 'email';
     whatsapp_number?: string;
+    bidder_instagram_username?: string;
     bid_amount: number;
     is_guest: boolean;
     user_id?: string;
@@ -114,6 +115,7 @@ export class BiddingService {
           bidder_name: params.bidder_name,
           contact_method: params.contact_method,
           whatsapp_number: params.whatsapp_number,
+          bidder_instagram_username: params.bidder_instagram_username,
           is_guest: params.is_guest,
           user_id: params.user_id,
           guest_bidder_id: guestBidderId,

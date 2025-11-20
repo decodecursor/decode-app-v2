@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { BiddingService } from '@/lib/services/BiddingService';
+import { validateInstagramUsername, sanitizeInstagramUsername } from '@/lib/models/Bid.model';
 
 export async function POST(
   request: NextRequest,
@@ -87,6 +88,17 @@ export async function POST(
       );
     }
 
+    // Validate Instagram username if provided (optional field)
+    if (body.bidder_instagram_username) {
+      const instagramValidation = validateInstagramUsername(body.bidder_instagram_username);
+      if (!instagramValidation.valid) {
+        return NextResponse.json(
+          { error: instagramValidation.error },
+          { status: 400 }
+        );
+      }
+    }
+
     // Get IP address and user agent
     const ip_address = request.headers.get('x-forwarded-for') ||
                        request.headers.get('x-real-ip') ||
@@ -105,6 +117,11 @@ export async function POST(
       ip_address,
       user_agent,
     };
+
+    // Add Instagram username if provided (sanitize and store)
+    if (body.bidder_instagram_username) {
+      bidData.bidder_instagram_username = sanitizeInstagramUsername(body.bidder_instagram_username);
+    }
 
     // Add contact info based on method
     if (body.contact_method === 'email') {

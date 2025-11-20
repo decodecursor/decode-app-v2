@@ -34,6 +34,7 @@ export interface Auction {
   winner_bid_id?: string;
   winner_name?: string;
   winner_email?: string;
+  winner_instagram_username?: string;
 
   // Payment tracking
   payment_captured_at?: string;
@@ -67,6 +68,7 @@ export interface UpdateAuctionDto {
   winner_bid_id?: string;
   winner_name?: string;
   winner_email?: string;
+  winner_instagram_username?: string;
   payment_captured_at?: string;
   payout_status?: PayoutStatus;
   scheduler_event_id?: string;

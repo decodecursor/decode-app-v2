@@ -578,6 +578,164 @@ export interface Database {
         }
         Relationships: []
       }
+      auctions: {
+        Row: {
+          id: string
+          creator_id: string
+          title: string
+          description: string | null
+          start_price: number
+          current_price: number
+          buy_now_price: number | null
+          start_time: string
+          end_time: string
+          duration: number
+          status: 'pending' | 'active' | 'ended' | 'completed' | 'cancelled'
+          winner_bid_id: string | null
+          winner_name: string | null
+          winner_email: string | null
+          winner_instagram_username: string | null
+          payment_captured_at: string | null
+          payout_status: 'pending' | 'processing' | 'transferred' | 'failed'
+          total_bids: number
+          unique_bidders: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          creator_id: string
+          title: string
+          description?: string | null
+          start_price: number
+          current_price?: number
+          buy_now_price?: number | null
+          start_time?: string
+          end_time: string
+          duration: number
+          status?: 'pending' | 'active' | 'ended' | 'completed' | 'cancelled'
+          winner_bid_id?: string | null
+          winner_name?: string | null
+          winner_email?: string | null
+          winner_instagram_username?: string | null
+          payment_captured_at?: string | null
+          payout_status?: 'pending' | 'processing' | 'transferred' | 'failed'
+          total_bids?: number
+          unique_bidders?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          creator_id?: string
+          title?: string
+          description?: string | null
+          start_price?: number
+          current_price?: number
+          buy_now_price?: number | null
+          start_time?: string
+          end_time?: string
+          duration?: number
+          status?: 'pending' | 'active' | 'ended' | 'completed' | 'cancelled'
+          winner_bid_id?: string | null
+          winner_name?: string | null
+          winner_email?: string | null
+          winner_instagram_username?: string | null
+          payment_captured_at?: string | null
+          payout_status?: 'pending' | 'processing' | 'transferred' | 'failed'
+          total_bids?: number
+          unique_bidders?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auctions_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      bids: {
+        Row: {
+          id: string
+          auction_id: string
+          bidder_email: string
+          bidder_name: string
+          is_guest: boolean
+          user_id: string | null
+          guest_bidder_id: string | null
+          amount: number
+          payment_intent_id: string
+          payment_intent_status: 'requires_capture' | 'captured' | 'cancelled' | 'failed'
+          status: 'pending' | 'winning' | 'outbid' | 'captured' | 'cancelled' | 'failed'
+          contact_method: 'whatsapp' | 'email'
+          whatsapp_number: string | null
+          bidder_instagram_username: string | null
+          ip_address: string | null
+          user_agent: string | null
+          placed_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          auction_id: string
+          bidder_email: string
+          bidder_name: string
+          is_guest?: boolean
+          user_id?: string | null
+          guest_bidder_id?: string | null
+          amount: number
+          payment_intent_id: string
+          payment_intent_status?: 'requires_capture' | 'captured' | 'cancelled' | 'failed'
+          status?: 'pending' | 'winning' | 'outbid' | 'captured' | 'cancelled' | 'failed'
+          contact_method?: 'whatsapp' | 'email'
+          whatsapp_number?: string | null
+          bidder_instagram_username?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+          placed_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          auction_id?: string
+          bidder_email?: string
+          bidder_name?: string
+          is_guest?: boolean
+          user_id?: string | null
+          guest_bidder_id?: string | null
+          amount?: number
+          payment_intent_id?: string
+          payment_intent_status?: 'requires_capture' | 'captured' | 'cancelled' | 'failed'
+          status?: 'pending' | 'winning' | 'outbid' | 'captured' | 'cancelled' | 'failed'
+          contact_method?: 'whatsapp' | 'email'
+          whatsapp_number?: string | null
+          bidder_instagram_username?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+          placed_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bids_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bids_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -634,6 +792,14 @@ export type UserPayPalAccountUpdate = Database['public']['Tables']['user_paypal_
 export type BranchRow = Database['public']['Tables']['branches']['Row']
 export type BranchInsert = Database['public']['Tables']['branches']['Insert']
 export type BranchUpdate = Database['public']['Tables']['branches']['Update']
+
+export type AuctionRow = Database['public']['Tables']['auctions']['Row']
+export type AuctionInsert = Database['public']['Tables']['auctions']['Insert']
+export type AuctionUpdate = Database['public']['Tables']['auctions']['Update']
+
+export type BidRow = Database['public']['Tables']['bids']['Row']
+export type BidInsert = Database['public']['Tables']['bids']['Insert']
+export type BidUpdate = Database['public']['Tables']['bids']['Update']
 
 // Extended types for queries with relations
 export type PaymentLinkWithCreator = PaymentLinkRow & {

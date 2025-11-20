@@ -9,6 +9,7 @@ import React, { useState, useEffect } from 'react';
 import { loadStripe, StripeElementsOptions } from '@stripe/stripe-js';
 import { Elements, PaymentElement, ExpressCheckoutElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { GuestBidderForm } from './GuestBidderForm';
+import { InstagramUsernameForm } from './InstagramUsernameForm';
 import { calculateMinimumBid, formatBidAmount } from '@/lib/models/Bid.model';
 import type { Auction } from '@/lib/models/Auction.model';
 
@@ -27,7 +28,7 @@ export function BiddingInterface({
   userName,
   onBidPlaced,
 }: BiddingInterfaceProps) {
-  const [step, setStep] = useState<'amount' | 'guest_info' | 'payment'>('amount');
+  const [step, setStep] = useState<'amount' | 'guest_info' | 'instagram' | 'payment'>('amount');
   const [bidAmount, setBidAmount] = useState<string>('');
   const [guestInfo, setGuestInfo] = useState<{
     name: string;
@@ -35,6 +36,7 @@ export function BiddingInterface({
     email?: string;
     whatsappNumber?: string;
   } | null>(null);
+  const [instagramUsername, setInstagramUsername] = useState<string | undefined>(undefined);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [bidId, setBidId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,9 +63,9 @@ export function BiddingInterface({
       return;
     }
 
-    // If user is logged in, skip guest info step
+    // If user is logged in, skip guest info step and go to Instagram
     if (userEmail && userName) {
-      await createBid(userName, 'email', userEmail, undefined, amount);
+      setStep('instagram');
     } else {
       setStep('guest_info');
     }
@@ -77,8 +79,21 @@ export function BiddingInterface({
     whatsappNumber?: string;
   }) => {
     setGuestInfo(info);
+    setStep('instagram');
+  };
+
+  // Handle Instagram username submission
+  const handleInstagramSubmit = async (username?: string) => {
+    setInstagramUsername(username);
     const amount = parseFloat(bidAmount);
-    await createBid(info.name, info.contactMethod, info.email, info.whatsappNumber, amount);
+
+    // Get bidder info (either from guestInfo or logged-in user)
+    const name = guestInfo?.name || userName!;
+    const contactMethod = guestInfo?.contactMethod || 'email';
+    const email = guestInfo?.email || userEmail;
+    const whatsappNumber = guestInfo?.whatsappNumber;
+
+    await createBid(name, contactMethod, email, whatsappNumber, amount, username);
   };
 
   // Create bid and get payment intent
@@ -87,7 +102,8 @@ export function BiddingInterface({
     contactMethod: 'whatsapp' | 'email',
     email?: string,
     whatsappNumber?: string,
-    amount?: number
+    amount?: number,
+    instagram?: string
   ) => {
     setIsProcessing(true);
     setError(null);
@@ -127,6 +143,11 @@ export function BiddingInterface({
       contact_method: contactMethod,
       bid_amount: finalAmount,
     };
+
+    // Add Instagram username if provided
+    if (instagram) {
+      bidData.bidder_instagram_username = instagram;
+    }
 
     // Add contact info based on method
     if (contactMethod === 'email' && email) {
@@ -173,6 +194,7 @@ export function BiddingInterface({
     setStep('amount');
     setBidAmount('');
     setGuestInfo(null);
+    setInstagramUsername(undefined);
     setClientSecret(null);
     setBidId(null);
     setError(null);
@@ -262,6 +284,35 @@ export function BiddingInterface({
         </div>
       )}
 
+      {/* Step: Instagram Username */}
+      {step === 'instagram' && (
+        <div>
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-700">
+              Your bid: <span className="font-semibold">{formatBidAmount(parseFloat(bidAmount))}</span>
+            </p>
+            {guestInfo && (
+              <>
+                <p className="text-sm text-blue-700 mt-1">
+                  Name: <span className="font-semibold">{guestInfo.name}</span>
+                </p>
+                <p className="text-sm text-blue-700 mt-1">
+                  {guestInfo.contactMethod === 'whatsapp' ? 'WhatsApp' : 'Email'}:
+                  <span className="font-semibold ml-1">
+                    {guestInfo.contactMethod === 'whatsapp' ? guestInfo.whatsappNumber : guestInfo.email}
+                  </span>
+                </p>
+              </>
+            )}
+          </div>
+          <InstagramUsernameForm
+            onSubmit={handleInstagramSubmit}
+            onSkip={() => handleInstagramSubmit(undefined)}
+            isLoading={isProcessing}
+          />
+        </div>
+      )}
+
       {/* Step: Payment */}
       {step === 'payment' && clientSecret && bidId && (
         <div>
@@ -281,6 +332,11 @@ export function BiddingInterface({
                   </span>
                 </p>
               </>
+            )}
+            {instagramUsername && (
+              <p className="text-sm text-blue-700 mt-1">
+                Instagram: <span className="font-semibold">@{instagramUsername}</span>
+              </p>
             )}
           </div>
 

@@ -19,6 +19,7 @@ export interface Bid {
   // Contact method preference
   contact_method: 'whatsapp' | 'email';
   whatsapp_number?: string;
+  bidder_instagram_username?: string;
 
   // User or guest
   is_guest: boolean;
@@ -50,6 +51,7 @@ export interface CreateBidDto {
   bidder_name: string;
   contact_method: 'whatsapp' | 'email';
   whatsapp_number?: string;
+  bidder_instagram_username?: string;
   bid_amount: number;
   is_guest: boolean;
   user_id?: string;
@@ -180,4 +182,47 @@ export function formatBidderNameForLeaderboard(name: string, hideLastName = true
   const firstName = parts[0];
   const lastInitial = parts[parts.length - 1].charAt(0).toUpperCase();
   return `${firstName} ${lastInitial}.`;
+}
+
+export function validateInstagramUsername(username: string): { valid: boolean; error?: string } {
+  if (!username) {
+    return { valid: true }; // Optional field
+  }
+
+  // Remove @ symbol if user included it
+  const cleanUsername = username.replace(/^@/, '').trim();
+
+  // Instagram username rules:
+  // - 1-30 characters
+  // - Only alphanumeric, periods, and underscores
+  // - Cannot end with a period
+  // - Cannot have consecutive periods
+
+  if (cleanUsername.length === 0) {
+    return { valid: true };
+  }
+
+  if (cleanUsername.length > 30) {
+    return { valid: false, error: 'Instagram username cannot exceed 30 characters' };
+  }
+
+  if (!/^[a-zA-Z0-9._]+$/.test(cleanUsername)) {
+    return { valid: false, error: 'Instagram username can only contain letters, numbers, periods, and underscores' };
+  }
+
+  if (cleanUsername.endsWith('.')) {
+    return { valid: false, error: 'Instagram username cannot end with a period' };
+  }
+
+  if (/\.\./.test(cleanUsername)) {
+    return { valid: false, error: 'Instagram username cannot have consecutive periods' };
+  }
+
+  return { valid: true };
+}
+
+export function sanitizeInstagramUsername(username: string): string {
+  if (!username) return '';
+  // Remove @ symbol and trim whitespace
+  return username.replace(/^@/, '').trim().toLowerCase();
 }

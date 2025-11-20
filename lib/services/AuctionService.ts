@@ -230,7 +230,7 @@ export class AuctionService {
         // Get winner information
         const { data: winnerBid } = await supabase
           .from('bids')
-          .select('bidder_name, bidder_email')
+          .select('bidder_name, bidder_email, bidder_instagram_username')
           .eq('id', winnerBidId)
           .single();
 
@@ -238,6 +238,7 @@ export class AuctionService {
           updateData.winner_bid_id = winnerBidId;
           updateData.winner_name = winnerBid.bidder_name;
           updateData.winner_email = winnerBid.bidder_email;
+          updateData.winner_instagram_username = winnerBid.bidder_instagram_username;
         }
       }
 
