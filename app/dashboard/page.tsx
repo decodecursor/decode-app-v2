@@ -637,7 +637,7 @@ export default function Dashboard() {
                 {/* Mobile Profile Section */}
                 <div className="flex items-center gap-3">
                   <div
-                    onClick={() => router.push('/payment/create')}
+                    onClick={() => router.push(profile?.role === USER_ROLES.MODEL ? '/auctions/create' : '/payment/create')}
                     className="instagram-avatar cursor-pointer"
                   >
                     {(profile?.profile_photo_url || profile?.companyProfileImage) ? (
