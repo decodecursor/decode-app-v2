@@ -1,935 +1,689 @@
 'use client'
 
-import { useState, useEffect, Suspense, useRef } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { getUserWithProxy } from '@/utils/auth-helper'
 import RoleSelectionModal from '@/components/RoleSelectionModal'
-import PasswordInput from '@/components/PasswordInput'
-import { safeLocalStorage, safeSessionStorage, detectRedirectLoop, clearRedirectLoop, isMobileDevice, getDeviceInfo } from '@/utils/storage-helper'
+import { safeLocalStorage, safeSessionStorage } from '@/utils/storage-helper'
+
+// Country codes for phone input
+const COUNTRY_CODES = [
+  { code: '+971', country: 'UAE', flag: '🇦🇪' },
+  { code: '+1', country: 'USA', flag: '🇺🇸' },
+  { code: '+44', country: 'UK', flag: '🇬🇧' },
+  { code: '+91', country: 'India', flag: '🇮🇳' },
+  { code: '+966', country: 'Saudi Arabia', flag: '🇸🇦' },
+  { code: '+20', country: 'Egypt', flag: '🇪🇬' },
+]
+
+type AuthMethod = 'select' | 'email' | 'whatsapp'
+type AuthStep = 'input' | 'verify' | 'success'
 
 function AuthPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [isLogin, setIsLogin] = useState(true)
+  const supabase = createClient()
+
+  // State
+  const [authMethod, setAuthMethod] = useState<AuthMethod>('select')
+  const [authStep, setAuthStep] = useState<AuthStep>('input')
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [countryCode, setCountryCode] = useState('+971')
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [otpCode, setOtpCode] = useState(['', '', '', '', '', ''])
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [resendCooldown, setResendCooldown] = useState(0)
   const [showRoleModal, setShowRoleModal] = useState(false)
-  const [signedUpUser, setSignedUpUser] = useState<any>(null)
-  const [agreedToTerms, setAgreedToTerms] = useState(true)
-  const [emailError, setEmailError] = useState('')
-  const [checkingEmail, setCheckingEmail] = useState(false)
-  const [retryCount, setRetryCount] = useState(0)
-  const [isRetrying, setIsRetrying] = useState(false)
   const [inviteData, setInviteData] = useState<any>(null)
-  const [fallbackTriggered, setFallbackTriggered] = useState(false)
-  const [isPostVerificationFlow, setIsPostVerificationFlow] = useState(false)
   const [preselectedRole, setPreselectedRole] = useState<string | null>(null)
-  const [checkingAuthState, setCheckingAuthState] = useState(false)
-  const supabase = createClient()
-  
-  // Add submission guard to prevent concurrent submissions
-  const isSubmitting = useRef(false)
-  const lastSubmissionTime = useRef(0)
-  
-  // Auto-hide error messages after 5 seconds
+
+  // Auto-hide messages after 5 seconds
   useEffect(() => {
-    if (message && (message.includes('error') || message.includes('Error') || message.includes('Invalid'))) {
-      const timer = setTimeout(() => {
-        setMessage('')
-      }, 5000)
-      
+    if (message && message.toLowerCase().includes('error')) {
+      const timer = setTimeout(() => setMessage(''), 5000)
       return () => clearTimeout(timer)
     }
-    return undefined
   }, [message])
+
+  // Handle resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [resendCooldown])
 
   // Handle invite parameter and pre-selected role from URL
   useEffect(() => {
     const inviteParam = searchParams?.get('invite')
     const roleParam = searchParams?.get('role')
-    const modeParam = searchParams?.get('mode')
     const verifiedParam = searchParams?.get('verified')
 
-    console.log('🔍 [AUTH] URL params:', { inviteParam: !!inviteParam, roleParam, modeParam, verifiedParam })
-
-    // Handle mode parameter for login/register
-    if (modeParam === 'login') {
-      setIsLogin(true)
-    } else if (modeParam === 'register') {
-      setIsLogin(false)
-    }
-
     // Handle pre-selected role for direct registration links
-    if (roleParam && modeParam === 'register') {
-      // Map URL roles to database roles
+    if (roleParam) {
       const roleMapping: { [key: string]: string } = {
         'admin': 'Admin',
-        'user': 'Staff', // Default user to Staff
+        'user': 'Staff',
         'model': 'Model'
       }
-
       const mappedRole = roleMapping[roleParam.toLowerCase()]
       if (mappedRole) {
         setPreselectedRole(mappedRole)
-        setIsLogin(false) // Force signup mode
-        // Store preselected role in both sessionStorage and localStorage for persistence
         safeSessionStorage.setItem('preselectedRole', mappedRole)
         safeLocalStorage.setItem('decode_preselectedRole', mappedRole)
-        console.log('✅ [AUTH] Stored preselected role:', mappedRole)
       }
     }
 
-    // Handle invitation parameter (existing functionality)
+    // Handle invitation parameter
     if (inviteParam) {
       try {
         const decodedData = JSON.parse(Buffer.from(inviteParam, 'base64').toString())
-        console.log('✅ [AUTH] Decoded invite data:', decodedData)
         setInviteData(decodedData)
         setEmail(decodedData.email || '')
-        setIsLogin(false) // Force signup mode for invitations
         setMessage(`Welcome! You've been invited to join ${decodedData.companyName}`)
 
-        // Store complete invite data in BOTH sessionStorage AND localStorage for maximum persistence
         const inviteDataStr = JSON.stringify(decodedData)
         safeSessionStorage.setItem('inviteData', inviteDataStr)
         safeLocalStorage.setItem('decode_inviteData', inviteDataStr)
         safeLocalStorage.setItem('decode_inviteTimestamp', Date.now().toString())
-        console.log('✅ [AUTH] Stored invite data in safe storage for email verification persistence')
       } catch (error) {
         console.error('❌ [AUTH] Invalid invite link:', error)
         setMessage('Invalid invitation link')
       }
-    } else if (verifiedParam === 'true') {
-      // If we have verified=true but no invite param, try to restore from storage
-      console.log('🔍 [AUTH] Email verification detected, attempting to restore invite data from storage')
+    }
 
-      // Try to restore invite data from storage sources
-      let restoredInviteData = null
-
-      // Try sessionStorage first
-      try {
-        const sessionData = safeSessionStorage.getItem('inviteData')
-        if (sessionData) {
-          restoredInviteData = JSON.parse(sessionData)
-          console.log('✅ [AUTH] Restored invite data from sessionStorage:', restoredInviteData)
-        }
-      } catch (error) {
-        console.warn('⚠️ [AUTH] Failed to restore from sessionStorage:', error)
-      }
-
-      // Try localStorage as backup
-      if (!restoredInviteData) {
-        try {
-          const localData = safeLocalStorage.getItem('decode_inviteData')
-          const timestamp = safeLocalStorage.getItem('decode_inviteTimestamp')
-
-          if (localData && timestamp) {
-            const age = Date.now() - parseInt(timestamp)
-            // Only use localStorage data if it's less than 1 hour old
-            if (age < 60 * 60 * 1000) {
-              restoredInviteData = JSON.parse(localData)
-              console.log('✅ [AUTH] Restored invite data from localStorage:', restoredInviteData)
-            } else {
-              console.log('⚠️ [AUTH] localStorage invite data too old, ignoring')
-              safeLocalStorage.removeItem('decode_inviteData')
-              safeLocalStorage.removeItem('decode_inviteTimestamp')
-            }
-          }
-        } catch (error) {
-          console.warn('⚠️ [AUTH] Failed to restore from localStorage:', error)
-        }
-      }
-
-      if (restoredInviteData) {
-        setInviteData(restoredInviteData)
-        setEmail(restoredInviteData.email || '')
-        setMessage('Please complete your profile to finish registration')
-        console.log('✅ [AUTH] Successfully restored invite data after email verification')
-      } else {
-        console.log('⚠️ [AUTH] No invite data found in storage after verification')
-      }
+    // Handle email verification return
+    if (verifiedParam === 'true') {
+      checkAuthState()
     }
   }, [searchParams])
 
-  // Check for authenticated user on page load (handles email verification returns)
-  useEffect(() => {
-    const checkAuthState = async () => {
-      const justVerified = searchParams?.get('verified') === 'true'
+  // Check for authenticated user (handles email verification returns)
+  const checkAuthState = async () => {
+    try {
+      const { user } = await getUserWithProxy()
 
-      // Only show loading state if user just verified email
-      if (justVerified) {
-        setCheckingAuthState(true)
-      }
+      if (user && user.email_confirmed_at) {
+        console.log('✅ [AUTH] Found verified user:', user.id)
 
-      console.log('🔍 [AUTH] Starting auth state check...')
-      try {
-        // Use getUserWithProxy to handle both direct and proxy auth
-        const { user, error } = await getUserWithProxy()
+        // Check if user has a profile
+        const { data: profileData } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', user.id)
+          .single()
 
-        console.log('🔍 [AUTH] Auth state details:', {
-          hasUser: !!user,
-          userId: user?.id,
-          userEmail: user?.email,
-          emailConfirmed: !!user?.email_confirmed_at,
-          justVerified,
-          error: error
-        })
-        
-        if (user && (user.email_confirmed_at || justVerified)) {
-          console.log('✅ [AUTH] Found verified user on page load:', user.id, { 
-            justVerified,
-            emailConfirmed: !!user.email_confirmed_at 
-          })
-          
-          // Quick check if user already has a profile
-          console.log('🔍 [AUTH] Checking user profile...')
-          const { data: profileData, error: profileError } = await supabase
-            .from('users')
-            .select('id')
-            .eq('id', user.id)
-            .single()
-          
-          console.log('🔍 [AUTH] Profile check result:', {
-            hasProfile: !!profileData,
-            profileError: profileError?.code,
-            profileErrorMessage: profileError?.message
-          })
-          
-          if (profileError && profileError.code === 'PGRST116') {
-            // User doesn't have profile yet - show role modal to complete registration
-            console.log('✅ [AUTH] Verified user needs to complete profile - SHOWING ROLE MODAL')
-            setEmail(user.email || '')
-            setSignedUpUser(user)
-
-            // Retrieve preselected role from multiple storage sources
-            let restoredPreselectedRole = null
-
-            // Try sessionStorage first
-            try {
-              restoredPreselectedRole = sessionStorage.getItem('preselectedRole')
-              if (restoredPreselectedRole) {
-                console.log('✅ [AUTH] Found preselected role in sessionStorage:', restoredPreselectedRole)
-                sessionStorage.removeItem('preselectedRole') // Clear after use
-              }
-            } catch (error) {
-              console.warn('⚠️ [AUTH] Failed to read preselected role from sessionStorage:', error)
-            }
-
-            // Try localStorage as backup
-            if (!restoredPreselectedRole) {
-              try {
-                restoredPreselectedRole = localStorage.getItem('decode_preselectedRole')
-                if (restoredPreselectedRole) {
-                  console.log('✅ [AUTH] Found preselected role in localStorage:', restoredPreselectedRole)
-                  localStorage.removeItem('decode_preselectedRole') // Clear after use
-                }
-              } catch (error) {
-                console.warn('⚠️ [AUTH] Failed to read preselected role from localStorage:', error)
-              }
-            }
-
-            if (restoredPreselectedRole) {
-              setPreselectedRole(restoredPreselectedRole)
-            }
-
-            // Retrieve complete invite data from multiple storage sources
-            let restoredInviteData = null
-
-            // If we already have inviteData from URL params, don't override it
-            if (!inviteData) {
-              // Try sessionStorage first
-              try {
-                const sessionData = sessionStorage.getItem('inviteData')
-                if (sessionData) {
-                  restoredInviteData = JSON.parse(sessionData)
-                  console.log('✅ [AUTH] Found invite data in sessionStorage:', restoredInviteData)
-                  sessionStorage.removeItem('inviteData') // Clear after use
-                }
-              } catch (error) {
-                console.warn('⚠️ [AUTH] Failed to parse invite data from sessionStorage:', error)
-                sessionStorage.removeItem('inviteData') // Clean up invalid data
-              }
-
-              // Try localStorage as backup
-              if (!restoredInviteData) {
-                try {
-                  const localData = localStorage.getItem('decode_inviteData')
-                  const timestamp = localStorage.getItem('decode_inviteTimestamp')
-
-                  if (localData && timestamp) {
-                    const age = Date.now() - parseInt(timestamp)
-                    // Only use localStorage data if it's less than 1 hour old
-                    if (age < 60 * 60 * 1000) {
-                      restoredInviteData = JSON.parse(localData)
-                      console.log('✅ [AUTH] Found invite data in localStorage:', restoredInviteData)
-                    } else {
-                      console.log('⚠️ [AUTH] localStorage invite data too old, ignoring')
-                    }
-                    // Clean up localStorage data after use
-                    localStorage.removeItem('decode_inviteData')
-                    localStorage.removeItem('decode_inviteTimestamp')
-                  }
-                } catch (error) {
-                  console.warn('⚠️ [AUTH] Failed to parse invite data from localStorage:', error)
-                  localStorage.removeItem('decode_inviteData')
-                  localStorage.removeItem('decode_inviteTimestamp')
-                }
-              }
-
-              if (restoredInviteData) {
-                setInviteData(restoredInviteData)
-                console.log('✅ [AUTH] Successfully restored invite data for role modal:', restoredInviteData)
-              } else {
-                console.log('⚠️ [AUTH] No invite data found in any storage after verification')
-              }
-            } else {
-              console.log('✅ [AUTH] Using invite data from URL params, skipping storage restoration')
-            }
-
-            setShowRoleModal(true)
-            setIsPostVerificationFlow(true) // Track that this is after email verification
-            setMessage('Please complete your profile to finish registration')
-          } else if (profileData) {
-            // User already has profile - redirect to dashboard
-            console.log('✅ [AUTH] User already has profile - redirecting to dashboard')
-            window.location.href = '/dashboard'
-          }
-        } else if (justVerified) {
-          // User has verified=true parameter but no authenticated user yet
-          // This can happen if session setting failed - try to recover
-          console.log('⚠️ [AUTH] Verification parameter present but no user session - waiting for session')
-          console.log('⚠️ [AUTH] Will retry in 1 second...')
-          setTimeout(() => {
-            // Retry after a delay to allow session to be established
-            console.log('🔄 [AUTH] Retrying auth state check...')
-            checkAuthState()
-          }, 1000)
-          
-          // Also set a backup timer to force role modal if session never appears
-          if (!fallbackTriggered) {
-            setTimeout(() => {
-              console.log('🚨 [AUTH] FALLBACK: Session still not available after retries - forcing role modal')
-              setFallbackTriggered(true)
-              setShowRoleModal(true)
-              setMessage('Please complete your profile to finish registration')
-            }, 3000)
-          }
+        if (profileData) {
+          // User has profile, redirect to dashboard
+          router.push('/dashboard')
         } else {
-          console.log('ℹ️ [AUTH] No verified user found, showing normal auth flow')
+          // Show role selection modal
+          setShowRoleModal(true)
         }
-      } catch (error) {
-        // Silently continue - don't block normal auth flow
-        console.error('❌ [AUTH] Auth state check error:', error)
-      } finally {
-        // Always clear loading state after check completes
-        setCheckingAuthState(false)
       }
+    } catch (error) {
+      console.error('❌ [AUTH] Error checking auth state:', error)
     }
-
-    checkAuthState()
-  }, [searchParams, router, supabase])
-
-  // Real-time email validation
-  useEffect(() => {
-    const checkEmailExists = async () => {
-      if (!isLogin && email && email.includes('@')) {
-        setCheckingEmail(true)
-        try {
-          const response = await fetch(`/api/auth/check-email?email=${encodeURIComponent(email)}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            credentials: 'include',
-            // Add timeout and better error handling
-            signal: AbortSignal.timeout(5000), // 5 second timeout
-          })
-          
-          if (response.ok) {
-            const data = await response.json()
-            if (data.exists) {
-              setEmailError('This email is already registered')
-            } else {
-              setEmailError('')
-            }
-          } else if (response.status === 429) {
-            // Rate limited - skip validation
-            setEmailError('')
-          } else {
-            // Don't show error for network issues, just skip validation
-            console.warn('Email check failed with status:', response.status)
-            setEmailError('')
-          }
-        } catch (error: any) {
-          // Network error - don't block user, just skip validation
-          if (error.name === 'TimeoutError') {
-            console.warn('Email check timeout - proceeding without validation')
-          } else if (error.name === 'AbortError') {
-            console.warn('Email check aborted - proceeding without validation')
-          } else {
-            console.warn('Email check error:', error.message)
-          }
-          setEmailError('')
-        } finally {
-          setCheckingEmail(false)
-        }
-      } else {
-        setEmailError('')
-      }
-    }
-
-    const debounceTimer = setTimeout(checkEmailExists, 500)
-    return () => clearTimeout(debounceTimer)
-  }, [email, isLogin])
-
-  // Enhanced retry mechanism for network failures with better error detection
-  const retryWithDelay = async (fn: () => Promise<any>, maxRetries = 3, baseDelay = 1500, operationName = 'operation'): Promise<any> => {
-    let lastError: any = null
-    
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        console.log(`🔄 [AUTH-RETRY] Attempt ${attempt + 1}/${maxRetries + 1} for ${operationName}`)
-        
-        // Add timeout wrapper for each attempt
-        const result = await Promise.race([
-          fn(),
-          new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error(`Timeout for ${operationName} after 10 seconds`)), 10000)
-          )
-        ])
-        
-        console.log(`✅ [AUTH-RETRY] ${operationName} succeeded on attempt ${attempt + 1}`)
-        return result
-        
-      } catch (error: any) {
-        lastError = error
-        console.log(`⚠️ [AUTH-RETRY] Attempt ${attempt + 1} failed for ${operationName}:`, error.message)
-        
-        const isRetryableError = 
-          error.message?.includes('fetch') || 
-          error.name === 'NetworkError' || 
-          error.message?.includes('Failed to fetch') ||
-          error.message?.includes('timeout') ||
-          error.message?.includes('Timeout') ||
-          error.code === 'NETWORK_ERROR' ||
-          error.code === 'TIMEOUT_ERROR' ||
-          error.name === 'TypeError' && error.message?.includes('fetch')
-        
-        // Don't retry on authentication errors
-        const isAuthError = 
-          error.message?.includes('Invalid login credentials') ||
-          error.message?.includes('Email not confirmed') ||
-          error.message?.includes('User already registered') ||
-          error.message?.includes('Invalid email')
-        
-        if (attempt === maxRetries || !isRetryableError || isAuthError) {
-          console.log(`❌ [AUTH-RETRY] ${operationName} failed permanently:`, {
-            finalAttempt: attempt === maxRetries,
-            isRetryable: isRetryableError,
-            isAuthError,
-            errorMessage: error.message
-          })
-          throw error
-        }
-        
-        // Calculate delay with exponential backoff and jitter
-        const jitter = Math.random() * 500 // Add some randomness
-        const delay = Math.min(baseDelay * Math.pow(1.5, attempt) + jitter, 8000) // Cap at 8 seconds
-        
-        console.log(`⏳ [AUTH-RETRY] Waiting ${Math.round(delay)}ms before retry ${attempt + 2}/${maxRetries + 1}`)
-        setIsRetrying(true)
-        setRetryCount(attempt + 1)
-        
-        await new Promise(resolve => setTimeout(resolve, delay))
-      }
-    }
-    
-    // This shouldn't be reached, but just in case
-    throw lastError
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Email magic link handler
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    // Prevent concurrent submissions
-    if (isSubmitting.current) {
-      console.log('🚫 [AUTH] Submission already in progress, ignoring')
-      return
-    }
-    
-    // Debounce: prevent rapid successive submissions
-    const now = Date.now()
-    if (now - lastSubmissionTime.current < 2000) { // 2 second debounce
-      console.log('🚫 [AUTH] Submission too rapid, ignoring')
-      return
-    }
-    
-    // Set guards
-    isSubmitting.current = true
-    lastSubmissionTime.current = now
     setLoading(true)
     setMessage('')
-    
-    // Validate terms acceptance for signup
-    if (!isLogin && !agreedToTerms) {
-      setMessage('Please agree to the Terms of Service and Privacy Policy')
-      setLoading(false)
-      isSubmitting.current = false
-      return
-    }
-    
-    // Check for email error
-    if (!isLogin && emailError) {
-      setMessage(emailError)
-      setLoading(false)
-      isSubmitting.current = false
-      return
-    }
-    
+
     try {
-      setIsRetrying(false)
-      setRetryCount(0)
-      
-      // Execute auth flow - simplified approach
-      if (isLogin) {
-          console.log('🔐 Attempting login for:', email)
-          
-          // Try direct Supabase login first
-          let loginSuccess = false
-          let loginData: any = null
-          let loginError: any = null
-          let usedProxy = false
-          
-          try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-              email,
-              password
-            })
-
-            if (error) {
-              console.log('Direct login error:', error.message)
-              loginError = error
-            } else if (data?.user && data?.session) {
-              console.log('✅ Direct login successful')
-              loginSuccess = true
-              loginData = data
-              // Clear redirect loop counter on successful login
-              clearRedirectLoop()
-            } else {
-              loginError = new Error('Login failed - no session created')
-            }
-          } catch (error: any) {
-            console.log('Direct login exception:', error.message)
-            loginError = error
-          }
-          
-          // If direct login failed, try proxy
-          if (!loginSuccess) {
-            usedProxy = true
-            console.log('🔄 Using proxy for login due to connection issues')
-            try {
-              const proxyResponse = await fetch('/api/auth/proxy-login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-              })
-
-              const proxyData = await proxyResponse.json()
-
-              if (proxyResponse.ok && proxyData.success) {
-                console.log('✅ Proxy login successful - session established via cookies')
-                // No need to call setSession - cookies are already set server-side
-
-                // Set fresh login flags to optimize UserContext initialization and dashboard loading
-                if (typeof window !== 'undefined') {
-                  sessionStorage.setItem('fresh_login', 'true')
-                  sessionStorage.setItem('fresh_login_processed', 'true')
-                  // Set timestamp for fallback fresh login detection
-                  localStorage.setItem('last_auth_timestamp', Date.now().toString())
-                }
-
-                // Increased delay to ensure session cookies are fully established
-                await new Promise(resolve => setTimeout(resolve, 500))
-
-                console.log('✅ Redirecting to dashboard after proxy login with full page reload')
-                // Use window.location.href for full page reload to ensure cookies are properly loaded
-                window.location.href = '/dashboard'
-
-                // Return early to avoid any error handling
-                return
-              } else {
-                throw new Error(proxyData.error || 'Proxy login failed')
-              }
-            } catch (proxyError: any) {
-              console.error('Both direct and proxy login failed')
-              throw loginError || proxyError
-            }
-          }
-
-          // Only reach here if direct login was successful
-          if (loginSuccess && loginData) {
-            console.log('✅ User logged in successfully via direct connection')
-
-            // Set fresh login flags to optimize UserContext initialization and dashboard loading
-            if (typeof window !== 'undefined') {
-              sessionStorage.setItem('fresh_login', 'true')
-              sessionStorage.setItem('fresh_login_processed', 'true')
-              // Set timestamp for fallback fresh login detection
-              localStorage.setItem('last_auth_timestamp', Date.now().toString())
-            }
-
-            // Increased delay to ensure session cookies are fully established
-            await new Promise(resolve => setTimeout(resolve, 500))
-
-            console.log('✅ Redirecting to dashboard with full page reload')
-            // Use window.location.href for full page reload to ensure cookies are properly loaded
-            window.location.href = '/dashboard'
-            return
-          } else {
-            throw new Error('Login failed - no user or session data returned')
-          }
-      } else {
-        console.log('📝 [AUTH] Attempting signup for:', email)
-        
-        let signupData = null
-        let signupError = null
-        
-        // Try direct signup first
-        try {
-          console.log('🔄 [AUTH] Trying direct signup...')
-          const { data, error } = await supabase.auth.signUp({
-            email,
-            password
-          })
-          
-          if (!error && data) {
-            signupData = data
-            console.log('✅ [AUTH] Direct signup successful')
-          } else {
-            signupError = error
-            throw error || new Error('Direct signup failed')
-          }
-        } catch (directError) {
-          console.log('⚠️ [AUTH] Direct signup failed, trying proxy...', directError.message)
-          
-          // Try proxy signup
-          try {
-            console.log('🔄 [AUTH] Using proxy signup...')
-            const proxyResponse = await fetch('/api/auth/proxy-signup', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email, password })
-            })
-            
-            const proxyData = await proxyResponse.json()
-            
-            if (proxyResponse.ok && proxyData.success) {
-              console.log('✅ [AUTH] Proxy signup successful')
-              signupData = proxyData
-            } else {
-              throw new Error(proxyData.error || 'Proxy signup failed')
-            }
-          } catch (proxyError) {
-            console.error('❌ [AUTH] Both direct and proxy signup failed')
-            console.error('❌ [AUTH] Direct error:', signupError?.message)
-            console.error('❌ [AUTH] Proxy error:', proxyError?.message)
-            throw new Error(`Signup failed. Direct: ${signupError?.message || 'unknown'}. Proxy: ${proxyError?.message || 'unknown'}`)
-          }
+      // Use Supabase Auth magic link
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth?verified=true`,
         }
-        
-        if (signupData && signupData.user) {
-          console.log('✅ [AUTH] User signed up successfully:', signupData.user.id)
-
-          // All users (invited and regular) must verify their email
-          if (signupData.user.email_confirmed_at || signupData.session) {
-            console.log('✅ [AUTH] Email confirmed or session active - showing role modal')
-            setSignedUpUser(signupData.user)
-            setShowRoleModal(true)
-          } else {
-            console.log('📧 [AUTH] Email confirmation required for regular user')
-            router.push(`/verify-email?email=${encodeURIComponent(email)}`)
-          }
-        } else {
-          router.push(`/verify-email?email=${encodeURIComponent(email)}`)
-        }
-      }
-      
-    } catch (error: any) {
-      console.error('💥 Authentication error:', error)
-      console.error('💥 Error details:', {
-        message: error.message,
-        name: error.name,
-        stack: error.stack,
-        supabaseError: error.supabaseError || 'none'
       })
-      
-      // Handle specific error types with more detailed logging
-      if (error.message?.includes('Email rate limit') || error.message?.includes('rate limit') || error.code === 'RATE_LIMIT_ERROR') {
-        console.log('⚠️ Rate limit reached:', error.message)
-        setMessage('Email rate limit reached. Please wait 10-15 minutes before trying again, or try logging in if you already have an account.')
-      } else if (error.message?.includes('User already registered') || error.message?.includes('already exists') || error.message?.includes('already been registered')) {
-        console.log('👤 User already exists')
-        setMessage('This email is already registered. Click "Switch to Login" below to log in instead.')
-      } else if (error.message?.includes('Invalid login credentials')) {
-        console.log('🔐 Login failed: Invalid credentials')
-        setMessage('Invalid email or password. Please check and try again.')
-      } else if (error.message?.includes('Email not confirmed')) {
-        console.log('📧 Login failed: Email not confirmed')
-        setMessage('Please check your email and click the verification link.')
-      } else if (error.message?.includes('Session was not properly established')) {
-        console.log('🎫 Login failed: Session establishment issue')
-        setMessage('Login session failed to establish. Please try again.')
-      } else if (error.message?.includes('timeout') || error.message?.includes('Timeout')) {
-        console.log('⏰ Authentication failed: Timeout error')
-        setMessage('Request timed out. Please check your connection and try again.')
-      } else if (error.name === 'AbortError') {
-        console.log('⏰ Authentication failed: Request timeout')
-        setMessage('Request timed out. Retrying automatically...')
-      } else if (error.message?.includes('Failed to fetch') || error.name === 'TypeError' && error.message?.includes('fetch')) {
-        console.log('🌐 Authentication failed: Failed to fetch')
-        
-        // Check if this looks like a connection reset or network issue
-        if (error.message?.includes('net::ERR_CONNECTION_RESET') || 
-            error.message?.includes('ERR_CONNECTION_RESET') ||
-            error.message?.includes('Access to storage is not allowed')) {
-          console.log('🔧 Connection Reset or Storage Access Issue detected')
-          setMessage('Network connectivity issue detected. This may be due to firewall, VPN, or browser settings. Please try again or contact support if the issue persists.')
-        } else {
-          console.log('🔍 DEBUG: Check browser console and server logs for details')
-          // Enhanced debug info for persistent fetch failures
-          console.log('🔍 DEBUG INFO:', {
-            errorName: error.name,
-            errorMessage: error.message,
-            currentUrl: window.location.href,
-            userAgent: navigator.userAgent,
-            timestamp: new Date().toISOString(),
-            retriesLeft: 'Check retry logs above'
-          })
-          // Show the actual error message for debugging
-          setMessage(`Connection issue: ${error.message}. If this persists, please try using a different network or browser.`)
-        }
-      } else if (error.message?.includes('network') || error.name === 'NetworkError') {
-        console.log('🌐 Authentication failed: Network error')
-        setMessage('Connection error. Retrying automatically...')
-      } else if (error.message?.includes('fetch')) {
-        console.log('🌐 Authentication failed: Fetch error')
-        setMessage('Network error. Retrying automatically...')
-      } else if (error.message?.includes('Database operation timeout')) {
-        console.log('🗄️ Authentication failed: Database timeout')
-        setMessage('Registration is taking longer than expected. Please try again.')
-      } else {
-        console.log('❓ Authentication failed: Unknown error -', error.message)
-        setMessage(error.message || 'An unexpected error occurred. Please try again.')
-      }
+
+      if (error) throw error
+
+      setAuthStep('verify')
+      setMessage('Magic link sent! Check your email and click the link to sign in.')
+      setResendCooldown(60)
+    } catch (error: any) {
+      console.error('❌ [AUTH] Magic link error:', error)
+      setMessage(error.message || 'Failed to send magic link. Please try again.')
     } finally {
       setLoading(false)
-      setIsRetrying(false)
-      isSubmitting.current = false
     }
   }
 
-  const handleRoleModalClose = () => {
-    setShowRoleModal(false)
-    // Redirect to verification page even if user closes modal
-    router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+  // WhatsApp OTP send handler
+  const handleWhatsAppSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setMessage('')
+
+    const fullPhone = `${countryCode}${phoneNumber}`
+
+    try {
+      const response = await fetch('/api/auth/send-whatsapp-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber: fullPhone })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) throw new Error(data.error || 'Failed to send OTP')
+
+      setAuthStep('verify')
+      setMessage('OTP sent to your WhatsApp! Enter the 6-digit code.')
+      setResendCooldown(60)
+    } catch (error: any) {
+      console.error('❌ [AUTH] WhatsApp OTP error:', error)
+      setMessage(error.message || 'Failed to send OTP. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
+  // WhatsApp OTP verification handler
+  const handleOTPVerify = async () => {
+    const code = otpCode.join('')
+    if (code.length !== 6) {
+      setMessage('Please enter the complete 6-digit code')
+      return
+    }
+
+    setLoading(true)
+    setMessage('')
+
+    const fullPhone = `${countryCode}${phoneNumber}`
+
+    try {
+      const response = await fetch('/api/auth/verify-whatsapp-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneNumber: fullPhone,
+          otpCode: code
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) throw new Error(data.error || 'Invalid OTP code')
+
+      // Set session from backend
+      if (data.session) {
+        await supabase.auth.setSession(data.session)
+      }
+
+      // Check if user has profile
+      const { data: profileData } = await supabase
+        .from('users')
+        .select('id')
+        .eq('phone_number', fullPhone)
+        .single()
+
+      if (profileData) {
+        // User has profile, redirect to dashboard
+        router.push('/dashboard')
+      } else {
+        // Show role selection modal
+        setShowRoleModal(true)
+      }
+    } catch (error: any) {
+      console.error('❌ [AUTH] OTP verification error:', error)
+      setMessage(error.message || 'Invalid code. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // OTP input handler (auto-advance to next field)
+  const handleOTPChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return // Only allow digits
+
+    const newOTP = [...otpCode]
+    newOTP[index] = value.slice(-1) // Only take last digit
+    setOtpCode(newOTP)
+
+    // Auto-advance to next field
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`)
+      nextInput?.focus()
+    }
+
+    // Auto-verify when all 6 digits entered
+    if (index === 5 && value) {
+      const code = newOTP.join('')
+      if (code.length === 6) {
+        setTimeout(() => handleOTPVerify(), 100)
+      }
+    }
+  }
+
+  // OTP backspace handler
+  const handleOTPKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !otpCode[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-${index - 1}`)
+      prevInput?.focus()
+    }
+  }
+
+  // Resend handler
+  const handleResend = async () => {
+    if (resendCooldown > 0) return
+
+    if (authMethod === 'email') {
+      await handleEmailSubmit({ preventDefault: () => {} } as React.FormEvent)
+    } else if (authMethod === 'whatsapp') {
+      await handleWhatsAppSubmit({ preventDefault: () => {} } as React.FormEvent)
+    }
+  }
+
+  // Role modal handlers
   const handleRoleModalComplete = async (role: string) => {
     setShowRoleModal(false)
-
     console.log('✅ [AUTH] Profile creation completed for role:', role)
-
-    // Check if this is a post-verification flow (user already verified via email)
-    if (isPostVerificationFlow || signedUpUser?.email_confirmed_at) {
-      console.log('✅ [AUTH] User is already verified - redirecting directly to dashboard')
-      setMessage('Profile created successfully! Redirecting to dashboard...')
-      setLoading(true) // Show loading during redirect
-
-      try {
-        // Verify session is active before redirect
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session?.user) {
-          console.log('✅ [AUTH] Session verified, redirecting now')
-          // Force reload to trigger UserContext refresh with new profile
-          // Add new_user flag to help dashboard detect newly registered users
-          window.location.href = '/dashboard?new_user=true'
-        } else {
-          console.log('⚠️ [AUTH] No session found, attempting refresh')
-          await supabase.auth.refreshSession()
-          // Small delay to allow session refresh, then redirect with force reload
-          setTimeout(() => {
-            window.location.href = '/dashboard?new_user=true'
-          }, 500)
-        }
-      } catch (error) {
-        console.error('❌ [AUTH] Error during redirect:', error)
-        setMessage('Profile created successfully! Please refresh the page to continue.')
-        setLoading(false)
-      }
-    } else {
-      // For users who signed up directly (not via email verification)
-      console.log('✅ [AUTH] User needs email verification - switching to login flow')
-      setMessage('Profile created successfully! Please check your email to verify your account, then log in.')
-      setIsLogin(true)
-      setPassword('')
-    }
-
-    // Clear any temporary data
-    setSignedUpUser(null)
+    window.location.href = '/dashboard?new_user=true'
   }
 
-  // Show loading spinner while checking auth state after email verification
-  if (checkingAuthState) {
+  // Reset to start
+  const handleBack = () => {
+    setAuthMethod('select')
+    setAuthStep('input')
+    setMessage('')
+    setOtpCode(['', '', '', '', '', ''])
+  }
+
+  // Render method selection
+  if (authMethod === 'select') {
     return (
       <div className="auth-page cosmic-bg">
         <div className="min-h-screen flex items-center justify-center px-4 py-8">
           <div className="cosmic-card-login">
             <div className="text-center mb-16">
-              <img src="/logo.png" alt="DECODE" className="mx-auto mb-2" style={{height: '40px', filter: 'brightness(0) invert(1)'}} />
+              <img
+                src="/logo.png"
+                alt="DECODE"
+                className="mx-auto mb-2"
+                style={{ height: '40px', filter: 'brightness(0) invert(1)' }}
+              />
               <p className="cosmic-body opacity-70">Make Girls More Beautiful</p>
             </div>
-            <div className="flex flex-col items-center justify-center py-8 space-y-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-              <p className="text-sm text-gray-300">Verifying your account...</p>
+
+            <h2 className="text-2xl font-bold text-white text-center mb-8">
+              Sign in to DECODE
+            </h2>
+
+            <div className="space-y-4">
+              <button
+                onClick={() => setAuthMethod('email')}
+                className="cosmic-btn-primary w-full py-4 text-lg flex items-center justify-center space-x-3"
+                disabled={loading}
+              >
+                <span>📧</span>
+                <span>Continue with Email</span>
+              </button>
+
+              <button
+                onClick={() => setAuthMethod('whatsapp')}
+                className="cosmic-btn-primary w-full py-4 text-lg flex items-center justify-center space-x-3"
+                disabled={loading}
+              >
+                <span>💬</span>
+                <span>Continue with WhatsApp</span>
+              </button>
             </div>
+
+            {message && (
+              <div className={`mt-6 p-3 rounded-lg text-sm text-center ${
+                message.toLowerCase().includes('error')
+                  ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                  : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+              }`}>
+                {message}
+              </div>
+            )}
+
+            <p className="text-center text-sm text-gray-400 mt-8">
+              By continuing, you agree to DECODE's{' '}
+              <a href="/terms" className="text-blue-400 hover:underline">Terms of Service</a>
+              {' '}and{' '}
+              <a href="/privacy" className="text-blue-400 hover:underline">Privacy Policy</a>
+            </p>
           </div>
         </div>
       </div>
     )
   }
 
-  return (
-    <div className="auth-page cosmic-bg">
-      <div className="min-h-screen flex items-center justify-center px-4 py-8">
-        <div className="cosmic-card-login">
-          <div className="text-center mb-16">
-            <img src="/logo.png" alt="DECODE" className="mx-auto mb-2" style={{height: '40px', filter: 'brightness(0) invert(1)'}} />
-            <p className="cosmic-body opacity-70">Make Girls More Beautiful</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="relative">
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={`cosmic-input ${!isLogin && emailError ? 'border-red-500' : ''}`}
-                required
-                disabled={loading}
-              />
-              {!isLogin && checkingEmail && (
-                <div className="absolute -bottom-5 left-0 text-xs text-gray-400">
-                  Checking email...
-                </div>
-              )}
-              {!isLogin && emailError && (
-                <div className="absolute -bottom-5 left-0 text-xs text-red-400">
-                  {emailError}
-                </div>
-              )}
-            </div>
-            <div>
-              <PasswordInput
-                value={password}
-                onChange={setPassword}
-                placeholder="Password"
-                required
-                disabled={loading}
-                showValidation={!isLogin}
-              />
-            </div>
-            
-            {!isLogin && (
-              <div className="flex items-center justify-center space-x-1.5">
-                <input
-                  type="checkbox"
-                  id="auth-terms-agreement"
-                  checked={agreedToTerms}
-                  onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="w-4 h-4 terms-checkbox"
-                  disabled={loading}
+  // Render email magic link flow
+  if (authMethod === 'email') {
+    if (authStep === 'verify') {
+      return (
+        <div className="auth-page cosmic-bg">
+          <div className="min-h-screen flex items-center justify-center px-4 py-8">
+            <div className="cosmic-card-login">
+              <div className="text-center mb-16">
+                <img
+                  src="/logo.png"
+                  alt="DECODE"
+                  className="mx-auto mb-2"
+                  style={{ height: '40px', filter: 'brightness(0) invert(1)' }}
                 />
-                <label htmlFor="auth-terms-agreement" className="terms-text-11px text-gray-300 leading-relaxed text-center">
-                  I agree to the{' '}
-                  <a href="https://welovedecode.com/#terms" target="_blank" rel="noopener noreferrer" className="text-purple-400 underline hover:text-purple-300 transition-colors">
-                    Terms of Service
-                  </a>
-                  {' '}and{' '}
-                  <a href="https://welovedecode.com/#privacy" target="_blank" rel="noopener noreferrer" className="text-purple-400 underline hover:text-purple-300 transition-colors">
-                    Privacy Policy
-                  </a>
-                </label>
+                <p className="cosmic-body opacity-70">Make Girls More Beautiful</p>
               </div>
-            )}
-            
+
+              <div className="text-center mb-8">
+                <div className="text-6xl mb-4">📬</div>
+                <h2 className="text-2xl font-bold text-white mb-2">Check your email</h2>
+                <p className="text-gray-400">
+                  We sent a magic link to <span className="text-white font-medium">{email}</span>
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <button
+                  onClick={handleResend}
+                  disabled={resendCooldown > 0 || loading}
+                  className="cosmic-btn-secondary w-full"
+                >
+                  {resendCooldown > 0
+                    ? `Resend in ${resendCooldown}s`
+                    : 'Resend magic link'}
+                </button>
+
+                <button
+                  onClick={handleBack}
+                  className="text-gray-400 hover:text-white w-full py-2 text-sm"
+                >
+                  ← Back to sign in
+                </button>
+              </div>
+
+              {message && (
+                <div className={`mt-6 p-3 rounded-lg text-sm text-center ${
+                  message.toLowerCase().includes('error')
+                    ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                    : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                }`}>
+                  {message}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="auth-page cosmic-bg">
+        <div className="min-h-screen flex items-center justify-center px-4 py-8">
+          <div className="cosmic-card-login">
+            <div className="text-center mb-16">
+              <img
+                src="/logo.png"
+                alt="DECODE"
+                className="mx-auto mb-2"
+                style={{ height: '40px', filter: 'brightness(0) invert(1)' }}
+              />
+              <p className="cosmic-body opacity-70">Make Girls More Beautiful</p>
+            </div>
+
             <button
-              type="submit"
-              disabled={loading || isSubmitting.current}
-              className="cosmic-button-primary w-full"
+              onClick={handleBack}
+              className="text-gray-400 hover:text-white mb-6 flex items-center space-x-2"
             >
-              {loading ? (isRetrying ? 'Retrying...' : 'Loading...') : (isLogin ? 'Login' : 'Register')}
+              <span>←</span>
+              <span>Back</span>
             </button>
-            
+
+            <h2 className="text-2xl font-bold text-white mb-2">Sign in with Email</h2>
+            <p className="text-gray-400 mb-8">
+              We'll send you a magic link for a password-free sign in.
+            </p>
+
+            <form onSubmit={handleEmailSubmit} className="space-y-6">
+              <div>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="cosmic-input"
+                  required
+                  disabled={loading}
+                  autoComplete="email"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="cosmic-btn-primary w-full py-3"
+                disabled={loading || !email}
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center space-x-2">
+                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                    <span>Sending...</span>
+                  </span>
+                ) : (
+                  'Send magic link'
+                )}
+              </button>
+            </form>
+
             {message && (
-              <div className={`text-center p-3 rounded-lg text-sm ${
-                message.includes('error') || message.includes('Error') 
-                  ? 'text-red-300 bg-red-900/20' 
-                  : 'text-green-300 bg-green-900/20'
+              <div className={`mt-6 p-3 rounded-lg text-sm text-center ${
+                message.toLowerCase().includes('error')
+                  ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                  : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
               }`}>
                 {message}
               </div>
             )}
-            
-            <div className="text-center pt-1">
-              <button
-                type="button"
-                onClick={() => setIsLogin(!isLogin)}
-                className="cosmic-button-secondary"
-              >
-                {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
       </div>
-      
-      <RoleSelectionModal
-        isOpen={showRoleModal}
-        userEmail={email}
-        userId={signedUpUser?.id}  // Pass the user ID directly
-        termsAcceptedAt={new Date().toISOString()}
-        inviteData={inviteData}  // Pass invite data for pre-population
-        preselectedRole={preselectedRole}  // Pass pre-selected role from URL
-        onClose={handleRoleModalClose}
-        onComplete={handleRoleModalComplete}
-      />
-    </div>
-  )
+    )
+  }
+
+  // Render WhatsApp OTP flow
+  if (authMethod === 'whatsapp') {
+    if (authStep === 'verify') {
+      return (
+        <div className="auth-page cosmic-bg">
+          <div className="min-h-screen flex items-center justify-center px-4 py-8">
+            <div className="cosmic-card-login">
+              <div className="text-center mb-16">
+                <img
+                  src="/logo.png"
+                  alt="DECODE"
+                  className="mx-auto mb-2"
+                  style={{ height: '40px', filter: 'brightness(0) invert(1)' }}
+                />
+                <p className="cosmic-body opacity-70">Make Girls More Beautiful</p>
+              </div>
+
+              <div className="text-center mb-8">
+                <div className="text-6xl mb-4">💬</div>
+                <h2 className="text-2xl font-bold text-white mb-2">Enter verification code</h2>
+                <p className="text-gray-400">
+                  We sent a 6-digit code to <span className="text-white font-medium">{countryCode}{phoneNumber}</span>
+                </p>
+              </div>
+
+              <div className="flex justify-center space-x-2 mb-6">
+                {otpCode.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`otp-${index}`}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOTPChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOTPKeyDown(index, e)}
+                    className="w-12 h-14 text-center text-2xl font-bold cosmic-input"
+                    disabled={loading}
+                  />
+                ))}
+              </div>
+
+              <div className="space-y-4">
+                <button
+                  onClick={handleOTPVerify}
+                  className="cosmic-btn-primary w-full py-3"
+                  disabled={loading || otpCode.join('').length !== 6}
+                >
+                  {loading ? (
+                    <span className="flex items-center justify-center space-x-2">
+                      <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                      <span>Verifying...</span>
+                    </span>
+                  ) : (
+                    'Verify code'
+                  )}
+                </button>
+
+                <button
+                  onClick={handleResend}
+                  disabled={resendCooldown > 0 || loading}
+                  className="cosmic-btn-secondary w-full"
+                >
+                  {resendCooldown > 0
+                    ? `Resend in ${resendCooldown}s`
+                    : 'Resend code'}
+                </button>
+
+                <button
+                  onClick={handleBack}
+                  className="text-gray-400 hover:text-white w-full py-2 text-sm"
+                >
+                  ← Back to sign in
+                </button>
+              </div>
+
+              {message && (
+                <div className={`mt-6 p-3 rounded-lg text-sm text-center ${
+                  message.toLowerCase().includes('error')
+                    ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                    : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                }`}>
+                  {message}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="auth-page cosmic-bg">
+        <div className="min-h-screen flex items-center justify-center px-4 py-8">
+          <div className="cosmic-card-login">
+            <div className="text-center mb-16">
+              <img
+                src="/logo.png"
+                alt="DECODE"
+                className="mx-auto mb-2"
+                style={{ height: '40px', filter: 'brightness(0) invert(1)' }}
+              />
+              <p className="cosmic-body opacity-70">Make Girls More Beautiful</p>
+            </div>
+
+            <button
+              onClick={handleBack}
+              className="text-gray-400 hover:text-white mb-6 flex items-center space-x-2"
+            >
+              <span>←</span>
+              <span>Back</span>
+            </button>
+
+            <h2 className="text-2xl font-bold text-white mb-2">Sign in with WhatsApp</h2>
+            <p className="text-gray-400 mb-8">
+              We'll send a verification code to your WhatsApp number.
+            </p>
+
+            <form onSubmit={handleWhatsAppSubmit} className="space-y-6">
+              <div className="flex space-x-2">
+                <select
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  className="cosmic-input w-32"
+                  disabled={loading}
+                >
+                  {COUNTRY_CODES.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.flag} {country.code}
+                    </option>
+                  ))}
+                </select>
+
+                <input
+                  type="tel"
+                  placeholder="Phone number"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                  className="cosmic-input flex-1"
+                  required
+                  disabled={loading}
+                  autoComplete="tel"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="cosmic-btn-primary w-full py-3"
+                disabled={loading || !phoneNumber}
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center space-x-2">
+                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                    <span>Sending...</span>
+                  </span>
+                ) : (
+                  'Send verification code'
+                )}
+              </button>
+            </form>
+
+            {message && (
+              <div className={`mt-6 p-3 rounded-lg text-sm text-center ${
+                message.toLowerCase().includes('error')
+                  ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                  : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+              }`}>
+                {message}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return null
 }
 
 export default function AuthPage() {
   return (
     <Suspense fallback={
       <div className="auth-page cosmic-bg">
-        <div className="min-h-screen flex items-center justify-center px-4 py-8">
-          <div className="cosmic-card-login">
-            <div className="text-center mb-16">
-              <img src="/logo.png" alt="DECODE" className="mx-auto mb-2" style={{height: '40px', filter: 'brightness(0) invert(1)'}} />
-              <p className="cosmic-body opacity-70">Make Girls More Beautiful</p>
-            </div>
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-            </div>
-          </div>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
         </div>
       </div>
     }>
       <AuthPageContent />
+      <RoleSelectionModal
+        isOpen={false}
+        onClose={() => {}}
+        onComplete={async () => {}}
+      />
     </Suspense>
   )
 }
