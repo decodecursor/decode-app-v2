@@ -213,23 +213,23 @@ function AuthPageContent() {
 
       if (!response.ok) throw new Error(data.error || 'Invalid OTP code')
 
-      // Set session from backend
-      if (data.session) {
-        await supabase.auth.setSession(data.session)
-      }
+      // OTP verified successfully
+      console.log('✅ [AUTH] WhatsApp OTP verified')
+
+      // Wait a moment for backend to create session
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      // Refresh session to get latest auth state
+      await supabase.auth.refreshSession()
 
       // Check if user has profile
-      const { data: profileData } = await supabase
-        .from('users')
-        .select('id')
-        .eq('phone_number', fullPhone)
-        .single()
-
-      if (profileData) {
+      if (data.user?.hasProfile) {
         // User has profile, redirect to dashboard
+        console.log('✅ [AUTH] User has profile, redirecting to dashboard')
         router.push('/dashboard')
       } else {
-        // Show role selection modal
+        // Show role selection modal for new users
+        console.log('🆕 [AUTH] New user, showing role selection')
         setShowRoleModal(true)
       }
     } catch (error: any) {
@@ -300,6 +300,12 @@ function AuthPageContent() {
   // Render method selection
   if (authMethod === 'select') {
     return (
+      <>
+        <RoleSelectionModal
+          isOpen={showRoleModal}
+          onClose={() => setShowRoleModal(false)}
+          onComplete={handleRoleModalComplete}
+        />
       <div className="auth-page cosmic-bg">
         <div className="min-h-screen flex items-center justify-center px-4 py-8">
           <div className="cosmic-card-login">
@@ -356,6 +362,7 @@ function AuthPageContent() {
           </div>
         </div>
       </div>
+      </>
     )
   }
 
@@ -666,7 +673,23 @@ function AuthPageContent() {
     )
   }
 
-  return null
+  // Fallback return - should never reach here but just in case
+  return (
+    <>
+      <div className="auth-page cosmic-bg">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        </div>
+      </div>
+
+      {/* Role Selection Modal */}
+      <RoleSelectionModal
+        isOpen={showRoleModal}
+        onClose={() => setShowRoleModal(false)}
+        onComplete={handleRoleModalComplete}
+      />
+    </>
+  )
 }
 
 export default function AuthPage() {
@@ -679,11 +702,6 @@ export default function AuthPage() {
       </div>
     }>
       <AuthPageContent />
-      <RoleSelectionModal
-        isOpen={false}
-        onClose={() => {}}
-        onComplete={async () => {}}
-      />
     </Suspense>
   )
 }

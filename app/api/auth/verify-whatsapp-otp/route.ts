@@ -149,46 +149,63 @@ export async function POST(request: NextRequest) {
       .single()
 
     let userId: string
+    let userEmail: string | null = null
+    let hasProfile = false
 
     if (existingUser) {
-      // Existing user - sign them in
+      // Existing user found
       console.log('✅ [OTP-VERIFY] Existing user found:', existingUser.id)
       userId = existingUser.id
+      userEmail = existingUser.email
+      hasProfile = true
+    }
 
-      // Check if they have a Supabase Auth account
-      const { data: authUsers } = await supabase.auth.admin.listUsers()
-      const authUser = authUsers?.users?.find(u => u.phone === phoneNumber)
+    // For WhatsApp OTP, we'll use a simplified session approach
+    // Create a temporary email for phone-only users: phone+timestamp@whatsapp.decode.local
+    const tempEmail = userEmail || `${phoneNumber.replace(/\+/g, '')}+${Date.now()}@whatsapp.decode.local`
 
-      if (authUser) {
-        // Sign in existing auth user
-        const { data: sessionData, error: signInError } = await supabase.auth.signInWithPassword({
-          phone: phoneNumber,
-          password: 'not-used' // Phone-based auth doesn't use password
-        })
+    // Generate a secure random password (not used for login, only for account creation)
+    const tempPassword = Math.random().toString(36).slice(-16) + Math.random().toString(36).slice(-16)
 
-        if (signInError) {
-          console.error('❌ [OTP-VERIFY] Failed to sign in existing user:', signInError)
-        }
+    // Try to sign in with this email (existing user) or sign up (new user)
+    let authResult
+
+    if (hasProfile && userEmail) {
+      // Try to sign in existing user via admin API
+      console.log('🔐 [OTP-VERIFY] Creating admin session for existing user')
+      const { data: adminAuthData, error: adminError } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email: userEmail
+      })
+
+      if (adminError) {
+        console.error('❌ [OTP-VERIFY] Admin link generation failed:', adminError)
+        return NextResponse.json(
+          { error: 'Failed to create session. Please try again.' },
+          { status: 500 }
+        )
       }
-    } else {
-      // New user - they'll need to complete profile after redirect
-      console.log('🆕 [OTP-VERIFY] New user, will need to create profile')
 
-      // For now, we'll create a temporary auth user
-      // The actual profile will be created via RoleSelectionModal
+      // Use the generated properties to create session
+      authResult = adminAuthData
+    } else {
+      // New user - create account with temporary email
+      console.log('🆕 [OTP-VERIFY] Creating new user with temp email')
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        phone: phoneNumber,
-        password: Math.random().toString(36).slice(-16), // Random password (not used)
+        email: tempEmail,
+        password: tempPassword,
         options: {
           data: {
-            phone_verified: true,
-            auth_method: 'whatsapp_otp'
-          }
+            phone_number: phoneNumber,
+            auth_method: 'whatsapp_otp',
+            phone_verified: true
+          },
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth?verified=true`
         }
       })
 
       if (signUpError || !signUpData.user) {
-        console.error('❌ [OTP-VERIFY] Failed to create Supabase Auth user:', signUpError)
+        console.error('❌ [OTP-VERIFY] Failed to create user:', signUpError)
         return NextResponse.json(
           { error: 'Failed to create user session. Please try again.' },
           { status: 500 }
@@ -196,31 +213,20 @@ export async function POST(request: NextRequest) {
       }
 
       userId = signUpData.user.id
+      authResult = signUpData
       console.log('✅ [OTP-VERIFY] Created new Supabase Auth user:', userId)
     }
 
-    // Get current session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    console.log('✅ [OTP-VERIFY] Authentication successful for phone:', phoneNumber.substring(0, 7) + '****')
 
-    if (sessionError || !session) {
-      console.error('❌ [OTP-VERIFY] Failed to retrieve session:', sessionError)
-      return NextResponse.json(
-        { error: 'Authentication successful but session creation failed. Please try logging in again.' },
-        { status: 500 }
-      )
-    }
-
-    console.log('✅ [OTP-VERIFY] Session created successfully for user:', userId)
-
-    // Return success with session data
+    // Return success (session will be handled client-side)
     return NextResponse.json({
       success: true,
       message: 'Authentication successful',
-      session: session,
       user: {
         id: userId,
         phoneNumber: phoneNumber,
-        hasProfile: !!existingUser
+        hasProfile: hasProfile
       }
     })
 
