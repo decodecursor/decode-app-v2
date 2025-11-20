@@ -38,6 +38,7 @@ function AuthPageContent() {
   const [showRoleModal, setShowRoleModal] = useState(false)
   const [inviteData, setInviteData] = useState<any>(null)
   const [preselectedRole, setPreselectedRole] = useState<string | null>(null)
+  const [authenticatedEmail, setAuthenticatedEmail] = useState('')
 
   // Auto-hide messages after 5 seconds
   useEffect(() => {
@@ -108,6 +109,11 @@ function AuthPageContent() {
       if (user && user.email_confirmed_at) {
         console.log('✅ [AUTH] Found verified user:', user.id)
 
+        // Store user email for role modal
+        if (user.email) {
+          setAuthenticatedEmail(user.email)
+        }
+
         // Check if user has a profile
         const { data: profileData } = await supabase
           .from('users')
@@ -144,6 +150,9 @@ function AuthPageContent() {
       })
 
       if (error) throw error
+
+      // Store email for role modal
+      setAuthenticatedEmail(email)
 
       setAuthStep('verify')
       setMessage('Magic link sent! Check your email and click the link to sign in.')
@@ -215,6 +224,9 @@ function AuthPageContent() {
 
       // OTP verified successfully
       console.log('✅ [AUTH] WhatsApp OTP verified')
+
+      // Store phone as placeholder email for role modal
+      setAuthenticatedEmail(`${fullPhone}@whatsapp.user`)
 
       // Wait a moment for backend to create session
       await new Promise(resolve => setTimeout(resolve, 500))
@@ -303,6 +315,10 @@ function AuthPageContent() {
       <>
         <RoleSelectionModal
           isOpen={showRoleModal}
+          userEmail={authenticatedEmail || email}
+          termsAcceptedAt={new Date().toISOString()}
+          inviteData={inviteData}
+          preselectedRole={preselectedRole}
           onClose={() => setShowRoleModal(false)}
           onComplete={handleRoleModalComplete}
         />
@@ -685,6 +701,10 @@ function AuthPageContent() {
       {/* Role Selection Modal */}
       <RoleSelectionModal
         isOpen={showRoleModal}
+        userEmail={authenticatedEmail || email}
+        termsAcceptedAt={new Date().toISOString()}
+        inviteData={inviteData}
+        preselectedRole={preselectedRole}
         onClose={() => setShowRoleModal(false)}
         onComplete={handleRoleModalComplete}
       />
