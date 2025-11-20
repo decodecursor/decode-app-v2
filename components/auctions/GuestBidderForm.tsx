@@ -21,6 +21,23 @@ interface GuestBidderFormProps {
   isLoading?: boolean;
 }
 
+/**
+ * Format phone number to UAE format: XX XXX XXXX
+ */
+const formatUAEPhoneNumber = (value: string): string => {
+  // Remove all non-numeric characters
+  const cleaned = value.replace(/\D/g, '');
+
+  // Apply UAE format: XX XXX XXXX
+  if (cleaned.length <= 2) {
+    return cleaned;
+  } else if (cleaned.length <= 5) {
+    return `${cleaned.slice(0, 2)} ${cleaned.slice(2)}`;
+  } else {
+    return `${cleaned.slice(0, 2)} ${cleaned.slice(2, 5)} ${cleaned.slice(5, 9)}`;
+  }
+};
+
 export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = false }: GuestBidderFormProps) {
   const GUEST_BIDDER_STORAGE_KEY = `decode_guest_bidder_${auctionId}`;
   const [name, setName] = useState('');
@@ -230,7 +247,8 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
                 id="whatsapp-number"
                 value={whatsappNumber}
                 onChange={(e) => {
-                  setWhatsappNumber(e.target.value);
+                  const formatted = formatUAEPhoneNumber(e.target.value);
+                  setWhatsappNumber(formatted);
                   if (errors.contact) setErrors({ ...errors, contact: undefined });
                 }}
                 className={`flex-1 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 ${

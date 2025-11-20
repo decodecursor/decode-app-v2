@@ -78,8 +78,9 @@ export interface AuctionWithCreator extends Auction {
   creator: {
     id: string;
     email: string;
-    full_name?: string;
+    user_name?: string;
     role: string;
+    profile_photo_url?: string;
   };
 }
 

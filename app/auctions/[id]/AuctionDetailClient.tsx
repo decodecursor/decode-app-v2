@@ -195,8 +195,32 @@ export default function AuctionDetailClient() {
           )}
 
           <div className="flex items-start justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-xl sm:text-3xl font-bold text-gray-900 break-words">{auction.title}</h1>
+            {/* Left side: Profile Image + Title */}
+            <div className="flex items-start gap-3 flex-1 min-w-0">
+              {/* Creator Profile Image */}
+              <div className="flex-shrink-0">
+                {(auction as any).creator?.profile_photo_url ? (
+                  <img
+                    src={(auction as any).creator.profile_photo_url}
+                    alt={(auction as any).creator.user_name || 'Creator'}
+                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-gray-200"
+                  />
+                ) : (
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300">
+                    <svg className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+
+              {/* Title and Creator Name */}
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl sm:text-3xl font-bold text-gray-900 break-words">{auction.title}</h1>
+                <p className="text-gray-500 text-xs sm:text-sm mt-[3px]">
+                  for {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
+                </p>
+              </div>
             </div>
 
             {/* Status Badge and Action Buttons */}
@@ -268,11 +292,8 @@ export default function AuctionDetailClient() {
               )}
             </div>
           </div>
-          <p className="text-gray-500 text-xs sm:text-sm mt-[3px] mb-2">
-            for {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
-          </p>
           {auction.description && (
-            <p className="text-gray-600 text-sm sm:text-lg">{auction.description}</p>
+            <p className="text-gray-600 text-sm sm:text-lg mt-3">{auction.description}</p>
           )}
         </div>
       </div>

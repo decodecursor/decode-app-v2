@@ -55,7 +55,7 @@ export function InstagramUsernameForm({ onSubmit, onSkip, isLoading = false }: I
       {/* Instagram Username Input */}
       <div>
         <label htmlFor="instagram-username" className="block text-xs font-medium text-gray-700 mb-1">
-          Your Instagram Username <span className="text-gray-500 font-normal">(Optional)</span>
+          Your Instagram Username <span className="text-gray-500 font-normal">(for Leaderboard; Optional)</span>
         </label>
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">@</span>

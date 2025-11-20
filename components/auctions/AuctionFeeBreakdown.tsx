@@ -95,17 +95,6 @@ export function AuctionFeeBreakdown({
             * These are estimated earnings based on the current highest bid. Final earnings will be calculated when the auction closes.
           </p>
         )}
-
-        {/* Calculation Example */}
-        {isCompleted && profit > 0 && (
-          <div className="mt-4 p-3 bg-gray-50 rounded-md text-xs text-gray-600">
-            <p className="font-medium mb-1">Calculation:</p>
-            <p>Beauty Service Cost: {formatCurrency(auctionStartPrice)}</p>
-            <p>Profit: {formatCurrency(currentBid)} - {formatCurrency(auctionStartPrice)} = {formatCurrency(profit)}</p>
-            <p>DECODE Fee: {formatCurrency(profit)} × 25% = {formatCurrency(decodeFee)}</p>
-            <p>Your Earnings: {formatCurrency(profit)} - {formatCurrency(decodeFee)} = {formatCurrency(modelEarnings)}</p>
-          </div>
-        )}
       </div>
     </div>
   );

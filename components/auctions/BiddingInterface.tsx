@@ -41,6 +41,8 @@ export function BiddingInterface({
   const [bidId, setBidId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isRepeatBidder, setIsRepeatBidder] = useState(false);
+  const [isCheckingPreviousBids, setIsCheckingPreviousBids] = useState(false);
 
   const currentPrice = Number(auction.auction_current_price);
   const startPrice = Number(auction.auction_start_price);
@@ -49,6 +51,43 @@ export function BiddingInterface({
   // Check if auction is still active
   const isAuctionActive =
     auction.status === 'active' && new Date(auction.end_time) > new Date();
+
+  // Check for previous bids on mount
+  useEffect(() => {
+    const checkPreviousBids = async () => {
+      if (!userEmail && !guestInfo?.email) return;
+
+      setIsCheckingPreviousBids(true);
+
+      try {
+        const email = userEmail || guestInfo?.email;
+        if (!email) return;
+
+        const response = await fetch(`/api/auctions/${auction.id}/user-bids?email=${encodeURIComponent(email)}`);
+
+        if (response.ok) {
+          const data = await response.json();
+
+          if (data.bids && data.bids.length > 0) {
+            // User has bid before on this auction
+            setIsRepeatBidder(true);
+
+            // Get Instagram username from most recent bid
+            const mostRecentBid = data.bids[0];
+            if (mostRecentBid.bidder_instagram_username) {
+              setInstagramUsername(mostRecentBid.bidder_instagram_username);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error checking previous bids:', err);
+      } finally {
+        setIsCheckingPreviousBids(false);
+      }
+    };
+
+    checkPreviousBids();
+  }, [auction.id, userEmail, guestInfo?.email]);
 
   // Handle bid amount submission
   const handleAmountSubmit = async (e: React.FormEvent) => {
@@ -60,6 +99,13 @@ export function BiddingInterface({
     // Validate amount
     if (isNaN(amount) || amount < minimumBid) {
       setError(`Minimum bid is ${formatBidAmount(minimumBid)}`);
+      return;
+    }
+
+    // If user is logged in and is a repeat bidder, skip directly to payment
+    if (userEmail && userName && isRepeatBidder) {
+      // Create bid with saved Instagram username (if any)
+      await createBid(userName, 'email', userEmail, undefined, amount, instagramUsername);
       return;
     }
 
@@ -79,6 +125,35 @@ export function BiddingInterface({
     whatsappNumber?: string;
   }) => {
     setGuestInfo(info);
+
+    // Check if this guest has bid before on this auction
+    const email = info.contactMethod === 'email' ? info.email : `whatsapp:${info.whatsappNumber}`;
+    if (email) {
+      try {
+        const response = await fetch(`/api/auctions/${auction.id}/user-bids?email=${encodeURIComponent(email)}`);
+        if (response.ok) {
+          const data = await response.json();
+
+          if (data.bids && data.bids.length > 0) {
+            // Guest has bid before - use saved Instagram and skip to payment
+            setIsRepeatBidder(true);
+
+            const mostRecentBid = data.bids[0];
+            const savedInstagram = mostRecentBid.bidder_instagram_username;
+            setInstagramUsername(savedInstagram);
+
+            // Skip Instagram step and go directly to payment
+            const amount = parseFloat(bidAmount);
+            await createBid(info.name, info.contactMethod, info.email, info.whatsappNumber, amount, savedInstagram);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Error checking guest previous bids:', err);
+      }
+    }
+
+    // New guest bidder - show Instagram form
     setStep('instagram');
   };
 
