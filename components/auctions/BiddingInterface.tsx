@@ -34,6 +34,25 @@ function formatWhatsAppNumber(number: string): string {
   return number;
 }
 
+// Load guest bidder info from localStorage cache
+function loadGuestInfoFromCache(auctionId: string): {
+  name: string;
+  contactMethod: 'whatsapp' | 'email';
+  email?: string;
+  whatsappNumber?: string;
+} | null {
+  try {
+    const cacheKey = `decode_guest_bidder_${auctionId}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (error) {
+    console.error('Error loading guest info from cache:', error);
+  }
+  return null;
+}
+
 interface BiddingInterfaceProps {
   auction: Auction;
   userEmail?: string;
@@ -125,6 +144,21 @@ export function BiddingInterface({
     if (userEmail && userName && isRepeatBidder) {
       // Create bid with saved Instagram username (if any)
       await createBid(userName, 'email', userEmail, undefined, amount, instagramUsername);
+      return;
+    }
+
+    // If guest info is cached and user is a repeat bidder, skip directly to payment
+    if (!userEmail && guestInfo && isRepeatBidder) {
+      console.log('✨ [BiddingInterface] Repeat guest bidder detected, skipping forms');
+      // Create bid with cached guest info and Instagram username
+      await createBid(
+        guestInfo.name,
+        guestInfo.contactMethod,
+        guestInfo.email,
+        guestInfo.whatsappNumber,
+        amount,
+        instagramUsername
+      );
       return;
     }
 
@@ -287,11 +321,25 @@ export function BiddingInterface({
   const handleReset = () => {
     setStep('amount');
     setBidAmount('');
-    setGuestInfo(null);
-    setInstagramUsername(undefined);
     setClientSecret(null);
     setBidId(null);
     setError(null);
+
+    // For guest bidders: Load cached data from localStorage
+    if (!userEmail) {
+      const cachedGuestInfo = loadGuestInfoFromCache(auction.id);
+      if (cachedGuestInfo) {
+        console.log('💾 [BiddingInterface] Loaded cached guest info for consecutive bid');
+        setGuestInfo(cachedGuestInfo);
+        // Don't reset Instagram username - will be checked by repeat bidder logic
+      } else {
+        setGuestInfo(null);
+        setInstagramUsername(undefined);
+      }
+    } else {
+      setGuestInfo(null);
+      setInstagramUsername(undefined);
+    }
   };
 
   if (!isAuctionActive) {

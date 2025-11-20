@@ -162,7 +162,7 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
     }
   }, [visibilityChangeCount, fetchLeaderboard]);
 
-  // Polling fallback: Poll every 15 seconds if realtime appears stale
+  // Polling fallback: Poll every 30 seconds if realtime appears stale
   useEffect(() => {
     const pollingInterval = setInterval(() => {
       const timeSinceLastEvent = Date.now() - lastRealtimeEvent;
@@ -173,7 +173,7 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
         console.log('🔄 [useLeaderboard] No realtime events for 30s, polling for updates...');
         fetchLeaderboard();
       }
-    }, 15000); // Check every 15 seconds
+    }, 30000); // Check every 30 seconds
 
     return () => clearInterval(pollingInterval);
   }, [lastRealtimeEvent, fetchLeaderboard]);
