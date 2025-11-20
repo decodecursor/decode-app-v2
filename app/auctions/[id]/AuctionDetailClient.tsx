@@ -199,19 +199,20 @@ export default function AuctionDetailClient() {
             <div className="flex items-start gap-3 flex-1 min-w-0">
               {/* Creator Profile Image */}
               <div className="flex-shrink-0">
-                {(auction as any).creator?.profile_photo_url ? (
-                  <img
-                    src={(auction as any).creator.profile_photo_url}
-                    alt={(auction as any).creator.user_name || 'Creator'}
-                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-gray-200"
-                  />
-                ) : (
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300">
-                    <svg className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                  </div>
-                )}
+                <div className="instagram-avatar w-12 h-12 sm:w-16 sm:h-16">
+                  {(auction as any).creator?.profile_photo_url ? (
+                    <img
+                      src={(auction as any).creator.profile_photo_url}
+                      alt={(auction as any).creator.user_name || 'Creator'}
+                    />
+                  ) : (
+                    <div className="avatar-fallback">
+                      <svg className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Title and Creator Name */}
