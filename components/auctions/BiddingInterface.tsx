@@ -335,7 +335,7 @@ export function BiddingInterface({
             )}
             {instagramUsername && (
               <p className="text-sm text-blue-700 mt-1">
-                Instagram: <span className="font-semibold">@{instagramUsername}</span>
+                Instagram: <span className="font-semibold">{instagramUsername}</span>
               </p>
             )}
           </div>

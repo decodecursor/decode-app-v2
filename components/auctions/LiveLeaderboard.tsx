@@ -61,7 +61,7 @@ function AlternatingTimeUsername({
             rel="noopener noreferrer"
             className="hover:text-pink-600 hover:underline transition-colors"
           >
-            @{instagramUsername}
+            {instagramUsername}
           </a>
         </>
       ) : (
