@@ -15,6 +15,25 @@ import type { Auction } from '@/lib/models/Auction.model';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
+// Format WhatsApp number for display (e.g., +971554275547 -> +971 55 427 5547)
+function formatWhatsAppNumber(number: string): string {
+  // Remove all spaces first
+  const cleaned = number.replace(/\s/g, '');
+
+  // Check if it's a UAE number (+971)
+  if (cleaned.startsWith('+971')) {
+    // Format as: +971 55 427 5547
+    const countryCode = cleaned.substring(0, 4); // +971
+    const part1 = cleaned.substring(4, 6); // 55
+    const part2 = cleaned.substring(6, 9); // 427
+    const part3 = cleaned.substring(9); // 5547
+    return `${countryCode} ${part1} ${part2} ${part3}`;
+  }
+
+  // Return as-is for other formats
+  return number;
+}
+
 interface BiddingInterfaceProps {
   auction: Auction;
   userEmail?: string;
@@ -373,8 +392,8 @@ export function BiddingInterface({
                 </p>
                 <p className="text-sm text-blue-700 mt-1">
                   {guestInfo.contactMethod === 'whatsapp' ? 'WhatsApp' : 'Email'}:
-                  <span className="font-semibold ml-1 no-underline">
-                    {guestInfo.contactMethod === 'whatsapp' ? guestInfo.whatsappNumber : guestInfo.email}
+                  <span className="font-semibold ml-1" style={{ textDecoration: 'none' }}>
+                    {guestInfo.contactMethod === 'whatsapp' ? formatWhatsAppNumber(guestInfo.whatsappNumber!) : guestInfo.email}
                   </span>
                 </p>
               </>
@@ -402,8 +421,8 @@ export function BiddingInterface({
                 </p>
                 <p className="text-sm text-blue-700 mt-1">
                   {guestInfo.contactMethod === 'whatsapp' ? 'WhatsApp' : 'Email'}:
-                  <span className="font-semibold ml-1 no-underline">
-                    {guestInfo.contactMethod === 'whatsapp' ? guestInfo.whatsappNumber : guestInfo.email}
+                  <span className="font-semibold ml-1" style={{ textDecoration: 'none' }}>
+                    {guestInfo.contactMethod === 'whatsapp' ? formatWhatsAppNumber(guestInfo.whatsappNumber!) : guestInfo.email}
                   </span>
                 </p>
               </>

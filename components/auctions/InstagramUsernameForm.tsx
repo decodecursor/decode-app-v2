@@ -80,7 +80,7 @@ export function InstagramUsernameForm({ onSubmit, onSkip, isLoading = false }: I
         </div>
         {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
         <p className="mt-1 text-[10px] text-gray-500">
-          Display your Instagram on the leaderboard for others to click and view
+          We link your Instagram on the leaderboard for others to click and visit your profile
         </p>
       </div>
 

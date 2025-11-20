@@ -35,16 +35,22 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       images: [
         {
           url: 'https://app.welovedecode.com/logonew.png',
+          secureUrl: 'https://app.welovedecode.com/logonew.png',
           width: 1200,
           height: 630,
           alt: 'DECODE - Make Girls More Beautiful',
+          type: 'image/png',
         }
       ],
     },
     twitter: {
       card: 'summary_large_image',
       title: "It's Auction Time",
-      images: ['https://app.welovedecode.com/logonew.png'],
+      description: 'Bid on live auctions',
+      images: {
+        url: 'https://app.welovedecode.com/logonew.png',
+        alt: 'DECODE - Make Girls More Beautiful',
+      },
     },
   };
 
@@ -66,9 +72,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         images: [
           {
             url: 'https://app.welovedecode.com/logonew.png',
+            secureUrl: 'https://app.welovedecode.com/logonew.png',
             width: 1200,
             height: 630,
             alt: 'DECODE - Make Girls More Beautiful',
+            type: 'image/png',
           }
         ],
       },
@@ -76,7 +84,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         card: 'summary_large_image',
         title: personalizedTitle,
         description: personalizedDescription,
-        images: ['https://app.welovedecode.com/logonew.png'],
+        images: {
+          url: 'https://app.welovedecode.com/logonew.png',
+          alt: 'DECODE - Make Girls More Beautiful',
+        },
       },
     };
   }

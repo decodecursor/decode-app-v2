@@ -125,10 +125,29 @@ export default function AuctionDetailClient() {
 
   // Combined refresh for both auction and leaderboard after bid placement
   const handleBidPlaced = async () => {
+    console.log('💰 [AuctionDetail] Bid placed, refreshing data...');
+
+    // Immediate refresh
     await Promise.all([
       refresh(),
       refreshLeaderboard()
     ]);
+
+    // Second refresh after 2 seconds to catch database updates
+    // This ensures we get the updated data even if the first refresh was too quick
+    setTimeout(async () => {
+      console.log('💰 [AuctionDetail] Secondary refresh after bid...');
+      await Promise.all([
+        refresh(),
+        refreshLeaderboard()
+      ]);
+    }, 2000);
+
+    // Third refresh after 5 seconds as final fallback
+    setTimeout(async () => {
+      console.log('💰 [AuctionDetail] Final refresh after bid...');
+      await refreshLeaderboard();
+    }, 5000);
   };
 
   // Cancel auction

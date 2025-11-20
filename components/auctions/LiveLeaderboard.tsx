@@ -153,7 +153,7 @@ export function LiveLeaderboard({
               >
                 <div className="flex items-center gap-3">
                   {/* Rank */}
-                  <div className="flex-shrink-0 w-8">
+                  <div className="flex-shrink-0 w-8 text-center">
                     {entry.rank === 1 ? (
                       <span className="text-xl">🥇</span>
                     ) : entry.rank === 2 ? (

@@ -25,6 +25,7 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
   const [stats, setStats] = useState<LeaderboardStats | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastRealtimeEvent, setLastRealtimeEvent] = useState<number>(Date.now());
   const { visibilityChangeCount } = usePageVisibility();
 
   // Fetch initial leaderboard data
@@ -104,6 +105,9 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
   // Handle new bid event
   const handleBidEvent = useCallback(
     (event: BidEvent) => {
+      // Record that we received a realtime event
+      setLastRealtimeEvent(Date.now());
+
       if (event.type === 'new_bid') {
         // Add new bid to list
         setAllBids((prev) => {
@@ -157,6 +161,33 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
       fetchLeaderboard();
     }
   }, [visibilityChangeCount, fetchLeaderboard]);
+
+  // Polling fallback: Poll every 15 seconds if realtime appears stale
+  useEffect(() => {
+    const pollingInterval = setInterval(() => {
+      const timeSinceLastEvent = Date.now() - lastRealtimeEvent;
+
+      // If we haven't received a realtime event in 30+ seconds, fetch from API
+      // This covers cases where WebSocket is disconnected or stale
+      if (timeSinceLastEvent > 30000) {
+        console.log('🔄 [useLeaderboard] No realtime events for 30s, polling for updates...');
+        fetchLeaderboard();
+      }
+    }, 15000); // Check every 15 seconds
+
+    return () => clearInterval(pollingInterval);
+  }, [lastRealtimeEvent, fetchLeaderboard]);
+
+  // Window focus listener: Refresh when user returns to tab (all browsers)
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('👁️ [useLeaderboard] Window focused, refreshing leaderboard...');
+      fetchLeaderboard();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [fetchLeaderboard]);
 
   // Get user's rank
   const userRank = leaderboard.find((entry) => entry.is_current_user)?.rank || null;
