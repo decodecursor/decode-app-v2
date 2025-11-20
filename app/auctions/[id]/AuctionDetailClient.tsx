@@ -199,7 +199,7 @@ export default function AuctionDetailClient() {
             <div className="flex items-start gap-3 flex-1 min-w-0">
               {/* Creator Profile Image */}
               <div className="flex-shrink-0">
-                <div className="instagram-avatar w-12 h-12 sm:w-16 sm:h-16">
+                <div className="instagram-avatar">
                   {(auction as any).creator?.profile_photo_url ? (
                     <img
                       src={(auction as any).creator.profile_photo_url}
