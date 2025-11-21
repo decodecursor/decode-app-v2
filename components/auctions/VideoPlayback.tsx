@@ -57,7 +57,7 @@ export function VideoPlayback({ auctionId, className = '' }: VideoPlaybackProps)
     return (
       <div className={`bg-white border border-gray-200 rounded-lg p-8 text-center ${className}`}>
         <svg
-          className="mx-auto w-12 h-12 text-purple-600 mb-3"
+          className="mx-auto w-12 h-12 text-gray-600 mb-3"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -70,7 +70,7 @@ export function VideoPlayback({ auctionId, className = '' }: VideoPlaybackProps)
           />
         </svg>
         <p className="text-lg font-medium text-gray-600 mb-2">Waiting for Winner to upload Video</p>
-        <p className="text-sm text-purple-600">Video will appear here once uploaded</p>
+        <p className="text-sm text-gray-600">Video will appear here once uploaded</p>
       </div>
     );
   }

@@ -99,7 +99,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
         <button
           onClick={handleShare}
           className={`absolute bottom-4 right-4 cosmic-button-secondary text-xs px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-white/10 z-10 ${
-            shareSuccess ? 'bg-green-500/20 text-green-400 border-green-500' : ''
+            shareSuccess ? 'bg-gray-500/20 text-gray-600 border-gray-500' : ''
           }`}
           title="Share auction"
         >
