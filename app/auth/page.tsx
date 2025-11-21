@@ -370,7 +370,7 @@ function AuthPageContent() {
 
               <button
                 onClick={handleWhatsAppSubmit}
-                className={`w-full py-4 text-lg rounded-lg font-medium transition-all ${
+                className={`w-full py-3 text-lg rounded-lg font-medium transition-all ${
                   phoneNumber
                     ? 'bg-purple-600 hover:bg-purple-700'
                     : 'bg-gradient-to-br from-gray-700 to-black hover:bg-purple-600'
@@ -409,7 +409,7 @@ function AuthPageContent() {
 
               <button
                 onClick={handleEmailSubmit}
-                className={`w-full py-4 text-lg rounded-lg font-medium transition-all ${
+                className={`w-full py-3 text-lg rounded-lg font-medium transition-all ${
                   email
                     ? 'bg-purple-600 hover:bg-purple-700'
                     : 'bg-gradient-to-br from-gray-700 to-black hover:bg-purple-600'
