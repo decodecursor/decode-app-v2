@@ -8,7 +8,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
-import { CreateAuctionModal } from '@/components/auctions/CreateAuctionModal';
 import { AuctionCard } from '@/components/auctions/AuctionCard';
 import type { Auction } from '@/lib/models/Auction.model';
 import { isAuctionActive } from '@/lib/models/Auction.model';
@@ -18,7 +17,6 @@ export default function AuctionsDashboardPage() {
   const router = useRouter();
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
@@ -70,10 +68,6 @@ export default function AuctionsDashboardPage() {
     }
   };
 
-  const handleAuctionCreated = (auctionId: string) => {
-    router.push(`/auctions/${auctionId}`);
-  };
-
   if (!userRole) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -102,7 +96,7 @@ export default function AuctionsDashboardPage() {
             <h1 className="text-[32px] md:text-3xl font-bold text-white">My Auctions</h1>
           </div>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => router.push('/auctions/create')}
             className="px-4 py-2 bg-purple-600 text-white font-medium text-sm rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
           >
             Create Auction
@@ -188,7 +182,7 @@ export default function AuctionsDashboardPage() {
           <h3 className="text-lg font-medium text-gray-900 mb-2">No auctions yet</h3>
           <p className="text-gray-600 mb-6">Create your first auction to get started</p>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => router.push('/auctions/create')}
             className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -209,13 +203,6 @@ export default function AuctionsDashboardPage() {
           ))}
         </div>
       )}
-
-      {/* Create Auction Modal */}
-      <CreateAuctionModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={handleAuctionCreated}
-      />
     </div>
   );
 }
