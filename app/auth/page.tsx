@@ -439,11 +439,11 @@ function AuthPageContent() {
             )}
 
             {/* Terms and Privacy */}
-            <p className="text-center text-xs text-white opacity-70 mt-8">
+            <p className="text-center text-white opacity-70 mt-8" style={{ fontSize: '11px' }}>
               By continuing, you agree to DECODE's<br />
-              <a href="https://welovedecode.com/#terms" className="text-purple-400 hover:underline">Terms of Service</a>
+              <a href="https://welovedecode.com/#terms" className="hover:underline">Terms of Service</a>
               {' '}and{' '}
-              <a href="https://welovedecode.com/#privacy" className="text-purple-400 hover:underline">Privacy Policy</a>.
+              <a href="https://welovedecode.com/#privacy" className="hover:underline">Privacy Policy</a>.
             </p>
           </div>
         </div>
