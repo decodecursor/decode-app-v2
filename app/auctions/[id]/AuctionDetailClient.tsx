@@ -113,11 +113,14 @@ export default function AuctionDetailClient() {
     }
   };
 
-  // Refresh auction data with visual feedback
+  // Refresh auction data and leaderboard with visual feedback
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      await refresh();
+      await Promise.all([
+        refresh(),
+        refreshLeaderboard()
+      ]);
     } finally {
       // Keep the loading state for a brief moment for visual feedback
       setTimeout(() => setIsRefreshing(false), 500);
