@@ -271,7 +271,7 @@ input[type="number"] {
 /* Enhanced desktop dropdown styling to match mobile professionalism */
 @media (min-width: 768px) {
   select.cosmic-input {
-    border-width: 2px;
+    border-width: 1px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     padding: 10px 12px;
   }
