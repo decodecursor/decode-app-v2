@@ -194,7 +194,7 @@ export default function AuctionDetailClient() {
     <div
       className="min-h-screen"
       style={{
-        backgroundImage: 'url(/Pattern.jpg)',
+        backgroundImage: 'url(/Pattern.jpeg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed',
