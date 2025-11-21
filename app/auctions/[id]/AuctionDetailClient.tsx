@@ -192,15 +192,23 @@ export default function AuctionDetailClient() {
 
   return (
     <div
-      className="min-h-screen"
+      className="min-h-screen relative"
       style={{
-        backgroundImage: 'url(/Pattern.jpeg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
         backgroundColor: '#F9FAFB'
       }}
     >
+      {/* Background layer with opacity */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: 'url(/Pattern.jpeg)',
+          backgroundSize: '50%',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'repeat',
+          opacity: 0.5
+        }}
+      />
+
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
