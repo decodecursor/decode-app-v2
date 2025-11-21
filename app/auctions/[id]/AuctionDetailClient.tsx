@@ -219,7 +219,7 @@ export default function AuctionDetailClient() {
             <div className="flex items-center gap-4 mb-4">
               <button
                 onClick={() => router.back()}
-                className="text-gray-600 hover:text-gray-900 flex items-center gap-[5px]"
+                className="text-gray-600 hover:text-gray-900 flex items-center gap-[4px]"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -257,8 +257,8 @@ export default function AuctionDetailClient() {
 
               {/* Title and Creator Name */}
               <div className="flex-1 min-w-0">
-                <h1 className="text-xl sm:text-3xl font-bold text-gray-900 break-words">{auction.title}</h1>
-                <p className="text-gray-500 text-xs sm:text-sm mt-[3px]">
+                <h1 className="text-[26px] sm:text-[36px] font-bold text-gray-900 break-words">{auction.title}</h1>
+                <p className="text-gray-500 text-[14px] sm:text-[20px] mt-[3px]">
                   for {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
                 </p>
               </div>
