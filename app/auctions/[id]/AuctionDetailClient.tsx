@@ -234,9 +234,9 @@ export default function AuctionDetailClient() {
             </div>
           )}
 
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center justify-between gap-2">
             {/* Left side: Profile Image + Title */}
-            <div className="flex items-start gap-3 flex-1 min-w-0">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
               {/* Creator Profile Image */}
               <div className="flex-shrink-0">
                 {(auction as any).creator?.instagram_handle ? (
