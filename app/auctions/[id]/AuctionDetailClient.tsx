@@ -18,6 +18,7 @@ import { BiddingInterface } from '@/components/auctions/BiddingInterface';
 import { WinnerNotification } from '@/components/auctions/WinnerNotification';
 import { VideoPlayback } from '@/components/auctions/VideoPlayback';
 import { AuctionFeeBreakdown } from '@/components/auctions/AuctionFeeBreakdown';
+import { HistoricalLeaderboards } from '@/components/auctions/HistoricalLeaderboards';
 import { formatBidAmount } from '@/lib/models/Bid.model';
 import { createClient } from '@/utils/supabase/client';
 import HeartAnimation from '@/components/effects/HeartAnimation';
@@ -190,7 +191,16 @@ export default function AuctionDetailClient() {
   const hasBids = auction.total_bids > 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundImage: 'url(/Pattern.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        backgroundColor: '#F9FAFB'
+      }}
+    >
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -432,6 +442,10 @@ export default function AuctionDetailClient() {
               </dl>
             </div>
           </div>
+
+          {/* Historical Leaderboards */}
+          <HistoricalLeaderboards creatorId={auction.creator_id} currentAuctionId={auctionId} />
+        </div>
 
           {/* Right Column - Leaderboard (desktop only) */}
           <div className={`hidden lg:block lg:col-span-1 ${!isAuctionEnded(auction) && !timerEnded ? 'lg:mt-[44px]' : ''}`}>
