@@ -346,7 +346,8 @@ function AuthPageContent() {
                 <select
                   value={countryCode}
                   onChange={(e) => setCountryCode(e.target.value)}
-                  className="cosmic-input w-[100px] text-sm"
+                  className="cosmic-input text-sm border border-purple-500"
+                  style={{ width: '100px' }}
                   disabled={loading}
                 >
                   {COUNTRY_CODES.map((country) => (
@@ -389,11 +390,8 @@ function AuthPageContent() {
 
             {/* OR Divider */}
             <div className="relative my-8">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-400"></div>
-              </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white/30 text-gray-400">OR</span>
+                <span className="text-gray-400">OR</span>
               </div>
             </div>
 
