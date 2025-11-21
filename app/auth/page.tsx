@@ -255,7 +255,8 @@ function AuthPageContent() {
   const [countryCode, setCountryCode] = useState('+971')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [otpCode, setOtpCode] = useState(['', '', '', '', '', ''])
-  const [loading, setLoading] = useState(false)
+  const [emailLoading, setEmailLoading] = useState(false)
+  const [whatsappLoading, setWhatsappLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [resendCooldown, setResendCooldown] = useState(0)
   const [showRoleModal, setShowRoleModal] = useState(false)
@@ -368,7 +369,7 @@ function AuthPageContent() {
   // Email magic link handler
   const handleEmailSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
-    setLoading(true)
+    setEmailLoading(true)
     setMessage('')
 
     try {
@@ -394,14 +395,14 @@ function AuthPageContent() {
       console.error('❌ [AUTH] Magic link error:', error)
       setMessage(error.message || 'Failed to send magic link. Please try again.')
     } finally {
-      setLoading(false)
+      setEmailLoading(false)
     }
   }
 
   // WhatsApp OTP send handler
   const handleWhatsAppSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
-    setLoading(true)
+    setWhatsappLoading(true)
     setMessage('')
 
     const fullPhone = `${countryCode}${phoneNumber}`
@@ -426,7 +427,7 @@ function AuthPageContent() {
       console.error('❌ [AUTH] WhatsApp OTP error:', error)
       setMessage(error.message || 'Failed to send OTP. Please try again.')
     } finally {
-      setLoading(false)
+      setWhatsappLoading(false)
     }
   }
 
@@ -438,7 +439,7 @@ function AuthPageContent() {
       return
     }
 
-    setLoading(true)
+    setWhatsappLoading(true)
     setMessage('')
 
     const fullPhone = `${countryCode}${phoneNumber}`
@@ -483,7 +484,7 @@ function AuthPageContent() {
       console.error('❌ [AUTH] OTP verification error:', error)
       setMessage(error.message || 'Invalid code. Please try again.')
     } finally {
-      setLoading(false)
+      setWhatsappLoading(false)
     }
   }
 
@@ -578,7 +579,7 @@ function AuthPageContent() {
                   value={countryCode}
                   onChange={(e) => setCountryCode(e.target.value)}
                   className="cosmic-input text-sm border border-purple-500 !w-[117px] md:!w-[92px]"
-                  disabled={loading}
+                  disabled={emailLoading || whatsappLoading}
                 >
                   {COUNTRY_CODES.map((country) => (
                     <option key={country.code} value={country.code}>
@@ -593,7 +594,7 @@ function AuthPageContent() {
                   value={formatPhoneNumber(phoneNumber)}
                   onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                   className="cosmic-input flex-1"
-                  disabled={loading}
+                  disabled={emailLoading || whatsappLoading}
                   autoComplete="tel"
                 />
               </div>
@@ -604,10 +605,10 @@ function AuthPageContent() {
                   phoneNumber
                     ? 'bg-black border border-purple-600 hover:border-purple-700'
                     : 'bg-gradient-to-br from-gray-700 to-black hover:bg-purple-600'
-                } ${loading || !phoneNumber ? 'opacity-60 cursor-not-allowed' : ''}`}
-                disabled={loading || !phoneNumber}
+                } ${whatsappLoading || !phoneNumber ? 'opacity-60 cursor-not-allowed' : ''}`}
+                disabled={whatsappLoading || !phoneNumber}
               >
-                {loading ? (
+                {whatsappLoading ? (
                   <span className="flex items-center justify-center space-x-2">
                     <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
                     <span>Sending...</span>
@@ -633,7 +634,7 @@ function AuthPageContent() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="cosmic-input"
-                disabled={loading}
+                disabled={emailLoading || whatsappLoading}
                 autoComplete="email"
               />
 
@@ -643,10 +644,10 @@ function AuthPageContent() {
                   email
                     ? 'bg-black border border-purple-600 hover:border-purple-700'
                     : 'bg-gradient-to-br from-gray-700 to-black hover:bg-purple-600'
-                } ${loading || !email ? 'opacity-60 cursor-not-allowed' : ''}`}
-                disabled={loading || !email}
+                } ${emailLoading || !email ? 'opacity-60 cursor-not-allowed' : ''}`}
+                disabled={emailLoading || !email}
               >
-                {loading ? (
+                {emailLoading ? (
                   <span className="flex items-center justify-center space-x-2">
                     <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
                     <span>Sending...</span>
@@ -669,7 +670,7 @@ function AuthPageContent() {
             )}
 
             {/* Terms and Privacy */}
-            <p className="text-center text-gray-400 font-light mt-8" style={{ fontSize: '11px' }}>
+            <p className="text-center text-gray-400 font-light mt-8" style={{ fontSize: '12px' }}>
               By continuing, you agree to DECODE's<br />
               <a href="https://welovedecode.com/#terms" className="hover:underline">Terms of Service</a>
               {' '}and{' '}
@@ -709,11 +710,11 @@ function AuthPageContent() {
               <div className="space-y-4">
                 <button
                   onClick={handleResend}
-                  disabled={resendCooldown > 0 || loading}
+                  disabled={resendCooldown > 0 || emailLoading}
                   className="cosmic-button-secondary w-full"
                 >
                   {resendCooldown > 0
-                    ? `Resend another email possible in ${resendCooldown}s`
+                    ? <>Resend another email available<br />in {resendCooldown}s</>
                     : 'Resend magic link'}
                 </button>
 
@@ -766,7 +767,7 @@ function AuthPageContent() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="cosmic-input"
                   required
-                  disabled={loading}
+                  disabled={emailLoading}
                   autoComplete="email"
                 />
               </div>
@@ -774,9 +775,9 @@ function AuthPageContent() {
               <button
                 type="submit"
                 className="cosmic-button-primary w-full py-3"
-                disabled={loading || !email}
+                disabled={emailLoading || !email}
               >
-                {loading ? (
+                {emailLoading ? (
                   <span className="flex items-center justify-center space-x-2">
                     <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
                     <span>Sending...</span>
@@ -839,7 +840,7 @@ function AuthPageContent() {
                     onChange={(e) => handleOTPChange(index, e.target.value)}
                     onKeyDown={(e) => handleOTPKeyDown(index, e)}
                     className="w-12 h-14 text-center text-2xl font-bold cosmic-input"
-                    disabled={loading}
+                    disabled={whatsappLoading}
                   />
                 ))}
               </div>
@@ -848,9 +849,9 @@ function AuthPageContent() {
                 <button
                   onClick={handleOTPVerify}
                   className="cosmic-button-primary w-full py-3"
-                  disabled={loading || otpCode.join('').length !== 6}
+                  disabled={whatsappLoading || otpCode.join('').length !== 6}
                 >
-                  {loading ? (
+                  {whatsappLoading ? (
                     <span className="flex items-center justify-center space-x-2">
                       <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
                       <span>Verifying...</span>
@@ -862,7 +863,7 @@ function AuthPageContent() {
 
                 <button
                   onClick={handleResend}
-                  disabled={resendCooldown > 0 || loading}
+                  disabled={resendCooldown > 0 || whatsappLoading}
                   className="cosmic-button-secondary w-full"
                 >
                   {resendCooldown > 0
@@ -926,7 +927,7 @@ function AuthPageContent() {
                   value={countryCode}
                   onChange={(e) => setCountryCode(e.target.value)}
                   className="cosmic-input w-32"
-                  disabled={loading}
+                  disabled={whatsappLoading}
                 >
                   {COUNTRY_CODES.map((country) => (
                     <option key={country.code} value={country.code}>
@@ -942,7 +943,7 @@ function AuthPageContent() {
                   onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                   className="cosmic-input flex-1"
                   required
-                  disabled={loading}
+                  disabled={whatsappLoading}
                   autoComplete="tel"
                 />
               </div>
@@ -950,9 +951,9 @@ function AuthPageContent() {
               <button
                 type="submit"
                 className="cosmic-button-primary w-full py-3"
-                disabled={loading || !phoneNumber}
+                disabled={whatsappLoading || !phoneNumber}
               >
-                {loading ? (
+                {whatsappLoading ? (
                   <span className="flex items-center justify-center space-x-2">
                     <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
                     <span>Sending...</span>
