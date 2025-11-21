@@ -341,7 +341,7 @@ function AuthPageContent() {
             </div>
 
             {/* WhatsApp Section */}
-            <div className="space-y-4 mb-6">
+            <div className="space-y-2 mb-6">
               <div className="flex space-x-2">
                 <select
                   value={countryCode}
@@ -396,7 +396,7 @@ function AuthPageContent() {
             </div>
 
             {/* Email Section */}
-            <div className="space-y-4">
+            <div className="space-y-2">
               <input
                 type="email"
                 placeholder="Enter your email"
