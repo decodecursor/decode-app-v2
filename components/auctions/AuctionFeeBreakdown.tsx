@@ -86,7 +86,7 @@ export function AuctionFeeBreakdown({
 
         {/* Model Net Earnings */}
         <div className="flex justify-between items-center">
-          <span className="font-bold text-gray-900" style={{ fontSize: '16px' }}>Your Net Profit (+FREE {serviceName}):</span>
+          <span className="font-bold text-gray-900" style={{ fontSize: '17px' }}>Your Net Profit (+FREE {serviceName}):</span>
           <span className="text-xl font-bold text-gray-900">{formatCurrency(modelEarnings)}</span>
         </div>
 
