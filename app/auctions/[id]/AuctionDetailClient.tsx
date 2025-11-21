@@ -279,8 +279,8 @@ export default function AuctionDetailClient() {
 
               {/* Title and Creator Name */}
               <div className="flex-1 min-w-0">
-                <h1 className="text-[26px] sm:text-[36px] font-bold text-gray-900 break-words">{auction.title}</h1>
-                <p className="text-gray-500 text-[14px] sm:text-[20px] mt-[1px]">
+                <h1 className="text-[26px] sm:text-[36px] font-bold text-gray-900 break-words mb-0">{auction.title}</h1>
+                <p className="text-gray-500 text-[14px] sm:text-[18px] mt-[1px]">
                   for {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
                 </p>
               </div>
