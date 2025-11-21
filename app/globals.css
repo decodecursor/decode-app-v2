@@ -274,6 +274,14 @@ input[type="number"] {
     border-width: 1px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     padding: 10px 12px;
+    /* Custom grey dropdown arrow - 20% wider */
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14.4' height='9.6' viewBox='0 0 12 8'%3E%3Cpath fill='%239ca3af' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 14.4px 9.6px;
+    padding-right: 30px;
   }
 
   /* Ensure dropdown maintains 1px border when open/focused */
@@ -773,10 +781,15 @@ body {
     z-index: 20;
   }
 
-  /* Restore dropdown arrow for select elements on mobile */
+  /* Custom grey dropdown arrow for select elements on mobile - 20% wider */
   select.cosmic-input {
-    -webkit-appearance: menulist;
-    appearance: menulist;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14.4' height='9.6' viewBox='0 0 12 8'%3E%3Cpath fill='%239ca3af' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 14.4px 9.6px;
+    padding-right: 30px;
   }
 
   .cosmic-button-primary {
