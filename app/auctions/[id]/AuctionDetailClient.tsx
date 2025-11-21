@@ -206,14 +206,12 @@ export default function AuctionDetailClient() {
           backgroundPosition: 'center',
           backgroundRepeat: 'repeat',
           opacity: 0.5,
-          zIndex: 0
+          zIndex: -1
         }}
       />
 
-      {/* Content wrapper with higher z-index */}
-      <div className="relative" style={{ zIndex: 1 }}>
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {isCreator && (
             <div className="flex items-center gap-4 mb-4">
@@ -533,7 +531,6 @@ export default function AuctionDetailClient() {
 
       {/* Heart Animation on Auction End */}
       <HeartAnimation isActive={showHeartAnimation} targetElementId="auction-timer" />
-      </div>
     </div>
   );
 }
