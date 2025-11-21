@@ -441,11 +441,10 @@ export default function AuctionDetailClient() {
                 )}
               </dl>
             </div>
-          </div>
 
-          {/* Historical Leaderboards */}
-          <HistoricalLeaderboards creatorId={auction.creator_id} currentAuctionId={auctionId} />
-        </div>
+            {/* Historical Leaderboards */}
+            <HistoricalLeaderboards creatorId={auction.creator_id} currentAuctionId={auctionId} />
+          </div>
 
           {/* Right Column - Leaderboard (desktop only) */}
           <div className={`hidden lg:block lg:col-span-1 ${!isAuctionEnded(auction) && !timerEnded ? 'lg:mt-[44px]' : ''}`}>
