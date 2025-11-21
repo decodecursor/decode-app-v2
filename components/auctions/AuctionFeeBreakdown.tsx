@@ -49,7 +49,7 @@ export function AuctionFeeBreakdown({
       <div className="space-y-3">
         {/* Current/Winning Bid */}
         <div className="flex justify-between items-center">
-          <span className="text-gray-600" style={{ fontSize: '15px' }}>{isCompleted ? 'Winning Bid:' : 'Current Highest Bid:'}</span>
+          <span className="text-gray-600" style={{ fontSize: '15px' }}>{isCompleted ? 'Winning Bid:' : 'Highest Bid:'}</span>
           <span className="font-semibold text-green-600" style={{ fontSize: '15px' }}>{formatCurrency(currentBid)}</span>
         </div>
 
