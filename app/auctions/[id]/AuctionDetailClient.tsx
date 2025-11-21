@@ -344,13 +344,6 @@ export default function AuctionDetailClient() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Auction Info & Bidding */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Winner requirement notice - only show during active auction */}
-            {!isAuctionEnded(auction) && !timerEnded && (
-              <p className="text-sm text-gray-600 italic">
-                The winner can record a 10sec video that I must view to unlock the funds as a gift to cover my beauty service
-              </p>
-            )}
-
             {/* Timer & Price Card */}
             <div id="auction-timer" className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="grid grid-cols-2 gap-4 sm:gap-6">
