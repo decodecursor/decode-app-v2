@@ -199,10 +199,9 @@ export default function AuctionDetailClient() {
     >
       {/* Background layer with opacity */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none auction-detail-bg"
         style={{
           backgroundImage: 'url(/Pattern.jpeg)',
-          backgroundSize: '40%',
           backgroundPosition: 'center',
           backgroundRepeat: 'repeat',
           opacity: 0.5,
