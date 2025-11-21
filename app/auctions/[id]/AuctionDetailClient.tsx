@@ -311,11 +311,7 @@ export default function AuctionDetailClient() {
                   </>
                 )}
               </button>
-              {auction.status === 'cancelled' ? (
-                <span className="px-2 py-1 sm:px-4 sm:py-2 text-[10px] sm:text-sm font-semibold text-red-700 bg-red-100 rounded-full">
-                  Cancelled
-                </span>
-              ) : !isAuctionEnded(auction) && !timerEnded && (
+              {!isAuctionEnded(auction) && !timerEnded && auction.status !== 'cancelled' && (
                 auction.status === 'active' ? (
                   <span className="px-2 py-1 sm:px-4 sm:py-2 text-[10px] sm:text-sm font-semibold text-green-700 bg-green-100 rounded-full flex items-center gap-1 sm:gap-2">
                     <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2">
