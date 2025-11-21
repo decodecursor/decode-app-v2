@@ -52,7 +52,7 @@ export function AuctionTimer({ auction, showProgress = false, className = '' }: 
             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <span className={`${isEnding ? 'text-[15px]' : 'text-2xl'} sm:text-4xl font-bold ${getTimerColor()}`}>
+        <span className={`${isEnding ? 'text-[15px]' : 'text-lg'} sm:text-[32px] font-bold ${getTimerColor()}`}>
           {hasEnded ? 'Auction Ended' : formatted}
         </span>
 

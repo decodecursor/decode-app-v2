@@ -362,7 +362,7 @@ export default function AuctionDetailClient() {
                     Time Remaining
                   </p>
                   {auction.status === 'cancelled' ? (
-                    <p className="text-2xl sm:text-4xl font-bold text-red-600">Cancelled</p>
+                    <p className="text-lg sm:text-[32px] font-bold text-red-600">Auction Cancelled</p>
                   ) : (
                     <AuctionTimer auction={auction} showProgress />
                   )}
