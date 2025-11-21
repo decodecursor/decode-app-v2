@@ -369,7 +369,11 @@ function AuthPageContent() {
 
               <button
                 onClick={handleWhatsAppSubmit}
-                className="cosmic-button-primary w-full py-4 text-lg"
+                className={`w-full py-4 text-lg rounded-lg font-medium transition-all ${
+                  phoneNumber
+                    ? 'bg-purple-600 hover:bg-purple-700'
+                    : 'bg-gradient-to-br from-gray-700 to-black hover:bg-purple-600'
+                } ${loading || !phoneNumber ? 'opacity-60 cursor-not-allowed' : ''}`}
                 disabled={loading || !phoneNumber}
               >
                 {loading ? (
@@ -389,7 +393,7 @@ function AuthPageContent() {
                 <div className="w-full border-t border-gray-400"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 text-gray-400">OR</span>
+                <span className="px-4 bg-white/30 text-gray-400">OR</span>
               </div>
             </div>
 
@@ -407,7 +411,11 @@ function AuthPageContent() {
 
               <button
                 onClick={handleEmailSubmit}
-                className="cosmic-button-primary w-full py-4 text-lg"
+                className={`w-full py-4 text-lg rounded-lg font-medium transition-all ${
+                  email
+                    ? 'bg-purple-600 hover:bg-purple-700'
+                    : 'bg-gradient-to-br from-gray-700 to-black hover:bg-purple-600'
+                } ${loading || !email ? 'opacity-60 cursor-not-allowed' : ''}`}
                 disabled={loading || !email}
               >
                 {loading ? (
