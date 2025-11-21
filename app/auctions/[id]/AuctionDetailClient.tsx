@@ -202,7 +202,7 @@ export default function AuctionDetailClient() {
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: 'url(/Pattern.jpeg)',
-          backgroundSize: '50%',
+          backgroundSize: '40%',
           backgroundPosition: 'center',
           backgroundRepeat: 'repeat',
           opacity: 0.5,
