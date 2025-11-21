@@ -669,7 +669,7 @@ function AuthPageContent() {
             )}
 
             {/* Terms and Privacy */}
-            <p className="text-center text-white opacity-50 font-light mt-8" style={{ fontSize: '11px' }}>
+            <p className="text-center text-gray-400 font-light mt-8" style={{ fontSize: '11px' }}>
               By continuing, you agree to DECODE's<br />
               <a href="https://welovedecode.com/#terms" className="hover:underline">Terms of Service</a>
               {' '}and{' '}
