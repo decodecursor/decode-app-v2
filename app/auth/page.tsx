@@ -619,7 +619,7 @@ function AuthPageContent() {
             </div>
 
             {/* OR Divider */}
-            <div className="relative my-6">
+            <div className="relative my-5">
               <div className="relative flex justify-center text-sm">
                 <span className="text-gray-400">OR</span>
               </div>
