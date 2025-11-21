@@ -219,7 +219,7 @@ export default function AuctionDetailClient() {
             <div className="flex items-center gap-4 mb-4">
               <button
                 onClick={() => router.back()}
-                className="text-gray-600 hover:text-gray-900 flex items-center gap-[4px]"
+                className="text-gray-600 hover:text-gray-900 flex items-center gap-[3px]"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -239,26 +239,48 @@ export default function AuctionDetailClient() {
             <div className="flex items-start gap-3 flex-1 min-w-0">
               {/* Creator Profile Image */}
               <div className="flex-shrink-0">
-                <div className="instagram-avatar">
-                  {(auction as any).creator?.profile_photo_url ? (
-                    <img
-                      src={(auction as any).creator.profile_photo_url}
-                      alt={(auction as any).creator.user_name || 'Creator'}
-                    />
-                  ) : (
-                    <div className="avatar-fallback">
-                      <svg className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
+                {(auction as any).creator?.instagram_handle ? (
+                  <a
+                    href={`https://instagram.com/${(auction as any).creator.instagram_handle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="instagram-avatar"
+                  >
+                    {(auction as any).creator?.profile_photo_url ? (
+                      <img
+                        src={(auction as any).creator.profile_photo_url}
+                        alt={(auction as any).creator.user_name || 'Creator'}
+                      />
+                    ) : (
+                      <div className="avatar-fallback">
+                        <svg className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                    )}
+                  </a>
+                ) : (
+                  <div className="instagram-avatar">
+                    {(auction as any).creator?.profile_photo_url ? (
+                      <img
+                        src={(auction as any).creator.profile_photo_url}
+                        alt={(auction as any).creator.user_name || 'Creator'}
+                      />
+                    ) : (
+                      <div className="avatar-fallback">
+                        <svg className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Title and Creator Name */}
               <div className="flex-1 min-w-0">
                 <h1 className="text-[26px] sm:text-[36px] font-bold text-gray-900 break-words">{auction.title}</h1>
-                <p className="text-gray-500 text-[14px] sm:text-[20px] mt-[3px]">
+                <p className="text-gray-500 text-[14px] sm:text-[20px] mt-[1px]">
                   for {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
                 </p>
               </div>

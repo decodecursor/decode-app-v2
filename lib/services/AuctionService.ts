@@ -103,7 +103,7 @@ export class AuctionService {
         .from('auctions')
         .select(`
           *,
-          creator:users!creator_id(id, email, user_name, role, profile_photo_url)
+          creator:users!creator_id(id, email, user_name, role, profile_photo_url, instagram_handle)
         `)
         .eq('id', auctionId)
         .single();
