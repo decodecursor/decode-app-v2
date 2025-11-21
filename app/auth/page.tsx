@@ -577,7 +577,7 @@ function AuthPageContent() {
                 <select
                   value={countryCode}
                   onChange={(e) => setCountryCode(e.target.value)}
-                  className="cosmic-input text-sm border border-purple-500 !w-[106px] md:!w-[92px]"
+                  className="cosmic-input text-sm border border-purple-500 !w-[117px] md:!w-[92px]"
                   disabled={loading}
                 >
                   {COUNTRY_CODES.map((country) => (
