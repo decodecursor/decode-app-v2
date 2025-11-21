@@ -129,10 +129,20 @@ export default function Dashboard() {
   const handleCreatePayLinkClick = (event: React.MouseEvent) => {
     event.preventDefault()
     createMagicalStarExplosion(event)
-    
+
     // Navigate after 0.6 seconds to show the full effect
     setTimeout(() => {
       router.push('/payment/create')
+    }, 600)
+  }
+
+  const handleCreateAuctionClick = (event: React.MouseEvent) => {
+    event.preventDefault()
+    createMagicalStarExplosion(event)
+
+    // Navigate after 0.6 seconds to show the full effect
+    setTimeout(() => {
+      router.push('/auctions/create')
     }, 600)
   }
 
@@ -583,29 +593,13 @@ export default function Dashboard() {
                     Analytics
                   </Link>
 
-                  {/* Earnings */}
-                  <Link
-                    href="/dashboard/payments"
-                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    Earnings
-                  </Link>
-
-                  {/* My PayLinks */}
-                  <Link
-                    href="/my-links"
-                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    PayLinks
-                  </Link>
-
-                  {/* Create PayLink - Black Button */}
+                  {/* Create Auction - Black Button */}
                   <button
                     className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
                     onMouseOver={createHoverSparkles}
-                    onClick={handleCreatePayLinkClick}
+                    onClick={handleCreateAuctionClick}
                   >
-                    Create PayLink
+                    Create Auction
                   </button>
                 </div>
               ) : (
@@ -706,19 +700,21 @@ export default function Dashboard() {
 
                     {/* Create PayLink button hidden on mobile */}
 
-                    {/* Always show PayLinks */}
-                    <Link
-                      href="/my-links"
-                      className="block nav-button px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <div className="flex items-center">
-                        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                        </svg>
-                        PayLinks
-                      </div>
-                    </Link>
+                    {/* Show PayLinks for Admin and Staff roles only */}
+                    {(profile?.role === USER_ROLES.ADMIN || profile?.role === USER_ROLES.STAFF) && (
+                      <Link
+                        href="/my-links"
+                        className="block nav-button px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <div className="flex items-center">
+                          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                          </svg>
+                          PayLinks
+                        </div>
+                      </Link>
+                    )}
 
                     {/* Show Users for Admin users only */}
                     {profile?.role === USER_ROLES.ADMIN && (
@@ -773,8 +769,8 @@ export default function Dashboard() {
                       </Link>
                     )}
 
-                    {/* Show Earnings for Admin, Staff, and MODEL roles */}
-                    {(profile?.role === USER_ROLES.ADMIN || profile?.role === USER_ROLES.STAFF || profile?.role === USER_ROLES.MODEL) && (
+                    {/* Show Earnings for Admin and Staff roles only */}
+                    {(profile?.role === USER_ROLES.ADMIN || profile?.role === USER_ROLES.STAFF) && (
                       <Link
                         href="/dashboard/payments"
                         className="block nav-button px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
