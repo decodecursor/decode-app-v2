@@ -701,7 +701,6 @@ function AuthPageContent() {
 
               <div className="text-center mb-8">
                 <div className="text-6xl mb-4">📬</div>
-                <h2 className="text-2xl font-bold text-white mb-2">Check your email</h2>
                 <p className="text-gray-400">
                   We sent a magic link to <span className="text-white font-medium">{email}</span>
                 </p>
@@ -714,7 +713,7 @@ function AuthPageContent() {
                   className="cosmic-button-secondary w-full"
                 >
                   {resendCooldown > 0
-                    ? `Resend in ${resendCooldown}s`
+                    ? `Resend another email possible in ${resendCooldown}s`
                     : 'Resend magic link'}
                 </button>
 
@@ -722,19 +721,9 @@ function AuthPageContent() {
                   onClick={handleBack}
                   className="text-gray-400 hover:text-white w-full py-2 text-sm"
                 >
-                  ← Back to sign in
+                  ← Back
                 </button>
               </div>
-
-              {message && (
-                <div className={`mt-6 p-3 rounded-lg text-sm text-center ${
-                  message.toLowerCase().includes('error')
-                    ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                    : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                }`}>
-                  {message}
-                </div>
-              )}
             </div>
           </div>
         </div>
