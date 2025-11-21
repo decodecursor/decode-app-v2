@@ -372,7 +372,7 @@ function AuthPageContent() {
                 onClick={handleWhatsAppSubmit}
                 className={`w-full py-3 text-lg rounded-lg font-medium transition-all ${
                   phoneNumber
-                    ? 'bg-purple-600 hover:bg-purple-700'
+                    ? 'bg-black border-2 border-purple-600 hover:border-purple-700'
                     : 'bg-gradient-to-br from-gray-700 to-black hover:bg-purple-600'
                 } ${loading || !phoneNumber ? 'opacity-60 cursor-not-allowed' : ''}`}
                 disabled={loading || !phoneNumber}
@@ -411,7 +411,7 @@ function AuthPageContent() {
                 onClick={handleEmailSubmit}
                 className={`w-full py-3 text-lg rounded-lg font-medium transition-all ${
                   email
-                    ? 'bg-purple-600 hover:bg-purple-700'
+                    ? 'bg-black border-2 border-purple-600 hover:border-purple-700'
                     : 'bg-gradient-to-br from-gray-700 to-black hover:bg-purple-600'
                 } ${loading || !email ? 'opacity-60 cursor-not-allowed' : ''}`}
                 disabled={loading || !email}
