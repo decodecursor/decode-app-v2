@@ -49,17 +49,17 @@ export function AuctionFeeBreakdown({
       <div className="space-y-3">
         {/* Current/Winning Bid */}
         <div className="flex justify-between items-center">
-          <span className="text-gray-600" style={{ fontSize: '15px' }}>{isCompleted ? 'Winning Bid:' : 'Highest Bid:'}</span>
-          <span className="font-semibold text-green-600" style={{ fontSize: '15px' }}>{formatCurrency(currentBid)}</span>
+          <span className="text-gray-600" style={{ fontSize: '16px' }}>{isCompleted ? 'Winning Bid:' : 'Highest Bid:'}</span>
+          <span className="font-semibold text-green-600" style={{ fontSize: '16px' }}>{formatCurrency(currentBid)}</span>
         </div>
 
         {/* Starting Price */}
         <div className="flex justify-between items-center">
           <span className="text-gray-600">
-            <span style={{ fontSize: '15px' }}>Auction Starting Price </span>
-            <span className="text-xs">(Beauty Service Cost):</span>
+            <span style={{ fontSize: '16px' }}>Auction Starting Price </span>
+            <span style={{ fontSize: '11px' }}>(Beauty Service Cost):</span>
           </span>
-          <span className="font-medium text-gray-900" style={{ fontSize: '15px' }}>- {formatCurrency(auctionStartPrice)}</span>
+          <span className="font-medium text-gray-900" style={{ fontSize: '16px' }}>- {formatCurrency(auctionStartPrice)}</span>
         </div>
 
         <div className="border-t border-gray-200 my-3"></div>
@@ -67,26 +67,26 @@ export function AuctionFeeBreakdown({
         {/* Profit Calculation */}
         <div className="flex justify-between items-center">
           <span className="text-gray-600">
-            <span style={{ fontSize: '15px' }}>Profit </span>
-            <span className="text-xs">(Highest Bid – Auction Starting Price):</span>
+            <span style={{ fontSize: '16px' }}>Profit </span>
+            <span style={{ fontSize: '11px' }}>(Highest Bid – Auction Starting Price):</span>
           </span>
-          <span className="font-medium text-gray-900" style={{ fontSize: '15px' }}>{formatCurrency(profit)}</span>
+          <span className="font-medium text-gray-900" style={{ fontSize: '16px' }}>{formatCurrency(profit)}</span>
         </div>
 
         {/* DECODE Fee */}
         <div className="flex justify-between items-center">
           <span className="text-gray-600">
-            <span style={{ fontSize: '15px' }}>DECODE Service Fee </span>
-            <span className="text-xs">({DEFAULT_AUCTION_FEE_PERCENTAGE}% of Profit):</span>
+            <span style={{ fontSize: '16px' }}>DECODE Service Fee </span>
+            <span style={{ fontSize: '11px' }}>({DEFAULT_AUCTION_FEE_PERCENTAGE}% of Profit):</span>
           </span>
-          <span className="font-medium text-gray-900" style={{ fontSize: '15px' }}>- {formatCurrency(decodeFee)}</span>
+          <span className="font-medium text-gray-900" style={{ fontSize: '16px' }}>- {formatCurrency(decodeFee)}</span>
         </div>
 
         <div className="border-t border-gray-300 my-3"></div>
 
         {/* Model Net Earnings */}
         <div className="flex justify-between items-center">
-          <span className="font-bold text-gray-900" style={{ fontSize: '15px' }}>Your Net Profit (+FREE {serviceName}):</span>
+          <span className="font-bold text-gray-900" style={{ fontSize: '16px' }}>Your Net Profit (+FREE {serviceName}):</span>
           <span className="text-xl font-bold text-gray-900">{formatCurrency(modelEarnings)}</span>
         </div>
 
