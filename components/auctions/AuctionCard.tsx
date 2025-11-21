@@ -5,7 +5,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { CompactAuctionTimer } from './AuctionTimer';
 import { formatBidAmount } from '@/lib/models/Bid.model';
@@ -18,12 +18,31 @@ interface AuctionCardProps {
 }
 
 export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) {
+  const [shareSuccess, setShareSuccess] = useState(false);
+
   const currentPrice = Number(auction.auction_current_price);
   const startPrice = Number(auction.auction_start_price);
   const hasBids = auction.total_bids > 0;
 
   // Check if auction is active (not ended and status is active)
   const isActive = auction.status === 'active' && !isAuctionEnded(auction);
+
+  // Handle share auction
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    const auctionUrl = `${baseUrl}/auctions/${auction.id}`;
+
+    try {
+      await navigator.clipboard.writeText(auctionUrl);
+      setShareSuccess(true);
+      setTimeout(() => setShareSuccess(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy auction link:', error);
+    }
+  };
 
   // Status badge
   const getStatusBadge = () => {
@@ -76,6 +95,31 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
           : 'bg-blue-900/30 border-l-gray-500 hover:border-gray-400 hover:bg-blue-800/30 hover:shadow-2xl hover:shadow-gray-400/60 hover:scale-[1.01]'
         }`}
       >
+        {/* Share Button */}
+        <button
+          onClick={handleShare}
+          className={`absolute top-4 right-4 cosmic-button-secondary text-xs px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-white/10 z-10 ${
+            shareSuccess ? 'bg-green-500/20 text-green-400 border-green-500' : ''
+          }`}
+          title="Share auction"
+        >
+          {shareSuccess ? (
+            <span className="flex items-center gap-1">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Shared!
+            </span>
+          ) : (
+            <span className="flex items-center gap-1">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+              Share
+            </span>
+          )}
+        </button>
+
         {/* Header */}
         <div className="border-b border-gray-700 pb-4 mb-4">
           <div className="flex items-start justify-between gap-3">

@@ -121,52 +121,20 @@ export default function AuctionsDashboardPage() {
                 <StatCard
                   label="Funds Collected"
                   value={`AED ${auctions.filter((a) => a.status === 'completed').reduce((sum, a) => sum + Number(a.auction_current_price), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                  icon={
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  }
                   color="blue"
                 />
                 <StatCard
                   label="Active Auctions"
                   value={auctions.filter((a) => isAuctionActive(a)).length}
-                  icon={
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
-                  }
                   color="green"
                 />
                 <StatCard
                   label="Total Auctions"
                   value={auctions.length}
-                  icon={
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                    />
-                  }
                 />
                 <StatCard
                   label="Total Bids"
                   value={auctions.reduce((sum, a) => sum + a.total_bids, 0)}
-                  icon={
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
-                    />
-                  }
                   color="purple"
                 />
               </div>
@@ -236,7 +204,7 @@ function StatCard({
 }: {
   label: string;
   value: number | string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   color?: 'gray' | 'green' | 'blue' | 'purple';
 }) {
   const colorClasses = {
@@ -253,11 +221,13 @@ function StatCard({
           <p className="cosmic-label text-gray-400 uppercase tracking-wide">{label}</p>
           <p className="mt-2 text-2xl md:text-3xl font-bold text-white">{value}</p>
         </div>
-        <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            {icon}
-          </svg>
-        </div>
+        {icon && (
+          <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {icon}
+            </svg>
+          </div>
+        )}
       </div>
     </div>
   );
