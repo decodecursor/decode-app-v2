@@ -576,8 +576,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 80px;
-  height: 80px;
+  width: 85px;
+  height: 85px;
   border-radius: 50%;
   /* Outer gradient border (3px - 1px thinner) */
   border: 3px solid transparent;
