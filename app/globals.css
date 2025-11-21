@@ -168,6 +168,12 @@
   margin: 0 auto;
 }
 
+/* Fix: Prevent cosmic-card from breaking grid layouts */
+.grid .cosmic-card {
+  width: 100% !important;
+  margin: 0 !important;
+}
+
 /* Login Screen Specific Card */
 .cosmic-card-login {
   background: rgba(255, 255, 255, 0.3);
