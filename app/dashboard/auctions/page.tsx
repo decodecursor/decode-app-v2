@@ -197,10 +197,12 @@ export default function AuctionsDashboardPage() {
           </button>
         </div>
       ) : (
-        <div className="space-y-6">
-          {auctions.map((auction) => (
-            <AuctionCard key={auction.id} auction={auction} />
-          ))}
+        <div className="cosmic-card">
+          <div className="space-y-6">
+            {auctions.map((auction) => (
+              <AuctionCard key={auction.id} auction={auction} />
+            ))}
+          </div>
         </div>
       )}
     </div>
