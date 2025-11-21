@@ -18,6 +18,7 @@ interface UserProfile {
   user_name: string
   role: string
   profile_photo_url?: string | null // NOTE: Requires database column: ALTER TABLE users ADD COLUMN profile_photo_url TEXT;
+  instagram_handle?: string | null
 }
 
 export default function ProfilePage() {
@@ -34,6 +35,8 @@ export default function ProfilePage() {
   const [professionalCenterName, setProfessionalCenterName] = useState('')
   const [newEmail, setNewEmail] = useState('')
   const [emailVerificationSent, setEmailVerificationSent] = useState(false)
+  const [instagramHandle, setInstagramHandle] = useState('')
+  const [instagramSaved, setInstagramSaved] = useState(false)
 
   // Photo upload states
   const [photoUploading, setPhotoUploading] = useState(false)
@@ -97,7 +100,7 @@ export default function ProfilePage() {
         // Type casting to bypass Supabase type checking for profile_photo_url column
         const { data, error } = await supabase
           .from('users')
-          .select('id, email, user_name, professional_center_name, company_name, role, profile_photo_url')
+          .select('id, email, user_name, professional_center_name, company_name, role, profile_photo_url, instagram_handle')
           .eq('id', user.id)
           .single() as { data: UserProfile | null, error: any }
 
@@ -159,6 +162,7 @@ export default function ProfilePage() {
         setProfessionalCenterName(profileData.company_name || profileData.professional_center_name || '')
         setNewEmail(currentEmail)
         setProfilePhotoUrl(profileData.profile_photo_url || null)
+        setInstagramHandle(profileData.instagram_handle || '')
       } else {
         setMessage({ type: 'error', text: 'No profile data found' })
       }
@@ -389,6 +393,39 @@ export default function ProfilePage() {
     } catch (error) {
       console.error('Error changing email:', error)
       setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to change email' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const saveInstagramHandle = async () => {
+    if (!profile || instagramHandle.trim() === (profile.instagram_handle || '')) return
+
+    setSaving(true)
+    setInstagramSaved(false)
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ instagram_handle: instagramHandle.trim() || null })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) throw new Error(result.error)
+
+      setProfile({
+        ...profile,
+        instagram_handle: instagramHandle.trim() || null
+      })
+
+      setInstagramSaved(true)
+      setTimeout(() => {
+        setInstagramSaved(false)
+      }, 3000)
+    } catch (error) {
+      console.error('Error saving Instagram handle:', error)
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to save Instagram username' })
     } finally {
       setSaving(false)
     }
@@ -686,11 +723,60 @@ export default function ProfilePage() {
               >
                 {saving ? 'Sending...' : 'Change'}
               </button>
-              
+
               {emailVerificationSent && (
                 <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
                   <p className="text-blue-400 text-sm">
                     Verification email sent to your new address. Check your inbox to confirm.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Instagram Username Card */}
+          <div className="cosmic-card-profile w-full">
+            <h2 className="text-lg md:text-xl font-semibold text-white mb-6">Instagram Username</h2>
+            <div className="space-y-4">
+              {profile?.instagram_handle && (
+                <div className="mb-2">
+                  <p className="text-sm text-gray-400 mb-1">Current:</p>
+                  <a
+                    href={`https://instagram.com/${profile.instagram_handle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 underline inline-flex items-center gap-1"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                    </svg>
+                    @{profile.instagram_handle}
+                  </a>
+                </div>
+              )}
+
+              <input
+                type="text"
+                value={instagramHandle}
+                onChange={(e) => {
+                  const value = e.target.value.replace('@', '').replace(/[^a-zA-Z0-9._]/g, '')
+                  setInstagramHandle(value)
+                }}
+                placeholder="username"
+                className="cosmic-input w-full"
+              />
+              <button
+                onClick={saveInstagramHandle}
+                disabled={saving || instagramHandle.trim() === (profile?.instagram_handle || '')}
+                className="cosmic-button-primary disabled:opacity-50 w-full"
+              >
+                {saving ? 'Saving...' : instagramSaved ? 'Saved!' : 'Save'}
+              </button>
+
+              {instagramSaved && (
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                  <p className="text-green-400 text-sm">
+                    Instagram username saved successfully!
                   </p>
                 </div>
               )}

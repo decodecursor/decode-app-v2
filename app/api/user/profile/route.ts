@@ -181,12 +181,13 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { preferred_payout_method, branch_name } = body
+    const { preferred_payout_method, branch_name, instagram_handle } = body
 
     console.log('📝 [PROFILE-PATCH] Update request:', {
       userId: user.id,
       preferred_payout_method,
-      branch_name
+      branch_name,
+      instagram_handle
     })
 
     // Validate preferred_payout_method if provided
@@ -199,6 +200,17 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
+    // Validate instagram_handle if provided
+    if (instagram_handle !== undefined && instagram_handle !== null) {
+      const cleaned = instagram_handle.trim()
+      if (cleaned && !/^[a-zA-Z0-9._]+$/.test(cleaned)) {
+        return NextResponse.json(
+          { error: 'Invalid Instagram username. Only letters, numbers, periods, and underscores allowed.' },
+          { status: 400 }
+        )
+      }
+    }
+
     // Update user profile
     const updateData: any = {}
     if (preferred_payout_method !== undefined) {
@@ -206,6 +218,9 @@ export async function PATCH(request: NextRequest) {
     }
     if (branch_name !== undefined) {
       updateData.branch_name = branch_name
+    }
+    if (instagram_handle !== undefined) {
+      updateData.instagram_handle = instagram_handle
     }
 
     if (Object.keys(updateData).length === 0) {
