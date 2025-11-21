@@ -275,6 +275,12 @@ input[type="number"] {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     padding: 10px 12px;
   }
+
+  /* Ensure dropdown maintains 1px border when open/focused */
+  select.cosmic-input:focus {
+    border-width: 1px !important;
+    outline: none;
+  }
 }
 
 /* Fix yellow background on autofilled inputs */
