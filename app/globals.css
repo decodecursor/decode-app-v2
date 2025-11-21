@@ -262,6 +262,12 @@ input[type="number"] {
   touch-action: manipulation;
 }
 
+/* Dark grey background for select dropdown options */
+.cosmic-input option {
+  background-color: #374151;
+  color: white;
+}
+
 /* Fix yellow background on autofilled inputs */
 .cosmic-input:-webkit-autofill,
 .cosmic-input:-webkit-autofill:hover,
