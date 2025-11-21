@@ -263,6 +263,14 @@ function AuthPageContent() {
   const [preselectedRole, setPreselectedRole] = useState<string | null>(null)
   const [authenticatedEmail, setAuthenticatedEmail] = useState('')
 
+  // Format phone number for display (XX XXX XXXX)
+  const formatPhoneNumber = (value: string) => {
+    const digits = value.replace(/\D/g, '')
+    if (digits.length <= 2) return digits
+    if (digits.length <= 5) return `${digits.slice(0, 2)} ${digits.slice(2)}`
+    return `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5, 9)}`
+  }
+
   // Auto-hide messages after 5 seconds
   useEffect(() => {
     if (message && message.toLowerCase().includes('error')) {
@@ -583,7 +591,7 @@ function AuthPageContent() {
                 <input
                   type="tel"
                   placeholder="50 123 4567"
-                  value={phoneNumber}
+                  value={formatPhoneNumber(phoneNumber)}
                   onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                   className="cosmic-input flex-1"
                   disabled={loading}
@@ -942,7 +950,7 @@ function AuthPageContent() {
                 <input
                   type="tel"
                   placeholder="Phone number"
-                  value={phoneNumber}
+                  value={formatPhoneNumber(phoneNumber)}
                   onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                   className="cosmic-input flex-1"
                   required
