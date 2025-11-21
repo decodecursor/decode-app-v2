@@ -1051,6 +1051,17 @@ body {
     margin-top: 24px !important;
   }
 
+  /* Handle Link-wrapped cards (auction cards) in space-y containers */
+  .space-y-6 > a {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    display: block;
+  }
+
+  .space-y-6 > a:not(:first-child) {
+    margin-top: 24px !important;
+  }
+
   /* Content card that follows header - remove top margin */
   .content-card-mobile-spacing {
     margin: 0 auto !important;
@@ -1405,6 +1416,17 @@ body {
     margin-top: 24px !important;
   }
 
+  /* Handle Link-wrapped cards (auction cards) in space-y containers */
+  .space-y-6 > a {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    display: block;
+  }
+
+  .space-y-6 > a:not(:first-child) {
+    margin-top: 24px !important;
+  }
+
   .amount-display-mobile {
     font-size: 28px;
   }
@@ -1481,6 +1503,17 @@ body {
   }
 
   .space-y-6 > .cosmic-card:not(:first-child) {
+    margin-top: 24px !important;
+  }
+
+  /* Handle Link-wrapped cards (auction cards) in space-y containers */
+  .space-y-6 > a {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    display: block;
+  }
+
+  .space-y-6 > a:not(:first-child) {
     margin-top: 24px !important;
   }
 
