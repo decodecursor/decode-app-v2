@@ -772,7 +772,13 @@ body {
     position: relative;
     z-index: 20;
   }
-  
+
+  /* Restore dropdown arrow for select elements on mobile */
+  select.cosmic-input {
+    -webkit-appearance: menulist;
+    appearance: menulist;
+  }
+
   .cosmic-button-primary {
     padding: 12px 20px;
     min-height: 48px; /* Optimized touch target */
