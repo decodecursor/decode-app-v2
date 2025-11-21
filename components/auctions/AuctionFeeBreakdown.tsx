@@ -48,31 +48,38 @@ export function AuctionFeeBreakdown({
 
       <div className="space-y-3">
         {/* Current/Winning Bid */}
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">{isCompleted ? 'Winning Bid:' : 'Current Highest Bid:'}</span>
-          <span className="font-semibold text-green-600">{formatCurrency(currentBid)}</span>
+        <div className="flex justify-between items-center">
+          <span className="text-gray-600" style={{ fontSize: '15px' }}>{isCompleted ? 'Winning Bid:' : 'Current Highest Bid:'}</span>
+          <span className="font-semibold text-green-600" style={{ fontSize: '15px' }}>{formatCurrency(currentBid)}</span>
         </div>
 
         {/* Starting Price */}
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">Auction Starting Price (Beauty Service Cost):</span>
-          <span className="font-medium text-gray-900">- {formatCurrency(auctionStartPrice)}</span>
+        <div className="flex justify-between items-center">
+          <span className="text-gray-600">
+            <span style={{ fontSize: '15px' }}>Auction Starting Price </span>
+            <span className="text-xs">(Beauty Service Cost):</span>
+          </span>
+          <span className="font-medium text-gray-900" style={{ fontSize: '15px' }}>- {formatCurrency(auctionStartPrice)}</span>
         </div>
 
         <div className="border-t border-gray-200 my-3"></div>
 
         {/* Profit Calculation */}
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">Profit (Highest Bid – Auction Starting Price):</span>
-          <span className="font-medium text-gray-900">{formatCurrency(profit)}</span>
+        <div className="flex justify-between items-center">
+          <span className="text-gray-600">
+            <span style={{ fontSize: '15px' }}>Profit </span>
+            <span className="text-xs">(Highest Bid – Auction Starting Price):</span>
+          </span>
+          <span className="font-medium text-gray-900" style={{ fontSize: '15px' }}>{formatCurrency(profit)}</span>
         </div>
 
         {/* DECODE Fee */}
-        <div className="flex justify-between items-center text-sm">
+        <div className="flex justify-between items-center">
           <span className="text-gray-600">
-            DECODE Service Fee ({DEFAULT_AUCTION_FEE_PERCENTAGE}% of Profit):
+            <span style={{ fontSize: '15px' }}>DECODE Service Fee </span>
+            <span className="text-xs">({DEFAULT_AUCTION_FEE_PERCENTAGE}% of Profit):</span>
           </span>
-          <span className="font-medium text-gray-900">- {formatCurrency(decodeFee)}</span>
+          <span className="font-medium text-gray-900" style={{ fontSize: '15px' }}>- {formatCurrency(decodeFee)}</span>
         </div>
 
         <div className="border-t border-gray-300 my-3"></div>
