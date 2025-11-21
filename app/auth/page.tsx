@@ -346,7 +346,7 @@ function AuthPageContent() {
                 <select
                   value={countryCode}
                   onChange={(e) => setCountryCode(e.target.value)}
-                  className="cosmic-input w-32 text-sm"
+                  className="cosmic-input w-24 text-sm"
                   disabled={loading}
                 >
                   {COUNTRY_CODES.map((country) => (
@@ -369,7 +369,7 @@ function AuthPageContent() {
 
               <button
                 onClick={handleWhatsAppSubmit}
-                className="cosmic-btn-primary w-full py-4 text-lg"
+                className="cosmic-button-primary w-full py-4 text-lg"
                 disabled={loading || !phoneNumber}
               >
                 {loading ? (
@@ -386,10 +386,10 @@ function AuthPageContent() {
             {/* OR Divider */}
             <div className="relative my-8">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-600"></div>
+                <div className="w-full border-t border-gray-400"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-[#2a2438] text-gray-400">OR</span>
+                <span className="px-4 text-gray-400">OR</span>
               </div>
             </div>
 
@@ -407,7 +407,7 @@ function AuthPageContent() {
 
               <button
                 onClick={handleEmailSubmit}
-                className="cosmic-btn-primary w-full py-4 text-lg"
+                className="cosmic-button-primary w-full py-4 text-lg"
                 disabled={loading || !email}
               >
                 {loading ? (
@@ -476,7 +476,7 @@ function AuthPageContent() {
                 <button
                   onClick={handleResend}
                   disabled={resendCooldown > 0 || loading}
-                  className="cosmic-btn-secondary w-full"
+                  className="cosmic-button-secondary w-full"
                 >
                   {resendCooldown > 0
                     ? `Resend in ${resendCooldown}s`
@@ -549,7 +549,7 @@ function AuthPageContent() {
 
               <button
                 type="submit"
-                className="cosmic-btn-primary w-full py-3"
+                className="cosmic-button-primary w-full py-3"
                 disabled={loading || !email}
               >
                 {loading ? (
@@ -623,7 +623,7 @@ function AuthPageContent() {
               <div className="space-y-4">
                 <button
                   onClick={handleOTPVerify}
-                  className="cosmic-btn-primary w-full py-3"
+                  className="cosmic-button-primary w-full py-3"
                   disabled={loading || otpCode.join('').length !== 6}
                 >
                   {loading ? (
@@ -639,7 +639,7 @@ function AuthPageContent() {
                 <button
                   onClick={handleResend}
                   disabled={resendCooldown > 0 || loading}
-                  className="cosmic-btn-secondary w-full"
+                  className="cosmic-button-secondary w-full"
                 >
                   {resendCooldown > 0
                     ? `Resend in ${resendCooldown}s`
@@ -725,7 +725,7 @@ function AuthPageContent() {
 
               <button
                 type="submit"
-                className="cosmic-btn-primary w-full py-3"
+                className="cosmic-button-primary w-full py-3"
                 disabled={loading || !phoneNumber}
               >
                 {loading ? (
