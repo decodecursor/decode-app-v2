@@ -61,6 +61,7 @@ export default function ProfilePage() {
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
   const [companyNameSaved, setCompanyNameSaved] = useState(false)
   const [passwordChangedSuccess, setPasswordChangedSuccess] = useState(false)
+  const [instagramError, setInstagramError] = useState<string | null>(null)
 
   // Load profile data when user is available
   // Check auth on mount
@@ -405,6 +406,7 @@ export default function ProfilePage() {
 
     setInstagramSaving(true)
     setInstagramSaved(false)
+    setInstagramError(null)
     try {
       const response = await fetch('/api/user/profile', {
         method: 'PATCH',
@@ -414,7 +416,18 @@ export default function ProfilePage() {
 
       const result = await response.json()
 
-      if (!response.ok) throw new Error(result.error)
+      if (!response.ok) {
+        // Parse error to show user-friendly message
+        const errorDetails = result.details || result.error || 'Failed to save Instagram username'
+        let userMessage = errorDetails
+
+        // Check for duplicate username error
+        if (errorDetails.includes('duplicate') || errorDetails.includes('unique constraint')) {
+          userMessage = 'This Instagram username is already taken'
+        }
+
+        throw new Error(userMessage)
+      }
 
       setProfile({
         ...profile,
@@ -427,7 +440,7 @@ export default function ProfilePage() {
       }, 3000)
     } catch (error) {
       console.error('Error saving Instagram handle:', error)
-      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to save Instagram username' })
+      setInstagramError(error instanceof Error ? error.message : 'Failed to save Instagram username')
     } finally {
       setInstagramSaving(false)
     }
@@ -763,6 +776,7 @@ export default function ProfilePage() {
                 onChange={(e) => {
                   const value = e.target.value.replace('@', '').replace(/[^a-zA-Z0-9._]/g, '')
                   setInstagramHandle(value)
+                  setInstagramError(null)
                 }}
                 placeholder="username"
                 className="cosmic-input w-full"
@@ -782,6 +796,14 @@ export default function ProfilePage() {
                 <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
                   <p className="text-green-400 text-sm">
                     Instagram username saved successfully!
+                  </p>
+                </div>
+              )}
+
+              {instagramError && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                  <p className="text-red-400 text-sm">
+                    {instagramError}
                   </p>
                 </div>
               )}
