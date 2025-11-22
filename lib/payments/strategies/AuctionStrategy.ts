@@ -78,7 +78,7 @@ export class AuctionStrategy implements IPaymentStrategy {
       const paymentIntent = await stripe.paymentIntents.create({
         amount: usdCents, // Amount in USD cents
         currency: 'usd',
-        customer: customerId || auctionContext.user_id,
+        customer: customerId || undefined,
         capture_method: 'manual', // Pre-authorize only, capture later
         automatic_payment_methods: {
           enabled: true,
