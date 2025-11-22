@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { getUserWithProxy } from '@/utils/auth-helper'
 import RoleSelectionModal from '@/components/RoleSelectionModal'
+import ModelRegistrationModal from '@/components/ModelRegistrationModal'
 import { safeLocalStorage, safeSessionStorage } from '@/utils/storage-helper'
 
 // Country codes for phone input
@@ -549,15 +550,23 @@ function AuthPageContent() {
   if (authMethod === 'select') {
     return (
       <>
-        <RoleSelectionModal
-          isOpen={showRoleModal}
-          userEmail={authenticatedEmail || email}
-          termsAcceptedAt={new Date().toISOString()}
-          inviteData={inviteData}
-          preselectedRole={preselectedRole}
-          onClose={() => setShowRoleModal(false)}
-          onComplete={handleRoleModalComplete}
-        />
+        {preselectedRole === 'Model' ? (
+          <ModelRegistrationModal
+            isOpen={showRoleModal}
+            userEmail={authenticatedEmail || email}
+            onComplete={handleRoleModalComplete}
+          />
+        ) : (
+          <RoleSelectionModal
+            isOpen={showRoleModal}
+            userEmail={authenticatedEmail || email}
+            termsAcceptedAt={new Date().toISOString()}
+            inviteData={inviteData}
+            preselectedRole={preselectedRole}
+            onClose={() => setShowRoleModal(false)}
+            onComplete={handleRoleModalComplete}
+          />
+        )}
       <div className="auth-page cosmic-bg">
         <div className="min-h-screen flex items-center justify-center px-4 py-8">
           <div className="cosmic-card-login">
@@ -989,15 +998,23 @@ function AuthPageContent() {
       </div>
 
       {/* Role Selection Modal */}
-      <RoleSelectionModal
-        isOpen={showRoleModal}
-        userEmail={authenticatedEmail || email}
-        termsAcceptedAt={new Date().toISOString()}
-        inviteData={inviteData}
-        preselectedRole={preselectedRole}
-        onClose={() => setShowRoleModal(false)}
-        onComplete={handleRoleModalComplete}
-      />
+      {preselectedRole === 'Model' ? (
+        <ModelRegistrationModal
+          isOpen={showRoleModal}
+          userEmail={authenticatedEmail || email}
+          onComplete={handleRoleModalComplete}
+        />
+      ) : (
+        <RoleSelectionModal
+          isOpen={showRoleModal}
+          userEmail={authenticatedEmail || email}
+          termsAcceptedAt={new Date().toISOString()}
+          inviteData={inviteData}
+          preselectedRole={preselectedRole}
+          onClose={() => setShowRoleModal(false)}
+          onComplete={handleRoleModalComplete}
+        />
+      )}
     </>
   )
 }
