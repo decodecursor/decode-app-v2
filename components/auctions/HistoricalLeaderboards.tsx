@@ -124,7 +124,7 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
   if (auctions.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Previous Auction Results</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Past Auctions</h3>
         <div className="text-center py-8">
           <svg
             className="mx-auto w-12 h-12 text-gray-400 mb-3"
@@ -148,7 +148,7 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Previous Auction Results</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Past Auctions</h3>
         <span className="text-sm text-gray-500">{auctions.length} auction{auctions.length !== 1 ? 's' : ''}</span>
       </div>
 
