@@ -226,6 +226,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                     <select
                       id="duration"
                       value={formData.duration}
+                      onClick={() => setTouched({ ...touched, duration: true })}
                       onChange={(e) => {
                         setTouched({ ...touched, duration: true });
                         setFormData({ ...formData, duration: parseInt(e.target.value) as AuctionDuration });
