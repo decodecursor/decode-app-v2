@@ -289,6 +289,15 @@ function AuthPageContent() {
     }
   }, [resendCooldown])
 
+  // Restore preselected role from storage on mount
+  useEffect(() => {
+    const storedRole = safeSessionStorage.getItem('preselectedRole') || safeLocalStorage.getItem('decode_preselectedRole')
+    if (storedRole && !preselectedRole) {
+      console.log('🔄 [AUTH] Restoring preselected role from storage:', storedRole)
+      setPreselectedRole(storedRole)
+    }
+  }, [])
+
   // Handle invite parameter and pre-selected role from URL
   useEffect(() => {
     const inviteParam = searchParams?.get('invite')
@@ -303,7 +312,9 @@ function AuthPageContent() {
         'model': 'Model'
       }
       const mappedRole = roleMapping[roleParam.toLowerCase()]
+      console.log('🎯 [AUTH] URL role parameter:', roleParam, '→ Mapped to:', mappedRole)
       if (mappedRole) {
+        console.log('✅ [AUTH] Setting preselected role:', mappedRole)
         setPreselectedRole(mappedRole)
         safeSessionStorage.setItem('preselectedRole', mappedRole)
         safeLocalStorage.setItem('decode_preselectedRole', mappedRole)
@@ -548,9 +559,14 @@ function AuthPageContent() {
 
   // Render single-page auth with both options
   if (authMethod === 'select') {
+    // Defensive check for preselected role
+    const storedRole = safeSessionStorage.getItem('preselectedRole') || safeLocalStorage.getItem('decode_preselectedRole')
+    const effectiveRole = preselectedRole || storedRole
+    console.log('🎬 [AUTH] Modal rendering - preselectedRole:', preselectedRole, 'storedRole:', storedRole, 'effectiveRole:', effectiveRole, 'showRoleModal:', showRoleModal)
+
     return (
       <>
-        {preselectedRole === 'Model' ? (
+        {effectiveRole === 'Model' ? (
           <ModelRegistrationModal
             isOpen={showRoleModal}
             userEmail={authenticatedEmail || email}
@@ -562,7 +578,7 @@ function AuthPageContent() {
             userEmail={authenticatedEmail || email}
             termsAcceptedAt={new Date().toISOString()}
             inviteData={inviteData}
-            preselectedRole={preselectedRole}
+            preselectedRole={effectiveRole}
             onClose={() => setShowRoleModal(false)}
             onComplete={handleRoleModalComplete}
           />
@@ -989,6 +1005,11 @@ function AuthPageContent() {
   }
 
   // Fallback return - should never reach here but just in case
+  // Defensive check for preselected role (loading state)
+  const storedRole = safeSessionStorage.getItem('preselectedRole') || safeLocalStorage.getItem('decode_preselectedRole')
+  const effectiveRole = preselectedRole || storedRole
+  console.log('🎬 [AUTH] Loading state - Modal rendering - preselectedRole:', preselectedRole, 'storedRole:', storedRole, 'effectiveRole:', effectiveRole, 'showRoleModal:', showRoleModal)
+
   return (
     <>
       <div className="auth-page cosmic-bg">
@@ -998,7 +1019,7 @@ function AuthPageContent() {
       </div>
 
       {/* Role Selection Modal */}
-      {preselectedRole === 'Model' ? (
+      {effectiveRole === 'Model' ? (
         <ModelRegistrationModal
           isOpen={showRoleModal}
           userEmail={authenticatedEmail || email}
@@ -1010,7 +1031,7 @@ function AuthPageContent() {
           userEmail={authenticatedEmail || email}
           termsAcceptedAt={new Date().toISOString()}
           inviteData={inviteData}
-          preselectedRole={preselectedRole}
+          preselectedRole={effectiveRole}
           onClose={() => setShowRoleModal(false)}
           onComplete={handleRoleModalComplete}
         />
