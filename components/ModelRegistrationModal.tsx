@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 interface ModelRegistrationModalProps {
   isOpen: boolean;
   userEmail: string;
-  onComplete: () => void;
+  onComplete: (role?: string) => void;
 }
 
 export default function ModelRegistrationModal({ isOpen, userEmail, onComplete }: ModelRegistrationModalProps) {
@@ -92,7 +92,7 @@ export default function ModelRegistrationModal({ isOpen, userEmail, onComplete }
       }
 
       // Success - redirect to dashboard
-      onComplete();
+      onComplete('Model');
       router.push('/dashboard?new_user=true&welcome=model');
       router.refresh();
 
