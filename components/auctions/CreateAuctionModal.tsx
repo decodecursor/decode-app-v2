@@ -226,11 +226,8 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                     <select
                       id="duration"
                       value={formData.duration}
-                      onClick={() => setTouched({ ...touched, duration: true })}
-                      onFocus={() => setTouched({ ...touched, duration: true })}
-                      onTouchStart={() => setTouched({ ...touched, duration: true })}
+                      onMouseDown={() => setTouched({ ...touched, duration: true })}
                       onChange={(e) => {
-                        setTouched({ ...touched, duration: true });
                         setFormData({ ...formData, duration: parseInt(e.target.value) as AuctionDuration });
                       }}
                       className={`w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border rounded-lg focus:outline-none transition-colors ${
@@ -238,7 +235,8 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                       }`}
                       style={{
                         color: touched.duration ? '#fff' : '#9ca3af',
-                        WebkitTextFillColor: touched.duration ? '#fff' : '#9ca3af'
+                        WebkitTextFillColor: touched.duration ? '#fff' : '#9ca3af',
+                        cursor: 'pointer'
                       } as React.CSSProperties}
                       disabled={isSubmitting}
                     >
