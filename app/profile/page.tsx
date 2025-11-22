@@ -29,7 +29,9 @@ export default function ProfilePage() {
   const [authLoading, setAuthLoading] = useState(true)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [emailSaving, setEmailSaving] = useState(false)
+  const [instagramSaving, setInstagramSaving] = useState(false)
+  const [companyNameSaving, setCompanyNameSaving] = useState(false)
 
   // Form states
   const [professionalCenterName, setProfessionalCenterName] = useState('')
@@ -182,7 +184,7 @@ export default function ProfilePage() {
   const updateProfessionalCenterName = async () => {
     if (!profile || !professionalCenterName.trim()) return
 
-    setSaving(true)
+    setCompanyNameSaving(true)
     try {
       const supabase = createClient()
       const { error } = await supabase
@@ -213,7 +215,7 @@ export default function ProfilePage() {
       console.error('Error updating professional center name:', error)
       setMessage({ type: 'error', text: 'Failed to update company name. Check console for details.' })
     } finally {
-      setSaving(false)
+      setCompanyNameSaving(false)
     }
   }
 
@@ -377,7 +379,7 @@ export default function ProfilePage() {
   const changeEmail = async () => {
     if (!profile || !newEmail.trim() || newEmail === profile.email) return
 
-    setSaving(true)
+    setEmailSaving(true)
     try {
       const response = await fetch('/api/profile/change-email', {
         method: 'POST',
@@ -394,14 +396,14 @@ export default function ProfilePage() {
       console.error('Error changing email:', error)
       setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to change email' })
     } finally {
-      setSaving(false)
+      setEmailSaving(false)
     }
   }
 
   const saveInstagramHandle = async () => {
     if (!profile || instagramHandle.trim() === (profile.instagram_handle || '')) return
 
-    setSaving(true)
+    setInstagramSaving(true)
     setInstagramSaved(false)
     try {
       const response = await fetch('/api/user/profile', {
@@ -427,7 +429,7 @@ export default function ProfilePage() {
       console.error('Error saving Instagram handle:', error)
       setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to save Instagram username' })
     } finally {
-      setSaving(false)
+      setInstagramSaving(false)
     }
   }
 
@@ -718,10 +720,10 @@ export default function ProfilePage() {
               />
               <button
                 onClick={changeEmail}
-                disabled={saving || !newEmail.trim() || newEmail === profile?.email}
+                disabled={emailSaving || !newEmail.trim() || newEmail === profile?.email}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
-                {saving ? 'Sending...' : 'Change'}
+                {emailSaving ? 'Sending...' : 'Change'}
               </button>
 
               {emailVerificationSent && (
@@ -764,13 +766,16 @@ export default function ProfilePage() {
                 }}
                 placeholder="username"
                 className="cosmic-input w-full"
+                autoCapitalize="none"
+                autoCorrect="off"
+                autoComplete="username"
               />
               <button
                 onClick={saveInstagramHandle}
-                disabled={saving || instagramHandle.trim() === (profile?.instagram_handle || '')}
+                disabled={instagramSaving || instagramHandle.trim() === (profile?.instagram_handle || '')}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
-                {saving ? 'Saving...' : instagramSaved ? 'Saved!' : 'Save'}
+                {instagramSaving ? 'Saving...' : instagramSaved ? 'Saved!' : 'Save'}
               </button>
 
               {instagramSaved && (

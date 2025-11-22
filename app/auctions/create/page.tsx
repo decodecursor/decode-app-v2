@@ -127,7 +127,7 @@ export default function CreateAuction() {
 
   return (
     <div className="cosmic-bg min-h-screen">
-      <div className="flex min-h-full items-center justify-center p-4">
+      <div className="flex min-h-full items-center justify-center p-4 pt-14">
         <div className="w-full max-w-md transform overflow-hidden rounded-xl bg-gray-900 border border-gray-700 md:p-8 p-6 shadow-xl relative">
           {/* Close button */}
           <button
@@ -166,8 +166,8 @@ export default function CreateAuction() {
                   setFormData({ ...formData, title: e.target.value })
                   if (errors.title) setErrors({ ...errors, title: undefined })
                 }}
-                className={`w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
-                  errors.title ? 'border-red-500' : 'border-gray-700 focus:border-purple-500'
+                className={`w-full md:px-4 md:py-3 px-3 py-2 h-[42px] md:h-[50px] bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
+                  errors.title ? 'border-red-500' : formData.title.trim() ? 'border-purple-500' : 'border-gray-700 focus:border-purple-500'
                 }`}
                 placeholder="Russian Lips"
                 disabled={creating}
@@ -192,8 +192,8 @@ export default function CreateAuction() {
                   }}
                   min="0"
                   step="0.01"
-                  className={`w-full pl-14 md:pl-16 md:pr-4 pr-3 md:py-3 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
-                    errors.auction_start_price ? 'border-red-500' : 'border-gray-700 focus:border-purple-500'
+                  className={`w-full pl-14 md:pl-16 md:pr-4 pr-3 md:py-3 py-2 h-[42px] md:h-[50px] bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
+                    errors.auction_start_price ? 'border-red-500' : formData.auction_start_price ? 'border-purple-500' : 'border-gray-700 focus:border-purple-500'
                   }`}
                   placeholder="10.00"
                   disabled={creating}
@@ -215,7 +215,7 @@ export default function CreateAuction() {
                 onChange={(e) =>
                   setFormData({ ...formData, duration: parseInt(e.target.value) as AuctionDuration })
                 }
-                className="w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:outline-none transition-colors"
+                className="w-full md:px-4 md:py-3 px-3 py-2 h-[42px] md:h-[50px] bg-gray-800 border border-purple-500 rounded-lg text-white focus:border-purple-500 focus:outline-none transition-colors"
                 disabled={creating}
               >
                 {AUCTION_DURATIONS.map((option) => (
@@ -246,7 +246,7 @@ export default function CreateAuction() {
               <button
                 type="submit"
                 disabled={creating}
-                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium md:py-3 md:px-4 py-2 px-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-black border border-purple-500 hover:border-purple-400 text-white font-medium md:py-3 md:px-4 py-2 px-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {creating ? 'Creating...' : 'Create Auction'}
               </button>
