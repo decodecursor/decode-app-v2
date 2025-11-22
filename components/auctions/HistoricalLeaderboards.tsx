@@ -127,7 +127,7 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Past Auctions</h3>
         <div className="text-center py-8">
           <svg
-            className="mx-auto w-12 h-12 text-gray-400 mb-3"
+            className="mx-auto w-12 h-12 text-gray-300 mb-3"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
