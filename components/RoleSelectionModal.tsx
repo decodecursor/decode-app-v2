@@ -300,10 +300,10 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
 
       let profileError = null
       
-      // Try direct insert first
+      // Try direct upsert first (handles both new and existing users)
       try {
         console.log('🔄 [ROLE MODAL] Trying direct profile creation...')
-        const { error } = await supabase.from('users').insert(profileData)
+        const { error } = await supabase.from('users').upsert(profileData, { onConflict: 'id' })
         
         if (error) {
           profileError = error

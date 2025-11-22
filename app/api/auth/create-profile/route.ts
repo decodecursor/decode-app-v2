@@ -30,8 +30,8 @@ export async function POST(request: NextRequest) {
       }
     })
     
-    // Insert profile
-    const { data, error } = await supabase.from('users').insert(profileData)
+    // Upsert profile (handles both new and existing users)
+    const { data, error } = await supabase.from('users').upsert(profileData, { onConflict: 'id' })
     
     if (error) {
       console.error('❌ [CREATE-PROFILE] Database error:', error)

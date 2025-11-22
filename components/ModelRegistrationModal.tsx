@@ -63,10 +63,10 @@ export default function ModelRegistrationModal({ isOpen, userEmail, onComplete }
 
       console.log('🎭 [ModelRegistration] Creating model profile:', profileData);
 
-      // Try direct Supabase insert first
+      // Try direct Supabase upsert first (handles both new and existing users)
       const { data: insertedProfile, error: insertError } = await supabase
         .from('users')
-        .insert([profileData])
+        .upsert(profileData, { onConflict: 'id' })
         .select()
         .single();
 
@@ -144,11 +144,8 @@ export default function ModelRegistrationModal({ isOpen, userEmail, onComplete }
                 {/* Welcome Message */}
                 <div className="text-center mb-8">
                   <Dialog.Title as="h2" className="text-2xl md:text-3xl font-bold text-white mb-2">
-                    Welcome to DECODE
+                    {/* Welcome heading removed */}
                   </Dialog.Title>
-                  <p className="text-gray-400 text-sm md:text-base">
-                    Let's get you started creating beauty service auctions
-                  </p>
                 </div>
 
                 {/* Form */}
