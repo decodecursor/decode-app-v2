@@ -265,8 +265,12 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                     </button>
                     <button
                       type="submit"
-                      disabled={isSubmitting}
-                      className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium md:py-3 md:px-4 py-2 px-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={isSubmitting || !formData.title.trim() || !formData.auction_start_price || !touched.duration}
+                      className={`flex-1 font-medium md:py-3 md:px-4 py-2 px-3 rounded-lg transition-colors ${
+                        formData.title.trim() && formData.auction_start_price && touched.duration
+                          ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                          : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                      }`}
                     >
                       {isSubmitting ? 'Creating...' : 'Create Auction'}
                     </button>

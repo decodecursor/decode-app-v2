@@ -99,7 +99,7 @@ export function AuctionFeeBreakdown({
 
         {!isCompleted && currentBid > auctionStartPrice && (
           <p className="text-xs text-gray-500 mt-2 italic">
-            * These are estimated earnings based on the current highest bid. Final earnings will be calculated when the auction closes.
+            * These earnings are based on the highest bid so far and will finalize at auction end.
           </p>
         )}
       </div>

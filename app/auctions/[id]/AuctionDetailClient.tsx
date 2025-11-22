@@ -215,27 +215,88 @@ export default function AuctionDetailClient() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200" style={{ position: 'relative', zIndex: 10 }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {isCreator && (
-            <div className="hidden sm:flex items-center gap-4 mb-4">
+          {/* Desktop-only: Top row with Back button (left) and Action buttons (right) */}
+          <div className="hidden sm:flex items-center mb-4">
+            {/* Left: Back button */}
+            {isCreator && (
               <button
                 onClick={() => router.back()}
                 className="text-gray-600 hover:text-gray-900 flex items-center gap-[3px]"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
                 Back
               </button>
+            )}
+            {/* Right: Action buttons */}
+            <div className="flex flex-nowrap items-center gap-1 sm:gap-3 ml-auto">
+              {/* Cancel Auction Button (only for creator of active auctions) */}
+              {isCreator && auction.status !== 'cancelled' && auction.status !== 'completed' && !isAuctionEnded(auction) && (
+                <button
+                  onClick={() => setShowCancelConfirm(true)}
+                  disabled={isCancelling}
+                  className="flex items-center gap-1 px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-full transition-colors disabled:opacity-50"
+                >
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span>Cancel</span>
+                </button>
+              )}
+              <button
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-2 text-[10px] sm:text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50"
+                title="Refresh auction data"
+              >
+                <svg className={`w-3 h-3 sm:w-4 sm:h-4 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>{isRefreshing ? '...' : 'Refresh'}</span>
+              </button>
+              <button
+                onClick={handleCopyLink}
+                className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-2 text-[10px] sm:text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                title="Share auction link"
+              >
+                {copied ? (
+                  <>
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-gray-600">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                    </svg>
+                    <span>Share</span>
+                  </>
+                )}
+              </button>
+              {!isAuctionEnded(auction) && !timerEnded && auction.status !== 'cancelled' && (
+                auction.status === 'active' ? (
+                  <span className="px-2 py-1 sm:px-4 sm:py-2 text-[10px] sm:text-sm font-semibold text-green-700 bg-green-100 rounded-full flex items-center gap-1 sm:gap-2">
+                    <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-green-500"></span>
+                    </span>
+                    <span className="hidden sm:inline">Live Auction</span>
+                    <span className="sm:hidden">Live</span>
+                  </span>
+                ) : (
+                  <span className="px-2 py-1 sm:px-4 sm:py-2 text-[10px] sm:text-sm font-semibold text-blue-700 bg-blue-100 rounded-full">
+                    Upcoming
+                  </span>
+                )
+              )}
             </div>
-          )}
+          </div>
 
           {/* Mobile-only: Top row with Back button (left) and Action buttons (right) */}
-          <div className="flex sm:hidden items-center justify-between mb-4">
+          <div className="flex sm:hidden items-center mb-4">
             {/* Left: Back button */}
             {isCreator && (
               <button
@@ -249,7 +310,7 @@ export default function AuctionDetailClient() {
               </button>
             )}
             {/* Right: Action buttons */}
-            <div className="flex flex-nowrap items-center gap-1">
+            <div className="flex flex-nowrap items-center gap-1 ml-auto">
               {/* Cancel Auction Button (only for creator of active auctions) */}
               {isCreator && auction.status !== 'cancelled' && auction.status !== 'completed' && !isAuctionEnded(auction) && (
                 <button
@@ -363,71 +424,6 @@ export default function AuctionDetailClient() {
                   for {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
                 </p>
               </div>
-            </div>
-
-            {/* Status Badge and Action Buttons - Desktop only */}
-            <div className="hidden sm:flex flex-nowrap items-center gap-1 sm:gap-3 flex-shrink-0">
-              {/* Cancel Auction Button (only for creator of active auctions) */}
-              {isCreator && auction.status !== 'cancelled' && auction.status !== 'completed' && !isAuctionEnded(auction) && (
-                <button
-                  onClick={() => setShowCancelConfirm(true)}
-                  disabled={isCancelling}
-                  className="flex items-center gap-1 px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-full transition-colors disabled:opacity-50"
-                >
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  <span>Cancel</span>
-                </button>
-              )}
-              <button
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-2 text-[10px] sm:text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50"
-                title="Refresh auction data"
-              >
-                <svg className={`w-3 h-3 sm:w-4 sm:h-4 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <span>{isRefreshing ? '...' : 'Refresh'}</span>
-              </button>
-              <button
-                onClick={handleCopyLink}
-                className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-2 text-[10px] sm:text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
-                title="Share auction link"
-              >
-                {copied ? (
-                  <>
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-gray-600">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                    </svg>
-                    <span>Share</span>
-                  </>
-                )}
-              </button>
-              {!isAuctionEnded(auction) && !timerEnded && auction.status !== 'cancelled' && (
-                auction.status === 'active' ? (
-                  <span className="px-2 py-1 sm:px-4 sm:py-2 text-[10px] sm:text-sm font-semibold text-green-700 bg-green-100 rounded-full flex items-center gap-1 sm:gap-2">
-                    <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-green-500"></span>
-                    </span>
-                    <span className="hidden sm:inline">Live Auction</span>
-                    <span className="sm:hidden">Live</span>
-                  </span>
-                ) : (
-                  <span className="px-2 py-1 sm:px-4 sm:py-2 text-[10px] sm:text-sm font-semibold text-blue-700 bg-blue-100 rounded-full">
-                    Upcoming
-                  </span>
-                )
-              )}
             </div>
           </div>
           {auction.description && (
