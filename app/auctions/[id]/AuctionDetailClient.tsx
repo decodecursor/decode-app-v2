@@ -216,7 +216,7 @@ export default function AuctionDetailClient() {
       <div className="bg-white border-b border-gray-200" style={{ position: 'relative', zIndex: 10 }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {isCreator && (
-            <div className="flex items-center gap-4 mb-4">
+            <div className="hidden sm:flex items-center gap-4 mb-4">
               <button
                 onClick={() => router.back()}
                 className="text-gray-600 hover:text-gray-900 flex items-center gap-[3px]"
@@ -287,7 +287,19 @@ export default function AuctionDetailClient() {
             </div>
 
             {/* Status Badge and Action Buttons */}
-            <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
+            <div className="flex flex-nowrap items-center gap-1 sm:gap-3 flex-shrink-0">
+              {/* Back button - mobile only */}
+              {isCreator && (
+                <button
+                  onClick={() => router.back()}
+                  className="flex sm:hidden items-center gap-1 px-2 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  <span>Back</span>
+                </button>
+              )}
               {/* Cancel Auction Button (only for creator of active auctions) */}
               {isCreator && auction.status !== 'cancelled' && auction.status !== 'completed' && !isAuctionEnded(auction) && (
                 <button
