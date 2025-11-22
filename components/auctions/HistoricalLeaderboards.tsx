@@ -101,7 +101,7 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Previous Auction Results</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Past Auctions</h3>
           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600" />
         </div>
         <div className="space-y-4">
@@ -139,7 +139,7 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
               d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
             />
           </svg>
-          <p className="text-sm text-gray-500">No previous auctions yet</p>
+          <p className="text-sm text-gray-500">No past auctions yet</p>
         </div>
       </div>
     );

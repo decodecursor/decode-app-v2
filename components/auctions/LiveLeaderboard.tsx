@@ -124,7 +124,7 @@ export function LiveLeaderboard({
         {leaderboard.length === 0 ? (
           <div className="px-4 py-8 text-center text-gray-500">
             <svg
-              className="mx-auto w-9 h-9 text-gray-300 mb-2"
+              className="mx-auto w-12 h-12 text-gray-400 mb-2"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
