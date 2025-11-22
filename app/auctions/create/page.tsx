@@ -17,6 +17,7 @@ export default function CreateAuction() {
     duration: 60 as AuctionDuration
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [durationChanged, setDurationChanged] = useState(false)
 
   const router = useRouter()
 
@@ -48,13 +49,39 @@ export default function CreateAuction() {
       newErrors.title = 'Title must be at least 3 characters'
     }
 
-    const startPrice = parseFloat(formData.auction_start_price)
+    const startPrice = parseFloat(formData.auction_start_price.replace(/,/g, ''))
     if (!formData.auction_start_price || isNaN(startPrice) || startPrice <= 0) {
       newErrors.auction_start_price = 'Please enter a valid starting price'
+    } else if (startPrice < 5) {
+      newErrors.auction_start_price = 'Minimum starting price is AED 5'
     }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
+  }
+
+  const handleAuctionPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target
+
+    // Remove all non-numeric characters except decimal point
+    const numericValue = value.replace(/[^0-9.]/g, '')
+
+    // Handle decimal cases - allow only one decimal point
+    const parts = numericValue.split('.')
+    if (parts.length > 2) return // Don't update if multiple decimal points
+
+    // Format integer part with commas
+    if (parts[0]) {
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+    }
+
+    const formattedValue = parts.join('.')
+    setFormData({ ...formData, auction_start_price: formattedValue })
+
+    // Clear errors when user starts typing
+    if (errors.auction_start_price) {
+      setErrors({ ...errors, auction_start_price: undefined })
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,7 +95,7 @@ export default function CreateAuction() {
     try {
       const requestPayload = {
         title: formData.title.trim(),
-        auction_start_price: parseFloat(formData.auction_start_price),
+        auction_start_price: parseFloat(formData.auction_start_price.replace(/,/g, '')),
         duration: formData.duration,
       }
 
@@ -183,19 +210,15 @@ export default function CreateAuction() {
               <div className="relative">
                 <span className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400">AED</span>
                 <input
-                  type="number"
+                  type="text"
                   id="auction_start_price"
                   value={formData.auction_start_price}
-                  onChange={(e) => {
-                    setFormData({ ...formData, auction_start_price: e.target.value })
-                    if (errors.auction_start_price) setErrors({ ...errors, auction_start_price: undefined })
-                  }}
-                  min="0"
-                  step="0.01"
+                  onChange={handleAuctionPriceChange}
+                  inputMode="numeric"
                   className={`w-full pl-14 md:pl-16 md:pr-4 pr-3 md:py-3 py-2 h-[42px] md:h-[50px] bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
                     errors.auction_start_price ? 'border-red-500' : formData.auction_start_price ? 'border-purple-500' : 'border-gray-700 focus:border-purple-500'
                   }`}
-                  placeholder="10.00"
+                  placeholder="800"
                   disabled={creating}
                 />
               </div>
@@ -212,10 +235,11 @@ export default function CreateAuction() {
               <select
                 id="duration"
                 value={formData.duration}
-                onChange={(e) =>
+                onChange={(e) => {
                   setFormData({ ...formData, duration: parseInt(e.target.value) as AuctionDuration })
-                }
-                className="w-full md:px-4 md:py-3 px-3 py-2 h-[42px] md:h-[50px] bg-gray-800 border border-purple-500 rounded-lg text-white focus:border-purple-500 focus:outline-none transition-colors"
+                  setDurationChanged(true)
+                }}
+                className={`w-full md:px-4 md:py-3 px-3 py-2 h-[42px] md:h-[50px] bg-gray-800 border ${durationChanged ? 'border-purple-500' : 'border-gray-700'} rounded-lg text-white focus:border-purple-500 focus:outline-none transition-colors`}
                 disabled={creating}
               >
                 {AUCTION_DURATIONS.map((option) => (

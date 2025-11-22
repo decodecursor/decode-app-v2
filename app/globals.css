@@ -618,6 +618,13 @@ body {
   color: #374151;
 }
 
+@media (min-width: 768px) {
+  .instagram-avatar {
+    width: 80px;
+    height: 80px;
+  }
+}
+
 /* Navigation button styling with larger font */
 .nav-button {
   font-size: 17px;
