@@ -486,7 +486,7 @@ export default function Dashboard() {
                     </div>
                   )}
                   {profile?.role ? (
-                    <div className="text-xs text-gray-400">
+                    <div className="text-sm text-gray-400">
                       {profile?.role}
                     </div>
                   ) : (
@@ -659,7 +659,7 @@ export default function Dashboard() {
                       </div>
                     )}
                     {profile?.role ? (
-                      <div className="text-xs text-gray-400">
+                      <div className="text-sm text-gray-400">
                         {profile?.role}
                       </div>
                     ) : (
