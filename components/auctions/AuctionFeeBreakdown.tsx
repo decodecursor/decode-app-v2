@@ -57,7 +57,7 @@ export function AuctionFeeBreakdown({
         <div className="flex justify-between items-center">
           <span className="text-gray-600">
             <span style={{ fontSize: '16px' }}>Auction Starting Price </span>
-            <span style={{ fontSize: '11px' }}>(Beauty Service Cost):</span>
+            <span className="hidden sm:inline" style={{ fontSize: '11px' }}>(Beauty Service Cost):</span>
           </span>
           <span className="font-medium text-gray-900" style={{ fontSize: '16px' }}>- {formatCurrency(auctionStartPrice)}</span>
         </div>
@@ -68,7 +68,7 @@ export function AuctionFeeBreakdown({
         <div className="flex justify-between items-center">
           <span className="text-gray-600">
             <span style={{ fontSize: '16px' }}>Profit </span>
-            <span style={{ fontSize: '11px' }}>(Highest Bid – Auction Starting Price):</span>
+            <span className="hidden sm:inline" style={{ fontSize: '11px' }}>(Highest Bid – Auction Starting Price):</span>
           </span>
           <span className="font-medium text-gray-900" style={{ fontSize: '16px' }}>{formatCurrency(profit)}</span>
         </div>
@@ -77,7 +77,7 @@ export function AuctionFeeBreakdown({
         <div className="flex justify-between items-center">
           <span className="text-gray-600">
             <span style={{ fontSize: '16px' }}>DECODE Service Fee </span>
-            <span style={{ fontSize: '11px' }}>({DEFAULT_AUCTION_FEE_PERCENTAGE}% of Profit):</span>
+            <span className="hidden sm:inline" style={{ fontSize: '11px' }}>({DEFAULT_AUCTION_FEE_PERCENTAGE}% of Profit):</span>
           </span>
           <span className="font-medium text-gray-900" style={{ fontSize: '16px' }}>- {formatCurrency(decodeFee)}</span>
         </div>
