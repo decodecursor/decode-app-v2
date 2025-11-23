@@ -49,7 +49,7 @@ export function AuctionFeeBreakdown({
       <div className="space-y-3">
         {/* Current/Winning Bid */}
         <div className="flex justify-between items-center">
-          <span className="text-gray-600" style={{ fontSize: '16px' }}>{isCompleted ? 'Winning Bid:' : 'Highest Bid:'}</span>
+          <span className="text-gray-600 font-semibold" style={{ fontSize: '16px' }}>{isCompleted ? 'Winning Bid:' : 'Highest Bid:'}</span>
           <span className="font-semibold text-green-600" style={{ fontSize: '16px' }}>{formatCurrency(currentBid)}</span>
         </div>
 
@@ -59,18 +59,18 @@ export function AuctionFeeBreakdown({
             <span style={{ fontSize: '16px' }}>Auction Starting Price </span>
             <span className="hidden sm:inline" style={{ fontSize: '11px' }}>(Beauty Service Cost):</span>
           </span>
-          <span className="font-medium text-gray-900" style={{ fontSize: '16px' }}>- {formatCurrency(auctionStartPrice)}</span>
+          <span className="text-gray-900" style={{ fontSize: '16px' }}>- {formatCurrency(auctionStartPrice)}</span>
         </div>
 
         <div className="border-t border-gray-200 my-3"></div>
 
         {/* Profit Calculation */}
         <div className="flex justify-between items-center">
-          <span className="text-gray-600">
+          <span className="text-gray-600 font-semibold">
             <span style={{ fontSize: '16px' }}>Profit </span>
             <span className="hidden sm:inline" style={{ fontSize: '11px' }}>(Highest Bid – Auction Starting Price):</span>
           </span>
-          <span className="font-medium text-gray-900" style={{ fontSize: '16px' }}>{formatCurrency(profit)}</span>
+          <span className="font-semibold text-gray-900" style={{ fontSize: '16px' }}>{formatCurrency(profit)}</span>
         </div>
 
         {/* DECODE Fee */}
@@ -79,7 +79,7 @@ export function AuctionFeeBreakdown({
             <span style={{ fontSize: '16px' }}>DECODE Service Fee </span>
             <span className="hidden sm:inline" style={{ fontSize: '11px' }}>({DEFAULT_AUCTION_FEE_PERCENTAGE}% of Profit):</span>
           </span>
-          <span className="font-medium text-gray-900" style={{ fontSize: '16px' }}>- {formatCurrency(decodeFee)}</span>
+          <span className="text-gray-900" style={{ fontSize: '16px' }}>- {formatCurrency(decodeFee)}</span>
         </div>
 
         <div className="border-t border-gray-300 my-3"></div>
