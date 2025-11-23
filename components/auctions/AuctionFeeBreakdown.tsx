@@ -43,7 +43,7 @@ export function AuctionFeeBreakdown({
   return (
     <div className={`bg-white border border-gray-200 rounded-lg p-6 shadow-sm ${className}`}>
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        {isCompleted ? 'Final Earnings Breakdown' : 'Estimated Earnings'}
+        Auction Breakdown
       </h3>
 
       <div className="space-y-3">
