@@ -81,6 +81,7 @@ export function BiddingInterface({
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRepeatBidder, setIsRepeatBidder] = useState(false);
   const [isCheckingPreviousBids, setIsCheckingPreviousBids] = useState(false);
+  const [paymentAutoConfirmed, setPaymentAutoConfirmed] = useState(false);
 
   const currentPrice = Number(auction.auction_current_price);
   const startPrice = Number(auction.auction_start_price);
@@ -314,10 +315,18 @@ export function BiddingInterface({
         throw new Error('Failed to initialize payment. Please try again.');
       }
 
-      // Set client secret and bid ID for Stripe payment
-      setClientSecret(data.client_secret);
-      setBidId(data.bid_id);
-      setStep('payment');
+      // Check if payment was auto-confirmed with saved payment method
+      if (data.payment_auto_confirmed) {
+        setPaymentAutoConfirmed(true);
+        setBidId(data.bid_id);
+        setStep('payment'); // Will show success message instead of payment form
+      } else {
+        // Set client secret and bid ID for Stripe payment
+        setClientSecret(data.client_secret);
+        setBidId(data.bid_id);
+        setPaymentAutoConfirmed(false);
+        setStep('payment');
+      }
     } catch (err) {
       console.error('Bid error:', err);
       setError(err instanceof Error ? err.message : 'Failed to place bid');
@@ -334,6 +343,7 @@ export function BiddingInterface({
     setClientSecret(null);
     setBidId(null);
     setError(null);
+    setPaymentAutoConfirmed(false);
 
     // For guest bidders: Load cached data from localStorage
     if (!userEmail) {
@@ -480,7 +490,7 @@ export function BiddingInterface({
       )}
 
       {/* Step: Payment */}
-      {step === 'payment' && clientSecret && bidId && (
+      {step === 'payment' && bidId && (
         <div>
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-700">
@@ -506,26 +516,55 @@ export function BiddingInterface({
             )}
           </div>
 
-          <Elements stripe={stripePromise} options={{
-            clientSecret,
-            appearance: {
-              theme: 'stripe',
-              variables: {
-                colorPrimary: '#2563eb',
-                fontSizeBase: '16px',
+          {/* Auto-confirmed payment (saved card used) */}
+          {paymentAutoConfirmed ? (
+            <div className="space-y-4">
+              <div className="p-4 bg-green-50 border border-green-200 rounded-md">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <p className="text-sm text-green-700 font-medium">
+                    Bid placed successfully with your saved card!
+                  </p>
+                </div>
+                <p className="text-xs text-green-600 mt-2">
+                  Your payment method has been authorized. Your bid is now on the leaderboard.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  if (onBidPlaced) onBidPlaced();
+                  handleReset();
+                }}
+                className="w-full px-4 py-3 text-base font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              >
+                Done
+              </button>
+            </div>
+          ) : clientSecret ? (
+            /* Payment form for new cards */
+            <Elements stripe={stripePromise} options={{
+              clientSecret,
+              appearance: {
+                theme: 'stripe',
+                variables: {
+                  colorPrimary: '#2563eb',
+                  fontSizeBase: '16px',
+                },
               },
-            },
-          }}>
-            <PaymentForm
-              auctionId={auction.id}
-              bidId={bidId}
-              onSuccess={() => {
-                if (onBidPlaced) onBidPlaced();
-                handleReset();
-              }}
-              onCancel={handleReset}
-            />
-          </Elements>
+            }}>
+              <PaymentForm
+                auctionId={auction.id}
+                bidId={bidId}
+                onSuccess={() => {
+                  if (onBidPlaced) onBidPlaced();
+                  handleReset();
+                }}
+                onCancel={handleReset}
+              />
+            </Elements>
+          ) : null}
         </div>
       )}
     </div>

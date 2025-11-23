@@ -100,6 +100,7 @@ export class BiddingService {
         bidder_name: params.bidder_name,
         is_guest: params.is_guest,
         guest_stripe_customer_id: stripeCustomerId,
+        guest_bidder_id: guestBidderId,
       } as any);
 
       if (!paymentResult.success) {
@@ -145,6 +146,7 @@ export class BiddingService {
         success: true,
         bid_id: bid.id,
         client_secret: paymentResult.metadata?.client_secret,
+        payment_auto_confirmed: paymentResult.metadata?.has_saved_payment_method || false,
       };
     } catch (error) {
       console.error('Error placing bid:', error);

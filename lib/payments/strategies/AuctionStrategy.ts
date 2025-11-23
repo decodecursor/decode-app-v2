@@ -11,6 +11,7 @@ import {
   RefundResult,
 } from '../core/PaymentStrategy.interface';
 import { getAuctionConfig, PAYMENT_CONFIG } from '../config/paymentConfig';
+import { GuestBidderService } from '@/lib/services/GuestBidderService';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-06-30.basil',
@@ -23,6 +24,7 @@ export interface AuctionPaymentContext extends PaymentContext {
   bidder_name: string;
   is_guest: boolean;
   guest_stripe_customer_id?: string;
+  guest_bidder_id?: string;
 }
 
 export class AuctionStrategy implements IPaymentStrategy {
@@ -59,6 +61,13 @@ export class AuctionStrategy implements IPaymentStrategy {
         customerId = customer.id;
       }
 
+      // Check for saved payment method for guest bidders
+      let savedPaymentMethodId: string | null = null;
+      if (auctionContext.is_guest && auctionContext.guest_bidder_id) {
+        const guestService = new GuestBidderService();
+        savedPaymentMethodId = await guestService.getSavedPaymentMethod(auctionContext.guest_bidder_id);
+      }
+
       // Convert AED amount to USD (Stripe doesn't support AED directly)
       const aedAmount = context.amount;
       const usdAmount = aedAmount / PAYMENT_CONFIG.currency.AED_TO_USD_RATE;
@@ -75,15 +84,12 @@ export class AuctionStrategy implements IPaymentStrategy {
       }
 
       // Create PaymentIntent with manual capture (pre-authorization)
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntentParams: Stripe.PaymentIntentCreateParams = {
         amount: usdCents, // Amount in USD cents
         currency: 'usd',
         customer: customerId || undefined,
         capture_method: 'manual', // Pre-authorize only, capture later
-        automatic_payment_methods: {
-          enabled: true,
-          allow_redirects: 'never', // Prevent redirect-based payment methods
-        },
+        setup_future_usage: 'off_session', // Save payment method for future use
         metadata: {
           type: 'auction_bid',
           auction_id: auctionContext.auction_id,
@@ -91,11 +97,27 @@ export class AuctionStrategy implements IPaymentStrategy {
           bidder_email: auctionContext.bidder_email,
           bidder_name: auctionContext.bidder_name,
           is_guest: auctionContext.is_guest.toString(),
+          guest_bidder_id: auctionContext.guest_bidder_id || '',
           original_amount_aed: aedAmount.toString(),
           converted_amount_usd: usdAmount.toFixed(2),
         },
         description: `Bid on auction: ${context.description || auctionContext.auction_id}`,
-      });
+      };
+
+      // If saved payment method exists, attach it and confirm automatically
+      if (savedPaymentMethodId) {
+        paymentIntentParams.payment_method = savedPaymentMethodId;
+        paymentIntentParams.confirm = true;
+        paymentIntentParams.off_session = true;
+      } else {
+        // For new payment methods, enable automatic payment methods
+        paymentIntentParams.automatic_payment_methods = {
+          enabled: true,
+          allow_redirects: 'never', // Prevent redirect-based payment methods
+        };
+      }
+
+      const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
 
       return {
         success: true,
@@ -103,6 +125,7 @@ export class AuctionStrategy implements IPaymentStrategy {
         metadata: {
           client_secret: paymentIntent.client_secret,
           stripe_customer_id: customerId,
+          has_saved_payment_method: !!savedPaymentMethodId,
         },
       };
     } catch (error) {
@@ -237,6 +260,22 @@ export class AuctionStrategy implements IPaymentStrategy {
       auction_id: paymentIntent.metadata.auction_id,
       amount: paymentIntent.amount / 100,
     });
+
+    // Save payment method for guest bidders
+    if (paymentIntent.metadata.is_guest === 'true' && paymentIntent.metadata.guest_bidder_id) {
+      const paymentMethodId = paymentIntent.payment_method as string;
+      if (paymentMethodId) {
+        const guestService = new GuestBidderService();
+        await guestService.savePaymentMethod(
+          paymentIntent.metadata.guest_bidder_id,
+          paymentMethodId
+        );
+        console.log('Saved payment method for guest bidder:', {
+          guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
+          payment_method_id: paymentMethodId,
+        });
+      }
+    }
 
     // Update bid status in database
     // This will be handled by the BiddingService

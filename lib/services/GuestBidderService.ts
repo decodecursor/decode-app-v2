@@ -178,4 +178,45 @@ export class GuestBidderService {
       console.error('Error updating guest win stats:', error);
     }
   }
+
+  /**
+   * Save payment method ID for guest bidder
+   */
+  async savePaymentMethod(guestBidderId: string, paymentMethodId: string): Promise<void> {
+    const supabase = createServiceRoleClient();
+
+    try {
+      await supabase
+        .from('guest_bidders')
+        .update({
+          default_payment_method_id: paymentMethodId,
+          last_payment_method_saved_at: new Date().toISOString(),
+        })
+        .eq('id', guestBidderId);
+    } catch (error) {
+      console.error('Error saving payment method:', error);
+    }
+  }
+
+  /**
+   * Get saved payment method ID for guest bidder
+   */
+  async getSavedPaymentMethod(guestBidderId: string): Promise<string | null> {
+    const supabase = createServiceRoleClient();
+
+    try {
+      const { data, error } = await supabase
+        .from('guest_bidders')
+        .select('default_payment_method_id')
+        .eq('id', guestBidderId)
+        .single();
+
+      if (error || !data) return null;
+
+      return data.default_payment_method_id || null;
+    } catch (error) {
+      console.error('Error getting saved payment method:', error);
+      return null;
+    }
+  }
 }

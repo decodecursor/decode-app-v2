@@ -145,6 +145,7 @@ export async function POST(
         success: true,
         bid_id: result.bid_id,
         client_secret: result.client_secret,
+        payment_auto_confirmed: result.payment_auto_confirmed || false,
         message: 'Bid placed successfully',
       },
       { status: 201 }
