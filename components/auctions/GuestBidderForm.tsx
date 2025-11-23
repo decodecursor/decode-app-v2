@@ -251,7 +251,7 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
                   setWhatsappNumber(formatted);
                   if (errors.contact) setErrors({ ...errors, contact: undefined });
                 }}
-                className={`flex-1 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 ${
+                className={`flex-1 min-w-0 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 ${
                   errors.contact ? 'border-red-500' : 'border-gray-300'
                 }`}
                 placeholder="50 123 4567"

@@ -465,7 +465,7 @@ export function BiddingInterface({
                 </p>
                 <p className="text-sm text-blue-700 mt-1">
                   {guestInfo.contactMethod === 'whatsapp' ? 'WhatsApp' : 'Email'}:
-                  <span className="font-semibold ml-1 no-underline" style={{ textDecoration: 'none' }}>
+                  <span className="font-semibold ml-1" style={{ textDecoration: 'none !important' }}>
                     {guestInfo.contactMethod === 'whatsapp' ? formatWhatsAppNumber(guestInfo.whatsappNumber!) : guestInfo.email}
                   </span>
                 </p>
@@ -493,7 +493,7 @@ export function BiddingInterface({
                 </p>
                 <p className="text-sm text-blue-700 mt-1">
                   {guestInfo.contactMethod === 'whatsapp' ? 'WhatsApp' : 'Email'}:
-                  <span className="font-semibold ml-1 no-underline" style={{ textDecoration: 'none' }}>
+                  <span className="font-semibold ml-1" style={{ textDecoration: 'none !important' }}>
                     {guestInfo.contactMethod === 'whatsapp' ? formatWhatsAppNumber(guestInfo.whatsappNumber!) : guestInfo.email}
                   </span>
                 </p>
