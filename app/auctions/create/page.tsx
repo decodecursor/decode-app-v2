@@ -125,7 +125,7 @@ export default function CreateAuction() {
 
       // Success
       console.log('✅ [CreateAuction] Auction created successfully:', data.auction_id)
-      router.push(`/auctions/${data.auction_id}`)
+      router.replace(`/auctions/${data.auction_id}`)
     } catch (err) {
       console.error('💥 [CreateAuction] Exception caught:', err)
       setError(err instanceof Error ? err.message : 'Failed to create auction')
