@@ -183,14 +183,14 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
               if (errors.contact) setErrors({ ...errors, contact: undefined });
             }}
             disabled={isLoading}
-            className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg transition-all ${
+            className={`flex flex-col items-center justify-center p-2 border-2 rounded-lg transition-all ${
               contactMethod === 'whatsapp'
                 ? 'bg-blue-600 border-blue-600 text-white'
                 : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
             } disabled:opacity-50`}
           >
             <span className="font-medium text-sm">WhatsApp</span>
-            <span className="text-xs opacity-90 mt-1">
+            <span className="text-xs opacity-90 mt-0.5">
               {contactMethod === 'whatsapp' ? 'Instant notifications' : 'Get instant updates'}
             </span>
           </button>
@@ -202,14 +202,14 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
               if (errors.contact) setErrors({ ...errors, contact: undefined });
             }}
             disabled={isLoading}
-            className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg transition-all ${
+            className={`flex flex-col items-center justify-center p-2 border-2 rounded-lg transition-all ${
               contactMethod === 'email'
                 ? 'bg-blue-600 border-blue-600 text-white'
                 : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
             } disabled:opacity-50`}
           >
             <span className="font-medium text-sm">Email</span>
-            <span className="text-xs opacity-90 mt-1">
+            <span className="text-xs opacity-90 mt-0.5">
               {contactMethod === 'email' ? 'Traditional updates' : 'Email notifications'}
             </span>
           </button>
