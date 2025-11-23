@@ -290,23 +290,12 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
         ) : null}
       </div>
 
-      {/* Submit Buttons */}
-      <div className="flex gap-3">
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isLoading}
-            className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-          >
-            Cancel
-          </button>
-        )}
-        {contactMethod && (
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+      {/* Submit Button */}
+      {contactMethod && (
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">
@@ -331,9 +320,8 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
             ) : (
               'Continue'
             )}
-          </button>
-        )}
-      </div>
+        </button>
+      )}
     </form>
   );
 }

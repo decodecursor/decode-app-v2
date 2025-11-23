@@ -380,7 +380,17 @@ export function BiddingInterface({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
+    <div className="bg-white border border-gray-200 rounded-lg p-6 relative">
+      {/* Close button */}
+      <button
+        onClick={handleReset}
+        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+        type="button"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Place Your Bid</h3>
 
       {/* Step: Enter Bid Amount */}
@@ -455,7 +465,7 @@ export function BiddingInterface({
                 </p>
                 <p className="text-sm text-blue-700 mt-1">
                   {guestInfo.contactMethod === 'whatsapp' ? 'WhatsApp' : 'Email'}:
-                  <span className="font-semibold ml-1" style={{ textDecoration: 'none' }}>
+                  <span className="font-semibold ml-1 no-underline" style={{ textDecoration: 'none' }}>
                     {guestInfo.contactMethod === 'whatsapp' ? formatWhatsAppNumber(guestInfo.whatsappNumber!) : guestInfo.email}
                   </span>
                 </p>
@@ -484,7 +494,7 @@ export function BiddingInterface({
                 </p>
                 <p className="text-sm text-blue-700 mt-1">
                   {guestInfo.contactMethod === 'whatsapp' ? 'WhatsApp' : 'Email'}:
-                  <span className="font-semibold ml-1" style={{ textDecoration: 'none' }}>
+                  <span className="font-semibold ml-1 no-underline" style={{ textDecoration: 'none' }}>
                     {guestInfo.contactMethod === 'whatsapp' ? formatWhatsAppNumber(guestInfo.whatsappNumber!) : guestInfo.email}
                   </span>
                 </p>
@@ -727,24 +737,14 @@ function PaymentForm({
         </div>
       )}
 
-      <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isProcessing}
-          className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={!stripe || isProcessing}
-          className="flex-1 px-4 py-3 text-base font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isProcessing ? 'Processing...' : 'Confirm Bid'}
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={!stripe || isProcessing}
+        className="w-full px-4 py-3 text-base font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isProcessing ? 'Processing...' : 'Confirm Bid'}
+      </button>
     </div>
   );
 }
