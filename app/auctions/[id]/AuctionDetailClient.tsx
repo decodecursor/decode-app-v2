@@ -504,11 +504,11 @@ export default function AuctionDetailClient() {
               <dl className="space-y-1.5">
                 <div className="flex justify-between">
                   <dt className="text-sm text-gray-600">Starting Price</dt>
-                  <dd className="text-sm font-medium text-gray-900">{formatBidAmount(startPrice)}</dd>
+                  <dd className="text-sm font-medium text-gray-600">{formatBidAmount(startPrice)}</dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-sm text-gray-600">Duration</dt>
-                  <dd className="text-sm font-medium text-gray-900">
+                  <dd className="text-sm font-medium text-gray-600">
                     {(() => {
                       const hours = Math.floor(auction.duration / 60);
                       const minutes = auction.duration % 60;
@@ -520,13 +520,13 @@ export default function AuctionDetailClient() {
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-sm text-gray-600">Started</dt>
-                  <dd className="text-sm font-medium text-gray-900">
+                  <dd className="text-sm font-medium text-gray-600">
                     {new Date(auction.start_time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} at {new Date(auction.start_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}
                   </dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-sm text-gray-600">{isAuctionEnded(auction) ? 'Ended' : 'Ends'}</dt>
-                  <dd className="text-sm font-medium text-gray-900">
+                  <dd className="text-sm font-medium text-gray-600">
                     {new Date(auction.end_time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} at {new Date(auction.end_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}
                   </dd>
                 </div>
