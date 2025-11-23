@@ -575,7 +575,7 @@ export default function AuctionDetailClient() {
                   </svg>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Auction Cancelled</h3>
                   <p className="text-gray-600 mb-6">
-                    All payment authorizations have been released.
+                    Payment authorizations released.
                   </p>
                 </div>
                 <button

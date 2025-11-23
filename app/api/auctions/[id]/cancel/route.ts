@@ -85,7 +85,7 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      message: 'Auction cancelled successfully. All payment authorizations have been released.',
+      message: 'Auction cancelled successfully. Payment authorizations released.',
     });
   } catch (error) {
     console.error('Error in POST /api/auctions/[id]/cancel:', error);
