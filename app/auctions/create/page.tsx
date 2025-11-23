@@ -174,7 +174,7 @@ export default function CreateAuction() {
           <div className="text-center md:mb-8 mb-6">
             <div className="md:w-8 md:h-8 w-7 h-7 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="md:w-4 md:h-4 w-3 h-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 6.343l-1.414-1.414-8.485 8.485 1.414 1.414 8.485-8.485zM17 4a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V5a1 1 0 00-1-1h-4zM3 20h18M6 16l4-4" />
               </svg>
             </div>
             <h2 className="md:text-2xl text-xl font-bold text-white mb-2">

@@ -766,6 +766,9 @@ function PaymentForm({
               applePay: 'never',
               googlePay: 'never',
             },
+            terms: {
+              card: 'never',
+            },
           }}
         />
       </div>
