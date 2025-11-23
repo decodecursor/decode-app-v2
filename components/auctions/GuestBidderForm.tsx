@@ -190,7 +190,7 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
             } disabled:opacity-50`}
           >
             <span className="font-medium text-sm">WhatsApp</span>
-            <span className="text-xs opacity-90 mt-0.5">
+            <span className="text-[10px] opacity-90 mt-0.5">
               {contactMethod === 'whatsapp' ? 'Instant notifications' : 'Get instant updates'}
             </span>
           </button>
@@ -209,7 +209,7 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
             } disabled:opacity-50`}
           >
             <span className="font-medium text-sm">Email</span>
-            <span className="text-xs opacity-90 mt-0.5">
+            <span className="text-[10px] opacity-90 mt-0.5">
               {contactMethod === 'email' ? 'Traditional updates' : 'Email notifications'}
             </span>
           </button>

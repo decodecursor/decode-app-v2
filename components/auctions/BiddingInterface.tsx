@@ -474,7 +474,6 @@ export function BiddingInterface({
           </div>
           <InstagramUsernameForm
             onSubmit={handleInstagramSubmit}
-            onSkip={() => handleInstagramSubmit(undefined)}
             isLoading={isProcessing}
           />
         </div>
@@ -695,11 +694,12 @@ function PaymentForm({
 
   return (
     <div className="space-y-4">
-      <div className="p-4 bg-gray-50 rounded-md">
-        <p className="text-[11px] sm:text-[13px] text-gray-700 mb-3 text-center">
-          We&apos;ll pre-authorize. You&apos;re charged only if you win.
-        </p>
+      {/* Pre-authorization info text */}
+      <p className="text-[11px] sm:text-[13px] text-gray-700 text-center py-2">
+        We&apos;ll pre-authorize. You&apos;re charged only if you win.
+      </p>
 
+      <div className="p-4 bg-gray-50 rounded-md">
         {/* Express Checkout (Apple Pay / Google Pay) */}
         <div className="mb-4" style={{ minHeight: '50px' }}>
           <ExpressCheckoutElement
@@ -743,7 +743,7 @@ function PaymentForm({
         disabled={!stripe || isProcessing}
         className="w-full px-4 py-3 text-base font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isProcessing ? 'Processing...' : 'Confirm Bid'}
+        {isProcessing ? 'Processing...' : 'Confirm Your Bid'}
       </button>
     </div>
   );
