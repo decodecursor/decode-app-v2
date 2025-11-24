@@ -12,6 +12,7 @@ import {
 } from '../core/PaymentStrategy.interface';
 import { getAuctionConfig, PAYMENT_CONFIG } from '../config/paymentConfig';
 import { GuestBidderService } from '@/lib/services/GuestBidderService';
+import { createServiceRoleClient } from '@/lib/supabase/service-role-client';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-06-30.basil',
@@ -72,15 +73,30 @@ export class AuctionStrategy implements IPaymentStrategy {
       }
 
       // Check for saved payment method for guest bidders with Stripe fallback
+      // ONLY use saved payment if guest has bid on THIS SPECIFIC auction before
       let savedPaymentMethodId: string | null = null;
       if (auctionContext.is_guest && auctionContext.guest_bidder_id) {
         const guestService = new GuestBidderService();
 
-        // First try to get from database with enhanced retry logic
-        savedPaymentMethodId = await guestService.getSavedPaymentMethod(auctionContext.guest_bidder_id);
+        // Check if guest has previously bid on THIS auction
+        const hasPreviousBid = await guestService.hasGuestBidOnAuction(
+          auctionContext.guest_bidder_id,
+          auctionContext.auction_id
+        );
 
-        // If not found in database but we have a customer ID, check Stripe directly
-        if (!savedPaymentMethodId && customerId) {
+        if (hasPreviousBid) {
+          // Guest has bid on this auction before - retrieve saved payment method
+          savedPaymentMethodId = await guestService.getSavedPaymentMethod(auctionContext.guest_bidder_id);
+        } else {
+          // First bid on this auction - don't use saved payment method
+          console.log('[AuctionStrategy] First bid on this auction, not using saved payment method:', {
+            guest_bidder_id: auctionContext.guest_bidder_id,
+            auction_id: auctionContext.auction_id,
+          });
+        }
+
+        // If not found in database but we have a customer ID and previous bid, check Stripe directly
+        if (!savedPaymentMethodId && customerId && hasPreviousBid) {
           console.log('[AuctionStrategy] Payment method not in database, checking Stripe directly for customer:', customerId);
 
           try {
@@ -424,8 +440,39 @@ export class AuctionStrategy implements IPaymentStrategy {
       }
     }
 
-    // Update bid status in database
-    // This will be handled by the BiddingService
+    // Update bid status in database for auto-confirmed payments
+    if (paymentIntent.metadata.bid_id) {
+      const supabase = createServiceRoleClient();
+
+      console.log('[AuctionStrategy] Updating bid status to winning:', {
+        bid_id: paymentIntent.metadata.bid_id,
+        auction_id: paymentIntent.metadata.auction_id,
+      });
+
+      const { data: updatedBid, error: updateError } = await supabase
+        .from('bids')
+        .update({
+          payment_intent_status: 'requires_capture',
+          status: 'winning',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', paymentIntent.metadata.bid_id)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error('[AuctionStrategy] ❌ Error updating bid status:', {
+          error: updateError.message,
+          bid_id: paymentIntent.metadata.bid_id,
+        });
+      } else {
+        console.log('[AuctionStrategy] ✅ Successfully updated bid status:', {
+          bid_id: updatedBid.id,
+          status: updatedBid.status,
+          payment_intent_status: updatedBid.payment_intent_status,
+        });
+      }
+    }
   }
 
   private async handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent): Promise<void> {

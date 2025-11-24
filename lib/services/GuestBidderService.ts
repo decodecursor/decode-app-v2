@@ -307,4 +307,38 @@ export class GuestBidderService {
     });
     return null;
   }
+
+  /**
+   * Check if guest bidder has previously bid on a specific auction
+   * Used to scope saved payment methods per auction
+   */
+  async hasGuestBidOnAuction(guestBidderId: string, auctionId: string): Promise<boolean> {
+    const supabase = createServiceRoleClient();
+
+    try {
+      const { data, error } = await supabase
+        .from('bids')
+        .select('id')
+        .eq('guest_bidder_id', guestBidderId)
+        .eq('auction_id', auctionId)
+        .limit(1);
+
+      if (error) {
+        console.error('[GuestBidderService] Error checking previous bids:', error);
+        return false;
+      }
+
+      const hasBid = data && data.length > 0;
+      console.log('[GuestBidderService] Previous bid check:', {
+        guest_bidder_id: guestBidderId,
+        auction_id: auctionId,
+        has_previous_bid: hasBid,
+      });
+
+      return hasBid;
+    } catch (error) {
+      console.error('[GuestBidderService] Exception checking previous bids:', error);
+      return false;
+    }
+  }
 }
