@@ -243,8 +243,8 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
         {/* Pricing Stats */}
         <div className="mb-4">
-          <div className="grid grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
-            {/* Current/Starting Price */}
+          <div className="flex justify-between items-start gap-4 flex-wrap">
+            {/* LEFT GROUP: Starting Price */}
             <div>
               <p className="text-xs text-gray-400 uppercase tracking-wide">
                 {isAuctionEnded(auction) && auction.winner_name
@@ -258,44 +258,50 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               </p>
             </div>
 
-            {/* My Profit */}
-            <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wide">My Profit</p>
-              <p className="mt-1 text-xl md:text-2xl font-bold text-green-400">
-                {formatBidAmount(creatorProfit)}
-              </p>
+            {/* MIDDLE GROUP: My Profit + My Payout */}
+            <div className="flex gap-6 md:gap-8">
+              {/* My Profit */}
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wide">My Profit</p>
+                <p className="mt-1 text-xl md:text-2xl font-bold text-green-400">
+                  {formatBidAmount(creatorProfit)}
+                </p>
+              </div>
+
+              {/* My Payout */}
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wide">My Payout</p>
+                <p className={`mt-1 text-xl md:text-2xl font-bold ${
+                  auction.payout_status === 'transferred'
+                    ? 'text-green-400'
+                    : auction.payout_status === 'failed'
+                    ? 'text-red-400'
+                    : auction.payout_status === 'processing'
+                    ? 'text-yellow-400'
+                    : 'text-gray-400'
+                }`}>
+                  {getPayoutStatusText()}
+                </p>
+              </div>
             </div>
 
-            {/* My Payout */}
-            <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wide">My Payout</p>
-              <p className={`mt-1 text-xl md:text-2xl font-bold ${
-                auction.payout_status === 'transferred'
-                  ? 'text-green-400'
-                  : auction.payout_status === 'failed'
-                  ? 'text-red-400'
-                  : auction.payout_status === 'processing'
-                  ? 'text-yellow-400'
-                  : 'text-gray-400'
-              }`}>
-                {getPayoutStatusText()}
-              </p>
-            </div>
+            {/* RIGHT GROUP: Bids + Bidders */}
+            <div className="flex gap-6 md:gap-8">
+              {/* Bid Count */}
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wide">Bids</p>
+                <p className="mt-1 text-xl md:text-2xl font-bold text-white">
+                  {auction.total_bids}
+                </p>
+              </div>
 
-            {/* Bid Count */}
-            <div className="text-center">
-              <p className="text-xs text-gray-400 uppercase tracking-wide">Bids</p>
-              <p className="mt-1 text-xl md:text-2xl font-bold text-white">
-                {auction.total_bids}
-              </p>
-            </div>
-
-            {/* Bidder Count */}
-            <div className="text-right">
-              <p className="text-xs text-gray-400 uppercase tracking-wide">Bidders</p>
-              <p className="mt-1 text-xl md:text-2xl font-bold text-white">
-                {auction.unique_bidders}
-              </p>
+              {/* Bidder Count */}
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wide">Bidders</p>
+                <p className="mt-1 text-xl md:text-2xl font-bold text-white">
+                  {auction.unique_bidders}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -305,7 +311,11 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
           <div className="flex flex-wrap gap-2 justify-end">
             {/* Share Button */}
             <button
-              onClick={handleShare}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleShare(e);
+              }}
               className={`cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1.5 ${
                 shareSuccess ? 'bg-green-500/20 text-green-300 border-green-500' : ''
               }`}
@@ -330,7 +340,11 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
             {/* QR Code Button */}
             <button
-              onClick={handleGenerateQR}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleGenerateQR(e);
+              }}
               disabled={generatingQR}
               className="cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
               title="Generate QR code"
