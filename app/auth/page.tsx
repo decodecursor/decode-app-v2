@@ -728,11 +728,12 @@ function AuthPageContent() {
               <div className="text-center mb-8">
                 <div className="text-6xl mb-4">📬</div>
                 <p className="text-gray-400">
-                  We sent a magic link to <span className="text-white font-medium">{email}</span>
+                  We sent a magic link to<br />
+                  <span className="text-white font-medium">{email}</span>
                 </p>
               </div>
 
-              <div className="space-y-4 mt-4">
+              <div className="space-y-4 mt-10">
                 <button
                   onClick={handleResend}
                   disabled={resendCooldown > 0 || emailLoading}
