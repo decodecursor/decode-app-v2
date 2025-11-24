@@ -284,30 +284,46 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
               {/* Beauty Business Image */}
               {linkedBusiness ? (
-                <div
-                  className="instagram-avatar relative z-10 -ml-3 cursor-pointer"
-                  style={{ width: '48px', height: '48px' }}
-                  onClick={() => setShowBusinessModal(true)}
-                  role="button"
-                  aria-label="Manage beauty business link"
-                >
-                  <div className="avatar-fallback bg-gradient-to-br from-blue-500 to-cyan-600">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
+                <div className="relative z-10 -ml-3 group">
+                  <div
+                    className="instagram-avatar cursor-pointer"
+                    style={{ width: '48px', height: '48px' }}
+                    onClick={() => setShowBusinessModal(true)}
+                    role="button"
+                    aria-label="Manage beauty business link"
+                  >
+                    <div className="avatar-fallback bg-gradient-to-br from-blue-500 to-cyan-600">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                    </div>
+                  </div>
+                  {/* Hover Tooltip */}
+                  <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                    <span className="text-white bg-black/80 px-2 py-1 rounded" style={{ fontSize: '10px' }}>
+                      Connect Beauty Business
+                    </span>
                   </div>
                 </div>
               ) : (
-                <div
-                  className="relative z-10 -ml-3 w-12 h-12 rounded-full overflow-hidden border-2 border-dashed border-gray-600 cursor-pointer transition-all duration-200 hover:scale-110 hover:brightness-110"
-                  onClick={() => setShowBusinessModal(true)}
-                  role="button"
-                  aria-label="Link beauty business"
-                >
-                  <div className="w-full h-full bg-gray-800 flex items-center justify-center opacity-50">
-                    <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
+                <div className="relative z-10 -ml-3 group">
+                  <div
+                    className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-dashed border-gray-600 cursor-pointer transition-all duration-200 hover:scale-110 hover:brightness-110"
+                    onClick={() => setShowBusinessModal(true)}
+                    role="button"
+                    aria-label="Link beauty business"
+                  >
+                    <div className="w-full h-full bg-gray-800 flex items-center justify-center opacity-50">
+                      <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                    </div>
+                  </div>
+                  {/* Hover Tooltip */}
+                  <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                    <span className="text-white bg-black/80 px-2 py-1 rounded" style={{ fontSize: '10px' }}>
+                      Connect Beauty Business
+                    </span>
                   </div>
                 </div>
               )}
