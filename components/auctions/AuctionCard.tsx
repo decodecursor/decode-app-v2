@@ -11,6 +11,7 @@ import { CompactAuctionTimer } from './AuctionTimer';
 import { formatBidAmount } from '@/lib/models/Bid.model';
 import type { Auction } from '@/lib/models/Auction.model';
 import { isAuctionEnded } from '@/lib/models/Auction.model';
+import QRCode from 'qrcode';
 
 interface AuctionCardProps {
   auction: Auction;
@@ -19,6 +20,11 @@ interface AuctionCardProps {
 
 export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) {
   const [shareSuccess, setShareSuccess] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
+  const [generatingQR, setGeneratingQR] = useState(false);
+  const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
+  const [deactivating, setDeactivating] = useState(false);
 
   const currentPrice = Number(auction.auction_current_price);
   const startPrice = Number(auction.auction_start_price);
@@ -42,6 +48,79 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     } catch (error) {
       console.error('Failed to copy auction link:', error);
     }
+  };
+
+  // Handle QR code generation
+  const handleGenerateQR = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      setGeneratingQR(true);
+
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      const auctionUrl = `${baseUrl}/auctions/${auction.id}`;
+
+      // Create WhatsApp share URL
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(auctionUrl)}`;
+      const qrDataURL = await QRCode.toDataURL(whatsappUrl, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+
+      setQrCodeDataURL(qrDataURL);
+      setShowQRModal(true);
+
+      // Auto-close QR modal after 20 seconds
+      setTimeout(() => {
+        setShowQRModal(false);
+        setQrCodeDataURL('');
+      }, 20000);
+
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+    } finally {
+      setGeneratingQR(false);
+    }
+  };
+
+  // Handle deactivate auction (uses cancel endpoint)
+  const handleDeactivate = async () => {
+    try {
+      setDeactivating(true);
+
+      const response = await fetch(`/api/auctions/${auction.id}/cancel`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to cancel auction');
+      }
+
+      // Refresh the page to show updated status
+      window.location.reload();
+
+    } catch (error) {
+      console.error('Error cancelling auction:', error);
+      alert(error instanceof Error ? error.message : 'Failed to cancel auction. Please try again.');
+    } finally {
+      setDeactivating(false);
+      setShowDeactivateConfirm(false);
+    }
+  };
+
+  const closeQRModal = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setShowQRModal(false);
+    setQrCodeDataURL('');
   };
 
   // Status badge
@@ -87,38 +166,23 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
   };
 
   return (
-    <Link href={`/auctions/${auction.id}`}>
-      <div className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 transition-all duration-300 cursor-pointer
-        before:absolute before:inset-0 before:pointer-events-none before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out
-        ${isActive
-          ? 'bg-gray-900/80 border-l-purple-500 hover:border-purple-400 hover:bg-gray-800/80 hover:shadow-2xl hover:shadow-purple-400/60 hover:scale-[1.01]'
-          : 'bg-blue-900/30 border-l-gray-500 hover:border-gray-400 hover:bg-blue-800/30 hover:shadow-2xl hover:shadow-gray-400/60 hover:scale-[1.01]'
-        }`}
-      >
-        {/* Share Button */}
-        <button
-          onClick={handleShare}
-          className={`absolute bottom-4 right-4 cosmic-button-secondary text-xs px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-white/10 z-10 ${
-            shareSuccess ? 'bg-gray-500/20 text-gray-600 border-gray-500' : ''
+    <>
+      <Link href={`/auctions/${auction.id}`}>
+        <div className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 transition-all duration-300 cursor-pointer
+          before:absolute before:inset-0 before:pointer-events-none before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out
+          ${isActive
+            ? 'bg-gray-900/80 border-l-purple-500 hover:border-purple-400 hover:bg-gray-800/80 hover:shadow-2xl hover:shadow-purple-400/60 hover:scale-[1.01]'
+            : 'bg-blue-900/30 border-l-gray-500 hover:border-gray-400 hover:bg-blue-800/30 hover:shadow-2xl hover:shadow-gray-400/60 hover:scale-[1.01]'
           }`}
-          title="Share auction"
         >
-          {shareSuccess ? (
-            <span className="flex items-center gap-1">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Shared!
-            </span>
-          ) : (
-            <span className="flex items-center gap-1">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-              </svg>
-              Share
-            </span>
+          {/* Status Overlay for Ended/Deactivated */}
+          {(isAuctionEnded(auction) || auction.status === 'cancelled') && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+              <span className="text-6xl md:text-8xl font-black text-white/30 uppercase tracking-wider rotate-[-15deg]" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
+                {auction.status === 'cancelled' ? 'CANCELLED' : 'ENDED'}
+              </span>
+            </div>
           )}
-        </button>
 
         {/* Header */}
         <div className="border-b border-gray-700 pb-4 mb-4">
@@ -142,8 +206,8 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
           </div>
         </div>
 
-        {/* Pricing */}
-        <div>
+        {/* Pricing Stats */}
+        <div className="mb-4">
           <div className="grid grid-cols-3 gap-4">
             {/* Current/Starting Price */}
             <div>
@@ -160,7 +224,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </div>
 
             {/* Bid Count */}
-            <div className="text-center pl-10">
+            <div className="text-center">
               <p className="text-xs text-gray-400 uppercase tracking-wide">Bids</p>
               <p className="mt-1 text-2xl font-bold text-white">
                 {auction.total_bids}
@@ -174,6 +238,66 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                 {auction.unique_bidders}
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Action Buttons Row */}
+        <div className="border-t border-gray-700 pt-4">
+          <div className="flex flex-wrap gap-2">
+            {/* Share Button */}
+            <button
+              onClick={handleShare}
+              className={`cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1.5 ${
+                shareSuccess ? 'bg-green-500/20 text-green-300 border-green-500' : ''
+              }`}
+              title="Share auction"
+            >
+              {shareSuccess ? (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Shared!</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
+                  <span>Share</span>
+                </>
+              )}
+            </button>
+
+            {/* QR Code Button */}
+            <button
+              onClick={handleGenerateQR}
+              disabled={generatingQR}
+              className="cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Generate QR code"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+              </svg>
+              <span>{generatingQR ? 'Generating...' : 'QR Code'}</span>
+            </button>
+
+            {/* Deactivate Button */}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowDeactivateConfirm(true);
+              }}
+              disabled={deactivating}
+              className="cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-red-500/20 hover:border-red-500 hover:text-red-300 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Deactivate auction"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+              </svg>
+              <span>{deactivating ? 'Deactivating...' : 'Deactivate'}</span>
+            </button>
           </div>
         </div>
 
@@ -216,6 +340,80 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
         )}
       </div>
     </Link>
+
+    {/* QR Code Modal */}
+    {showQRModal && (
+      <div
+        className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+        onClick={closeQRModal}
+      >
+        <div
+          className="bg-white rounded-lg p-6 max-w-sm w-full"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Share Auction</h3>
+            <button
+              onClick={closeQRModal}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="flex flex-col items-center">
+            <img src={qrCodeDataURL} alt="QR Code" className="w-64 h-64 mb-4" />
+            <p className="text-sm text-gray-600 text-center">
+              Scan this QR code to share via WhatsApp
+            </p>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Deactivate Confirmation Modal */}
+    {showDeactivateConfirm && (
+      <div
+        className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+        onClick={() => setShowDeactivateConfirm(false)}
+      >
+        <div
+          className="bg-gray-900 border border-gray-700 rounded-lg p-6 max-w-md w-full"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          <h3 className="text-lg font-semibold text-white mb-4">Deactivate Auction?</h3>
+          <p className="text-gray-300 mb-6">
+            Are you sure you want to deactivate this auction? This action will prevent new bids.
+          </p>
+
+          <div className="flex gap-3 justify-end">
+            <button
+              onClick={() => setShowDeactivateConfirm(false)}
+              disabled={deactivating}
+              className="px-4 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800 transition-all disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDeactivate}
+              disabled={deactivating}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all disabled:opacity-50"
+            >
+              {deactivating ? 'Deactivating...' : 'Deactivate'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+  </>
   );
 }
 
