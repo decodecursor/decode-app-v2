@@ -590,10 +590,9 @@ export default function AuctionDetailClient() {
               </>
             ) : (
               <>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Cancel Auction?</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Cancel Auction</h3>
                 <p className="text-gray-600 mb-6">
-                  Are you sure you want to cancel this auction? All payment authorizations will be
-                  released and no winner will be selected.
+                  All payment authorizations will be released and auction ends without a winner.
                 </p>
                 <div className="flex gap-3">
                   <button
