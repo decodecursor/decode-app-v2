@@ -218,49 +218,93 @@ export class GuestBidderService {
   async getSavedPaymentMethod(guestBidderId: string): Promise<string | null> {
     const supabase = createServiceRoleClient();
 
-    // Retry up to 3 times with 500ms delay (for Edge webhook timing)
-    for (let attempt = 0; attempt < 3; attempt++) {
+    // Get browser info for debugging
+    const browserInfo = typeof window !== 'undefined'
+      ? (navigator.userAgent.includes('Edg') ? 'Edge' : 'Other')
+      : 'Server';
+
+    // Enhanced retry logic: 6 attempts with exponential backoff
+    // Total max wait time: 800 + 1200 + 1600 + 2000 + 2400 + 2800 = 10.8 seconds
+    const maxAttempts = 6;
+    const baseDelay = 800; // Start with 800ms
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const startTime = Date.now();
+
       try {
         const { data, error } = await supabase
           .from('guest_bidders')
-          .select('default_payment_method_id, stripe_customer_id')
+          .select('default_payment_method_id, stripe_customer_id, last_payment_method_saved_at')
           .eq('id', guestBidderId)
           .single();
 
         if (error || !data) {
-          if (attempt < 2) {
-            console.log(`[GuestBidderService] Payment method not found yet, retrying... (attempt ${attempt + 1}/3)`);
-            await new Promise(resolve => setTimeout(resolve, 500));
+          if (attempt < maxAttempts - 1) {
+            const delay = baseDelay + (attempt * 400); // Exponential backoff
+            console.log(`[GuestBidderService] Payment method not found yet, retrying... (attempt ${attempt + 1}/${maxAttempts}, delay: ${delay}ms, browser: ${browserInfo})`);
+            await new Promise(resolve => setTimeout(resolve, delay));
             continue;
           }
+          console.error('[GuestBidderService] No guest bidder found after all attempts:', {
+            guest_bidder_id: guestBidderId,
+            attempts: maxAttempts,
+            browser: browserInfo,
+            error: error?.message
+          });
           return null;
         }
 
         // If payment method exists, return it
         if (data.default_payment_method_id && data.stripe_customer_id) {
+          const queryTime = Date.now() - startTime;
           console.log('[GuestBidderService] Found saved payment method:', {
             guest_bidder_id: guestBidderId,
             payment_method_id: data.default_payment_method_id,
             customer_id: data.stripe_customer_id,
+            saved_at: data.last_payment_method_saved_at,
+            attempt: attempt + 1,
+            query_time_ms: queryTime,
+            browser: browserInfo
           });
           return data.default_payment_method_id;
         }
 
+        // Log partial data for debugging
+        if (data.stripe_customer_id && !data.default_payment_method_id) {
+          console.warn('[GuestBidderService] Customer exists but no payment method saved yet:', {
+            guest_bidder_id: guestBidderId,
+            customer_id: data.stripe_customer_id,
+            attempt: attempt + 1,
+            browser: browserInfo
+          });
+        }
+
         // No payment method yet, retry if attempts remaining
-        if (attempt < 2) {
-          console.log(`[GuestBidderService] Payment method not saved yet, retrying... (attempt ${attempt + 1}/3)`);
-          await new Promise(resolve => setTimeout(resolve, 500));
+        if (attempt < maxAttempts - 1) {
+          const delay = baseDelay + (attempt * 400); // Exponential backoff
+          console.log(`[GuestBidderService] Payment method not saved yet, retrying... (attempt ${attempt + 1}/${maxAttempts}, delay: ${delay}ms, browser: ${browserInfo})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
         }
 
       } catch (error) {
-        console.error(`[GuestBidderService] Error getting saved payment method (attempt ${attempt + 1}):`, error);
-        if (attempt < 2) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+        const delay = baseDelay + (attempt * 400);
+        console.error(`[GuestBidderService] Error getting saved payment method (attempt ${attempt + 1}/${maxAttempts}):`, {
+          error,
+          guest_bidder_id: guestBidderId,
+          browser: browserInfo
+        });
+        if (attempt < maxAttempts - 1) {
+          await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
     }
 
-    console.log('[GuestBidderService] No saved payment method found after 3 attempts');
+    console.error('[GuestBidderService] No saved payment method found after all attempts:', {
+      guest_bidder_id: guestBidderId,
+      attempts: maxAttempts,
+      total_wait_time_ms: baseDelay * maxAttempts + (400 * (maxAttempts * (maxAttempts - 1)) / 2),
+      browser: browserInfo
+    });
     return null;
   }
 }

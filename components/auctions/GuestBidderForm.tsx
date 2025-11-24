@@ -7,6 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { COUNTRY_CODES } from '@/lib/country-codes';
+import { safeLocalStorage } from '@/utils/storage-helper';
 
 type ContactMethod = 'whatsapp' | 'email';
 
@@ -48,10 +49,10 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [errors, setErrors] = useState<{ name?: string; contact?: string; method?: string }>({});
 
-  // Load saved guest info from localStorage on mount
+  // Load saved guest info from localStorage on mount with Edge browser safety
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(GUEST_BIDDER_STORAGE_KEY);
+      const saved = safeLocalStorage.getItem(GUEST_BIDDER_STORAGE_KEY);
       if (saved) {
         const data = JSON.parse(saved);
         if (data.name) setName(data.name);
@@ -59,11 +60,19 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
         if (data.email) setEmail(data.email);
         if (data.countryCode) setCountryCode(data.countryCode);
         if (data.whatsappNumber) setWhatsappNumber(data.whatsappNumber);
+
+        // Log successful restoration for debugging Edge issues
+        console.log('[GuestBidderForm] Restored guest info from storage:', {
+          auction_id: auctionId,
+          has_name: !!data.name,
+          contact_method: data.contactMethod,
+          browser: typeof navigator !== 'undefined' && navigator.userAgent.includes('Edg') ? 'Edge' : 'Other'
+        });
       }
-    } catch {
-      // Ignore localStorage errors
+    } catch (error) {
+      console.error('[GuestBidderForm] Error loading saved guest info:', error);
     }
-  }, [GUEST_BIDDER_STORAGE_KEY]);
+  }, [GUEST_BIDDER_STORAGE_KEY, auctionId]);
 
   const validate = (): boolean => {
     const newErrors: { name?: string; contact?: string; method?: string } = {};
@@ -125,20 +134,31 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
         submissionData.whatsappNumber = `${countryCode}${cleanNumber}`;
       }
 
-      // Save to localStorage for future visits
+      // Save to localStorage for future visits with Edge browser safety
       try {
-        localStorage.setItem(
+        const storageData = {
+          name: trimmedName,
+          contactMethod,
+          email: contactMethod === 'email' ? submissionData.email : '',
+          countryCode,
+          whatsappNumber: contactMethod === 'whatsapp' ? whatsappNumber : '',
+          savedAt: new Date().toISOString(),
+          browser: typeof navigator !== 'undefined' && navigator.userAgent.includes('Edg') ? 'Edge' : 'Other'
+        };
+
+        safeLocalStorage.setItem(
           GUEST_BIDDER_STORAGE_KEY,
-          JSON.stringify({
-            name: trimmedName,
-            contactMethod,
-            email: contactMethod === 'email' ? submissionData.email : '',
-            countryCode,
-            whatsappNumber: contactMethod === 'whatsapp' ? whatsappNumber : '',
-          })
+          JSON.stringify(storageData)
         );
-      } catch {
-        // Ignore localStorage errors
+
+        console.log('[GuestBidderForm] Saved guest info to storage:', {
+          auction_id: auctionId,
+          contact_method: contactMethod,
+          browser: storageData.browser,
+          timestamp: storageData.savedAt
+        });
+      } catch (error) {
+        console.error('[GuestBidderForm] Error saving guest info to storage:', error);
       }
 
       onSubmit(submissionData);
@@ -230,7 +250,7 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
                 disabled={isLoading}
-                className="cosmic-input text-sm border border-gray-300 !w-[117px] md:!w-[92px] px-2 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                className="cosmic-input text-sm border border-gray-300 !w-[117px] md:!w-[92px]"
               >
                 {COUNTRY_CODES.map((country) => (
                   <option key={country.code} value={country.code}>

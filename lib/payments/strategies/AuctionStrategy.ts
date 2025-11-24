@@ -71,11 +71,55 @@ export class AuctionStrategy implements IPaymentStrategy {
         }
       }
 
-      // Check for saved payment method for guest bidders
+      // Check for saved payment method for guest bidders with Stripe fallback
       let savedPaymentMethodId: string | null = null;
       if (auctionContext.is_guest && auctionContext.guest_bidder_id) {
         const guestService = new GuestBidderService();
+
+        // First try to get from database with enhanced retry logic
         savedPaymentMethodId = await guestService.getSavedPaymentMethod(auctionContext.guest_bidder_id);
+
+        // If not found in database but we have a customer ID, check Stripe directly
+        if (!savedPaymentMethodId && customerId) {
+          console.log('[AuctionStrategy] Payment method not in database, checking Stripe directly for customer:', customerId);
+
+          try {
+            const paymentMethods = await stripe.paymentMethods.list({
+              customer: customerId,
+              type: 'card',
+              limit: 10,
+            });
+
+            if (paymentMethods.data.length > 0) {
+              // Use the most recently created payment method
+              const latestMethod = paymentMethods.data[0];
+              savedPaymentMethodId = latestMethod.id;
+
+              console.log('[AuctionStrategy] Found payment method in Stripe, saving to database:', {
+                payment_method_id: savedPaymentMethodId,
+                customer_id: customerId,
+                card_last4: latestMethod.card?.last4,
+                created: new Date(latestMethod.created * 1000).toISOString(),
+              });
+
+              // Save it to database for next time
+              await guestService.savePaymentMethod(auctionContext.guest_bidder_id, savedPaymentMethodId);
+            } else {
+              console.log('[AuctionStrategy] No payment methods found in Stripe for customer:', customerId);
+            }
+          } catch (error) {
+            console.error('[AuctionStrategy] Error fetching payment methods from Stripe:', error);
+            // Continue without saved payment method
+          }
+        }
+
+        if (savedPaymentMethodId) {
+          console.log('[AuctionStrategy] Using saved payment method:', {
+            payment_method_id: savedPaymentMethodId,
+            source: savedPaymentMethodId ? 'database/stripe' : 'none',
+            guest_bidder_id: auctionContext.guest_bidder_id,
+          });
+        }
       }
 
       // Convert AED amount to USD (Stripe doesn't support AED directly)
@@ -265,58 +309,115 @@ export class AuctionStrategy implements IPaymentStrategy {
    * Private webhook handlers
    */
   private async handleAmountCapturableUpdated(paymentIntent: Stripe.PaymentIntent): Promise<void> {
-    console.log('Auction bid pre-authorized:', {
+    const webhookReceivedTime = new Date().toISOString();
+    console.log('Auction bid pre-authorized (webhook received):', {
       payment_intent_id: paymentIntent.id,
       auction_id: paymentIntent.metadata.auction_id,
       amount: paymentIntent.amount / 100,
+      webhook_received_at: webhookReceivedTime,
+      payment_intent_created: new Date(paymentIntent.created * 1000).toISOString(),
+      processing_delay_ms: Date.now() - (paymentIntent.created * 1000),
     });
 
     // Save payment method for guest bidders
     if (paymentIntent.metadata.is_guest === 'true' && paymentIntent.metadata.guest_bidder_id) {
+      const startTime = Date.now();
       const paymentMethodId = paymentIntent.payment_method as string;
       const customerId = paymentIntent.customer as string;
+
+      console.log('[AuctionStrategy] Processing guest bidder payment method save:', {
+        guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
+        payment_method_id: paymentMethodId,
+        customer_id: customerId,
+        has_payment_method: !!paymentMethodId,
+        has_customer: !!customerId,
+      });
 
       if (paymentMethodId && customerId) {
         try {
           // CRITICAL FIX FOR EDGE: Explicitly attach payment method to customer
           // This ensures the payment method is saved even if Edge's automatic attachment fails
+          const attachStartTime = Date.now();
           await stripe.paymentMethods.attach(paymentMethodId, {
             customer: customerId,
           });
-          console.log('[AuctionStrategy] Explicitly attached payment method to customer:', {
+          const attachTime = Date.now() - attachStartTime;
+
+          console.log('[AuctionStrategy] Successfully attached payment method to customer:', {
             payment_method_id: paymentMethodId,
             customer_id: customerId,
+            attach_time_ms: attachTime,
+            timestamp: new Date().toISOString(),
           });
 
           // Then save to database
+          const saveStartTime = Date.now();
           const guestService = new GuestBidderService();
           await guestService.savePaymentMethod(
             paymentIntent.metadata.guest_bidder_id,
             paymentMethodId
           );
-          console.log('[AuctionStrategy] Saved payment method for guest bidder:', {
+          const saveTime = Date.now() - saveStartTime;
+
+          console.log('[AuctionStrategy] Successfully saved payment method for guest bidder:', {
             guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
             payment_method_id: paymentMethodId,
             customer_id: customerId,
+            db_save_time_ms: saveTime,
+            total_processing_time_ms: Date.now() - startTime,
+            timestamp: new Date().toISOString(),
           });
+
+          // Verify the save was successful by reading it back
+          const verifyStartTime = Date.now();
+          const savedMethod = await guestService.getSavedPaymentMethod(paymentIntent.metadata.guest_bidder_id);
+          const verifyTime = Date.now() - verifyStartTime;
+
+          if (savedMethod === paymentMethodId) {
+            console.log('[AuctionStrategy] ✅ Verified payment method saved correctly:', {
+              guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
+              verified: true,
+              verify_time_ms: verifyTime,
+            });
+          } else {
+            console.error('[AuctionStrategy] ⚠️ Payment method verification failed:', {
+              guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
+              expected: paymentMethodId,
+              actual: savedMethod,
+              verify_time_ms: verifyTime,
+            });
+          }
+
         } catch (error: any) {
           // If payment method is already attached, that's OK
           if (error.code === 'resource_already_exists') {
-            console.log('[AuctionStrategy] Payment method already attached to customer (OK)');
+            console.log('[AuctionStrategy] Payment method already attached to customer (OK), saving to DB');
             const guestService = new GuestBidderService();
             await guestService.savePaymentMethod(
               paymentIntent.metadata.guest_bidder_id,
               paymentMethodId
             );
+            console.log('[AuctionStrategy] Saved pre-attached payment method to database');
           } else {
-            console.error('[AuctionStrategy] Error attaching/saving payment method:', error);
+            console.error('[AuctionStrategy] ❌ Error attaching/saving payment method:', {
+              error: error.message,
+              error_code: error.code,
+              error_type: error.type,
+              guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
+              payment_method_id: paymentMethodId,
+              customer_id: customerId,
+              processing_time_ms: Date.now() - startTime,
+            });
             throw error;
           }
         }
       } else {
-        console.error('[AuctionStrategy] Missing payment method or customer ID:', {
+        console.error('[AuctionStrategy] ❌ Missing payment method or customer ID:', {
           payment_method_id: paymentMethodId,
           customer_id: customerId,
+          has_payment_method: !!paymentMethodId,
+          has_customer: !!customerId,
+          guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
         });
       }
     }

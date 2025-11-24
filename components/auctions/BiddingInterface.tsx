@@ -317,11 +317,24 @@ export function BiddingInterface({
 
       // Check if payment was auto-confirmed with saved payment method
       if (data.payment_auto_confirmed) {
+        console.log('[BiddingInterface] ✅ Payment auto-confirmed with saved card:', {
+          bid_id: data.bid_id,
+          guest_bidder_id: guestBidderId,
+          browser: typeof navigator !== 'undefined' && navigator.userAgent.includes('Edg') ? 'Edge' : 'Other',
+          timestamp: new Date().toISOString()
+        });
         setPaymentAutoConfirmed(true);
         setBidId(data.bid_id);
         setStep('payment'); // Will show success message instead of payment form
       } else {
         // Set client secret and bid ID for Stripe payment
+        console.log('[BiddingInterface] ⚠️ No saved payment method, requesting new card:', {
+          bid_id: data.bid_id,
+          guest_bidder_id: guestBidderId,
+          has_client_secret: !!data.client_secret,
+          browser: typeof navigator !== 'undefined' && navigator.userAgent.includes('Edg') ? 'Edge' : 'Other',
+          timestamp: new Date().toISOString()
+        });
         setClientSecret(data.client_secret);
         setBidId(data.bid_id);
         setPaymentAutoConfirmed(false);
@@ -540,6 +553,26 @@ export function BiddingInterface({
               >
                 Done
               </button>
+            </div>
+          ) : !clientSecret && isProcessing ? (
+            /* Loading state while checking for saved payment method */
+            <div className="space-y-4">
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-md animate-pulse">
+                <div className="flex items-center">
+                  <svg className="animate-spin h-5 w-5 text-blue-600 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <p className="text-sm text-blue-700 font-medium">
+                    Checking for saved payment method...
+                  </p>
+                </div>
+                <p className="text-xs text-blue-600 mt-2">
+                  {typeof navigator !== 'undefined' && navigator.userAgent.includes('Edg')
+                    ? 'This may take a few seconds on Microsoft Edge...'
+                    : 'Please wait while we check your saved card...'}
+                </p>
+              </div>
             </div>
           ) : clientSecret ? (
             /* Payment form for new cards */
