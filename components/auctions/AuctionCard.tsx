@@ -34,11 +34,13 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
   // Check if auction is active (not ended and status is active)
   const isActive = auction.status === 'active' && !isAuctionEnded(auction);
 
-  // Calculate creator's profit and payout
-  const relevantPrice = hasBids ? currentPrice : startPrice;
-  const profit = calculateProfit(relevantPrice, startPrice);
-  const platformFee = calculatePlatformFee(relevantPrice, startPrice);
-  const creatorProfit = calculateModelAmount(relevantPrice, platformFee);
+  // Calculate creator's profit and payout (only if there are bids)
+  let creatorProfit = 0;
+  if (hasBids) {
+    const profit = calculateProfit(currentPrice, startPrice);
+    const platformFee = calculatePlatformFee(currentPrice, startPrice);
+    creatorProfit = calculateModelAmount(currentPrice, platformFee);
+  }
 
   // Get payout status display
   const getPayoutStatusText = () => {

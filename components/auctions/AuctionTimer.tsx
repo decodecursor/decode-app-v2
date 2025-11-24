@@ -105,11 +105,7 @@ export function CompactAuctionTimer({ auction }: { auction: Auction }) {
           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
         />
       </svg>
-      <span
-        className={`text-sm ${
-          hasEnded ? 'text-gray-500' : isCritical ? 'text-red-600 font-semibold' : 'text-gray-700'
-        }`}
-      >
+      <span className="text-sm font-mono text-white tabular-nums">
         {formatted}
       </span>
     </div>
