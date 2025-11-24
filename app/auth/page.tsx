@@ -732,14 +732,14 @@ function AuthPageContent() {
                 </p>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-4 mt-4">
                 <button
                   onClick={handleResend}
                   disabled={resendCooldown > 0 || emailLoading}
                   className="cosmic-button-secondary w-full"
                 >
                   {resendCooldown > 0
-                    ? <>Resend another email available<br />in {resendCooldown}s</>
+                    ? `Resend magic link in ${resendCooldown}s`
                     : 'Resend magic link'}
                 </button>
 
