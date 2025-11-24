@@ -38,6 +38,11 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
   const startPrice = Number(auction.auction_start_price);
   const hasBids = auction.total_bids > 0;
 
+  // Type guard to check if auction has creator info
+  const hasCreator = (auction: Auction | AuctionWithCreator): auction is AuctionWithCreator => {
+    return 'creator' in auction;
+  };
+
   // Check if auction is active (not ended and status is active)
   const isActive = auction.status === 'active' && !isAuctionEnded(auction);
 
@@ -284,7 +289,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 opacity-75 blur-sm"></div>
                 {/* Profile Image */}
                 <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-white/30">
-                  {auction.creator?.profile_photo_url ? (
+                  {hasCreator(auction) && auction.creator.profile_photo_url ? (
                     <img
                       src={auction.creator.profile_photo_url}
                       alt={auction.creator.user_name || 'Model'}
@@ -293,7 +298,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
                       <span className="text-white text-2xl font-bold">
-                        {auction.creator?.user_name?.charAt(0).toUpperCase() || 'M'}
+                        {hasCreator(auction) && auction.creator.user_name ? auction.creator.user_name.charAt(0).toUpperCase() : 'M'}
                       </span>
                     </div>
                   )}
@@ -302,7 +307,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               <div>
                 <p className="text-xs text-gray-400 uppercase tracking-wide">Model Name</p>
                 <p className="text-sm md:text-base font-semibold text-white">
-                  {auction.creator?.user_name || 'Unknown'}
+                  {hasCreator(auction) && auction.creator.user_name ? auction.creator.user_name : 'Unknown'}
                 </p>
               </div>
             </div>
