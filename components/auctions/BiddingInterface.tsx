@@ -384,7 +384,6 @@ export function BiddingInterface({
           />
         </svg>
         <p className="text-gray-600 font-medium">Bidding is closed</p>
-        <p className="text-sm text-gray-500 mt-1">This auction has ended</p>
       </div>
     );
   }

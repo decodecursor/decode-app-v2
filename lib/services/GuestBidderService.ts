@@ -193,30 +193,90 @@ export class GuestBidderService {
           last_payment_method_saved_at: new Date().toISOString(),
         })
         .eq('id', guestBidderId);
+
+      console.log('[GuestBidderService] Saved payment method:', {
+        guest_bidder_id: guestBidderId,
+        payment_method_id: paymentMethodId,
+      });
     } catch (error) {
       console.error('Error saving payment method:', error);
     }
   }
 
   /**
+   * Update Stripe customer ID for guest bidder
+   * Called immediately after customer creation to ensure ID is persisted
+   */
+  async updateStripeCustomerId(guestBidderId: string, stripeCustomerId: string): Promise<void> {
+    const supabase = createServiceRoleClient();
+
+    try {
+      await supabase
+        .from('guest_bidders')
+        .update({
+          stripe_customer_id: stripeCustomerId,
+        })
+        .eq('id', guestBidderId);
+
+      console.log('[GuestBidderService] Saved Stripe customer ID:', {
+        guest_bidder_id: guestBidderId,
+        stripe_customer_id: stripeCustomerId,
+      });
+    } catch (error) {
+      console.error('Error updating Stripe customer ID:', error);
+    }
+  }
+
+  /**
    * Get saved payment method ID for guest bidder
+   * Includes retry logic to handle Edge browser's slower webhook processing
    */
   async getSavedPaymentMethod(guestBidderId: string): Promise<string | null> {
     const supabase = createServiceRoleClient();
 
-    try {
-      const { data, error } = await supabase
-        .from('guest_bidders')
-        .select('default_payment_method_id')
-        .eq('id', guestBidderId)
-        .single();
+    // Retry up to 3 times with 500ms delay (for Edge webhook timing)
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const { data, error } = await supabase
+          .from('guest_bidders')
+          .select('default_payment_method_id, stripe_customer_id')
+          .eq('id', guestBidderId)
+          .single();
 
-      if (error || !data) return null;
+        if (error || !data) {
+          if (attempt < 2) {
+            console.log(`[GuestBidderService] Payment method not found yet, retrying... (attempt ${attempt + 1}/3)`);
+            await new Promise(resolve => setTimeout(resolve, 500));
+            continue;
+          }
+          return null;
+        }
 
-      return data.default_payment_method_id || null;
-    } catch (error) {
-      console.error('Error getting saved payment method:', error);
-      return null;
+        // If payment method exists, return it
+        if (data.default_payment_method_id && data.stripe_customer_id) {
+          console.log('[GuestBidderService] Found saved payment method:', {
+            guest_bidder_id: guestBidderId,
+            payment_method_id: data.default_payment_method_id,
+            customer_id: data.stripe_customer_id,
+          });
+          return data.default_payment_method_id;
+        }
+
+        // No payment method yet, retry if attempts remaining
+        if (attempt < 2) {
+          console.log(`[GuestBidderService] Payment method not saved yet, retrying... (attempt ${attempt + 1}/3)`);
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+      } catch (error) {
+        console.error(`[GuestBidderService] Error getting saved payment method (attempt ${attempt + 1}):`, error);
+        if (attempt < 2) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
     }
+
+    console.log('[GuestBidderService] No saved payment method found after 3 attempts');
+    return null;
   }
 }

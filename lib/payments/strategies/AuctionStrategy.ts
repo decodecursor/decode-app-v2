@@ -59,6 +59,16 @@ export class AuctionStrategy implements IPaymentStrategy {
           },
         });
         customerId = customer.id;
+
+        // CRITICAL: Save customer ID to database immediately (Edge browser fix)
+        if (auctionContext.guest_bidder_id) {
+          const guestService = new GuestBidderService();
+          await guestService.updateStripeCustomerId(auctionContext.guest_bidder_id, customerId);
+          console.log('[AuctionStrategy] Saved new Stripe customer ID for guest bidder:', {
+            guest_bidder_id: auctionContext.guest_bidder_id,
+            customer_id: customerId,
+          });
+        }
       }
 
       // Check for saved payment method for guest bidders
@@ -264,15 +274,49 @@ export class AuctionStrategy implements IPaymentStrategy {
     // Save payment method for guest bidders
     if (paymentIntent.metadata.is_guest === 'true' && paymentIntent.metadata.guest_bidder_id) {
       const paymentMethodId = paymentIntent.payment_method as string;
-      if (paymentMethodId) {
-        const guestService = new GuestBidderService();
-        await guestService.savePaymentMethod(
-          paymentIntent.metadata.guest_bidder_id,
-          paymentMethodId
-        );
-        console.log('Saved payment method for guest bidder:', {
-          guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
+      const customerId = paymentIntent.customer as string;
+
+      if (paymentMethodId && customerId) {
+        try {
+          // CRITICAL FIX FOR EDGE: Explicitly attach payment method to customer
+          // This ensures the payment method is saved even if Edge's automatic attachment fails
+          await stripe.paymentMethods.attach(paymentMethodId, {
+            customer: customerId,
+          });
+          console.log('[AuctionStrategy] Explicitly attached payment method to customer:', {
+            payment_method_id: paymentMethodId,
+            customer_id: customerId,
+          });
+
+          // Then save to database
+          const guestService = new GuestBidderService();
+          await guestService.savePaymentMethod(
+            paymentIntent.metadata.guest_bidder_id,
+            paymentMethodId
+          );
+          console.log('[AuctionStrategy] Saved payment method for guest bidder:', {
+            guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
+            payment_method_id: paymentMethodId,
+            customer_id: customerId,
+          });
+        } catch (error: any) {
+          // If payment method is already attached, that's OK
+          if (error.code === 'resource_already_exists') {
+            console.log('[AuctionStrategy] Payment method already attached to customer (OK)');
+            const guestService = new GuestBidderService();
+            await guestService.savePaymentMethod(
+              paymentIntent.metadata.guest_bidder_id,
+              paymentMethodId
+            );
+          } else {
+            console.error('[AuctionStrategy] Error attaching/saving payment method:', error);
+            throw error;
+          }
+        }
+      } else {
+        console.error('[AuctionStrategy] Missing payment method or customer ID:', {
           payment_method_id: paymentMethodId,
+          customer_id: customerId,
         });
       }
     }
