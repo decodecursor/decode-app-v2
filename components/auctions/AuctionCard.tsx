@@ -150,7 +150,16 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
   // Status badge
   const getStatusBadge = () => {
-    // Check actual end time first, regardless of database status
+    // Check cancelled status FIRST (before time-based checks)
+    if (auction.status === 'cancelled') {
+      return (
+        <span className="px-2 py-1 text-xs font-medium text-red-400 bg-red-900/20 rounded-full">
+          Cancelled
+        </span>
+      );
+    }
+
+    // Check actual end time (for auctions that ended by time)
     if (isAuctionEnded(auction)) {
       return (
         <span className="px-2 py-1 text-xs font-medium text-gray-300 bg-gray-700/50 rounded-full">
@@ -170,12 +179,6 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
         return (
           <span className="px-2 py-1 text-xs font-medium text-blue-300 bg-blue-700/30 rounded-full">
             Upcoming
-          </span>
-        );
-      case 'cancelled':
-        return (
-          <span className="px-2 py-1 text-xs font-medium text-red-300 bg-red-700/30 rounded-full">
-            Cancelled
           </span>
         );
       case 'ended':
@@ -203,7 +206,12 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
           {/* Status Overlay for Ended/Deactivated */}
           {(isAuctionEnded(auction) || auction.status === 'cancelled') && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-              <span className="text-6xl md:text-8xl font-black text-white/30 uppercase tracking-wider rotate-[-15deg]" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
+              <span
+                className={`text-4xl md:text-6xl font-black uppercase tracking-wider rotate-[-15deg] ${
+                  auction.status === 'cancelled' ? 'text-red-400 opacity-30' : 'text-white/30'
+                }`}
+                style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}
+              >
                 {auction.status === 'cancelled' ? 'CANCELLED' : 'ENDED'}
               </span>
             </div>
@@ -292,7 +300,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
         {/* Action Buttons Row */}
         <div className="border-t border-gray-700 pt-4">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 justify-end">
             {/* Share Button */}
             <button
               onClick={handleShare}
