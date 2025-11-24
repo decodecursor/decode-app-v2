@@ -319,7 +319,6 @@ export function BiddingInterface({
       if (data.payment_auto_confirmed) {
         console.log('[BiddingInterface] ✅ Payment auto-confirmed with saved card:', {
           bid_id: data.bid_id,
-          guest_bidder_id: guestBidderId,
           browser: typeof navigator !== 'undefined' && navigator.userAgent.includes('Edg') ? 'Edge' : 'Other',
           timestamp: new Date().toISOString()
         });
@@ -330,7 +329,6 @@ export function BiddingInterface({
         // Set client secret and bid ID for Stripe payment
         console.log('[BiddingInterface] ⚠️ No saved payment method, requesting new card:', {
           bid_id: data.bid_id,
-          guest_bidder_id: guestBidderId,
           has_client_secret: !!data.client_secret,
           browser: typeof navigator !== 'undefined' && navigator.userAgent.includes('Edg') ? 'Edge' : 'Other',
           timestamp: new Date().toISOString()
