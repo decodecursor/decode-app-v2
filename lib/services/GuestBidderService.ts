@@ -316,12 +316,13 @@ export class GuestBidderService {
     const supabase = createServiceRoleClient();
 
     try {
+      // Only count valid bids (not canceled, failed, or expired)
       const { data, error } = await supabase
         .from('bids')
-        .select('id')
+        .select('id, status, created_at')
         .eq('guest_bidder_id', guestBidderId)
         .eq('auction_id', auctionId)
-        .limit(1);
+        .in('status', ['pending', 'active', 'won', 'completed']);
 
       if (error) {
         console.error('[GuestBidderService] Error checking previous bids:', error);
@@ -333,6 +334,8 @@ export class GuestBidderService {
         guest_bidder_id: guestBidderId,
         auction_id: auctionId,
         has_previous_bid: hasBid,
+        bid_count: data?.length || 0,
+        bids_found: data,
       });
 
       return hasBid;

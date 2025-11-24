@@ -76,6 +76,11 @@ export class AuctionStrategy implements IPaymentStrategy {
       // ONLY use saved payment if guest has bid on THIS SPECIFIC auction before
       let savedPaymentMethodId: string | null = null;
       if (auctionContext.is_guest && auctionContext.guest_bidder_id) {
+        console.log('[AuctionStrategy] Checking saved payment for guest bidder:', {
+          guest_bidder_id: auctionContext.guest_bidder_id,
+          auction_id: auctionContext.auction_id,
+        });
+
         const guestService = new GuestBidderService();
 
         // Check if guest has previously bid on THIS auction
@@ -84,9 +89,19 @@ export class AuctionStrategy implements IPaymentStrategy {
           auctionContext.auction_id
         );
 
+        console.log('[AuctionStrategy] Previous bid check result:', {
+          has_previous_bid: hasPreviousBid,
+          guest_bidder_id: auctionContext.guest_bidder_id,
+          auction_id: auctionContext.auction_id,
+        });
+
         if (hasPreviousBid) {
           // Guest has bid on this auction before - retrieve saved payment method
           savedPaymentMethodId = await guestService.getSavedPaymentMethod(auctionContext.guest_bidder_id);
+          console.log('[AuctionStrategy] Retrieved saved payment method from database:', {
+            payment_method_id: savedPaymentMethodId,
+            guest_bidder_id: auctionContext.guest_bidder_id,
+          });
         } else {
           // First bid on this auction - don't use saved payment method
           console.log('[AuctionStrategy] First bid on this auction, not using saved payment method:', {
