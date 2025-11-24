@@ -371,7 +371,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             {/* RIGHT GROUP: Bids + Bidders */}
             <div className="flex gap-6 md:gap-8">
               {/* Bid Count */}
-              <div>
+              <div className="text-right">
                 <p className="text-xs text-gray-400 uppercase tracking-wide">Bids</p>
                 <p className="mt-1 text-xl md:text-2xl font-bold text-white">
                   {auction.total_bids}
@@ -379,7 +379,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               </div>
 
               {/* Bidder Count */}
-              <div>
+              <div className="text-right">
                 <p className="text-xs text-gray-400 uppercase tracking-wide">Bidders</p>
                 <p className="mt-1 text-xl md:text-2xl font-bold text-white">
                   {auction.unique_bidders}
@@ -391,7 +391,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
         {/* Action Buttons Row */}
         <div className="border-t border-gray-700 pt-4">
-          <div className="flex flex-wrap gap-2 justify-between items-start">
+          <div className="flex flex-wrap gap-2 justify-start items-start">
             {/* Video Button - Left aligned */}
             <button
               onClick={(e) => {
@@ -416,7 +416,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </button>
 
             {/* Right side buttons group */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 ml-auto">
               {/* Share Button */}
               <button
               onClick={(e) => {
