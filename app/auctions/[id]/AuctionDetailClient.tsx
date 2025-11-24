@@ -544,7 +544,7 @@ export default function AuctionDetailClient() {
           </div>
 
           {/* Right Column - Leaderboard (desktop only) */}
-          <div className={`hidden lg:block lg:col-span-1 ${!isAuctionEnded(auction) && !timerEnded ? 'lg:mt-[44px]' : ''}`}>
+          <div className="hidden lg:block lg:col-span-1">
             <div className="sticky top-4">
               <LiveLeaderboard auctionId={auctionId} userEmail={userEmail} isAuctionEnded={isAuctionEnded(auction) || timerEnded} />
             </div>
@@ -575,7 +575,7 @@ export default function AuctionDetailClient() {
                   </svg>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Auction Cancelled</h3>
                   <p className="text-gray-600 mb-6">
-                    Payment authorizations released.
+                    Payment authorizations released
                   </p>
                 </div>
                 <button

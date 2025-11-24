@@ -783,7 +783,7 @@ function PaymentForm({
         type="button"
         onClick={handleSubmit}
         disabled={!stripe || isProcessing}
-        className="w-full px-4 py-3 text-base font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full px-4 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isProcessing ? 'Processing...' : 'Confirm Your Bid'}
       </button>

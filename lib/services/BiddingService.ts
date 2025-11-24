@@ -71,9 +71,8 @@ export class BiddingService {
       let guestBidderId: string | undefined;
       let stripeCustomerId: string | undefined;
 
-      // Only create guest bidder profile for email contact method
-      // WhatsApp bidders are identified by phone number instead
-      if (params.is_guest && params.contact_method === 'email') {
+      // Create guest bidder profile for all guest bidders (email and WhatsApp)
+      if (params.is_guest) {
         const guestResult = await this.guestBidderService.getOrCreateGuestBidder({
           email: params.bidder_email,
           name: params.bidder_name,

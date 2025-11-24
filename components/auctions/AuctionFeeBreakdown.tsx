@@ -90,13 +90,6 @@ export function AuctionFeeBreakdown({
           <span className="text-xl font-bold text-gray-900">{formatCurrency(modelEarnings)}</span>
         </div>
 
-        {/* Explanation */}
-        {profit === 0 && (
-          <p className="text-xs text-gray-500 mt-2 italic">
-            No profit yet. DECODE fee only applies to profit above the starting price.
-          </p>
-        )}
-
         {!isCompleted && currentBid > auctionStartPrice && (
           <p className="text-xs text-gray-500 mt-2 italic">
             * These earnings are based on the highest bid so far and will finalize at auction end.
