@@ -12,7 +12,7 @@ import {
 } from '../core/PaymentStrategy.interface';
 import { getAuctionConfig, PAYMENT_CONFIG } from '../config/paymentConfig';
 import { GuestBidderService } from '@/lib/services/GuestBidderService';
-import { createServiceRoleClient } from '@/lib/supabase/service-role-client';
+import { createServiceRoleClient } from '@/utils/supabase/service-role';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-06-30.basil',
