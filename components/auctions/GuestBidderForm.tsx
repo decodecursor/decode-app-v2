@@ -245,12 +245,12 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
             <label htmlFor="whatsapp-number" className="block text-xs font-medium text-gray-700 mb-1">
               WhatsApp Number
             </label>
-            <div className="flex gap-2">
+            <div className="flex space-x-2">
               <select
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
+                className="cosmic-input text-sm border border-purple-500 !w-[117px] md:!w-[92px]"
                 disabled={isLoading}
-                className="cosmic-input text-sm border border-gray-300 !w-[117px] md:!w-[92px]"
               >
                 {COUNTRY_CODES.map((country) => (
                   <option key={country.code} value={country.code}>
@@ -260,18 +260,16 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
               </select>
               <input
                 type="tel"
-                id="whatsapp-number"
                 value={whatsappNumber}
                 onChange={(e) => {
                   const formatted = formatUAEPhoneNumber(e.target.value);
                   setWhatsappNumber(formatted);
                   if (errors.contact) setErrors({ ...errors, contact: undefined });
                 }}
-                className={`flex-1 min-w-0 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 ${
-                  errors.contact ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className="cosmic-input flex-1"
                 placeholder="50 123 4567"
                 disabled={isLoading}
+                autoComplete="tel"
               />
             </div>
             {errors.contact && <p className="mt-1 text-sm text-red-600">{errors.contact}</p>}
