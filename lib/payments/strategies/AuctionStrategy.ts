@@ -487,6 +487,21 @@ export class AuctionStrategy implements IPaymentStrategy {
           payment_intent_status: updatedBid.payment_intent_status,
         });
       }
+    } else {
+      // CRITICAL WARNING: Missing bid_id in payment intent metadata
+      console.error('[AuctionStrategy] ⚠️ CRITICAL: Missing bid_id in payment intent metadata!', {
+        payment_intent_id: paymentIntent.id,
+        auction_id: paymentIntent.metadata.auction_id,
+        customer_id: paymentIntent.customer,
+        is_guest: paymentIntent.metadata.is_guest,
+        guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
+        amount: paymentIntent.amount / 100,
+        metadata: paymentIntent.metadata,
+        warning: 'Payment was authorized but bid status cannot be updated - bid will not appear in leaderboard!',
+      });
+
+      // This is a critical issue - the payment was processed but we can't update the bid
+      // The bid will remain in 'pending' status and won't appear in the leaderboard
     }
   }
 

@@ -10,9 +10,14 @@ import { GuestBidderService } from './GuestBidderService';
 import { AuctionPaymentProcessor } from '@/lib/payments/processors/AuctionPaymentProcessor';
 import { AuctionStrategy } from '@/lib/payments/strategies/AuctionStrategy';
 import { getAuctionConfig } from '@/lib/payments/config/paymentConfig';
+import Stripe from 'stripe';
 
 const ANTI_SNIPING_THRESHOLD = 60; // seconds
 const ANTI_SNIPING_EXTENSION = 60; // seconds
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-10-28.acacia',
+});
 
 export class BiddingService {
   private auctionService: AuctionService;
@@ -130,6 +135,31 @@ export class BiddingService {
         .single();
 
       if (bidError) throw bidError;
+
+      // CRITICAL FIX: Update payment intent metadata with actual bid_id
+      // This ensures webhook can properly update bid status for saved card payments
+      if (paymentResult.payment_intent_id && bid.id) {
+        console.log('[BiddingService] Updating payment intent with bid_id:', {
+          payment_intent_id: paymentResult.payment_intent_id,
+          bid_id: bid.id,
+        });
+
+        try {
+          await stripe.paymentIntents.update(paymentResult.payment_intent_id, {
+            metadata: {
+              bid_id: bid.id,
+              auction_id: params.auction_id,
+              is_guest: params.is_guest ? 'true' : 'false',
+              guest_bidder_id: guestBidderId || '',
+            }
+          });
+          console.log('[BiddingService] Successfully updated payment intent metadata');
+        } catch (updateError) {
+          console.error('[BiddingService] Failed to update payment intent metadata:', updateError);
+          // Don't throw - bid is already created, this is a non-critical error
+          // The bid will still work but may not update status properly via webhook
+        }
+      }
 
       // Note: auction_current_price is now updated by database trigger
       // only when bid status changes to 'winning', 'outbid', or 'captured'
