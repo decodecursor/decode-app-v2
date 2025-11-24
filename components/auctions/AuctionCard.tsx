@@ -352,7 +352,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             {/* MIDDLE GROUP: My Profit + My Payout */}
             <div className="flex gap-6 md:gap-8">
               {/* My Profit */}
-              <div>
+              <div className="text-right">
                 <p className="text-xs text-gray-400 uppercase tracking-wide">My Profit</p>
                 <p className="mt-1 text-xl md:text-2xl font-bold text-white">
                   {formatBidAmount(creatorProfit)}
@@ -360,7 +360,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               </div>
 
               {/* My Payout */}
-              <div>
+              <div className="text-right">
                 <p className="text-xs text-gray-400 uppercase tracking-wide">My Payout</p>
                 <p className="mt-1 text-xl md:text-2xl font-bold text-white">
                   {getPayoutStatusText()}
