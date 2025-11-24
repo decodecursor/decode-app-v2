@@ -6,6 +6,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { COUNTRY_CODES } from '@/lib/country-codes';
 
 type ContactMethod = 'whatsapp' | 'email';
 
@@ -229,18 +230,13 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
                 disabled={isLoading}
-                className="w-[108px] px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                className="cosmic-input text-sm border border-gray-300 !w-[117px] md:!w-[92px] px-2 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               >
-                <option value="+971">🇦🇪 +971</option>
-                <option value="+1">🇺🇸 +1</option>
-                <option value="+44">🇬🇧 +44</option>
-                <option value="+91">🇮🇳 +91</option>
-                <option value="+966">🇸🇦 +966</option>
-                <option value="+20">🇪🇬 +20</option>
-                <option value="+974">🇶🇦 +974</option>
-                <option value="+965">🇰🇼 +965</option>
-                <option value="+968">🇴🇲 +968</option>
-                <option value="+973">🇧🇭 +973</option>
+                {COUNTRY_CODES.map((country) => (
+                  <option key={country.code} value={country.code}>
+                    {country.flag} {country.code}
+                  </option>
+                ))}
               </select>
               <input
                 type="tel"

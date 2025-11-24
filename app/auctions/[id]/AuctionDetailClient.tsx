@@ -480,7 +480,7 @@ export default function AuctionDetailClient() {
 
             {/* Mobile Leaderboard - shown only on small screens */}
             <div className="lg:hidden">
-              <LiveLeaderboard auctionId={auctionId} userEmail={userEmail} isAuctionEnded={isAuctionEnded(auction) || timerEnded} />
+              <LiveLeaderboard auctionId={auctionId} userEmail={userEmail} isAuctionEnded={isAuctionEnded(auction) || timerEnded} isCreator={isCreator} />
             </div>
 
             {/* Bidding Interface */}
@@ -546,7 +546,7 @@ export default function AuctionDetailClient() {
           {/* Right Column - Leaderboard (desktop only) */}
           <div className="hidden lg:block lg:col-span-1">
             <div className="sticky top-4">
-              <LiveLeaderboard auctionId={auctionId} userEmail={userEmail} isAuctionEnded={isAuctionEnded(auction) || timerEnded} />
+              <LiveLeaderboard auctionId={auctionId} userEmail={userEmail} isAuctionEnded={isAuctionEnded(auction) || timerEnded} isCreator={isCreator} />
             </div>
           </div>
         </div>
