@@ -317,12 +317,12 @@ export class GuestBidderService {
 
     try {
       // Only count valid bids (not canceled, failed, or expired)
-      const { data, error } = await supabase
+      const { data, error} = await supabase
         .from('bids')
         .select('id, status, created_at')
         .eq('guest_bidder_id', guestBidderId)
         .eq('auction_id', auctionId)
-        .in('status', ['pending', 'active', 'won', 'completed']);
+        .in('status', ['pending', 'winning', 'outbid', 'active', 'won', 'completed']);
 
       if (error) {
         console.error('[GuestBidderService] Error checking previous bids:', error);
