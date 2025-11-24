@@ -269,6 +269,17 @@ export class GuestBidderService {
           return data.default_payment_method_id;
         }
 
+        // If this is the first attempt and no payment method exists, return immediately
+        // This handles first-time bidders who don't have saved cards yet
+        if (attempt === 0 && !data.default_payment_method_id) {
+          console.log('[GuestBidderService] No saved payment method for guest (first-time bidder):', {
+            guest_bidder_id: guestBidderId,
+            customer_id: data.stripe_customer_id,
+            browser: browserInfo
+          });
+          return null;
+        }
+
         // Log partial data for debugging
         if (data.stripe_customer_id && !data.default_payment_method_id) {
           console.warn('[GuestBidderService] Customer exists but no payment method saved yet:', {
@@ -279,8 +290,8 @@ export class GuestBidderService {
           });
         }
 
-        // No payment method yet, retry if attempts remaining
-        if (attempt < maxAttempts - 1) {
+        // No payment method yet, retry if attempts remaining (only for subsequent attempts)
+        if (!data.default_payment_method_id && attempt < maxAttempts - 1) {
           const delay = baseDelay + (attempt * 400); // Exponential backoff
           console.log(`[GuestBidderService] Payment method not saved yet, retrying... (attempt ${attempt + 1}/${maxAttempts}, delay: ${delay}ms, browser: ${browserInfo})`);
           await new Promise(resolve => setTimeout(resolve, delay));
