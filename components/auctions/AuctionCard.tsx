@@ -51,7 +51,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
   if (hasBids) {
     const profit = calculateProfit(currentPrice, startPrice);
     const platformFee = calculatePlatformFee(currentPrice, startPrice);
-    creatorProfit = calculateModelAmount(currentPrice, platformFee);
+    creatorProfit = calculateModelAmount(profit, platformFee);
   }
 
   // Get payout status display
