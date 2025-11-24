@@ -267,34 +267,31 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             {/* Center: Model & Business Images */}
             <div className="flex items-center relative">
               {/* Model Image */}
-              <div className="relative">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 opacity-75 blur-sm"></div>
-                <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-white/30">
-                  {hasCreator(auction) && auction.creator.profile_photo_url ? (
-                    <img
-                      src={auction.creator.profile_photo_url}
-                      alt={auction.creator.user_name || 'Model'}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
-                      <span className="text-white text-lg font-bold">
-                        {hasCreator(auction) && auction.creator.user_name ? auction.creator.user_name.charAt(0).toUpperCase() : 'M'}
-                      </span>
-                    </div>
-                  )}
-                </div>
+              <div className="instagram-avatar" style={{ width: '48px', height: '48px' }}>
+                {hasCreator(auction) && auction.creator.profile_photo_url ? (
+                  <img
+                    src={auction.creator.profile_photo_url}
+                    alt={auction.creator.user_name || 'Model'}
+                  />
+                ) : (
+                  <div className="avatar-fallback">
+                    <span className="text-white text-lg font-bold">
+                      {hasCreator(auction) && auction.creator.user_name ? auction.creator.user_name.charAt(0).toUpperCase() : 'M'}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Beauty Business Image */}
               {linkedBusiness ? (
                 <div
-                  className="relative z-10 -ml-3 w-12 h-12 rounded-full overflow-hidden border-2 border-white/30 cursor-pointer transition-all duration-200 hover:scale-110 hover:brightness-110"
+                  className="instagram-avatar relative z-10 -ml-3 cursor-pointer"
+                  style={{ width: '48px', height: '48px' }}
                   onClick={() => setShowBusinessModal(true)}
                   role="button"
                   aria-label="Manage beauty business link"
                 >
-                  <div className="w-full h-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                  <div className="avatar-fallback bg-gradient-to-br from-blue-500 to-cyan-600">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
