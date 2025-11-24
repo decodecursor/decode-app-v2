@@ -149,7 +149,7 @@ export class AuctionService {
         .from('auctions')
         .select(`
           *,
-          creator:users!creator_id(id, email, user_name)
+          creator:users!creator_id(id, email, user_name, role, profile_photo_url)
         `)
         .order('created_at', { ascending: false });
 

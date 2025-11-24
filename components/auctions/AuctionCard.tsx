@@ -9,7 +9,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { CompactAuctionTimer } from './AuctionTimer';
 import { formatBidAmount } from '@/lib/models/Bid.model';
-import type { Auction } from '@/lib/models/Auction.model';
+import type { Auction, AuctionWithCreator } from '@/lib/models/Auction.model';
 import { isAuctionEnded } from '@/lib/models/Auction.model';
 import { calculateProfit, calculatePlatformFee, calculateModelAmount } from '@/lib/models/AuctionPayout.model';
 import QRCode from 'qrcode';
@@ -17,7 +17,7 @@ import { VideoPlayback } from './VideoPlayback';
 import { LinkBeautyBusinessModal } from './LinkBeautyBusinessModal';
 
 interface AuctionCardProps {
-  auction: Auction;
+  auction: Auction | AuctionWithCreator;
   showCreator?: boolean;
 }
 
