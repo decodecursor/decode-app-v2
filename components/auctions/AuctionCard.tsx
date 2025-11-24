@@ -11,6 +11,7 @@ import { CompactAuctionTimer } from './AuctionTimer';
 import { formatBidAmount } from '@/lib/models/Bid.model';
 import type { Auction } from '@/lib/models/Auction.model';
 import { isAuctionEnded } from '@/lib/models/Auction.model';
+import { calculateProfit, calculatePlatformFee, calculateModelAmount } from '@/lib/models/AuctionPayout.model';
 import QRCode from 'qrcode';
 
 interface AuctionCardProps {
@@ -32,6 +33,30 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
   // Check if auction is active (not ended and status is active)
   const isActive = auction.status === 'active' && !isAuctionEnded(auction);
+
+  // Calculate creator's profit and payout
+  const relevantPrice = hasBids ? currentPrice : startPrice;
+  const profit = calculateProfit(relevantPrice, startPrice);
+  const platformFee = calculatePlatformFee(relevantPrice, startPrice);
+  const creatorProfit = calculateModelAmount(relevantPrice, platformFee);
+
+  // Get payout status display
+  const getPayoutStatusText = () => {
+    if (!auction.payout_status) return 'Not Paid';
+
+    switch (auction.payout_status) {
+      case 'pending':
+        return 'Not Paid';
+      case 'processing':
+        return 'Processing...';
+      case 'transferred':
+        return formatBidAmount(creatorProfit); // Could fetch actual amount from payout table
+      case 'failed':
+        return 'Failed';
+      default:
+        return 'Not Paid';
+    }
+  };
 
   // Handle share auction
   const handleShare = async (e: React.MouseEvent) => {
@@ -208,7 +233,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
         {/* Pricing Stats */}
         <div className="mb-4">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
             {/* Current/Starting Price */}
             <div>
               <p className="text-xs text-gray-400 uppercase tracking-wide">
@@ -218,15 +243,39 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                   ? 'Current Bid'
                   : 'Starting Price'}
               </p>
-              <p className="mt-1 text-2xl font-bold text-white">
+              <p className="mt-1 text-xl md:text-2xl font-bold text-white">
                 {formatBidAmount(hasBids ? currentPrice : startPrice)}
+              </p>
+            </div>
+
+            {/* My Profit */}
+            <div>
+              <p className="text-xs text-gray-400 uppercase tracking-wide">My Profit</p>
+              <p className="mt-1 text-xl md:text-2xl font-bold text-green-400">
+                {formatBidAmount(creatorProfit)}
+              </p>
+            </div>
+
+            {/* My Payout */}
+            <div>
+              <p className="text-xs text-gray-400 uppercase tracking-wide">My Payout</p>
+              <p className={`mt-1 text-xl md:text-2xl font-bold ${
+                auction.payout_status === 'transferred'
+                  ? 'text-green-400'
+                  : auction.payout_status === 'failed'
+                  ? 'text-red-400'
+                  : auction.payout_status === 'processing'
+                  ? 'text-yellow-400'
+                  : 'text-gray-400'
+              }`}>
+                {getPayoutStatusText()}
               </p>
             </div>
 
             {/* Bid Count */}
             <div className="text-center">
               <p className="text-xs text-gray-400 uppercase tracking-wide">Bids</p>
-              <p className="mt-1 text-2xl font-bold text-white">
+              <p className="mt-1 text-xl md:text-2xl font-bold text-white">
                 {auction.total_bids}
               </p>
             </div>
@@ -234,7 +283,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             {/* Bidder Count */}
             <div className="text-right">
               <p className="text-xs text-gray-400 uppercase tracking-wide">Bidders</p>
-              <p className="mt-1 text-2xl font-bold text-white">
+              <p className="mt-1 text-xl md:text-2xl font-bold text-white">
                 {auction.unique_bidders}
               </p>
             </div>
