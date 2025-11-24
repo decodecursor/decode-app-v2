@@ -70,22 +70,6 @@ export class GuestBidderService {
   }
 
   /**
-   * Update guest bidder Stripe customer ID
-   */
-  async updateStripeCustomerId(guestBidderId: string, stripeCustomerId: string): Promise<void> {
-    const supabase = createServiceRoleClient();
-
-    try {
-      await supabase
-        .from('guest_bidders')
-        .update({ stripe_customer_id: stripeCustomerId })
-        .eq('id', guestBidderId);
-    } catch (error) {
-      console.error('Error updating Stripe customer ID:', error);
-    }
-  }
-
-  /**
    * Get guest bidder by email
    */
   async getGuestBidderByEmail(email: string): Promise<GuestBidder | null> {
