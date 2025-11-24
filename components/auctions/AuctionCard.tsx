@@ -240,20 +240,6 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             : 'bg-blue-900/30 border-l-gray-500 hover:border-gray-400'
           }`}
         >
-          {/* Status Overlay for Ended/Deactivated */}
-          {(isAuctionEnded(auction) || auction.status === 'cancelled') && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-              <span
-                className={`text-4xl md:text-6xl font-black uppercase tracking-wider rotate-[-15deg] ${
-                  auction.status === 'cancelled' ? 'text-red-400 opacity-30' : 'text-white/30'
-                }`}
-                style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}
-              >
-                {auction.status === 'cancelled' ? 'CANCELLED' : 'ENDED'}
-              </span>
-            </div>
-          )}
-
         {/* Header */}
         <div className="border-b border-gray-700 pb-4 mb-4">
           <div className="flex items-center gap-3">
