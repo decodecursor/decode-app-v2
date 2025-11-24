@@ -48,7 +48,7 @@ export class BiddingService {
     user_id?: string;
     ip_address?: string;
     user_agent?: string;
-  }): Promise<{ success: boolean; bid_id?: string; client_secret?: string; payment_auto_confirmed?: boolean; error?: string }> {
+  }): Promise<{ success: boolean; bid_id?: string; client_secret?: string; payment_auto_confirmed?: boolean; saved_card_last4?: string; error?: string }> {
     const supabase = createServiceRoleClient();
 
     try {
