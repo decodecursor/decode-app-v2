@@ -92,39 +92,9 @@ export class AuctionStrategy implements IPaymentStrategy {
           guest_bidder_id: auctionContext.guest_bidder_id,
         });
 
-        // If not found in database but we have a customer ID, check Stripe directly
-        if (!savedPaymentMethodId && customerId) {
-          console.log('[AuctionStrategy] Payment method not in database, checking Stripe directly for customer:', customerId);
-
-          try {
-            const paymentMethods = await stripe.paymentMethods.list({
-              customer: customerId,
-              type: 'card',
-              limit: 10,
-            });
-
-            if (paymentMethods.data.length > 0) {
-              // Use the most recently created payment method
-              const latestMethod = paymentMethods.data[0];
-              savedPaymentMethodId = latestMethod.id;
-
-              console.log('[AuctionStrategy] Found payment method in Stripe, saving to database:', {
-                payment_method_id: savedPaymentMethodId,
-                customer_id: customerId,
-                card_last4: latestMethod.card?.last4,
-                created: new Date(latestMethod.created * 1000).toISOString(),
-              });
-
-              // Save it to database for next time
-              await guestService.savePaymentMethod(auctionContext.guest_bidder_id, savedPaymentMethodId);
-            } else {
-              console.log('[AuctionStrategy] No payment methods found in Stripe for customer:', customerId);
-            }
-          } catch (error) {
-            console.error('[AuctionStrategy] Error fetching payment methods from Stripe:', error);
-            // Continue without saved payment method
-          }
-        }
+        // REMOVED: Stripe fallback was causing first bids to auto-confirm with old payment methods
+        // The database should be the single source of truth for saved payment methods
+        // This prevents confusion where old Stripe data overrides the intentional database state
 
         if (savedPaymentMethodId) {
           console.log('[AuctionStrategy] Using saved payment method:', {
