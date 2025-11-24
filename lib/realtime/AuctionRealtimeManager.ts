@@ -187,6 +187,50 @@ export class AuctionRealtimeManager {
   }
 
   /**
+   * Subscribe to creator's auctions
+   */
+  subscribeToCreatorAuctions(creatorId: string, callback: AuctionEventCallback): () => void {
+    const channelName = `creator:${creatorId}`;
+
+    if (!this.auctionCallbacks.has(channelName)) {
+      this.auctionCallbacks.set(channelName, new Set());
+    }
+    this.auctionCallbacks.get(channelName)!.add(callback);
+
+    if (!this.channels.has(channelName)) {
+      const channel = this.supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'auctions',
+            filter: `creator_id=eq.${creatorId}`,
+          },
+          (payload) => {
+            this.handleCreatorAuctionChange(payload, creatorId);
+          }
+        )
+        .subscribe((status) => {
+          console.log(`Creator auctions channel ${channelName} status:`, status);
+        });
+
+      this.channels.set(channelName, channel);
+    }
+
+    return () => {
+      this.auctionCallbacks.get(channelName)?.delete(callback);
+
+      if (this.auctionCallbacks.get(channelName)?.size === 0) {
+        this.channels.get(channelName)?.unsubscribe();
+        this.channels.delete(channelName);
+        this.auctionCallbacks.delete(channelName);
+      }
+    };
+  }
+
+  /**
    * Handle auction changes
    */
   private handleAuctionChange(payload: any, auctionId: string | null) {
@@ -225,6 +269,41 @@ export class AuctionRealtimeManager {
     // Notify active auctions callbacks
     const activeChannelName = 'auctions:active';
     this.auctionCallbacks.get(activeChannelName)?.forEach((callback) => {
+      callback(event);
+    });
+  }
+
+  /**
+   * Handle creator auction changes
+   */
+  private handleCreatorAuctionChange(payload: any, creatorId: string) {
+    const auction = payload.new as Auction;
+    const oldAuction = payload.old as Auction | null;
+
+    let eventType: AuctionEvent['type'] = 'auction_updated';
+
+    // Determine event type
+    if (payload.eventType === 'INSERT') {
+      eventType = 'auction_started';
+    } else if (auction.status === 'cancelled') {
+      eventType = 'auction_cancelled';
+    } else if (
+      oldAuction?.status === 'active' &&
+      (auction.status === 'ended' || auction.status === 'completed')
+    ) {
+      eventType = 'auction_ended';
+    } else if (oldAuction?.status === 'pending' && auction.status === 'active') {
+      eventType = 'auction_started';
+    }
+
+    const event: AuctionEvent = {
+      type: eventType,
+      auction,
+    };
+
+    // Notify creator auctions callbacks
+    const channelName = `creator:${creatorId}`;
+    this.auctionCallbacks.get(channelName)?.forEach((callback) => {
       callback(event);
     });
   }
@@ -390,6 +469,34 @@ export class AuctionRealtimeManager {
                 )
                 .subscribe((status) => {
                   console.log(`Reconnected active auctions channel:`, status);
+                  resolve();
+                });
+
+              this.channels.set(channelName, newChannel);
+            } else {
+              resolve();
+            }
+          } else if (channelName.startsWith('creator:')) {
+            const creatorId = channelName.replace('creator:', '');
+            const callbacks = this.auctionCallbacks.get(channelName);
+
+            if (callbacks && callbacks.size > 0) {
+              const newChannel = this.supabase
+                .channel(channelName)
+                .on(
+                  'postgres_changes',
+                  {
+                    event: '*',
+                    schema: 'public',
+                    table: 'auctions',
+                    filter: `creator_id=eq.${creatorId}`,
+                  },
+                  (payload) => {
+                    this.handleCreatorAuctionChange(payload, creatorId);
+                  }
+                )
+                .subscribe((status) => {
+                  console.log(`Reconnected creator auctions channel ${channelName}:`, status);
                   resolve();
                 });
 

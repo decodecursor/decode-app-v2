@@ -12,19 +12,22 @@ import { AuctionCard } from '@/components/auctions/AuctionCard';
 import type { Auction } from '@/lib/models/Auction.model';
 import { isAuctionActive } from '@/lib/models/Auction.model';
 import { USER_ROLES } from '@/types/user';
+import { useCreatorAuctions } from '@/lib/hooks/useAuctionRealtime';
 
 export default function AuctionsDashboardPage() {
   const router = useRouter();
-  const [auctions, setAuctions] = useState<Auction[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
 
+  // Use real-time auctions hook (only when userId is available)
+  const { auctions, isConnected, refresh } = useCreatorAuctions(userId || '');
+
   useEffect(() => {
-    checkUserRole();
-    fetchMyAuctions();
+    checkUserAndRole();
   }, []);
 
-  const checkUserRole = async () => {
+  const checkUserAndRole = async () => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -45,27 +48,8 @@ export default function AuctionsDashboardPage() {
     }
 
     setUserRole(userData.role);
-  };
-
-  const fetchMyAuctions = async () => {
-    try {
-      setIsLoading(true);
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) return;
-
-      const response = await fetch(`/api/auctions/list?creator_id=${user.id}`);
-      const data = await response.json();
-
-      if (data.success) {
-        setAuctions(data.auctions);
-      }
-    } catch (error) {
-      console.error('Error fetching auctions:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    setUserId(user.id);
+    setIsLoading(false);
   };
 
   if (!userRole) {
@@ -99,8 +83,14 @@ export default function AuctionsDashboardPage() {
           <div style={{width: '70vw'}}>
             <div className="cosmic-card header-card-mobile-spacing">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="flex items-center gap-3">
                   <h1 className="cosmic-heading mb-2">My Auctions</h1>
+                  {isConnected && (
+                    <span className="flex items-center gap-1 text-sm text-green-400">
+                      <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                      Live
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={() => router.push('/auctions/create')}
@@ -146,7 +136,7 @@ export default function AuctionsDashboardPage() {
         <div className="flex justify-center">
           <div style={{width: '70vw'}}>
             <div className="cosmic-card content-card-mobile-spacing">
-              {isLoading ? (
+              {(isLoading || !userId) ? (
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto" />
                 </div>

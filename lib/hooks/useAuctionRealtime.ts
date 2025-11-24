@@ -198,3 +198,94 @@ export function useActiveAuctions() {
     refresh: fetchAuctions,
   };
 }
+
+/**
+ * useCreatorAuctions Hook
+ * Subscribe to all auctions created by a specific creator
+ */
+export function useCreatorAuctions(creatorId: string) {
+  const [auctions, setAuctions] = useState<Auction[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
+  const { visibilityChangeCount } = usePageVisibility();
+
+  // Fetch creator's auctions
+  const fetchAuctions = useCallback(async () => {
+    try {
+      console.log('🔍 [useCreatorAuctions] Fetching auctions for creator:', creatorId);
+      const response = await fetch(`/api/auctions/list?creator_id=${creatorId}`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ [useCreatorAuctions] Loaded auctions:', data.auctions.length);
+        setAuctions(data.auctions);
+      }
+    } catch (error) {
+      console.error('❌ [useCreatorAuctions] Error fetching creator auctions:', error);
+    }
+  }, [creatorId]);
+
+  useEffect(() => {
+    const realtimeManager = getAuctionRealtimeManager();
+
+    // Handle auction events
+    const handleAuctionEvent = (event: AuctionEvent) => {
+      console.log(`📡 [useCreatorAuctions] Received ${event.type} for auction:`, event.auction.id);
+
+      setAuctions((prev) => {
+        const existing = prev.find((a) => a.id === event.auction.id);
+
+        if (event.type === 'auction_cancelled' || event.type === 'auction_ended') {
+          // Update the auction (don't remove it, as dashboard shows all statuses)
+          if (existing) {
+            return prev.map((a) => (a.id === event.auction.id ? event.auction : a));
+          }
+        } else if (existing) {
+          // Update existing auction
+          return prev.map((a) => (a.id === event.auction.id ? event.auction : a));
+        } else if (event.type === 'auction_started') {
+          // Add new auction
+          return [...prev, event.auction];
+        }
+
+        return prev;
+      });
+    };
+
+    // Subscribe to creator auctions
+    const unsubscribe = realtimeManager.subscribeToCreatorAuctions(creatorId, handleAuctionEvent);
+
+    // Check connection
+    const checkConnection = setInterval(() => {
+      const status = realtimeManager.getConnectionStatus(`creator:${creatorId}`);
+      setIsConnected(status === 'subscribed');
+    }, 1000);
+
+    // Initial fetch
+    fetchAuctions();
+
+    // Cleanup
+    return () => {
+      unsubscribe();
+      clearInterval(checkConnection);
+    };
+  }, [creatorId, fetchAuctions]);
+
+  // Handle page visibility changes (critical for mobile)
+  useEffect(() => {
+    if (visibilityChangeCount > 0) {
+      console.log('📱 [useCreatorAuctions] Page became visible, reconnecting and refreshing...');
+      const realtimeManager = getAuctionRealtimeManager();
+
+      // Reconnect WebSocket channels first
+      realtimeManager.reconnectAll().then(() => {
+        // Then fetch fresh data
+        fetchAuctions();
+      });
+    }
+  }, [visibilityChangeCount, fetchAuctions]);
+
+  return {
+    auctions,
+    isConnected,
+    refresh: fetchAuctions,
+  };
+}

@@ -256,7 +256,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
         {/* Header */}
         <div className="border-b border-gray-700 pb-4 mb-4">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
             {/* Left: Title */}
             <div className="flex-1 min-w-0">
               <h3 className="text-lg font-semibold text-white truncate">
@@ -307,7 +307,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </div>
 
             {/* Right: Timer & Status Badge */}
-            <div className="flex items-center gap-2">
+            <div className="flex-1 flex items-center gap-2 justify-end">
               {auction.status === 'active' && !isAuctionEnded(auction) && (
                 <CompactAuctionTimer auction={auction} />
               )}
