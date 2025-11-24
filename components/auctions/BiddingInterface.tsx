@@ -382,7 +382,7 @@ export function BiddingInterface({
     return (
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
         <svg
-          className="mx-auto w-12 h-12 text-gray-400 mb-3"
+          className="mx-auto w-12 h-12 text-gray-300 mb-3"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
