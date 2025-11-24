@@ -378,18 +378,37 @@ function AuthPageContent() {
     }
   }
 
+  // Get app URL with proper fallbacks
+  const getAppUrl = () => {
+    // Try environment variable first
+    if (process.env.NEXT_PUBLIC_APP_URL) {
+      return process.env.NEXT_PUBLIC_APP_URL;
+    }
+
+    // Try window location for development
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      return window.location.origin;
+    }
+
+    // Hardcoded production URL as final fallback
+    return 'https://app.welovedecode.com';
+  };
+
   // Email magic link handler
   const handleEmailSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     setEmailLoading(true)
     setMessage('')
 
+    const redirectUrl = getAppUrl();
+    console.log('🔍 [AUTH] Using redirect URL:', redirectUrl);
+
     try {
       // Use Supabase Auth magic link
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/auth?verified=true`,
+          emailRedirectTo: `${redirectUrl}/auth?verified=true`,
         }
       })
 
