@@ -143,7 +143,9 @@ export class AuctionStrategy implements IPaymentStrategy {
         currency: 'usd',
         customer: customerId || undefined,
         capture_method: 'manual', // Pre-authorize only, capture later
-        setup_future_usage: 'off_session', // Save payment method for future use
+        // Only set setup_future_usage when NO saved payment method exists
+        // Cannot use both setup_future_usage and off_session=true together
+        ...(savedPaymentMethodId ? {} : { setup_future_usage: 'off_session' }),
         metadata: {
           type: 'auction_bid',
           auction_id: auctionContext.auction_id,
