@@ -278,7 +278,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                     role="button"
                     aria-label="Manage beauty business link"
                   >
-                    <div className="avatar-fallback bg-gradient-to-br from-blue-500 to-cyan-600">
+                    <div className="avatar-fallback bg-gray-500">
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
@@ -294,12 +294,12 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               ) : (
                 <div className="relative z-10 -ml-3 group">
                   <div
-                    className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-dashed border-gray-600 cursor-pointer transition-all duration-200 hover:scale-110 hover:brightness-110"
+                    className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-dashed border-gray-500 cursor-pointer transition-all duration-200 hover:scale-110 hover:brightness-110"
                     onClick={() => setShowBusinessModal(true)}
                     role="button"
                     aria-label="Link beauty business"
                   >
-                    <div className="w-full h-full bg-gray-800 flex items-center justify-center opacity-50">
+                    <div className="w-full h-full bg-gray-500 flex items-center justify-center opacity-50">
                       <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
