@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { CompactAuctionTimer } from './AuctionTimer';
 import { formatBidAmount } from '@/lib/models/Bid.model';
@@ -13,6 +13,7 @@ import type { Auction } from '@/lib/models/Auction.model';
 import { isAuctionEnded } from '@/lib/models/Auction.model';
 import { calculateProfit, calculatePlatformFee, calculateModelAmount } from '@/lib/models/AuctionPayout.model';
 import QRCode from 'qrcode';
+import { VideoPlayback } from './VideoPlayback';
 
 interface AuctionCardProps {
   auction: Auction;
@@ -26,6 +27,9 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
   const [generatingQR, setGeneratingQR] = useState(false);
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
+  const [videoExpanded, setVideoExpanded] = useState(false);
+  const [videoData, setVideoData] = useState<any>(null);
+  const [loadingVideo, setLoadingVideo] = useState(true);
 
   const currentPrice = Number(auction.auction_current_price);
   const startPrice = Number(auction.auction_start_price);
@@ -140,6 +144,30 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
       setShowDeactivateConfirm(false);
     }
   };
+
+  // Fetch video data on mount
+  useEffect(() => {
+    const fetchVideo = async () => {
+      try {
+        setLoadingVideo(true);
+        const response = await fetch(`/api/auctions/${auction.id}/video/view`);
+
+        if (response.ok) {
+          const data = await response.json();
+          setVideoData(data.video || null);
+        } else {
+          setVideoData(null);
+        }
+      } catch (error) {
+        console.error('Error fetching video:', error);
+        setVideoData(null);
+      } finally {
+        setLoadingVideo(false);
+      }
+    };
+
+    fetchVideo();
+  }, [auction.id]);
 
   const closeQRModal = (e?: React.MouseEvent) => {
     if (e) {
@@ -263,7 +291,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               {/* My Profit */}
               <div>
                 <p className="text-xs text-gray-400 uppercase tracking-wide">My Profit</p>
-                <p className="mt-1 text-xl md:text-2xl font-bold text-green-400">
+                <p className="mt-1 text-xl md:text-2xl font-bold text-white">
                   {formatBidAmount(creatorProfit)}
                 </p>
               </div>
@@ -271,15 +299,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               {/* My Payout */}
               <div>
                 <p className="text-xs text-gray-400 uppercase tracking-wide">My Payout</p>
-                <p className={`mt-1 text-xl md:text-2xl font-bold ${
-                  auction.payout_status === 'transferred'
-                    ? 'text-green-400'
-                    : auction.payout_status === 'failed'
-                    ? 'text-red-400'
-                    : auction.payout_status === 'processing'
-                    ? 'text-yellow-400'
-                    : 'text-gray-400'
-                }`}>
+                <p className="mt-1 text-xl md:text-2xl font-bold text-white">
                   {getPayoutStatusText()}
                 </p>
               </div>
@@ -308,9 +328,34 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
         {/* Action Buttons Row */}
         <div className="border-t border-gray-700 pt-4">
-          <div className="flex flex-wrap gap-2 justify-end">
-            {/* Share Button */}
+          <div className="flex flex-wrap gap-2 justify-between">
+            {/* Video Button - Left aligned */}
             <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (videoData) {
+                  setVideoExpanded(!videoExpanded);
+                }
+              }}
+              disabled={!videoData || loadingVideo}
+              className={`cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all border rounded-lg flex items-center gap-1.5 ${
+                videoData
+                  ? 'border-blue-500/50 text-blue-400 hover:bg-blue-500/10'
+                  : 'border-white/20 text-gray-500 opacity-50 cursor-not-allowed'
+              }`}
+              title={videoData ? 'View video' : 'No video uploaded'}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <span>{videoData ? (videoExpanded ? 'Hide Video' : 'View Video') : 'No Video'}</span>
+            </button>
+
+            {/* Right side buttons group */}
+            <div className="flex flex-wrap gap-2">
+              {/* Share Button */}
+              <button
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -371,8 +416,34 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               </svg>
               <span>{deactivating ? 'Deactivating...' : 'Deactivate'}</span>
             </button>
+            </div>
           </div>
         </div>
+
+        {/* Inline Video Expansion */}
+        {videoExpanded && videoData && (
+          <div className="border-t border-gray-700 pt-4 mt-4 transition-all duration-300 ease-in-out">
+            <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-4">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-sm font-semibold text-white">Auction Video</h3>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setVideoExpanded(false);
+                  }}
+                  className="text-gray-400 hover:text-white transition-colors"
+                  title="Close video"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <VideoPlayback auctionId={auction.id} />
+            </div>
+          </div>
+        )}
 
         {/* Winner Info */}
         {(auction.status === 'ended' || auction.status === 'completed' || isAuctionEnded(auction)) && auction.winner_name && (
