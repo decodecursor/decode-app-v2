@@ -234,11 +234,10 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
   return (
     <>
       <Link href={`/auctions/${auction.id}`}>
-        <div className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 transition-all duration-300 cursor-pointer
-          before:absolute before:inset-0 before:pointer-events-none before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out
+        <div className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 transition-all duration-200 cursor-pointer
           ${isActive
-            ? 'bg-gray-900/80 border-l-purple-500 hover:border-purple-400 hover:bg-gray-800/80 hover:shadow-2xl hover:shadow-purple-400/60 hover:scale-[1.01]'
-            : 'bg-blue-900/30 border-l-gray-500 hover:border-gray-400 hover:bg-blue-800/30 hover:shadow-2xl hover:shadow-gray-400/60 hover:scale-[1.01]'
+            ? 'bg-gray-900/80 border-l-purple-500 hover:border-purple-400'
+            : 'bg-blue-900/30 border-l-gray-500 hover:border-gray-400'
           }`}
         >
           {/* Status Overlay for Ended/Deactivated */}
@@ -257,17 +256,57 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
         {/* Header */}
         <div className="border-b border-gray-700 pb-4 mb-4">
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center justify-between gap-3">
+            {/* Left: Title */}
             <div className="flex-1 min-w-0">
               <h3 className="text-lg font-semibold text-white truncate">
                 {auction.title}
               </h3>
-              {auction.description && (
-                <p className="mt-1 text-sm text-gray-300 line-clamp-2">
-                  {auction.description}
-                </p>
+            </div>
+
+            {/* Center: Model & Business Images */}
+            <div className="flex items-center gap-2">
+              {/* Model Image */}
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 opacity-75 blur-sm"></div>
+                <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-white/30">
+                  {hasCreator(auction) && auction.creator.profile_photo_url ? (
+                    <img
+                      src={auction.creator.profile_photo_url}
+                      alt={auction.creator.user_name || 'Model'}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+                      <span className="text-white text-lg font-bold">
+                        {hasCreator(auction) && auction.creator.user_name ? auction.creator.user_name.charAt(0).toUpperCase() : 'M'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Beauty Business Image */}
+              {linkedBusiness ? (
+                <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-white/30">
+                  <div className="w-full h-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                </div>
+              ) : (
+                <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-dashed border-gray-600">
+                  <div className="w-full h-full bg-gray-800 flex items-center justify-center opacity-50">
+                    <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                </div>
               )}
             </div>
+
+            {/* Right: Timer & Status Badge */}
             <div className="flex items-center gap-2">
               {auction.status === 'active' && !isAuctionEnded(auction) && (
                 <CompactAuctionTimer auction={auction} />
@@ -275,52 +314,13 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               {getStatusBadge()}
             </div>
           </div>
-        </div>
 
-        {/* Model & Beauty Business Section */}
-        <div className="border-b border-gray-700 pb-4 mb-4">
-          <div className="flex items-center justify-center gap-3">
-            {/* Model Image */}
-            <div className="relative">
-              {/* Decorative frame effect */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 opacity-75 blur-sm"></div>
-              {/* Profile Image */}
-              <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-white/30">
-                {hasCreator(auction) && auction.creator.profile_photo_url ? (
-                  <img
-                    src={auction.creator.profile_photo_url}
-                    alt={auction.creator.user_name || 'Model'}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
-                    <span className="text-white text-2xl font-bold">
-                      {hasCreator(auction) && auction.creator.user_name ? auction.creator.user_name.charAt(0).toUpperCase() : 'M'}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Beauty Business Image */}
-            {linkedBusiness ? (
-              <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-white/30">
-                <div className="w-full h-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </div>
-              </div>
-            ) : (
-              <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-dashed border-gray-600">
-                <div className="w-full h-full bg-gray-800 flex items-center justify-center opacity-50">
-                  <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Description on second row if exists */}
+          {auction.description && (
+            <p className="mt-2 text-sm text-gray-300 line-clamp-2">
+              {auction.description}
+            </p>
+          )}
         </div>
 
         {/* Pricing Stats */}
