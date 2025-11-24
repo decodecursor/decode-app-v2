@@ -249,7 +249,7 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
               <select
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
-                className="cosmic-input text-sm text-gray-900 border border-purple-500 !w-[117px] md:!w-[92px]"
+                className="px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 !w-[117px] md:!w-[92px]"
                 disabled={isLoading}
               >
                 {COUNTRY_CODES.map((country) => (
@@ -266,7 +266,7 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
                   setWhatsappNumber(formatted);
                   if (errors.contact) setErrors({ ...errors, contact: undefined });
                 }}
-                className="cosmic-input flex-1 text-gray-900"
+                className="px-3 py-2 flex-1 text-gray-900 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="50 123 4567"
                 disabled={isLoading}
                 autoComplete="tel"
