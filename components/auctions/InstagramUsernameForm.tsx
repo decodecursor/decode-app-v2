@@ -70,6 +70,7 @@ export function InstagramUsernameForm({ onSubmit, isLoading = false }: Instagram
             autoCapitalize="none"
             autoCorrect="off"
             autoComplete="username"
+            spellCheck="false"
           />
         </div>
         {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
