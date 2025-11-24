@@ -56,11 +56,11 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
   // Get payout status display
   const getPayoutStatusText = () => {
-    if (!auction.payout_status) return 'Not Paid';
+    if (!auction.payout_status) return formatBidAmount(0);
 
     switch (auction.payout_status) {
       case 'pending':
-        return 'Not Paid';
+        return formatBidAmount(0);
       case 'processing':
         return 'Processing...';
       case 'transferred':
@@ -360,7 +360,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               </div>
 
               {/* My Payout */}
-              <div className="text-right">
+              <div className="text-left">
                 <p className="text-xs text-gray-400 uppercase tracking-wide">My Payout</p>
                 <p className="mt-1 text-xl md:text-2xl font-bold text-white">
                   {getPayoutStatusText()}
