@@ -145,6 +145,7 @@ export async function POST(
       bid_id: result.bid_id,
       client_secret: result.client_secret,
       payment_auto_confirmed: result.payment_auto_confirmed || false,
+      saved_card_last4: result.saved_card_last4,
       message: 'Bid placed successfully',
     };
 
@@ -152,6 +153,7 @@ export async function POST(
       bid_id: responseData.bid_id,
       has_client_secret: !!responseData.client_secret,
       payment_auto_confirmed: responseData.payment_auto_confirmed,
+      saved_card_last4: responseData.saved_card_last4,
       result_payment_auto_confirmed: result.payment_auto_confirmed,
     });
 

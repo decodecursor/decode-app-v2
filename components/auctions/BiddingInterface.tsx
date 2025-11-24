@@ -82,6 +82,7 @@ export function BiddingInterface({
   const [isRepeatBidder, setIsRepeatBidder] = useState(false);
   const [isCheckingPreviousBids, setIsCheckingPreviousBids] = useState(false);
   const [paymentAutoConfirmed, setPaymentAutoConfirmed] = useState(false);
+  const [savedCardLast4, setSavedCardLast4] = useState<string | null>(null);
 
   const currentPrice = Number(auction.auction_current_price);
   const startPrice = Number(auction.auction_start_price);
@@ -311,6 +312,7 @@ export function BiddingInterface({
         bid_id: data.bid_id,
         has_client_secret: !!data.client_secret,
         payment_auto_confirmed: data.payment_auto_confirmed,
+        saved_card_last4: data.saved_card_last4,
         full_response: data,
       });
 
@@ -318,10 +320,16 @@ export function BiddingInterface({
         throw new Error(data.error || 'Failed to place bid');
       }
 
+      // Store saved card info if present
+      if (data.saved_card_last4) {
+        setSavedCardLast4(data.saved_card_last4);
+      }
+
       // Check if payment was auto-confirmed with saved payment method
       if (data.payment_auto_confirmed) {
         console.log('[BiddingInterface] ✅ Payment auto-confirmed with saved card:', {
           bid_id: data.bid_id,
+          saved_card_last4: data.saved_card_last4,
           browser: typeof navigator !== 'undefined' && navigator.userAgent.includes('Edg') ? 'Edge' : 'Other',
           timestamp: new Date().toISOString()
         });
@@ -338,6 +346,7 @@ export function BiddingInterface({
         console.log('[BiddingInterface] ⚠️ No saved payment method, requesting new card:', {
           bid_id: data.bid_id,
           has_client_secret: !!data.client_secret,
+          saved_card_last4: data.saved_card_last4,
           browser: typeof navigator !== 'undefined' && navigator.userAgent.includes('Edg') ? 'Edge' : 'Other',
           timestamp: new Date().toISOString()
         });
@@ -582,26 +591,55 @@ export function BiddingInterface({
             </div>
           ) : clientSecret ? (
             /* Payment form for new cards */
-            <Elements stripe={stripePromise} options={{
-              clientSecret,
-              appearance: {
-                theme: 'stripe',
-                variables: {
-                  colorPrimary: '#2563eb',
-                  fontSizeBase: '16px',
+            <div className="space-y-4">
+              {/* Saved card indicator */}
+              {savedCardLast4 && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <svg className="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6zm2 2a1 1 0 000 2h2a1 1 0 000-2H6zm5 0a1 1 0 000 2h3a1 1 0 000-2h-3z" />
+                      </svg>
+                      <p className="text-sm text-blue-700 font-medium">
+                        💳 Using saved card ending in ****{savedCardLast4}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSavedCardLast4(null)}
+                      className="text-xs text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Use different card
+                    </button>
+                  </div>
+                  <p className="text-xs text-blue-600 mt-2">
+                    Click "Confirm Your Bid" to use your saved card, or enter new card details below.
+                  </p>
+                </div>
+              )}
+
+              <Elements stripe={stripePromise} options={{
+                clientSecret,
+                appearance: {
+                  theme: 'stripe',
+                  variables: {
+                    colorPrimary: '#2563eb',
+                    fontSizeBase: '16px',
+                  },
                 },
-              },
-            }}>
-              <PaymentForm
-                auctionId={auction.id}
-                bidId={bidId}
-                onSuccess={() => {
-                  if (onBidPlaced) onBidPlaced();
-                  handleReset();
-                }}
-                onCancel={handleReset}
-              />
-            </Elements>
+              }}>
+                <PaymentForm
+                  auctionId={auction.id}
+                  bidId={bidId}
+                  savedCardLast4={savedCardLast4}
+                  onSuccess={() => {
+                    if (onBidPlaced) onBidPlaced();
+                    handleReset();
+                  }}
+                  onCancel={handleReset}
+                />
+              </Elements>
+            </div>
           ) : null}
         </div>
       )}
@@ -616,11 +654,13 @@ export function BiddingInterface({
 function PaymentForm({
   auctionId,
   bidId,
+  savedCardLast4,
   onSuccess,
   onCancel,
 }: {
   auctionId: string;
   bidId: string;
+  savedCardLast4?: string | null;
   onSuccess: () => void;
   onCancel: () => void;
 }) {

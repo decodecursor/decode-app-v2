@@ -73,7 +73,7 @@ export class AuctionStrategy implements IPaymentStrategy {
       }
 
       // Check for saved payment method for guest bidders with Stripe fallback
-      // ONLY use saved payment if guest has bid on THIS SPECIFIC auction before
+      // Use saved payment method for ANY returning guest bidder (not auction-specific)
       let savedPaymentMethodId: string | null = null;
       if (auctionContext.is_guest && auctionContext.guest_bidder_id) {
         console.log('[AuctionStrategy] Checking saved payment for guest bidder:', {
@@ -83,35 +83,17 @@ export class AuctionStrategy implements IPaymentStrategy {
 
         const guestService = new GuestBidderService();
 
-        // Check if guest has previously bid on THIS auction
-        const hasPreviousBid = await guestService.hasGuestBidOnAuction(
-          auctionContext.guest_bidder_id,
-          auctionContext.auction_id
-        );
+        // Simply check if guest has ANY saved payment method (not auction-specific)
+        savedPaymentMethodId = await guestService.getSavedPaymentMethod(auctionContext.guest_bidder_id);
 
-        console.log('[AuctionStrategy] Previous bid check result:', {
-          has_previous_bid: hasPreviousBid,
+        console.log('[AuctionStrategy] Saved payment method check:', {
+          payment_method_id: savedPaymentMethodId,
+          has_saved_payment: !!savedPaymentMethodId,
           guest_bidder_id: auctionContext.guest_bidder_id,
-          auction_id: auctionContext.auction_id,
         });
 
-        if (hasPreviousBid) {
-          // Guest has bid on this auction before - retrieve saved payment method
-          savedPaymentMethodId = await guestService.getSavedPaymentMethod(auctionContext.guest_bidder_id);
-          console.log('[AuctionStrategy] Retrieved saved payment method from database:', {
-            payment_method_id: savedPaymentMethodId,
-            guest_bidder_id: auctionContext.guest_bidder_id,
-          });
-        } else {
-          // First bid on this auction - don't use saved payment method
-          console.log('[AuctionStrategy] First bid on this auction, not using saved payment method:', {
-            guest_bidder_id: auctionContext.guest_bidder_id,
-            auction_id: auctionContext.auction_id,
-          });
-        }
-
-        // If not found in database but we have a customer ID and previous bid, check Stripe directly
-        if (!savedPaymentMethodId && customerId && hasPreviousBid) {
+        // If not found in database but we have a customer ID, check Stripe directly
+        if (!savedPaymentMethodId && customerId) {
           console.log('[AuctionStrategy] Payment method not in database, checking Stripe directly for customer:', customerId);
 
           try {
@@ -208,10 +190,22 @@ export class AuctionStrategy implements IPaymentStrategy {
 
       const hasSavedPaymentMethod = !!savedPaymentMethodId;
 
+      // Get card last4 if we have a saved payment method
+      let savedCardLast4: string | undefined;
+      if (savedPaymentMethodId) {
+        try {
+          const paymentMethod = await stripe.paymentMethods.retrieve(savedPaymentMethodId);
+          savedCardLast4 = paymentMethod.card?.last4;
+        } catch (error) {
+          console.error('[AuctionStrategy] Error fetching payment method details:', error);
+        }
+      }
+
       console.log('[AuctionStrategy] Payment created - returning response:', {
         payment_intent_id: paymentIntent.id,
         has_saved_payment_method: hasSavedPaymentMethod,
         saved_payment_method_id: savedPaymentMethodId,
+        saved_card_last4: savedCardLast4,
         payment_intent_status: paymentIntent.status,
         is_guest: auctionContext.is_guest,
         guest_bidder_id: auctionContext.guest_bidder_id,
@@ -225,6 +219,7 @@ export class AuctionStrategy implements IPaymentStrategy {
           client_secret: paymentIntent.client_secret,
           stripe_customer_id: customerId,
           has_saved_payment_method: hasSavedPaymentMethod,
+          saved_card_last4: savedCardLast4,
         },
       };
     } catch (error) {
