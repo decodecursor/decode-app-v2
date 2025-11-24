@@ -236,9 +236,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
       <Link href={`/auctions/${auction.id}`}>
         <div className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 transition-all duration-300 cursor-pointer
           before:absolute before:inset-0 before:pointer-events-none before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-out
-          ${auction.status === 'cancelled'
-            ? 'bg-red-500/20 border-l-red-500 border-red-500/30 hover:border-red-400 hover:bg-red-500/30 hover:shadow-2xl hover:shadow-red-500/60 hover:scale-[1.01]'
-            : isActive
+          ${isActive
             ? 'bg-gray-900/80 border-l-purple-500 hover:border-purple-400 hover:bg-gray-800/80 hover:shadow-2xl hover:shadow-purple-400/60 hover:scale-[1.01]'
             : 'bg-blue-900/30 border-l-gray-500 hover:border-gray-400 hover:bg-blue-800/30 hover:shadow-2xl hover:shadow-gray-400/60 hover:scale-[1.01]'
           }`}
@@ -281,83 +279,47 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
         {/* Model & Beauty Business Section */}
         <div className="border-b border-gray-700 pb-4 mb-4">
-          <div className="flex items-center justify-between gap-4">
-            {/* Left Side: Model Info */}
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                {/* Decorative frame effect */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 opacity-75 blur-sm"></div>
-                {/* Profile Image */}
-                <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-white/30">
-                  {hasCreator(auction) && auction.creator.profile_photo_url ? (
-                    <img
-                      src={auction.creator.profile_photo_url}
-                      alt={auction.creator.user_name || 'Model'}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
-                      <span className="text-white text-2xl font-bold">
-                        {hasCreator(auction) && auction.creator.user_name ? auction.creator.user_name.charAt(0).toUpperCase() : 'M'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wide">Model Name</p>
-                <p className="text-sm md:text-base font-semibold text-white">
-                  {hasCreator(auction) && auction.creator.user_name ? auction.creator.user_name : 'Unknown'}
-                </p>
+          <div className="flex items-center justify-center gap-3">
+            {/* Model Image */}
+            <div className="relative">
+              {/* Decorative frame effect */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 opacity-75 blur-sm"></div>
+              {/* Profile Image */}
+              <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-white/30">
+                {hasCreator(auction) && auction.creator.profile_photo_url ? (
+                  <img
+                    src={auction.creator.profile_photo_url}
+                    alt={auction.creator.user_name || 'Model'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+                    <span className="text-white text-2xl font-bold">
+                      {hasCreator(auction) && auction.creator.user_name ? auction.creator.user_name.charAt(0).toUpperCase() : 'M'}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Right Side: Beauty Business */}
-            <div className="flex items-center gap-3">
-              {linkedBusiness ? (
-                <>
-                  {/* Business Image (when linked) */}
-                  <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-white/30">
-                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
-                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setShowBusinessModal(true);
-                    }}
-                    className="text-sm md:text-base font-semibold text-blue-400 hover:text-blue-300 underline transition-colors"
-                  >
-                    Change Business
-                  </button>
-                </>
-              ) : (
-                <>
-                  {/* Empty Business Image (not linked) */}
-                  <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-dashed border-gray-600">
-                    <div className="w-full h-full bg-gray-800 flex items-center justify-center opacity-50">
-                      <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setShowBusinessModal(true);
-                    }}
-                    className="text-sm md:text-base font-semibold text-white hover:text-blue-400 underline transition-colors"
-                  >
-                    Link Beauty Business
-                  </button>
-                </>
-              )}
-            </div>
+            {/* Beauty Business Image */}
+            {linkedBusiness ? (
+              <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-white/30">
+                <div className="w-full h-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+              </div>
+            ) : (
+              <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-dashed border-gray-600">
+                <div className="w-full h-full bg-gray-800 flex items-center justify-center opacity-50">
+                  <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
