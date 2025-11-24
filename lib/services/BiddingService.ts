@@ -171,11 +171,22 @@ export class BiddingService {
       // 7. Check for anti-sniping
       await this.checkAntiSniping(params.auction_id);
 
+      const paymentAutoConfirmed = paymentResult.metadata?.has_saved_payment_method || false;
+
+      console.log('[BiddingService] Bid placed successfully - returning response:', {
+        bid_id: bid.id,
+        has_client_secret: !!paymentResult.metadata?.client_secret,
+        payment_auto_confirmed: paymentAutoConfirmed,
+        has_saved_payment_method: paymentResult.metadata?.has_saved_payment_method,
+        is_guest: params.is_guest,
+        guest_bidder_id: guestBidderId,
+      });
+
       return {
         success: true,
         bid_id: bid.id,
         client_secret: paymentResult.metadata?.client_secret,
-        payment_auto_confirmed: paymentResult.metadata?.has_saved_payment_method || false,
+        payment_auto_confirmed: paymentAutoConfirmed,
       };
     } catch (error) {
       console.error('Error placing bid:', error);

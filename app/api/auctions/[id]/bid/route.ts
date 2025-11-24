@@ -140,16 +140,22 @@ export async function POST(
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        bid_id: result.bid_id,
-        client_secret: result.client_secret,
-        payment_auto_confirmed: result.payment_auto_confirmed || false,
-        message: 'Bid placed successfully',
-      },
-      { status: 201 }
-    );
+    const responseData = {
+      success: true,
+      bid_id: result.bid_id,
+      client_secret: result.client_secret,
+      payment_auto_confirmed: result.payment_auto_confirmed || false,
+      message: 'Bid placed successfully',
+    };
+
+    console.log('[API /auctions/[id]/bid] Sending response to frontend:', {
+      bid_id: responseData.bid_id,
+      has_client_secret: !!responseData.client_secret,
+      payment_auto_confirmed: responseData.payment_auto_confirmed,
+      result_payment_auto_confirmed: result.payment_auto_confirmed,
+    });
+
+    return NextResponse.json(responseData, { status: 201 });
   } catch (error) {
     console.error('Error in POST /api/auctions/[id]/bid:', error);
     return NextResponse.json(

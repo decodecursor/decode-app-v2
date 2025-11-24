@@ -206,13 +206,25 @@ export class AuctionStrategy implements IPaymentStrategy {
 
       const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
 
+      const hasSavedPaymentMethod = !!savedPaymentMethodId;
+
+      console.log('[AuctionStrategy] Payment created - returning response:', {
+        payment_intent_id: paymentIntent.id,
+        has_saved_payment_method: hasSavedPaymentMethod,
+        saved_payment_method_id: savedPaymentMethodId,
+        payment_intent_status: paymentIntent.status,
+        is_guest: auctionContext.is_guest,
+        guest_bidder_id: auctionContext.guest_bidder_id,
+        auto_confirmed: savedPaymentMethodId ? true : false,
+      });
+
       return {
         success: true,
         payment_intent_id: paymentIntent.id,
         metadata: {
           client_secret: paymentIntent.client_secret,
           stripe_customer_id: customerId,
-          has_saved_payment_method: !!savedPaymentMethodId,
+          has_saved_payment_method: hasSavedPaymentMethod,
         },
       };
     } catch (error) {

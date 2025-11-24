@@ -305,14 +305,17 @@ export function BiddingInterface({
       });
 
       const data = await response.json();
-      console.log('Bid API response:', data);
+
+      console.log('[BiddingInterface] Received API response:', {
+        success: data.success,
+        bid_id: data.bid_id,
+        has_client_secret: !!data.client_secret,
+        payment_auto_confirmed: data.payment_auto_confirmed,
+        full_response: data,
+      });
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to place bid');
-      }
-
-      if (!data.client_secret) {
-        throw new Error('Failed to initialize payment. Please try again.');
       }
 
       // Check if payment was auto-confirmed with saved payment method
@@ -326,6 +329,11 @@ export function BiddingInterface({
         setBidId(data.bid_id);
         setStep('payment'); // Will show success message instead of payment form
       } else {
+        // Validate client secret for new payment
+        if (!data.client_secret) {
+          throw new Error('Failed to initialize payment. Please try again.');
+        }
+
         // Set client secret and bid ID for Stripe payment
         console.log('[BiddingInterface] ⚠️ No saved payment method, requesting new card:', {
           bid_id: data.bid_id,
