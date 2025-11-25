@@ -122,7 +122,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
 
   const updateHearts = () => {
     const deltaTime = 16 // ~60fps
-    const speed = 1.4 // Reduced speed by 30%
+    const speed = 1.12 // Reduced speed by 20% more
 
     heartsRef.current = heartsRef.current.filter(heart => {
       heart.time -= deltaTime
@@ -156,7 +156,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
 
     let targetX = window.innerWidth / 2
     let targetY = window.innerHeight / 2
-    let targetWidth = 400
+    let targetWidth = 500
     let targetHeight = 200
 
     // If we have a target element ID, use its position
@@ -201,7 +201,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
   const startAnimation = () => {
     // Generate hearts periodically for 2 seconds
     let heartCount = 0
-    const maxHearts = 48 // Doubled from 24
+    const maxHearts = 96 // Doubled again for desktop
     
     checkIntervalRef.current = setInterval(() => {
       if (heartCount < maxHearts) {
