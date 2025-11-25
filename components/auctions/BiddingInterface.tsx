@@ -69,7 +69,7 @@ interface BiddingInterfaceProps {
   auction: Auction;
   userEmail?: string;
   userName?: string;
-  onBidPlaced?: () => void;
+  onBidPlaced?: (bidId: string) => void;
 }
 
 export function BiddingInterface({
@@ -573,7 +573,7 @@ export function BiddingInterface({
               </div>
               <button
                 onClick={() => {
-                  if (onBidPlaced) onBidPlaced();
+                  if (onBidPlaced && bidId) onBidPlaced(bidId);
                   handleReset();
                 }}
                 className="w-full px-4 py-3 text-base font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
@@ -645,7 +645,7 @@ export function BiddingInterface({
                   bidId={bidId}
                   savedCardLast4={savedCardLast4}
                   onSuccess={() => {
-                    if (onBidPlaced) onBidPlaced();
+                    if (onBidPlaced && bidId) onBidPlaced(bidId);
                     handleReset();
                   }}
                   onCancel={handleReset}

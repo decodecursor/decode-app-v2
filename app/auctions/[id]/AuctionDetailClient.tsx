@@ -39,6 +39,7 @@ export default function AuctionDetailClient() {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelSuccess, setCancelSuccess] = useState(false);
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
+  const [guestBidId, setGuestBidId] = useState<string | null>(null);
 
   const { auction, isConnected, refresh } = useAuctionRealtime(auctionId);
   const { refresh: refreshLeaderboard } = useLeaderboard(auctionId, userEmail);
@@ -71,11 +72,12 @@ export default function AuctionDetailClient() {
     }
   }, [auction, userId]);
 
-  // Winner notification
+  // Winner notification (supports both logged-in users and guest bidders)
   const { hasWon, recordingToken, winningAmount } = useWinnerNotification(
     auction,
     userEmail,
-    () => setShowWinnerModal(true)
+    () => setShowWinnerModal(true),
+    guestBidId || undefined
   );
 
   // Bid notifications (toast notifications would be handled by parent layout)
@@ -128,8 +130,13 @@ export default function AuctionDetailClient() {
   };
 
   // Combined refresh for both auction and leaderboard after bid placement
-  const handleBidPlaced = async () => {
+  const handleBidPlaced = async (bidId?: string) => {
     console.log('💰 [AuctionDetail] Bid placed, refreshing data...');
+
+    // Store bid ID for guest winner detection
+    if (bidId && !userEmail) {
+      setGuestBidId(bidId);
+    }
 
     // Immediate refresh
     await Promise.all([

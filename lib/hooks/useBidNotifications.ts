@@ -157,18 +157,25 @@ export function useBidNotifications(
 export function useWinnerNotification(
   auction: Auction | null,
   userEmail?: string,
-  onWin?: (recordingToken: string) => void
+  onWin?: (recordingToken: string) => void,
+  guestBidId?: string
 ) {
   const [hasWon, setHasWon] = useState(false);
   const [recordingToken, setRecordingToken] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!auction || !userEmail) return;
+    if (!auction) return;
+
+    // Check if user is the winner (either by email OR by bid ID for guests)
+    const isWinner =
+      (userEmail && auction.winner_email === userEmail) ||
+      (guestBidId && auction.winner_bid_id === guestBidId);
+
+    if (!isWinner) return;
 
     // Check if auction ended and user is the winner
     if (
       (auction.status === 'ended' || auction.status === 'completed') &&
-      auction.winner_email === userEmail &&
       !hasWon
     ) {
       setHasWon(true);
@@ -192,7 +199,7 @@ export function useWinnerNotification(
           console.error('Error creating recording session:', error);
         });
     }
-  }, [auction, userEmail, hasWon, onWin]);
+  }, [auction, userEmail, guestBidId, hasWon, onWin]);
 
   return {
     hasWon,
