@@ -46,6 +46,11 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
   // Check if auction is active (not ended and status is active)
   const isActive = auction.status === 'active' && !isAuctionEnded(auction);
 
+  // Determine if deactivate button should be visible
+  const shouldShowDeactivateButton = !isAuctionEnded(auction) &&
+    auction.status !== 'cancelled' &&
+    auction.status !== 'completed';
+
   // Calculate creator's profit and payout (only if there are bids)
   let creatorProfit = 0;
   if (hasBids) {
@@ -468,21 +473,23 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </button>
 
             {/* Deactivate Button */}
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowDeactivateConfirm(true);
-              }}
-              disabled={deactivating}
-              className="cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-red-500/20 hover:border-red-500 hover:text-red-300 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Deactivate auction"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-              </svg>
-              <span>{deactivating ? 'Deactivating...' : 'Deactivate'}</span>
-            </button>
+            {shouldShowDeactivateButton && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowDeactivateConfirm(true);
+                }}
+                disabled={deactivating}
+                className="cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-red-500/20 hover:border-red-500 hover:text-red-300 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Deactivate auction"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                </svg>
+                <span>{deactivating ? 'Deactivating...' : 'Deactivate'}</span>
+              </button>
+            )}
             </div>
           </div>
         </div>
