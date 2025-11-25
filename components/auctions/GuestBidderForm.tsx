@@ -249,7 +249,7 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
               <select
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
-                className="cosmic-input w-32"
+                className="cosmic-input text-sm border border-blue-500 !w-[117px] md:!w-[92px]"
                 disabled={isLoading}
               >
                 {COUNTRY_CODES.map((country) => (
