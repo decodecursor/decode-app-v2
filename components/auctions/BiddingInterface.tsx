@@ -34,6 +34,18 @@ function formatWhatsAppNumber(number: string): string {
   return number;
 }
 
+// Format number with thousand separators (e.g., 10000 -> 10,000)
+function formatNumberWithCommas(value: string): string {
+  // Remove all non-digit characters (no decimal support)
+  const cleanValue = value.replace(/\D/g, '');
+
+  // Return empty string if no digits
+  if (!cleanValue) return '';
+
+  // Add commas for thousands
+  return cleanValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 // Load guest bidder info from localStorage cache
 function loadGuestInfoFromCache(auctionId: string): {
   name: string;
@@ -134,7 +146,7 @@ export function BiddingInterface({
     e.preventDefault();
     setError(null);
 
-    const amount = parseFloat(bidAmount);
+    const amount = parseInt(bidAmount.replace(/,/g, ''), 10);
 
     // Validate amount
     if (isNaN(amount) || amount < minimumBid) {
@@ -437,17 +449,17 @@ export function BiddingInterface({
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">AED</span>
               <input
-                type="number"
+                type="text"
                 id="bid-amount"
+                inputMode="numeric"
                 value={bidAmount}
                 onChange={(e) => {
-                  setBidAmount(e.target.value);
+                  const formatted = formatNumberWithCommas(e.target.value);
+                  setBidAmount(formatted);
                   setError(null);
                 }}
-                min={minimumBid}
-                step="0.01"
                 className="w-full pl-14 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                placeholder={minimumBid.toString()}
+                placeholder={formatNumberWithCommas(Math.floor(minimumBid).toString())}
               />
             </div>
             <p className="mt-1 text-gray-500" style={{ fontSize: '11px' }}>
