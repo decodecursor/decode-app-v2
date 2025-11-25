@@ -22,7 +22,8 @@ export class AuctionVideoService {
     auction_id: string;
     bid_id: string;
   }): Promise<{ success: boolean; session?: VideoRecordingSession; error?: string }> {
-    const supabase = await createClient();
+    // Use service role client to bypass RLS - needed for cron/EventBridge execution
+    const supabase = createServiceRoleClient();
 
     try {
       // Check if video already exists
@@ -193,6 +194,7 @@ export class AuctionVideoService {
    * Get video for viewing (creator only)
    */
   async getVideo(auctionId: string): Promise<AuctionVideo | null> {
+    // Use regular client here - RLS will ensure only creator can view
     const supabase = await createClient();
 
     try {
@@ -267,7 +269,8 @@ export class AuctionVideoService {
    * Delete expired videos (cron job)
    */
   async deleteExpiredVideos(): Promise<{ deleted_count: number }> {
-    const supabase = await createClient();
+    // Use service role client for cron job execution
+    const supabase = createServiceRoleClient();
 
     try {
       // Get expired videos

@@ -9,6 +9,7 @@ import { emailService } from '@/lib/email-service';
 export class AuctionNotificationService {
   /**
    * Send winner notification (email + in-page prompt)
+   * Note: recording_token is optional - email will still be sent without it
    */
   async notifyWinner(params: {
     auction_id: string;
@@ -17,10 +18,12 @@ export class AuctionNotificationService {
     winner_name: string;
     auction_title: string;
     winning_amount: number;
-    recording_token: string;
+    recording_token?: string; // Optional: email can be sent without video recording link
   }): Promise<{ success: boolean; error?: string }> {
     try {
-      const recordingUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auctions/video/${params.recording_token}`;
+      const recordingUrl = params.recording_token
+        ? `${process.env.NEXT_PUBLIC_APP_URL}/auctions/video/${params.recording_token}`
+        : undefined;
 
       // Send email notification
       await emailService.send({
@@ -34,7 +37,7 @@ export class AuctionNotificationService {
         }),
       });
 
-      console.log(`Winner notification sent to ${params.winner_email}`);
+      console.log(`Winner notification sent to ${params.winner_email}${recordingUrl ? ' with video link' : ' (no video link available)'}`);
       return { success: true };
     } catch (error) {
       console.error('Error sending winner notification:', error);
@@ -148,8 +151,24 @@ export class AuctionNotificationService {
     winner_name: string;
     auction_title: string;
     winning_amount: number;
-    recording_url: string;
+    recording_url?: string;
   }): string {
+    const videoSection = params.recording_url
+      ? `
+          <div style="background: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h2 style="margin-top: 0;">🎥 Record Your Video Message</h2>
+            <p>As the winner, you can now record a 10-second video message for the auction creator!</p>
+            <p><a href="${params.recording_url}" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Record Video Now</a></p>
+            <p style="font-size: 14px; color: #6B7280;">This link expires in 24 hours. You can retake once if needed.</p>
+          </div>
+        `
+      : `
+          <div style="background: #FEF3C7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F59E0B;">
+            <h2 style="margin-top: 0; color: #D97706;">📧 Next Steps</h2>
+            <p>The auction creator will reach out to you directly via the contact information you provided during bidding.</p>
+          </div>
+        `;
+
     return `
       <!DOCTYPE html>
       <html>
@@ -159,12 +178,7 @@ export class AuctionNotificationService {
 
           <p>You won the auction for <strong>"${params.auction_title}"</strong> with a winning bid of <strong>$${params.winning_amount.toFixed(2)}</strong>.</p>
 
-          <div style="background: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="margin-top: 0;">🎥 Record Your Video Message</h2>
-            <p>As the winner, you can now record a 10-second video message for the auction creator!</p>
-            <p><a href="${params.recording_url}" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Record Video Now</a></p>
-            <p style="font-size: 14px; color: #6B7280;">This link expires in 24 hours. You can retake once if needed.</p>
-          </div>
+          ${videoSection}
 
           <p style="font-size: 14px; color: #6B7280;">The auction creator may reach out to you via the contact information you provided during bidding.</p>
 

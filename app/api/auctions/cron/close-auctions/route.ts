@@ -120,17 +120,33 @@ export async function POST(request: NextRequest) {
                 bid_id: capturedBid.id,
               });
 
-              // Send winner notification
-              if (sessionResult.success && sessionResult.session) {
-                await notificationService.notifyWinner({
-                  auction_id: auction.id,
-                  bid_id: capturedBid.id,
-                  winner_email: capturedBid.bidder_email,
-                  winner_name: capturedBid.bidder_name,
-                  auction_title: auction.title,
-                  winning_amount: Number(capturedBid.bid_amount),
-                  recording_token: sessionResult.session.token,
-                });
+              // CRITICAL: Always send winner notification, even if video session creation fails
+              // This ensures winners are notified even when there are technical issues
+              const emailResult = await notificationService.notifyWinner({
+                auction_id: auction.id,
+                bid_id: capturedBid.id,
+                winner_email: capturedBid.bidder_email,
+                winner_name: capturedBid.bidder_name,
+                auction_title: auction.title,
+                winning_amount: Number(capturedBid.bid_amount),
+                recording_token: sessionResult.success && sessionResult.session ? sessionResult.session.token : undefined,
+              });
+
+              if (emailResult.success) {
+                console.log(`✅ [Cron] Winner notification sent to ${capturedBid.bidder_email}`);
+              } else {
+                console.error(
+                  `❌ [Cron] Failed to send winner notification:`,
+                  emailResult.error
+                );
+              }
+
+              if (!sessionResult.success) {
+                console.error(
+                  `⚠️  [Cron] Failed to create video recording session:`,
+                  sessionResult.error
+                );
+                console.log(`   Email was still sent without video recording link`);
               }
 
               console.log(`Auction ${auction.id} closed successfully with winner`);
