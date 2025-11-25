@@ -197,8 +197,19 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
       );
     }
 
-    // Check actual end time (for auctions that ended by time)
-    if (isAuctionEnded(auction)) {
+    // Check if auction has ended (by time or status)
+    const hasEnded = isAuctionEnded(auction) || auction.status === 'ended' || auction.status === 'completed';
+
+    if (hasEnded) {
+      // If auction has bids, show COMPLETED (green)
+      if (auction.total_bids > 0) {
+        return (
+          <span className="px-2 py-1 text-xs font-medium text-green-300 bg-green-700/30 rounded-full">
+            Completed
+          </span>
+        );
+      }
+      // If no bids, show ENDED (gray)
       return (
         <span className="px-2 py-1 text-xs font-medium text-gray-300 bg-gray-700/50 rounded-full">
           Ended
@@ -217,13 +228,6 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
         return (
           <span className="px-2 py-1 text-xs font-medium text-blue-300 bg-blue-700/30 rounded-full">
             Upcoming
-          </span>
-        );
-      case 'ended':
-      case 'completed':
-        return (
-          <span className="px-2 py-1 text-xs font-medium text-gray-300 bg-gray-700/50 rounded-full">
-            Ended
           </span>
         );
       default:
@@ -405,7 +409,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               className={`text-xs md:text-sm transition-all flex items-center gap-1.5 ${
                 videoData
                   ? 'text-gray-600 hover:text-gray-500 hover:underline'
-                  : 'text-gray-500 opacity-50 cursor-not-allowed'
+                  : 'text-white/80 cursor-not-allowed'
               }`}
               title={videoData ? 'View video' : 'No video uploaded yet'}
             >

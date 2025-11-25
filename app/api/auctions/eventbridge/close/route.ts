@@ -122,18 +122,36 @@ export async function POST(request: NextRequest) {
         if (capturedBid) {
           console.log(`[EventBridge] Payment captured for bid ${capturedBid.id}`);
 
+          // Calculate profit amounts
+          const winningAmount = Number(capturedBid.bid_amount);
+          const startPrice = Number(auction.auction_start_price);
+          const profit = Math.max(winningAmount - startPrice, 0);
+          const platformFee = profit * 0.25;
+          const modelPayout = winningAmount - platformFee;
+
           // End auction with winner
           await auctionService.endAuction(auctionId, capturedBid.id);
 
-          // Complete auction (mark payment captured)
+          // Complete auction (mark payment captured) and save profit amounts
           await auctionService.completeAuction(auctionId);
+
+          // Update auction with profit amounts
+          const supabase = await createClient();
+          await supabase
+            .from('auctions')
+            .update({
+              profit_amount: profit,
+              platform_fee_amount: platformFee,
+              model_payout_amount: modelPayout,
+            })
+            .eq('id', auctionId);
 
           // Create payout record with profit-based fee calculation
           await paymentSplitter.createPayout(
             auction.creator_id,
             auctionId,
-            Number(capturedBid.bid_amount),
-            Number(auction.auction_start_price)
+            winningAmount,
+            startPrice
           );
 
           // Create video recording session (generates secure token)

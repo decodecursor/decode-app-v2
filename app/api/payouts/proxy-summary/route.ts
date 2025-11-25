@@ -54,69 +54,56 @@ export async function GET(request: NextRequest) {
     const isModel = userData?.role?.toLowerCase() === 'model'
 
     if (isModel) {
-      // MODEL: Get pending auction payouts
+      // MODEL: Get pending auction payouts directly from auctions table
       console.log(`💰 MODEL USER (role: ${userData.role}): Getting pending auction payouts`)
 
-      const { data: pendingAuctionPayouts } = await supabase
-        .from('auction_payouts')
-        .select(`
-          id,
-          auction_id,
-          auction_winning_amount,
-          auction_profit_model_amount,
-          status,
-          created_at,
-          auctions (
-            id,
-            title,
-            auction_end_time,
-            status
-          )
-        `)
-        .eq('model_id', userId)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false })
+      const { data: pendingAuctions } = await supabase
+        .from('auctions')
+        .select('id, title, end_time, model_payout_amount, payout_status, profit_amount, platform_fee_amount, current_price')
+        .eq('creator_id', userId)
+        .eq('status', 'completed')
+        .eq('payout_status', 'pending')
+        .order('end_time', { ascending: false })
 
-      console.log(`💰 Found ${pendingAuctionPayouts?.length || 0} pending auction payouts`)
+      console.log(`💰 Found ${pendingAuctions?.length || 0} pending auction payouts`)
 
       // Calculate total pending balance
-      userBalance = (pendingAuctionPayouts || []).reduce((sum, payout) => {
-        return sum + (Number(payout.auction_profit_model_amount) || 0)
+      userBalance = (pendingAuctions || []).reduce((sum, auction) => {
+        return sum + (Number(auction.model_payout_amount) || 0)
       }, 0)
 
       console.log(`💰 MODEL Total Pending Balance: ${userBalance}`)
 
       // Format pending payouts for response
-      const formattedPendingPayouts = (pendingAuctionPayouts || []).map(payout => {
-        const auction = Array.isArray(payout.auctions) ? payout.auctions[0] : null
+      const formattedPendingPayouts = (pendingAuctions || []).map(auction => {
         return {
-          auction_id: payout.auction_id,
-          auction_title: auction?.title || 'Untitled Auction',
-          ended_at: auction?.auction_end_time || payout.created_at,
-          model_amount: Number(payout.auction_profit_model_amount),
-          payout_status: payout.status
+          auction_id: auction.id,
+          auction_title: auction.title || 'Untitled Auction',
+          ended_at: auction.end_time,
+          model_amount: Number(auction.model_payout_amount),
+          payout_status: auction.payout_status
         }
       })
 
-      // Get total paid out amount
-      const { data: paidPayouts } = await supabase
-        .from('auction_payouts')
-        .select('auction_profit_model_amount')
-        .eq('model_id', userId)
-        .eq('status', 'transferred')
+      // Get total paid out amount from auctions
+      const { data: paidAuctions } = await supabase
+        .from('auctions')
+        .select('model_payout_amount')
+        .eq('creator_id', userId)
+        .eq('payout_status', 'transferred')
 
-      const totalPaidOut = (paidPayouts || []).reduce((sum, payout) => {
-        return sum + (Number(payout.auction_profit_model_amount) || 0)
+      const totalPaidOut = (paidAuctions || []).reduce((sum, auction) => {
+        return sum + (Number(auction.model_payout_amount) || 0)
       }, 0)
 
-      // Get last payout
-      const { data: lastModelPayout } = await supabase
-        .from('auction_payouts')
-        .select('auction_profit_model_amount, transferred_at')
-        .eq('model_id', userId)
-        .eq('status', 'transferred')
-        .not('transferred_at', 'is', null)
-        .order('transferred_at', { ascending: false })
+      // Get last payout from auctions (most recent transferred payout)
+      const { data: lastPayoutAuction } = await supabase
+        .from('auctions')
+        .select('model_payout_amount, payment_captured_at')
+        .eq('creator_id', userId)
+        .eq('payout_status', 'transferred')
+        .not('payment_captured_at', 'is', null)
+        .order('payment_captured_at', { ascending: false })
         .limit(1)
         .maybeSingle()
 
@@ -126,8 +113,8 @@ export async function GET(request: NextRequest) {
         pendingPayouts: formattedPendingPayouts,
         totalEarnings: userBalance + totalPaidOut,
         totalPaidOut,
-        lastPayoutAmount: lastModelPayout ? Number(lastModelPayout.auction_profit_model_amount) : 0,
-        lastPayoutDate: lastModelPayout?.transferred_at || null,
+        lastPayoutAmount: lastPayoutAuction ? Number(lastPayoutAuction.model_payout_amount) : 0,
+        lastPayoutDate: lastPayoutAuction?.payment_captured_at || null,
         bankConnected
       }
 
