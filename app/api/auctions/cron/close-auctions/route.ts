@@ -85,9 +85,8 @@ export async function POST(request: NextRequest) {
 
               if (profitError) {
                 console.error(`❌ [Cron] Failed to save profit amounts for auction ${auction.id}:`, profitError);
-                closedAuctions.push({
-                  id: auction.id,
-                  success: false,
+                errors.push({
+                  auction_id: auction.id,
                   error: `Failed to save profit amounts: ${profitError.message}`
                 });
                 continue; // Skip to next auction instead of throwing
