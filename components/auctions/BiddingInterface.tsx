@@ -488,7 +488,7 @@ export function BiddingInterface({
         <div>
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-700">
-              Your bid: <span className="font-semibold">{formatBidAmount(parseFloat(bidAmount))}</span>
+              Your bid: <span className="font-semibold">{formatBidAmount(parseFloat(bidAmount.replace(/,/g, '')))}</span>
             </p>
           </div>
           <GuestBidderForm
@@ -505,7 +505,7 @@ export function BiddingInterface({
         <div>
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-700">
-              Your bid: <span className="font-semibold">{formatBidAmount(parseFloat(bidAmount))}</span>
+              Your bid: <span className="font-semibold">{formatBidAmount(parseFloat(bidAmount.replace(/,/g, '')))}</span>
             </p>
             {guestInfo && (
               <>
@@ -533,7 +533,7 @@ export function BiddingInterface({
         <div>
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-700">
-              Your bid: <span className="font-semibold">{formatBidAmount(parseFloat(bidAmount))}</span>
+              Your bid: <span className="font-semibold">{formatBidAmount(parseFloat(bidAmount.replace(/,/g, '')))}</span>
             </p>
             {guestInfo && (
               <>
