@@ -40,6 +40,11 @@ export interface Auction {
   payment_captured_at?: string;
   payout_status: PayoutStatus;
 
+  // Profit tracking (added 2025-11-25)
+  profit_amount?: number;
+  platform_fee_amount?: number;
+  model_payout_amount?: number;
+
   // Metadata
   total_bids: number;
   unique_bidders: number;
@@ -72,6 +77,9 @@ export interface UpdateAuctionDto {
   payment_captured_at?: string;
   payout_status?: PayoutStatus;
   scheduler_event_id?: string;
+  profit_amount?: number;
+  platform_fee_amount?: number;
+  model_payout_amount?: number;
 }
 
 export interface AuctionWithCreator extends Auction {
