@@ -10,9 +10,18 @@ import HeartAnimation from '@/components/effects/HeartAnimation'
 import { createClient } from '@/utils/supabase/client'
 import type { User } from '@supabase/supabase-js'
 
+interface PendingPayoutItem {
+  auction_id: string
+  auction_title: string
+  ended_at: string
+  model_amount: number
+  payout_status: string
+}
+
 interface PayoutSummary {
   availableBalance: number
   pendingBalance: number
+  pendingPayouts?: PendingPayoutItem[]
   totalEarnings: number
   totalPaidOut: number
   lastPayoutAmount: number
@@ -495,29 +504,78 @@ export default function PayoutsPage() {
                   )}
                 </div>
 
-                {/* Company Total Payouts Card */}
+                {/* My Pending Payouts Card (MODEL) or Total Payouts Card (ADMIN/STAFF) */}
                 <div className="flex-1 cosmic-card">
                   <div className="mb-4">
-                    <h3 className="text-base md:text-lg font-semibold text-white">{getCardTitle('My Total Payouts')}</h3>
+                    <h3 className="text-base md:text-lg font-semibold text-white">
+                      {userRole?.toLowerCase() === 'model' ? 'My Pending Payouts' : getCardTitle('My Total Payouts')}
+                    </h3>
                   </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-gray-400 text-xs md:text-sm">Paid Amount</p>
-                      <p className="text-xl md:text-2xl font-bold text-white">
-                        {formatCurrency(payoutSummary?.totalPaidOut || 0)}
-                      </p>
-                    </div>
-
-                    {payoutSummary?.lastPayoutDate && (
-                      <div>
-                        <p className="text-gray-400 text-xs md:text-sm">Last Payout</p>
-                        <p className="text-white text-sm md:text-base">
-                          {formatCurrency(payoutSummary.lastPayoutAmount)} on {formatDate(payoutSummary.lastPayoutDate)}
+                  {userRole?.toLowerCase() === 'model' ? (
+                    /* MODEL: Show pending payouts list */
+                    <div className="space-y-4">
+                      {/* Total Summary */}
+                      <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                        <p className="text-sm text-gray-300 mb-1">Total Pending</p>
+                        <p className="text-2xl md:text-3xl font-bold text-white">
+                          {formatCurrency(payoutSummary?.availableBalance || 0)}
                         </p>
                       </div>
-                    )}
-                  </div>
+
+                      {/* Pending Payouts List */}
+                      <div className="max-h-[400px] overflow-y-auto space-y-2 border-t border-white/10 pt-4">
+                        {payoutSummary?.pendingPayouts && payoutSummary.pendingPayouts.length > 0 ? (
+                          payoutSummary.pendingPayouts.map((payout) => (
+                            <div
+                              key={payout.auction_id}
+                              className="flex justify-between items-center p-3 bg-white/5 border border-white/10 rounded-lg hover:bg-white/8 transition-colors"
+                            >
+                              <div className="flex-1 min-w-0 pr-4">
+                                <p className="font-semibold text-white text-sm md:text-base truncate">
+                                  {payout.auction_title}
+                                </p>
+                                <p className="text-xs text-gray-400 mt-1">
+                                  Ended: {formatDate(payout.ended_at)}
+                                </p>
+                              </div>
+                              <div className="flex flex-col items-end gap-1">
+                                <p className="text-base md:text-lg font-bold text-green-400">
+                                  {formatCurrency(payout.model_amount)}
+                                </p>
+                                <span className="px-2 py-0.5 text-[10px] font-semibold uppercase bg-yellow-500/20 text-yellow-400 rounded-full border border-yellow-500/30">
+                                  Pending
+                                </span>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-8">
+                            <p className="text-gray-500 text-sm">No pending payouts</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    /* ADMIN/STAFF: Show total paid amount */
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-gray-400 text-xs md:text-sm">Paid Amount</p>
+                        <p className="text-xl md:text-2xl font-bold text-white">
+                          {formatCurrency(payoutSummary?.totalPaidOut || 0)}
+                        </p>
+                      </div>
+
+                      {payoutSummary?.lastPayoutDate && (
+                        <div>
+                          <p className="text-gray-400 text-xs md:text-sm">Last Payout</p>
+                          <p className="text-white text-sm md:text-base">
+                            {formatCurrency(payoutSummary.lastPayoutAmount)} on {formatDate(payoutSummary.lastPayoutDate)}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* My Payout Methods Card */}
