@@ -260,7 +260,7 @@ export function BiddingInterface({
     setIsProcessing(true);
     setError(null);
 
-    const finalAmount = amount || parseFloat(bidAmount);
+    const finalAmount = amount || parseFloat(bidAmount.replace(/,/g, ''));
 
     // Fetch fresh auction data to prevent stale price issues
     try {
