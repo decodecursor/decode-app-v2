@@ -101,6 +101,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
     try {
       setGeneratingQR(true);
+      setShowQRModal(true); // Open modal immediately
 
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
       const auctionUrl = `${baseUrl}/auctions/${auction.id}`;
@@ -117,7 +118,6 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
       });
 
       setQrCodeDataURL(qrDataURL);
-      setShowQRModal(true);
 
       // Auto-close QR modal after 20 seconds
       setTimeout(() => {
@@ -127,6 +127,8 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
     } catch (error) {
       console.error('Error generating QR code:', error);
+      setShowQRModal(false);
+      alert('Failed to generate QR code. Please try again.');
     } finally {
       setGeneratingQR(false);
     }
@@ -585,7 +587,11 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
           <p className="text-white font-medium mb-6">Scan to Share via WhatsApp</p>
 
-          {qrCodeDataURL && (
+          {generatingQR ? (
+            <div className="mb-6 flex justify-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
+            </div>
+          ) : qrCodeDataURL ? (
             <div className="mb-6">
               <div className="bg-white p-4 rounded-lg inline-block">
                 <img
@@ -595,6 +601,8 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                 />
               </div>
             </div>
+          ) : (
+            <p className="text-red-400 mb-6">Failed to generate QR code</p>
           )}
 
           <div className="mb-6">
