@@ -220,7 +220,7 @@ export function BiddingInterface({
             setInstagramUsername(savedInstagram);
 
             // Skip Instagram step and go directly to payment
-            const amount = parseFloat(bidAmount);
+            const amount = parseFloat(bidAmount.replace(/,/g, ''));
             await createBid(info.name, info.contactMethod, info.email, info.whatsappNumber, amount, savedInstagram);
             return;
           }
@@ -237,7 +237,7 @@ export function BiddingInterface({
   // Handle Instagram username submission
   const handleInstagramSubmit = async (username?: string) => {
     setInstagramUsername(username);
-    const amount = parseFloat(bidAmount);
+    const amount = parseFloat(bidAmount.replace(/,/g, ''));
 
     // Get bidder info (either from guestInfo or logged-in user)
     const name = guestInfo?.name || userName!;
