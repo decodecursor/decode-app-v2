@@ -194,6 +194,11 @@ export function useWinnerNotification(
               onWin(data.session.token);
             }
             // Auto-redirect winner to video recording page
+            // Clear localStorage for guest bidders
+            if (guestBidId && typeof window !== 'undefined') {
+              localStorage.removeItem(`guest_bid_${auction.id}`);
+              console.log('🧹 [WinnerNotification] Cleared guest bid ID from localStorage');
+            }
             window.location.href = `/auctions/video/${data.session.token}`;
           }
         })

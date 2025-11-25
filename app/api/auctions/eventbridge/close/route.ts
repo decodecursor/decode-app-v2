@@ -138,8 +138,14 @@ export async function POST(request: NextRequest) {
           await auctionService.completeAuction(auctionId);
 
           // Update auction with profit amounts
+          console.log(`💰 [EventBridge] Saving profit amounts for auction ${auctionId}:`, {
+            profit,
+            platformFee,
+            modelPayout
+          });
+
           const supabase = await createClient();
-          await supabase
+          const { data: profitData, error: profitError } = await supabase
             .from('auctions')
             .update({
               profit_amount: profit,
@@ -147,6 +153,13 @@ export async function POST(request: NextRequest) {
               model_payout_amount: modelPayout,
             })
             .eq('id', auctionId);
+
+          if (profitError) {
+            console.error(`❌ [EventBridge] Failed to save profit amounts for auction ${auctionId}:`, profitError);
+            throw new Error(`Failed to save profit amounts: ${profitError.message}`);
+          }
+
+          console.log(`✅ [EventBridge] Successfully saved profit amounts for auction ${auctionId}`);
 
           // Create payout record with profit-based fee calculation
           await paymentSplitter.createPayout(

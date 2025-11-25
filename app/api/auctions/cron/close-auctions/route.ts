@@ -67,8 +67,14 @@ export async function POST(request: NextRequest) {
               await auctionService.completeAuction(auction.id);
 
               // Update auction with profit amounts
+              console.log(`💰 [Cron] Saving profit amounts for auction ${auction.id}:`, {
+                profit,
+                platformFee,
+                modelPayout
+              });
+
               const supabase = await createClient();
-              await supabase
+              const { data: profitData, error: profitError } = await supabase
                 .from('auctions')
                 .update({
                   profit_amount: profit,
@@ -76,6 +82,18 @@ export async function POST(request: NextRequest) {
                   model_payout_amount: modelPayout,
                 })
                 .eq('id', auction.id);
+
+              if (profitError) {
+                console.error(`❌ [Cron] Failed to save profit amounts for auction ${auction.id}:`, profitError);
+                closedAuctions.push({
+                  id: auction.id,
+                  success: false,
+                  error: `Failed to save profit amounts: ${profitError.message}`
+                });
+                continue; // Skip to next auction instead of throwing
+              }
+
+              console.log(`✅ [Cron] Successfully saved profit amounts for auction ${auction.id}`);
 
               // Create payout record with profit-based fee calculation
               await paymentSplitter.createPayout(

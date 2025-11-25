@@ -72,6 +72,17 @@ export default function AuctionDetailClient() {
     }
   }, [auction, userId]);
 
+  // Initialize guest bid ID from localStorage on mount
+  useEffect(() => {
+    if (!userEmail && typeof window !== 'undefined') {
+      const storedBidId = localStorage.getItem(`guest_bid_${auctionId}`);
+      if (storedBidId) {
+        setGuestBidId(storedBidId);
+        console.log('💾 [AuctionDetail] Restored guest bid ID from localStorage:', storedBidId);
+      }
+    }
+  }, [auctionId, userEmail]);
+
   // Winner notification (supports both logged-in users and guest bidders)
   const { hasWon, recordingToken, winningAmount } = useWinnerNotification(
     auction,
@@ -136,6 +147,11 @@ export default function AuctionDetailClient() {
     // Store bid ID for guest winner detection
     if (bidId && !userEmail) {
       setGuestBidId(bidId);
+      // Persist to localStorage for session survival
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`guest_bid_${auctionId}`, bidId);
+        console.log('💾 [AuctionDetail] Stored guest bid ID in localStorage:', bidId);
+      }
     }
 
     // Immediate refresh
