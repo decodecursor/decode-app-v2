@@ -290,8 +290,16 @@ export class GuestBidderService {
           });
         }
 
-        // No payment method yet, retry if attempts remaining (only for subsequent attempts)
+        // No payment method yet, retry ONLY if this seems like a webhook delay issue
+        // Don't retry for first-time bidders who simply don't have saved cards
         if (!data.default_payment_method_id && attempt < maxAttempts - 1) {
+          // If stripe_customer_id exists, this is a first-time bidder (not a webhook delay)
+          if (data.stripe_customer_id) {
+            console.log('[GuestBidderService] Guest has stripe_customer_id but no payment method (first-time bidder, returning immediately)');
+            return null;
+          }
+
+          // Only retry if no stripe_customer_id (potential webhook delay scenario)
           const delay = baseDelay + (attempt * 400); // Exponential backoff
           console.log(`[GuestBidderService] Payment method not saved yet, retrying... (attempt ${attempt + 1}/${maxAttempts}, delay: ${delay}ms, browser: ${browserInfo})`);
           await new Promise(resolve => setTimeout(resolve, delay));
