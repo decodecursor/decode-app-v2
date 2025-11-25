@@ -404,7 +404,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               disabled={!videoData || loadingVideo}
               className={`text-xs md:text-sm transition-all flex items-center gap-1.5 ${
                 videoData
-                  ? 'text-blue-400 hover:text-blue-300 hover:underline'
+                  ? 'text-gray-600 hover:text-gray-500 hover:underline'
                   : 'text-gray-500 opacity-50 cursor-not-allowed'
               }`}
               title={videoData ? 'View video' : 'No video uploaded yet'}
