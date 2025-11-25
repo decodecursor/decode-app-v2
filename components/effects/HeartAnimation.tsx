@@ -183,9 +183,13 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
     const scale = Math.random() * Math.random() * 0.8 + 0.4
     const bound = 30 + Math.random() * 20
 
+    // Responsive vertical offset: 3cm mobile (113px), 10cm desktop (378px)
+    const isMobile = window.innerWidth <= 768
+    const verticalOffset = isMobile ? 113 : 378
+
     const heart = generateHeart(
       targetX + (Math.random() - 0.5) * targetWidth, // Random x around target
-      (targetY + 38) + (Math.random() - 0.5) * targetHeight, // Random y around target, shifted down 10cm (~38px)
+      (targetY + verticalOffset) + (Math.random() - 0.5) * targetHeight, // Random y around target, responsive offset
       bound,
       start,
       scale

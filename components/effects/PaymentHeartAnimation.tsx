@@ -157,13 +157,17 @@ export default function PaymentHeartAnimation({ isActive, targetElementId }: Pay
     const scale = Math.random() * Math.random() * 0.8 + 0.4
     const bound = 30 + Math.random() * 20
 
+    // Responsive vertical offset: 3cm mobile (113px), 10cm desktop (378px)
+    const isMobile = window.innerWidth <= 768
+    const verticalOffset = isMobile ? 113 : 378
+
     // Alternate between red and purple hearts
     const heartColors = ['❤️', '💜']
     const color = heartColors[heartIdCounter.current % 2]
 
     const heart = generateHeart(
       targetX + (Math.random() - 0.5) * targetWidth, // Random x around target
-      (targetY + 38) + (Math.random() - 0.5) * targetHeight, // Random y around target, shifted down 10cm (~38px)
+      (targetY + verticalOffset) + (Math.random() - 0.5) * targetHeight, // Random y around target, responsive offset
       bound,
       start,
       scale,
