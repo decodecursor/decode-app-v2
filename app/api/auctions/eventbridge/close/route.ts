@@ -132,42 +132,42 @@ export async function POST(request: NextRequest) {
           const platformFee = profit * 0.25;
           const modelPayout = winningAmount - platformFee;
 
-          // End auction with winner
-          await auctionService.endAuction(auctionId, capturedBid.id);
-
-          // Complete auction (mark payment captured) and save profit amounts
-          await auctionService.completeAuction(auctionId);
-
-          // Update auction with profit amounts
-          console.log(`💰 [EventBridge] Saving profit amounts for auction ${auctionId}:`, {
+          console.log(`💰 [EventBridge] Completing auction ${auctionId} with profit amounts:`, {
             profit,
             platformFee,
             modelPayout
           });
 
+          // ATOMIC UPDATE: Complete auction with all fields in single transaction
           const supabase = createServiceRoleClient();
-          const { data: profitData, error: profitError } = await supabase
+          const { data: completedAuction, error: completeError } = await supabase
             .from('auctions')
             .update({
+              status: 'completed',
+              payment_captured_at: new Date().toISOString(),
+              winner_bid_id: capturedBid.id,
+              winner_name: capturedBid.bidder_name,
+              winner_email: capturedBid.bidder_email,
+              winner_instagram_username: capturedBid.bidder_instagram_username,
               profit_amount: profit,
               platform_fee_amount: platformFee,
               model_payout_amount: modelPayout,
             })
             .eq('id', auctionId)
-            .select('id, profit_amount, platform_fee_amount, model_payout_amount')
+            .select('id, status, profit_amount, platform_fee_amount, model_payout_amount')
             .single();
 
-          if (profitError) {
-            console.error(`❌ [EventBridge] Failed to save profit amounts for auction ${auctionId}:`, profitError);
-            throw new Error(`Failed to save profit amounts: ${profitError.message}`);
+          if (completeError) {
+            console.error(`❌ [EventBridge] Failed to complete auction ${auctionId}:`, completeError);
+            throw new Error(`Failed to complete auction: ${completeError.message}`);
           }
 
-          if (!profitData) {
+          if (!completedAuction) {
             console.error(`❌ [EventBridge] No row returned - auction ${auctionId} may not exist`);
-            throw new Error(`Failed to save profit amounts: No row updated for auction ${auctionId}`);
+            throw new Error(`Failed to complete auction: No row updated for auction ${auctionId}`);
           }
 
-          console.log(`✅ [EventBridge] Verified saved profit amounts for auction ${auctionId}:`, profitData);
+          console.log(`✅ [EventBridge] Auction completed successfully:`, completedAuction);
 
           // Create payout record with profit-based fee calculation
           await paymentSplitter.createPayout(

@@ -61,50 +61,50 @@ export async function POST(request: NextRequest) {
               const platformFee = profit * 0.25;
               const modelPayout = winningAmount - platformFee;
 
-              // End auction with winner
-              await auctionService.endAuction(auction.id, capturedBid.id);
-
-              // Complete auction (mark payment captured)
-              await auctionService.completeAuction(auction.id);
-
-              // Update auction with profit amounts
-              console.log(`💰 [Cron] Saving profit amounts for auction ${auction.id}:`, {
+              console.log(`💰 [Cron] Completing auction ${auction.id} with profit amounts:`, {
                 profit,
                 platformFee,
                 modelPayout
               });
 
+              // ATOMIC UPDATE: Complete auction with all fields in single transaction
               const supabase = createServiceRoleClient();
-              const { data: profitData, error: profitError } = await supabase
+              const { data: completedAuction, error: completeError } = await supabase
                 .from('auctions')
                 .update({
+                  status: 'completed',
+                  payment_captured_at: new Date().toISOString(),
+                  winner_bid_id: capturedBid.id,
+                  winner_name: capturedBid.bidder_name,
+                  winner_email: capturedBid.bidder_email,
+                  winner_instagram_username: capturedBid.bidder_instagram_username,
                   profit_amount: profit,
                   platform_fee_amount: platformFee,
                   model_payout_amount: modelPayout,
                 })
                 .eq('id', auction.id)
-                .select('id, profit_amount, platform_fee_amount, model_payout_amount')
+                .select('id, status, profit_amount, platform_fee_amount, model_payout_amount')
                 .single();
 
-              if (profitError) {
-                console.error(`❌ [Cron] Failed to save profit amounts for auction ${auction.id}:`, profitError);
+              if (completeError) {
+                console.error(`❌ [Cron] Failed to complete auction ${auction.id}:`, completeError);
                 errors.push({
                   auction_id: auction.id,
-                  error: `Failed to save profit amounts: ${profitError.message}`
+                  error: `Failed to complete auction: ${completeError.message}`
                 });
                 continue; // Skip to next auction instead of throwing
               }
 
-              if (!profitData) {
+              if (!completedAuction) {
                 console.error(`❌ [Cron] No row returned - auction ${auction.id} may not exist`);
                 errors.push({
                   auction_id: auction.id,
-                  error: `Failed to save profit amounts: No row updated`
+                  error: `Failed to complete auction: No row updated`
                 });
                 continue;
               }
 
-              console.log(`✅ [Cron] Verified saved profit amounts for auction ${auction.id}:`, profitData);
+              console.log(`✅ [Cron] Auction completed successfully:`, completedAuction);
 
               // Create payout record with profit-based fee calculation
               await paymentSplitter.createPayout(
