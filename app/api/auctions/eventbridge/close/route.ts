@@ -4,6 +4,7 @@
  *
  * This endpoint is invoked by AWS EventBridge Scheduler at the exact moment
  * an auction ends, ensuring immediate payment capture and winner notification.
+ * Updated: 2025-11-25
  */
 
 import { NextRequest, NextResponse } from 'next/server';
