@@ -90,7 +90,7 @@ export default function PaymentHeartAnimation({ isActive, targetElementId }: Pay
       bound: xBound,
       direction: xStart,
       scale,
-      time: 6000, // 6 second duration
+      time: 8580, // 8.58 second duration (43% longer for 30% speed reduction)
       element: heartElement,
       color
     }
@@ -100,7 +100,7 @@ export default function PaymentHeartAnimation({ isActive, targetElementId }: Pay
 
   const updateHearts = () => {
     const deltaTime = 16 // ~60fps
-    const speed = 1.4 // Increased speed for higher flight (2cm more)
+    const speed = 0.98 // Reduced speed by 30%
 
     heartsRef.current = heartsRef.current.filter(heart => {
       heart.time -= deltaTime
@@ -111,7 +111,7 @@ export default function PaymentHeartAnimation({ isActive, targetElementId }: Pay
         heart.element.style.left = `${heart.x + heart.direction * heart.bound * Math.sin(heart.y * heart.scale / 30) / heart.y * 200}px`
 
         // Update opacity based on time remaining
-        const opacity = heart.time / 6000
+        const opacity = heart.time / 8580
         heart.element.style.opacity = `${opacity}`
 
         return true
@@ -163,7 +163,7 @@ export default function PaymentHeartAnimation({ isActive, targetElementId }: Pay
 
     const heart = generateHeart(
       targetX + (Math.random() - 0.5) * targetWidth, // Random x around target
-      targetY + (Math.random() - 0.5) * targetHeight, // Random y around target (3cm lower)
+      (targetY + 38) + (Math.random() - 0.5) * targetHeight, // Random y around target, shifted down 10cm (~38px)
       bound,
       start,
       scale,
@@ -176,7 +176,7 @@ export default function PaymentHeartAnimation({ isActive, targetElementId }: Pay
   const startAnimation = () => {
     // Generate hearts periodically for 2 seconds
     let heartCount = 0
-    const maxHearts = 28
+    const maxHearts = 56 // Doubled from 28
 
     checkIntervalRef.current = setInterval(() => {
       if (heartCount < maxHearts) {

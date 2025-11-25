@@ -113,7 +113,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
       bound: xBound,
       direction: xStart,
       scale,
-      time: 4000, // 4 second duration
+      time: 5720, // 5.72 second duration (43% longer for 30% speed reduction)
       element: heartElement
     }
 
@@ -122,7 +122,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
 
   const updateHearts = () => {
     const deltaTime = 16 // ~60fps
-    const speed = 2 // Increased speed for visibility
+    const speed = 1.4 // Reduced speed by 30%
 
     heartsRef.current = heartsRef.current.filter(heart => {
       heart.time -= deltaTime
@@ -133,7 +133,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
         heart.element.style.left = `${heart.x + heart.direction * heart.bound * Math.sin(heart.y * heart.scale / 30) / heart.y * 200}px`
 
         // Update opacity based on time remaining
-        const opacity = heart.time / 4000
+        const opacity = heart.time / 5720
         heart.element.style.opacity = `${opacity}`
 
         return true
@@ -185,7 +185,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
 
     const heart = generateHeart(
       targetX + (Math.random() - 0.5) * targetWidth, // Random x around target
-      targetY + (Math.random() - 0.5) * targetHeight, // Random y around target
+      (targetY + 38) + (Math.random() - 0.5) * targetHeight, // Random y around target, shifted down 10cm (~38px)
       bound,
       start,
       scale
@@ -197,7 +197,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
   const startAnimation = () => {
     // Generate hearts periodically for 2 seconds
     let heartCount = 0
-    const maxHearts = 24
+    const maxHearts = 48 // Doubled from 24
     
     checkIntervalRef.current = setInterval(() => {
       if (heartCount < maxHearts) {
