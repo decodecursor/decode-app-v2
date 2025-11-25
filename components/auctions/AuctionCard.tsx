@@ -347,11 +347,20 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             {/* LEFT GROUP: Starting Price */}
             <div>
               <p className="text-xs text-gray-400 uppercase tracking-wide">
-                {isAuctionEnded(auction) && auction.winner_name
-                  ? 'Winning Bid'
-                  : hasBids
-                  ? 'Current Bid'
-                  : 'Starting Price'}
+                {(() => {
+                  // Use same ended check as status badge for consistency
+                  const hasEnded = isAuctionEnded(auction) ||
+                                   auction.status === 'ended' ||
+                                   auction.status === 'completed';
+
+                  if (hasEnded && auction.total_bids > 0) {
+                    return 'Winning Bid';
+                  } else if (hasBids) {
+                    return 'Current Bid';
+                  } else {
+                    return 'Starting Price';
+                  }
+                })()}
               </p>
               <p className="mt-1 text-xl md:text-2xl font-bold text-white">
                 {formatBidAmount(hasBids ? currentPrice : startPrice)}
@@ -561,22 +570,12 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
     {/* QR Code Modal */}
     {showQRModal && (
-      <div
-        className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
-        onClick={closeQRModal}
-      >
-        <div
-          className="bg-white rounded-lg p-6 max-w-sm w-full"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Share Auction</h3>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="cosmic-card max-w-md w-full text-center">
+          <div className="flex justify-end mb-4">
             <button
               onClick={closeQRModal}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-400 hover:text-white transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -584,12 +583,30 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </button>
           </div>
 
-          <div className="flex flex-col items-center">
-            <img src={qrCodeDataURL} alt="QR Code" className="w-64 h-64 mb-4" />
-            <p className="text-sm text-gray-600 text-center">
-              Scan this QR code to share via WhatsApp
-            </p>
+          <p className="text-white font-medium mb-6">Scan to Share via WhatsApp</p>
+
+          {qrCodeDataURL && (
+            <div className="mb-6">
+              <div className="bg-white p-4 rounded-lg inline-block">
+                <img
+                  src={qrCodeDataURL}
+                  alt="WhatsApp QR Code"
+                  className="w-64 h-64 mx-auto"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="mb-6">
+            <p className="text-white text-xl font-semibold">{auction.title}</p>
           </div>
+
+          <button
+            onClick={closeQRModal}
+            className="cosmic-button-primary w-full py-3"
+          >
+            Close
+          </button>
         </div>
       </div>
     )}
