@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
           auction_profit_model_amount,
           status,
           created_at,
-          auctions (
+          auctions!inner (
             id,
             title,
             auction_end_time,
