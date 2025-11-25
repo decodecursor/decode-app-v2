@@ -249,7 +249,7 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
               <select
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
-                className="px-3 py-2 text-sm text-gray-900 bg-white border border-blue-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-[100px] md:w-[92px]"
+                className="px-3 py-2 text-sm text-gray-900 bg-white border border-blue-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-[100px] md:w-[110px]"
                 disabled={isLoading}
               >
                 {COUNTRY_CODES.map((country) => (
