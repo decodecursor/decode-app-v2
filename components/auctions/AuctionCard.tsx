@@ -391,7 +391,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
         {/* Action Buttons Row */}
         <div className="border-t border-gray-700 pt-4">
-          <div className="flex flex-wrap gap-2 justify-start items-start">
+          <div className="flex flex-wrap gap-2 justify-start items-center">
             {/* Video Button - Text style for left alignment */}
             <button
               onClick={(e) => {
