@@ -1868,3 +1868,8 @@ body {
   }
 }
 
+/* Utility class to remove text underline (React inline styles don't support !important) */
+.no-underline {
+  text-decoration: none !important;
+}
+
