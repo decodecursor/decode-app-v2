@@ -82,7 +82,9 @@ export async function POST(request: NextRequest) {
                   platform_fee_amount: platformFee,
                   model_payout_amount: modelPayout,
                 })
-                .eq('id', auction.id);
+                .eq('id', auction.id)
+                .select('id, profit_amount, platform_fee_amount, model_payout_amount')
+                .single();
 
               if (profitError) {
                 console.error(`❌ [Cron] Failed to save profit amounts for auction ${auction.id}:`, profitError);
@@ -93,7 +95,16 @@ export async function POST(request: NextRequest) {
                 continue; // Skip to next auction instead of throwing
               }
 
-              console.log(`✅ [Cron] Successfully saved profit amounts for auction ${auction.id}`);
+              if (!profitData) {
+                console.error(`❌ [Cron] No row returned - auction ${auction.id} may not exist`);
+                errors.push({
+                  auction_id: auction.id,
+                  error: `Failed to save profit amounts: No row updated`
+                });
+                continue;
+              }
+
+              console.log(`✅ [Cron] Verified saved profit amounts for auction ${auction.id}:`, profitData);
 
               // Create payout record with profit-based fee calculation
               await paymentSplitter.createPayout(
