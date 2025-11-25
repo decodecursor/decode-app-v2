@@ -76,7 +76,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
     }
   }, [isActive])
 
-  const generateHeart = (x: number, y: number, xBound: number, xStart: number, scale: number): Heart => {
+  const generateHeart = (x: number, y: number, xBound: number, xStart: number, scale: number, isMobile: boolean): Heart => {
     // Create proper heart emoji element
     const heartElement = document.createElement('div')
     heartElement.className = 'heart-floating'
@@ -113,7 +113,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
       bound: xBound,
       direction: xStart,
       scale,
-      time: 5720, // 5.72 second duration (43% longer for 30% speed reduction)
+      time: isMobile ? 5720 : 7150, // Desktop: 7.15s (slower), Mobile: 5.72s
       element: heartElement
     }
 
@@ -122,7 +122,8 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
 
   const updateHearts = () => {
     const deltaTime = 16 // ~60fps
-    const speed = 1.12 // Reduced speed by 20% more
+    const isMobile = window.innerWidth <= 768
+    const speed = isMobile ? 1.12 : 0.896 // Desktop 20% slower
 
     heartsRef.current = heartsRef.current.filter(heart => {
       heart.time -= deltaTime
@@ -133,7 +134,8 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
         heart.element.style.left = `${heart.x + heart.direction * heart.bound * Math.sin(heart.y * heart.scale / 30) / heart.y * 200}px`
 
         // Update opacity based on time remaining
-        const opacity = heart.time / 5720
+        const maxTime = isMobile ? 5720 : 7150
+        const opacity = heart.time / maxTime
         heart.element.style.opacity = `${opacity}`
 
         return true
@@ -183,16 +185,17 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
     const scale = Math.random() * Math.random() * 0.8 + 0.4
     const bound = 30 + Math.random() * 20
 
-    // Responsive vertical offset: 3cm mobile (113px), 10cm desktop (378px)
+    // Responsive vertical offset: 3cm mobile (113px), 15cm desktop (567px)
     const isMobile = window.innerWidth <= 768
-    const verticalOffset = isMobile ? 113 : 378
+    const verticalOffset = isMobile ? 113 : 567
 
     const heart = generateHeart(
       targetX + (Math.random() - 0.5) * targetWidth, // Random x around target
       (targetY + verticalOffset) + (Math.random() - 0.5) * targetHeight, // Random y around target, responsive offset
       bound,
       start,
-      scale
+      scale,
+      isMobile
     )
 
     heartsRef.current.push(heart)
@@ -201,7 +204,8 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
   const startAnimation = () => {
     // Generate hearts periodically for 2 seconds
     let heartCount = 0
-    const maxHearts = 96 // Doubled again for desktop
+    const isMobile = window.innerWidth <= 768
+    const maxHearts = isMobile ? 96 : 288 // Desktop: 3x hearts, Mobile: unchanged
     
     checkIntervalRef.current = setInterval(() => {
       if (heartCount < maxHearts) {
