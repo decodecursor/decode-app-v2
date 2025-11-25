@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
           auction_profit_model_amount,
           status,
           created_at,
-          auctions!inner (
+          auctions (
             id,
             title,
             auction_end_time,
@@ -87,13 +87,16 @@ export async function GET(request: NextRequest) {
       console.log(`💰 MODEL Total Pending Balance: ${userBalance}`)
 
       // Format pending payouts for response
-      const formattedPendingPayouts = (pendingAuctionPayouts || []).map(payout => ({
-        auction_id: payout.auction_id,
-        auction_title: payout.auctions?.title || 'Untitled Auction',
-        ended_at: payout.auctions?.auction_end_time || payout.created_at,
-        model_amount: Number(payout.auction_profit_model_amount),
-        payout_status: payout.status
-      }))
+      const formattedPendingPayouts = (pendingAuctionPayouts || []).map(payout => {
+        const auction = Array.isArray(payout.auctions) ? payout.auctions[0] : null
+        return {
+          auction_id: payout.auction_id,
+          auction_title: auction?.title || 'Untitled Auction',
+          ended_at: auction?.auction_end_time || payout.created_at,
+          model_amount: Number(payout.auction_profit_model_amount),
+          payout_status: payout.status
+        }
+      })
 
       // Get total paid out amount
       const { data: paidPayouts } = await supabase
