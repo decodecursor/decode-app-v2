@@ -245,11 +245,11 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
             <label htmlFor="whatsapp-number" className="block text-xs font-medium text-gray-700 mb-1">
               WhatsApp Number
             </label>
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 w-full">
               <select
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
-                className="px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 !w-[117px] md:!w-[92px]"
+                className="px-3 py-2 text-sm text-gray-900 bg-white border border-blue-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-[100px] md:w-[92px]"
                 disabled={isLoading}
               >
                 {COUNTRY_CODES.map((country) => (
@@ -266,7 +266,7 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
                   setWhatsappNumber(formatted);
                   if (errors.contact) setErrors({ ...errors, contact: undefined });
                 }}
-                className="px-3 py-2 flex-1 text-gray-900 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="px-3 py-2 flex-1 min-w-0 text-gray-900 bg-white border border-blue-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="50 123 4567"
                 disabled={isLoading}
                 autoComplete="tel"

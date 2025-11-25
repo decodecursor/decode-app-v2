@@ -143,22 +143,23 @@ export class AuctionStrategy implements IPaymentStrategy {
         description: `Bid on auction: ${context.description || auctionContext.auction_id}`,
       };
 
-      // If saved payment method exists, attach it and confirm automatically
+      // Always enable automatic payment methods and require user confirmation
+      // This ensures users see the payment screen on every bid, even with saved cards
+      paymentIntentParams.automatic_payment_methods = {
+        enabled: true,
+        allow_redirects: 'never', // Prevent redirect-based payment methods
+      };
+
+      // If saved payment method exists, attach it but don't auto-confirm
+      // User will still need to confirm on the payment screen
       if (savedPaymentMethodId) {
         paymentIntentParams.payment_method = savedPaymentMethodId;
-        paymentIntentParams.confirm = true;
-        paymentIntentParams.off_session = true;
-      } else {
-        // For new payment methods, enable automatic payment methods
-        paymentIntentParams.automatic_payment_methods = {
-          enabled: true,
-          allow_redirects: 'never', // Prevent redirect-based payment methods
-        };
       }
 
       const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
 
-      const hasSavedPaymentMethod = !!savedPaymentMethodId;
+      // Never auto-confirm - user must always see payment screen
+      const hasSavedPaymentMethod = false;
 
       // Get card last4 if we have a saved payment method
       let savedCardLast4: string | undefined;
