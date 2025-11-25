@@ -180,11 +180,11 @@ export function useWinnerNotification(
     ) {
       setHasWon(true);
 
-      // Create recording session
+      // Create recording session (use guestBidId for guest winners, otherwise use winner_bid_id)
       fetch(`/api/auctions/${auction.id}/video/create-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bid_id: auction.winner_bid_id }),
+        body: JSON.stringify({ bid_id: guestBidId || auction.winner_bid_id }),
       })
         .then((res) => res.json())
         .then((data) => {
@@ -193,6 +193,8 @@ export function useWinnerNotification(
             if (onWin) {
               onWin(data.session.token);
             }
+            // Auto-redirect winner to video recording page
+            window.location.href = `/auctions/video/${data.session.token}`;
           }
         })
         .catch((error) => {

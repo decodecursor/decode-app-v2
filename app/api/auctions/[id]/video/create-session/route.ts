@@ -15,15 +15,13 @@ export async function POST(
   try {
     const supabase = await createClient();
 
-    // SECURITY CHECK 1: Verify user is authenticated
+    // Check if user is authenticated (optional for guest bidders)
     const {
       data: { user },
       error: authError,
     } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const isAuthenticated = !authError && user;
 
     const body = await request.json();
 
@@ -34,7 +32,7 @@ export async function POST(
       );
     }
 
-    // SECURITY CHECK 2: Verify auction exists and user is the winner
+    // SECURITY CHECK 1: Verify auction exists
     const { data: auction, error: auctionError } = await supabase
       .from('auctions')
       .select('winner_bid_id, winner_email, status')
@@ -45,7 +43,7 @@ export async function POST(
       return NextResponse.json({ error: 'Auction not found' }, { status: 404 });
     }
 
-    // SECURITY CHECK 3: Verify auction has ended and has a winner
+    // SECURITY CHECK 2: Verify auction has ended and has a winner
     if (auction.status !== 'ended' && auction.status !== 'completed') {
       return NextResponse.json(
         { error: 'Auction has not ended yet' },
@@ -57,16 +55,12 @@ export async function POST(
       return NextResponse.json({ error: 'No winner for this auction' }, { status: 400 });
     }
 
-    // SECURITY CHECK 4: Verify the provided bid_id matches the winning bid
-    if (auction.winner_bid_id !== body.bid_id) {
-      return NextResponse.json(
-        { error: 'Invalid bid - not the winning bid' },
-        { status: 403 }
-      );
-    }
+    // SECURITY CHECK 3: Verify requester is the winner
+    // Allow if: (authenticated AND email matches) OR (bid_id matches winner_bid_id for guests)
+    const isAuthenticatedWinner = isAuthenticated && auction.winner_email === user?.email;
+    const isGuestWinner = auction.winner_bid_id === body.bid_id;
 
-    // SECURITY CHECK 5: Verify user's email matches the winner's email
-    if (auction.winner_email !== user.email) {
+    if (!isAuthenticatedWinner && !isGuestWinner) {
       return NextResponse.json(
         { error: 'Forbidden - you are not the winner of this auction' },
         { status: 403 }
