@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { createServiceRoleClient } from '@/utils/supabase/service-role';
 import { AuctionService } from '@/lib/services/AuctionService';
 import { BiddingService } from '@/lib/services/BiddingService';
 import { AuctionPaymentProcessor } from '@/lib/payments/processors/AuctionPaymentProcessor';
@@ -144,7 +145,7 @@ export async function POST(request: NextRequest) {
             modelPayout
           });
 
-          const supabase = await createClient();
+          const supabase = createServiceRoleClient();
           const { data: profitData, error: profitError } = await supabase
             .from('auctions')
             .update({
