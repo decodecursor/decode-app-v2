@@ -50,7 +50,34 @@ export class AuctionStrategy implements IPaymentStrategy {
       // Get or create Stripe customer for guest bidders
       let customerId: string | undefined = auctionContext.guest_stripe_customer_id;
 
+      // Validate existing customer ID in Stripe
+      if (auctionContext.is_guest && customerId) {
+        try {
+          await stripe.customers.retrieve(customerId);
+          console.log('[AuctionStrategy] ✅ Validated existing Stripe customer:', customerId);
+        } catch (error: any) {
+          if (error.code === 'resource_missing') {
+            console.warn('[AuctionStrategy] ⚠️ Stored customer ID no longer exists in Stripe, will create new customer:', {
+              old_customer_id: customerId,
+              guest_bidder_id: auctionContext.guest_bidder_id,
+              error: error.message
+            });
+            customerId = undefined; // Force new customer creation
+          } else {
+            // Re-throw other errors (network issues, etc.)
+            console.error('[AuctionStrategy] ❌ Error validating Stripe customer:', error);
+            throw error;
+          }
+        }
+      }
+
+      // Create new customer if needed
       if (auctionContext.is_guest && !customerId) {
+        console.log('[AuctionStrategy] Creating new Stripe customer for guest bidder:', {
+          email: auctionContext.bidder_email,
+          guest_bidder_id: auctionContext.guest_bidder_id
+        });
+
         const customer = await stripe.customers.create({
           email: auctionContext.bidder_email,
           name: auctionContext.bidder_name,
@@ -61,11 +88,13 @@ export class AuctionStrategy implements IPaymentStrategy {
         });
         customerId = customer.id;
 
+        console.log('[AuctionStrategy] ✅ Created new Stripe customer:', customerId);
+
         // CRITICAL: Save customer ID to database immediately (Edge browser fix)
         if (auctionContext.guest_bidder_id) {
           const guestService = new GuestBidderService();
           await guestService.updateStripeCustomerId(auctionContext.guest_bidder_id, customerId);
-          console.log('[AuctionStrategy] Saved new Stripe customer ID for guest bidder:', {
+          console.log('[AuctionStrategy] ✅ Updated guest bidder with new customer ID:', {
             guest_bidder_id: auctionContext.guest_bidder_id,
             customer_id: customerId,
           });
