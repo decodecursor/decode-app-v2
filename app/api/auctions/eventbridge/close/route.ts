@@ -28,10 +28,20 @@ export async function POST(request: NextRequest) {
   try {
     // Verify request is from EventBridge
     const eventBridgeSource = request.headers.get('X-EventBridge-Source');
+    const eventBridgeSecret = request.headers.get('X-EventBridge-Secret');
+
     if (eventBridgeSource !== 'aws.scheduler') {
       console.warn('[EventBridge] Invalid source header:', eventBridgeSource);
       return NextResponse.json(
         { error: 'Unauthorized - Invalid source' },
+        { status: 401 }
+      );
+    }
+
+    if (eventBridgeSecret !== process.env.EVENTBRIDGE_WEBHOOK_SECRET) {
+      console.warn('[EventBridge] Invalid secret');
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid secret' },
         { status: 401 }
       );
     }
@@ -183,24 +193,33 @@ export async function POST(request: NextRequest) {
             bid_id: capturedBid.id,
           });
 
-          // Send winner notification with video recording link
-          if (sessionResult.success && sessionResult.session) {
-            await notificationService.notifyWinner({
-              auction_id: auctionId,
-              bid_id: capturedBid.id,
-              winner_email: capturedBid.bidder_email,
-              winner_name: capturedBid.bidder_name,
-              auction_title: auction.title,
-              winning_amount: Number(capturedBid.bid_amount),
-              recording_token: sessionResult.session.token,
-            });
+          // CRITICAL: Always send winner notification, even if video session creation fails
+          // This ensures winners are notified even when there are technical issues
+          const emailResult = await notificationService.notifyWinner({
+            auction_id: auctionId,
+            bid_id: capturedBid.id,
+            winner_email: capturedBid.bidder_email,
+            winner_name: capturedBid.bidder_name,
+            auction_title: auction.title,
+            winning_amount: Number(capturedBid.bid_amount),
+            recording_token: sessionResult.success && sessionResult.session ? sessionResult.session.token : undefined,
+          });
 
-            console.log(`[EventBridge] Winner notification sent to ${capturedBid.bidder_email}`);
+          if (emailResult.success) {
+            console.log(`✅ [EventBridge] Winner notification sent to ${capturedBid.bidder_email}`);
           } else {
             console.error(
-              `[EventBridge] Failed to create video recording session:`,
+              `❌ [EventBridge] Failed to send winner notification:`,
+              emailResult.error
+            );
+          }
+
+          if (!sessionResult.success) {
+            console.error(
+              `⚠️  [EventBridge] Failed to create video recording session:`,
               sessionResult.error
             );
+            console.log(`   Email was still sent without video recording link`);
           }
 
           console.log(`[EventBridge] Auction ${auctionId} closed successfully with winner`);

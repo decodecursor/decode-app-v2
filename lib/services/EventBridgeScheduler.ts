@@ -28,7 +28,8 @@ export class EventBridgeScheduler {
   private client: SchedulerClient;
   private scheduleGroup: string;
   private roleArn: string;
-  private lambdaArn: string;
+  private webhookUrl: string;
+  private webhookSecret: string;
 
   constructor() {
     // Validate required environment variables
@@ -38,7 +39,8 @@ export class EventBridgeScheduler {
       'AWS_SECRET_ACCESS_KEY',
       'EVENTBRIDGE_SCHEDULE_GROUP',
       'EVENTBRIDGE_ROLE_ARN',
-      'LAMBDA_AUCTION_CLOSER_ARN',
+      'EVENTBRIDGE_WEBHOOK_URL',
+      'EVENTBRIDGE_WEBHOOK_SECRET',
     ];
 
     const missing = requiredEnvVars.filter((varName) => !process.env[varName]);
@@ -58,7 +60,8 @@ export class EventBridgeScheduler {
 
     this.scheduleGroup = process.env.EVENTBRIDGE_SCHEDULE_GROUP!;
     this.roleArn = process.env.EVENTBRIDGE_ROLE_ARN!;
-    this.lambdaArn = process.env.LAMBDA_AUCTION_CLOSER_ARN!;
+    this.webhookUrl = process.env.EVENTBRIDGE_WEBHOOK_URL!;
+    this.webhookSecret = process.env.EVENTBRIDGE_WEBHOOK_SECRET!;
   }
 
   /**
@@ -83,7 +86,7 @@ export class EventBridgeScheduler {
         scheduleName,
         scheduleExpression,
         endTime: endTime.toISOString(),
-        lambdaArn: this.lambdaArn,
+        webhookUrl: this.webhookUrl,
       });
 
       const command = new CreateScheduleCommand({
@@ -99,15 +102,22 @@ export class EventBridgeScheduler {
           Mode: FlexibleTimeWindowMode.OFF,
         },
 
-        // Target: Lambda function
+        // Target: HTTP endpoint (POST request to Next.js API)
         Target: {
-          Arn: this.lambdaArn,
+          Arn: this.webhookUrl,
           RoleArn: this.roleArn,
           Input: JSON.stringify({
             auctionId,
             source: 'eventbridge-scheduler',
             scheduledTime: endTime.toISOString(),
           }),
+          HttpParameters: {
+            HeaderParameters: {
+              'Content-Type': 'application/json',
+              'X-EventBridge-Source': 'aws.scheduler',
+              'X-EventBridge-Secret': this.webhookSecret,
+            },
+          },
           RetryPolicy: {
             MaximumRetryAttempts: 185, // AWS maximum (retries up to 24 hours)
           },
