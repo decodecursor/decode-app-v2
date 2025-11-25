@@ -70,7 +70,7 @@ export default function PaymentHeartAnimation({ isActive, targetElementId }: Pay
       z-index: 99999;
       pointer-events: none;
       transform: scale(${scale});
-      animation: heartfade 4s linear;
+      animation: heartfade 8.58s linear;
       font-size: 24px;
       line-height: 1;
     `

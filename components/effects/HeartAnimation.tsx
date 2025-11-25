@@ -91,7 +91,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
       z-index: 99999;
       pointer-events: none;
       transform: scale(${scale});
-      animation: heartfade 4s linear;
+      animation: heartfade 5.72s linear;
       font-size: 24px;
       line-height: 1;
     `
