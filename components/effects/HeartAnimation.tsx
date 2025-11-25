@@ -34,7 +34,8 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
       for (let i = 0; i < 5; i++) {
         const x = 200 + i * 100
         const y = 200 + i * 50
-        const heart = generateHeart(x, y, 30, 1, 1)
+        const isMobile = window.innerWidth <= 768
+        const heart = generateHeart(x, y, 30, 1, 1, isMobile)
         heartsRef.current.push(heart)
       }
 
