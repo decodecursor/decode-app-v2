@@ -262,33 +262,8 @@ export function BiddingInterface({
 
     const finalAmount = amount || parseFloat(bidAmount.replace(/,/g, ''));
 
-    // Fetch fresh auction data to prevent stale price issues
-    try {
-      const freshAuctionResponse = await fetch(`/api/auctions/${auction.id}`);
-      if (!freshAuctionResponse.ok) {
-        throw new Error('Failed to fetch current auction data');
-      }
-      const freshAuctionData = await freshAuctionResponse.json();
-      const freshAuction = freshAuctionData.auction;
-
-      // Re-validate bid amount against fresh current price
-      const freshCurrentPrice = Number(freshAuction.auction_current_price);
-      const freshStartPrice = Number(freshAuction.auction_start_price);
-      const freshMinBid = calculateMinimumBid(freshCurrentPrice, freshStartPrice);
-
-      if (finalAmount < freshMinBid) {
-        setError(`Bid too low. Current minimum bid is ${formatBidAmount(freshMinBid)}. The auction price has changed.`);
-        setStep('amount');
-        setIsProcessing(false);
-        return;
-      }
-    } catch (err) {
-      console.error('Error fetching fresh auction data:', err);
-      setError('Failed to validate bid. Please try again.');
-      setStep('amount');
-      setIsProcessing(false);
-      return;
-    }
+    // Note: Server validates bid amount against current price
+    // If price has changed, server will return an error which we handle below
 
     const bidData: any = {
       bidder_name: name,

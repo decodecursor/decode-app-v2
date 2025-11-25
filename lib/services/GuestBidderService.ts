@@ -213,23 +213,30 @@ export class GuestBidderService {
 
   /**
    * Get saved payment method ID for guest bidder
-   * Includes retry logic to handle Edge browser's slower webhook processing
+   * Reduced retry logic - only retry on actual DB errors, not missing data
    */
   async getSavedPaymentMethod(guestBidderId: string): Promise<string | null> {
     const supabase = createServiceRoleClient();
+    const startTime = Date.now();
 
     // Get browser info for debugging
     const browserInfo = typeof window !== 'undefined'
       ? (navigator.userAgent.includes('Edg') ? 'Edge' : 'Other')
       : 'Server';
 
-    // Enhanced retry logic: 6 attempts with exponential backoff
-    // Total max wait time: 800 + 1200 + 1600 + 2000 + 2400 + 2800 = 10.8 seconds
-    const maxAttempts = 6;
-    const baseDelay = 800; // Start with 800ms
+    // Reduced retry logic: 2 attempts with shorter delays
+    // Total max wait time: 200 + 400 = 600ms (down from 10.8 seconds)
+    const maxAttempts = 2;
+    const baseDelay = 200; // Start with 200ms (reduced from 800ms)
+
+    console.log('[GuestBidderService] getSavedPaymentMethod START:', {
+      guest_bidder_id: guestBidderId,
+      browser: browserInfo,
+      timestamp: new Date().toISOString()
+    });
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const startTime = Date.now();
+      const queryStartTime = Date.now();
 
       try {
         const { data, error } = await supabase
@@ -256,7 +263,8 @@ export class GuestBidderService {
 
         // If payment method exists, return it
         if (data.default_payment_method_id && data.stripe_customer_id) {
-          const queryTime = Date.now() - startTime;
+          const queryTime = Date.now() - queryStartTime;
+          const totalTime = Date.now() - startTime;
           console.log('[GuestBidderService] Found saved payment method:', {
             guest_bidder_id: guestBidderId,
             payment_method_id: data.default_payment_method_id,
@@ -264,6 +272,7 @@ export class GuestBidderService {
             saved_at: data.last_payment_method_saved_at,
             attempt: attempt + 1,
             query_time_ms: queryTime,
+            total_time_ms: totalTime,
             browser: browserInfo
           });
           return data.default_payment_method_id;
@@ -272,9 +281,11 @@ export class GuestBidderService {
         // If this is the first attempt and no payment method exists, return immediately
         // This handles first-time bidders who don't have saved cards yet
         if (attempt === 0 && !data.default_payment_method_id) {
+          const totalTime = Date.now() - startTime;
           console.log('[GuestBidderService] No saved payment method for guest (first-time bidder):', {
             guest_bidder_id: guestBidderId,
             customer_id: data.stripe_customer_id,
+            total_time_ms: totalTime,
             browser: browserInfo
           });
           return null;
@@ -295,18 +306,22 @@ export class GuestBidderService {
         if (!data.default_payment_method_id && attempt < maxAttempts - 1) {
           // If stripe_customer_id exists, this is a first-time bidder (not a webhook delay)
           if (data.stripe_customer_id) {
-            console.log('[GuestBidderService] Guest has stripe_customer_id but no payment method (first-time bidder, returning immediately)');
+            const totalTime = Date.now() - startTime;
+            console.log('[GuestBidderService] Guest has stripe_customer_id but no payment method (first-time bidder, returning immediately):', {
+              guest_bidder_id: guestBidderId,
+              total_time_ms: totalTime
+            });
             return null;
           }
 
           // Only retry if no stripe_customer_id (potential webhook delay scenario)
-          const delay = baseDelay + (attempt * 400); // Exponential backoff
+          const delay = baseDelay + (attempt * 200); // Reduced backoff (was 400ms)
           console.log(`[GuestBidderService] Payment method not saved yet, retrying... (attempt ${attempt + 1}/${maxAttempts}, delay: ${delay}ms, browser: ${browserInfo})`);
           await new Promise(resolve => setTimeout(resolve, delay));
         }
 
       } catch (error) {
-        const delay = baseDelay + (attempt * 400);
+        const delay = baseDelay + (attempt * 200); // Reduced backoff (was 400ms)
         console.error(`[GuestBidderService] Error getting saved payment method (attempt ${attempt + 1}/${maxAttempts}):`, {
           error,
           guest_bidder_id: guestBidderId,
@@ -318,10 +333,11 @@ export class GuestBidderService {
       }
     }
 
+    const totalTime = Date.now() - startTime;
     console.error('[GuestBidderService] No saved payment method found after all attempts:', {
       guest_bidder_id: guestBidderId,
       attempts: maxAttempts,
-      total_wait_time_ms: baseDelay * maxAttempts + (400 * (maxAttempts * (maxAttempts - 1)) / 2),
+      total_time_ms: totalTime,
       browser: browserInfo
     });
     return null;

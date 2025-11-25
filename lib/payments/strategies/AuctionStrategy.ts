@@ -185,21 +185,27 @@ export class AuctionStrategy implements IPaymentStrategy {
         paymentIntentParams.payment_method = savedPaymentMethodId;
       }
 
-      const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
+      // Parallelize PaymentIntent creation and card last4 fetch for better performance
+      const startTime = Date.now();
+
+      const [paymentIntent, paymentMethodDetails] = await Promise.all([
+        stripe.paymentIntents.create(paymentIntentParams),
+        savedPaymentMethodId
+          ? stripe.paymentMethods.retrieve(savedPaymentMethodId).catch(error => {
+              console.error('[AuctionStrategy] Error fetching payment method details:', error);
+              return null;
+            })
+          : Promise.resolve(null)
+      ]);
+
+      const stripeTime = Date.now() - startTime;
+      console.log('[AuctionStrategy] Stripe calls completed in', stripeTime, 'ms');
 
       // Never auto-confirm - user must always see payment screen
       const hasSavedPaymentMethod = false;
 
-      // Get card last4 if we have a saved payment method
-      let savedCardLast4: string | undefined;
-      if (savedPaymentMethodId) {
-        try {
-          const paymentMethod = await stripe.paymentMethods.retrieve(savedPaymentMethodId);
-          savedCardLast4 = paymentMethod.card?.last4;
-        } catch (error) {
-          console.error('[AuctionStrategy] Error fetching payment method details:', error);
-        }
-      }
+      // Extract card last4 from the parallel fetch result
+      const savedCardLast4 = paymentMethodDetails?.card?.last4;
 
       console.log('[AuctionStrategy] Payment created - returning response:', {
         payment_intent_id: paymentIntent.id,

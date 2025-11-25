@@ -19,6 +19,7 @@ export class AuctionPaymentProcessor {
    * Keep top 2 bids pre-authorized, cancel all others
    */
   async manageDualPreAuth(auctionId: string, newBidId: string): Promise<void> {
+    const startTime = Date.now();
     const supabase = await createClient();
 
     try {
@@ -32,25 +33,34 @@ export class AuctionPaymentProcessor {
 
       if (error) throw error;
 
-      if (!bids || bids.length === 0) return;
+      if (!bids || bids.length === 0) {
+        console.log('[AuctionPaymentProcessor] manageDualPreAuth: No bids to process');
+        return;
+      }
 
       // Identify top 2 bids
       const topTwoBids = bids.slice(0, 2);
-      const bidsToCancel = bids.slice(2);
 
-      // Update bid statuses
+      // Update bid statuses - reuse the same supabase client
       for (const bid of bids) {
         if (bid.id === newBidId) {
           // New highest bid
-          await this.updateBidStatus(bid.id, 'winning');
+          await this.updateBidStatusWithClient(supabase, bid.id, 'winning');
         } else if (topTwoBids.find(b => b.id === bid.id)) {
           // Second highest bid
-          await this.updateBidStatus(bid.id, 'outbid');
+          await this.updateBidStatusWithClient(supabase, bid.id, 'outbid');
         } else {
           // Cancel this bid's pre-auth
-          await this.cancelBidPreAuth(bid);
+          await this.cancelBidPreAuthWithClient(supabase, bid);
         }
       }
+
+      const totalTime = Date.now() - startTime;
+      console.log('[AuctionPaymentProcessor] manageDualPreAuth completed:', {
+        auction_id: auctionId,
+        bids_processed: bids.length,
+        total_time_ms: totalTime
+      });
     } catch (error) {
       console.error('Error managing dual pre-auth:', error);
       throw error;
@@ -61,14 +71,22 @@ export class AuctionPaymentProcessor {
    * Cancel a bid's pre-authorization
    */
   async cancelBidPreAuth(bid: Bid): Promise<void> {
+    const supabase = await createClient();
+    return this.cancelBidPreAuthWithClient(supabase, bid);
+  }
+
+  /**
+   * Cancel a bid's pre-authorization (with client reuse)
+   */
+  private async cancelBidPreAuthWithClient(supabase: any, bid: Bid): Promise<void> {
     try {
       // Cancel the Stripe PaymentIntent
       const result = await this.strategy.cancelPayment(bid.payment_intent_id);
 
       if (result.success) {
-        // Update bid status
-        await this.updateBidStatus(bid.id, 'cancelled');
-        await this.updatePaymentIntentStatus(bid.id, 'cancelled');
+        // Update bid status - reuse same client
+        await this.updateBidStatusWithClient(supabase, bid.id, 'cancelled');
+        await this.updatePaymentIntentStatusWithClient(supabase, bid.id, 'cancelled');
       } else {
         console.error('Failed to cancel pre-auth:', result.error);
       }
@@ -206,7 +224,13 @@ export class AuctionPaymentProcessor {
    */
   private async updateBidStatus(bidId: string, status: BidStatus): Promise<void> {
     const supabase = await createClient();
+    return this.updateBidStatusWithClient(supabase, bidId, status);
+  }
 
+  /**
+   * Helper: Update bid status (with client reuse for performance)
+   */
+  private async updateBidStatusWithClient(supabase: any, bidId: string, status: BidStatus): Promise<void> {
     await supabase
       .from('bids')
       .update({ status, updated_at: new Date().toISOString() })
@@ -221,7 +245,17 @@ export class AuctionPaymentProcessor {
     status: 'requires_capture' | 'captured' | 'cancelled' | 'failed'
   ): Promise<void> {
     const supabase = await createClient();
+    return this.updatePaymentIntentStatusWithClient(supabase, bidId, status);
+  }
 
+  /**
+   * Helper: Update payment intent status (with client reuse for performance)
+   */
+  private async updatePaymentIntentStatusWithClient(
+    supabase: any,
+    bidId: string,
+    status: 'requires_capture' | 'captured' | 'cancelled' | 'failed'
+  ): Promise<void> {
     await supabase
       .from('bids')
       .update({ payment_intent_status: status, updated_at: new Date().toISOString() })
