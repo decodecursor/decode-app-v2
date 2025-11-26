@@ -18,6 +18,7 @@ export class AuctionNotificationService {
     winner_name: string;
     auction_title: string;
     winning_amount: number;
+    creator_name: string;
     recording_token?: string; // Optional: email can be sent without video recording link
   }): Promise<{ success: boolean; error?: string }> {
     try {
@@ -28,11 +29,12 @@ export class AuctionNotificationService {
       // Send email notification
       await emailService.send({
         to: params.winner_email,
-        subject: `Congratulations! You won "${params.auction_title}"`,
+        subject: `Your Video Link`,
         html: this.getWinnerEmailTemplate({
           winner_name: params.winner_name,
           auction_title: params.auction_title,
           winning_amount: params.winning_amount,
+          creator_name: params.creator_name,
           recording_url: recordingUrl,
         }),
       });
@@ -151,15 +153,15 @@ export class AuctionNotificationService {
     winner_name: string;
     auction_title: string;
     winning_amount: number;
+    creator_name: string;
     recording_url?: string;
   }): string {
     const videoSection = params.recording_url
       ? `
           <div style="background: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="margin-top: 0;">🎥 Record Your Video Message</h2>
-            <p>As the winner, you can now record a 10-second video message for the auction creator!</p>
-            <p><a href="${params.recording_url}" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Record Video Now</a></p>
-            <p style="font-size: 14px; color: #6B7280;">This link expires in 24 hours. You can retake once if needed.</p>
+            <p style="margin-top: 0;">As the winner, you can now record a 10-sec video message for ${params.creator_name}</p>
+            <p><a href="${params.recording_url}" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Record Video</a></p>
+            <p style="font-size: 14px; color: #6B7280;">Link expires in 24 hours</p>
           </div>
         `
       : `
@@ -174,15 +176,11 @@ export class AuctionNotificationService {
       <html>
       <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
         <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="color: #4F46E5;">Congratulations ${params.winner_name}!</h1>
+          <h1 style="color: #4F46E5;">You're the winner!</h1>
 
-          <p>You won the auction for <strong>"${params.auction_title}"</strong> with a winning bid of <strong>$${params.winning_amount.toFixed(2)}</strong>.</p>
+          <p>You won ${params.creator_name}'s beauty auction ${params.auction_title} with a winning bid of AED ${params.winning_amount.toFixed(2)}</p>
 
           ${videoSection}
-
-          <p style="font-size: 14px; color: #6B7280;">The auction creator may reach out to you via the contact information you provided during bidding.</p>
-
-          <p>Thank you for participating!</p>
 
           <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 30px 0;">
           <p style="font-size: 12px; color: #6B7280;">This is an automated message from DECODE Beauty Platform.</p>

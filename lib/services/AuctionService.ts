@@ -350,7 +350,7 @@ export class AuctionService {
     try {
       const { data, error } = await supabase
         .from('auctions')
-        .select('*')
+        .select('*, creator:profiles!creator_id(full_name)')
         .eq('status', 'active')
         .lte('end_time', new Date().toISOString());
 

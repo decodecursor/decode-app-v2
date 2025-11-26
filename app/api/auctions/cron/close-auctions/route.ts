@@ -129,6 +129,7 @@ export async function POST(request: NextRequest) {
                 winner_name: capturedBid.bidder_name,
                 auction_title: auction.title,
                 winning_amount: Number(capturedBid.bid_amount),
+                creator_name: auction.creator?.full_name || 'the creator',
                 recording_token: sessionResult.success && sessionResult.session ? sessionResult.session.token : undefined,
               });
 
