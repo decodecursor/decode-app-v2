@@ -157,6 +157,7 @@ export function BiddingInterface({
     // If user is logged in and is a repeat bidder, skip directly to payment
     if (userEmail && userName && isRepeatBidder) {
       // Create bid with saved Instagram username (if any)
+      setStep('payment');
       await createBid(userName, 'email', userEmail, undefined, amount, instagramUsername);
       return;
     }
@@ -165,6 +166,7 @@ export function BiddingInterface({
     if (!userEmail && guestInfo && isRepeatBidder) {
       console.log('✨ [BiddingInterface] Repeat guest bidder detected, skipping forms');
       // Create bid with cached guest info and Instagram username
+      setStep('payment');
       await createBid(
         guestInfo.name,
         guestInfo.contactMethod,
