@@ -176,14 +176,11 @@ export class AuctionNotificationService {
       <html>
       <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
         <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="color: #4F46E5;">You're the winner!</h1>
+          <h1 style="color: #4F46E5;">Record Your Winner Video!</h1>
 
-          <p>You won ${params.creator_name}'s beauty auction ${params.auction_title} with a winning bid of AED ${params.winning_amount.toFixed(2)}</p>
+          <p>You won ${params.creator_name}'s beauty auction "${params.auction_title}" with a winning bid of AED ${params.winning_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
 
           ${videoSection}
-
-          <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 30px 0;">
-          <p style="font-size: 12px; color: #6B7280;">This is an automated message from DECODE Beauty Platform.</p>
         </div>
       </body>
       </html>

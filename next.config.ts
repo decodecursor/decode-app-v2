@@ -97,7 +97,7 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: isDevelopment
               ? "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: *;"
-              : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.stripe.com https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.stripe.com https://*.crossmint.com; frame-src 'self' https://js.stripe.com https://*.stripe.com;",
+              : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.stripe.com https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.stripe.com https://*.crossmint.com; frame-src 'self' https://js.stripe.com https://*.stripe.com;",
           },
         ],
       },
