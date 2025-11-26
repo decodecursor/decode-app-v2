@@ -14,13 +14,42 @@ export function useAuctionRealtime(auctionId: string, initialAuction?: Auction) 
   const [auction, setAuction] = useState<Auction | null>(initialAuction || null);
   const [isConnected, setIsConnected] = useState(false);
   const [lastEvent, setLastEvent] = useState<AuctionEvent | null>(null);
+  const [error, setError] = useState<{ message: string; statusCode?: number } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const { visibilityChangeCount } = usePageVisibility();
 
-  // Fetch auction data
-  const fetchAuction = useCallback(async () => {
+  // Schedule retry with exponential backoff
+  const scheduleRetry = useCallback(() => {
+    const delay = Math.min(1000 * Math.pow(2, retryCount), 8000); // Exponential backoff, max 8s
+    console.log(`🔄 [useAuctionRealtime] Retry #${retryCount + 1} scheduled in ${delay}ms`);
+
+    setTimeout(() => {
+      setRetryCount(prev => prev + 1);
+      fetchAuction(true);
+    }, delay);
+  }, [retryCount]);
+
+  // Fetch auction data with timeout and error handling
+  const fetchAuction = useCallback(async (isRetry: boolean = false) => {
     try {
+      if (!isRetry) {
+        setIsLoading(true);
+        setError(null);
+      }
+
       console.log('🔍 [useAuctionRealtime] Fetching auction:', auctionId);
-      const response = await fetch(`/api/auctions/${auctionId}`);
+
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const response = await fetch(`/api/auctions/${auctionId}`, {
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
       console.log('📥 [useAuctionRealtime] Response status:', response.status, response.statusText);
 
       const data = await response.json();
@@ -29,17 +58,56 @@ export function useAuctionRealtime(auctionId: string, initialAuction?: Auction) 
       if (response.ok) {
         console.log('✅ [useAuctionRealtime] Auction loaded:', data.auction);
         setAuction(data.auction);
+        setError(null);
+        setRetryCount(0);
       } else {
+        // API returned error response
+        const errorMessage = data.error || 'Failed to load auction';
         console.error('❌ [useAuctionRealtime] Failed to fetch auction:', {
           status: response.status,
-          error: data.error,
+          error: errorMessage,
           fullResponse: data
         });
+
+        // Set user-friendly error message based on status code
+        setError({
+          message: response.status === 404
+            ? 'Auction not found'
+            : response.status >= 500
+              ? 'Server error - please try again'
+              : errorMessage,
+          statusCode: response.status
+        });
+
+        // Don't retry on 404 (permanent error), but retry on 500s and other errors
+        if (response.status !== 404 && retryCount < 3) {
+          scheduleRetry();
+        }
       }
     } catch (error) {
       console.error('💥 [useAuctionRealtime] Exception fetching auction:', error);
+
+      // Determine error type
+      const isTimeout = error instanceof Error && error.name === 'AbortError';
+      const isNetworkError = error instanceof TypeError;
+
+      setError({
+        message: isTimeout
+          ? 'Request timed out - please check your connection'
+          : isNetworkError
+            ? 'Network error - please check your connection'
+            : 'Failed to load auction',
+        statusCode: undefined
+      });
+
+      // Auto-retry on network errors and timeouts (but not other errors)
+      if ((isTimeout || isNetworkError) && retryCount < 3) {
+        scheduleRetry();
+      }
+    } finally {
+      setIsLoading(false);
     }
-  }, [auctionId]);
+  }, [auctionId, retryCount, scheduleRetry]);
 
   useEffect(() => {
     const realtimeManager = getAuctionRealtimeManager();
@@ -110,7 +178,14 @@ export function useAuctionRealtime(auctionId: string, initialAuction?: Auction) 
     auction,
     isConnected,
     lastEvent,
+    error,
+    isLoading,
     refresh,
+    retry: () => {
+      setRetryCount(0);
+      setError(null);
+      fetchAuction(false);
+    }
   };
 }
 
