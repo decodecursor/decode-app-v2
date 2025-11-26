@@ -49,88 +49,91 @@ export class AuctionStrategy implements IPaymentStrategy {
 
       // Get or create Stripe customer for guest bidders
       let customerId: string | undefined = auctionContext.guest_stripe_customer_id;
-
-      // Validate existing customer ID in Stripe
-      if (auctionContext.is_guest && customerId) {
-        try {
-          await stripe.customers.retrieve(customerId);
-          console.log('[AuctionStrategy] ✅ Validated existing Stripe customer:', customerId);
-        } catch (error: any) {
-          if (error.code === 'resource_missing') {
-            console.warn('[AuctionStrategy] ⚠️ Stored customer ID no longer exists in Stripe, will create new customer:', {
-              old_customer_id: customerId,
-              guest_bidder_id: auctionContext.guest_bidder_id,
-              error: error.message
-            });
-            customerId = undefined; // Force new customer creation
-          } else {
-            // Re-throw other errors (network issues, etc.)
-            console.error('[AuctionStrategy] ❌ Error validating Stripe customer:', error);
-            throw error;
-          }
-        }
-      }
-
-      // Create new customer if needed
-      if (auctionContext.is_guest && !customerId) {
-        console.log('[AuctionStrategy] Creating new Stripe customer for guest bidder:', {
-          email: auctionContext.bidder_email,
-          guest_bidder_id: auctionContext.guest_bidder_id
-        });
-
-        const customer = await stripe.customers.create({
-          email: auctionContext.bidder_email,
-          name: auctionContext.bidder_name,
-          metadata: {
-            is_guest_bidder: 'true',
-            auction_id: auctionContext.auction_id,
-          },
-        });
-        customerId = customer.id;
-
-        console.log('[AuctionStrategy] ✅ Created new Stripe customer:', customerId);
-
-        // CRITICAL: Save customer ID to database immediately (Edge browser fix)
-        if (auctionContext.guest_bidder_id) {
-          const guestService = new GuestBidderService();
-          await guestService.updateStripeCustomerId(auctionContext.guest_bidder_id, customerId);
-          console.log('[AuctionStrategy] ✅ Updated guest bidder with new customer ID:', {
-            guest_bidder_id: auctionContext.guest_bidder_id,
-            customer_id: customerId,
-          });
-        }
-      }
-
-      // Check for saved payment method for guest bidders with Stripe fallback
-      // Use saved payment method for ANY returning guest bidder (not auction-specific)
       let savedPaymentMethodId: string | null = null;
-      if (auctionContext.is_guest && auctionContext.guest_bidder_id) {
-        console.log('[AuctionStrategy] Checking saved payment for guest bidder:', {
-          guest_bidder_id: auctionContext.guest_bidder_id,
-          auction_id: auctionContext.auction_id,
-        });
 
+      // OPTIMIZATION: Parallelize customer validation and saved payment method check
+      // These operations are independent and can run simultaneously
+      if (auctionContext.is_guest) {
         const guestService = new GuestBidderService();
 
-        // Simply check if guest has ANY saved payment method (not auction-specific)
-        savedPaymentMethodId = await guestService.getSavedPaymentMethod(auctionContext.guest_bidder_id);
+        const [validatedCustomer, fetchedPaymentMethodId] = await Promise.all([
+          // Customer validation (only if customer ID exists)
+          customerId
+            ? stripe.customers.retrieve(customerId).catch((error: any) => {
+                if (error.code === 'resource_missing') {
+                  console.warn('[AuctionStrategy] ⚠️ Stored customer ID no longer exists in Stripe, will create new customer:', {
+                    old_customer_id: customerId,
+                    guest_bidder_id: auctionContext.guest_bidder_id,
+                    error: error.message
+                  });
+                  return null; // Signal that customer needs to be recreated
+                }
+                // Re-throw other errors (network issues, etc.)
+                console.error('[AuctionStrategy] ❌ Error validating Stripe customer:', error);
+                throw error;
+              })
+            : Promise.resolve(null),
 
-        console.log('[AuctionStrategy] Saved payment method check:', {
-          payment_method_id: savedPaymentMethodId,
-          has_saved_payment: !!savedPaymentMethodId,
-          guest_bidder_id: auctionContext.guest_bidder_id,
-        });
+          // Saved payment method check (runs in parallel)
+          auctionContext.guest_bidder_id
+            ? guestService.getSavedPaymentMethod(auctionContext.guest_bidder_id)
+            : Promise.resolve(null)
+        ]);
 
-        // REMOVED: Stripe fallback was causing first bids to auto-confirm with old payment methods
-        // The database should be the single source of truth for saved payment methods
-        // This prevents confusion where old Stripe data overrides the intentional database state
+        // Handle customer validation result
+        if (customerId && !validatedCustomer) {
+          customerId = undefined; // Force new customer creation
+        } else if (customerId && validatedCustomer) {
+          console.log('[AuctionStrategy] ✅ Validated existing Stripe customer:', customerId);
+        }
 
-        if (savedPaymentMethodId) {
-          console.log('[AuctionStrategy] Using saved payment method:', {
+        // Store saved payment method from parallel fetch
+        savedPaymentMethodId = fetchedPaymentMethodId;
+
+        // Log saved payment method status
+        if (auctionContext.guest_bidder_id) {
+          console.log('[AuctionStrategy] Saved payment method check:', {
             payment_method_id: savedPaymentMethodId,
-            source: savedPaymentMethodId ? 'database/stripe' : 'none',
+            has_saved_payment: !!savedPaymentMethodId,
             guest_bidder_id: auctionContext.guest_bidder_id,
           });
+
+          if (savedPaymentMethodId) {
+            console.log('[AuctionStrategy] Using saved payment method:', {
+              payment_method_id: savedPaymentMethodId,
+              source: 'database',
+              guest_bidder_id: auctionContext.guest_bidder_id,
+            });
+          }
+        }
+
+        // Create new customer if needed (sequential after validation)
+        if (!customerId) {
+          console.log('[AuctionStrategy] Creating new Stripe customer for guest bidder:', {
+            email: auctionContext.bidder_email,
+            guest_bidder_id: auctionContext.guest_bidder_id
+          });
+
+          const customer = await stripe.customers.create({
+            email: auctionContext.bidder_email,
+            name: auctionContext.bidder_name,
+            metadata: {
+              is_guest_bidder: 'true',
+              auction_id: auctionContext.auction_id,
+            },
+          });
+          customerId = customer.id;
+
+          console.log('[AuctionStrategy] ✅ Created new Stripe customer:', customerId);
+
+          // CRITICAL: Save customer ID to database immediately (Edge browser fix)
+          if (auctionContext.guest_bidder_id) {
+            await guestService.updateStripeCustomerId(auctionContext.guest_bidder_id, customerId);
+            console.log('[AuctionStrategy] ✅ Updated guest bidder with new customer ID:', {
+              guest_bidder_id: auctionContext.guest_bidder_id,
+              customer_id: customerId,
+            });
+          }
         }
       }
 
