@@ -215,27 +215,25 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
         <span className="text-sm text-gray-500">{auctions.length} auction{auctions.length !== 1 ? 's' : ''}</span>
       </div>
 
-      {/* Scrollable container */}
-      <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+      {/* Cards container - extends naturally based on content */}
+      <div className="space-y-4">
         {auctions.map((auction) => (
           <div key={auction.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-gray-400 transition-all duration-200">
             {/* Auction summary */}
-            <div className="flex justify-between items-start mb-3">
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-gray-900 truncate">{auction.title}</h4>
-                <p className="text-xs text-gray-500 mt-1">
-                  Ended {new Date(auction.end_time).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                  })} · {auction.total_bids} bid{auction.total_bids !== 1 ? 's' : ''}
-                </p>
-              </div>
-              <div className="text-right ml-4">
-                <p className="text-sm font-semibold text-gray-900">
-                  {formatBidAmount(auction.auction_current_price)}
-                </p>
-              </div>
+            <div className="mb-3">
+              <a
+                href={`/auctions/${auction.id}`}
+                className="font-medium text-gray-900 hover:text-blue-600 hover:underline transition-colors block truncate"
+              >
+                {auction.title}
+              </a>
+              <p className="text-xs text-gray-500 mt-1">
+                {new Date(auction.end_time).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric'
+                })} · {auction.total_bids} bid{auction.total_bids !== 1 ? 's' : ''}
+              </p>
             </div>
 
             {/* Mini leaderboard (top 3) */}
@@ -281,16 +279,6 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
                 <p className="text-xs text-gray-500 text-center">No bids recorded</p>
               </div>
             )}
-
-            {/* Link to full auction */}
-            <a
-              href={`/auctions/${auction.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-600 hover:text-blue-700 hover:underline transition-colors mt-3 inline-block"
-            >
-              View full results →
-            </a>
           </div>
         ))}
       </div>
