@@ -12,6 +12,7 @@ import { getEventBridgeScheduler } from '@/lib/services/EventBridgeScheduler';
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🚀 [BUILD 2025-11-26-v3] Auction create - EVENTBRIDGE FIX DEPLOYED');
     console.log('🔵 [API /auctions/create] Request received');
     const supabase = await createClient();
 
