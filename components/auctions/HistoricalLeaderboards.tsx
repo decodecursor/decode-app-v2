@@ -8,6 +8,69 @@
 import React, { useState, useEffect } from 'react';
 import { formatBidAmount } from '@/lib/models/Bid.model';
 
+/**
+ * Instagram Icon Component
+ */
+function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+    </svg>
+  );
+}
+
+/**
+ * Alternating Time/Instagram Username Component
+ * Toggles between showing time and Instagram username every 3 seconds
+ */
+function AlternatingTimeUsername({
+  time,
+  instagramUsername
+}: {
+  time: string;
+  instagramUsername?: string;
+}) {
+  const [showInstagram, setShowInstagram] = useState(false);
+
+  useEffect(() => {
+    // Only toggle if Instagram username exists
+    if (!instagramUsername) return;
+
+    const interval = setInterval(() => {
+      setShowInstagram((prev) => !prev);
+    }, 3000); // Toggle every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [instagramUsername]);
+
+  // If no Instagram username, just show time
+  if (!instagramUsername) {
+    return <p className="text-xs text-gray-500">{time}</p>;
+  }
+
+  // Alternate between time and Instagram username
+  return (
+    <p className="text-xs text-gray-500 flex items-center gap-1">
+      {showInstagram ? (
+        <>
+          <InstagramIcon className="w-3 h-3 text-pink-600" />
+          <a
+            href={`https://www.instagram.com/${instagramUsername}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-pink-600 hover:underline transition-colors"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {instagramUsername}
+          </a>
+        </>
+      ) : (
+        <span>{time}</span>
+      )}
+    </p>
+  );
+}
+
 interface LeaderboardEntry {
   rank: number;
   bidder_name: string;
@@ -155,7 +218,7 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
       {/* Scrollable container */}
       <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
         {auctions.map((auction) => (
-          <div key={auction.id} className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
+          <div key={auction.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-gray-400 transition-all duration-200">
             {/* Auction summary */}
             <div className="flex justify-between items-start mb-3">
               <div className="flex-1 min-w-0">
@@ -178,33 +241,40 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
             {/* Mini leaderboard (top 3) */}
             {auction.leaderboard && auction.leaderboard.length > 0 ? (
               <div className="space-y-2 bg-gray-50 rounded-md p-3">
-                {auction.leaderboard.map((entry) => (
-                  <div key={entry.rank} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <span className="flex-shrink-0">{getMedalEmoji(entry.rank)}</span>
-                      <div className="flex-1 min-w-0">
-                        <span className="text-gray-700 block truncate">{entry.bidder_name}</span>
-                        {entry.bidder_instagram_username && (
-                          <a
-                            href={`https://instagram.com/${entry.bidder_instagram_username}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                          >
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                            </svg>
-                            @{entry.bidder_instagram_username}
-                          </a>
-                        )}
+                {auction.leaderboard.map((entry) => {
+                  const isFirstPlace = entry.rank === 1;
+                  const timeAgo = new Date(entry.placed_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric'
+                  });
+
+                  return (
+                    <div
+                      key={entry.rank}
+                      className={`flex items-center justify-between text-sm ${
+                        isFirstPlace
+                          ? 'bg-blue-50 rounded-md p-2 border border-blue-200'
+                          : 'p-2'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="flex-shrink-0 text-xl">{getMedalEmoji(entry.rank)}</span>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-gray-900 font-medium block truncate">{entry.bidder_name}</span>
+                          <AlternatingTimeUsername
+                            time={timeAgo}
+                            instagramUsername={entry.bidder_instagram_username}
+                          />
+                        </div>
                       </div>
+                      <span className={`font-semibold ml-2 flex-shrink-0 ${
+                        isFirstPlace ? 'text-blue-900 text-base' : 'text-gray-900 text-sm'
+                      }`}>
+                        {formatBidAmount(entry.bid_amount)}
+                      </span>
                     </div>
-                    <span className="font-medium text-gray-900 ml-2 flex-shrink-0">
-                      {formatBidAmount(entry.bid_amount)}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="bg-gray-50 rounded-md p-3">
@@ -217,7 +287,7 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
               href={`/auctions/${auction.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-blue-600 hover:underline mt-2 inline-block"
+              className="text-xs text-blue-600 hover:text-blue-700 hover:underline transition-colors mt-3 inline-block"
             >
               View full results →
             </a>

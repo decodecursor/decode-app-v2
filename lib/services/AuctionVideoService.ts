@@ -82,6 +82,59 @@ export class AuctionVideoService {
   }
 
   /**
+   * Get existing recording session (fetch token for winner)
+   * Used when session already exists from EventBridge
+   */
+  async getRecordingSession(params: {
+    auction_id: string;
+    bid_id: string;
+  }): Promise<{ success: boolean; session?: VideoRecordingSession; error?: string }> {
+    const supabase = createServiceRoleClient();
+
+    try {
+      // Check if video session already exists
+      const { data: existing, error: queryError } = await supabase
+        .from('auction_videos')
+        .select('recording_token, token_expires_at')
+        .eq('auction_id', params.auction_id)
+        .eq('bid_id', params.bid_id)
+        .is('deleted_at', null)
+        .single();
+
+      if (queryError || !existing) {
+        // No session found - create a new one as fallback
+        console.log('No existing session found, creating new one...');
+        return await this.createRecordingSession(params);
+      }
+
+      // Check if token is expired
+      const expiresAt = new Date(existing.token_expires_at);
+      if (expiresAt < new Date()) {
+        return {
+          success: false,
+          error: 'Recording token has expired',
+        };
+      }
+
+      const session: VideoRecordingSession = {
+        auction_id: params.auction_id,
+        bid_id: params.bid_id,
+        token: existing.recording_token,
+        expires_at: existing.token_expires_at,
+        can_retake: true,
+      };
+
+      return { success: true, session };
+    } catch (error) {
+      console.error('Error getting recording session:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get recording session',
+      };
+    }
+  }
+
+  /**
    * Upload video to Supabase Storage
    */
   async uploadVideo(params: {

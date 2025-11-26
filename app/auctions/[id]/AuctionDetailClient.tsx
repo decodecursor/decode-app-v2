@@ -84,7 +84,7 @@ export default function AuctionDetailClient() {
   }, [auctionId, userEmail]);
 
   // Winner notification (supports both logged-in users and guest bidders)
-  const { hasWon, recordingToken, winningAmount } = useWinnerNotification(
+  const { hasWon, recordingToken, sessionError, winningAmount } = useWinnerNotification(
     auction,
     userEmail,
     () => setShowWinnerModal(true),
@@ -582,6 +582,7 @@ export default function AuctionDetailClient() {
           auctionTitle={auction.title}
           winningAmount={winningAmount}
           recordingToken={recordingToken || undefined}
+          error={sessionError}
           onClose={() => setShowWinnerModal(false)}
         />
       )}

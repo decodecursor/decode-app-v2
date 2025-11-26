@@ -15,6 +15,7 @@ interface WinnerNotificationProps {
   auctionTitle: string;
   winningAmount: number;
   recordingToken?: string;
+  error?: string | null;
   onClose: () => void;
   onRecordVideo?: () => void;
 }
@@ -24,6 +25,7 @@ export function WinnerNotification({
   auctionTitle,
   winningAmount,
   recordingToken,
+  error,
   onClose,
   onRecordVideo,
 }: WinnerNotificationProps) {
@@ -122,9 +124,38 @@ export function WinnerNotification({
                     </div>
                   </div>
 
+                  {/* Error Message */}
+                  {error && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                      <div className="flex items-start gap-2">
+                        <svg
+                          className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <div>
+                          <p className="text-sm font-medium text-red-800 mb-1">
+                            Could not open recording page
+                          </p>
+                          <p className="text-xs text-red-700">
+                            {error}. Please check your email for the video recording link.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Action Buttons */}
                   <div className="flex flex-col gap-3 pt-4">
-                    {recordingToken && (
+                    {recordingToken && !error && (
                       <button
                         onClick={handleRecordNow}
                         className="w-full px-4 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center justify-center gap-2"

@@ -162,6 +162,7 @@ export function useWinnerNotification(
 ) {
   const [hasWon, setHasWon] = useState(false);
   const [recordingToken, setRecordingToken] = useState<string | null>(null);
+  const [sessionError, setSessionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!auction) return;
@@ -180,15 +181,14 @@ export function useWinnerNotification(
     ) {
       setHasWon(true);
 
-      // Create recording session (use guestBidId for guest winners, otherwise use winner_bid_id)
-      fetch(`/api/auctions/${auction.id}/video/create-session`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bid_id: guestBidId || auction.winner_bid_id }),
-      })
+      // Fetch recording session (GET instead of POST to retrieve existing session)
+      const bidIdParam = guestBidId || auction.winner_bid_id;
+      fetch(`/api/auctions/${auction.id}/video/session?bid_id=${bidIdParam}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.success && data.session) {
+            // SUCCESS - Clear any previous errors
+            setSessionError(null);
             setRecordingToken(data.session.token);
             if (onWin) {
               onWin(data.session.token);
@@ -200,10 +200,18 @@ export function useWinnerNotification(
               console.log('🧹 [WinnerNotification] Cleared guest bid ID from localStorage');
             }
             window.location.href = `/auctions/video/${data.session.token}`;
+          } else {
+            // FAILURE - Set error state
+            const errorMsg = data.error || 'Unable to fetch recording session';
+            setSessionError(errorMsg);
+            console.error('Failed to get recording session:', errorMsg);
           }
         })
         .catch((error) => {
-          console.error('Error creating recording session:', error);
+          // NETWORK ERROR - Set error state
+          const errorMsg = 'Network error - please try again';
+          setSessionError(errorMsg);
+          console.error('Error fetching recording session:', error);
         });
     }
   }, [auction, userEmail, guestBidId, hasWon, onWin]);
@@ -211,6 +219,7 @@ export function useWinnerNotification(
   return {
     hasWon,
     recordingToken,
+    sessionError,
     winningAmount: hasWon && auction ? Number(auction.auction_current_price) : null,
   };
 }
