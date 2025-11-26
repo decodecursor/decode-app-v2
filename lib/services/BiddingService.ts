@@ -311,7 +311,7 @@ export class BiddingService {
         .select('*')
         .eq('auction_id', auctionId)
         .eq('status', 'winning')
-        .order('created_at', { ascending: true })
+        .order('placed_at', { ascending: true })
         .limit(1)
         .maybeSingle();
 
