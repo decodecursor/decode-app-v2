@@ -94,7 +94,7 @@ export class AuctionService {
   /**
    * Get auction by ID
    */
-  async getAuction(auctionId: string): Promise<Auction | null> {
+  async getAuction(auctionId: string): Promise<AuctionWithCreator | null> {
     const supabase = await createClient();
 
     try {
