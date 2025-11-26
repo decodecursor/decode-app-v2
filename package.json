@@ -14,7 +14,7 @@
     "validate": "npm run typecheck && npm run lint && npm run test:env"
   },
   "dependencies": {
-    "@aws-sdk/client-scheduler": "^3.716.0",
+    "@aws-sdk/client-scheduler": "^3.940.0",
     "@crossmint/client-sdk-react-ui": "^0.2.7",
     "@headlessui/react": "^2.2.9",
     "@stripe/connect-js": "^3.3.25",

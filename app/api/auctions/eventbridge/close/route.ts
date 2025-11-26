@@ -26,29 +26,18 @@ interface EventBridgePayload {
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify request is from EventBridge
-    const eventBridgeSource = request.headers.get('X-EventBridge-Source');
-    const eventBridgeSecret = request.headers.get('X-EventBridge-Secret');
+    // Parse request body first
+    const body: EventBridgePayload = await request.json();
+    const { auctionId, source, scheduledTime } = body;
 
-    if (eventBridgeSource !== 'aws.scheduler') {
-      console.warn('[EventBridge] Invalid source header:', eventBridgeSource);
+    // Verify request is from EventBridge via Lambda
+    if (source !== 'eventbridge-scheduler') {
+      console.warn('[EventBridge] Invalid source:', source);
       return NextResponse.json(
         { error: 'Unauthorized - Invalid source' },
         { status: 401 }
       );
     }
-
-    if (eventBridgeSecret !== process.env.EVENTBRIDGE_WEBHOOK_SECRET) {
-      console.warn('[EventBridge] Invalid secret');
-      return NextResponse.json(
-        { error: 'Unauthorized - Invalid secret' },
-        { status: 401 }
-      );
-    }
-
-    // Parse request body
-    const body: EventBridgePayload = await request.json();
-    const { auctionId, source, scheduledTime } = body;
 
     if (!auctionId) {
       return NextResponse.json(
