@@ -6,6 +6,7 @@
 import { createClient } from '@/utils/supabase/server';
 import type {
   Auction,
+  AuctionWithCreator,
   CreateAuctionDto,
   UpdateAuctionDto,
   AuctionStatus,
@@ -344,13 +345,13 @@ export class AuctionService {
   /**
    * Get active auctions (for cron job processing)
    */
-  async getActiveAuctions(): Promise<Auction[]> {
+  async getActiveAuctions(): Promise<AuctionWithCreator[]> {
     const supabase = await createClient();
 
     try {
       const { data, error } = await supabase
         .from('auctions')
-        .select('*, creator:profiles!creator_id(full_name)')
+        .select('*, creator:profiles!creator_id(id, email, user_name, role, profile_photo_url)')
         .eq('status', 'active')
         .lte('end_time', new Date().toISOString());
 
