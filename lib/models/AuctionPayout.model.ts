@@ -98,10 +98,10 @@ export function calculatePlatformFee(
 }
 
 export function calculateModelAmount(
-  winningAmount: number,
+  profit: number,
   platformFee: number
 ): number {
-  return Math.round((winningAmount - platformFee) * 100) / 100;
+  return Math.round((profit - platformFee) * 100) / 100;
 }
 
 export function createPayoutFromAuction(

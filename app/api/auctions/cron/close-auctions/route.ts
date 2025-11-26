@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
               const startPrice = Number(auction.auction_start_price);
               const profit = Math.max(winningAmount - startPrice, 0);
               const platformFee = profit * 0.25;
-              const modelPayout = winningAmount - platformFee;
+              const modelPayout = profit - platformFee;
 
               console.log(`💰 [Cron] Completing auction ${auction.id} with profit amounts:`, {
                 profit,
