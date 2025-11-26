@@ -125,8 +125,13 @@ export async function POST(request: NextRequest) {
     // Start auction immediately if start_time is now or in the past
     const startTime = body.start_time ? new Date(body.start_time) : new Date();
     if (startTime <= new Date()) {
-      console.log('▶️ [API /auctions/create] Starting auction immediately');
-      await auctionService.startAuction(result.auction_id!);
+      try {
+        console.log('▶️ [API /auctions/create] Starting auction immediately');
+        await auctionService.startAuction(result.auction_id!);
+      } catch (error) {
+        console.error('❌ [API /auctions/create] Failed to start auction:', error);
+        // Don't fail entire request - EventBridge scheduling will still proceed
+      }
     }
 
     // Schedule auction close with EventBridge
