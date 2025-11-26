@@ -217,6 +217,15 @@ export class BiddingService {
     const supabase = createServiceRoleClient();
 
     try {
+      // First, fetch ALL bids to compare total vs confirmed
+      const allBidsQuery = await supabase
+        .from('bids')
+        .select('id, status')
+        .eq('auction_id', auctionId);
+
+      const totalBids = allBidsQuery.data?.length || 0;
+
+      // Then fetch only confirmed bids
       const { data, error } = await supabase
         .from('bids')
         .select('*')
@@ -228,9 +237,18 @@ export class BiddingService {
 
       if (error) throw error;
 
+      const confirmedBids = data?.length || 0;
+
+      // Log discrepancy when total bids exist but few/none are confirmed
+      if (totalBids > confirmedBids) {
+        console.warn(
+          `[BiddingService] Auction ${auctionId}: ${totalBids} total bids but only ${confirmedBids} confirmed bids (showing only winning/outbid/captured statuses)`
+        );
+      }
+
       return data || [];
     } catch (error) {
-      console.error('Error getting auction bids:', error);
+      console.error('[BiddingService] Error getting auction bids:', error);
       return [];
     }
   }

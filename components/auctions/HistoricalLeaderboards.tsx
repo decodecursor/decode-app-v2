@@ -96,6 +96,12 @@ interface HistoricalLeaderboardsProps {
 export function HistoricalLeaderboards({ creatorId, currentAuctionId }: HistoricalLeaderboardsProps) {
   const [auctions, setAuctions] = useState<PreviousAuction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [diagnostics, setDiagnostics] = useState({
+    auctionsFetched: 0,
+    auctionsWithBids: 0,
+    auctionsWithoutBids: 0,
+    fetchErrors: [] as string[]
+  });
 
   useEffect(() => {
     fetchPreviousAuctions();
@@ -104,16 +110,21 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
   const fetchPreviousAuctions = async () => {
     try {
       setIsLoading(true);
+      console.log(`[HistoricalLeaderboards] Fetching completed auctions for creator ${creatorId}`);
 
       // Fetch all completed auctions by same creator
       const response = await fetch(`/api/auctions/list?creator_id=${creatorId}&status=completed`);
       const data = await response.json();
 
       if (data.success) {
+        console.log(`[HistoricalLeaderboards] Found ${data.auctions?.length || 0} completed auctions`);
+
         // Filter out current auction
         const previousAuctions = data.auctions.filter(
           (a: PreviousAuction) => a.id !== currentAuctionId
         );
+
+        console.log(`[HistoricalLeaderboards] ${previousAuctions.length} past auctions after filtering out current auction`);
 
         // Fetch leaderboard for each auction (top 3)
         const auctionsWithLeaderboards = await Promise.all(
@@ -122,12 +133,22 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
               const lbResponse = await fetch(`/api/auctions/${auction.id}/leaderboard?limit=3`);
               const lbData = await lbResponse.json();
 
+              const bidCount = lbData.leaderboard?.length || 0;
+              const dbBidCount = auction.total_bids || 0;
+
+              // Warn if auction has bids in DB but none confirmed in leaderboard
+              if (dbBidCount > 0 && bidCount === 0) {
+                console.warn(
+                  `[HistoricalLeaderboards] Auction "${auction.title}" has ${dbBidCount} total bids in DB but 0 confirmed bids in leaderboard`
+                );
+              }
+
               return {
                 ...auction,
                 leaderboard: lbData.leaderboard || []
               };
             } catch (error) {
-              console.error(`Error fetching leaderboard for auction ${auction.id}:`, error);
+              console.error(`[HistoricalLeaderboards] Error fetching leaderboard for auction ${auction.id}:`, error);
               return { ...auction, leaderboard: [] };
             }
           })
@@ -138,10 +159,27 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
           new Date(b.end_time).getTime() - new Date(a.end_time).getTime()
         );
 
+        // Update diagnostics
+        const withBids = auctionsWithLeaderboards.filter(a => a.leaderboard && a.leaderboard.length > 0).length;
+        const withoutBids = auctionsWithLeaderboards.filter(a => !a.leaderboard || a.leaderboard.length === 0).length;
+
+        setDiagnostics({
+          auctionsFetched: auctionsWithLeaderboards.length,
+          auctionsWithBids: withBids,
+          auctionsWithoutBids: withoutBids,
+          fetchErrors: []
+        });
+
+        console.log(`[HistoricalLeaderboards] Summary: ${withBids} with bids, ${withoutBids} without confirmed bids`);
+
         setAuctions(auctionsWithLeaderboards);
       }
     } catch (error) {
-      console.error('Error fetching previous auctions:', error);
+      console.error('[HistoricalLeaderboards] Error fetching previous auctions:', error);
+      setDiagnostics(prev => ({
+        ...prev,
+        fetchErrors: [String(error)]
+      }));
     } finally {
       setIsLoading(false);
     }
@@ -184,6 +222,7 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
     );
   }
 
+  // Case 1: No past auctions at all
   if (auctions.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -203,6 +242,36 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
             />
           </svg>
           <p className="text-sm text-gray-500">No past auctions yet</p>
+          <p className="text-xs text-gray-400 mt-1">Previous completed auctions will appear here</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Case 2: Past auctions exist but none have confirmed bids
+  const allAuctionsEmpty = auctions.every(a => !a.leaderboard || a.leaderboard.length === 0);
+  if (allAuctionsEmpty) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Past Auctions</h3>
+        <div className="text-center py-8">
+          <svg
+            className="mx-auto w-12 h-12 text-amber-300 mb-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <p className="text-sm text-gray-600">Past auctions pending bid confirmation</p>
+          <p className="text-xs text-gray-500 mt-2">
+            Auctions appear here once bids are confirmed with payment authorization
+          </p>
         </div>
       </div>
     );
@@ -211,7 +280,18 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Past Auctions</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-gray-900">Past Auctions</h3>
+          <button
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            title="Only bids with confirmed payment authorization are shown"
+            type="button"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </div>
         <span className="text-sm text-gray-500">{auctions.length} auction{auctions.length !== 1 ? 's' : ''}</span>
       </div>
 
@@ -276,12 +356,35 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
               </div>
             ) : (
               <div className="bg-gray-50 rounded-md p-3">
-                <p className="text-xs text-gray-500 text-center">No bids recorded</p>
+                <p className="text-xs text-gray-500 text-center">
+                  {auction.total_bids > 0
+                    ? `${auction.total_bids} bid${auction.total_bids !== 1 ? 's' : ''} pending confirmation`
+                    : 'No bids recorded'}
+                </p>
               </div>
             )}
           </div>
         ))}
       </div>
+
+      {/* Development diagnostics panel */}
+      {process.env.NODE_ENV === 'development' && (
+        <details className="mt-4 p-3 bg-gray-50 rounded text-xs border border-gray-200">
+          <summary className="cursor-pointer font-medium text-gray-700 hover:text-gray-900">
+            Debug Info
+          </summary>
+          <div className="mt-2 space-y-1 text-gray-600">
+            <p><span className="font-medium">Auctions fetched:</span> {diagnostics.auctionsFetched}</p>
+            <p><span className="font-medium">With confirmed bids:</span> {diagnostics.auctionsWithBids}</p>
+            <p><span className="font-medium">Without confirmed bids:</span> {diagnostics.auctionsWithoutBids}</p>
+            {diagnostics.fetchErrors.length > 0 && (
+              <p className="text-red-600">
+                <span className="font-medium">Errors:</span> {diagnostics.fetchErrors.join(', ')}
+              </p>
+            )}
+          </div>
+        </details>
+      )}
     </div>
   );
 }

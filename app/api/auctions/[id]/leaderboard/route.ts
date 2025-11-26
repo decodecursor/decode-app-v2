@@ -16,8 +16,12 @@ export async function GET(
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 10;
     const showFullNames = searchParams.get('show_full_names') === 'true';
 
+    console.log(`[Leaderboard API] Fetching leaderboard for auction ${params.id}, limit=${limit}`);
+
     const biddingService = new BiddingService();
     const bids = await biddingService.getAuctionBids(params.id, limit);
+
+    console.log(`[Leaderboard API] Returning ${bids.length} confirmed bids for auction ${params.id}`);
 
     // Format leaderboard - show full names
     const leaderboard = bids.map((bid, index) => ({
@@ -39,7 +43,7 @@ export async function GET(
       statistics: stats,
     });
   } catch (error) {
-    console.error('Error in GET /api/auctions/[id]/leaderboard:', error);
+    console.error('[Leaderboard API] Error in GET /api/auctions/[id]/leaderboard:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
