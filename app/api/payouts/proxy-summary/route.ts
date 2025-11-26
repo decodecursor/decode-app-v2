@@ -16,7 +16,8 @@ export async function GET(request: NextRequest) {
     }
     
     const userId = user.id
-    
+    console.log(`🔍 PAYOUT DEBUG - User ID: ${userId}`)
+
     // Get user's bank connection status, role, and company info
     const { data: userData } = await supabase
       .from('users')
@@ -52,6 +53,7 @@ export async function GET(request: NextRequest) {
     // Check user role (case-insensitive)
     const isAdmin = userData?.role?.toLowerCase() === 'admin'
     const isModel = userData?.role?.toLowerCase() === 'model'
+    console.log(`🔍 PAYOUT DEBUG - User role: "${userData?.role}", isModel: ${isModel}`)
 
     if (isModel) {
       // MODEL: Get pending auction payouts directly from auctions table
@@ -65,6 +67,8 @@ export async function GET(request: NextRequest) {
         .eq('payout_status', 'pending')
         .order('end_time', { ascending: false })
 
+      console.log(`🔍 PAYOUT DEBUG - Query for pending auctions: creator_id=${userId}, status=completed, payout_status=pending`)
+      console.log(`🔍 PAYOUT DEBUG - Found ${pendingAuctions?.length || 0} pending auctions:`, pendingAuctions)
       console.log(`💰 Found ${pendingAuctions?.length || 0} pending auction payouts`)
 
       // Calculate total pending balance
@@ -117,6 +121,8 @@ export async function GET(request: NextRequest) {
         lastPayoutDate: lastPayoutAuction?.payment_captured_at || null,
         bankConnected
       }
+
+      console.log(`🔍 PAYOUT DEBUG - Returning payoutSummary with ${formattedPendingPayouts.length} pending payouts`)
 
       return NextResponse.json({
         payoutSummary,
