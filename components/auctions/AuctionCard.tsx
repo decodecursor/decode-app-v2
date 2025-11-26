@@ -422,11 +422,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                 }
               }}
               disabled={!videoData || loadingVideo}
-              className={`text-xs md:text-sm transition-all flex items-center gap-1.5 ${
-                videoData
-                  ? 'text-gray-600 hover:text-gray-500 hover:underline'
-                  : 'text-white/80 cursor-not-allowed'
-              }`}
+              className="cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
               title={videoData ? 'View video' : 'No video uploaded yet'}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
