@@ -144,6 +144,7 @@ export class AuctionVideoService {
         bid_id: params.bid_id,
         file_url: urlData.publicUrl,
         file_size_bytes: params.file.size,
+        mime_type: params.file.type,
         recording_method: params.recording_method,
         recording_token: params.recording_token,
         token_expires_at: params.recording_token ? this.getTokenExpiry().toISOString() : null,

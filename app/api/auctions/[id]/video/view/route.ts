@@ -55,6 +55,7 @@ export async function GET(
         file_url: video.file_url,
         file_size_bytes: video.file_size_bytes,
         duration_seconds: video.duration_seconds,
+        mime_type: video.mime_type,
         created_at: video.created_at,
         expires_at: video.expires_at,
       },

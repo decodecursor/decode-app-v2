@@ -16,6 +16,7 @@ export interface AuctionVideo {
   file_url: string;
   file_size_bytes?: number;
   duration_seconds?: number;
+  mime_type?: string;
 
   // Security token for fallback recording page
   recording_token?: string;
@@ -39,6 +40,7 @@ export interface CreateAuctionVideoDto {
   file_url: string;
   file_size_bytes?: number;
   duration_seconds?: number;
+  mime_type?: string;
   recording_method?: RecordingMethod;
   recording_token?: string;
   token_expires_at?: string;
@@ -48,6 +50,7 @@ export interface UpdateAuctionVideoDto {
   file_url?: string;
   file_size_bytes?: number;
   duration_seconds?: number;
+  mime_type?: string;
   retake_count?: number;
   deleted_at?: string;
 }

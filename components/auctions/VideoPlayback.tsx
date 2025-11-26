@@ -122,12 +122,15 @@ export function VideoPlayback({ auctionId, className = '' }: VideoPlaybackProps)
       ) : (
         <div className="relative bg-black aspect-video">
           <video
-            src={video.file_url}
             controls
             playsInline
             className="w-full h-full"
             controlsList="nodownload"
           >
+            <source
+              src={video.file_url}
+              type={video.mime_type || 'video/webm'}
+            />
             Your browser does not support video playback.
           </video>
         </div>
