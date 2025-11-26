@@ -18,6 +18,7 @@ export default function VideoRecordingPage() {
   const [isValid, setIsValid] = useState(false);
   const [auctionId, setAuctionId] = useState<string | null>(null);
   const [bidId, setBidId] = useState<string | null>(null);
+  const [creatorName, setCreatorName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
@@ -48,6 +49,7 @@ export default function VideoRecordingPage() {
         setIsValid(true);
         setAuctionId(result.auction_id);
         setBidId(result.bid_id);
+        setCreatorName(result.creator_name || 'the auction creator');
       } else {
         setError(result.error || 'Invalid or expired recording link');
       }
@@ -153,13 +155,6 @@ export default function VideoRecordingPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
-      {/* Header */}
-      <div className="max-w-3xl mx-auto mb-8 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Record Your Winner Video! 🎉
-        </h1>
-      </div>
-
       {/* Video Recorder */}
       <VideoRecorder
         auctionId={auctionId}
@@ -172,29 +167,14 @@ export default function VideoRecordingPage() {
       {/* Footer Info */}
       <div className="max-w-3xl mx-auto mt-8">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex gap-3">
-            <svg
-              className="flex-shrink-0 w-5 h-5 text-blue-600 mt-0.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <div className="text-sm text-blue-700">
-              <p className="font-medium mb-1">Important Information</p>
-              <ul className="space-y-1 list-disc list-inside">
-                <li>This link expires in 24 hours</li>
-                <li>You can retake your video once if needed</li>
-                <li>Videos are automatically deleted after 7 days</li>
-                <li>Only the auction creator can view your video</li>
-              </ul>
-            </div>
+          <div className="text-sm text-blue-700">
+            <p className="font-medium mb-1">Important Information</p>
+            <ul className="space-y-1 list-disc list-inside">
+              <li>This link expires in 24 hours</li>
+              <li>You can retake your video once if needed</li>
+              <li>Videos are automatically deleted after 7 days</li>
+              <li>Only {creatorName} can watch your video</li>
+            </ul>
           </div>
         </div>
       </div>

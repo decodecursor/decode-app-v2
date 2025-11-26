@@ -300,8 +300,15 @@ export function VideoRecorder({
   }, [stream]);
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-3xl mx-auto">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        {/* Header */}
+        <div className="p-6 pb-4 border-b border-gray-200">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center">
+            Record Your Winner Video! 🎉
+          </h1>
+        </div>
+
         {/* Video Display */}
         <div className="relative bg-black aspect-[9/16] max-h-[400px] sm:max-h-[70vh] mx-auto">
           {/* Live Preview */}
@@ -418,7 +425,7 @@ export function VideoRecorder({
                 )}
                 <button
                   onClick={requestCamera}
-                  className="flex-1 px-4 py-4 text-base sm:text-lg font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 shadow-lg animate-pulse flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-4 text-base sm:text-lg font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 shadow-lg animate-pulse flex items-center justify-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />

@@ -275,6 +275,7 @@ export class AuctionVideoService {
     valid: boolean;
     auction_id?: string;
     bid_id?: string;
+    creator_name?: string;
     already_uploaded?: boolean;
     error?: string;
   }> {
@@ -284,7 +285,18 @@ export class AuctionVideoService {
     try {
       const { data, error } = await supabase
         .from('auction_videos')
-        .select('auction_id, bid_id, token_expires_at, file_url, retake_count')
+        .select(`
+          auction_id,
+          bid_id,
+          token_expires_at,
+          file_url,
+          retake_count,
+          auctions!inner(
+            creator:users!creator_id(
+              user_name
+            )
+          )
+        `)
         .eq('recording_token', token)
         .single();
 
@@ -307,10 +319,14 @@ export class AuctionVideoService {
         };
       }
 
+      // Extract creator name from nested data
+      const creatorName = (data.auctions as any)?.creator?.user_name || 'the auction creator';
+
       return {
         valid: true,
         auction_id: data.auction_id,
         bid_id: data.bid_id,
+        creator_name: creatorName,
         already_uploaded: false,
       };
     } catch (error) {
