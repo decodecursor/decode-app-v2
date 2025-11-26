@@ -130,35 +130,30 @@ export async function POST(request: NextRequest) {
     }
 
     // Schedule auction close with EventBridge
-    try {
-      console.log('📅 [API /auctions/create] Scheduling EventBridge close event');
+    console.log('📅 [API /auctions/create] Scheduling EventBridge close event');
 
-      // Get the auction to retrieve end_time
-      const auction = await auctionService.getAuction(result.auction_id!);
+    // Get the auction to retrieve end_time
+    const auction = await auctionService.getAuction(result.auction_id!);
 
-      if (auction && auction.end_time) {
-        const scheduler = getEventBridgeScheduler();
-        const scheduleResult = await scheduler.scheduleAuctionClose({
-          auctionId: auction.id,
-          endTime: new Date(auction.end_time),
+    if (auction && auction.end_time) {
+      const scheduler = getEventBridgeScheduler();
+      const scheduleResult = await scheduler.scheduleAuctionClose({
+        auctionId: auction.id,
+        endTime: new Date(auction.end_time),
+      });
+
+      if (scheduleResult.success && scheduleResult.schedulerEventId) {
+        console.log('✅ [API /auctions/create] EventBridge schedule created:', scheduleResult.schedulerEventId);
+
+        // Store scheduler_event_id in database
+        await auctionService.updateAuction(auction.id, {
+          scheduler_event_id: scheduleResult.schedulerEventId,
         });
-
-        if (scheduleResult.success && scheduleResult.schedulerEventId) {
-          console.log('✅ [API /auctions/create] EventBridge schedule created:', scheduleResult.schedulerEventId);
-
-          // Store scheduler_event_id in database
-          await auctionService.updateAuction(auction.id, {
-            scheduler_event_id: scheduleResult.schedulerEventId,
-          });
-        } else {
-          console.error('❌ [API /auctions/create] Failed to create EventBridge schedule:', scheduleResult.error);
-          // Don't fail the entire request - auction is still created
-          // Fallback cron will handle it if EventBridge fails
-        }
+      } else {
+        console.error('❌ [API /auctions/create] Failed to create EventBridge schedule:', scheduleResult.error);
+        // Don't fail the entire request - auction is still created
+        // Fallback cron will handle it if EventBridge fails
       }
-    } catch (scheduleError) {
-      console.error('❌ [API /auctions/create] Error scheduling EventBridge:', scheduleError);
-      // Don't fail the entire request
     }
 
     console.log('✅ [API /auctions/create] Auction created successfully:', result.auction_id);
