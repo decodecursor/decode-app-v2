@@ -57,6 +57,7 @@ export default function PayoutsPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [bankAccountData, setBankAccountData] = useState<any>(null)
   const [paypalAccountData, setPaypalAccountData] = useState<any>(null)
+  const [selectedAuctionIds, setSelectedAuctionIds] = useState<Set<string>>(new Set())
   const router = useRouter()
 
   // Fetch user profile with role information
@@ -224,10 +225,25 @@ export default function PayoutsPage() {
   const handleRequestPayoutClick = () => {
     if (!payoutSummary) return
 
-    // If balance is less than 50 AED, show minimum balance modal
-    if (payoutSummary.availableBalance < 50) {
-      setShowMinimumBalanceModal(true)
-      return
+    // For MODEL users, check if any auctions are selected
+    if (userRole?.toLowerCase() === 'model') {
+      if (selectedAuctionIds.size === 0) {
+        setModalError('Please select at least one auction for payout')
+        setShowRequestModal(true)
+        return
+      }
+
+      const selectedTotal = getSelectedTotal()
+      if (selectedTotal < 50) {
+        setShowMinimumBalanceModal(true)
+        return
+      }
+    } else {
+      // Non-MODEL users (STAFF/ADMIN) use total balance
+      if (payoutSummary.availableBalance < 50) {
+        setShowMinimumBalanceModal(true)
+        return
+      }
     }
 
     // Check if user has any payment method configured
@@ -237,74 +253,92 @@ export default function PayoutsPage() {
     }
 
     // Show request modal
+    setModalError('')
     setShowRequestModal(true)
   }
 
   const handleRequestPayout = async () => {
     if (!user || !payoutSummary) return
 
-    const amount = parseFloat(requestAmount) || payoutSummary.availableBalance
-
-    // Validate minimum amount
-    if (amount < 50) {
-      setModalError('Minimum payout amount: AED 50')
-      return
-    }
-
-    // Validate maximum amount
-    if (amount > payoutSummary.availableBalance) {
-      setModalError(`Requested amount exceeds available balance. You have AED ${payoutSummary.availableBalance.toFixed(2)} available for payout.`)
-      return
-    }
-
-    console.log('🚀 [FRONTEND] Starting payout request for amount:', amount)
-    console.log('🚀 [FRONTEND] Available balance:', payoutSummary.availableBalance)
-    console.log('🚀 [FRONTEND] User:', user.id)
-
     setRequestLoading(true)
-    setRequestError('') // Clear any previous errors
-    setModalError('') // Clear any modal errors
+    setRequestError('')
+    setModalError('')
+
     try {
-      console.log('📤 [FRONTEND] Sending payout request...')
-      const response = await fetch('/api/payouts/request', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: amount
+      // For MODEL users, use auction-request API with selected auctions
+      if (userRole?.toLowerCase() === 'model') {
+        if (selectedAuctionIds.size === 0) {
+          setModalError('Please select at least one auction for payout')
+          setRequestLoading(false)
+          return
+        }
+
+        const selectedTotal = getSelectedTotal()
+        if (selectedTotal < 50) {
+          setModalError('Minimum payout amount: AED 50')
+          setRequestLoading(false)
+          return
+        }
+
+        console.log('🚀 [FRONTEND] MODEL auction payout request for', selectedAuctionIds.size, 'auctions, total:', selectedTotal)
+
+        const response = await fetch('/api/payouts/auction-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            auction_ids: Array.from(selectedAuctionIds)
+          })
         })
-      })
 
-      console.log('📥 [FRONTEND] Response received:', response.status, response.statusText)
-
-      if (response.ok) {
-        setShowRequestModal(false)
-        setRequestAmount('')
-
-        // Refresh data
-        await fetchPayoutSummary(user.id)
-
-        // Trigger PayoutHistory refresh to show new payout and heart animation
-        setRefreshTrigger(prev => prev + 1)
+        if (response.ok) {
+          setShowRequestModal(false)
+          setSelectedAuctionIds(new Set())
+          await fetchPayoutSummary(user.id)
+          setRefreshTrigger(prev => prev + 1)
+        } else {
+          const errorData = await response.json()
+          setRequestError(errorData.error || 'Failed to request payout')
+          setTimeout(() => setRequestError(''), 8000)
+        }
       } else {
-        const errorData = await response.json()
-        console.log('❌ [FRONTEND] Error response:', errorData)
-        setRequestError(errorData.error || 'Failed to request payout')
+        // Non-MODEL users use the original commission-based payout API
+        const amount = parseFloat(requestAmount) || payoutSummary.availableBalance
 
-        // Auto-hide error message after 8 seconds
-        setTimeout(() => {
-          setRequestError('')
-        }, 8000)
+        if (amount < 50) {
+          setModalError('Minimum payout amount: AED 50')
+          setRequestLoading(false)
+          return
+        }
+
+        if (amount > payoutSummary.availableBalance) {
+          setModalError(`Requested amount exceeds available balance. You have AED ${payoutSummary.availableBalance.toFixed(2)} available for payout.`)
+          setRequestLoading(false)
+          return
+        }
+
+        console.log('🚀 [FRONTEND] Starting payout request for amount:', amount)
+
+        const response = await fetch('/api/payouts/request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount })
+        })
+
+        if (response.ok) {
+          setShowRequestModal(false)
+          setRequestAmount('')
+          await fetchPayoutSummary(user.id)
+          setRefreshTrigger(prev => prev + 1)
+        } else {
+          const errorData = await response.json()
+          setRequestError(errorData.error || 'Failed to request payout')
+          setTimeout(() => setRequestError(''), 8000)
+        }
       }
     } catch (error) {
       console.error('Error requesting payout:', error)
       setRequestError('Failed to request payout. Please try again.')
-
-      // Auto-hide error message after 8 seconds
-      setTimeout(() => {
-        setRequestError('')
-      }, 8000)
+      setTimeout(() => setRequestError(''), 8000)
     } finally {
       setRequestLoading(false)
     }
@@ -323,6 +357,42 @@ export default function PayoutsPage() {
       month: 'short',
       day: 'numeric'
     })
+  }
+
+  // Calculate selected auctions total for MODEL users
+  const getSelectedTotal = () => {
+    if (!payoutSummary?.pendingPayouts) return 0
+    return payoutSummary.pendingPayouts
+      .filter(p => selectedAuctionIds.has(p.auction_id))
+      .reduce((sum, p) => sum + p.model_amount, 0)
+  }
+
+  // Toggle auction selection
+  const toggleAuctionSelection = (auctionId: string) => {
+    const newSelected = new Set(selectedAuctionIds)
+    if (newSelected.has(auctionId)) {
+      newSelected.delete(auctionId)
+    } else {
+      newSelected.add(auctionId)
+    }
+    setSelectedAuctionIds(newSelected)
+  }
+
+  // Toggle all auctions
+  const toggleSelectAll = () => {
+    if (!payoutSummary?.pendingPayouts) return
+    const allIds = payoutSummary.pendingPayouts.map(p => p.auction_id)
+    if (selectedAuctionIds.size === allIds.length) {
+      setSelectedAuctionIds(new Set())
+    } else {
+      setSelectedAuctionIds(new Set(allIds))
+    }
+  }
+
+  // Check if all auctions are selected
+  const isAllSelected = () => {
+    if (!payoutSummary?.pendingPayouts || payoutSummary.pendingPayouts.length === 0) return false
+    return selectedAuctionIds.size === payoutSummary.pendingPayouts.length
   }
 
   // Always render something, even while loading
@@ -495,10 +565,12 @@ export default function PayoutsPage() {
                     <div>
                       <button
                         onClick={handleRequestPayoutClick}
-                        disabled={payoutInProcess}
+                        disabled={payoutInProcess || (userRole?.toLowerCase() === 'model' && selectedAuctionIds.size === 0)}
                         className="w-full py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
                       >
-                        Request Payout
+                        {userRole?.toLowerCase() === 'model'
+                          ? `Request Payout${selectedAuctionIds.size > 0 ? ` (${formatCurrency(getSelectedTotal())})` : ''}`
+                          : 'Request Payout'}
                       </button>
                     </div>
                   )}
@@ -513,25 +585,64 @@ export default function PayoutsPage() {
                   </div>
 
                   {userRole?.toLowerCase() === 'model' ? (
-                    /* MODEL: Show pending payouts list */
+                    /* MODEL: Show pending payouts list with selection */
                     <div className="space-y-4">
-                      {/* Total Summary */}
+                      {/* Total Summary with Selected Info */}
                       <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-                        <p className="text-sm text-gray-300 mb-1">Total Pending</p>
-                        <p className="text-2xl md:text-3xl font-bold text-white">
-                          {formatCurrency(payoutSummary?.availableBalance || 0)}
-                        </p>
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="text-sm text-gray-300 mb-1">Total Pending</p>
+                            <p className="text-2xl md:text-3xl font-bold text-white">
+                              {formatCurrency(payoutSummary?.availableBalance || 0)}
+                            </p>
+                          </div>
+                          {selectedAuctionIds.size > 0 && (
+                            <div className="text-right">
+                              <p className="text-sm text-purple-300 mb-1">Selected ({selectedAuctionIds.size})</p>
+                              <p className="text-xl font-bold text-purple-400">
+                                {formatCurrency(getSelectedTotal())}
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
-                      {/* Pending Payouts List */}
+                      {/* Pending Payouts List with Checkboxes */}
                       <div className="max-h-[400px] overflow-y-auto space-y-2 border-t border-white/10 pt-4">
+                        {/* Select All Header */}
+                        {payoutSummary?.pendingPayouts && payoutSummary.pendingPayouts.length > 0 && (
+                          <div className="flex items-center gap-3 px-3 py-2 mb-2">
+                            <input
+                              type="checkbox"
+                              checked={isAllSelected()}
+                              onChange={toggleSelectAll}
+                              className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 cursor-pointer"
+                            />
+                            <span className="text-sm text-gray-400">
+                              {isAllSelected() ? 'Deselect All' : 'Select All'}
+                            </span>
+                          </div>
+                        )}
+
                         {payoutSummary?.pendingPayouts && payoutSummary.pendingPayouts.length > 0 ? (
                           payoutSummary.pendingPayouts.map((payout) => (
                             <div
                               key={payout.auction_id}
-                              className="flex justify-between items-center p-3 bg-white/5 border border-white/10 rounded-lg hover:bg-white/8 transition-colors"
+                              onClick={() => toggleAuctionSelection(payout.auction_id)}
+                              className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                                selectedAuctionIds.has(payout.auction_id)
+                                  ? 'bg-purple-500/20 border border-purple-500/50'
+                                  : 'bg-white/5 border border-white/10 hover:bg-white/8'
+                              }`}
                             >
-                              <div className="flex-1 min-w-0 pr-4">
+                              <input
+                                type="checkbox"
+                                checked={selectedAuctionIds.has(payout.auction_id)}
+                                onChange={() => toggleAuctionSelection(payout.auction_id)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 cursor-pointer"
+                              />
+                              <div className="flex-1 min-w-0">
                                 <p className="font-semibold text-white text-sm md:text-base truncate">
                                   {payout.auction_title}
                                 </p>
@@ -613,32 +724,58 @@ export default function PayoutsPage() {
               )}
 
               <div className="space-y-4">
-                {/* Available Balance - Enhanced with subcard design */}
-                <div className="bg-gradient-to-br from-purple-600/10 to-purple-500/5 border border-purple-500/20 rounded-lg p-4">
-                  <label className="block text-sm text-purple-300 mb-2 font-medium">
-                    Available Balance
-                  </label>
-                  <p className="text-2xl font-bold text-white bg-gradient-to-r from-purple-300 to-white bg-clip-text text-transparent">
-                    {formatCurrency(payoutSummary?.availableBalance || 0)}
-                  </p>
-                </div>
-                
-                <div>
-                  <label htmlFor="amount" className="block text-sm text-gray-400 mb-2">
-                    Request Amount
-                  </label>
-                  <input
-                    id="amount"
-                    type="number"
-                    value={requestAmount}
-                    onChange={(e) => setRequestAmount(e.target.value)}
-                    placeholder={`${payoutSummary?.availableBalance || 0}`}
-                    min="50"
-                    max={payoutSummary?.availableBalance || 0}
-                    className="cosmic-input w-full"
-                  />
-                </div>
-                
+                {userRole?.toLowerCase() === 'model' ? (
+                  /* MODEL: Show selected auctions */
+                  <>
+                    <div className="bg-gradient-to-br from-purple-600/10 to-purple-500/5 border border-purple-500/20 rounded-lg p-4">
+                      <label className="block text-sm text-purple-300 mb-2 font-medium">
+                        Selected Auctions ({selectedAuctionIds.size})
+                      </label>
+                      <p className="text-2xl font-bold text-white bg-gradient-to-r from-purple-300 to-white bg-clip-text text-transparent">
+                        {formatCurrency(getSelectedTotal())}
+                      </p>
+                    </div>
+
+                    {/* List selected auctions */}
+                    <div className="max-h-[200px] overflow-y-auto space-y-2">
+                      {payoutSummary?.pendingPayouts?.filter(p => selectedAuctionIds.has(p.auction_id)).map((payout) => (
+                        <div key={payout.auction_id} className="flex justify-between items-center p-2 bg-white/5 rounded-lg">
+                          <p className="text-sm text-white truncate flex-1 mr-2">{payout.auction_title}</p>
+                          <p className="text-sm font-semibold text-green-400">{formatCurrency(payout.model_amount)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  /* Non-MODEL: Show amount input */
+                  <>
+                    <div className="bg-gradient-to-br from-purple-600/10 to-purple-500/5 border border-purple-500/20 rounded-lg p-4">
+                      <label className="block text-sm text-purple-300 mb-2 font-medium">
+                        Available Balance
+                      </label>
+                      <p className="text-2xl font-bold text-white bg-gradient-to-r from-purple-300 to-white bg-clip-text text-transparent">
+                        {formatCurrency(payoutSummary?.availableBalance || 0)}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label htmlFor="amount" className="block text-sm text-gray-400 mb-2">
+                        Request Amount
+                      </label>
+                      <input
+                        id="amount"
+                        type="number"
+                        value={requestAmount}
+                        onChange={(e) => setRequestAmount(e.target.value)}
+                        placeholder={`${payoutSummary?.availableBalance || 0}`}
+                        min="50"
+                        max={payoutSummary?.availableBalance || 0}
+                        className="cosmic-input w-full"
+                      />
+                    </div>
+                  </>
+                )}
+
                 <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-3">
                   <p className="text-blue-100" style={{fontSize: '13px'}}>
                     Payout Method: {getSelectedMethodDisplayName()}
