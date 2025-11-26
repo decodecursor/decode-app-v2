@@ -158,9 +158,6 @@ export default function VideoRecordingPage() {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           Record Your Winner Video! 🎉
         </h1>
-        <p className="text-lg text-gray-700 font-medium">
-          Click "Start Camera" to record a 10-second video message
-        </p>
       </div>
 
       {/* Video Recorder */}

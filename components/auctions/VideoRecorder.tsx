@@ -344,7 +344,7 @@ export function VideoRecorder({
                 </svg>
                 <p className="text-lg sm:text-xl font-semibold">Ready to record?</p>
                 <p className="text-sm sm:text-base opacity-90 mt-2">
-                  Record a {MAX_VIDEO_DURATION_SECONDS}-second video message
+                  {MAX_VIDEO_DURATION_SECONDS}sec video message
                 </p>
               </div>
             </div>
@@ -403,30 +403,6 @@ export function VideoRecorder({
             </div>
           )}
 
-          {/* Help Banner - Only in idle state */}
-          {recordingState === 'idle' && (
-            <div className="bg-blue-600 text-white p-4 rounded-md">
-              <div className="flex items-center gap-3">
-                <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                <div>
-                  <p className="font-semibold text-base">Ready to record your video message?</p>
-                  <p className="text-sm text-blue-100 mt-1">Click "Start Camera" below to begin</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Instructions */}
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-            <h4 className="text-xs sm:text-sm font-semibold text-blue-900 mb-2">Instructions</h4>
-            <ul className="text-xs sm:text-sm text-blue-700 space-y-1 list-disc list-inside">
-              <li>Recording will automatically stop after {MAX_VIDEO_DURATION_SECONDS} seconds</li>
-              <li>You can retake once if needed</li>
-              <li>Make sure you have good lighting and audio</li>
-            </ul>
-          </div>
 
           {/* Action Buttons */}
           <div className="flex gap-3">
