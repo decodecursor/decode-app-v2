@@ -79,10 +79,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
   };
 
   // Handle share auction
-  const handleShare = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
+  const handleShare = async () => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
     const auctionUrl = `${baseUrl}/auctions/${auction.id}`;
 
@@ -96,10 +93,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
   };
 
   // Handle QR code generation
-  const handleGenerateQR = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
+  const handleGenerateQR = async () => {
     try {
       setGeneratingQR(true);
       setShowQRModal(true); // Open modal immediately
@@ -184,11 +178,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     fetchVideo();
   }, [auction.id]);
 
-  const closeQRModal = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+  const closeQRModal = () => {
     setShowQRModal(false);
     setQrCodeDataURL('');
   };
@@ -244,13 +234,14 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
   return (
     <>
-      <Link href={`/auctions/${auction.id}`}>
-        <div className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg p-5 transition-all duration-200 cursor-pointer
+      <div className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg transition-all duration-200
           ${isActive
             ? 'bg-gray-900/80 border-l-purple-500 hover:border-purple-400'
             : 'bg-blue-900/30 border-l-gray-500 hover:border-gray-400'
           }`}
         >
+      <Link href={`/auctions/${auction.id}`}>
+        <div className="p-5 cursor-pointer">
         {/* Header */}
         <div className="border-b border-gray-700 pb-4 mb-4">
           <div className="flex items-center gap-3">
@@ -408,15 +399,15 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </div>
           </div>
         </div>
+      </div>
+    </Link>
 
         {/* Action Buttons Row */}
-        <div className="border-t border-gray-700 pt-4">
+        <div className="border-t border-gray-700 pt-4 px-5 pb-5">
           <div className="flex flex-wrap gap-2 justify-start items-center">
             {/* Video Button - Text style for left alignment */}
             <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
+              onClick={() => {
                 if (videoData) {
                   setShowVideoModal(true);
                 }
@@ -435,11 +426,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             <div className="flex flex-wrap gap-2 ml-auto">
               {/* Share Button */}
               <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleShare(e);
-              }}
+              onClick={handleShare}
               className={`cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1.5 ${
                 shareSuccess ? 'bg-green-500/20 text-green-300 border-green-500' : ''
               }`}
@@ -464,11 +451,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
             {/* QR Code Button */}
             <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleGenerateQR(e);
-              }}
+              onClick={handleGenerateQR}
               disabled={generatingQR}
               className="cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
               title="Generate QR code"
@@ -482,11 +465,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             {/* Deactivate Button */}
             {shouldShowDeactivateButton && (
               <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setShowDeactivateConfirm(true);
-                }}
+                onClick={() => setShowDeactivateConfirm(true)}
                 disabled={deactivating}
                 className="cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-red-500/20 hover:border-red-500 hover:text-red-300 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Deactivate auction"
@@ -500,9 +479,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </div>
           </div>
         </div>
-
       </div>
-    </Link>
 
     {/* QR Code Modal */}
     {showQRModal && (
