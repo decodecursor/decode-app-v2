@@ -30,6 +30,10 @@ export interface AuctionVideo {
   expires_at: string;
   deleted_at?: string;
 
+  // Payout unlock tracking
+  watched_to_end_at?: string;
+  payout_unlocked_at?: string;
+
   created_at: string;
   updated_at: string;
 }
@@ -110,6 +114,14 @@ export function canRetake(video: AuctionVideo): boolean {
 export function isTokenValid(tokenExpiresAt?: string): boolean {
   if (!tokenExpiresAt) return false;
   return new Date(tokenExpiresAt) > new Date();
+}
+
+export function isPayoutUnlocked(video: AuctionVideo): boolean {
+  return !!video.payout_unlocked_at;
+}
+
+export function wasVideoWatched(video: AuctionVideo): boolean {
+  return !!video.watched_to_end_at;
 }
 
 export function formatVideoSize(bytes?: number): string {
