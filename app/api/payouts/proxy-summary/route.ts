@@ -64,10 +64,10 @@ export async function GET(request: NextRequest) {
         .select('id, title, end_time, model_payout_amount, payout_status, profit_amount, platform_fee_amount, auction_current_price, auction_start_price')
         .eq('creator_id', userId)
         .eq('status', 'completed')
-        .eq('payout_status', 'pending')
+        .or('payout_status.eq.pending,payout_status.is.null')
         .order('end_time', { ascending: false })
 
-      console.log(`🔍 PAYOUT DEBUG - Query for pending auctions: creator_id=${userId}, status=completed, payout_status=pending`)
+      console.log(`🔍 PAYOUT DEBUG - Query for pending auctions: creator_id=${userId}, status=completed, payout_status=pending OR null`)
       console.log(`🔍 PAYOUT DEBUG - Found ${pendingAuctions?.length || 0} pending auctions:`, pendingAuctions)
       console.log(`💰 Found ${pendingAuctions?.length || 0} pending auction payouts`)
 
