@@ -14,6 +14,7 @@ import { isAuctionEnded } from '@/lib/models/Auction.model';
 import { calculateProfit, calculatePlatformFee, calculateModelAmount } from '@/lib/models/AuctionPayout.model';
 import QRCode from 'qrcode';
 import { VideoPlayback } from './VideoPlayback';
+import { VideoModal } from './VideoModal';
 import { LinkBeautyBusinessModal } from './LinkBeautyBusinessModal';
 
 interface AuctionCardProps {
@@ -28,7 +29,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
   const [generatingQR, setGeneratingQR] = useState(false);
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
-  const [videoExpanded, setVideoExpanded] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
   const [videoData, setVideoData] = useState<any>(null);
   const [loadingVideo, setLoadingVideo] = useState(true);
   const [showBusinessModal, setShowBusinessModal] = useState(false);
@@ -418,7 +419,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                 e.preventDefault();
                 e.stopPropagation();
                 if (videoData) {
-                  setVideoExpanded(!videoExpanded);
+                  setShowVideoModal(true);
                 }
               }}
               disabled={!videoData || loadingVideo}
@@ -428,7 +429,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
-              <span>{videoData ? (videoExpanded ? 'Hide Video' : 'View Video') : 'No Video Yet'}</span>
+              <span>{videoData ? 'View Video' : 'No Video Yet'}</span>
             </button>
 
             {/* Right side buttons group */}
@@ -500,31 +501,6 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </div>
           </div>
         </div>
-
-        {/* Inline Video Expansion */}
-        {videoExpanded && videoData && (
-          <div className="border-t border-gray-700 pt-4 mt-4 transition-all duration-300 ease-in-out">
-            <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-4">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-sm font-semibold text-white">Auction Video</h3>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setVideoExpanded(false);
-                  }}
-                  className="text-gray-400 hover:text-white transition-colors"
-                  title="Close video"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <VideoPlayback auctionId={auction.id} />
-            </div>
-          </div>
-        )}
 
       </div>
     </Link>
@@ -624,6 +600,14 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
         setLinkedBusiness(businessId);
         console.log('Linked business:', businessId);
       }}
+    />
+
+    {/* Video Modal */}
+    <VideoModal
+      isOpen={showVideoModal}
+      onClose={() => setShowVideoModal(false)}
+      auctionId={auction.id}
+      auctionTitle={auction.title}
     />
   </>
   );
