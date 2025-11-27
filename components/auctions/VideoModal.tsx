@@ -13,9 +13,10 @@ interface VideoModalProps {
   onClose: () => void;
   auctionId: string;
   auctionTitle: string;
+  onPayoutUnlocked?: () => void;
 }
 
-export function VideoModal({ isOpen, onClose, auctionId, auctionTitle }: VideoModalProps) {
+export function VideoModal({ isOpen, onClose, auctionId, auctionTitle, onPayoutUnlocked }: VideoModalProps) {
   // Handle escape key press
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -63,7 +64,7 @@ export function VideoModal({ isOpen, onClose, auctionId, auctionTitle }: VideoMo
 
         {/* Video Content */}
         <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-4">
-          <VideoPlayback auctionId={auctionId} />
+          <VideoPlayback auctionId={auctionId} onPayoutUnlocked={onPayoutUnlocked} />
         </div>
       </div>
     </div>

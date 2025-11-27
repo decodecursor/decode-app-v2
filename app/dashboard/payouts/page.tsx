@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { getUserWithProxy } from '@/utils/auth-helper'
 import { PayoutHistory } from '@/components/stripe/PayoutHistory'
 import { PayoutMethodsCard } from '@/components/payouts/PayoutMethodsCard'
+import { PendingPayoutsCard } from '@/components/payouts/PendingPayoutsCard'
+import { VideoModal } from '@/components/auctions/VideoModal'
 import HeartAnimation from '@/components/effects/HeartAnimation'
 import { createClient } from '@/utils/supabase/client'
 import type { User } from '@supabase/supabase-js'
@@ -16,6 +18,15 @@ interface PendingPayoutItem {
   ended_at: string
   model_amount: number
   payout_status: string
+  // Profit breakdown
+  winning_amount: number
+  start_price: number
+  profit_amount: number
+  platform_fee_amount: number
+  // Video status
+  has_video: boolean
+  video_watched: boolean
+  payout_unlocked: boolean
 }
 
 interface PayoutSummary {
@@ -58,7 +69,21 @@ export default function PayoutsPage() {
   const [bankAccountData, setBankAccountData] = useState<any>(null)
   const [paypalAccountData, setPaypalAccountData] = useState<any>(null)
   const [selectedAuctionIds, setSelectedAuctionIds] = useState<Set<string>>(new Set())
+  const [videoModalAuction, setVideoModalAuction] = useState<{ id: string; title: string } | null>(null)
   const router = useRouter()
+
+  // Handler for watching video from PendingPayoutsCard
+  const handleWatchVideo = (auctionId: string, auctionTitle: string) => {
+    setVideoModalAuction({ id: auctionId, title: auctionTitle })
+  }
+
+  // Handler for when payout is unlocked after watching video
+  const handlePayoutUnlocked = async () => {
+    if (user) {
+      await fetchPayoutSummary(user.id)
+    }
+    setVideoModalAuction(null)
+  }
 
   // Fetch user profile with role information
   const fetchUserProfile = async (userId: string) => {
@@ -576,6 +601,16 @@ export default function PayoutsPage() {
                   )}
                 </div>
 
+                {/* NEW: Pending Payouts Card with profit breakdown and video status (MODEL only) */}
+                {userRole?.toLowerCase() === 'model' && payoutSummary?.pendingPayouts && payoutSummary.pendingPayouts.length > 0 && (
+                  <PendingPayoutsCard
+                    pendingPayouts={payoutSummary.pendingPayouts}
+                    onWatchVideo={handleWatchVideo}
+                    formatCurrency={formatCurrency}
+                    formatDate={formatDate}
+                  />
+                )}
+
                 {/* My Pending Payouts Card (MODEL) or Total Payouts Card (ADMIN/STAFF) */}
                 <div className="flex-1 cosmic-card">
                   <div className="mb-4">
@@ -930,6 +965,17 @@ export default function PayoutsPage() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Video Modal for watching winner videos to unlock payouts */}
+        {videoModalAuction && (
+          <VideoModal
+            isOpen={true}
+            onClose={() => setVideoModalAuction(null)}
+            auctionId={videoModalAuction.id}
+            auctionTitle={videoModalAuction.title}
+            onPayoutUnlocked={handlePayoutUnlocked}
+          />
         )}
       </div>
     </div>

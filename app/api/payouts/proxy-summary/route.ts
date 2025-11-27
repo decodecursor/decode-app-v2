@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
 
       const { data: pendingAuctions } = await supabase
         .from('auctions')
-        .select('id, title, end_time, model_payout_amount, payout_status, profit_amount, platform_fee_amount, current_price')
+        .select('id, title, end_time, model_payout_amount, payout_status, profit_amount, platform_fee_amount, auction_current_price, auction_start_price')
         .eq('creator_id', userId)
         .eq('status', 'completed')
         .eq('payout_status', 'pending')
@@ -70,6 +70,21 @@ export async function GET(request: NextRequest) {
       console.log(`🔍 PAYOUT DEBUG - Query for pending auctions: creator_id=${userId}, status=completed, payout_status=pending`)
       console.log(`🔍 PAYOUT DEBUG - Found ${pendingAuctions?.length || 0} pending auctions:`, pendingAuctions)
       console.log(`💰 Found ${pendingAuctions?.length || 0} pending auction payouts`)
+
+      // Fetch video status for all pending auctions
+      const auctionIds = (pendingAuctions || []).map(a => a.id)
+      let videoMap = new Map<string, { file_url: string | null, watched_to_end_at: string | null, payout_unlocked_at: string | null }>()
+
+      if (auctionIds.length > 0) {
+        const { data: videoRecords } = await supabase
+          .from('auction_videos')
+          .select('auction_id, file_url, watched_to_end_at, payout_unlocked_at')
+          .in('auction_id', auctionIds)
+
+        videoMap = new Map(
+          (videoRecords || []).map(v => [v.auction_id, v])
+        )
+      }
 
       // Calculate total pending balance
       userBalance = (pendingAuctions || []).reduce((sum, auction) => {
@@ -80,12 +95,27 @@ export async function GET(request: NextRequest) {
 
       // Format pending payouts for response
       const formattedPendingPayouts = (pendingAuctions || []).map(auction => {
+        const video = videoMap.get(auction.id)
+        const hasVideo = !!(video && video.file_url)
+        const videoWatched = !!(video && video.watched_to_end_at)
+        // Payout unlocked if: no video record OR no file_url OR payout_unlocked_at is set
+        const payoutUnlocked = !video || !hasVideo || !!(video && video.payout_unlocked_at)
+
         return {
           auction_id: auction.id,
           auction_title: auction.title || 'Untitled Auction',
           ended_at: auction.end_time,
           model_amount: Number(auction.model_payout_amount),
-          payout_status: auction.payout_status
+          payout_status: auction.payout_status,
+          // Profit breakdown
+          winning_amount: Number(auction.auction_current_price) || 0,
+          start_price: Number(auction.auction_start_price) || 0,
+          profit_amount: Number(auction.profit_amount) || 0,
+          platform_fee_amount: Number(auction.platform_fee_amount) || 0,
+          // Video status
+          has_video: hasVideo,
+          video_watched: videoWatched,
+          payout_unlocked: payoutUnlocked
         }
       })
 
