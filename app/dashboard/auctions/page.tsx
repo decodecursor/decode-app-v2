@@ -114,6 +114,11 @@ export default function AuctionsDashboardPage() {
                   color="blue"
                 />
                 <StatCard
+                  label="Services Funded"
+                  value={auctions.filter((a) => a.status === 'completed').length}
+                  color="purple"
+                />
+                <StatCard
                   label="Active Auctions"
                   value={auctions.filter((a) => isAuctionActive(a)).length}
                   color="green"
@@ -121,11 +126,6 @@ export default function AuctionsDashboardPage() {
                 <StatCard
                   label="Total Auctions"
                   value={auctions.length}
-                />
-                <StatCard
-                  label="Total Bids"
-                  value={auctions.reduce((sum, a) => sum + a.total_bids, 0)}
-                  color="purple"
                 />
               </div>
             </div>
