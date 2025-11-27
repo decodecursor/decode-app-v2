@@ -107,9 +107,8 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
       const auctionUrl = `${baseUrl}/auctions/${auction.id}`;
 
-      // Create WhatsApp share URL
-      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(auctionUrl)}`;
-      const qrDataURL = await QRCode.toDataURL(whatsappUrl, {
+      // Generate QR code for auction detail page
+      const qrDataURL = await QRCode.toDataURL(auctionUrl, {
         width: 300,
         margin: 2,
         color: {
@@ -520,7 +519,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </button>
           </div>
 
-          <p className="text-white font-medium mb-6">Scan to Share via WhatsApp</p>
+          <p className="text-white font-medium mb-6">Scan to View Auction</p>
 
           {generatingQR ? (
             <div className="mb-6 flex justify-center">
@@ -531,7 +530,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               <div className="bg-white p-4 rounded-lg inline-block">
                 <img
                   src={qrCodeDataURL}
-                  alt="WhatsApp QR Code"
+                  alt="Auction QR Code"
                   className="w-64 h-64 mx-auto"
                 />
               </div>

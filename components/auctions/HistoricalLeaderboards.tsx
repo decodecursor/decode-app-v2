@@ -283,7 +283,6 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold text-gray-900">Past Auctions</h3>
         </div>
-        <span className="text-sm text-gray-500">{auctions.length} auction{auctions.length !== 1 ? 's' : ''}</span>
       </div>
 
       {/* Cards container - extends naturally based on content */}
