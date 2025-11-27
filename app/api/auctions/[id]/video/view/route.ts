@@ -49,11 +49,28 @@ export async function GET(
       return NextResponse.json({ error: 'Video not found' }, { status: 404 });
     }
 
+    // Extract file path from stored URL and generate signed URL for private bucket
+    const filePath = video.file_url.match(/auction-videos\/.+$/)?.[0];
+    if (!filePath) {
+      console.error('Invalid video path:', video.file_url);
+      return NextResponse.json({ error: 'Invalid video path' }, { status: 500 });
+    }
+
+    // Generate signed URL (valid for 1 hour)
+    const { data: signedUrlData, error: signedError } = await supabase.storage
+      .from('auction_videos')
+      .createSignedUrl(filePath, 3600);
+
+    if (signedError || !signedUrlData?.signedUrl) {
+      console.error('Failed to generate signed URL:', signedError);
+      return NextResponse.json({ error: 'Failed to generate video URL' }, { status: 500 });
+    }
+
     return NextResponse.json({
       success: true,
       video: {
         id: video.id,
-        file_url: video.file_url,
+        file_url: signedUrlData.signedUrl,
         file_size_bytes: video.file_size_bytes,
         duration_seconds: video.duration_seconds,
         mime_type: video.mime_type,

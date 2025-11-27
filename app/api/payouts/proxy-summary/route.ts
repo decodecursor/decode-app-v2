@@ -59,13 +59,19 @@ export async function GET(request: NextRequest) {
       // MODEL: Get pending auction payouts directly from auctions table
       console.log(`💰 MODEL USER (role: ${userData.role}): Getting pending auction payouts`)
 
-      const { data: pendingAuctions } = await supabase
+      // Fetch all completed auctions first, then filter by payout_status in code
+      // (Supabase .or() doesn't work correctly when combined with .eq() filters)
+      const { data: allCompletedAuctions } = await supabase
         .from('auctions')
         .select('id, title, end_time, model_payout_amount, payout_status, profit_amount, platform_fee_amount, auction_current_price, auction_start_price')
         .eq('creator_id', userId)
         .eq('status', 'completed')
-        .or('payout_status.eq.pending,payout_status.is.null')
         .order('end_time', { ascending: false })
+
+      // Filter in code: include auctions where payout_status is null, pending, or processing
+      const pendingAuctions = (allCompletedAuctions || []).filter(
+        a => !a.payout_status || a.payout_status === 'pending' || a.payout_status === 'processing'
+      )
 
       console.log(`🔍 PAYOUT DEBUG - Query for pending auctions: creator_id=${userId}, status=completed, payout_status=pending OR null`)
       console.log(`🔍 PAYOUT DEBUG - Found ${pendingAuctions?.length || 0} pending auctions:`, pendingAuctions)
