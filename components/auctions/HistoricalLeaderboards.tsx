@@ -288,7 +288,7 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
       {/* Cards container - extends naturally based on content */}
       <div className="space-y-4">
         {auctions.map((auction) => (
-          <div key={auction.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-gray-400 transition-all duration-200">
+          <div key={auction.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-gray-400 transition-all duration-200">
             {/* Auction summary */}
             <div className="mb-3">
               <a
@@ -308,7 +308,7 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
 
             {/* Mini leaderboard (top 3) */}
             {auction.leaderboard && auction.leaderboard.length > 0 ? (
-              <div className="divide-y divide-gray-200 bg-gray-50 rounded-md">
+              <div className="divide-y divide-gray-200">
                 {auction.leaderboard.map((entry) => {
                   const timeAgo = new Date(entry.placed_at).toLocaleDateString('en-US', {
                     month: 'short',
@@ -338,7 +338,7 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
                 })}
               </div>
             ) : (
-              <div className="bg-gray-50 rounded-md p-3">
+              <div className="p-3">
                 <p className="text-xs text-gray-500 text-center">
                   {auction.total_bids > 0
                     ? `${auction.total_bids} bid${auction.total_bids !== 1 ? 's' : ''} pending confirmation`
