@@ -7,7 +7,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { formatVideoSize, formatVideoDuration, isVideoExpired } from '@/lib/models/AuctionVideo.model';
+import { isVideoExpired } from '@/lib/models/AuctionVideo.model';
 import type { AuctionVideo } from '@/lib/models/AuctionVideo.model';
 
 interface VideoPlaybackProps {
@@ -154,29 +154,6 @@ export function VideoPlayback({ auctionId, className = '', onPayoutUnlocked }: V
 
   return (
     <div className={`bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden ${className}`}>
-      {/* Payout Status Banner */}
-      {video?.file_url && !expired && (
-        <div className={`px-4 py-3 ${unlockSuccess ? 'bg-green-50 border-b border-green-200' : 'bg-amber-50 border-b border-amber-200'}`}>
-          <div className="flex items-center gap-2">
-            {unlockSuccess ? (
-              <>
-                <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className="text-sm font-medium text-green-800">Payout unlocked!</span>
-              </>
-            ) : (
-              <>
-                <svg className="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                <span className="text-sm font-medium text-amber-800">Watch this video to unlock your payout</span>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Header */}
       <div className="px-4 py-3 border-b border-gray-200">
         <div className="flex items-center justify-between">
@@ -243,49 +220,15 @@ export function VideoPlayback({ auctionId, className = '', onPayoutUnlocked }: V
         </div>
       )}
 
-      {/* Video Info */}
-      {!expired && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <p className="text-xs text-gray-500 uppercase">Duration</p>
-              <p className="text-sm font-medium text-gray-900">
-                {formatVideoDuration(video.duration_seconds)}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 uppercase">Size</p>
-              <p className="text-sm font-medium text-gray-900">
-                {formatVideoSize(video.file_size_bytes)}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 uppercase">Uploaded</p>
-              <p className="text-sm font-medium text-gray-900">
-                {new Date(video.created_at).toLocaleDateString()}
-              </p>
-            </div>
-          </div>
-
-          {video.retake_count > 0 && (
-            <div className="mt-3 p-2 bg-blue-50 rounded-md">
-              <p className="text-xs text-blue-700 text-center">
-                Winner used {video.retake_count} retake{video.retake_count !== 1 ? 's' : ''}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Actions */}
-      {!expired && (
+      {/* Payout Message - only show when payout is locked */}
+      {!expired && isPayoutLocked && (
         <div className="px-4 py-3 border-t border-gray-200">
-          <button
-            onClick={() => window.open(video.file_url, '_blank')}
-            className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Open in New Tab
-          </button>
+          <div className="flex items-center justify-center gap-2">
+            <svg className="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span className="text-sm font-medium text-amber-800">Watch this video to unlock your payout</span>
+          </div>
         </div>
       )}
     </div>
@@ -302,16 +245,6 @@ export function VideoPlaybackSkeleton() {
         <div className="h-6 bg-gray-200 rounded w-48" />
       </div>
       <div className="relative bg-gray-300 aspect-video" />
-      <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-        <div className="grid grid-cols-3 gap-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="text-center">
-              <div className="h-3 bg-gray-200 rounded w-16 mx-auto mb-2" />
-              <div className="h-4 bg-gray-200 rounded w-12 mx-auto" />
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
