@@ -18,6 +18,11 @@ interface ScheduleAuctionCloseParams {
   endTime: Date;
 }
 
+interface SchedulePayoutUnlockParams {
+  auctionId: string;
+  unlockTime: Date;
+}
+
 interface ScheduleResult {
   success: boolean;
   schedulerEventId?: string;
@@ -216,6 +221,87 @@ export class EventBridgeScheduler {
       return result;
     } catch (error) {
       console.error('[EventBridge] Failed to update schedule:', error);
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  /**
+   * Schedule payout unlock for an auction
+   *
+   * Called when video recording session is created. Schedules an event
+   * for 24 hours later to auto-unlock payout if no video was uploaded.
+   *
+   * @param auctionId - UUID of the auction
+   * @param unlockTime - Time when payout should auto-unlock (token_expires_at)
+   * @returns schedulerEventId for tracking
+   */
+  async schedulePayoutUnlock({
+    auctionId,
+    unlockTime,
+  }: SchedulePayoutUnlockParams): Promise<ScheduleResult> {
+    try {
+      // Generate unique schedule name
+      const scheduleName = `payout-unlock-${auctionId}`;
+
+      // Convert unlockTime to cron expression in UTC
+      const scheduleExpression = this.dateToOneTimeCron(unlockTime);
+
+      console.log(`[EventBridge] Creating payout unlock schedule for auction ${auctionId}`, {
+        scheduleName,
+        scheduleExpression,
+        unlockTime: unlockTime.toISOString(),
+        lambdaArn: this.lambdaArn,
+      });
+
+      const command = new CreateScheduleCommand({
+        Name: scheduleName,
+        GroupName: this.scheduleGroup,
+
+        // One-time schedule at exact unlockTime
+        ScheduleExpression: scheduleExpression,
+        ScheduleExpressionTimezone: 'UTC',
+
+        // Flexible time window: OFF (precise scheduling)
+        FlexibleTimeWindow: {
+          Mode: FlexibleTimeWindowMode.OFF,
+        },
+
+        // Target: Lambda function (proxies to Next.js API)
+        Target: {
+          Arn: this.lambdaArn,
+          RoleArn: this.roleArn,
+          Input: JSON.stringify({
+            auctionId,
+            source: 'eventbridge-scheduler',
+            action: 'unlock-payout',
+            scheduledTime: unlockTime.toISOString(),
+          }),
+          RetryPolicy: {
+            MaximumRetryAttempts: 185, // AWS maximum (retries up to 24 hours)
+          },
+        },
+
+        // Delete schedule after execution
+        ActionAfterCompletion: ActionAfterCompletion.DELETE,
+
+        // Optional: Add description
+        Description: `Auto-unlock payout for auction ${auctionId} at ${unlockTime.toISOString()}`,
+      });
+
+      await this.client.send(command);
+
+      console.log(`[EventBridge] Successfully created payout unlock schedule ${scheduleName}`);
+
+      return {
+        success: true,
+        schedulerEventId: scheduleName,
+      };
+    } catch (error) {
+      console.error('[EventBridge] Failed to create payout unlock schedule:', error);
 
       return {
         success: false,

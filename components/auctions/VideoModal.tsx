@@ -6,6 +6,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { VideoPlayback } from './VideoPlayback';
 
 interface VideoModalProps {
@@ -39,7 +40,7 @@ export function VideoModal({ isOpen, onClose, auctionId, auctionTitle, onPayoutU
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       onClick={onClose}
@@ -69,4 +70,8 @@ export function VideoModal({ isOpen, onClose, auctionId, auctionTitle, onPayoutU
       </div>
     </div>
   );
+
+  // Use portal to render modal at document.body level, bypassing backdrop-filter containment
+  if (typeof window === 'undefined') return modalContent;
+  return createPortal(modalContent, document.body);
 }

@@ -6,6 +6,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface LinkBeautyBusinessModalProps {
   isOpen: boolean;
@@ -40,7 +41,7 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
     onClose();
   };
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
@@ -195,4 +196,8 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
       </div>
     </div>
   );
+
+  // Use portal to render modal at document.body level, bypassing backdrop-filter containment
+  if (typeof window === 'undefined') return modalContent;
+  return createPortal(modalContent, document.body);
 }

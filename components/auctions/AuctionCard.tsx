@@ -6,6 +6,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { CompactAuctionTimer } from './AuctionTimer';
 import { formatBidAmount } from '@/lib/models/Bid.model';
@@ -481,8 +482,8 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
         </div>
       </div>
 
-    {/* QR Code Modal */}
-    {showQRModal && (
+    {/* QR Code Modal - Using Portal to bypass backdrop-filter containment */}
+    {showQRModal && typeof window !== 'undefined' && createPortal(
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
         <div className="cosmic-card max-w-md w-full text-center">
           <div className="flex justify-end mb-4">
@@ -527,11 +528,12 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             Close
           </button>
         </div>
-      </div>
+      </div>,
+      document.body
     )}
 
-    {/* Deactivate Confirmation Modal */}
-    {showDeactivateConfirm && (
+    {/* Deactivate Confirmation Modal - Using Portal to bypass backdrop-filter containment */}
+    {showDeactivateConfirm && typeof window !== 'undefined' && createPortal(
       <div
         className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
         onClick={() => setShowDeactivateConfirm(false)}
@@ -565,7 +567,8 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </button>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body
     )}
 
     {/* Beauty Business Link Modal */}

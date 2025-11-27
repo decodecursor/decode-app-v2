@@ -5,6 +5,7 @@
 
 import { createClient } from '@/utils/supabase/server';
 import { createServiceRoleClient } from '@/utils/supabase/service-role';
+import { getEventBridgeScheduler } from '@/lib/services/EventBridgeScheduler';
 import type {
   AuctionVideo,
   CreateAuctionVideoDto,
@@ -70,6 +71,26 @@ export class AuctionVideoService {
         expires_at: expiresAt.toISOString(),
         can_retake: true,
       };
+
+      // Schedule EventBridge event to auto-unlock payout at token expiry (24hr)
+      // This will unlock payout if winner doesn't upload video within 24hr
+      try {
+        const scheduler = getEventBridgeScheduler();
+        const unlockResult = await scheduler.schedulePayoutUnlock({
+          auctionId: params.auction_id,
+          unlockTime: expiresAt,
+        });
+
+        if (unlockResult.success) {
+          console.log(`[AuctionVideoService] Scheduled payout unlock for auction ${params.auction_id} at ${expiresAt.toISOString()}`);
+        } else {
+          console.warn(`[AuctionVideoService] Failed to schedule payout unlock: ${unlockResult.error}`);
+          // Don't fail the session creation - the payout can still be manually unlocked
+        }
+      } catch (scheduleError) {
+        console.error('[AuctionVideoService] Error scheduling payout unlock:', scheduleError);
+        // Don't fail the session creation - EventBridge may not be configured in all environments
+      }
 
       return { success: true, session };
     } catch (error) {

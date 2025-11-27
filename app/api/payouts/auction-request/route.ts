@@ -97,6 +97,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check video watch requirement for each auction
+    // Payout is only allowed if: video was watched (payout_unlocked_at set) OR no video was uploaded
+    for (const auction of auctions) {
+      const { data: video } = await supabase
+        .from('auction_videos')
+        .select('id, file_url, payout_unlocked_at')
+        .eq('auction_id', auction.id)
+        .single()
+
+      // If video exists with file_url but payout not unlocked, block the request
+      if (video && video.file_url && !video.payout_unlocked_at) {
+        console.log(`⚠️ [AUCTION-PAYOUT-REQUEST] Video not watched for auction: ${auction.id}`)
+        return NextResponse.json(
+          { error: `Please watch the winner video for "${auction.title}" before requesting payout.` },
+          { status: 400 }
+        )
+      }
+    }
+
     // Calculate total amount
     const totalAmount = auctions.reduce((sum, auction) => {
       return sum + (Number(auction.model_payout_amount) || 0)

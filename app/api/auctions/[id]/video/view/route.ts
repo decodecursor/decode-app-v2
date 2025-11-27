@@ -58,6 +58,9 @@ export async function GET(
         mime_type: video.mime_type,
         created_at: video.created_at,
         expires_at: video.expires_at,
+        watched_to_end_at: video.watched_to_end_at,
+        payout_unlocked_at: video.payout_unlocked_at,
+        retake_count: video.retake_count,
       },
     });
   } catch (error) {

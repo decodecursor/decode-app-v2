@@ -22,13 +22,14 @@ interface EventBridgePayload {
   auctionId: string;
   source: string;
   scheduledTime: string;
+  action?: string; // 'unlock-payout' for payout unlock, undefined for auction close
 }
 
 export async function POST(request: NextRequest) {
   try {
     // Parse request body first
     const body: EventBridgePayload = await request.json();
-    const { auctionId, source, scheduledTime } = body;
+    const { auctionId, source, scheduledTime, action } = body;
 
     // Verify request is from EventBridge via Lambda
     if (source !== 'eventbridge-scheduler') {
@@ -44,6 +45,11 @@ export async function POST(request: NextRequest) {
         { error: 'Missing auctionId in payload' },
         { status: 400 }
       );
+    }
+
+    // Route to payout unlock handler if action is 'unlock-payout'
+    if (action === 'unlock-payout') {
+      return handlePayoutUnlock(auctionId, scheduledTime);
     }
 
     console.log(`[EventBridge] Processing auction close: ${auctionId}`, {
@@ -266,4 +272,86 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * Handle payout unlock action
+ * Called 24 hours after auction closes if winner didn't upload video
+ */
+async function handlePayoutUnlock(auctionId: string, scheduledTime: string): Promise<NextResponse> {
+  console.log(`[EventBridge/UnlockPayout] Processing payout unlock for auction: ${auctionId}`, {
+    scheduledTime,
+    actualTime: new Date().toISOString(),
+  });
+
+  const supabase = createServiceRoleClient();
+
+  // Get video record for this auction
+  const { data: video, error: videoError } = await supabase
+    .from('auction_videos')
+    .select('id, file_url, payout_unlocked_at')
+    .eq('auction_id', auctionId)
+    .single();
+
+  if (videoError) {
+    // No video record exists - this shouldn't happen but handle gracefully
+    console.log(`[EventBridge/UnlockPayout] No video record found for auction ${auctionId}`);
+    return NextResponse.json({
+      success: true,
+      message: 'No video record found - nothing to unlock',
+      auction_id: auctionId,
+    });
+  }
+
+  // Check if already unlocked (idempotent)
+  if (video.payout_unlocked_at) {
+    console.log(`[EventBridge/UnlockPayout] Payout already unlocked for auction ${auctionId}`);
+    return NextResponse.json({
+      success: true,
+      message: 'Payout already unlocked',
+      auction_id: auctionId,
+      payout_unlocked_at: video.payout_unlocked_at,
+    });
+  }
+
+  // Check if video was uploaded
+  const hasVideo = video.file_url && video.file_url.trim() !== '';
+
+  if (hasVideo) {
+    // Video exists - model must watch it to unlock, don't auto-unlock
+    console.log(`[EventBridge/UnlockPayout] Video exists for auction ${auctionId} - model must watch to unlock`);
+    return NextResponse.json({
+      success: true,
+      message: 'Video uploaded - model must watch to unlock payout',
+      auction_id: auctionId,
+      requires_watch: true,
+    });
+  }
+
+  // No video uploaded within 24 hours - auto-unlock payout
+  const now = new Date().toISOString();
+  const { error: updateError } = await supabase
+    .from('auction_videos')
+    .update({
+      payout_unlocked_at: now,
+      // Note: watched_to_end_at stays NULL to indicate auto-unlock (no video to watch)
+    })
+    .eq('id', video.id);
+
+  if (updateError) {
+    console.error(`[EventBridge/UnlockPayout] Failed to unlock payout for auction ${auctionId}:`, updateError);
+    return NextResponse.json(
+      { error: 'Failed to unlock payout' },
+      { status: 500 }
+    );
+  }
+
+  console.log(`✅ [EventBridge/UnlockPayout] Auto-unlocked payout for auction ${auctionId} (no video uploaded within 24hr)`);
+
+  return NextResponse.json({
+    success: true,
+    message: 'Payout auto-unlocked (no video uploaded)',
+    auction_id: auctionId,
+    payout_unlocked_at: now,
+  });
 }
