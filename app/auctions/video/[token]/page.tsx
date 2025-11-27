@@ -126,24 +126,13 @@ export default function VideoRecordingPage() {
               />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Video Uploaded!</h1>
-          <p className="text-gray-600 mb-6">
-            Thank you for sharing your video message. The auction creator will be able to view it.
-          </p>
-          <div className="space-y-3">
-            <a
-              href="/auctions"
-              className="block w-full px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700"
-            >
-              View More Auctions
-            </a>
-            <button
-              onClick={() => window.close()}
-              className="block w-full px-6 py-3 text-gray-700 font-medium border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              Close Window
-            </button>
-          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">Video Uploaded!</h1>
+          <button
+            onClick={() => window.close()}
+            className="block w-full px-6 py-3 text-gray-700 font-medium border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Close Window
+          </button>
         </div>
       </div>
     );
@@ -168,12 +157,12 @@ export default function VideoRecordingPage() {
       <div className="max-w-3xl mx-auto mt-8">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="text-sm text-blue-700">
-            <p className="font-medium mb-1">Important Information</p>
+            <p className="font-medium mb-1">Important</p>
             <ul className="space-y-1 list-disc list-inside">
-              <li>This link expires in 24 hours</li>
-              <li>You can retake your video once if needed</li>
-              <li>Videos are automatically deleted after 7 days</li>
               <li>Only {creatorName} can watch your video</li>
+              <li>This link expires in 24 hours</li>
+              <li>You can retake your video once, if needed</li>
+              <li>Videos are automatically deleted after 7 days</li>
             </ul>
           </div>
         </div>

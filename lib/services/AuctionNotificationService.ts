@@ -158,10 +158,10 @@ export class AuctionNotificationService {
   }): string {
     const videoSection = params.recording_url
       ? `
-          <div style="background: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <p style="margin-top: 0;">As the winner, you can now record a 10-sec video message for ${params.creator_name}</p>
+          <div style="margin: 20px 0;">
+            <p>As the winner, you can now record a 10sec video message for ${params.creator_name}</p>
             <p><a href="${params.recording_url}" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Record Video</a></p>
-            <p style="font-size: 14px; color: #6B7280;">Link expires in 24 hours</p>
+            <p>Link expires in 24 hours</p>
           </div>
         `
       : `
@@ -176,7 +176,7 @@ export class AuctionNotificationService {
       <html>
       <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
         <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="color: #4F46E5;">Record Your Winner Video!</h1>
+          <h1 style="color: #4F46E5; text-align: left;">Record Your Winner Video!</h1>
 
           <p>You won ${params.creator_name}'s beauty auction "${params.auction_title}" with a winning bid of AED ${params.winning_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
 

@@ -303,14 +303,14 @@ export function VideoRecorder({
     <div className="max-w-3xl mx-auto">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="p-6 pb-4 border-b border-gray-200">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center">
+        <div className="p-6 pb-4">
+          <h1 className="text-[18px] sm:text-[26px] font-bold text-gray-900 text-center">
             Record Your Winner Video! 🎉
           </h1>
         </div>
 
         {/* Video Display */}
-        <div className="relative bg-black aspect-[9/16] max-h-[400px] sm:max-h-[70vh] mx-auto">
+        <div className="relative bg-black aspect-[9/16] max-h-[320px] sm:max-h-[56vh] mx-auto rounded-lg overflow-hidden">
           {/* Live Preview */}
           {(recordingState === 'ready' || recordingState === 'recording') && (
             <video
