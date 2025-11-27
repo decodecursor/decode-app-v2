@@ -1,23 +1,31 @@
 /**
  * Video Playback Component
  * Allows auction creators to view winner videos
+ * Requires watching to completion to unlock payout
  */
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { formatVideoSize, formatVideoDuration, isVideoExpired } from '@/lib/models/AuctionVideo.model';
 import type { AuctionVideo } from '@/lib/models/AuctionVideo.model';
 
 interface VideoPlaybackProps {
   auctionId: string;
   className?: string;
+  onPayoutUnlocked?: () => void;
 }
 
-export function VideoPlayback({ auctionId, className = '' }: VideoPlaybackProps) {
+export function VideoPlayback({ auctionId, className = '', onPayoutUnlocked }: VideoPlaybackProps) {
   const [video, setVideo] = useState<AuctionVideo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isUnlocking, setIsUnlocking] = useState(false);
+  const [unlockSuccess, setUnlockSuccess] = useState(false);
+
+  // Tracking for seeking prevention
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const lastAllowedTimeRef = useRef(0);
 
   useEffect(() => {
     fetchVideo();
@@ -41,6 +49,10 @@ export function VideoPlayback({ auctionId, className = '' }: VideoPlaybackProps)
       }
 
       setVideo(data.video);
+      // If already watched, show unlock success state
+      if (data.video?.payout_unlocked_at) {
+        setUnlockSuccess(true);
+      }
     } catch (err) {
       console.error('Error fetching video:', err);
       setError(err instanceof Error ? err.message : 'Failed to load video');
@@ -48,6 +60,60 @@ export function VideoPlayback({ auctionId, className = '' }: VideoPlaybackProps)
       setIsLoading(false);
     }
   };
+
+  // Prevent seeking forward - only allow watching sequentially
+  const handleSeeking = useCallback(() => {
+    const videoEl = videoRef.current;
+    if (!videoEl) return;
+
+    // If trying to seek ahead of what's been watched, reset to last allowed position
+    if (videoEl.currentTime > lastAllowedTimeRef.current + 0.5) {
+      videoEl.currentTime = lastAllowedTimeRef.current;
+    }
+  }, []);
+
+  // Track progress - update furthest watched position
+  const handleTimeUpdate = useCallback(() => {
+    const videoEl = videoRef.current;
+    if (!videoEl) return;
+
+    // Update last allowed time to furthest position reached
+    if (videoEl.currentTime > lastAllowedTimeRef.current) {
+      lastAllowedTimeRef.current = videoEl.currentTime;
+    }
+  }, []);
+
+  // Handle video ended - unlock payout
+  const handleEnded = useCallback(async () => {
+    // Don't call API if already unlocked
+    if (video?.payout_unlocked_at || unlockSuccess) return;
+
+    setIsUnlocking(true);
+    try {
+      const response = await fetch(`/api/auctions/${auctionId}/video/watched`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setUnlockSuccess(true);
+        // Update video state with new unlock info
+        setVideo(prev => prev ? {
+          ...prev,
+          watched_to_end_at: data.watched_at,
+          payout_unlocked_at: data.payout_unlocked_at,
+        } : null);
+        onPayoutUnlocked?.();
+      } else {
+        console.error('Failed to mark video as watched:', data.error);
+      }
+    } catch (err) {
+      console.error('Error marking video as watched:', err);
+    } finally {
+      setIsUnlocking(false);
+    }
+  }, [auctionId, video?.payout_unlocked_at, unlockSuccess, onPayoutUnlocked]);
 
   if (isLoading) {
     return <VideoPlaybackSkeleton />;
@@ -84,8 +150,33 @@ export function VideoPlayback({ auctionId, className = '' }: VideoPlaybackProps)
     (new Date(video.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
   );
 
+  const isPayoutLocked = video?.file_url && !video?.payout_unlocked_at;
+
   return (
     <div className={`bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden ${className}`}>
+      {/* Payout Status Banner */}
+      {video?.file_url && !expired && (
+        <div className={`px-4 py-3 ${unlockSuccess ? 'bg-green-50 border-b border-green-200' : 'bg-amber-50 border-b border-amber-200'}`}>
+          <div className="flex items-center gap-2">
+            {unlockSuccess ? (
+              <>
+                <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-sm font-medium text-green-800">Payout unlocked!</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span className="text-sm font-medium text-amber-800">Watch this video to unlock your payout</span>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="px-4 py-3 border-b border-gray-200">
         <div className="flex items-center justify-between">
@@ -122,10 +213,15 @@ export function VideoPlayback({ auctionId, className = '' }: VideoPlaybackProps)
       ) : (
         <div className="relative bg-black aspect-video">
           <video
-            controls
+            ref={videoRef}
             playsInline
             className="w-full h-full"
-            controlsList="nodownload"
+            controlsList="nodownload noplaybackrate"
+            disablePictureInPicture
+            onSeeking={isPayoutLocked ? handleSeeking : undefined}
+            onTimeUpdate={isPayoutLocked ? handleTimeUpdate : undefined}
+            onEnded={handleEnded}
+            controls
           >
             <source
               src={video.file_url}
@@ -133,6 +229,17 @@ export function VideoPlayback({ auctionId, className = '' }: VideoPlaybackProps)
             />
             Your browser does not support video playback.
           </video>
+          {isUnlocking && (
+            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+              <div className="text-white text-center">
+                <svg className="animate-spin h-8 w-8 mx-auto mb-2" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <p className="text-sm">Unlocking payout...</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
