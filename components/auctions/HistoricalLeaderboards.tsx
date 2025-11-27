@@ -308,9 +308,8 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
 
             {/* Mini leaderboard (top 3) */}
             {auction.leaderboard && auction.leaderboard.length > 0 ? (
-              <div className="space-y-2 bg-gray-50 rounded-md p-3">
+              <div className="divide-y divide-gray-200 bg-gray-50 rounded-md">
                 {auction.leaderboard.map((entry) => {
-                  const isFirstPlace = entry.rank === 1;
                   const timeAgo = new Date(entry.placed_at).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric'
@@ -319,11 +318,7 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
                   return (
                     <div
                       key={entry.rank}
-                      className={`flex items-center justify-between text-sm ${
-                        isFirstPlace
-                          ? 'bg-blue-50 rounded-md p-2 border border-blue-200'
-                          : 'p-2'
-                      }`}
+                      className="flex items-center justify-between text-sm py-3 px-2"
                     >
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <span className="flex-shrink-0 text-xl">{getMedalEmoji(entry.rank)}</span>
@@ -335,9 +330,7 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
                           />
                         </div>
                       </div>
-                      <span className={`font-semibold ml-2 flex-shrink-0 ${
-                        isFirstPlace ? 'text-blue-900 text-base' : 'text-gray-900 text-sm'
-                      }`}>
+                      <span className="font-semibold ml-2 flex-shrink-0 text-gray-900 text-sm">
                         {formatBidAmount(entry.bid_amount)}
                       </span>
                     </div>
