@@ -44,7 +44,8 @@ export async function GET(
     const videoService = new AuctionVideoService();
     const video = await videoService.getVideo(params.id);
 
-    if (!video) {
+    // Only return video if it has been actually uploaded (file_url is not empty)
+    if (!video || !video.file_url || video.file_url.trim() === '') {
       return NextResponse.json({ error: 'Video not found' }, { status: 404 });
     }
 
