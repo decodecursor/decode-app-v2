@@ -33,6 +33,15 @@ export async function GET(request: NextRequest) {
       console.error('🔍 PAYOUT DEBUG - User data query error:', userDataError)
     }
 
+    // Enhanced debug logging for userData result
+    console.log('🔍 PAYOUT DEBUG - Full userData result:', {
+      userData: userData ? JSON.stringify(userData) : 'NULL',
+      userDataError: userDataError ? JSON.stringify(userDataError) : 'none',
+      hasRole: !!userData?.role,
+      roleValue: userData?.role,
+      roleType: typeof userData?.role
+    })
+
     // Check Stripe Connect status
     const stripeConnected = userData?.stripe_connect_status === 'active'
 
@@ -62,6 +71,15 @@ export async function GET(request: NextRequest) {
     const isAdmin = userData?.role?.toLowerCase() === 'admin'
     const isModel = userData?.role?.toLowerCase() === 'model'
     console.log(`🔍 PAYOUT DEBUG - User role: "${userData?.role}", isModel: ${isModel}`)
+
+    // Enhanced debug logging for role detection
+    console.log('🔍 PAYOUT DEBUG - Role detection:', {
+      rawRole: userData?.role,
+      lowercaseRole: userData?.role?.toLowerCase(),
+      isModel,
+      isAdmin,
+      willUseModelPath: isModel
+    })
 
     if (isModel) {
       // MODEL: Get pending auction payouts directly from auctions table
