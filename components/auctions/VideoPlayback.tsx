@@ -22,6 +22,7 @@ export function VideoPlayback({ auctionId, className = '', onPayoutUnlocked }: V
   const [error, setError] = useState<string | null>(null);
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [unlockSuccess, setUnlockSuccess] = useState(false);
+  const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
 
   // Tracking for seeking prevention
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -115,6 +116,15 @@ export function VideoPlayback({ auctionId, className = '', onPayoutUnlocked }: V
     }
   }, [auctionId, video?.payout_unlocked_at, unlockSuccess, onPayoutUnlocked]);
 
+  // Handle play button click - start video and hide overlay
+  const handlePlayClick = useCallback(() => {
+    const videoEl = videoRef.current;
+    if (videoEl) {
+      setHasStartedPlaying(true);
+      videoEl.play();
+    }
+  }, []);
+
   if (isLoading) {
     return <VideoPlaybackSkeleton />;
   }
@@ -192,7 +202,7 @@ export function VideoPlayback({ auctionId, className = '', onPayoutUnlocked }: V
           <video
             ref={videoRef}
             playsInline
-            className="w-full h-full"
+            className={`w-full h-full ${!hasStartedPlaying ? 'invisible' : ''}`}
             controlsList="nodownload noplaybackrate"
             disablePictureInPicture
             onSeeking={isPayoutLocked ? handleSeeking : undefined}
@@ -206,6 +216,20 @@ export function VideoPlayback({ auctionId, className = '', onPayoutUnlocked }: V
             />
             Your browser does not support video playback.
           </video>
+          {/* Black overlay with play button - shown before video starts */}
+          {!hasStartedPlaying && (
+            <button
+              onClick={handlePlayClick}
+              className="absolute inset-0 bg-black flex items-center justify-center cursor-pointer group"
+              aria-label="Play video"
+            >
+              <div className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center group-hover:bg-opacity-100 transition-all">
+                <svg className="w-8 h-8 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+            </button>
+          )}
           {isUnlocking && (
             <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
               <div className="text-white text-center">

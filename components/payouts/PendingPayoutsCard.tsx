@@ -42,10 +42,6 @@ export function PendingPayoutsCard({
     setExpandedItems(newExpanded);
   };
 
-  if (!pendingPayouts || pendingPayouts.length === 0) {
-    return null;
-  }
-
   return (
     <div className="w-full cosmic-card mb-6">
       <div className="mb-4">
@@ -57,6 +53,9 @@ export function PendingPayoutsCard({
         </p>
       </div>
 
+      {!pendingPayouts || pendingPayouts.length === 0 ? (
+        <p className="text-gray-400 text-center py-8">No pending payouts yet. Your pending payouts will appear here.</p>
+      ) : (
       <div className="space-y-3">
         {pendingPayouts.map((payout) => (
           <div
@@ -165,6 +164,7 @@ export function PendingPayoutsCard({
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }

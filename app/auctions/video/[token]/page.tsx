@@ -128,10 +128,17 @@ export default function VideoRecordingPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-6">Video Uploaded!</h1>
           <button
-            onClick={() => window.close()}
+            onClick={() => {
+              // Try to close window first (works for email link flow)
+              window.close();
+              // If window didn't close (in-app flow), redirect to auction
+              setTimeout(() => {
+                router.push(`/auctions/${auctionId}`);
+              }, 100);
+            }}
             className="block w-full px-6 py-3 text-gray-700 font-medium border border-gray-300 rounded-md hover:bg-gray-50"
           >
-            Close Window
+            View Auction
           </button>
         </div>
       </div>

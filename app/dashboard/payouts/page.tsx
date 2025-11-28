@@ -602,9 +602,9 @@ export default function PayoutsPage() {
                 </div>
 
                 {/* NEW: Pending Payouts Card with profit breakdown and video status (MODEL only) */}
-                {userRole?.toLowerCase() === 'model' && payoutSummary?.pendingPayouts && payoutSummary.pendingPayouts.length > 0 && (
+                {userRole?.toLowerCase() === 'model' && (
                   <PendingPayoutsCard
-                    pendingPayouts={payoutSummary.pendingPayouts}
+                    pendingPayouts={payoutSummary?.pendingPayouts || []}
                     onWatchVideo={handleWatchVideo}
                     formatCurrency={formatCurrency}
                     formatDate={formatDate}
