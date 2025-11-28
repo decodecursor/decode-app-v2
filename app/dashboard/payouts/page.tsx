@@ -601,16 +601,6 @@ export default function PayoutsPage() {
                   )}
                 </div>
 
-                {/* NEW: Pending Payouts Card with profit breakdown and video status (MODEL only) */}
-                {userRole?.toLowerCase() === 'model' && (
-                  <PendingPayoutsCard
-                    pendingPayouts={payoutSummary?.pendingPayouts || []}
-                    onWatchVideo={handleWatchVideo}
-                    formatCurrency={formatCurrency}
-                    formatDate={formatDate}
-                  />
-                )}
-
                 {/* My Pending Payouts Card (MODEL) or Total Payouts Card (ADMIN/STAFF) */}
                 <div className="flex-1 cosmic-card">
                   <div className="mb-4">
@@ -733,6 +723,16 @@ export default function PayoutsPage() {
                   paypalAccountData={paypalAccountData}
                 />}
               </div>
+            )}
+
+            {/* Pending Payouts Card - Full width (MODEL only) */}
+            {!loading && userRole?.toLowerCase() === 'model' && (
+              <PendingPayoutsCard
+                pendingPayouts={payoutSummary?.pendingPayouts || []}
+                onWatchVideo={handleWatchVideo}
+                formatCurrency={formatCurrency}
+                formatDate={formatDate}
+              />
             )}
 
             {/* Payout History - Hidden for ADMIN */}

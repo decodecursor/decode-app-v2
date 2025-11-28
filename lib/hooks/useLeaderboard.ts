@@ -31,6 +31,7 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
 
   // Fetch initial leaderboard data
   const fetchLeaderboard = useCallback(async () => {
+    console.log('🔄 [useLeaderboard] Fetching leaderboard for auction:', auctionId);
     try {
       // Only show loading skeleton on initial load, not on background refreshes
       if (isInitialLoad) {

@@ -128,12 +128,19 @@ export default function AuctionDetailClient() {
 
   // Refresh auction data and leaderboard with visual feedback
   const handleRefresh = async () => {
+    console.log('🔄 [Refresh] Starting refresh...', {
+      refresh: typeof refresh,
+      refreshLeaderboard: typeof refreshLeaderboard
+    });
     setIsRefreshing(true);
     try {
       await Promise.all([
         refresh(),
         refreshLeaderboard()
       ]);
+      console.log('✅ [Refresh] Completed');
+    } catch (error) {
+      console.error('❌ [Refresh] Error:', error);
     } finally {
       // Keep the loading state for a brief moment for visual feedback
       setTimeout(() => setIsRefreshing(false), 500);
