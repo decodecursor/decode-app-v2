@@ -80,6 +80,10 @@ export async function GET(
         payout_unlocked_at: video.payout_unlocked_at,
         retake_count: video.retake_count,
       },
+      winner: {
+        name: auction.winner_name,
+        instagram_username: auction.winner_instagram_username,
+      },
     });
   } catch (error) {
     console.error('Error in GET /api/auctions/[id]/video/view:', error);

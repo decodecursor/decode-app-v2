@@ -154,8 +154,8 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                 {/* Header */}
                 <div className="text-center md:mb-8 mb-6">
                   <div className="md:w-16 md:h-16 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="md:w-[59px] md:h-[59px] w-[51px] h-[51px] text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21h18M7 17l4-4m0 0l3-3M11 13l-3-3m3 3l3 3m-3-3l3-3m-3-3v6m6-6h-6l-1-1V4a1 1 0 011-1h4a1 1 0 011 1v1l-1 1h6z" />
+                    <svg className="md:w-[59px] md:h-[59px] w-[51px] h-[51px] text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C10.9 2 10 2.9 10 4V5H8C6.9 5 6 5.9 6 7V8H5C3.9 8 3 8.9 3 10V19C3 20.66 4.34 22 6 22H18C19.66 22 21 20.66 21 19V10C21 8.9 20.1 8 19 8H18V7C18 5.9 17.1 5 16 5H14V4C14 2.9 13.1 2 12 2M12 4C12.55 4 13 4.45 13 5V5.5C13 5.78 12.78 6 12.5 6H11.5C11.22 6 11 5.78 11 5.5V5C11 4.45 11.45 4 12 4M8 7H16V8H8V7M6 10H18V11H6V10M5 13H19V19C19 19.55 18.55 20 18 20H6C5.45 20 5 19.55 5 19V13Z" />
                     </svg>
                   </div>
                   <Dialog.Title
