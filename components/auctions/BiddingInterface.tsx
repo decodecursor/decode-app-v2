@@ -314,16 +314,13 @@ export function BiddingInterface({
     const email = guestInfo?.email || userEmail;
     const whatsappNumber = guestInfo?.whatsappNumber;
 
-    // If we have a preloaded SetupIntent, use it for instant payment form
+    // If we have a preloaded SetupIntent, pass the setup_intent_id for faster bid creation
+    // (customer and guest_bidder are already created, so bid API is faster)
     if (preloadedSetupIntent) {
-      console.log('[BiddingInterface] Using preloaded SetupIntent for instant payment form');
-      setClientSecret(preloadedSetupIntent.clientSecret);
+      console.log('[BiddingInterface] Using preloaded SetupIntent for faster bid creation');
       setStep('payment');
-
-      // Create bid in background (non-blocking) with setup_intent_id
-      // Store the promise so PaymentForm can wait for it before confirming
-      const bidPromise = createBid(name, contactMethod, email, whatsappNumber, amount, username, preloadedSetupIntent.setupIntentId);
-      setPendingBidCreation(bidPromise);
+      // Wait for bid creation - PaymentIntent client_secret will be set by createBid
+      await createBid(name, contactMethod, email, whatsappNumber, amount, username, preloadedSetupIntent.setupIntentId);
     } else {
       // Fallback to original flow if preload didn't complete
       console.log('[BiddingInterface] No preloaded SetupIntent, using original flow');
