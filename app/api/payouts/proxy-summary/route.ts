@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     // Get user's bank connection status, role, and company info
     const { data: userData, error: userDataError } = await serviceClient
       .from('users')
-      .select('stripe_connect_account_id, stripe_connect_status, role, company_name')
+      .select('role, company_name')
       .eq('id', userId)
       .single()
 
@@ -42,8 +42,8 @@ export async function GET(request: NextRequest) {
       roleType: typeof userData?.role
     })
 
-    // Check Stripe Connect status
-    const stripeConnected = userData?.stripe_connect_status === 'active'
+    // Check Stripe Connect status (columns don't exist in users table yet)
+    const stripeConnected = false
 
     // Check manual bank account entries
     let manualBankConnected = false
