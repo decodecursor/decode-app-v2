@@ -172,9 +172,10 @@ export default function CreateAuction() {
 
           {/* Header */}
           <div className="text-center md:mb-8 mb-6">
-            <div className="md:w-8 md:h-8 w-7 h-7 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="md:w-4 md:h-4 w-3 h-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 6.343l-1.414-1.414-8.485 8.485 1.414 1.414 8.485-8.485zM17 4a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V5a1 1 0 00-1-1h-4zM3 20h18M6 16l4-4" />
+            <div className="md:w-16 md:h-16 w-14 h-14 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="md:w-8 md:h-8 w-6 h-6 text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.5 3.5L21 7l-3.5 3.5L14 7l3.5-3.5zM3 17.25V21h3.75L15.81 11.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l7.06-7.06.92.92L5.92 19z"/>
+                <path d="M2 22h20v2H2z"/>
               </svg>
             </div>
             <h2 className="md:text-2xl text-xl font-bold text-white mb-2">
