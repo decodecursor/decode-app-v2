@@ -48,9 +48,6 @@ export function PendingPayoutsCard({
         <h3 className="text-base md:text-lg font-semibold text-white">
           Pending Payouts
         </h3>
-        <p className="text-sm text-gray-400 mt-1">
-          View profit breakdown and video watch status for your pending auction payouts
-        </p>
       </div>
 
       {!pendingPayouts || pendingPayouts.length === 0 ? (

@@ -151,12 +151,9 @@ export default function AuctionDetailClient() {
       refreshLeaderboard()
     ]);
 
-    // Scroll to leaderboard on mobile after bid
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      const leaderboard = document.getElementById('mobile-leaderboard');
-      if (leaderboard) {
-        leaderboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+    // Scroll to top of page on both mobile and desktop after bid
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // Second refresh after 2 seconds to catch database updates
