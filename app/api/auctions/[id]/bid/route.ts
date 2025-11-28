@@ -134,6 +134,11 @@ export async function POST(
       bidData.bidder_email = `noemail+${sanitizedPhone}@welovedecode.com`;
     }
 
+    // Add setup_intent_id if provided (for preloaded payment form)
+    if (body.setup_intent_id) {
+      bidData.setup_intent_id = body.setup_intent_id;
+    }
+
     const result = await biddingService.placeBid(bidData);
 
     if (!result.success) {

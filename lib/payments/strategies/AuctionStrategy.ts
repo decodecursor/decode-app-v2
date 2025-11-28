@@ -26,6 +26,7 @@ export interface AuctionPaymentContext extends PaymentContext {
   is_guest: boolean;
   guest_stripe_customer_id?: string;
   guest_bidder_id?: string;
+  setup_intent_id?: string; // For preloaded payment form flow
 }
 
 export class AuctionStrategy implements IPaymentStrategy {
@@ -46,6 +47,66 @@ export class AuctionStrategy implements IPaymentStrategy {
   async createPayment(context: PaymentContext): Promise<PaymentResult> {
     try {
       const auctionContext = context as AuctionPaymentContext;
+
+      // If setup_intent_id is provided, we're using preloaded payment form
+      // Skip PaymentIntent creation - it will be created during payment confirmation
+      if (auctionContext.setup_intent_id) {
+        console.log('[AuctionStrategy] Using preloaded SetupIntent flow:', {
+          setup_intent_id: auctionContext.setup_intent_id,
+          auction_id: auctionContext.auction_id,
+        });
+
+        // Retrieve the SetupIntent to get customer info
+        const setupIntent = await stripe.setupIntents.retrieve(auctionContext.setup_intent_id);
+
+        // Create a PaymentIntent using the customer from SetupIntent
+        // This ensures proper pre-authorization
+        const aedAmount = context.amount;
+        const usdAmount = aedAmount / PAYMENT_CONFIG.currency.AED_TO_USD_RATE;
+        const usdCents = Math.round(usdAmount * 100);
+
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: usdCents,
+          currency: 'usd',
+          customer: setupIntent.customer as string,
+          capture_method: 'manual',
+          setup_future_usage: 'off_session',
+          automatic_payment_methods: {
+            enabled: true,
+            allow_redirects: 'never',
+          },
+          metadata: {
+            type: 'auction_bid',
+            auction_id: auctionContext.auction_id,
+            bid_id: '', // Will be updated after bid creation
+            bidder_email: auctionContext.bidder_email,
+            bidder_name: auctionContext.bidder_name,
+            is_guest: auctionContext.is_guest.toString(),
+            guest_bidder_id: auctionContext.guest_bidder_id || '',
+            original_amount_aed: aedAmount.toString(),
+            converted_amount_usd: usdAmount.toFixed(2),
+            setup_intent_id: auctionContext.setup_intent_id,
+          },
+          description: `Bid on auction: ${context.description || auctionContext.auction_id}`,
+        });
+
+        console.log('[AuctionStrategy] Created PaymentIntent from SetupIntent:', {
+          payment_intent_id: paymentIntent.id,
+          customer_id: setupIntent.customer,
+          setup_intent_id: auctionContext.setup_intent_id,
+        });
+
+        return {
+          success: true,
+          payment_intent_id: paymentIntent.id,
+          metadata: {
+            client_secret: paymentIntent.client_secret,
+            stripe_customer_id: setupIntent.customer as string,
+            has_saved_payment_method: false,
+            setup_intent_id: auctionContext.setup_intent_id,
+          },
+        };
+      }
 
       // Get or create Stripe customer for guest bidders
       let customerId: string | undefined = auctionContext.guest_stripe_customer_id;

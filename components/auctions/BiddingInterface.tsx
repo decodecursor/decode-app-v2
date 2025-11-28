@@ -95,6 +95,14 @@ export function BiddingInterface({
   const [isCheckingPreviousBids, setIsCheckingPreviousBids] = useState(false);
   const [paymentAutoConfirmed, setPaymentAutoConfirmed] = useState(false);
   const [savedCardLast4, setSavedCardLast4] = useState<string | null>(null);
+  const [preloadedSetupIntent, setPreloadedSetupIntent] = useState<{
+    clientSecret: string;
+    setupIntentId: string;
+    customerId: string;
+    guestBidderId: string;
+  } | null>(null);
+  const [isPreloadingSetupIntent, setIsPreloadingSetupIntent] = useState(false);
+  const [pendingBidCreation, setPendingBidCreation] = useState<Promise<void> | null>(null);
 
   const currentPrice = Number(auction.auction_current_price);
   const startPrice = Number(auction.auction_start_price);
@@ -103,6 +111,65 @@ export function BiddingInterface({
   // Check if auction is still active
   const isAuctionActive =
     auction.status === 'active' && new Date(auction.end_time) > new Date();
+
+  // Preload SetupIntent for faster payment form loading
+  const preloadSetupIntent = async (email: string, name: string) => {
+    if (isPreloadingSetupIntent || preloadedSetupIntent) return;
+
+    setIsPreloadingSetupIntent(true);
+    console.log('[BiddingInterface] Preloading SetupIntent for:', { email, name });
+
+    try {
+      const response = await fetch('/api/stripe/setup-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bidder_email: email,
+          bidder_name: name,
+          auction_id: auction.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.client_secret) {
+        setPreloadedSetupIntent({
+          clientSecret: data.client_secret,
+          setupIntentId: data.setup_intent_id,
+          customerId: data.customer_id,
+          guestBidderId: data.guest_bidder_id,
+        });
+        console.log('[BiddingInterface] SetupIntent preloaded successfully:', {
+          setupIntentId: data.setup_intent_id,
+        });
+      } else {
+        console.error('[BiddingInterface] Failed to preload SetupIntent:', data.error);
+      }
+    } catch (err) {
+      console.error('[BiddingInterface] Error preloading SetupIntent:', err);
+    } finally {
+      setIsPreloadingSetupIntent(false);
+    }
+  };
+
+  // Preload SetupIntent when entering instagram step (for guests)
+  useEffect(() => {
+    if (step === 'instagram' && guestInfo && !preloadedSetupIntent && !isPreloadingSetupIntent) {
+      const email = guestInfo.contactMethod === 'email'
+        ? guestInfo.email
+        : `whatsapp:${guestInfo.whatsappNumber}`;
+      if (email) {
+        preloadSetupIntent(email, guestInfo.name);
+      }
+    }
+  }, [step, guestInfo, preloadedSetupIntent, isPreloadingSetupIntent]);
+
+  // Also preload for logged-in users
+  useEffect(() => {
+    if (step === 'instagram' && userEmail && userName && !preloadedSetupIntent && !isPreloadingSetupIntent) {
+      preloadSetupIntent(userEmail, userName);
+    }
+  }, [step, userEmail, userName, preloadedSetupIntent, isPreloadingSetupIntent]);
 
   // Check for previous bids on mount
   useEffect(() => {
@@ -247,10 +314,22 @@ export function BiddingInterface({
     const email = guestInfo?.email || userEmail;
     const whatsappNumber = guestInfo?.whatsappNumber;
 
-    // Optimistic PaymentIntent creation: Start payment intent in background
-    // while transitioning to payment step for faster loading
-    setStep('payment');
-    await createBid(name, contactMethod, email, whatsappNumber, amount, username);
+    // If we have a preloaded SetupIntent, use it for instant payment form
+    if (preloadedSetupIntent) {
+      console.log('[BiddingInterface] Using preloaded SetupIntent for instant payment form');
+      setClientSecret(preloadedSetupIntent.clientSecret);
+      setStep('payment');
+
+      // Create bid in background (non-blocking) with setup_intent_id
+      // Store the promise so PaymentForm can wait for it before confirming
+      const bidPromise = createBid(name, contactMethod, email, whatsappNumber, amount, username, preloadedSetupIntent.setupIntentId);
+      setPendingBidCreation(bidPromise);
+    } else {
+      // Fallback to original flow if preload didn't complete
+      console.log('[BiddingInterface] No preloaded SetupIntent, using original flow');
+      setStep('payment');
+      await createBid(name, contactMethod, email, whatsappNumber, amount, username);
+    }
   };
 
   // Create bid and get payment intent
@@ -260,7 +339,8 @@ export function BiddingInterface({
     email?: string,
     whatsappNumber?: string,
     amount?: number,
-    instagram?: string
+    instagram?: string,
+    setupIntentId?: string
   ) => {
     setIsProcessing(true);
     setError(null);
@@ -275,6 +355,11 @@ export function BiddingInterface({
       contact_method: contactMethod,
       bid_amount: finalAmount,
     };
+
+    // Pass setup_intent_id if using preloaded SetupIntent
+    if (setupIntentId) {
+      bidData.setup_intent_id = setupIntentId;
+    }
 
     // Add Instagram username if provided
     if (instagram) {
@@ -364,6 +449,7 @@ export function BiddingInterface({
     setBidId(null);
     setError(null);
     setPaymentAutoConfirmed(false);
+    setPreloadedSetupIntent(null);
 
     // For guest bidders: Load cached data from localStorage
     if (!userEmail) {
@@ -509,7 +595,7 @@ export function BiddingInterface({
       )}
 
       {/* Step: Payment */}
-      {step === 'payment' && bidId && (
+      {step === 'payment' && (bidId || clientSecret) && (
         <div>
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-700">
@@ -625,6 +711,7 @@ export function BiddingInterface({
                   auctionId={auction.id}
                   bidId={bidId}
                   savedCardLast4={savedCardLast4}
+                  pendingBidCreation={pendingBidCreation}
                   onSuccess={() => {
                     if (onBidPlaced && bidId) onBidPlaced(bidId);
                     handleReset();
@@ -648,12 +735,14 @@ function PaymentForm({
   auctionId,
   bidId,
   savedCardLast4,
+  pendingBidCreation,
   onSuccess,
   onCancel,
 }: {
   auctionId: string;
-  bidId: string;
+  bidId: string | null;
   savedCardLast4?: string | null;
+  pendingBidCreation?: Promise<void> | null;
   onSuccess: () => void;
   onCancel: () => void;
 }) {
@@ -725,6 +814,18 @@ function PaymentForm({
   // Confirm bid payment after successful authorization
   const confirmBidPayment = async () => {
     try {
+      // If bid is still being created in background, wait for it
+      if (pendingBidCreation) {
+        console.log('[PaymentForm] Waiting for pending bid creation...');
+        await pendingBidCreation;
+        console.log('[PaymentForm] Bid creation completed');
+      }
+
+      // Now bidId should be set
+      if (!bidId) {
+        throw new Error('Bid creation failed. Please try again.');
+      }
+
       const response = await fetch(`/api/auctions/${auctionId}/bid/confirm`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
