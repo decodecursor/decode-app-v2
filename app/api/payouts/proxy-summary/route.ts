@@ -69,7 +69,8 @@ export async function GET(request: NextRequest) {
 
       // Fetch all completed auctions first, then filter by payout_status in code
       // (Supabase .or() doesn't work correctly when combined with .eq() filters)
-      const { data: allCompletedAuctions } = await supabase
+      // Use serviceClient to bypass RLS - the original RLS policy doesn't include 'completed' status
+      const { data: allCompletedAuctions } = await serviceClient
         .from('auctions')
         .select('id, title, end_time, model_payout_amount, payout_status, profit_amount, platform_fee_amount, auction_current_price, auction_start_price')
         .eq('creator_id', userId)

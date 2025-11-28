@@ -126,25 +126,9 @@ export default function AuctionDetailClient() {
     }
   };
 
-  // Refresh auction data and leaderboard with visual feedback
-  const handleRefresh = async () => {
-    console.log('🔄 [Refresh] Starting refresh...', {
-      refresh: typeof refresh,
-      refreshLeaderboard: typeof refreshLeaderboard
-    });
-    setIsRefreshing(true);
-    try {
-      await Promise.all([
-        refresh(),
-        refreshLeaderboard()
-      ]);
-      console.log('✅ [Refresh] Completed');
-    } catch (error) {
-      console.error('❌ [Refresh] Error:', error);
-    } finally {
-      // Keep the loading state for a brief moment for visual feedback
-      setTimeout(() => setIsRefreshing(false), 500);
-    }
+  // Refresh auction data by reloading the page (refreshes everything including video)
+  const handleRefresh = () => {
+    window.location.reload();
   };
 
   // Combined refresh for both auction and leaderboard after bid placement
@@ -166,6 +150,14 @@ export default function AuctionDetailClient() {
       refresh(),
       refreshLeaderboard()
     ]);
+
+    // Scroll to leaderboard on mobile after bid
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      const leaderboard = document.getElementById('mobile-leaderboard');
+      if (leaderboard) {
+        leaderboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
 
     // Second refresh after 2 seconds to catch database updates
     // This ensures we get the updated data even if the first refresh was too quick
@@ -578,7 +570,7 @@ export default function AuctionDetailClient() {
             )}
 
             {/* Mobile Leaderboard - shown only on small screens */}
-            <div className="lg:hidden">
+            <div id="mobile-leaderboard" className="lg:hidden">
               <LiveLeaderboard auctionId={auctionId} userEmail={userEmail} isAuctionEnded={isAuctionEnded(auction) || timerEnded} isCreator={isCreator} />
             </div>
 

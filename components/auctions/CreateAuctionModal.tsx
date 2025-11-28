@@ -155,7 +155,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                 <div className="text-center md:mb-8 mb-6">
                   <div className="md:w-16 md:h-16 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg className="md:w-[59px] md:h-[59px] w-[51px] h-[51px] text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.121 6.343l-1.414-1.414-8.485 8.485 1.414 1.414 8.485-8.485zM17 4a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V5a1 1 0 00-1-1h-4zM3 20h18M6 16l4-4" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21h18M7 17l4-4m0 0l3-3M11 13l-3-3m3 3l3 3m-3-3l3-3m-3-3v6m6-6h-6l-1-1V4a1 1 0 011-1h4a1 1 0 011 1v1l-1 1h6z" />
                     </svg>
                   </div>
                   <Dialog.Title
