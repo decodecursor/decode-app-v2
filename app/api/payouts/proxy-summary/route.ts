@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,12 +19,19 @@ export async function GET(request: NextRequest) {
     const userId = user.id
     console.log(`🔍 PAYOUT DEBUG - User ID: ${userId}`)
 
+    // Use service role client to bypass RLS for user data (role field needs elevated access)
+    const serviceClient = createServiceRoleClient()
+
     // Get user's bank connection status, role, and company info
-    const { data: userData } = await supabase
+    const { data: userData, error: userDataError } = await serviceClient
       .from('users')
       .select('stripe_connect_account_id, stripe_connect_status, role, company_name')
       .eq('id', userId)
       .single()
+
+    if (userDataError) {
+      console.error('🔍 PAYOUT DEBUG - User data query error:', userDataError)
+    }
 
     // Check Stripe Connect status
     const stripeConnected = userData?.stripe_connect_status === 'active'
