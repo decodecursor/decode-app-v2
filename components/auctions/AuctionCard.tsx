@@ -155,7 +155,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     }
   };
 
-  // Fetch video data on mount
+  // Fetch video data on mount and when has_video flag changes
   useEffect(() => {
     const fetchVideo = async () => {
       try {
@@ -177,7 +177,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     };
 
     fetchVideo();
-  }, [auction.id]);
+  }, [auction.id, auction.has_video]); // React to has_video changes from real-time updates
 
   const closeQRModal = () => {
     setShowQRModal(false);

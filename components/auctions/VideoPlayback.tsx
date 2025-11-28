@@ -20,11 +20,12 @@ function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
 
 interface VideoPlaybackProps {
   auctionId: string;
+  auction?: { has_video?: boolean }; // Auction data for real-time updates
   className?: string;
   onPayoutUnlocked?: () => void;
 }
 
-export function VideoPlayback({ auctionId, className = '', onPayoutUnlocked }: VideoPlaybackProps) {
+export function VideoPlayback({ auctionId, auction, className = '', onPayoutUnlocked }: VideoPlaybackProps) {
   const [video, setVideo] = useState<AuctionVideo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +41,7 @@ export function VideoPlayback({ auctionId, className = '', onPayoutUnlocked }: V
 
   useEffect(() => {
     fetchVideo();
-  }, [auctionId]);
+  }, [auctionId, auction?.has_video]); // React to has_video changes from real-time updates
 
   const fetchVideo = async () => {
     try {

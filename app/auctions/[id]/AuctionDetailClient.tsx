@@ -583,7 +583,7 @@ export default function AuctionDetailClient() {
 
             {/* Creator View - Video Playback */}
             {isCreator && (isAuctionEnded(auction) || timerEnded) && (
-              <VideoPlayback auctionId={auctionId} />
+              <VideoPlayback auctionId={auctionId} auction={auction} />
             )}
 
             {/* Auction Details */}

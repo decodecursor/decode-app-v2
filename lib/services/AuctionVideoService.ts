@@ -251,6 +251,21 @@ export class AuctionVideoService {
         videoId = created.id;
       }
 
+      // Update auction to set has_video flag
+      // This triggers Supabase real-time event that existing subscriptions will catch
+      const { error: auctionUpdateError } = await supabase
+        .from('auctions')
+        .update({
+          has_video: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', params.auction_id);
+
+      if (auctionUpdateError) {
+        console.error('Error updating auction has_video flag:', auctionUpdateError);
+        // Don't fail the upload - video is already saved successfully
+      }
+
       return {
         success: true,
         video_id: videoId,

@@ -48,6 +48,7 @@ export interface Auction {
   // Metadata
   total_bids: number;
   unique_bidders: number;
+  has_video?: boolean; // Indicates if a video has been uploaded for this auction
 
   // EventBridge Scheduler
   scheduler_event_id?: string;
@@ -80,6 +81,7 @@ export interface UpdateAuctionDto {
   profit_amount?: number;
   platform_fee_amount?: number;
   model_payout_amount?: number;
+  has_video?: boolean;
 }
 
 export interface AuctionWithCreator extends Auction {
