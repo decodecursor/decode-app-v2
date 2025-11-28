@@ -22,13 +22,17 @@ interface PendingPayoutsCardProps {
   onWatchVideo: (auctionId: string, auctionTitle: string) => void;
   formatCurrency: (amount: number) => string;
   formatDate: (date: string) => string;
+  selectedAuctionIds: Set<string>;
+  onToggleSelection: (auctionId: string) => void;
 }
 
 export function PendingPayoutsCard({
   pendingPayouts,
   onWatchVideo,
   formatCurrency,
-  formatDate
+  formatDate,
+  selectedAuctionIds,
+  onToggleSelection
 }: PendingPayoutsCardProps) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
@@ -58,13 +62,26 @@ export function PendingPayoutsCard({
           <div
             key={payout.auction_id}
             className={`p-4 rounded-lg border transition-colors ${
-              payout.payout_unlocked
-                ? 'bg-green-500/5 border-green-500/30'
-                : 'bg-amber-500/5 border-amber-500/30'
+              !payout.payout_unlocked
+                ? 'bg-amber-500/5 border-amber-500/30 opacity-60'
+                : selectedAuctionIds.has(payout.auction_id)
+                  ? 'bg-purple-500/20 border-purple-500/50'
+                  : 'bg-green-500/5 border-green-500/30'
             }`}
           >
             {/* Main Row */}
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              {/* Checkbox - Left side */}
+              <div className="flex items-center pt-1">
+                <input
+                  type="checkbox"
+                  checked={selectedAuctionIds.has(payout.auction_id)}
+                  disabled={!payout.payout_unlocked}
+                  onChange={() => onToggleSelection(payout.auction_id)}
+                  className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-white text-sm md:text-base truncate">
                   {payout.auction_title}

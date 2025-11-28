@@ -79,7 +79,12 @@ export default function PayoutsPage() {
 
   // Handler for when payout is unlocked after watching video
   const handlePayoutUnlocked = async () => {
-    if (user) {
+    if (user && videoModalAuction) {
+      // Add the newly unlocked auction to selection
+      const newSelected = new Set(selectedAuctionIds)
+      newSelected.add(videoModalAuction.id)
+      setSelectedAuctionIds(newSelected)
+
       await fetchPayoutSummary(user.id)
     }
     setVideoModalAuction(null)
@@ -134,6 +139,24 @@ export default function PayoutsPage() {
     }
     getUser()
   }, [])
+
+  // Auto-select all unlocked payouts on page load (MODEL users only)
+  useEffect(() => {
+    if (
+      userRole?.toLowerCase() === 'model' &&
+      payoutSummary?.pendingPayouts &&
+      payoutSummary.pendingPayouts.length > 0 &&
+      selectedAuctionIds.size === 0  // Only auto-select if nothing is selected
+    ) {
+      const unlockedIds = payoutSummary.pendingPayouts
+        .filter(p => p.payout_unlocked)
+        .map(p => p.auction_id)
+
+      if (unlockedIds.length > 0) {
+        setSelectedAuctionIds(new Set(unlockedIds))
+      }
+    }
+  }, [payoutSummary, userRole])
 
   const fetchPayoutSummary = async (userId: string) => {
     try {
@@ -394,6 +417,12 @@ export default function PayoutsPage() {
 
   // Toggle auction selection
   const toggleAuctionSelection = (auctionId: string) => {
+    // Safety check: prevent locked payouts from being selected
+    const payout = payoutSummary?.pendingPayouts?.find(p => p.auction_id === auctionId)
+    if (payout && !payout.payout_unlocked) {
+      return  // Silently ignore attempts to select locked payouts
+    }
+
     const newSelected = new Set(selectedAuctionIds)
     if (newSelected.has(auctionId)) {
       newSelected.delete(auctionId)
@@ -732,6 +761,8 @@ export default function PayoutsPage() {
                 onWatchVideo={handleWatchVideo}
                 formatCurrency={formatCurrency}
                 formatDate={formatDate}
+                selectedAuctionIds={selectedAuctionIds}
+                onToggleSelection={toggleAuctionSelection}
               />
             )}
 
