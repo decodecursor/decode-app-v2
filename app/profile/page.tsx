@@ -768,7 +768,8 @@ export default function ProfilePage() {
                     setInstagramError(null)
                   }}
                   placeholder="username"
-                  className="cosmic-input w-full pl-12"
+                  className="cosmic-input w-full"
+                  style={{ paddingLeft: '40px' }}
                   autoCapitalize="none"
                   autoCorrect="off"
                   autoComplete="username"
