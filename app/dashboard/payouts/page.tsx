@@ -593,7 +593,7 @@ export default function PayoutsPage() {
                     )}
 
                     {/* Payout to - Styled Subcard */}
-                    <div style={{width: '47%'}}>
+                    <div style={{width: '40%'}}>
                       <p className="text-gray-400 text-xs md:text-sm mb-1">Payout to</p>
                       <div
                         onClick={() => setShowSelectMethodModal(true)}

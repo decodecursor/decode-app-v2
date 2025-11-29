@@ -153,25 +153,24 @@ export async function GET(request: NextRequest) {
         }
       })
 
-      // Get total paid out amount from auctions
-      const { data: paidAuctions } = await supabase
-        .from('auctions')
-        .select('model_payout_amount')
-        .eq('creator_id', userId)
-        .eq('payout_status', 'transferred')
+      // Get total paid out amount from payouts table
+      const { data: completedPayouts } = await supabase
+        .from('payouts')
+        .select('payout_amount_aed')
+        .eq('user_id', userId)
+        .in('status', ['paid', 'pending'])
 
-      const totalPaidOut = (paidAuctions || []).reduce((sum, auction) => {
-        return sum + (Number(auction.model_payout_amount) || 0)
+      const totalPaidOut = (completedPayouts || []).reduce((sum, payout) => {
+        return sum + (Number(payout.payout_amount_aed) || 0)
       }, 0)
 
-      // Get last payout from auctions (most recent transferred payout)
-      const { data: lastPayoutAuction } = await supabase
-        .from('auctions')
-        .select('model_payout_amount, payment_captured_at')
-        .eq('creator_id', userId)
-        .eq('payout_status', 'transferred')
-        .not('payment_captured_at', 'is', null)
-        .order('payment_captured_at', { ascending: false })
+      // Get last payout from payouts table (most recent)
+      const { data: lastPayoutRecord } = await supabase
+        .from('payouts')
+        .select('payout_amount_aed, paid_at, created_at')
+        .eq('user_id', userId)
+        .in('status', ['paid', 'pending'])
+        .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
 
@@ -181,8 +180,8 @@ export async function GET(request: NextRequest) {
         pendingPayouts: formattedPendingPayouts,
         totalEarnings: userBalance + totalPaidOut,
         totalPaidOut,
-        lastPayoutAmount: lastPayoutAuction ? Number(lastPayoutAuction.model_payout_amount) : 0,
-        lastPayoutDate: lastPayoutAuction?.payment_captured_at || null,
+        lastPayoutAmount: lastPayoutRecord ? Number(lastPayoutRecord.payout_amount_aed) : 0,
+        lastPayoutDate: lastPayoutRecord?.paid_at || lastPayoutRecord?.created_at || null,
         bankConnected
       }
 
