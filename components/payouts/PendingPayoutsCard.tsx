@@ -75,6 +75,7 @@ export function PendingPayoutsCard({
                   type="checkbox"
                   checked={selectedAuctionIds.has(payout.auction_id)}
                   disabled={!payout.payout_unlocked}
+                  title={!payout.payout_unlocked ? "Watch Video to Unlock" : ""}
                   onChange={() => onToggleSelection(payout.auction_id)}
                   className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 />
