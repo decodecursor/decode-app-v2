@@ -66,10 +66,12 @@ export function PendingPayoutsCard({
                 selectedAuctionIds.has(payout.auction_id)
                   ? 'border-2 border-purple-500'
                   : 'border border-gray-600'
-              } ${!payout.payout_unlocked ? 'opacity-50' : ''}`}
+              }`}
             >
-              {/* Single Horizontal Row */}
-              <div className="flex items-center gap-4 md:gap-6">
+              {/* Main content row - faded when locked */}
+              <div className={`${!payout.payout_unlocked ? 'opacity-50' : ''}`}>
+                {/* Single Horizontal Row */}
+                <div className="flex items-center gap-4 md:gap-6">
                 {/* Checkbox */}
                 <div className="flex items-center">
                   <input
@@ -118,10 +120,13 @@ export function PendingPayoutsCard({
                   </svg>
                 </div>
               </div>
+              </div>
 
               {/* Expandable Profit Breakdown */}
               {expandedItems.has(payout.auction_id) && (
-                <div className="mt-4 pt-4 border-t border-white/10">
+                <div className={`mt-4 pt-4 border-t border-white/10 rounded-b-lg ${
+                  !payout.payout_unlocked ? 'bg-gray-900/90 -mx-4 -mb-4 px-4 pb-4' : ''
+                }`}>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-white">Winning Bid</span>
@@ -162,7 +167,7 @@ export function PendingPayoutsCard({
 
             {/* Overlay Layer - Full opacity buttons (only for locked cards) */}
             {!payout.payout_unlocked && (
-              <div className="absolute top-0 right-0 h-full flex items-center pr-4 pointer-events-none">
+              <div className="absolute top-4 right-0 flex pr-4 pointer-events-none">
                 <div className="flex items-center gap-2 pointer-events-auto">
                   {/* Watch Video Button */}
                   {payout.has_video && (
@@ -195,7 +200,7 @@ export function PendingPayoutsCard({
 
             {/* Buttons for unlocked cards (normal flow) */}
             {payout.payout_unlocked && (
-              <div className="absolute top-0 right-0 h-full flex items-center pr-4">
+              <div className="absolute top-4 right-0 flex pr-4">
                 <div className="flex items-center gap-2">
                   {/* Profit Breakdown Button */}
                   <button
