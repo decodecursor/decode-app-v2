@@ -597,7 +597,7 @@ export default function PayoutsPage() {
                       <p className="text-gray-400 text-xs md:text-sm mb-1">Payout to</p>
                       <div
                         onClick={() => setShowSelectMethodModal(true)}
-                        className={`bg-white/5 rounded-lg py-3 md:py-2 px-3 border ${
+                        className={`bg-white/5 rounded-lg py-3 md:py-2 px-2 border ${
                           selectedPayoutMethod ? 'border-purple-500' : 'border-gray-700'
                         } cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group min-h-[48px] md:min-h-0 flex items-center`}
                       >
