@@ -107,7 +107,8 @@ export default function AuctionDetailClient() {
     // Only trigger if timer transitioned from false to true (live end event)
     // Don't trigger on mount if already ended (page refresh case)
     // Don't trigger for cancelled auctions
-    if (!prevTimerEnded && timerEnded && auction?.status !== 'cancelled') {
+    // Don't trigger for auctions with no bids
+    if (!prevTimerEnded && timerEnded && auction?.status !== 'cancelled' && auction.total_bids > 0) {
       setShowHeartAnimation(true);
     }
 

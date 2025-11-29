@@ -630,117 +630,31 @@ export default function PayoutsPage() {
                   )}
                 </div>
 
-                {/* My Pending Payouts Card (MODEL) or Total Payouts Card (ADMIN/STAFF) */}
+                {/* Total Payouts Card (All Roles) */}
                 <div className="flex-1 cosmic-card">
                   <div className="mb-4">
                     <h3 className="text-base md:text-lg font-semibold text-white">
-                      {userRole?.toLowerCase() === 'model' ? 'My Pending Payouts' : getCardTitle('My Total Payouts')}
+                      {getCardTitle('My Total Payouts')}
                     </h3>
                   </div>
 
-                  {userRole?.toLowerCase() === 'model' ? (
-                    /* MODEL: Show pending payouts list with selection */
-                    <div className="space-y-4">
-                      {/* Total Summary with Selected Info */}
-                      <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="text-sm text-gray-300 mb-1">Total Pending</p>
-                            <p className="text-2xl md:text-3xl font-bold text-white">
-                              {formatCurrency(payoutSummary?.availableBalance || 0)}
-                            </p>
-                          </div>
-                          {selectedAuctionIds.size > 0 && (
-                            <div className="text-right">
-                              <p className="text-sm text-purple-300 mb-1">Selected ({selectedAuctionIds.size})</p>
-                              <p className="text-xl font-bold text-purple-400">
-                                {formatCurrency(getSelectedTotal())}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Pending Payouts List with Checkboxes */}
-                      <div className="max-h-[400px] overflow-y-auto space-y-2 border-t border-white/10 pt-4">
-                        {/* Select All Header */}
-                        {payoutSummary?.pendingPayouts && payoutSummary.pendingPayouts.length > 0 && (
-                          <div className="flex items-center gap-3 px-3 py-2 mb-2">
-                            <input
-                              type="checkbox"
-                              checked={isAllSelected()}
-                              onChange={toggleSelectAll}
-                              className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 cursor-pointer"
-                            />
-                            <span className="text-sm text-gray-400">
-                              {isAllSelected() ? 'Deselect All' : 'Select All'}
-                            </span>
-                          </div>
-                        )}
-
-                        {payoutSummary?.pendingPayouts && payoutSummary.pendingPayouts.length > 0 ? (
-                          payoutSummary.pendingPayouts.map((payout) => (
-                            <div
-                              key={payout.auction_id}
-                              onClick={() => toggleAuctionSelection(payout.auction_id)}
-                              className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                                selectedAuctionIds.has(payout.auction_id)
-                                  ? 'bg-purple-500/20 border border-purple-500/50'
-                                  : 'bg-white/5 border border-white/10 hover:bg-white/8'
-                              }`}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={selectedAuctionIds.has(payout.auction_id)}
-                                onChange={() => toggleAuctionSelection(payout.auction_id)}
-                                onClick={(e) => e.stopPropagation()}
-                                className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 cursor-pointer"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-white text-sm md:text-base truncate">
-                                  {payout.auction_title}
-                                </p>
-                                <p className="text-xs text-gray-400 mt-1">
-                                  Ended: {formatDate(payout.ended_at)}
-                                </p>
-                              </div>
-                              <div className="flex flex-col items-end gap-1">
-                                <p className="text-base md:text-lg font-bold text-green-400">
-                                  {formatCurrency(payout.model_amount)}
-                                </p>
-                                <span className="px-2 py-0.5 text-[10px] font-semibold uppercase bg-yellow-500/20 text-yellow-400 rounded-full border border-yellow-500/30">
-                                  Pending
-                                </span>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="text-center py-8">
-                            <p className="text-gray-500 text-sm">No pending payouts</p>
-                          </div>
-                        )}
-                      </div>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-gray-400 text-xs md:text-sm">Paid Amount</p>
+                      <p className="text-xl md:text-2xl font-bold text-white">
+                        {formatCurrency(payoutSummary?.totalPaidOut || 0)}
+                      </p>
                     </div>
-                  ) : (
-                    /* ADMIN/STAFF: Show total paid amount */
-                    <div className="space-y-4">
+
+                    {payoutSummary?.lastPayoutDate && (
                       <div>
-                        <p className="text-gray-400 text-xs md:text-sm">Paid Amount</p>
-                        <p className="text-xl md:text-2xl font-bold text-white">
-                          {formatCurrency(payoutSummary?.totalPaidOut || 0)}
+                        <p className="text-gray-400 text-xs md:text-sm">Last Payout</p>
+                        <p className="text-white text-sm md:text-base">
+                          {formatCurrency(payoutSummary.lastPayoutAmount)} on {formatDate(payoutSummary.lastPayoutDate)}
                         </p>
                       </div>
-
-                      {payoutSummary?.lastPayoutDate && (
-                        <div>
-                          <p className="text-gray-400 text-xs md:text-sm">Last Payout</p>
-                          <p className="text-white text-sm md:text-base">
-                            {formatCurrency(payoutSummary.lastPayoutAmount)} on {formatDate(payoutSummary.lastPayoutDate)}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
 
                 {/* My Payout Methods Card */}
