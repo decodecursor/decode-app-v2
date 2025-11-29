@@ -69,10 +69,10 @@ export function PendingPayoutsCard({
                   : 'bg-green-500/5 border-green-500/30'
             }`}
           >
-            {/* Main Row */}
-            <div className="flex items-start gap-4">
-              {/* Checkbox - Left side */}
-              <div className="flex items-center pt-1">
+            {/* Single Horizontal Row */}
+            <div className="flex items-center gap-3 md:gap-4">
+              {/* Checkbox */}
+              <div className="flex items-center">
                 <input
                   type="checkbox"
                   checked={selectedAuctionIds.has(payout.auction_id)}
@@ -82,70 +82,55 @@ export function PendingPayoutsCard({
                 />
               </div>
 
-              <div className="flex-1 min-w-0">
+              {/* Treatment Name */}
+              <div className="flex-shrink-0 min-w-[100px] md:min-w-[150px]">
                 <p className="font-semibold text-white text-sm md:text-base truncate">
                   {payout.auction_title}
                 </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  Ended: {formatDate(payout.ended_at)}
-                </p>
               </div>
-              <div className="text-right flex-shrink-0">
-                <p className="text-base md:text-lg font-bold text-green-400">
+
+              {/* Amount */}
+              <div className="flex-shrink-0">
+                <p className="text-sm md:text-base font-bold text-green-400">
                   {formatCurrency(payout.model_amount)}
                 </p>
               </div>
-            </div>
 
-            {/* Status Row */}
-            <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-2">
-                {payout.payout_unlocked ? (
-                  <>
-                    <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                    </svg>
-                    <span className="text-sm text-green-400">
-                      {payout.video_watched ? 'Video Watched - Payout Unlocked' : 'Payout Unlocked'}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    <span className="text-sm text-amber-400">Watch Video to Unlock</span>
-                  </>
-                )}
+              {/* End Date */}
+              <div className="flex-shrink-0">
+                <p className="text-xs md:text-sm text-gray-400">
+                  {formatDate(payout.ended_at)}
+                </p>
               </div>
 
-              <div className="flex items-center gap-2">
-                {/* Watch Video Button (only for locked payouts) */}
-                {!payout.payout_unlocked && payout.has_video && (
-                  <button
-                    onClick={() => onWatchVideo(payout.auction_id, payout.auction_title)}
-                    className="px-3 py-1.5 text-xs font-medium bg-amber-500/20 text-amber-400 rounded-lg hover:bg-amber-500/30 transition-colors border border-amber-500/30"
-                  >
-                    Watch Video
-                  </button>
-                )}
+              {/* Spacer to push buttons to the right */}
+              <div className="flex-1"></div>
 
-                {/* Expand/Collapse Button */}
+              {/* Watch Video Button (conditional) */}
+              {!payout.payout_unlocked && payout.has_video && (
                 <button
-                  onClick={() => toggleExpanded(payout.auction_id)}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white/5 text-gray-300 rounded-lg hover:bg-white/10 transition-colors border border-white/10"
+                  onClick={() => onWatchVideo(payout.auction_id, payout.auction_title)}
+                  className="px-3 py-1.5 text-xs font-medium bg-amber-500/20 text-amber-400 rounded-lg hover:bg-amber-500/30 transition-colors border border-amber-500/30 flex-shrink-0"
                 >
-                  <span>Profit Breakdown</span>
-                  <svg
-                    className={`w-4 h-4 transition-transform ${expandedItems.has(payout.auction_id) ? 'rotate-180' : ''}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  Watch Video
                 </button>
-              </div>
+              )}
+
+              {/* Profit Breakdown Button */}
+              <button
+                onClick={() => toggleExpanded(payout.auction_id)}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white/5 text-gray-300 rounded-lg hover:bg-white/10 transition-colors border border-white/10 flex-shrink-0"
+              >
+                <span>Profit Breakdown</span>
+                <svg
+                  className={`w-4 h-4 transition-transform ${expandedItems.has(payout.auction_id) ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
             </div>
 
             {/* Expandable Profit Breakdown */}
