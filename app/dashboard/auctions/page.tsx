@@ -20,9 +20,6 @@ export default function AuctionsDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
 
-  // Use real-time auctions hook (only when userId is available)
-  const { auctions, isConnected, refresh } = useCreatorAuctions(userId || '');
-
   useEffect(() => {
     checkUserAndRole();
   }, []);
@@ -52,13 +49,26 @@ export default function AuctionsDashboardPage() {
     setIsLoading(false);
   };
 
-  if (!userRole) {
+  // Show loading while checking auth
+  if (!userRole || !userId) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
       </div>
     );
   }
+
+  // Render the dashboard content in a separate component to avoid hook issues
+  return <AuctionsDashboardContent userId={userId} isLoading={isLoading} />;
+}
+
+/**
+ * Auction Dashboard Content Component
+ * Separated to ensure hooks are called consistently
+ */
+function AuctionsDashboardContent({ userId, isLoading }: { userId: string; isLoading: boolean }) {
+  const router = useRouter();
+  const { auctions, isConnected, refresh } = useCreatorAuctions(userId);
 
   return (
     <div className="cosmic-bg">
@@ -82,22 +92,14 @@ export default function AuctionsDashboardPage() {
         <div className="flex justify-center">
           <div style={{width: '70vw'}}>
             <div className="cosmic-card header-card-mobile-spacing">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <h1 className="cosmic-heading mb-2">My Auctions</h1>
-                  {isConnected && (
-                    <span className="flex items-center gap-1 text-sm text-green-400">
-                      <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                      Live
-                    </span>
-                  )}
-                </div>
-                <button
-                  onClick={() => router.push('/auctions/create')}
-                  className="bg-gradient-to-br from-gray-800 to-black text-white border-none rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
-                >
-                  Create Auction
-                </button>
+              <div className="flex items-center gap-3">
+                <h1 className="cosmic-heading mb-2">My Auctions</h1>
+                {isConnected && (
+                  <span className="flex items-center gap-1 text-sm text-green-400">
+                    <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                    Live
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -136,7 +138,7 @@ export default function AuctionsDashboardPage() {
         <div className="flex justify-center">
           <div style={{width: '70vw'}}>
             <div className="cosmic-card content-card-mobile-spacing">
-              {(isLoading || !userId) ? (
+              {isLoading ? (
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto" />
                 </div>

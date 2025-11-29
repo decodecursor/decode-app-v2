@@ -32,6 +32,7 @@ function AuthPageContent() {
   const [inviteData, setInviteData] = useState<any>(null)
   const [preselectedRole, setPreselectedRole] = useState<string | null>(null)
   const [authenticatedEmail, setAuthenticatedEmail] = useState('')
+  const [isCheckingAuth, setIsCheckingAuth] = useState(false)
 
   // Format phone number for display (XX XXX XXXX)
   const formatPhoneNumber = (value: string) => {
@@ -115,6 +116,7 @@ function AuthPageContent() {
 
   // Check for authenticated user (handles email verification returns)
   const checkAuthState = async () => {
+    setIsCheckingAuth(true)
     try {
       const { user } = await getUserWithProxy()
 
@@ -143,6 +145,8 @@ function AuthPageContent() {
       }
     } catch (error) {
       console.error('❌ [AUTH] Error checking auth state:', error)
+    } finally {
+      setIsCheckingAuth(false)
     }
   }
 
@@ -342,6 +346,18 @@ function AuthPageContent() {
     setAuthStep('input')
     setMessage('')
     setOtpCode(['', '', '', '', '', ''])
+  }
+
+  // Show loading screen when checking auth after magic link
+  if (isCheckingAuth) {
+    return (
+      <div className="cosmic-bg min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4" />
+          <p className="text-white text-lg">Signing you in...</p>
+        </div>
+      </div>
+    )
   }
 
   // Render single-page auth with both options
