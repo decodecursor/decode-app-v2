@@ -453,13 +453,15 @@ export default function Dashboard() {
                       </Link>
 
 
-                      {/* Payouts */}
-                      <Link href="/dashboard/payouts" className="w-full flex items-center px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
-                        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v2a2 2 0 002 2z" />
-                        </svg>
-                        <span className="nav-button">Payouts</span>
-                      </Link>
+                      {/* Payouts - Hide for MODEL users since it's in their desktop nav */}
+                      {profile?.role !== USER_ROLES.MODEL && (
+                        <Link href="/dashboard/payouts" className="w-full flex items-center px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v2a2 2 0 002 2z" />
+                          </svg>
+                          <span className="nav-button">Payouts</span>
+                        </Link>
+                      )}
 
                       {/* Logout */}
                       <button 
@@ -577,12 +579,12 @@ export default function Dashboard() {
                 </div>
               ) : profile?.role === USER_ROLES.MODEL ? (
                 <div className="flex gap-4 items-center">
-                  {/* Analytics */}
+                  {/* Payouts */}
                   <Link
-                    href="/dashboard/analytics"
+                    href="/dashboard/payouts"
                     className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                   >
-                    Analytics
+                    Payouts
                   </Link>
 
                   {/* Auctions */}
@@ -749,22 +751,6 @@ export default function Dashboard() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
                           </svg>
                           Auctions
-                        </div>
-                      </Link>
-                    )}
-
-                    {/* Show Analytics for MODEL users */}
-                    {profile?.role === USER_ROLES.MODEL && (
-                      <Link
-                        href="/dashboard/analytics"
-                        className="block nav-button px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <div className="flex items-center">
-                          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                          </svg>
-                          Analytics
                         </div>
                       </Link>
                     )}
