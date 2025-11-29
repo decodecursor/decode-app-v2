@@ -718,7 +718,7 @@ export default function PayoutsPage() {
                     </div>
 
                     {/* Selected Auctions Sub-headline */}
-                    <h4 className="text-white font-medium mb-3" style={{fontSize: '13px'}}>
+                    <h4 className="text-white font-medium mb-3" style={{fontSize: '12px'}}>
                       Selected Auctions ({selectedAuctionIds.size})
                     </h4>
 
