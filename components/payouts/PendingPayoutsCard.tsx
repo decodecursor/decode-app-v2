@@ -69,10 +69,9 @@ export function PendingPayoutsCard({
           >
             {/* Single Horizontal Row */}
             <div className="flex items-center gap-4 md:gap-6">
-              {/* Static content wrapper with opacity */}
-              <div className={`contents ${!payout.payout_unlocked ? 'opacity-60' : ''}`}>
-                {/* Checkbox */}
-                <div className="relative flex items-center group">
+              {/* Checkbox with tooltip */}
+              <div className="relative group">
+                <div className={`flex items-center ${!payout.payout_unlocked ? 'opacity-60' : ''}`}>
                   <input
                     type="checkbox"
                     checked={selectedAuctionIds.has(payout.auction_id)}
@@ -80,33 +79,33 @@ export function PendingPayoutsCard({
                     onChange={() => onToggleSelection(payout.auction_id)}
                     className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   />
-                  {!payout.payout_unlocked && (
-                    <div className="absolute left-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-0 bg-gray-800 text-amber-400 text-xs px-2 py-1 rounded whitespace-nowrap z-10 pointer-events-none">
-                      Watch Video to Unlock
-                    </div>
-                  )}
                 </div>
+                {!payout.payout_unlocked && (
+                  <div className="absolute left-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-0 bg-gray-800 text-amber-400 text-xs px-2 py-1 rounded whitespace-nowrap z-10 pointer-events-none">
+                    Watch Video to Unlock
+                  </div>
+                )}
+              </div>
 
-                {/* Treatment Name */}
-                <div className="flex-shrink-0 min-w-[100px] md:min-w-[150px]">
-                  <p className="font-semibold text-white text-sm md:text-base truncate">
-                    {payout.auction_title}
-                  </p>
-                </div>
+              {/* Treatment Name */}
+              <div className={`flex-shrink-0 min-w-[100px] md:min-w-[150px] ${!payout.payout_unlocked ? 'opacity-60' : ''}`}>
+                <p className="font-semibold text-white text-sm md:text-base truncate">
+                  {payout.auction_title}
+                </p>
+              </div>
 
-                {/* Amount */}
-                <div className="flex-shrink-0">
-                  <p className="text-sm md:text-base font-bold text-green-400">
-                    {formatCurrency(payout.model_amount)}
-                  </p>
-                </div>
+              {/* Amount */}
+              <div className={`flex-shrink-0 ${!payout.payout_unlocked ? 'opacity-60' : ''}`}>
+                <p className="text-sm md:text-base font-bold text-green-400">
+                  {formatCurrency(payout.model_amount)}
+                </p>
+              </div>
 
-                {/* End Date */}
-                <div className="flex-shrink-0">
-                  <p className="text-xs md:text-sm text-gray-400">
-                    {formatDate(payout.ended_at)}
-                  </p>
-                </div>
+              {/* End Date */}
+              <div className={`flex-shrink-0 ${!payout.payout_unlocked ? 'opacity-60' : ''}`}>
+                <p className="text-xs md:text-sm text-gray-400">
+                  {formatDate(payout.ended_at)}
+                </p>
               </div>
 
               {/* Spacer to push buttons to the right */}
