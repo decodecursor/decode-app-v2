@@ -148,20 +148,22 @@ export function PendingPayoutsCard({
               )}
             </div>
 
+            {/* Tooltip overlay for checkbox (only for locked cards) */}
+            {!payout.payout_unlocked && (
+              <div className="absolute left-4 top-0 h-full flex items-center z-10">
+                <div className="relative group">
+                  <div className="w-4 h-4 cursor-not-allowed" />
+                  <div className="absolute left-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-0 bg-gray-800 text-amber-400 text-xs px-2 py-1 rounded whitespace-nowrap z-20 pointer-events-none">
+                    Watch Video to Unlock
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Overlay Layer - Full opacity buttons (only for locked cards) */}
             {!payout.payout_unlocked && (
               <div className="absolute top-0 right-0 h-full flex items-center pr-4 pointer-events-none">
                 <div className="flex items-center gap-2 pointer-events-auto">
-                  {/* Tooltip container */}
-                  <div className="relative group">
-                    <div className="w-4 h-4 flex items-center justify-center cursor-help">
-                      <span className="sr-only">Info</span>
-                    </div>
-                    <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-0 bg-gray-800 text-amber-400 text-xs px-2 py-1 rounded whitespace-nowrap z-20">
-                      Watch Video to Unlock
-                    </div>
-                  </div>
-
                   {/* Watch Video Button */}
                   {payout.has_video && (
                     <button
