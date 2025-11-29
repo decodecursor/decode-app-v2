@@ -599,20 +599,20 @@ export default function Dashboard() {
                 </div>
               ) : profile?.role === USER_ROLES.MODEL ? (
                 <div className="flex gap-4 items-center">
-                  {/* Payouts */}
-                  <Link
-                    href="/dashboard/payouts"
-                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    Payouts
-                  </Link>
-
                   {/* Auctions */}
                   <Link
                     href="/dashboard/auctions"
                     className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                   >
                     Auctions
+                  </Link>
+
+                  {/* Payouts */}
+                  <Link
+                    href="/dashboard/payouts"
+                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    Payouts
                   </Link>
 
                   {/* Profile */}
@@ -626,7 +626,7 @@ export default function Dashboard() {
                   {/* Logout - Small button with door icon */}
                   <button
                     onClick={handleSignOut}
-                    className="px-2 py-2 text-sm border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors"
+                    className="px-2 py-2 text-sm text-gray-300 hover:text-red-400 rounded-lg transition-colors"
                     title="Logout"
                   >
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
