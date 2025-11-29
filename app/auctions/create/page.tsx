@@ -18,6 +18,7 @@ export default function CreateAuction() {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [durationChanged, setDurationChanged] = useState(false)
+  const [hasRedirected, setHasRedirected] = useState(false)
 
   const router = useRouter()
 
@@ -29,16 +30,20 @@ export default function CreateAuction() {
     }
 
     // Check if user is a MODEL
-    if (!contextLoading && profile) {
+    if (!contextLoading && profile && !hasRedirected) {
       if (profile.role !== USER_ROLES.MODEL) {
-        router.push('/dashboard')
+        console.warn('Non-MODEL user attempted to access auction creation')
+        setHasRedirected(true) // Prevent redirect loop
+
+        // Use replace instead of push to avoid back button issues
+        router.replace('/dashboard')
         return
       }
       setLoading(false)
     } else if (!contextLoading) {
       setLoading(false)
     }
-  }, [contextLoading, user, profile, router])
+  }, [contextLoading, user, profile, router, hasRedirected])
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}
@@ -172,12 +177,7 @@ export default function CreateAuction() {
 
           {/* Header */}
           <div className="text-center md:mb-8 mb-6">
-            <div className="md:w-16 md:h-16 w-14 h-14 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="md:w-8 md:h-8 w-6 h-6 text-purple-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17.5 3.5L21 7l-3.5 3.5L14 7l3.5-3.5zM3 17.25V21h3.75L15.81 11.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l7.06-7.06.92.92L5.92 19z"/>
-                <path d="M2 22h20v2H2z"/>
-              </svg>
-            </div>
+            <div className="text-6xl mb-4">🪙</div>
             <h2 className="md:text-2xl text-xl font-bold text-white mb-2">
               Create Beauty Auction
             </h2>
