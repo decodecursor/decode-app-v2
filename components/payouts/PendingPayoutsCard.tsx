@@ -71,7 +71,7 @@ export function PendingPayoutsCard({
             <div className="flex items-center gap-4 md:gap-6">
               {/* Checkbox with tooltip */}
               <div className="relative group">
-                <div className={`flex items-center ${!payout.payout_unlocked ? 'opacity-50' : ''}`}>
+                <div className={`flex items-center ${!payout.payout_unlocked ? 'opacity-35' : ''}`}>
                   <input
                     type="checkbox"
                     checked={selectedAuctionIds.has(payout.auction_id)}
@@ -88,21 +88,21 @@ export function PendingPayoutsCard({
               </div>
 
               {/* Treatment Name */}
-              <div className={`flex-shrink-0 min-w-[100px] md:min-w-[150px] ${!payout.payout_unlocked ? 'opacity-50' : ''}`}>
+              <div className={`flex-shrink-0 min-w-[100px] md:min-w-[150px] ${!payout.payout_unlocked ? 'opacity-35' : ''}`}>
                 <p className="font-semibold text-white text-sm md:text-base truncate">
                   {payout.auction_title}
                 </p>
               </div>
 
               {/* Amount */}
-              <div className={`flex-shrink-0 ${!payout.payout_unlocked ? 'opacity-50' : ''}`}>
+              <div className={`flex-shrink-0 ${!payout.payout_unlocked ? 'opacity-35' : ''}`}>
                 <p className="text-sm md:text-base font-bold text-green-400">
                   {formatCurrency(payout.model_amount)}
                 </p>
               </div>
 
               {/* End Date */}
-              <div className={`flex-shrink-0 ml-28 ${!payout.payout_unlocked ? 'opacity-50' : ''}`}>
+              <div className={`flex-shrink-0 ml-28 ${!payout.payout_unlocked ? 'opacity-35' : ''}`}>
                 <p className="text-xs md:text-sm text-gray-400">
                   {formatDate(payout.ended_at)}
                 </p>
