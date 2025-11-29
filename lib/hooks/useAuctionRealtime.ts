@@ -291,6 +291,12 @@ export function useCreatorAuctions(creatorId: string) {
 
   // Fetch creator's auctions
   const fetchAuctions = useCallback(async () => {
+    // Don't fetch if creatorId is empty (still loading auth)
+    if (!creatorId) {
+      console.log('⏸️ [useCreatorAuctions] No creator ID yet, skipping fetch');
+      return;
+    }
+
     try {
       console.log('🔍 [useCreatorAuctions] Fetching auctions for creator:', creatorId);
       const response = await fetch(`/api/auctions/list?creator_id=${creatorId}`);
@@ -305,6 +311,11 @@ export function useCreatorAuctions(creatorId: string) {
   }, [creatorId]);
 
   useEffect(() => {
+    // Don't subscribe if creatorId is empty (still loading auth)
+    if (!creatorId) {
+      return;
+    }
+
     const realtimeManager = getAuctionRealtimeManager();
 
     // Handle auction events

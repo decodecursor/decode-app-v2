@@ -49,26 +49,18 @@ export default function AuctionsDashboardPage() {
     setIsLoading(false);
   };
 
+  // CRITICAL: Call hook BEFORE any conditional returns to avoid React hooks violation
+  // Pass userId or empty string to prevent null issues (hook will handle empty string)
+  const { auctions, isConnected, refresh } = useCreatorAuctions(userId || '');
+
   // Show loading while checking auth
-  if (!userRole || !userId) {
+  if (isLoading || !userRole || !userId) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
       </div>
     );
   }
-
-  // Render the dashboard content in a separate component to avoid hook issues
-  return <AuctionsDashboardContent userId={userId} isLoading={isLoading} />;
-}
-
-/**
- * Auction Dashboard Content Component
- * Separated to ensure hooks are called consistently
- */
-function AuctionsDashboardContent({ userId, isLoading }: { userId: string; isLoading: boolean }) {
-  const router = useRouter();
-  const { auctions, isConnected, refresh } = useCreatorAuctions(userId);
 
   return (
     <div className="cosmic-bg">

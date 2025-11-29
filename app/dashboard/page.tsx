@@ -642,7 +642,7 @@ export default function Dashboard() {
                   {/* Logout - Small button with door icon */}
                   <button
                     onClick={handleSignOut}
-                    className="px-3 py-2 text-sm text-red-400 hover:bg-white/10 hover:text-red-300 rounded-lg transition-colors"
+                    className="p-3 text-sm text-red-400 hover:bg-white/10 hover:text-red-300 rounded-lg transition-colors"
                     title="Logout"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
