@@ -711,7 +711,7 @@ export default function PayoutsPage() {
                   /* MODEL: Show selected auctions */
                   <>
                     {/* Amount Display - No container */}
-                    <div className="mb-6">
+                    <div className="mb-9">
                       <p className="text-3xl font-bold text-white">
                         {formatCurrency(getSelectedTotal())}
                       </p>
@@ -763,7 +763,7 @@ export default function PayoutsPage() {
                 )}
 
                 <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-3">
-                  <p className="text-blue-100" style={{fontSize: '13px'}}>
+                  <p className="text-blue-100" style={{fontSize: '11px'}}>
                     Payout Method: {getSelectedMethodDisplayName()}
                     <br />
                     Payouts are typically processed within 1-2 business days.
