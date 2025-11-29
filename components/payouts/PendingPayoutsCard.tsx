@@ -64,14 +64,12 @@ export function PendingPayoutsCard({
             <div
               className={`p-4 rounded-lg transition-colors bg-gray-900/80 ${
                 selectedAuctionIds.has(payout.auction_id)
-                  ? 'border-2 border-purple-500'
+                  ? 'border border-purple-500'
                   : 'border border-gray-600'
-              }`}
+              } ${!payout.payout_unlocked ? 'opacity-50' : ''}`}
             >
-              {/* Main content row - faded when locked */}
-              <div className={`${!payout.payout_unlocked ? 'opacity-50' : ''}`}>
-                {/* Single Horizontal Row */}
-                <div className="flex items-center gap-4 md:gap-6">
+              {/* Single Horizontal Row */}
+              <div className="flex items-center gap-4 md:gap-6">
                 {/* Checkbox */}
                 <div className="flex items-center">
                   <input
@@ -119,7 +117,6 @@ export function PendingPayoutsCard({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
-              </div>
               </div>
 
               {/* Expandable Profit Breakdown */}
