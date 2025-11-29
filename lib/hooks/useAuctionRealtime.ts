@@ -137,10 +137,11 @@ export function useAuctionRealtime(auctionId: string, initialAuction?: Auction) 
     // Subscribe to auction updates
     const unsubscribe = realtimeManager.subscribeToAuction(auctionId, handleAuctionEvent);
 
-    // Check connection status
+    // Check connection status - only update state when it actually changes
     const checkConnection = setInterval(() => {
       const status = realtimeManager.getConnectionStatus(`auction:${auctionId}`);
-      setIsConnected(status === 'subscribed');
+      const newIsConnected = status === 'subscribed';
+      setIsConnected(prev => prev !== newIsConnected ? newIsConnected : prev);
     }, 1000);
 
     // Initial fetch if no initial auction provided
@@ -153,7 +154,8 @@ export function useAuctionRealtime(auctionId: string, initialAuction?: Auction) 
       unsubscribe();
       clearInterval(checkConnection);
     };
-  }, [auctionId, initialAuction, fetchAuction]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auctionId, initialAuction]);
 
   // Handle page visibility changes (critical for mobile)
   useEffect(() => {
@@ -167,7 +169,8 @@ export function useAuctionRealtime(auctionId: string, initialAuction?: Auction) 
         fetchAuction();
       });
     }
-  }, [visibilityChangeCount, fetchAuction]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibilityChangeCount]);
 
   // Refresh auction data
   const refresh = useCallback(() => {
@@ -237,10 +240,11 @@ export function useActiveAuctions() {
     // Subscribe to active auctions
     const unsubscribe = realtimeManager.subscribeToActiveAuctions(handleAuctionEvent);
 
-    // Check connection
+    // Check connection - only update state when it actually changes
     const checkConnection = setInterval(() => {
       const status = realtimeManager.getConnectionStatus('auctions:active');
-      setIsConnected(status === 'subscribed');
+      const newIsConnected = status === 'subscribed';
+      setIsConnected(prev => prev !== newIsConnected ? newIsConnected : prev);
     }, 1000);
 
     // Initial fetch
@@ -251,7 +255,8 @@ export function useActiveAuctions() {
       unsubscribe();
       clearInterval(checkConnection);
     };
-  }, [fetchAuctions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Handle page visibility changes (critical for mobile)
   useEffect(() => {
@@ -265,7 +270,8 @@ export function useActiveAuctions() {
         fetchAuctions();
       });
     }
-  }, [visibilityChangeCount, fetchAuctions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibilityChangeCount]);
 
   return {
     auctions,
@@ -328,10 +334,11 @@ export function useCreatorAuctions(creatorId: string) {
     // Subscribe to creator auctions
     const unsubscribe = realtimeManager.subscribeToCreatorAuctions(creatorId, handleAuctionEvent);
 
-    // Check connection
+    // Check connection - only update state when it actually changes
     const checkConnection = setInterval(() => {
       const status = realtimeManager.getConnectionStatus(`creator:${creatorId}`);
-      setIsConnected(status === 'subscribed');
+      const newIsConnected = status === 'subscribed';
+      setIsConnected(prev => prev !== newIsConnected ? newIsConnected : prev);
     }, 1000);
 
     // Initial fetch
@@ -342,7 +349,8 @@ export function useCreatorAuctions(creatorId: string) {
       unsubscribe();
       clearInterval(checkConnection);
     };
-  }, [creatorId, fetchAuctions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [creatorId]);
 
   // Handle page visibility changes (critical for mobile)
   useEffect(() => {
@@ -356,7 +364,8 @@ export function useCreatorAuctions(creatorId: string) {
         fetchAuctions();
       });
     }
-  }, [visibilityChangeCount, fetchAuctions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibilityChangeCount]);
 
   return {
     auctions,
