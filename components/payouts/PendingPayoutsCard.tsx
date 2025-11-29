@@ -102,7 +102,7 @@ export function PendingPayoutsCard({
               </div>
 
               {/* End Date */}
-              <div className={`flex-shrink-0 ${!payout.payout_unlocked ? 'opacity-60' : ''}`}>
+              <div className={`flex-shrink-0 ml-28 ${!payout.payout_unlocked ? 'opacity-60' : ''}`}>
                 <p className="text-xs md:text-sm text-gray-400">
                   {formatDate(payout.ended_at)}
                 </p>

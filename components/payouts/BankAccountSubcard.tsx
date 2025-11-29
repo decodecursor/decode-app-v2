@@ -7,6 +7,7 @@ interface BankAccountSubcardProps {
   onClick: () => void
   refreshKey?: number
   bankAccountData?: BankAccount | null
+  isSelected?: boolean
 }
 
 interface BankAccount {
@@ -18,7 +19,7 @@ interface BankAccount {
   status: string
 }
 
-export function BankAccountSubcard({ userId, onClick, refreshKey, bankAccountData }: BankAccountSubcardProps) {
+export function BankAccountSubcard({ userId, onClick, refreshKey, bankAccountData, isSelected = false }: BankAccountSubcardProps) {
   const [loading, setLoading] = useState(true)
   const [bankAccount, setBankAccount] = useState<BankAccount | null>(null)
 
@@ -159,7 +160,9 @@ export function BankAccountSubcard({ userId, onClick, refreshKey, bankAccountDat
   return (
     <div
       onClick={onClick}
-      className="w-full md:flex-1 bg-white/5 rounded-lg p-2.5 md:p-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group relative"
+      className={`w-full md:flex-1 bg-white/5 rounded-lg p-2.5 md:p-3 border ${
+        isSelected ? 'border-purple-500' : 'border-gray-700'
+      } cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group relative`}
     >
       {getStatusIcon() && (
         <div className="absolute -top-2 -right-2 z-10">

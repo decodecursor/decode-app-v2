@@ -7,6 +7,7 @@ interface PayPalSubcardProps {
   onClick: () => void
   refreshKey?: number
   paypalAccountData?: PayPalAccount | null
+  isSelected?: boolean
 }
 
 interface PayPalAccount {
@@ -17,7 +18,7 @@ interface PayPalAccount {
   status: string
 }
 
-export function PayPalSubcard({ userId, onClick, refreshKey, paypalAccountData }: PayPalSubcardProps) {
+export function PayPalSubcard({ userId, onClick, refreshKey, paypalAccountData, isSelected = false }: PayPalSubcardProps) {
   const [loading, setLoading] = useState(true)
   const [paypalAccount, setPaypalAccount] = useState<PayPalAccount | null>(null)
 
@@ -97,7 +98,9 @@ export function PayPalSubcard({ userId, onClick, refreshKey, paypalAccountData }
   return (
     <div
       onClick={onClick}
-      className="w-full md:flex-1 bg-white/5 rounded-lg p-2.5 md:p-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group relative"
+      className={`w-full md:flex-1 bg-white/5 rounded-lg p-2.5 md:p-3 border ${
+        isSelected ? 'border-purple-500' : 'border-gray-700'
+      } cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group relative`}
     >
       {getStatusIcon() && (
         <div className="absolute -top-2 -right-2 z-10">

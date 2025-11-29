@@ -584,7 +584,7 @@ export default function PayoutsPage() {
                   <div className="flex flex-row gap-4 mb-3">
                     {/* Available Balance - Hidden for ADMIN */}
                     {userRole !== 'Admin' && (
-                      <div className="flex-1" style={{width: '45%'}}>
+                      <div className="flex-1" style={{width: '53%'}}>
                         <p className="text-gray-400 text-xs md:text-sm mb-1">Available Balance</p>
                         <p className="text-xl md:text-2xl font-bold text-white">
                           {formatCurrency(payoutSummary?.availableBalance || 0)}
@@ -593,11 +593,13 @@ export default function PayoutsPage() {
                     )}
 
                     {/* Payout to - Styled Subcard */}
-                    <div style={{width: '55%'}}>
+                    <div style={{width: '47%'}}>
                       <p className="text-gray-400 text-xs md:text-sm mb-1">Payout to</p>
                       <div
                         onClick={() => setShowSelectMethodModal(true)}
-                        className="bg-white/5 rounded-lg py-3 md:py-2 px-3 border border-gray-700 cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group min-h-[48px] md:min-h-0 flex items-center"
+                        className={`bg-white/5 rounded-lg py-3 md:py-2 px-3 border ${
+                          selectedPayoutMethod ? 'border-purple-500' : 'border-gray-700'
+                        } cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group min-h-[48px] md:min-h-0 flex items-center`}
                       >
                         <div className="flex items-center justify-between w-full">
                           <p className="text-white text-sm font-bold">
@@ -664,6 +666,7 @@ export default function PayoutsPage() {
                   onMethodDeleted={loadPayoutMethods}
                   bankAccountData={bankAccountData}
                   paypalAccountData={paypalAccountData}
+                  selectedPayoutMethod={selectedPayoutMethod}
                 />}
               </div>
             )}
@@ -688,7 +691,7 @@ export default function PayoutsPage() {
         {/* Payout Request Modal */}
         {showRequestModal && (
           <div className="fixed inset-0 bg-black/50 flex items-end md:items-center justify-center z-50 md:p-4">
-            <div className="bg-gray-900 rounded-t-xl md:rounded-xl border border-gray-700 p-6 w-full max-w-md md:mx-auto">
+            <div className="bg-gray-900 rounded-t-xl md:rounded-xl border border-gray-700 p-6 w-full max-w-[400px] md:mx-auto">
               <h3 className="text-base md:text-lg font-semibold text-white mb-4">Request Payout</h3>
               
               {/* Modal Error Message */}
@@ -707,14 +710,17 @@ export default function PayoutsPage() {
                 {userRole?.toLowerCase() === 'model' ? (
                   /* MODEL: Show selected auctions */
                   <>
-                    <div className="bg-gradient-to-br from-purple-600/10 to-purple-500/5 border border-purple-500/20 rounded-lg p-4">
-                      <label className="block text-sm text-purple-300 mb-2 font-medium">
-                        Selected Auctions ({selectedAuctionIds.size})
-                      </label>
-                      <p className="text-2xl font-bold text-white bg-gradient-to-r from-purple-300 to-white bg-clip-text text-transparent">
+                    {/* Amount Display - No container */}
+                    <div className="mb-6">
+                      <p className="text-3xl font-bold text-white">
                         {formatCurrency(getSelectedTotal())}
                       </p>
                     </div>
+
+                    {/* Selected Auctions Sub-headline */}
+                    <h4 className="text-white text-sm font-medium mb-3">
+                      Selected Auctions ({selectedAuctionIds.size})
+                    </h4>
 
                     {/* List selected auctions */}
                     <div className="max-h-[200px] overflow-y-auto space-y-2">
