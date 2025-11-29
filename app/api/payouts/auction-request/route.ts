@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { generateUniquePayoutRequestId } from '@/lib/short-id'
 import { emailService } from '@/lib/email-service'
 
@@ -179,8 +180,11 @@ export async function POST(request: NextRequest) {
       return data !== null
     })
 
+    // Use service role client for database operations (bypasses RLS)
+    const serviceClient = createServiceRoleClient()
+
     // Update auctions to 'processing' status
-    const { error: updateError } = await supabase
+    const { error: updateError } = await serviceClient
       .from('auctions')
       .update({
         payout_status: 'processing',
@@ -211,7 +215,7 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString()
     }
 
-    const { data: payout, error: payoutError } = await supabase
+    const { data: payout, error: payoutError } = await serviceClient
       .from('payouts')
       .insert([payoutData])
       .select()
@@ -220,7 +224,7 @@ export async function POST(request: NextRequest) {
     if (payoutError) {
       console.error('❌ [AUCTION-PAYOUT-REQUEST] Error creating payout record:', payoutError)
       // Revert auction status updates
-      await supabase
+      await serviceClient
         .from('auctions')
         .update({ payout_status: 'pending' })
         .in('id', auction_ids)

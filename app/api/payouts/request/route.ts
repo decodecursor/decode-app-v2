@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { generateUniquePayoutRequestId } from '@/lib/short-id'
 import { emailService } from '@/lib/email-service'
 
@@ -168,7 +169,9 @@ export async function POST(request: NextRequest) {
       return data !== null
     })
 
-    // Create payout request in database
+    // Create payout request in database (use service role client to bypass RLS)
+    const serviceClient = createServiceRoleClient()
+
     const payoutData = {
       user_id: userId,
       payout_amount_aed: amount,
@@ -180,7 +183,7 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString()
     }
 
-    const { data: payout, error: payoutError } = await supabase
+    const { data: payout, error: payoutError } = await serviceClient
       .from('payouts')
       .insert([payoutData])
       .select()
