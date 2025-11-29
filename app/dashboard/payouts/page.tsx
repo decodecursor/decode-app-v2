@@ -718,14 +718,14 @@ export default function PayoutsPage() {
                     </div>
 
                     {/* Selected Auctions Sub-headline */}
-                    <h4 className="text-white font-medium mb-3" style={{fontSize: '12px'}}>
+                    <h4 className="text-purple-500 font-medium mb-3" style={{fontSize: '12px'}}>
                       Selected Auctions ({selectedAuctionIds.size})
                     </h4>
 
                     {/* List selected auctions */}
                     <div className="max-h-[200px] overflow-y-auto space-y-2">
                       {payoutSummary?.pendingPayouts?.filter(p => selectedAuctionIds.has(p.auction_id)).map((payout) => (
-                        <div key={payout.auction_id} className="flex justify-between items-center p-2 bg-white/5 rounded-lg">
+                        <div key={payout.auction_id} className="flex justify-between items-center p-2 bg-white/5 rounded-lg border border-purple-500">
                           <p className="text-sm text-white truncate flex-1 mr-2">{payout.auction_title}</p>
                           <p className="text-sm font-semibold text-green-400">{formatCurrency(payout.model_amount)}</p>
                         </div>
