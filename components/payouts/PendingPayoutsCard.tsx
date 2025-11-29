@@ -81,7 +81,7 @@ export function PendingPayoutsCard({
                   className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 {!payout.payout_unlocked && (
-                  <div className="absolute left-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-0 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10 pointer-events-none">
+                  <div className="absolute left-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-0 bg-gray-800 text-amber-400 text-xs px-2 py-1 rounded whitespace-nowrap z-10 pointer-events-none">
                     Watch Video to Unlock
                   </div>
                 )}
