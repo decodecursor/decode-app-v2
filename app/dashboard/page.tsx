@@ -425,7 +425,23 @@ export default function Dashboard() {
                 {profile?.role === USER_ROLES.MODEL ? (
                   // MODEL users: Direct click to Create Auction (no dropdown)
                   <div
-                    onClick={() => router.push('/auctions/create')}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+
+                      // Safety checks
+                      if (!profile || contextLoading) {
+                        console.warn('Profile not ready');
+                        return;
+                      }
+
+                      if (profile.role !== USER_ROLES.MODEL) {
+                        console.error('Only MODEL users can create auctions');
+                        return;
+                      }
+
+                      router.push('/auctions/create');
+                    }}
                     className="instagram-avatar cursor-pointer"
                   >
                     {(profile?.profile_photo_url || profile?.companyProfileImage) ? (
@@ -663,7 +679,23 @@ export default function Dashboard() {
                 {/* Mobile Profile Section */}
                 <div className="flex items-center gap-3">
                   <div
-                    onClick={() => router.push(profile?.role === USER_ROLES.MODEL ? '/auctions/create' : '/payment/create')}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+
+                      // Safety checks
+                      if (!profile || contextLoading) {
+                        console.warn('Profile not ready');
+                        return;
+                      }
+
+                      // Route based on role
+                      const targetRoute = profile.role === USER_ROLES.MODEL
+                        ? '/auctions/create'
+                        : '/payment/create';
+
+                      router.push(targetRoute);
+                    }}
                     className="instagram-avatar cursor-pointer"
                   >
                     {(profile?.profile_photo_url || profile?.companyProfileImage) ? (

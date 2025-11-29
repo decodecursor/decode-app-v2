@@ -214,7 +214,7 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
           <button
             onClick={exportToCSV}
             disabled={exporting || exportDone}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white bg-white/7 hover:bg-white/10 rounded-lg transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -249,7 +249,7 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
                   <div className="md:hidden">
                     {/* Row 1: AED Amount + Request ID */}
                     <div className="flex justify-between items-end mb-1">
-                      <div className="text-white text-lg font-bold">
+                      <div className="text-white cosmic-label font-bold">
                         AED {formatAmount(payout.payout_amount_aed)}
                       </div>
                       <div className="flex items-center gap-1">
@@ -260,7 +260,7 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
 
                     {/* Row 2: Payout Method + Date */}
                     <div className="flex justify-between items-start">
-                      <span className="text-purple-400 cosmic-label">
+                      <span className="text-white cosmic-label">
                         {payout.payout_method ? formatPayoutMethod(payout.payout_method) : 'N/A'}
                       </span>
                       <div className="flex items-center gap-1">
@@ -285,12 +285,12 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
                       <span className="w-7 h-7 bg-gray-900/80 border-2 border-purple-400 text-purple-400 text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">
                         {index + 1}
                       </span>
-                      <span className="cosmic-body text-green-400 font-bold">
+                      <span className="cosmic-label text-white font-bold">
                         AED {formatAmount(payout.payout_amount_aed)}
                       </span>
                     </div>
                     <div className="text-left">
-                      <span className="cosmic-label text-purple-400">
+                      <span className="cosmic-label text-white">
                         {payout.payout_method ? formatPayoutMethod(payout.payout_method) : 'N/A'}
                       </span>
                     </div>
@@ -301,7 +301,7 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
                       </span>
                     </div>
                     <div className="text-right">
-                      <span className="flex items-center justify-end gap-1 cosmic-body">
+                      <span className="flex items-center justify-end gap-1 cosmic-label">
                         {payout.paid_at ? (
                           <>
                             <span className="text-purple-400">Paid:</span>

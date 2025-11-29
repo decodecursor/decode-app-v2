@@ -179,7 +179,7 @@ export function PendingPayoutsCard({
                   {/* Profit Breakdown Button */}
                   <button
                     onClick={() => toggleExpanded(payout.auction_id)}
-                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white/2 text-gray-300 rounded-lg hover:bg-white/10 transition-colors border border-white/10 flex-shrink-0"
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white/4 text-gray-300 rounded-lg hover:bg-white/10 transition-colors border border-white/20 flex-shrink-0"
                   >
                     <span>Profit Breakdown</span>
                     <svg
@@ -202,7 +202,7 @@ export function PendingPayoutsCard({
                   {/* Profit Breakdown Button */}
                   <button
                     onClick={() => toggleExpanded(payout.auction_id)}
-                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white/2 text-gray-300 rounded-lg hover:bg-white/10 transition-colors border border-white/10 flex-shrink-0"
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white/4 text-gray-300 rounded-lg hover:bg-white/10 transition-colors border border-white/20 flex-shrink-0"
                   >
                     <span>Profit Breakdown</span>
                     <svg
