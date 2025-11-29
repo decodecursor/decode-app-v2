@@ -95,9 +95,10 @@ export async function GET(request: NextRequest) {
         .eq('status', 'completed')
         .order('end_time', { ascending: false })
 
-      // Filter in code: include auctions where payout_status is null, pending, or processing
+      // Filter in code: include auctions where payout_status is null or pending
+      // (processing = payout requested, should NOT appear in pending payouts)
       const pendingAuctions = (allCompletedAuctions || []).filter(
-        a => !a.payout_status || a.payout_status === 'pending' || a.payout_status === 'processing'
+        a => !a.payout_status || a.payout_status === 'pending'
       )
 
       console.log(`🔍 PAYOUT DEBUG - Query for pending auctions: creator_id=${userId}, status=completed, payout_status=pending OR null`)
