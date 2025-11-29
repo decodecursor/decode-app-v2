@@ -198,10 +198,10 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, userRole, onMe
 
         {/* Header */}
         <div className="text-center md:mb-8 mb-6">
-          <div className="md:w-16 md:h-16 w-14 h-14 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <div className="md:w-8 md:h-8 w-6 h-6 text-blue-400 font-bold md:text-lg text-base flex items-center justify-center">
-              P
-            </div>
+          <div className="md:w-16 md:h-16 w-14 h-14 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="md:w-8 md:h-8 w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
           </div>
           <h2 className="md:text-2xl text-xl font-bold text-white mb-2">
             {userRole === USER_ROLES.STAFF || userRole === USER_ROLES.MODEL ? 'Add Your PayPal Account' : 'Add Company PayPal Account'}
