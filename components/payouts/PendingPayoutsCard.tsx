@@ -68,7 +68,7 @@ export function PendingPayoutsCard({
             }`}
           >
             {/* Single Horizontal Row */}
-            <div className="flex items-center gap-3 md:gap-4">
+            <div className="flex items-center gap-4 md:gap-6">
               {/* Checkbox */}
               <div className="flex items-center">
                 <input
@@ -100,9 +100,6 @@ export function PendingPayoutsCard({
                   {formatDate(payout.ended_at)}
                 </p>
               </div>
-
-              {/* Spacer to push buttons to the right */}
-              <div className="flex-1"></div>
 
               {/* Watch Video Button (conditional) */}
               {!payout.payout_unlocked && payout.has_video && (
