@@ -70,15 +70,19 @@ export function PendingPayoutsCard({
             {/* Single Horizontal Row */}
             <div className="flex items-center gap-4 md:gap-6">
               {/* Checkbox */}
-              <div className="flex items-center">
+              <div className="relative flex items-center group">
                 <input
                   type="checkbox"
                   checked={selectedAuctionIds.has(payout.auction_id)}
                   disabled={!payout.payout_unlocked}
-                  title={!payout.payout_unlocked ? "Watch Video to Unlock" : ""}
                   onChange={() => onToggleSelection(payout.auction_id)}
                   className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 />
+                {!payout.payout_unlocked && (
+                  <div className="absolute left-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-0 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10 pointer-events-none">
+                    Watch Video to Unlock
+                  </div>
+                )}
               </div>
 
               {/* Treatment Name */}
@@ -101,6 +105,9 @@ export function PendingPayoutsCard({
                   {formatDate(payout.ended_at)}
                 </p>
               </div>
+
+              {/* Spacer to push buttons to the right */}
+              <div className="flex-1"></div>
 
               {/* Watch Video Button (conditional) */}
               {!payout.payout_unlocked && payout.has_video && (
