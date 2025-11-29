@@ -718,7 +718,7 @@ export default function PayoutsPage() {
                     </div>
 
                     {/* Selected Auctions Sub-headline */}
-                    <h4 className="text-white text-sm font-medium mb-3">
+                    <h4 className="text-white font-medium mb-3" style={{fontSize: '13px'}}>
                       Selected Auctions ({selectedAuctionIds.size})
                     </h4>
 
@@ -766,7 +766,7 @@ export default function PayoutsPage() {
                   <p className="text-blue-100" style={{fontSize: '11px'}}>
                     Payout Method: {getSelectedMethodDisplayName()}
                     <br />
-                    Payouts are typically processed within 1-2 business days.
+                    Payouts are typically processed within 1-2 business days
                   </p>
                 </div>
               </div>

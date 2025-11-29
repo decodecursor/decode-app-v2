@@ -65,12 +65,10 @@ export function PendingPayoutsCard({
               selectedAuctionIds.has(payout.auction_id)
                 ? 'border-2 border-purple-500'
                 : 'border border-gray-600'
-            }`}
+            } ${!payout.payout_unlocked ? 'opacity-50' : ''}`}
           >
             {/* Single Horizontal Row */}
             <div className="flex items-center gap-4 md:gap-6">
-              {/* Opacity wrapper for non-button content */}
-              <div className={!payout.payout_unlocked ? 'opacity-50 flex items-center gap-4 md:gap-6 flex-1' : 'flex items-center gap-4 md:gap-6 flex-1'}>
               {/* Checkbox with tooltip */}
               <div className="relative group">
                 <div className="flex items-center">
@@ -112,7 +110,6 @@ export function PendingPayoutsCard({
 
               {/* Spacer to push buttons to the right */}
               <div className="flex-1"></div>
-              </div>
 
               {/* Watch Video Button (conditional) */}
               {!payout.payout_unlocked && payout.has_video && (
