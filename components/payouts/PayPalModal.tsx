@@ -225,7 +225,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, userRole, onMe
         {/* Success indicator */}
         {isConnected && (
           <div className="mb-6 flex justify-center">
-            <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-600/20 text-green-400 border border-green-500/30">
+            <div className="inline-flex items-center px-3 py-1 rounded-full font-medium bg-green-600/20 text-green-400 border border-green-500/30" style={{fontSize: '10px'}}>
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
@@ -279,13 +279,15 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, userRole, onMe
 
         {/* Action buttons */}
         <div className="flex gap-3">
-          <button
-            onClick={handleClose}
-            className="flex-1 cosmic-button-secondary"
-            disabled={loading}
-          >
-            Cancel
-          </button>
+          {userRole !== USER_ROLES.MODEL && (
+            <button
+              onClick={handleClose}
+              className="flex-1 cosmic-button-secondary"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+          )}
           {isConnected && (
             <button
               onClick={() => setShowRemoveConfirmation(true)}
