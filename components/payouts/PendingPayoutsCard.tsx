@@ -143,23 +143,23 @@ export function PendingPayoutsCard({
               <div className="mt-4 pt-4 border-t border-white/10">
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Winning Bid</span>
+                    <span className="text-white">Winning Bid</span>
                     <span className="text-white font-medium">{formatCurrency(payout.winning_amount)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Start Price</span>
-                    <span className="text-red-400">-{formatCurrency(payout.start_price)}</span>
+                    <span className="text-gray-400">Auction Starting Price (Beauty Service Cost)</span>
+                    <span className="text-gray-400">-{formatCurrency(payout.start_price)}</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t border-white/5">
-                    <span className="text-gray-300 font-medium">Profit</span>
+                    <span className="text-white font-medium">Profit</span>
                     <span className="text-white font-medium">{formatCurrency(payout.profit_amount)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Platform Fee (25%)</span>
-                    <span className="text-red-400">-{formatCurrency(payout.platform_fee_amount)}</span>
+                    <span className="text-gray-400">DECODE Service Fee (25% of Profit)</span>
+                    <span className="text-gray-400">-{formatCurrency(payout.platform_fee_amount)}</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t border-white/5">
-                    <span className="text-green-400 font-semibold">Your Payout (75%)</span>
+                    <span className="text-green-400 font-semibold">Your Payout</span>
                     <span className="text-green-400 font-bold">{formatCurrency(payout.model_amount)}</span>
                   </div>
                 </div>
