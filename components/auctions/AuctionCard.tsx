@@ -8,6 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { CompactAuctionTimer } from './AuctionTimer';
 import { formatBidAmount } from '@/lib/models/Bid.model';
 import type { Auction, AuctionWithCreator } from '@/lib/models/Auction.model';
@@ -24,6 +25,7 @@ interface AuctionCardProps {
 }
 
 export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) {
+  const router = useRouter();
   const [shareSuccess, setShareSuccess] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
@@ -277,7 +279,11 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                   <div
                     className="instagram-avatar cursor-pointer"
                     style={{ width: '48px', height: '48px' }}
-                    onClick={() => setShowBusinessModal(true)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowBusinessModal(true);
+                    }}
                     role="button"
                     aria-label="Manage beauty business link"
                   >
@@ -298,7 +304,11 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                 <div className="relative z-10 -ml-3 group">
                   <div
                     className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-dashed border-gray-500 cursor-pointer transition-all duration-200 hover:scale-110 hover:brightness-110"
-                    onClick={() => setShowBusinessModal(true)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowBusinessModal(true);
+                    }}
                     role="button"
                     aria-label="Link beauty business"
                   >
@@ -374,7 +384,14 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               {/* My Payout */}
               <div className="text-left">
                 <p className="text-xs text-gray-400 uppercase tracking-wide">My Payout</p>
-                <p className="mt-1 text-xl md:text-2xl font-bold text-white">
+                <p
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    router.push('/dashboard/payouts');
+                  }}
+                  className="mt-1 text-xl md:text-2xl font-bold text-white cursor-pointer hover:underline hover:text-purple-300 transition-all duration-200"
+                >
                   {getPayoutStatusText()}
                 </p>
               </div>
