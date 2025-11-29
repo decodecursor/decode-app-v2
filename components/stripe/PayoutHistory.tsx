@@ -181,7 +181,7 @@ export function PayoutHistory({ userId, userRole, onNewPayout, refreshTrigger }:
           escapeCSVValue(formatDate(payout.created_at)),
           escapeCSVValue(payout.payout_request_id || 'N/A'),
           escapeCSVValue(payout.payout_method ? formatPayoutMethod(payout.payout_method) : 'N/A'),
-          escapeCSVValue(formatAmount(payout.payout_amount_aed))
+          escapeCSVValue(formatAmount(Number(payout.payout_amount_aed) || 0))
         ]
 
         // Add company name only for non-Model users
