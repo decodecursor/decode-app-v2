@@ -422,10 +422,11 @@ export default function Dashboard() {
             <nav className="hidden md:flex items-center justify-between w-full">
               {/* Left side - Profile Section */}
               <div className="flex items-center gap-4">
-                <div className="relative" ref={dropdownRef}>
+                {profile?.role === USER_ROLES.MODEL ? (
+                  // MODEL users: Direct click to Create Auction (no dropdown)
                   <div
-                    onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                    className="instagram-avatar"
+                    onClick={() => router.push('/auctions/create')}
+                    className="instagram-avatar cursor-pointer"
                   >
                     {(profile?.profile_photo_url || profile?.companyProfileImage) ? (
                       <img
@@ -440,42 +441,61 @@ export default function Dashboard() {
                       </div>
                     )}
                   </div>
+                ) : (
+                  // ADMIN/STAFF: Keep existing dropdown logic
+                  <div className="relative" ref={dropdownRef}>
+                    <div
+                      onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                      className="instagram-avatar"
+                    >
+                      {(profile?.profile_photo_url || profile?.companyProfileImage) ? (
+                        <img
+                          src={profile?.profile_photo_url || profile?.companyProfileImage}
+                          alt="Profile"
+                        />
+                      ) : (
+                        <div className="avatar-fallback">
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
 
-                  {/* Dropdown Menu */}
-                  {profileDropdownOpen && (
-                    <div className="absolute left-0 mt-2 w-64 bg-gray-800/95 backdrop-blur-lg rounded-xl shadow-lg border border-gray-600/50 py-2 z-50">
-                      {/* Profile */}
-                      <Link href="/profile" className="w-full flex items-center px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
-                        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        <span className="nav-button">Profile</span>
-                      </Link>
+                    {/* Dropdown Menu */}
+                    {profileDropdownOpen && (
+                      <div className="absolute left-0 mt-2 w-64 bg-gray-800/95 backdrop-blur-lg rounded-xl shadow-lg border border-gray-600/50 py-2 z-50">
+                        {/* Profile */}
+                        <Link href="/profile" className="w-full flex items-center px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          <span className="nav-button">Profile</span>
+                        </Link>
 
 
-                      {/* Payouts - Hide for MODEL users since it's in their desktop nav */}
-                      {profile?.role !== USER_ROLES.MODEL && (
+                        {/* Payouts */}
                         <Link href="/dashboard/payouts" className="w-full flex items-center px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
                           <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v2a2 2 0 002 2z" />
                           </svg>
                           <span className="nav-button">Payouts</span>
                         </Link>
-                      )}
 
-                      {/* Logout */}
-                      <button 
-                        onClick={handleSignOut}
-                        className="w-full flex items-center px-5 py-1.5 text-gray-300 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                      >
-                        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        <span className="nav-button">Logout</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
+                        {/* Logout */}
+                        <button
+                          onClick={handleSignOut}
+                          className="w-full flex items-center px-5 py-1.5 text-gray-300 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        >
+                          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                          <span className="nav-button">Logout</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* User Info Text */}
                 <div className="flex flex-col justify-center">
@@ -595,13 +615,23 @@ export default function Dashboard() {
                     Auctions
                   </Link>
 
-                  {/* Create Auction - Black Button */}
-                  <button
-                    className="bg-gradient-to-br from-gray-800 to-black text-white border border-purple-600 hover:border-purple-700 rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
-                    onMouseOver={createHoverSparkles}
-                    onClick={handleCreateAuctionClick}
+                  {/* Profile */}
+                  <Link
+                    href="/profile"
+                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                   >
-                    Create Auction
+                    Profile
+                  </Link>
+
+                  {/* Logout - Small button with door icon */}
+                  <button
+                    onClick={handleSignOut}
+                    className="px-2 py-2 text-sm border border-gray-500/50 text-gray-400 hover:bg-gray-500/10 hover:border-gray-500 hover:text-red-400 rounded-lg transition-colors"
+                    title="Logout"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
                   </button>
                 </div>
               ) : (
