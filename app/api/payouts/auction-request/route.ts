@@ -202,7 +202,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Create payout record for history tracking
-    const auctionTitles = auctions.map(a => a.title).join(', ')
     const payoutData = {
       user_id: userId,
       payout_amount_aed: totalAmount,
@@ -211,7 +210,6 @@ export async function POST(request: NextRequest) {
       payout_request_id: payoutRequestId,
       payout_method: payoutMethod,
       status: 'pending',
-      notes: `Auction payouts: ${auctionTitles}`,
       created_at: new Date().toISOString()
     }
 
