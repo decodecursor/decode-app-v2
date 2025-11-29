@@ -61,12 +61,10 @@ export function PendingPayoutsCard({
         {pendingPayouts.map((payout) => (
           <div
             key={payout.auction_id}
-            className={`p-4 rounded-lg border transition-colors ${
-              !payout.payout_unlocked
-                ? 'bg-amber-500/5 border-amber-500/30 opacity-60'
-                : selectedAuctionIds.has(payout.auction_id)
-                  ? 'bg-purple-500/20 border-purple-500/50'
-                  : 'bg-green-500/5 border-green-500/30'
+            className={`p-4 rounded-lg border transition-colors bg-blue-900/30 ${
+              selectedAuctionIds.has(payout.auction_id)
+                ? 'border-purple-500/50'
+                : 'border-gray-600'
             }`}
           >
             {/* Single Horizontal Row */}
