@@ -200,14 +200,14 @@ function StatCard({
   color?: 'gray' | 'green' | 'blue' | 'purple';
 }) {
   const colorClasses = {
-    gray: 'bg-white/10 text-gray-300',
-    green: 'bg-green-500/20 text-green-400',
-    blue: 'bg-blue-500/20 text-blue-400',
-    purple: 'bg-purple-500/20 text-purple-400',
+    gray: 'border-gray-700',
+    green: 'border-green-500',
+    blue: 'border-blue-500',
+    purple: 'border-purple-500',
   };
 
   return (
-    <div className="rounded-lg p-4">
+    <div className={`bg-white/5 rounded-lg p-4 border ${colorClasses[color]} hover:bg-white/8 transition-all`}>
       <div className="flex items-center justify-between">
         <div>
           <p className="cosmic-label text-gray-400 uppercase tracking-wide">{label}</p>

@@ -768,7 +768,7 @@ export default function ProfilePage() {
                     setInstagramError(null)
                   }}
                   placeholder="username"
-                  className="cosmic-input w-full pl-10"
+                  className="cosmic-input w-full pl-12"
                   autoCapitalize="none"
                   autoCorrect="off"
                   autoComplete="username"
