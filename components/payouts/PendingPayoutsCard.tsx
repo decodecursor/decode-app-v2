@@ -65,6 +65,8 @@ export function PendingPayoutsCard({
               selectedAuctionIds.has(payout.auction_id)
                 ? 'border-2 border-purple-500'
                 : 'border border-gray-600'
+            } ${
+              !payout.payout_unlocked ? 'opacity-60' : ''
             }`}
           >
             {/* Single Horizontal Row */}
