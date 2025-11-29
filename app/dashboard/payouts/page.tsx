@@ -622,7 +622,7 @@ export default function PayoutsPage() {
                       <button
                         onClick={handleRequestPayoutClick}
                         disabled={payoutInProcess || (userRole?.toLowerCase() === 'model' && selectedAuctionIds.size === 0)}
-                        className="w-full py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+                        className="w-full py-2 bg-gray-900/80 border border-purple-400 text-purple-400 hover:bg-purple-600 hover:text-white hover:border-purple-600 disabled:bg-gray-600 disabled:border-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed font-medium rounded-lg transition-colors"
                       >
                         {userRole?.toLowerCase() === 'model'
                           ? `Request Payout${selectedAuctionIds.size > 0 ? ` (${formatCurrency(getSelectedTotal())})` : ''}`
@@ -782,7 +782,7 @@ export default function PayoutsPage() {
                 <button
                   onClick={handleRequestPayout}
                   disabled={requestLoading}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-gray-900/80 border border-purple-400 text-purple-400 hover:bg-purple-600 hover:text-white hover:border-purple-600 font-medium py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {requestLoading ? 'Processing...' : 'Request Payout'}
                 </button>

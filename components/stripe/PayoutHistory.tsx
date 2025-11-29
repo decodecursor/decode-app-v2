@@ -282,7 +282,7 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
                   {/* Desktop Layout - Hidden on mobile */}
                   <div className="hidden md:grid grid-cols-4 gap-x-5 items-center">
                     <div className="flex items-center space-x-3">
-                      <span className="w-7 h-7 bg-gray-800/50 border-2 border-purple-400 text-purple-400 text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="w-7 h-7 bg-gray-900/80 border-2 border-purple-400 text-purple-400 text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">
                         {index + 1}
                       </span>
                       <span className="cosmic-body text-green-400 font-bold">

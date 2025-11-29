@@ -204,10 +204,10 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, userRole, onMe
             </div>
           </div>
           <h2 className="md:text-2xl text-xl font-bold text-white mb-2">
-            {userRole === USER_ROLES.STAFF ? 'Add Your PayPal Account' : 'Add Company PayPal Account'}
+            {userRole === USER_ROLES.STAFF || userRole === USER_ROLES.MODEL ? 'Add Your PayPal Account' : 'Add Company PayPal Account'}
           </h2>
           <p className="text-gray-400 md:text-sm text-xs">
-            {userRole === USER_ROLES.STAFF ? 'Connect your PayPal account to receive payouts' : 'Connect company PayPal account to receive payouts'}
+            {userRole === USER_ROLES.STAFF || userRole === USER_ROLES.MODEL ? 'Connect your PayPal account to receive payouts' : 'Connect company PayPal account to receive payouts'}
           </p>
         </div>
 
@@ -225,7 +225,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, userRole, onMe
         {/* Success indicator */}
         {isConnected && (
           <div className="mb-6 flex justify-center">
-            <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-600/20 text-green-400 border border-green-500/30">
+            <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-600/20 text-green-400 border border-green-500/30">
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>

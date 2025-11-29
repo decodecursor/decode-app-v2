@@ -395,7 +395,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                   {getPayoutStatusText()}
                 </p>
                 {/* Hover Tooltip */}
-                <div className="absolute left-0 bottom-full mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                   <span className="text-white bg-black/80 px-2 py-1 rounded text-xs">
                     Request Payout
                   </span>
