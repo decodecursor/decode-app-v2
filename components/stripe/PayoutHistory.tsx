@@ -16,11 +16,12 @@ interface Payout {
 
 interface PayoutHistoryProps {
   userId: string
+  userRole?: string
   onNewPayout?: (payoutId: string) => void
   refreshTrigger?: number
 }
 
-export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHistoryProps) {
+export function PayoutHistory({ userId, userRole, onNewPayout, refreshTrigger }: PayoutHistoryProps) {
   const [payouts, setPayouts] = useState<Payout[]>([])
   const [loading, setLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
@@ -139,6 +140,14 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
     })
   }
 
+  // CSV helper to escape values containing commas, quotes, or newlines
+  const escapeCSVValue = (value: string): string => {
+    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+      return `"${value.replace(/"/g, '""')}"`
+    }
+    return value
+  }
+
   const exportToCSV = async () => {
     setExporting(true)
     try {
@@ -159,15 +168,29 @@ export function PayoutHistory({ userId, onNewPayout, refreshTrigger }: PayoutHis
 
       const data = result.payouts
 
-      const headers = ['Company Name', 'Creator Name', 'Payout Request Date', 'Payout Request ID', 'Payout Method', 'Payout Amount in AED']
-      const rows = (data || []).map(payout => [
-        payout.company_name || 'N/A',
-        payout.user_name || 'N/A',
-        formatDate(payout.created_at),
-        payout.payout_request_id || 'N/A',
-        payout.payout_method ? formatPayoutMethod(payout.payout_method) : 'N/A',
-        formatAmount(payout.payout_amount_aed)
-      ])
+      // Build headers based on role - exclude Company Name for Model users
+      const isModel = userRole === 'Model'
+      const headers = isModel
+        ? ['Creator Name', 'Payout Request Date', 'Payout Request ID', 'Payout Method', 'Payout Amount in AED']
+        : ['Company Name', 'Creator Name', 'Payout Request Date', 'Payout Request ID', 'Payout Method', 'Payout Amount in AED']
+
+      // Build rows with proper CSV escaping
+      const rows = (data || []).map(payout => {
+        const baseRow = [
+          escapeCSVValue(payout.user_name || 'N/A'),
+          escapeCSVValue(formatDate(payout.created_at)),
+          escapeCSVValue(payout.payout_request_id || 'N/A'),
+          escapeCSVValue(payout.payout_method ? formatPayoutMethod(payout.payout_method) : 'N/A'),
+          escapeCSVValue(formatAmount(payout.payout_amount_aed))
+        ]
+
+        // Add company name only for non-Model users
+        if (!isModel) {
+          baseRow.unshift(escapeCSVValue(payout.company_name || 'N/A'))
+        }
+
+        return baseRow
+      })
 
       const csvContent = [
         headers.join(','),

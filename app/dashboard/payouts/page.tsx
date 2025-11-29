@@ -684,7 +684,7 @@ export default function PayoutsPage() {
             )}
 
             {/* Payout History - Hidden for ADMIN */}
-            {user && userRole !== 'Admin' && <PayoutHistory userId={user.id} onNewPayout={handleNewPayout} refreshTrigger={refreshTrigger} />}
+            {user && userRole !== 'Admin' && <PayoutHistory userId={user.id} userRole={userRole} onNewPayout={handleNewPayout} refreshTrigger={refreshTrigger} />}
           </div>
         </div>
 
@@ -718,7 +718,7 @@ export default function PayoutsPage() {
                     </div>
 
                     {/* Selected Auctions Sub-headline */}
-                    <h4 className="text-purple-500 font-medium mb-3" style={{fontSize: '12px'}}>
+                    <h4 className="text-purple-500 font-medium mb-3" style={{fontSize: '13px'}}>
                       Selected Auctions ({selectedAuctionIds.size})
                     </h4>
 
