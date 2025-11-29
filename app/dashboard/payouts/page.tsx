@@ -692,7 +692,7 @@ export default function PayoutsPage() {
         {showRequestModal && (
           <div className="fixed inset-0 bg-black/50 flex items-end md:items-center justify-center z-50 md:p-4">
             <div className="bg-gray-900 rounded-t-xl md:rounded-xl border border-gray-700 p-6 w-full max-w-[400px] md:mx-auto">
-              <h3 className="text-base md:text-lg font-semibold text-white mb-4">Request Payout</h3>
+              <h3 className="text-base md:text-lg font-semibold text-white mb-3">Request Payout</h3>
               
               {/* Modal Error Message */}
               {modalError && (
