@@ -81,6 +81,18 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     }
   };
 
+  // Determine if payout requires action (show amber)
+  const shouldShowAmberPayout = () => {
+    const hasEnded = isAuctionEnded(auction) ||
+                     auction.status === 'ended' ||
+                     auction.status === 'completed';
+
+    return hasEnded &&
+           auction.total_bids > 0 &&
+           creatorProfit > 0 &&
+           auction.payout_status !== 'transferred';
+  };
+
   // Handle share auction
   const handleShare = async () => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
@@ -383,7 +395,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </div>
 
             {/* Right: Timer & Status Badge */}
-            <div className="flex-1 flex items-center gap-2 justify-end">
+            <div className="flex-1 flex items-center gap-2 justify-end -mr-3">
               {auction.status === 'active' && !isAuctionEnded(auction) && (
                 <CompactAuctionTimer auction={auction} />
               )}
@@ -444,7 +456,11 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                     e.stopPropagation();
                     router.push('/dashboard/payouts');
                   }}
-                  className="mt-1 text-xl md:text-2xl font-bold text-white cursor-pointer hover:underline hover:text-purple-300 transition-all duration-200"
+                  className={`mt-1 text-xl md:text-2xl font-bold cursor-pointer hover:underline transition-all duration-200 ${
+                    shouldShowAmberPayout()
+                      ? 'text-amber-400 hover:text-amber-300'
+                      : 'text-white hover:text-purple-300'
+                  }`}
                 >
                   {getPayoutStatusText()}
                 </p>
