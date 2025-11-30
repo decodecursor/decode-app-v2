@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { getTimeRemaining, formatTimeRemaining } from '@/lib/models/Auction.model';
 import type { Auction } from '@/lib/models/Auction.model';
 
@@ -47,7 +47,9 @@ export function useAuctionTimer(auction: Auction | null) {
     };
   });
 
-  const [previousEndTime, setPreviousEndTime] = useState<number>(
+  // Use useRef instead of useState to avoid triggering re-renders
+  // This value is only used to detect anti-sniping time extensions
+  const previousEndTimeRef = useRef<number>(
     auction ? new Date(auction.end_time).getTime() : 0
   );
 
@@ -69,9 +71,9 @@ export function useAuctionTimer(auction: Auction | null) {
       const timeRemaining = getTimeRemaining(auction.end_time);
 
       // Check if time was extended (anti-sniping)
-      const wasExtended = previousEndTime > 0 && endTimeMs > previousEndTime;
+      const wasExtended = previousEndTimeRef.current > 0 && endTimeMs > previousEndTimeRef.current;
       if (wasExtended) {
-        setPreviousEndTime(endTimeMs);
+        previousEndTimeRef.current = endTimeMs;
       }
 
       setTimerState({
@@ -92,12 +94,12 @@ export function useAuctionTimer(auction: Auction | null) {
     const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
-  }, [auction, previousEndTime]);
+  }, [auction]); // Removed previousEndTime - now using ref which doesn't trigger re-renders
 
   // Update previous end time when auction changes
   useEffect(() => {
     if (auction) {
-      setPreviousEndTime(new Date(auction.end_time).getTime());
+      previousEndTimeRef.current = new Date(auction.end_time).getTime();
     }
   }, [auction?.end_time]); // eslint-disable-line react-hooks/exhaustive-deps
 
