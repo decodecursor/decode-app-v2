@@ -6,7 +6,11 @@ import { useEffect, useState } from 'react';
  * when users switch apps or the browser goes to background
  */
 export function usePageVisibility() {
-  const [isVisible, setIsVisible] = useState(true);
+  // Lazy initializer: set correct initial state based on document visibility
+  // This prevents unnecessary re-renders on mount
+  const [isVisible, setIsVisible] = useState(() =>
+    typeof document !== 'undefined' ? !document.hidden : true
+  );
   const [visibilityChangeCount, setVisibilityChangeCount] = useState(0);
 
   useEffect(() => {
@@ -21,10 +25,7 @@ export function usePageVisibility() {
       }
     };
 
-    // Initial state
-    setIsVisible(!document.hidden);
-
-    // Listen for visibility changes
+    // Listen for visibility changes (no unconditional setState - initial state is already correct)
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {

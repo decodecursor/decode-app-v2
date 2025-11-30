@@ -191,7 +191,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     // Check cancelled status FIRST (before time-based checks)
     if (auction.status === 'cancelled') {
       return (
-        <span className="px-3 py-1.5 text-lg font-medium text-red-400 bg-red-900/20 rounded-full">
+        <span className="px-3 py-1.5 text-base font-medium text-red-400 bg-red-900/20 rounded-full">
           Cancelled
         </span>
       );
@@ -204,14 +204,14 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
       // If auction has bids, show COMPLETED (green)
       if (auction.total_bids > 0) {
         return (
-          <span className="px-3 py-1.5 text-lg font-medium text-green-300 bg-green-700/30 rounded-full">
+          <span className="px-3 py-1.5 text-base font-medium text-green-300 bg-green-700/30 rounded-full">
             Completed
           </span>
         );
       }
       // If no bids, show ENDED (gray)
       return (
-        <span className="px-3 py-1.5 text-lg font-medium text-gray-300 bg-gray-700/50 rounded-full">
+        <span className="px-3 py-1.5 text-base font-medium text-gray-300 bg-gray-700/50 rounded-full">
           Ended
         </span>
       );
@@ -220,13 +220,13 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     switch (auction.status) {
       case 'active':
         return (
-          <span className="px-3 py-1.5 text-lg font-medium text-green-300 bg-green-700/30 rounded-full">
+          <span className="px-3 py-1.5 text-base font-medium text-green-300 bg-green-700/30 rounded-full">
             Live
           </span>
         );
       case 'pending':
         return (
-          <span className="px-3 py-1.5 text-lg font-medium text-blue-300 bg-blue-700/30 rounded-full">
+          <span className="px-3 py-1.5 text-base font-medium text-blue-300 bg-blue-700/30 rounded-full">
             Upcoming
           </span>
         );
@@ -247,16 +247,16 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
         <div className="p-5 cursor-pointer">
         {/* Header */}
         <div className="border-b border-gray-700 pb-4 mb-4">
-          <div className="flex items-center gap-3">
+          <div className="relative flex items-center gap-3">
             {/* Left: Title */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 pr-20">
               <h3 className="text-lg font-semibold text-white truncate">
                 {auction.title}
               </h3>
             </div>
 
             {/* Center: Model & Business Images */}
-            <div className="flex items-center relative">
+            <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
               {/* Model Image */}
               <div className="instagram-avatar" style={{ width: '48px', height: '48px' }}>
                 {hasCreator(auction) && auction.creator.profile_photo_url ? (
@@ -275,7 +275,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
               {/* Beauty Business Image */}
               {linkedBusiness ? (
-                <div className="relative z-10 -ml-3 group">
+                <div className="relative z-10 -ml-[10px] group">
                   <div
                     className="instagram-avatar cursor-pointer"
                     style={{ width: '48px', height: '48px' }}
@@ -301,7 +301,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                   </div>
                 </div>
               ) : (
-                <div className="relative z-10 -ml-3 group">
+                <div className="relative z-10 -ml-[10px] group">
                   <div
                     className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-dashed border-amber-500/30 cursor-pointer transition-all duration-200 hover:scale-110 hover:brightness-110"
                     onClick={(e) => {
