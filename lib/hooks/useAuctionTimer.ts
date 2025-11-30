@@ -94,7 +94,7 @@ export function useAuctionTimer(auction: Auction | null) {
     const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
-  }, [auction]); // Removed previousEndTime - now using ref which doesn't trigger re-renders
+  }, [auction?.id, auction?.status, auction?.end_time]); // Use primitives, not object reference - prevents re-render loops
 
   // Update previous end time when auction changes
   useEffect(() => {
@@ -118,7 +118,7 @@ export function useAuctionTimer(auction: Auction | null) {
     if (elapsed <= 0) return 0;
 
     return Math.min(100, (elapsed / totalDuration) * 100);
-  }, [auction]);
+  }, [auction?.start_time, auction?.end_time]);
 
   // Get time remaining in specific units
   const getTimeUnits = useCallback((): {
