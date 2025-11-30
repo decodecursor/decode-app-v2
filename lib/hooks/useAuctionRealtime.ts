@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { getAuctionRealtimeManager, type AuctionEvent } from '@/lib/realtime/AuctionRealtimeManager';
 import type { Auction } from '@/lib/models/Auction.model';
 import { usePageVisibility } from './usePageVisibility';
@@ -18,6 +18,7 @@ export function useAuctionRealtime(auctionId: string, initialAuction?: Auction) 
   const [isLoading, setIsLoading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const { visibilityChangeCount } = usePageVisibility();
+  const prevVisibilityCountRef = useRef(visibilityChangeCount);
 
   // Schedule retry with exponential backoff
   const scheduleRetry = useCallback(() => {
@@ -159,8 +160,10 @@ export function useAuctionRealtime(auctionId: string, initialAuction?: Auction) 
 
   // Handle page visibility changes (critical for mobile)
   useEffect(() => {
-    if (visibilityChangeCount > 0) {
+    // Only reconnect when visibility count actually increased (not on every render)
+    if (visibilityChangeCount > prevVisibilityCountRef.current) {
       console.log('📱 [useAuctionRealtime] Page became visible, reconnecting and refreshing...');
+      prevVisibilityCountRef.current = visibilityChangeCount;
       const realtimeManager = getAuctionRealtimeManager();
 
       // Reconnect WebSocket channels first
@@ -200,6 +203,7 @@ export function useActiveAuctions() {
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const { visibilityChangeCount } = usePageVisibility();
+  const prevVisibilityCountRef = useRef(visibilityChangeCount);
 
   // Fetch all active auctions
   const fetchAuctions = useCallback(async () => {
@@ -260,8 +264,10 @@ export function useActiveAuctions() {
 
   // Handle page visibility changes (critical for mobile)
   useEffect(() => {
-    if (visibilityChangeCount > 0) {
+    // Only reconnect when visibility count actually increased (not on every render)
+    if (visibilityChangeCount > prevVisibilityCountRef.current) {
       console.log('📱 [useActiveAuctions] Page became visible, reconnecting and refreshing...');
+      prevVisibilityCountRef.current = visibilityChangeCount;
       const realtimeManager = getAuctionRealtimeManager();
 
       // Reconnect WebSocket channels first
@@ -288,6 +294,7 @@ export function useCreatorAuctions(creatorId: string) {
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const { visibilityChangeCount } = usePageVisibility();
+  const prevVisibilityCountRef = useRef(visibilityChangeCount);
 
   // Fetch creator's auctions
   const fetchAuctions = useCallback(async () => {
@@ -365,8 +372,10 @@ export function useCreatorAuctions(creatorId: string) {
 
   // Handle page visibility changes (critical for mobile)
   useEffect(() => {
-    if (visibilityChangeCount > 0) {
+    // Only reconnect when visibility count actually increased (not on every render)
+    if (visibilityChangeCount > prevVisibilityCountRef.current) {
       console.log('📱 [useCreatorAuctions] Page became visible, reconnecting and refreshing...');
+      prevVisibilityCountRef.current = visibilityChangeCount;
       const realtimeManager = getAuctionRealtimeManager();
 
       // Reconnect WebSocket channels first
