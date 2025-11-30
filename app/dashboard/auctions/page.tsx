@@ -105,21 +105,26 @@ export default function AuctionsDashboardPage() {
                 <StatCard
                   label="Funds Collected"
                   value={`AED ${auctions.filter((a) => a.status === 'completed').reduce((sum, a) => sum + Number(a.auction_current_price), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                  color="blue"
+                  percentage="0%"
+                  previousValue="AED 0.00"
                 />
                 <StatCard
                   label="Services Funded"
                   value={auctions.filter((a) => a.status === 'completed').length}
-                  color="purple"
+                  percentage="0%"
+                  previousValue={0}
                 />
                 <StatCard
                   label="Active Auctions"
                   value={auctions.filter((a) => isAuctionActive(a)).length}
-                  color="green"
+                  percentage="0%"
+                  previousValue={0}
                 />
                 <StatCard
                   label="Total Auctions"
                   value={auctions.length}
+                  percentage="0%"
+                  previousValue={0}
                 />
               </div>
             </div>
@@ -183,36 +188,29 @@ export default function AuctionsDashboardPage() {
 function StatCard({
   label,
   value,
-  icon,
-  color = 'gray',
+  percentage = '0%',
+  previousValue,
+  previousLabel = 'previous period',
 }: {
   label: string;
   value: number | string;
-  icon?: React.ReactNode;
-  color?: 'gray' | 'green' | 'blue' | 'purple';
+  percentage?: string;
+  previousValue?: number | string;
+  previousLabel?: string;
 }) {
-  const colorClasses = {
-    gray: 'border-gray-700',
-    green: 'border-green-500',
-    blue: 'border-blue-500',
-    purple: 'border-purple-500',
-  };
-
   return (
-    <div className={`bg-white/5 rounded-lg p-4 border ${colorClasses[color]} hover:bg-white/8 transition-all`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="cosmic-label text-gray-400 uppercase tracking-wide">{label}</p>
-          <p className="mt-2 text-2xl md:text-3xl font-bold text-white">{value}</p>
-        </div>
-        {icon && (
-          <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {icon}
-            </svg>
-          </div>
-        )}
+    <div className="bg-white/5 rounded-xl p-4 hover:bg-white/8 transition-all">
+      {/* Top row: Label and Percentage */}
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm text-gray-300">{label}</p>
+        <p className="text-sm text-gray-400">{percentage}</p>
       </div>
+      {/* Main value */}
+      <p className="text-2xl md:text-3xl font-bold text-white mb-1">{value}</p>
+      {/* Previous period comparison */}
+      {previousValue !== undefined && (
+        <p className="text-sm text-gray-400">vs {previousValue} {previousLabel}</p>
+      )}
     </div>
   );
 }

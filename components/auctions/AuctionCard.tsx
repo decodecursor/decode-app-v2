@@ -191,7 +191,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     // Check cancelled status FIRST (before time-based checks)
     if (auction.status === 'cancelled') {
       return (
-        <span className="px-2 py-1 text-xs font-medium text-red-400 bg-red-900/20 rounded-full">
+        <span className="px-3 py-1.5 text-lg font-medium text-red-400 bg-red-900/20 rounded-full">
           Cancelled
         </span>
       );
@@ -204,14 +204,14 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
       // If auction has bids, show COMPLETED (green)
       if (auction.total_bids > 0) {
         return (
-          <span className="px-2 py-1 text-xs font-medium text-green-300 bg-green-700/30 rounded-full">
+          <span className="px-3 py-1.5 text-lg font-medium text-green-300 bg-green-700/30 rounded-full">
             Completed
           </span>
         );
       }
       // If no bids, show ENDED (gray)
       return (
-        <span className="px-2 py-1 text-xs font-medium text-gray-300 bg-gray-700/50 rounded-full">
+        <span className="px-3 py-1.5 text-lg font-medium text-gray-300 bg-gray-700/50 rounded-full">
           Ended
         </span>
       );
@@ -220,13 +220,13 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     switch (auction.status) {
       case 'active':
         return (
-          <span className="px-2 py-1 text-xs font-medium text-green-300 bg-green-700/30 rounded-full">
+          <span className="px-3 py-1.5 text-lg font-medium text-green-300 bg-green-700/30 rounded-full">
             Live
           </span>
         );
       case 'pending':
         return (
-          <span className="px-2 py-1 text-xs font-medium text-blue-300 bg-blue-700/30 rounded-full">
+          <span className="px-3 py-1.5 text-lg font-medium text-blue-300 bg-blue-700/30 rounded-full">
             Upcoming
           </span>
         );
@@ -303,7 +303,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               ) : (
                 <div className="relative z-10 -ml-3 group">
                   <div
-                    className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-dashed border-gray-500 cursor-pointer transition-all duration-200 hover:scale-110 hover:brightness-110"
+                    className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-dashed border-amber-500/30 cursor-pointer transition-all duration-200 hover:scale-110 hover:brightness-110"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -312,8 +312,8 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                     role="button"
                     aria-label="Link beauty business"
                   >
-                    <div className="w-full h-full bg-gray-500 flex items-center justify-center opacity-75">
-                      <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-full h-full bg-amber-500/10 flex items-center justify-center opacity-75">
+                      <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
                     </div>
@@ -437,7 +437,11 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                 }
               }}
               disabled={!videoData || loadingVideo}
-              className="cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all rounded-lg flex items-center gap-1.5 disabled:cursor-not-allowed ${
+                !videoData
+                  ? 'border-amber-500/30 text-amber-400 bg-amber-500/10'
+                  : 'border-white/30 hover:bg-white/10'
+              } ${!videoData || loadingVideo ? 'opacity-50' : ''}`}
               title={videoData ? 'View video' : 'No video uploaded yet'}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

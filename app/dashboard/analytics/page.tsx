@@ -436,7 +436,7 @@ function StatCard({
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-500 uppercase tracking-wide">{label}</p>
-          <p className="mt-2 text-2xl font-bold text-gray-900">{value}</p>
+          <p className="mt-2 text-2xl md:text-[26px] font-bold text-gray-900">{value}</p>
         </div>
         <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
