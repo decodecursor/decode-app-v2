@@ -186,6 +186,65 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     setQrCodeDataURL('');
   };
 
+  // Card colors based on status
+  const getCardColors = () => {
+    // Check cancelled status FIRST
+    if (auction.status === 'cancelled') {
+      return {
+        stripe: 'border-l-red-500',
+        hover: 'hover:border-red-400',
+        bg: 'bg-blue-900/30'
+      };
+    }
+
+    // Check if auction has ended
+    const hasEnded = isAuctionEnded(auction) || auction.status === 'ended' || auction.status === 'completed';
+
+    if (hasEnded) {
+      // If auction has bids, COMPLETED (green)
+      if (auction.total_bids > 0) {
+        return {
+          stripe: 'border-l-green-500',
+          hover: 'hover:border-green-400',
+          bg: 'bg-blue-900/30'
+        };
+      }
+      // If no bids, ENDED (gray)
+      return {
+        stripe: 'border-l-gray-500',
+        hover: 'hover:border-gray-400',
+        bg: 'bg-blue-900/30'
+      };
+    }
+
+    // Active (LIVE) - PURPLE exception
+    if (auction.status === 'active') {
+      return {
+        stripe: 'border-l-purple-500',
+        hover: 'hover:border-purple-400',
+        bg: 'bg-gray-900/80'
+      };
+    }
+
+    // Pending/Upcoming (blue)
+    if (auction.status === 'pending') {
+      return {
+        stripe: 'border-l-blue-500',
+        hover: 'hover:border-blue-400',
+        bg: 'bg-blue-900/30'
+      };
+    }
+
+    // Default fallback
+    return {
+      stripe: 'border-l-gray-500',
+      hover: 'hover:border-gray-400',
+      bg: 'bg-blue-900/30'
+    };
+  };
+
+  const cardColors = getCardColors();
+
   // Status badge
   const getStatusBadge = () => {
     // Check cancelled status FIRST (before time-based checks)
@@ -237,12 +296,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
   return (
     <>
-      <div className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg transition-all duration-200
-          ${isActive
-            ? 'bg-gray-900/80 border-l-purple-500 hover:border-purple-400'
-            : 'bg-blue-900/30 border-l-gray-500 hover:border-gray-400'
-          }`}
-        >
+      <div className={`relative overflow-hidden border border-gray-600 border-l-4 rounded-lg shadow-lg transition-all duration-200 ${cardColors.bg} ${cardColors.stripe} ${cardColors.hover}`}>
       <Link href={`/auctions/${auction.id}`}>
         <div className="p-5 cursor-pointer">
         {/* Header */}
@@ -258,7 +312,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             {/* Center: Model & Business Images */}
             <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
               {/* Model Image */}
-              <div className="instagram-avatar" style={{ width: '48px', height: '48px' }}>
+              <div className="instagram-avatar" style={{ width: '54px', height: '54px' }}>
                 {hasCreator(auction) && auction.creator.profile_photo_url ? (
                   <img
                     src={auction.creator.profile_photo_url}
@@ -278,7 +332,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                 <div className="relative z-10 -ml-[10px] group">
                   <div
                     className="instagram-avatar cursor-pointer"
-                    style={{ width: '48px', height: '48px' }}
+                    style={{ width: '54px', height: '54px' }}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -303,7 +357,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               ) : (
                 <div className="relative z-10 -ml-[10px] group">
                   <div
-                    className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-dashed border-amber-500/30 cursor-pointer transition-all duration-200 hover:scale-110 hover:brightness-110"
+                    className="relative w-[54px] h-[54px] rounded-full overflow-hidden border-2 border-dashed border-amber-500/30 cursor-pointer transition-all duration-200 hover:scale-110 hover:brightness-110"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -427,7 +481,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     </Link>
 
         {/* Action Buttons Row */}
-        <div className="border-t border-gray-700 pt-4 px-5 pb-5">
+        <div className="border-t border-gray-700 pt-5 px-2 pb-5">
           <div className="flex flex-wrap gap-2 justify-start items-center">
             {/* Video Button - Text style for left alignment */}
             <button
