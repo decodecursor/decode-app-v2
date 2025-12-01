@@ -68,8 +68,8 @@ export function PendingPayoutsCard({
                   : 'border border-gray-600'
               } ${!payout.payout_unlocked ? 'opacity-50' : ''}`}
             >
-              {/* Single Horizontal Row with Grid Layout */}
-              <div className="grid grid-cols-[auto_minmax(100px,1fr)_140px_130px_auto] md:grid-cols-[auto_minmax(150px,1fr)_160px_140px_auto] items-center gap-4 md:gap-6">
+              {/* Single Horizontal Row */}
+              <div className="flex items-center gap-3 md:gap-4">
                 {/* Checkbox */}
                 <div className="flex items-center">
                   <input
@@ -81,29 +81,29 @@ export function PendingPayoutsCard({
                   />
                 </div>
 
-                {/* Treatment Name */}
-                <div>
+                {/* Treatment Name - Fixed width to align everything after it */}
+                <div className="w-32 md:w-40">
                   <p className="font-semibold text-white text-sm md:text-base truncate">
                     {payout.auction_title}
                   </p>
                 </div>
 
-                {/* Amount */}
-                <div>
+                {/* Amount - Fixed width */}
+                <div className="w-28 md:w-36">
                   <p className="text-sm md:text-base font-bold text-green-400">
                     {formatCurrency(payout.model_amount)}
                   </p>
                 </div>
 
-                {/* End Date */}
-                <div>
+                {/* End Date - Fixed width */}
+                <div className="w-24 md:w-28">
                   <p className="text-xs md:text-sm text-white">
                     {formatDate(payout.ended_at)}
                   </p>
                 </div>
 
-                {/* Buttons Container */}
-                <div className="flex items-center gap-2 justify-end"></div>
+                {/* Spacer to push buttons right */}
+                <div className="flex-1"></div>
 
                 {/* Placeholder for buttons (faded with card) */}
                 {!payout.payout_unlocked && payout.has_video && (
