@@ -85,6 +85,8 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
   const [savedBusinessPhoto, setSavedBusinessPhoto] = useState<string | null>(null);
   const [photoUploading, setPhotoUploading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [croppedBlob, setCroppedBlob] = useState<Blob | null>(null);
+  const [tempCroppedBlob, setTempCroppedBlob] = useState<Blob | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Existing businesses states
@@ -98,6 +100,7 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
     const cropped = await getCroppedImg(selectedImage, croppedAreaPixelsParam);
     const croppedUrl = URL.createObjectURL(cropped);
     setCroppedImage(croppedUrl);
+    setTempCroppedBlob(cropped); // Store the blob for later upload
   }, [selectedImage]);
 
   // Fetch existing businesses from API
@@ -158,6 +161,8 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
     setSavedBusinessPhoto(null);
     setPhotoUploading(false);
     setShowSuccess(false);
+    setCroppedBlob(null);
+    setTempCroppedBlob(null);
 
     onClose();
   };
@@ -193,12 +198,18 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
     // Save the cropped preview
     setSavedBusinessPhoto(croppedImage);
 
+    // Store the blob for later upload
+    if (tempCroppedBlob) {
+      setCroppedBlob(tempCroppedBlob);
+    }
+
     // Reset editor state
     setSelectedImage(null);
     setCrop({ x: 0, y: 0 });
     setZoom(1);
     setCroppedAreaPixels(null);
     setCroppedImage(null);
+    setTempCroppedBlob(null);
   };
 
   const cancelPhotoEdit = () => {
@@ -214,25 +225,24 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
       URL.revokeObjectURL(savedBusinessPhoto);
     }
     setSavedBusinessPhoto(null);
+    setCroppedBlob(null);
     setFormData({ ...formData, businessPhotoUrl: '' });
   };
 
   const uploadBusinessPhoto = async (userId: string): Promise<string | null> => {
-    if (!selectedImage || !croppedAreaPixels) return null;
+    if (!croppedBlob) return null;
 
     try {
-      const croppedImageBlob = await getCroppedImg(selectedImage, croppedAreaPixels);
-
       const fileExt = 'jpg';
       const fileName = `${userId}-${Date.now()}.${fileExt}`;
       const filePath = `business-photos/${fileName}`;
 
       const supabase = createClient();
 
-      // Upload to Supabase storage
+      // Upload to Supabase storage using the stored blob
       const { error: uploadError } = await supabase.storage
         .from('user-uploads')
-        .upload(filePath, croppedImageBlob, {
+        .upload(filePath, croppedBlob, {
           contentType: 'image/jpeg',
           upsert: true
         });
@@ -263,7 +273,7 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
       let photoUrl = '';
 
       // Upload business photo if one was selected and cropped
-      if (savedBusinessPhoto && croppedAreaPixels && selectedImage) {
+      if (savedBusinessPhoto && croppedBlob) {
         // Get actual user ID from auth context
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
