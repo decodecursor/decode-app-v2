@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     console.log('👤 [API /beauty-businesses/create] User data fetch:', {
       hasData: !!userData,
       role: userData?.role,
-      name: userData?.name,
+      user_name: userData?.user_name,
       hasError: !!userError,
     });
 
