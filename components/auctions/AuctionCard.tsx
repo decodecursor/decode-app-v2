@@ -412,7 +412,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
         </div>
 
         {/* Pricing Stats */}
-        <div className="mb-3">
+        <div className="mb-2">
           <div className="flex justify-between items-start gap-3 flex-wrap">
             {/* LEFT GROUP: Starting Price */}
             <div>
@@ -432,7 +432,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                   }
                 })()}
               </p>
-              <p className="text-xl md:text-2xl font-bold text-white">
+              <p className="text-lg md:text-xl font-bold text-white">
                 {formatBidAmount(hasBids ? currentPrice : startPrice)}
               </p>
             </div>
@@ -442,7 +442,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               {/* My Profit */}
               <div className="text-right">
                 <p className="text-xs text-gray-400 uppercase tracking-wide">My Profit</p>
-                <p className="text-xl md:text-2xl font-bold text-white">
+                <p className="text-lg md:text-xl font-bold text-white">
                   {formatBidAmount(creatorProfit)}
                 </p>
               </div>
@@ -456,7 +456,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                     e.stopPropagation();
                     router.push('/dashboard/payouts');
                   }}
-                  className={`text-xl md:text-2xl font-bold cursor-pointer hover:underline transition-all duration-200 ${
+                  className={`text-lg md:text-xl font-bold cursor-pointer hover:underline transition-all duration-200 ${
                     shouldShowAmberPayout()
                       ? 'text-amber-400 hover:text-amber-300'
                       : 'text-white hover:text-purple-300'
@@ -478,7 +478,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               {/* Bid Count */}
               <div className="text-right">
                 <p className="text-xs text-gray-400 uppercase tracking-wide">Bids</p>
-                <p className="text-xl md:text-2xl font-bold text-white">
+                <p className="text-lg md:text-xl font-bold text-white">
                   {auction.total_bids}
                 </p>
               </div>
@@ -486,7 +486,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               {/* Bidder Count */}
               <div className="text-right">
                 <p className="text-xs text-gray-400 uppercase tracking-wide">Bidders</p>
-                <p className="text-xl md:text-2xl font-bold text-white">
+                <p className="text-lg md:text-xl font-bold text-white">
                   {auction.unique_bidders}
                 </p>
               </div>
@@ -497,7 +497,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     </Link>
 
         {/* Action Buttons Row */}
-        <div className="border-t border-gray-700 pt-3 px-2 pb-3">
+        <div className="border-t border-gray-700 pt-2 px-2 pb-2">
           <div className="flex flex-wrap gap-2 justify-start items-center">
             {/* Video Button - Text style for left alignment */}
             <button
