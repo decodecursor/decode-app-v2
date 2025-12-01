@@ -163,7 +163,6 @@ export default function VideoRecordingPage() {
             <ul className="space-y-1 list-disc list-inside">
               <li>Only {creatorName} can watch your video</li>
               <li>This link expires in 24 hours</li>
-              <li>You can retake your video once, if needed</li>
               <li>Videos are automatically deleted after 7 days</li>
             </ul>
           </div>

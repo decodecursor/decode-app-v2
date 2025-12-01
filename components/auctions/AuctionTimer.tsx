@@ -93,7 +93,7 @@ export function CompactAuctionTimer({ auction }: { auction: Auction }) {
   return (
     <div className="flex items-center gap-1.5">
       <svg
-        className="w-4 h-4 text-gray-400"
+        className="w-[18px] h-[18px] text-gray-400"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -105,7 +105,7 @@ export function CompactAuctionTimer({ auction }: { auction: Auction }) {
           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
         />
       </svg>
-      <span className="text-sm font-mono text-white tabular-nums">
+      <span className="text-base font-mono text-white tabular-nums">
         {formatted}
       </span>
     </div>

@@ -634,7 +634,7 @@ export default function PayoutsPage() {
 
                 {/* Total Payouts Card (All Roles) */}
                 <div className="flex-1 cosmic-card">
-                  <div className="flex items-center justify-between gap-6">
+                  <div className="flex items-start justify-between gap-6">
                     {/* Left: Text Content */}
                     <div className="flex-1">
                       <div className="mb-4">
@@ -663,11 +663,11 @@ export default function PayoutsPage() {
                     </div>
 
                     {/* Right: Mascot Image */}
-                    <div className="hidden md:block flex-shrink-0 self-center">
+                    <div className="hidden md:block flex-shrink-0 self-start">
                       <img
                         src="/images/Mascot_Money Count_png.png"
                         alt="Money counting mascot"
-                        className="w-[200px] h-auto max-h-[180px] object-contain"
+                        className="w-[240px] h-auto max-h-[216px] object-contain"
                       />
                     </div>
                   </div>
