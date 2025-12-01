@@ -413,7 +413,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
         {/* Pricing Stats */}
         <div className="mb-3">
-          <div className="flex justify-between items-start gap-4 flex-wrap">
+          <div className="flex justify-between items-start gap-3 flex-wrap">
             {/* LEFT GROUP: Starting Price */}
             <div>
               <p className="text-xs text-gray-400 uppercase tracking-wide">
@@ -432,17 +432,17 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                   }
                 })()}
               </p>
-              <p className="mt-1 text-xl md:text-2xl font-bold text-white">
+              <p className="text-xl md:text-2xl font-bold text-white">
                 {formatBidAmount(hasBids ? currentPrice : startPrice)}
               </p>
             </div>
 
             {/* MIDDLE GROUP: My Profit + My Payout */}
-            <div className="flex gap-6 md:gap-8">
+            <div className="flex gap-4 md:gap-6">
               {/* My Profit */}
               <div className="text-right">
                 <p className="text-xs text-gray-400 uppercase tracking-wide">My Profit</p>
-                <p className="mt-1 text-xl md:text-2xl font-bold text-white">
+                <p className="text-xl md:text-2xl font-bold text-white">
                   {formatBidAmount(creatorProfit)}
                 </p>
               </div>
@@ -456,7 +456,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                     e.stopPropagation();
                     router.push('/dashboard/payouts');
                   }}
-                  className={`mt-1 text-xl md:text-2xl font-bold cursor-pointer hover:underline transition-all duration-200 ${
+                  className={`text-xl md:text-2xl font-bold cursor-pointer hover:underline transition-all duration-200 ${
                     shouldShowAmberPayout()
                       ? 'text-amber-400 hover:text-amber-300'
                       : 'text-white hover:text-purple-300'
@@ -474,11 +474,11 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </div>
 
             {/* RIGHT GROUP: Bids + Bidders */}
-            <div className="flex gap-6 md:gap-8">
+            <div className="flex gap-4 md:gap-6">
               {/* Bid Count */}
               <div className="text-right">
                 <p className="text-xs text-gray-400 uppercase tracking-wide">Bids</p>
-                <p className="mt-1 text-xl md:text-2xl font-bold text-white">
+                <p className="text-xl md:text-2xl font-bold text-white">
                   {auction.total_bids}
                 </p>
               </div>
@@ -486,7 +486,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               {/* Bidder Count */}
               <div className="text-right">
                 <p className="text-xs text-gray-400 uppercase tracking-wide">Bidders</p>
-                <p className="mt-1 text-xl md:text-2xl font-bold text-white">
+                <p className="text-xl md:text-2xl font-bold text-white">
                   {auction.unique_bidders}
                 </p>
               </div>
@@ -497,7 +497,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     </Link>
 
         {/* Action Buttons Row */}
-        <div className="border-t border-gray-700 pt-4 px-2 pb-4">
+        <div className="border-t border-gray-700 pt-3 px-2 pb-3">
           <div className="flex flex-wrap gap-2 justify-start items-center">
             {/* Video Button - Text style for left alignment */}
             <button
@@ -507,7 +507,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                 }
               }}
               disabled={!videoData || loadingVideo}
-              className={`cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all rounded-lg flex items-center gap-1.5 disabled:cursor-not-allowed ${
+              className={`cosmic-button-secondary text-xs md:text-sm px-3 py-1.5 transition-all rounded-lg flex items-center gap-1.5 disabled:cursor-not-allowed ${
                 !videoData
                   ? 'border-amber-500/30 text-amber-400 bg-amber-500/10'
                   : 'border-white/30 hover:bg-white/10'
@@ -525,7 +525,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               {/* Share Button */}
               <button
               onClick={handleShare}
-              className={`cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1.5 ${
+              className={`cosmic-button-secondary text-xs md:text-sm px-3 py-1.5 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1.5 ${
                 shareSuccess ? 'bg-green-500/20 text-green-300 border-green-500' : ''
               }`}
               title="Share auction"
@@ -551,7 +551,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             <button
               onClick={handleGenerateQR}
               disabled={generatingQR}
-              className="cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cosmic-button-secondary text-xs md:text-sm px-3 py-1.5 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
               title="Generate QR code"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -565,7 +565,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               <button
                 onClick={() => setShowDeactivateConfirm(true)}
                 disabled={deactivating}
-                className="cosmic-button-secondary text-xs md:text-sm px-3 py-2 transition-all border border-white/30 rounded-lg hover:bg-red-500/20 hover:border-red-500 hover:text-red-300 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="cosmic-button-secondary text-xs md:text-sm px-3 py-1.5 transition-all border border-white/30 rounded-lg hover:bg-red-500/20 hover:border-red-500 hover:text-red-300 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Deactivate auction"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

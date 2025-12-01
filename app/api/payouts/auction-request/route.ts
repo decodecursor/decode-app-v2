@@ -107,11 +107,11 @@ export async function POST(request: NextRequest) {
         .eq('auction_id', auction.id)
         .single()
 
-      // If video exists with file_url but payout not unlocked, block the request
-      if (video && video.file_url && !video.payout_unlocked_at) {
-        console.log(`⚠️ [AUCTION-PAYOUT-REQUEST] Video not watched for auction: ${auction.id}`)
+      // If payout not unlocked, block the request (regardless of video upload status)
+      if (video && !video.payout_unlocked_at) {
+        console.log(`⚠️ [AUCTION-PAYOUT-REQUEST] Payout locked for auction: ${auction.id}`)
         return NextResponse.json(
-          { error: `Please watch the winner video for "${auction.title}" before requesting payout.` },
+          { error: `Payout for "${auction.title}" is not yet available. Please wait for the winner to upload their video, or for the 24-hour grace period to expire.` },
           { status: 400 }
         )
       }

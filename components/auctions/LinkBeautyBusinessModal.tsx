@@ -461,17 +461,6 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
                       </svg>
                     </div>
 
-                    {/* Preview */}
-                    {croppedImage && (
-                      <div className="flex justify-center">
-                        <img
-                          src={croppedImage}
-                          alt="Cropped preview"
-                          className="w-20 h-20 rounded-full border-2 border-purple-500"
-                        />
-                      </div>
-                    )}
-
                     {/* Action Buttons */}
                     <div className="flex gap-2">
                       <button
