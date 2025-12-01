@@ -31,16 +31,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Verify user is a MODEL
+    // Verify user is a MODEL and fetch user name
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('role')
+      .select('role, name')
       .eq('id', user.id)
       .single();
 
-    console.log('👤 [API /beauty-businesses/create] User role fetch:', {
+    console.log('👤 [API /beauty-businesses/create] User data fetch:', {
       hasData: !!userData,
       role: userData?.role,
+      name: userData?.name,
       hasError: !!userError,
     });
 
@@ -75,6 +76,7 @@ export async function POST(request: NextRequest) {
     const beautyBusinessService = new BeautyBusinessService();
     const dto: CreateBeautyBusinessDto = {
       creator_id: user.id,
+      creator_name: userData.name || 'Unknown',
       business_name: body.business_name,
       instagram_handle: body.instagram_handle,
       city: body.city,
