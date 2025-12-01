@@ -67,6 +67,7 @@ interface LinkBeautyBusinessModalProps {
 
 export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyBusinessModalProps) {
   const [businessType, setBusinessType] = useState<'existing' | 'new' | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<string>('');
   const [formData, setFormData] = useState({
     businessName: '',
@@ -238,7 +239,7 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
 
       // TODO: API call to create new business
       console.log('Creating new business:', businessData);
-      alert('Business created successfully! (UI demo - not saved yet)');
+      setSuccessMessage('Business created successfully! (UI demo - not saved yet)');
 
       // Clean up blob URL
       if (savedBusinessPhoto) {
@@ -249,6 +250,7 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
       setFormData({ businessName: '', instagramHandle: '', city: '', businessPhotoUrl: '' });
       setSavedBusinessPhoto(null);
       setBusinessType(null);
+      setSuccessMessage(null);
     } catch (error) {
       console.error('Error creating business:', error);
       alert('Failed to create business. Please try again.');
@@ -293,34 +295,63 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => setBusinessType('existing')}
+              onClick={() => {
+                setBusinessType('existing');
+                setSuccessMessage(null);
+              }}
               className={`flex flex-col items-center justify-center p-3 border-2 rounded-lg transition-all ${
                 businessType === 'existing'
                   ? 'bg-purple-600 border-purple-600 text-white'
-                  : 'bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700'
+                  : 'bg-gray-800 border-purple-500 text-gray-300 hover:bg-gray-700'
               }`}
             >
               <span className="font-medium text-sm">Existing Business</span>
               <span className="text-[10px] opacity-90 mt-0.5">
-                {businessType === 'existing' ? 'Select from list' : 'My connected businesses'}
+                {businessType === 'existing' ? 'Select from list' : 'Select from my list'}
               </span>
             </button>
 
             <button
               type="button"
-              onClick={() => setBusinessType('new')}
+              onClick={() => {
+                setBusinessType('new');
+                setSuccessMessage(null);
+              }}
               className={`flex flex-col items-center justify-center p-3 border-2 rounded-lg transition-all ${
                 businessType === 'new'
                   ? 'bg-purple-600 border-purple-600 text-white'
-                  : 'bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700'
+                  : 'bg-gray-800 border-purple-500 text-gray-300 hover:bg-gray-700'
               }`}
             >
               <span className="font-medium text-sm">New Business</span>
               <span className="text-[10px] opacity-90 mt-0.5">
-                {businessType === 'new' ? 'Fill in details below' : 'Create new business'}
+                {businessType === 'new' ? 'Fill in details below' : 'Connect new beauty business'}
               </span>
             </button>
           </div>
+
+          {/* Success Message */}
+          {successMessage && (
+            <div className="p-4 rounded-lg bg-green-50 border border-green-200">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start">
+                  <svg className="w-5 h-5 text-green-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <p className="text-sm font-medium text-green-800">{successMessage}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSuccessMessage(null)}
+                  className="ml-3 text-green-600 hover:text-green-800 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Existing Business Content */}
           {businessType === 'existing' && (
