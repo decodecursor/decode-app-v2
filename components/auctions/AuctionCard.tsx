@@ -412,7 +412,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
         </div>
 
         {/* Pricing Stats */}
-        <div className="mb-4">
+        <div className="mb-3">
           <div className="flex justify-between items-start gap-4 flex-wrap">
             {/* LEFT GROUP: Starting Price */}
             <div>
@@ -497,7 +497,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     </Link>
 
         {/* Action Buttons Row */}
-        <div className="border-t border-gray-700 pt-5 px-2 pb-5">
+        <div className="border-t border-gray-700 pt-4 px-2 pb-4">
           <div className="flex flex-wrap gap-2 justify-start items-center">
             {/* Video Button - Text style for left alignment */}
             <button

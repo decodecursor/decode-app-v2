@@ -272,7 +272,7 @@ export function PayoutHistory({ userId, userRole, onNewPayout, refreshTrigger }:
                   <div className="md:hidden">
                     {/* Row 1: AED Amount + Request ID */}
                     <div className="flex justify-between items-end mb-1">
-                      <div className="text-white cosmic-label font-bold">
+                      <div className="text-green-400 cosmic-label font-bold">
                         AED {formatAmount(payout.payout_amount_aed)}
                       </div>
                       <div className="flex items-center gap-1">
@@ -283,8 +283,11 @@ export function PayoutHistory({ userId, userRole, onNewPayout, refreshTrigger }:
 
                     {/* Row 2: Payout Method + Date */}
                     <div className="flex justify-between items-start">
-                      <span className="text-white cosmic-label">
-                        {payout.payout_method ? formatPayoutMethod(payout.payout_method) : 'N/A'}
+                      <span className="flex items-center gap-1 cosmic-label">
+                        <span className="text-purple-400">To:</span>
+                        <span className="text-white">
+                          {payout.payout_method ? formatPayoutMethod(payout.payout_method) : 'N/A'}
+                        </span>
                       </span>
                       <div className="flex items-center gap-1">
                         {payout.paid_at ? (
@@ -308,13 +311,16 @@ export function PayoutHistory({ userId, userRole, onNewPayout, refreshTrigger }:
                       <span className="w-7 h-7 bg-gray-900/80 border-2 border-purple-400 text-purple-400 text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">
                         {index + 1}
                       </span>
-                      <span className="cosmic-label text-white font-bold">
+                      <span className="cosmic-label text-green-400 font-bold">
                         AED {formatAmount(payout.payout_amount_aed)}
                       </span>
                     </div>
                     <div className="text-left">
-                      <span className="cosmic-label text-white">
-                        {payout.payout_method ? formatPayoutMethod(payout.payout_method) : 'N/A'}
+                      <span className="flex items-center gap-1 cosmic-label">
+                        <span className="text-purple-400">To:</span>
+                        <span className="text-white">
+                          {payout.payout_method ? formatPayoutMethod(payout.payout_method) : 'N/A'}
+                        </span>
                       </span>
                     </div>
                     <div className="text-left">

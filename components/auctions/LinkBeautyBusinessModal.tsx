@@ -10,6 +10,44 @@ import { createPortal } from 'react-dom';
 import Cropper from 'react-easy-crop';
 import { createClient } from '@/utils/supabase/client';
 
+// Helper function to crop image (moved outside component to avoid hooks issue)
+const getCroppedImg = (imageSrc: string, croppedAreaPixels: { x: number, y: number, width: number, height: number }): Promise<Blob> => {
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.src = imageSrc;
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+
+      const outputSize = 256;
+      canvas.width = outputSize;
+      canvas.height = outputSize;
+
+      // Create circular clipping path
+      ctx.beginPath();
+      ctx.arc(outputSize / 2, outputSize / 2, outputSize / 2, 0, 2 * Math.PI);
+      ctx.clip();
+
+      // Draw cropped image
+      ctx.drawImage(
+        image,
+        croppedAreaPixels.x,
+        croppedAreaPixels.y,
+        croppedAreaPixels.width,
+        croppedAreaPixels.height,
+        0,
+        0,
+        outputSize,
+        outputSize
+      );
+
+      canvas.toBlob((blob) => {
+        resolve(blob!);
+      }, 'image/jpeg', 0.95);
+    };
+  });
+};
+
 interface LinkBeautyBusinessModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -35,6 +73,15 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
   const [savedBusinessPhoto, setSavedBusinessPhoto] = useState<string | null>(null);
   const [photoUploading, setPhotoUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Crop complete callback - MUST be before early return to follow Rules of Hooks
+  const onCropComplete = useCallback(async (_: unknown, croppedAreaPixelsParam: { x: number, y: number, width: number, height: number }) => {
+    if (!selectedImage) return;
+    setCroppedAreaPixels(croppedAreaPixelsParam);
+    const cropped = await getCroppedImg(selectedImage, croppedAreaPixelsParam);
+    const croppedUrl = URL.createObjectURL(cropped);
+    setCroppedImage(croppedUrl);
+  }, [selectedImage]);
 
   // Reset state when modal closes
   const handleClose = () => {
@@ -81,51 +128,6 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
     };
     reader.readAsDataURL(file);
   };
-
-  const getCroppedImg = (imageSrc: string, croppedAreaPixels: { x: number, y: number, width: number, height: number }): Promise<Blob> => {
-    return new Promise((resolve) => {
-      const image = new Image();
-      image.src = imageSrc;
-      image.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d')!;
-
-        const outputSize = 256;
-        canvas.width = outputSize;
-        canvas.height = outputSize;
-
-        // Create circular clipping path
-        ctx.beginPath();
-        ctx.arc(outputSize / 2, outputSize / 2, outputSize / 2, 0, 2 * Math.PI);
-        ctx.clip();
-
-        // Draw cropped image
-        ctx.drawImage(
-          image,
-          croppedAreaPixels.x,
-          croppedAreaPixels.y,
-          croppedAreaPixels.width,
-          croppedAreaPixels.height,
-          0,
-          0,
-          outputSize,
-          outputSize
-        );
-
-        canvas.toBlob((blob) => {
-          resolve(blob!);
-        }, 'image/jpeg', 0.95);
-      };
-    });
-  };
-
-  const onCropComplete = useCallback(async (_, croppedAreaPixelsParam) => {
-    if (!selectedImage) return;
-    setCroppedAreaPixels(croppedAreaPixelsParam);
-    const cropped = await getCroppedImg(selectedImage, croppedAreaPixelsParam);
-    const croppedUrl = URL.createObjectURL(cropped);
-    setCroppedImage(croppedUrl);
-  }, [selectedImage]);
 
   const saveCroppedPhoto = () => {
     if (!croppedImage) return;
