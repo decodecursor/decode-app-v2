@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { createServiceRoleClient } from '@/utils/supabase/service-role';
 import { BeautyBusinessService } from '@/lib/services/BeautyBusinessService';
 import type { CreateBeautyBusinessDto } from '@/lib/models/BeautyBusiness.model';
 import { USER_ROLES, normalizeRole } from '@/types/user';
@@ -48,14 +49,14 @@ export async function POST(request: NextRequest) {
     if (userError || !userData) {
       console.warn('⚠️ [API /beauty-businesses/create] User not in public.users, creating profile...');
 
-      // Create minimal profile
-      const { error: createError } = await supabase
+      // Use service role client to bypass RLS for profile creation
+      const serviceClient = createServiceRoleClient();
+      const { error: createError } = await serviceClient
         .from('users')
         .upsert({
           id: user.id,
           email: user.email,
           role: USER_ROLES.MODEL,
-          name: user.email?.split('@')[0] || 'User',
           user_name: user.email?.split('@')[0] || 'User',
           company_name: '',
           created_at: new Date().toISOString()
