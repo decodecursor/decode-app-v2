@@ -134,9 +134,10 @@ export async function POST(
       bidData.bidder_email = `noemail+${sanitizedPhone}@welovedecode.com`;
     }
 
-    // Add setup_intent_id if provided (for preloaded payment form)
-    if (body.setup_intent_id) {
-      bidData.setup_intent_id = body.setup_intent_id;
+    // Add payment_intent_id if provided (for preloaded PaymentIntent)
+    if (body.payment_intent_id) {
+      bidData.payment_intent_id = body.payment_intent_id;
+      console.log('[API /auctions/[id]/bid] Using preloaded PaymentIntent:', body.payment_intent_id);
     }
 
     const result = await biddingService.placeBid(bidData);

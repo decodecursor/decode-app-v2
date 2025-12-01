@@ -48,7 +48,7 @@ export class BiddingService {
     user_id?: string;
     ip_address?: string;
     user_agent?: string;
-    setup_intent_id?: string; // For preloaded payment form flow
+    payment_intent_id?: string; // For preloaded PaymentIntent flow
   }): Promise<{ success: boolean; bid_id?: string; client_secret?: string; payment_auto_confirmed?: boolean; saved_card_last4?: string; error?: string }> {
     const supabase = createServiceRoleClient();
 
@@ -92,7 +92,7 @@ export class BiddingService {
         stripeCustomerId = guestResult.stripe_customer_id;
       }
 
-      // 4. Create Stripe PaymentIntent (pre-authorization)
+      // 4. Create or Update Stripe PaymentIntent (pre-authorization)
       const paymentResult = await this.auctionStrategy.createPayment({
         user_id: params.user_id || '',
         user_role: 'Model',
@@ -106,7 +106,7 @@ export class BiddingService {
         is_guest: params.is_guest,
         guest_stripe_customer_id: stripeCustomerId,
         guest_bidder_id: guestBidderId,
-        setup_intent_id: params.setup_intent_id, // For preloaded payment form
+        payment_intent_id: params.payment_intent_id, // For preloaded PaymentIntent flow
       } as any);
 
       if (!paymentResult.success) {
