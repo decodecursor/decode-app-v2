@@ -152,21 +152,24 @@ export function BiddingInterface({
     }
   };
 
-  // Preload SetupIntent when entering instagram step (for guests)
+  // Preload SetupIntent when entering guest_info step (for guests)
+  // This gives us 3-5 seconds headstart while user fills Instagram form
   useEffect(() => {
-    if (step === 'instagram' && guestInfo && !preloadedSetupIntent && !isPreloadingSetupIntent) {
+    if (step === 'guest_info' && guestInfo && !preloadedSetupIntent && !isPreloadingSetupIntent) {
       const email = guestInfo.contactMethod === 'email'
         ? guestInfo.email
         : `whatsapp:${guestInfo.whatsappNumber}`;
       if (email) {
+        console.log('[BiddingInterface] 🚀 Early preload: Starting SetupIntent at guest_info step');
         preloadSetupIntent(email, guestInfo.name);
       }
     }
   }, [step, guestInfo, preloadedSetupIntent, isPreloadingSetupIntent]);
 
-  // Also preload for logged-in users
+  // Preload for logged-in users at amount step (they skip guest_info)
   useEffect(() => {
-    if (step === 'instagram' && userEmail && userName && !preloadedSetupIntent && !isPreloadingSetupIntent) {
+    if (step === 'amount' && userEmail && userName && !preloadedSetupIntent && !isPreloadingSetupIntent) {
+      console.log('[BiddingInterface] 🚀 Early preload: Starting SetupIntent for logged-in user');
       preloadSetupIntent(userEmail, userName);
     }
   }, [step, userEmail, userName, preloadedSetupIntent, isPreloadingSetupIntent]);
@@ -314,17 +317,39 @@ export function BiddingInterface({
     const email = guestInfo?.email || userEmail;
     const whatsappNumber = guestInfo?.whatsappNumber;
 
-    // If we have a preloaded SetupIntent, pass the setup_intent_id for faster bid creation
-    // (customer and guest_bidder are already created, so bid API is faster)
+    // CRITICAL: Wait for preload to complete (with timeout)
+    // This eliminates the race condition
+    if (isPreloadingSetupIntent) {
+      console.log('[BiddingInterface] ⏳ Waiting for SetupIntent preload to complete...');
+      setIsProcessing(true); // Show loading state on Continue button
+
+      // Poll for preload completion (max 5 seconds)
+      const startWait = Date.now();
+      const maxWait = 5000; // 5 second timeout
+
+      while (isPreloadingSetupIntent && (Date.now() - startWait) < maxWait) {
+        await new Promise(resolve => setTimeout(resolve, 100)); // Check every 100ms
+      }
+
+      const waitTime = Date.now() - startWait;
+      console.log('[BiddingInterface] ✅ Preload wait completed:', {
+        waitTime,
+        hasPreloadedIntent: !!preloadedSetupIntent,
+        timedOut: waitTime >= maxWait
+      });
+
+      setIsProcessing(false);
+    }
+
+    // Move to payment step
+    setStep('payment');
+
+    // Create bid with preloaded SetupIntent if available
     if (preloadedSetupIntent) {
-      console.log('[BiddingInterface] Using preloaded SetupIntent for faster bid creation');
-      setStep('payment');
-      // Wait for bid creation - PaymentIntent client_secret will be set by createBid
+      console.log('[BiddingInterface] 💚 Using preloaded SetupIntent for faster bid creation');
       await createBid(name, contactMethod, email, whatsappNumber, amount, username, preloadedSetupIntent.setupIntentId);
     } else {
-      // Fallback to original flow if preload didn't complete
-      console.log('[BiddingInterface] No preloaded SetupIntent, using original flow');
-      setStep('payment');
+      console.log('[BiddingInterface] ⚠️ No preloaded SetupIntent, using fallback flow');
       await createBid(name, contactMethod, email, whatsappNumber, amount, username);
     }
   };
@@ -586,7 +611,7 @@ export function BiddingInterface({
           </div>
           <InstagramUsernameForm
             onSubmit={handleInstagramSubmit}
-            isLoading={isProcessing}
+            isLoading={isProcessing || isPreloadingSetupIntent}
           />
         </div>
       )}
