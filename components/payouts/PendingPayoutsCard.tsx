@@ -68,8 +68,8 @@ export function PendingPayoutsCard({
                   : 'border border-gray-600'
               } ${!payout.payout_unlocked ? 'opacity-50' : ''}`}
             >
-              {/* Single Horizontal Row */}
-              <div className="flex items-center gap-4 md:gap-6">
+              {/* Single Horizontal Row with Grid Layout */}
+              <div className="grid grid-cols-[auto_minmax(100px,1fr)_140px_130px_auto] md:grid-cols-[auto_minmax(150px,1fr)_160px_140px_auto] items-center gap-4 md:gap-6">
                 {/* Checkbox */}
                 <div className="flex items-center">
                   <input
@@ -82,28 +82,28 @@ export function PendingPayoutsCard({
                 </div>
 
                 {/* Treatment Name */}
-                <div className="flex-shrink-0 min-w-[100px] md:min-w-[150px]">
+                <div>
                   <p className="font-semibold text-white text-sm md:text-base truncate">
                     {payout.auction_title}
                   </p>
                 </div>
 
                 {/* Amount */}
-                <div className="flex-shrink-0 ml-10">
+                <div>
                   <p className="text-sm md:text-base font-bold text-green-400">
                     {formatCurrency(payout.model_amount)}
                   </p>
                 </div>
 
                 {/* End Date */}
-                <div className="flex-shrink-0 ml-28">
-                  <p className="text-xs md:text-sm text-gray-400">
+                <div>
+                  <p className="text-xs md:text-sm text-white">
                     {formatDate(payout.ended_at)}
                   </p>
                 </div>
 
-                {/* Spacer to push buttons to the right */}
-                <div className="flex-1"></div>
+                {/* Buttons Container */}
+                <div className="flex items-center gap-2 justify-end"></div>
 
                 {/* Placeholder for buttons (faded with card) */}
                 {!payout.payout_unlocked && payout.has_video && (

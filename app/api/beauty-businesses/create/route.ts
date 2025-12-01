@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify user is a MODEL and fetch user name
-    const { data: userData, error: userError } = await supabase
+    let { data: userData, error: userError } = await supabase
       .from('users')
       .select('role, name')
       .eq('id', user.id)
@@ -46,8 +46,33 @@ export async function POST(request: NextRequest) {
     });
 
     if (userError || !userData) {
-      console.error('❌ [API /beauty-businesses/create] User not found in database');
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      console.warn('⚠️ [API /beauty-businesses/create] User not in public.users, creating profile...');
+
+      // Create minimal profile
+      const { error: createError } = await supabase
+        .from('users')
+        .insert({
+          id: user.id,
+          email: user.email,
+          role: 'MODEL',
+          name: user.email?.split('@')[0] || 'User',
+          created_at: new Date().toISOString()
+        });
+
+      if (createError) {
+        console.error('❌ [API /beauty-businesses/create] Failed to create profile:', createError);
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+
+      // Fetch the newly created user
+      const { data: newUserData } = await supabase
+        .from('users')
+        .select('role, name')
+        .eq('id', user.id)
+        .single();
+
+      userData = newUserData;
+      console.log('✅ [API /beauty-businesses/create] Profile created successfully');
     }
 
     const normalizedRole = normalizeRole(userData.role);
