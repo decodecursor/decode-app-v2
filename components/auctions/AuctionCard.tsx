@@ -523,7 +523,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               </button>
 
               {/* Upload Deadline Countdown */}
-              <VideoUploadCountdown tokenExpiresAt={videoData?.token_expires_at || null} hasVideo={!!videoData} />
+              <VideoUploadCountdown tokenExpiresAt={videoData?.token_expires_at || null} hasVideo={!!videoData?.file_url} />
             </div>
 
             {/* Right side buttons group */}
