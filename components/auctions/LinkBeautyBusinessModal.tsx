@@ -104,6 +104,22 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
     setLoadingBusinesses(true);
     try {
       const response = await fetch('/api/beauty-businesses/list');
+
+      // Check response status BEFORE parsing JSON
+      if (!response.ok) {
+        let errorMessage = 'Failed to fetch businesses';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // If error response isn't JSON, use status text
+          errorMessage = `Error ${response.status}: ${response.statusText}`;
+        }
+        console.error('Error fetching beauty businesses:', errorMessage);
+        setExistingBusinesses([]);
+        return;
+      }
+
       const data = await response.json();
       if (data.success) {
         setExistingBusinesses(data.businesses || []);
@@ -279,6 +295,21 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
         }),
       });
 
+      // Check response status BEFORE parsing JSON
+      if (!response.ok) {
+        let errorMessage = 'Failed to create business';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // If error response isn't JSON, use status text
+          errorMessage = `Error ${response.status}: ${response.statusText}`;
+        }
+        alert(errorMessage);
+        setPhotoUploading(false);
+        return;
+      }
+
       const result = await response.json();
 
       if (!result.success) {
@@ -304,7 +335,8 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
       }, 2000);
     } catch (error) {
       console.error('Error creating business:', error);
-      alert('Failed to create business. Please try again.');
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert(`Failed to create business: ${errorMsg}. Please try again.`);
       setPhotoUploading(false);
     } finally {
       // Don't reset photoUploading here since we're waiting for timeout
