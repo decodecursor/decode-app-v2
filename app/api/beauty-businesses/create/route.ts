@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     // Verify user is a MODEL and fetch user name
     let { data: userData, error: userError } = await supabase
       .from('users')
-      .select('role, name')
+      .select('role, user_name')
       .eq('id', user.id)
       .single();
 
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
         .upsert({
           id: user.id,
           email: user.email,
-          role: USER_ROLES.MODEL,
+          role: 'User',  // Database constraint only allows 'Admin' or 'User'
           user_name: user.email?.split('@')[0] || 'User',
           company_name: '',
           created_at: new Date().toISOString()
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       // Fetch the newly created user
       const { data: newUserData } = await supabase
         .from('users')
-        .select('role, name')
+        .select('role, user_name')
         .eq('id', user.id)
         .single();
 
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
     const beautyBusinessService = new BeautyBusinessService();
     const dto: CreateBeautyBusinessDto = {
       creator_id: user.id,
-      creator_name: userData.name || 'Unknown',
+      creator_name: userData.user_name || 'Unknown',
       business_name: body.business_name,
       instagram_handle: body.instagram_handle,
       city: body.city,
@@ -151,6 +151,11 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('💥 [API /beauty-businesses/create] Unhandled exception:', error);
+    console.error('💥 [API /beauty-businesses/create] Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return NextResponse.json(
       {
         error: 'Internal server error',
