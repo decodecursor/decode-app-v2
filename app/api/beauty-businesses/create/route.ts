@@ -51,17 +51,32 @@ export async function POST(request: NextRequest) {
       // Create minimal profile
       const { error: createError } = await supabase
         .from('users')
-        .insert({
+        .upsert({
           id: user.id,
           email: user.email,
-          role: 'MODEL',
+          role: USER_ROLES.MODEL,
           name: user.email?.split('@')[0] || 'User',
+          user_name: user.email?.split('@')[0] || 'User',
+          company_name: '',
           created_at: new Date().toISOString()
+        }, {
+          onConflict: 'id'
         });
 
       if (createError) {
-        console.error('❌ [API /beauty-businesses/create] Failed to create profile:', createError);
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        console.error('❌ [API /beauty-businesses/create] Failed to create profile:', {
+          error: createError,
+          code: createError.code,
+          message: createError.message,
+          details: createError.details,
+          hint: createError.hint,
+          userId: user.id,
+          userEmail: user.email
+        });
+        return NextResponse.json({
+          error: 'Failed to create user profile. Please try again or contact support.',
+          details: createError.message
+        }, { status: 500 });
       }
 
       // Fetch the newly created user
