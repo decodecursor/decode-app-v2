@@ -5,11 +5,11 @@
 
 'use client';
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Cropper from 'react-easy-crop';
 import { createClient } from '@/utils/supabase/client';
-
+import type { BeautyBusiness } from '@/lib/models/BeautyBusiness.model';
 /**
  * Instagram Icon Component
  */
@@ -86,6 +86,10 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
   const [photoUploading, setPhotoUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Existing businesses states
+  const [existingBusinesses, setExistingBusinesses] = useState<BeautyBusiness[]>([]);
+  const [loadingBusinesses, setLoadingBusinesses] = useState(false);
+
   // Crop complete callback - MUST be before early return to follow Rules of Hooks
   const onCropComplete = useCallback(async (_: unknown, croppedAreaPixelsParam: { x: number, y: number, width: number, height: number }) => {
     if (!selectedImage) return;
@@ -94,6 +98,30 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
     const croppedUrl = URL.createObjectURL(cropped);
     setCroppedImage(croppedUrl);
   }, [selectedImage]);
+
+  // Fetch existing businesses from API
+  const fetchExistingBusinesses = useCallback(async () => {
+    setLoadingBusinesses(true);
+    try {
+      const response = await fetch('/api/beauty-businesses/list');
+      const data = await response.json();
+      if (data.success) {
+        setExistingBusinesses(data.businesses || []);
+      }
+    } catch (error) {
+      console.error('Error fetching beauty businesses:', error);
+      setExistingBusinesses([]);
+    } finally {
+      setLoadingBusinesses(false);
+    }
+  }, []);
+
+  // Fetch businesses when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchExistingBusinesses();
+    }
+  }, [isOpen, fetchExistingBusinesses]);
 
   // Reset state when modal closes
   const handleClose = () => {
@@ -217,10 +245,18 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
       let photoUrl = '';
 
       // Upload business photo if one was selected and cropped
-      if (savedBusinessPhoto && croppedAreaPixels) {
-        // TODO: Get actual user ID from auth context
-        const userId = 'demo-user-id';
-        const uploadedUrl = await uploadBusinessPhoto(userId);
+      if (savedBusinessPhoto && croppedAreaPixels && selectedImage) {
+        // Get actual user ID from auth context
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+          alert('You must be logged in to create a business');
+          setPhotoUploading(false);
+          return;
+        }
+
+        const uploadedUrl = await uploadBusinessPhoto(user.id);
 
         if (uploadedUrl) {
           photoUrl = uploadedUrl;
@@ -231,31 +267,47 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
         }
       }
 
-      // Update formData with photo URL
-      const businessData = {
-        ...formData,
-        businessPhotoUrl: photoUrl
-      };
+      // Call API to create new business
+      const response = await fetch('/api/beauty-businesses/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          business_name: formData.businessName,
+          instagram_handle: formData.instagramHandle,
+          city: formData.city,
+          business_photo_url: photoUrl,
+        }),
+      });
 
-      // TODO: API call to create new business
-      console.log('Creating new business:', businessData);
-      setSuccessMessage('Business created successfully! (UI demo - not saved yet)');
+      const result = await response.json();
 
-      // Clean up blob URL
-      if (savedBusinessPhoto) {
-        URL.revokeObjectURL(savedBusinessPhoto);
+      if (!result.success) {
+        alert(result.error || 'Failed to create business');
+        setPhotoUploading(false);
+        return;
       }
 
-      // Reset form
-      setFormData({ businessName: '', instagramHandle: '', city: '', businessPhotoUrl: '' });
-      setSavedBusinessPhoto(null);
-      setBusinessType(null);
-      setSuccessMessage(null);
+      // Show success message for 2 seconds, then close modal
+      setSuccessMessage('Business created successfully!');
+
+      setTimeout(() => {
+        // Call onLink with the new business_id
+        onLink(result.business_id);
+
+        // Clean up blob URL
+        if (savedBusinessPhoto) {
+          URL.revokeObjectURL(savedBusinessPhoto);
+        }
+
+        // Close the modal
+        handleClose();
+      }, 2000);
     } catch (error) {
       console.error('Error creating business:', error);
       alert('Failed to create business. Please try again.');
-    } finally {
       setPhotoUploading(false);
+    } finally {
+      // Don't reset photoUploading here since we're waiting for timeout
     }
   };
 
@@ -264,6 +316,11 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
     console.log('Linking business:', selectedBusiness);
     onLink(selectedBusiness || null);
     onClose();
+  };
+
+  const handleLinkExisting = (businessId: string) => {
+    onLink(businessId);
+    onClose(); // Close immediately per requirements
   };
 
   const modalContent = (
@@ -359,9 +416,60 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
               <label className="block text-sm font-semibold text-white mb-2">
                 My Connected Beauty Businesses
               </label>
-              <div className="w-full px-4 py-8 bg-gray-800 border border-gray-600 rounded-lg text-center">
-                <p className="text-gray-400 text-sm">Empty</p>
-              </div>
+
+              {/* Loading state */}
+              {loadingBusinesses && (
+                <div className="w-full px-4 py-8 bg-gray-800 border border-gray-600 rounded-lg text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-gray-400 text-sm">Loading businesses...</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Empty state */}
+              {!loadingBusinesses && existingBusinesses.length === 0 && (
+                <div className="w-full px-4 py-8 bg-gray-800 border border-gray-600 rounded-lg text-center">
+                  <p className="text-gray-400 text-sm">No businesses yet. Create one using "New Business"!</p>
+                </div>
+              )}
+
+              {/* Businesses list */}
+              {!loadingBusinesses && existingBusinesses.length > 0 && (
+                <div className="space-y-3">
+                  {existingBusinesses.map((business) => (
+                    <button
+                      key={business.id}
+                      type="button"
+                      onClick={() => handleLinkExisting(business.id)}
+                      className="w-full p-4 bg-gray-800 border border-gray-600 hover:border-purple-500 rounded-lg transition-all text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        {business.business_photo_url ? (
+                          <img
+                            src={business.business_photo_url}
+                            alt={business.business_name}
+                            className="w-12 h-12 rounded-full object-cover border-2 border-purple-500"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold">
+                            {business.business_name.charAt(0)}
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <h3 className="text-white font-semibold">{business.business_name}</h3>
+                          <div className="flex items-center gap-2 text-sm text-gray-400">
+                            <InstagramIcon className="w-3 h-3 text-pink-600" />
+                            <span>@{business.instagram_handle}</span>
+                            <span>•</span>
+                            <span>{business.city}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

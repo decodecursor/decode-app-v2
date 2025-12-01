@@ -1,0 +1,119 @@
+/**
+ * POST /api/beauty-businesses/create
+ * Create a new beauty business profile (MODEL users only)
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/utils/supabase/server';
+import { BeautyBusinessService } from '@/lib/services/BeautyBusinessService';
+import type { CreateBeautyBusinessDto } from '@/lib/models/BeautyBusiness.model';
+import { USER_ROLES, normalizeRole } from '@/types/user';
+
+export async function POST(request: NextRequest) {
+  try {
+    console.log('🔵 [API /beauty-businesses/create] Request received');
+    const supabase = await createClient();
+
+    // Verify authentication
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    console.log('🔐 [API /beauty-businesses/create] Auth check:', {
+      hasUser: !!user,
+      userId: user?.id,
+      hasError: !!authError,
+    });
+
+    if (authError || !user) {
+      console.error('❌ [API /beauty-businesses/create] Unauthorized - no user');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Verify user is a MODEL
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    console.log('👤 [API /beauty-businesses/create] User role fetch:', {
+      hasData: !!userData,
+      role: userData?.role,
+      hasError: !!userError,
+    });
+
+    if (userError || !userData) {
+      console.error('❌ [API /beauty-businesses/create] User not found in database');
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const normalizedRole = normalizeRole(userData.role);
+    if (normalizedRole !== USER_ROLES.MODEL) {
+      console.error('❌ [API /beauty-businesses/create] Access denied - user is not MODEL');
+      return NextResponse.json(
+        { error: 'Only MODEL users can create beauty businesses' },
+        { status: 403 }
+      );
+    }
+
+    // Parse request body
+    const body = await request.json();
+    console.log('📦 [API /beauty-businesses/create] Request body:', body);
+
+    // Validate required fields
+    if (!body.business_name || !body.instagram_handle || !body.city) {
+      console.error('❌ [API /beauty-businesses/create] Validation failed - missing fields');
+      return NextResponse.json(
+        { error: 'Missing required fields: business_name, instagram_handle, city' },
+        { status: 400 }
+      );
+    }
+
+    // Create beauty business
+    const beautyBusinessService = new BeautyBusinessService();
+    const dto: CreateBeautyBusinessDto = {
+      creator_id: user.id,
+      business_name: body.business_name,
+      instagram_handle: body.instagram_handle,
+      city: body.city,
+      business_photo_url: body.business_photo_url,
+    };
+
+    console.log('🎯 [API /beauty-businesses/create] Calling BeautyBusinessService with DTO:', dto);
+
+    const result = await beautyBusinessService.createBeautyBusiness(dto);
+
+    console.log('📊 [API /beauty-businesses/create] Service result:', {
+      success: result.success,
+      businessId: result.business_id,
+      error: result.error,
+    });
+
+    if (!result.success) {
+      console.error('❌ [API /beauty-businesses/create] Service returned error:', result.error);
+      return NextResponse.json({ error: result.error }, { status: 500 });
+    }
+
+    console.log('✅ [API /beauty-businesses/create] Beauty business created successfully:', result.business_id);
+    return NextResponse.json(
+      {
+        success: true,
+        business_id: result.business_id,
+        business: result.business,
+        message: 'Beauty business created successfully',
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error('💥 [API /beauty-businesses/create] Unhandled exception:', error);
+    return NextResponse.json(
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    );
+  }
+}

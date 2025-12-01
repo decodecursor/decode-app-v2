@@ -672,9 +672,30 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     <LinkBeautyBusinessModal
       isOpen={showBusinessModal}
       onClose={() => setShowBusinessModal(false)}
-      onLink={(businessId) => {
-        setLinkedBusiness(businessId);
-        console.log('Linked business:', businessId);
+      onLink={async (businessId) => {
+        try {
+          // Call API to link business to auction
+          const response = await fetch(`/api/auctions/${auction.id}/link-business`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ business_id: businessId }),
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            setLinkedBusiness(businessId);
+            console.log('Business linked successfully:', businessId);
+            // Refresh page to show updated auction with linked business
+            window.location.reload();
+          } else {
+            console.error('Failed to link business:', result.error);
+            alert('Failed to link business. Please try again.');
+          }
+        } catch (error) {
+          console.error('Error linking business:', error);
+          alert('Failed to link business. Please try again.');
+        }
       }}
     />
 
