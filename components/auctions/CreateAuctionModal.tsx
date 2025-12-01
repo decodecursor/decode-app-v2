@@ -153,7 +153,13 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
 
                 {/* Header */}
                 <div className="text-center md:mb-8 mb-6">
-                  <div className="text-6xl mb-4">🪙</div>
+                  <div className="mb-4 flex justify-center">
+                    <img
+                      src="/images/Mascot_Lets gooo_png.png"
+                      alt="Create auction mascot"
+                      className="w-[120px] h-auto object-contain"
+                    />
+                  </div>
                   <Dialog.Title
                     as="h2"
                     className="md:text-2xl text-xl font-bold text-white mb-2"
