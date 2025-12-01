@@ -40,13 +40,29 @@ export async function GET(
       );
     }
 
-    // Get video
+    // Get video record (may exist without file_url for countdown purposes)
     const videoService = new AuctionVideoService();
     const video = await videoService.getVideo(params.id);
 
-    // Only return video if it has been actually uploaded (file_url is not empty)
-    if (!video || !video.file_url || video.file_url.trim() === '') {
+    // If no video record at all, return 404
+    if (!video) {
       return NextResponse.json({ error: 'Video not found' }, { status: 404 });
+    }
+
+    // If video record exists but no file uploaded yet, return countdown data only
+    if (!video.file_url || video.file_url.trim() === '') {
+      return NextResponse.json({
+        success: true,
+        video: {
+          id: video.id,
+          token_expires_at: video.token_expires_at,
+          file_url: null, // No video uploaded yet
+        },
+        winner: {
+          name: auction.winner_name,
+          instagram_username: auction.winner_instagram_username,
+        },
+      });
     }
 
     // Extract file path from stored URL and generate signed URL for private bucket

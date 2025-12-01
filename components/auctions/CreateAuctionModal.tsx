@@ -162,7 +162,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                   </div>
                   <Dialog.Title
                     as="h2"
-                    className="md:text-2xl text-xl font-bold text-white mb-2"
+                    className="mt-0 md:text-2xl text-xl font-bold text-white mb-2"
                   >
                     Create Auction
                   </Dialog.Title>
