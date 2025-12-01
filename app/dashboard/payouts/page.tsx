@@ -634,28 +634,42 @@ export default function PayoutsPage() {
 
                 {/* Total Payouts Card (All Roles) */}
                 <div className="flex-1 cosmic-card">
-                  <div className="mb-4">
-                    <h3 className="text-base md:text-lg font-semibold text-white">
-                      {getCardTitle('My Total Payouts')}
-                    </h3>
-                  </div>
+                  <div className="flex items-center justify-between gap-6">
+                    {/* Left: Text Content */}
+                    <div className="flex-1">
+                      <div className="mb-4">
+                        <h3 className="text-base md:text-lg font-semibold text-white">
+                          {getCardTitle('My Total Payouts')}
+                        </h3>
+                      </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-gray-400 text-xs md:text-sm">Paid Amount</p>
-                      <p className="text-xl md:text-2xl font-bold text-white">
-                        {formatCurrency(payoutSummary?.totalPaidOut || 0)}
-                      </p>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-gray-400 text-xs md:text-sm">Paid Amount</p>
+                          <p className="text-xl md:text-2xl font-bold text-white">
+                            {formatCurrency(payoutSummary?.totalPaidOut || 0)}
+                          </p>
+                        </div>
+
+                        {payoutSummary?.lastPayoutDate && (
+                          <div>
+                            <p className="text-gray-400 text-xs md:text-sm">Last Payout</p>
+                            <p className="text-white text-sm md:text-base">
+                              {formatCurrency(payoutSummary.lastPayoutAmount)} on {formatDate(payoutSummary.lastPayoutDate)}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {payoutSummary?.lastPayoutDate && (
-                      <div>
-                        <p className="text-gray-400 text-xs md:text-sm">Last Payout</p>
-                        <p className="text-white text-sm md:text-base">
-                          {formatCurrency(payoutSummary.lastPayoutAmount)} on {formatDate(payoutSummary.lastPayoutDate)}
-                        </p>
-                      </div>
-                    )}
+                    {/* Right: Mascot Image */}
+                    <div className="hidden md:block flex-shrink-0">
+                      <img
+                        src="/images/Mascot_Money Count_png.png"
+                        alt="Money counting mascot"
+                        className="w-[280px] h-auto"
+                      />
+                    </div>
                   </div>
                 </div>
 
