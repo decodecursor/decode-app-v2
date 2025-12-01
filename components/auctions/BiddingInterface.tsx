@@ -289,6 +289,15 @@ export function BiddingInterface({
       console.error('Error saving guest info to cache:', error);
     }
 
+    // Trigger preload immediately with new guest info (before checking previous bids)
+    const preloadEmail = info.contactMethod === 'email'
+      ? info.email
+      : `whatsapp:${info.whatsappNumber}`;
+    if (preloadEmail && !preloadedPaymentIntent && !isPreloadingSetupIntent) {
+      console.log('[BiddingInterface] 🚀 Triggering preload in handleGuestInfoSubmit');
+      preloadPaymentIntent(preloadEmail, info.name);
+    }
+
     // Check if this guest has bid before on this auction
     const email = info.contactMethod === 'email' ? info.email : `whatsapp:${info.whatsappNumber}`;
     if (email) {
@@ -487,6 +496,7 @@ export function BiddingInterface({
     setError(null);
     setPaymentAutoConfirmed(false);
     setPreloadedSetupIntent(null);
+    setPreloadedPaymentIntent(null); // Clear preloaded PaymentIntent for consecutive bids
 
     // For guest bidders: Load cached data from localStorage
     if (!userEmail) {
