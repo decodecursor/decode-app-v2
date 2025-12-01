@@ -705,7 +705,18 @@ export default function PayoutsPage() {
         {/* Payout Request Modal */}
         {showRequestModal && (
           <div className="fixed inset-0 bg-black/50 flex items-end md:items-center justify-center z-50 md:p-4">
-            <div className="bg-gray-900 rounded-t-xl md:rounded-xl border border-gray-700 p-6 w-full max-w-[400px] md:mx-auto">
+            <div className="bg-gray-900 rounded-t-xl md:rounded-xl border border-gray-700 p-6 w-full max-w-[400px] md:mx-auto relative">
+              {/* Close Icon */}
+              <button
+                onClick={() => setShowRequestModal(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                disabled={requestLoading}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
               <h3 className="text-base md:text-lg font-semibold text-white mb-3">Request Payout</h3>
               
               {/* Modal Error Message */}

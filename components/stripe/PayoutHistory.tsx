@@ -305,9 +305,10 @@ export function PayoutHistory({ userId, userRole, onNewPayout, refreshTrigger }:
                     </div>
                   </div>
 
-                  {/* Desktop Layout - Hidden on mobile */}
-                  <div className="hidden md:grid grid-cols-4 gap-x-5 items-center">
-                    <div className="flex items-center space-x-3">
+                  {/* Desktop Layout - Hidden on mobile - Aligned with Pending Payouts */}
+                  <div className="hidden md:flex items-center gap-4">
+                    {/* Badge + Amount - matches pending payout checkbox + name width */}
+                    <div className="flex items-center space-x-3 w-40">
                       <span className="w-7 h-7 bg-gray-900/80 border-2 border-purple-400 text-purple-400 text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">
                         {index + 1}
                       </span>
@@ -315,7 +316,9 @@ export function PayoutHistory({ userId, userRole, onNewPayout, refreshTrigger }:
                         AED {formatAmount(payout.payout_amount_aed)}
                       </span>
                     </div>
-                    <div className="text-left">
+
+                    {/* To: - matches pending payout amount column width (w-36) */}
+                    <div className="w-36">
                       <span className="flex items-center gap-1 cosmic-label">
                         <span className="text-purple-400">To:</span>
                         <span className="text-white">
@@ -323,12 +326,17 @@ export function PayoutHistory({ userId, userRole, onNewPayout, refreshTrigger }:
                         </span>
                       </span>
                     </div>
-                    <div className="text-left">
+
+                    {/* ID: - matches pending payout date column width (w-28) */}
+                    <div className="w-28">
                       <span className="flex items-center gap-1 cosmic-label">
                         <span className="text-purple-400">ID:</span>
                         <span className="text-white">{payout.payout_request_id || 'N/A'}</span>
                       </span>
                     </div>
+
+                    {/* Spacer + Date on right */}
+                    <div className="flex-1"></div>
                     <div className="text-right">
                       <span className="flex items-center justify-end gap-1 cosmic-label">
                         {payout.paid_at ? (
