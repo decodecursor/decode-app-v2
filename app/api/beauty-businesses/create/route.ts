@@ -117,7 +117,6 @@ export async function POST(request: NextRequest) {
     const beautyBusinessService = new BeautyBusinessService();
     const dto: CreateBeautyBusinessDto = {
       creator_id: user.id,
-      creator_name: userData.user_name || 'Unknown',
       business_name: body.business_name,
       instagram_handle: body.instagram_handle,
       city: body.city,

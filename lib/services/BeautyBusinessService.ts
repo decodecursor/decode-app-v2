@@ -23,7 +23,6 @@ export class BeautyBusinessService {
       // Build insert object
       const insertData: any = {
         creator_id: dto.creator_id,
-        creator_name: dto.creator_name,
         business_name: dto.business_name,
         instagram_handle: dto.instagram_handle,
         city: dto.city,

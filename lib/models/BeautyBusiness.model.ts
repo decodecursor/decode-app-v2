@@ -6,7 +6,6 @@
 export interface BeautyBusiness {
   id: string;
   creator_id: string;
-  creator_name: string;
   business_name: string;
   instagram_handle: string;
   city: string;
@@ -17,7 +16,6 @@ export interface BeautyBusiness {
 
 export interface CreateBeautyBusinessDto {
   creator_id: string;
-  creator_name: string;
   business_name: string;
   instagram_handle: string;
   city: string;
