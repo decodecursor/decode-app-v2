@@ -179,7 +179,7 @@ export default function CreateAuction() {
           <div className="text-center md:mb-8 mb-6">
             <div className="mb-4 flex justify-center">
               <img
-                src="/images/Mascot_Lets gooo_png.png"
+                src="/images/Mascot_Letsgooo_png.png"
                 alt="Create auction mascot"
                 className="w-[120px] h-auto object-contain"
               />
