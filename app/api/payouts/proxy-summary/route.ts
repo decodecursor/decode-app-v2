@@ -132,8 +132,10 @@ export async function GET(request: NextRequest) {
         const video = videoMap.get(auction.id)
         const hasVideo = !!(video && video.file_url)
         const videoWatched = !!(video && video.watched_to_end_at)
-        // Payout unlocked if: no video record OR no file_url OR payout_unlocked_at is set
-        const payoutUnlocked = !video || !hasVideo || !!(video && video.payout_unlocked_at)
+        // Payout unlocked if:
+        // 1. No video record exists (legacy auction without video requirement), OR
+        // 2. payout_unlocked_at is set (either watched or 24hr auto-unlock)
+        const payoutUnlocked = !video || !!(video && video.payout_unlocked_at)
 
         return {
           auction_id: auction.id,
