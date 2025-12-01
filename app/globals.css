@@ -157,12 +157,12 @@
 
 /* Auction Detail Background - Responsive sizing */
 .auction-detail-bg {
-  background-size: 40%; /* Mobile: 60% smaller */
+  background-size: 41%; /* Mobile: adjusted for better tiling */
 }
 
 @media (min-width: 1024px) {
   .auction-detail-bg {
-    background-size: 30%; /* Desktop: 70% smaller */
+    background-size: 31%; /* Desktop: adjusted for better tiling */
   }
 }
 
