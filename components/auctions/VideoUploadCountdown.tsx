@@ -26,7 +26,7 @@ const COLOR_CLASS_MAP = {
 export function VideoUploadCountdown({ tokenExpiresAt, hasVideo, showAsFullStatus = false }: VideoUploadCountdownProps) {
   const { formatted, colorState, shouldShow, isExpired } = useVideoUploadTimer(tokenExpiresAt, hasVideo);
 
-  const colorClass = COLOR_CLASS_MAP[colorState];
+  const colorClass = 'text-amber-400'; // Always amber for video upload countdown
 
   // Handle expired state when showing full status
   if (showAsFullStatus && isExpired) {
