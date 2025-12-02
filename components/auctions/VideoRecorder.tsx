@@ -70,7 +70,7 @@ export function VideoRecorder({
   const [mimeInfo, setMimeInfo] = useState<{ mimeType: string; extension: string } | null>(null);
 
   // Integrate timer hook for countdown
-  const { displayText } = useVideoUploadTimer(tokenExpiresAt || null);
+  const { formatted: displayText } = useVideoUploadTimer(tokenExpiresAt || null, false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const previewRef = useRef<HTMLVideoElement>(null);
