@@ -48,15 +48,33 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
   // Lazy load business data if linked_business_id exists but business object doesn't
   useEffect(() => {
+    console.log('🏢 [AuctionCard] Lazy load check:', {
+      auctionId: auction.id,
+      title: auction.title,
+      linked_business_id: auction.linked_business_id,
+      hasAuctionBusiness: !!auction.business,
+      auctionBusiness: auction.business,
+      linkedBusinessState: linkedBusiness,
+      willFetch: !!(auction.linked_business_id && !auction.business && !linkedBusiness)
+    });
+
     if (auction.linked_business_id && !auction.business && !linkedBusiness) {
+      console.log('🏢 [AuctionCard] Fetching business:', auction.linked_business_id);
       fetch(`/api/beauty-businesses/${auction.linked_business_id}`)
-        .then(res => res.ok ? res.json() : null)
+        .then(res => {
+          console.log('🏢 [AuctionCard] Fetch response:', res.status, res.ok);
+          return res.ok ? res.json() : null;
+        })
         .then(data => {
+          console.log('🏢 [AuctionCard] Fetch data:', data);
           if (data?.business) {
+            console.log('🏢 [AuctionCard] Setting linkedBusiness:', data.business);
             setLinkedBusiness(data.business);
           }
         })
-        .catch(() => {}); // Silently fail - avatar just won't show
+        .catch((err) => {
+          console.error('🏢 [AuctionCard] Fetch error:', err);
+        });
     }
   }, [auction.linked_business_id, auction.business, linkedBusiness]);
 
