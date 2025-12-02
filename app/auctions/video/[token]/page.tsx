@@ -163,27 +163,47 @@ export default function VideoRecordingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div
+      className="min-h-screen py-12 px-4"
+      style={{
+        backgroundColor: '#F9FAFB',
+        position: 'relative'
+      }}
+    >
+      {/* Background layer with opacity */}
+      <div
+        className="absolute inset-0 pointer-events-none auction-detail-bg"
+        style={{
+          backgroundImage: 'url(/Pattern.jpeg)',
+          backgroundPosition: 'top left',
+          backgroundRepeat: 'repeat',
+          opacity: 0.5,
+          zIndex: 1
+        }}
+      />
+
       {/* Countdown Timer */}
       {tokenExpiresAt && !isExpired && (
-        <div className="max-w-3xl mx-auto mb-6">
+        <div className="max-w-3xl mx-auto mb-6" style={{ position: 'relative', zIndex: 10 }}>
           <VideoUploadCountdown tokenExpiresAt={tokenExpiresAt?.toISOString() ?? null} hasVideo={false} />
         </div>
       )}
 
       {/* Video Recorder */}
-      <VideoRecorder
-        auctionId={auctionId}
-        bidId={bidId}
-        recordingToken={token}
-        recordingMethod="email_link"
-        tokenExpiresAt={tokenExpiresAt}
-        isExpired={isExpired}
-        onSuccess={handleUploadSuccess}
-      />
+      <div style={{ position: 'relative', zIndex: 10 }}>
+        <VideoRecorder
+          auctionId={auctionId}
+          bidId={bidId}
+          recordingToken={token}
+          recordingMethod="email_link"
+          tokenExpiresAt={tokenExpiresAt}
+          isExpired={isExpired}
+          onSuccess={handleUploadSuccess}
+        />
+      </div>
 
       {/* Footer Info */}
-      <div className="max-w-3xl mx-auto mt-8">
+      <div className="max-w-3xl mx-auto mt-8" style={{ position: 'relative', zIndex: 10 }}>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="text-sm text-blue-700">
             <p className="font-medium mb-1">Important</p>
