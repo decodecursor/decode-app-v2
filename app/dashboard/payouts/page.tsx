@@ -27,6 +27,7 @@ interface PendingPayoutItem {
   has_video: boolean
   video_watched: boolean
   payout_unlocked: boolean
+  token_expires_at: string | null
 }
 
 interface PayoutSummary {
