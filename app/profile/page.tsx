@@ -797,7 +797,7 @@ export default function ProfilePage() {
           {/* Display Name Card - Model Users Only */}
           {profile?.role === USER_ROLES.MODEL && (
             <div className="cosmic-card-profile w-full">
-              <h2 className="text-lg md:text-xl font-semibold text-white mb-6">Display Name</h2>
+              <h2 className="text-lg md:text-xl font-semibold text-white mb-6">Profile Name</h2>
               <div className="space-y-4">
                 <div className="relative">
                   <input
@@ -823,7 +823,7 @@ export default function ProfilePage() {
                 {displayNameSaved && (
                   <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
                     <p className="text-green-400 text-sm">
-                      Display name saved successfully!
+                      Profile name saved successfully!
                     </p>
                   </div>
                 )}
