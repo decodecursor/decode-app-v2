@@ -7,12 +7,15 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { MAX_VIDEO_DURATION_SECONDS, MAX_RETAKES } from '@/lib/models/AuctionVideo.model';
+import { useVideoUploadTimer } from '@/lib/hooks/useVideoUploadTimer';
 
 interface VideoRecorderProps {
   auctionId: string;
   bidId: string;
   recordingToken?: string;
   recordingMethod: 'in_page' | 'email_link';
+  tokenExpiresAt?: Date | null;
+  isExpired?: boolean;
   onSuccess?: (videoUrl: string) => void;
   onCancel?: () => void;
   maxRetakes?: number;
@@ -52,6 +55,8 @@ export function VideoRecorder({
   bidId,
   recordingToken,
   recordingMethod,
+  tokenExpiresAt,
+  isExpired = false,
   onSuccess,
   onCancel,
   maxRetakes = MAX_RETAKES,
@@ -63,6 +68,9 @@ export function VideoRecorder({
   const [error, setError] = useState<string | null>(null);
   const [retakeCount, setRetakeCount] = useState(0);
   const [mimeInfo, setMimeInfo] = useState<{ mimeType: string; extension: string } | null>(null);
+
+  // Integrate timer hook for countdown
+  const { displayText } = useVideoUploadTimer(tokenExpiresAt || null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const previewRef = useRef<HTMLVideoElement>(null);
@@ -80,6 +88,12 @@ export function VideoRecorder({
 
   // Request camera permission and setup preview
   const requestCamera = async () => {
+    // Check if deadline has expired
+    if (isExpired) {
+      setError('The 24-hour recording deadline has expired. This link is no longer valid.');
+      return;
+    }
+
     try {
       setRecordingState('requesting_permission');
       setError(null);
@@ -107,6 +121,12 @@ export function VideoRecorder({
 
   // Start recording
   const startRecording = () => {
+    // Check if deadline has expired
+    if (isExpired) {
+      setError('The 24-hour recording deadline has expired. This link is no longer valid.');
+      return;
+    }
+
     if (!stream) return;
 
     try {
@@ -234,6 +254,12 @@ export function VideoRecorder({
 
   // Upload video
   const uploadVideo = async () => {
+    // Check if deadline has expired
+    if (isExpired) {
+      setError('The 24-hour recording deadline has expired. This link is no longer valid.');
+      return;
+    }
+
     if (!recordedBlob) return;
 
     setRecordingState('uploading');
@@ -307,6 +333,11 @@ export function VideoRecorder({
           <h1 className="text-[18px] sm:text-[26px] font-bold text-gray-900 text-center">
             Record Your Winner Video! 🎉
           </h1>
+          {tokenExpiresAt && !isExpired && (
+            <div className="text-sm text-amber-600 text-center mt-2">
+              Time remaining: {displayText}
+            </div>
+          )}
         </div>
 
         {/* Video Display */}
@@ -425,7 +456,12 @@ export function VideoRecorder({
                 )}
                 <button
                   onClick={requestCamera}
-                  className="flex-1 px-4 py-4 text-base sm:text-lg font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 shadow-lg animate-pulse flex items-center justify-center gap-2"
+                  disabled={isExpired}
+                  className={`flex-1 px-4 py-4 text-base sm:text-lg font-semibold text-white rounded-md shadow-lg flex items-center justify-center gap-2 ${
+                    isExpired
+                      ? 'bg-gray-400 cursor-not-allowed opacity-50'
+                      : 'bg-blue-600 hover:bg-blue-700 animate-pulse'
+                  }`}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -448,7 +484,12 @@ export function VideoRecorder({
                 </button>
                 <button
                   onClick={startRecording}
-                  className="flex-1 px-4 py-3 text-xs sm:text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 flex items-center justify-center gap-2"
+                  disabled={isExpired}
+                  className={`flex-1 px-4 py-3 text-xs sm:text-sm font-medium text-white rounded-md flex items-center justify-center gap-2 ${
+                    isExpired
+                      ? 'bg-gray-400 cursor-not-allowed opacity-50'
+                      : 'bg-red-600 hover:bg-red-700'
+                  }`}
                 >
                   <div className="w-4 h-4 bg-white rounded-full" />
                   Start Recording
@@ -470,14 +511,24 @@ export function VideoRecorder({
                 {retakeCount < maxRetakes && (
                   <button
                     onClick={retake}
-                    className="flex-1 px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    disabled={isExpired}
+                    className={`flex-1 px-4 py-2 text-xs sm:text-sm font-medium rounded-md ${
+                      isExpired
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-50'
+                        : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                    }`}
                   >
                     Retake ({maxRetakes - retakeCount} left)
                   </button>
                 )}
                 <button
                   onClick={uploadVideo}
-                  className="flex-1 px-4 py-3 text-xs sm:text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
+                  disabled={isExpired}
+                  className={`flex-1 px-4 py-3 text-xs sm:text-sm font-medium text-white rounded-md ${
+                    isExpired
+                      ? 'bg-gray-400 cursor-not-allowed opacity-50'
+                      : 'bg-green-600 hover:bg-green-700'
+                  }`}
                 >
                   Upload Video
                 </button>

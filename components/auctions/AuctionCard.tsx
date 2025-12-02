@@ -48,33 +48,16 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
   // Lazy load business data if linked_business_id exists but business object doesn't
   useEffect(() => {
-    console.log('🏢 [AuctionCard] Lazy load check:', {
-      auctionId: auction.id,
-      title: auction.title,
-      linked_business_id: auction.linked_business_id,
-      hasAuctionBusiness: !!auction.business,
-      auctionBusiness: auction.business,
-      linkedBusinessState: linkedBusiness,
-      willFetch: !!(auction.linked_business_id && !auction.business && !linkedBusiness)
-    });
-
+    // Lazy load business data if not already included in auction
     if (auction.linked_business_id && !auction.business && !linkedBusiness) {
-      console.log('🏢 [AuctionCard] Fetching business:', auction.linked_business_id);
       fetch(`/api/beauty-businesses/${auction.linked_business_id}`)
-        .then(res => {
-          console.log('🏢 [AuctionCard] Fetch response:', res.status, res.ok);
-          return res.ok ? res.json() : null;
-        })
+        .then(res => res.ok ? res.json() : null)
         .then(data => {
-          console.log('🏢 [AuctionCard] Fetch data:', data);
           if (data?.business) {
-            console.log('🏢 [AuctionCard] Setting linkedBusiness:', data.business);
             setLinkedBusiness(data.business);
           }
         })
-        .catch((err) => {
-          console.error('🏢 [AuctionCard] Fetch error:', err);
-        });
+        .catch(() => {});
     }
   }, [auction.linked_business_id, auction.business, linkedBusiness]);
 
@@ -401,17 +384,12 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                         crossOrigin="anonymous"
                         referrerPolicy="no-referrer"
                         onError={(e) => {
-                          // Fallback to icon if image fails to load
-                          console.log('🏢 [AuctionCard] Business image failed to load:', linkedBusiness.business_photo_url);
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';
                           const fallbackDiv = target.nextElementSibling as HTMLElement;
                           if (fallbackDiv) {
                             fallbackDiv.classList.remove('hidden');
                           }
-                        }}
-                        onLoad={() => {
-                          console.log('🏢 [AuctionCard] Business image loaded successfully');
                         }}
                       />
                     ) : null}

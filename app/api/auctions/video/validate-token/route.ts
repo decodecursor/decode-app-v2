@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
       auction_id: result.auction_id,
       bid_id: result.bid_id,
       creator_name: result.creator_name,
+      token_expires_at: result.token_expires_at,
     });
   } catch (error) {
     console.error('❌ Error validating token:', error);

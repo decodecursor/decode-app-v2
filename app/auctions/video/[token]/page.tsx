@@ -8,6 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { VideoRecorder } from '@/components/auctions/VideoRecorder';
+import { VideoUploadCountdown } from '@/components/auctions/VideoUploadCountdown';
 
 export default function VideoRecordingPage() {
   const params = useParams();
@@ -19,12 +20,32 @@ export default function VideoRecordingPage() {
   const [auctionId, setAuctionId] = useState<string | null>(null);
   const [bidId, setBidId] = useState<string | null>(null);
   const [creatorName, setCreatorName] = useState<string | null>(null);
+  const [tokenExpiresAt, setTokenExpiresAt] = useState<Date | null>(null);
+  const [isExpired, setIsExpired] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
   useEffect(() => {
     validateToken();
   }, [token]);
+
+  // Monitor token expiration in real-time
+  useEffect(() => {
+    if (!tokenExpiresAt) return;
+
+    const checkExpiry = () => {
+      const expired = new Date(tokenExpiresAt) < new Date();
+      setIsExpired(expired);
+      if (expired) {
+        setError('This link has expired. The 24-hour recording window has closed.');
+      }
+    };
+
+    checkExpiry();
+    const interval = setInterval(checkExpiry, 1000);
+
+    return () => clearInterval(interval);
+  }, [tokenExpiresAt]);
 
   const validateToken = async () => {
     try {
@@ -50,6 +71,9 @@ export default function VideoRecordingPage() {
         setAuctionId(result.auction_id);
         setBidId(result.bid_id);
         setCreatorName(result.creator_name || 'the auction creator');
+        if (result.token_expires_at) {
+          setTokenExpiresAt(new Date(result.token_expires_at));
+        }
       } else {
         setError(result.error || 'Invalid or expired recording link');
       }
@@ -94,7 +118,7 @@ export default function VideoRecordingPage() {
               />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Invalid Link</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Link expired</h1>
           <p className="text-gray-600 mb-6">{error}</p>
           <a
             href="/auctions"
@@ -146,12 +170,21 @@ export default function VideoRecordingPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
+      {/* Countdown Timer */}
+      {tokenExpiresAt && !isExpired && (
+        <div className="max-w-3xl mx-auto mb-6">
+          <VideoUploadCountdown deadline={tokenExpiresAt} />
+        </div>
+      )}
+
       {/* Video Recorder */}
       <VideoRecorder
         auctionId={auctionId}
         bidId={bidId}
         recordingToken={token}
         recordingMethod="email_link"
+        tokenExpiresAt={tokenExpiresAt}
+        isExpired={isExpired}
         onSuccess={handleUploadSuccess}
       />
 

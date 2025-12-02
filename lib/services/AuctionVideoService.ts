@@ -181,6 +181,18 @@ export class AuctionVideoService {
         return { success: false, error: 'Invalid auction' };
       }
 
+      // Validate token deadline if token provided
+      if (params.recording_token) {
+        const validation = await this.validateToken(params.recording_token);
+        if (!validation.valid) {
+          return { success: false, error: validation.error || 'Invalid token' };
+        }
+        // Additional check: ensure not expired
+        if (validation.token_expires_at && new Date(validation.token_expires_at) < new Date()) {
+          return { success: false, error: 'Recording deadline has expired' };
+        }
+      }
+
       // Check if existing video and retake count
       const { data: existing } = await supabase
         .from('auction_videos')
@@ -312,6 +324,7 @@ export class AuctionVideoService {
     auction_id?: string;
     bid_id?: string;
     creator_name?: string;
+    token_expires_at?: string;
     already_uploaded?: boolean;
     error?: string;
   }> {
@@ -341,7 +354,7 @@ export class AuctionVideoService {
       }
 
       if (new Date(data.token_expires_at) < new Date()) {
-        return { valid: false, error: 'Token expired' };
+        return { valid: false, error: '24-hour access period ended' };
       }
 
       // Check if video has already been uploaded (file_url is not empty and retake limit reached)
@@ -363,6 +376,7 @@ export class AuctionVideoService {
         auction_id: data.auction_id,
         bid_id: data.bid_id,
         creator_name: creatorName,
+        token_expires_at: data.token_expires_at,
         already_uploaded: false,
       };
     } catch (error) {
