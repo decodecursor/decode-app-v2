@@ -463,10 +463,11 @@ export default function AuctionDetailClient() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-2">
-            {/* Left side: Profile Image + Title */}
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              {/* Creator Profile Image */}
+          {/* Conditional layout: Dual-avatar if business linked, single-avatar otherwise */}
+          {(auction as any).business ? (
+            /* DUAL-AVATAR LAYOUT - When beauty business is linked */
+            <div className="flex items-center justify-between gap-3">
+              {/* Left Avatar - Model */}
               <div className="flex-shrink-0">
                 {(auction as any).creator?.instagram_handle ? (
                   <a
@@ -506,15 +507,125 @@ export default function AuctionDetailClient() {
                 )}
               </div>
 
-              {/* Title and Creator Name */}
-              <div className="flex-1 min-w-0">
-                <h1 className="text-[26px] sm:text-[36px] font-bold text-gray-900 break-words mb-0">{auction.title}</h1>
-                <p className="text-gray-500 text-[14px] sm:text-[18px] mt-0">
-                  for {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
+              {/* Center Text - Responsive sizing based on text length */}
+              <div className="flex-1 text-center min-w-0 px-1">
+                <h1 className={`font-bold text-gray-900 break-words mb-0 ${
+                  auction.title.length > 20 ? 'text-[18px] sm:text-[24px]' :
+                  auction.title.length > 15 ? 'text-[22px] sm:text-[30px]' :
+                  'text-[26px] sm:text-[36px]'
+                }`}>
+                  {auction.title}
+                </h1>
+                <p className={`text-gray-500 mt-0 ${
+                  ((auction as any).creator?.user_name || (auction as any).creator?.email || '').length > 25
+                    ? 'text-[12px] sm:text-[16px]'
+                    : 'text-[14px] sm:text-[18px]'
+                }`}>
+                  {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
+                </p>
+                <p className={`text-gray-900 font-bold mt-0 ${
+                  ((auction as any).business.business_name || '').length > 25
+                    ? 'text-[12px] sm:text-[16px]'
+                    : 'text-[14px] sm:text-[18px]'
+                }`}>
+                  {(auction as any).business.business_name}
                 </p>
               </div>
+
+              {/* Right Avatar - Beauty Business */}
+              <div className="flex-shrink-0">
+                {(auction as any).business?.instagram_handle ? (
+                  <a
+                    href={`https://instagram.com/${(auction as any).business.instagram_handle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="instagram-avatar"
+                  >
+                    {(auction as any).business?.business_photo_url ? (
+                      <img
+                        src={(auction as any).business.business_photo_url}
+                        alt={(auction as any).business.business_name}
+                      />
+                    ) : (
+                      <div className="avatar-fallback">
+                        <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                      </div>
+                    )}
+                  </a>
+                ) : (
+                  <div className="instagram-avatar">
+                    {(auction as any).business?.business_photo_url ? (
+                      <img
+                        src={(auction as any).business.business_photo_url}
+                        alt={(auction as any).business.business_name}
+                      />
+                    ) : (
+                      <div className="avatar-fallback">
+                        <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          ) : (
+            /* SINGLE-AVATAR LAYOUT - Default when no business linked */
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                {/* Creator Profile Image */}
+                <div className="flex-shrink-0">
+                  {(auction as any).creator?.instagram_handle ? (
+                    <a
+                      href={`https://instagram.com/${(auction as any).creator.instagram_handle}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="instagram-avatar"
+                    >
+                      {(auction as any).creator?.profile_photo_url ? (
+                        <img
+                          src={(auction as any).creator.profile_photo_url}
+                          alt={(auction as any).creator.user_name || 'Creator'}
+                        />
+                      ) : (
+                        <div className="avatar-fallback">
+                          <svg className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                      )}
+                    </a>
+                  ) : (
+                    <div className="instagram-avatar">
+                      {(auction as any).creator?.profile_photo_url ? (
+                        <img
+                          src={(auction as any).creator.profile_photo_url}
+                          alt={(auction as any).creator.user_name || 'Creator'}
+                        />
+                      ) : (
+                        <div className="avatar-fallback">
+                          <svg className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Title and Creator Name */}
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-[26px] sm:text-[36px] font-bold text-gray-900 break-words mb-0">{auction.title}</h1>
+                  <p className="text-gray-500 text-[14px] sm:text-[18px] mt-0">
+                    for {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
           {auction.description && (
             <p className="text-gray-600 text-sm sm:text-lg mt-3">{auction.description}</p>
           )}
