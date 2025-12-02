@@ -173,7 +173,7 @@ export default function VideoRecordingPage() {
       {/* Countdown Timer */}
       {tokenExpiresAt && !isExpired && (
         <div className="max-w-3xl mx-auto mb-6">
-          <VideoUploadCountdown deadline={tokenExpiresAt} />
+          <VideoUploadCountdown tokenExpiresAt={tokenExpiresAt?.toISOString() ?? null} hasVideo={false} />
         </div>
       )}
 
