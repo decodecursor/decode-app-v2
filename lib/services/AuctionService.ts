@@ -105,7 +105,7 @@ export class AuctionService {
         .select(`
           *,
           creator:users!creator_id(id, email, user_name, role, profile_photo_url, instagram_handle),
-          business:beauty_businesses!linked_business_id(id, business_name, instagram_handle, city, business_photo_url)
+          business:beauty_businesses(id, business_name, instagram_handle, city, business_photo_url)
         `)
         .eq('id', auctionId)
         .single();
