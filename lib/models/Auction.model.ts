@@ -51,7 +51,14 @@ export interface Auction {
   has_video?: boolean; // Indicates if a video has been uploaded for this auction
 
   // Beauty Business Link
-  business_id?: string; // Links to a reusable beauty business profile
+  linked_business_id?: string; // Links to a reusable beauty business profile
+  business?: {
+    id: string;
+    business_name: string;
+    instagram_handle: string;
+    city: string;
+    business_photo_url?: string;
+  };
 
   // EventBridge Scheduler
   scheduler_event_id?: string;
@@ -85,7 +92,7 @@ export interface UpdateAuctionDto {
   platform_fee_amount?: number;
   model_payout_amount?: number;
   has_video?: boolean;
-  business_id?: string;
+  linked_business_id?: string;
 }
 
 export interface AuctionWithCreator extends Auction {

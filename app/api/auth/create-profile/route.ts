@@ -29,7 +29,20 @@ export async function POST(request: NextRequest) {
         persistSession: false
       }
     })
-    
+
+    // Check if user already exists to preserve user_name
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('user_name')
+      .eq('id', profileData.id)
+      .single()
+
+    // If user exists and has a user_name, preserve it (don't overwrite with auto-generated fallback)
+    if (existingUser?.user_name) {
+      console.log('ℹ️ [CREATE-PROFILE] User exists with user_name, preserving:', existingUser.user_name)
+      profileData.user_name = existingUser.user_name
+    }
+
     // Upsert profile (handles both new and existing users)
     const { data, error } = await supabase.from('users').upsert(profileData, { onConflict: 'id' })
     

@@ -51,36 +51,55 @@ export async function POST(request: NextRequest) {
 
       // Use service role client to bypass RLS for profile creation
       const serviceClient = createServiceRoleClient();
-      const { error: createError } = await serviceClient
-        .from('users')
-        .upsert({
-          id: user.id,
-          email: user.email,
-          role: 'User',  // Database constraint only allows 'Admin' or 'User'
-          user_name: user.email?.split('@')[0] || 'User',
-          company_name: '',
-          created_at: new Date().toISOString()
-        }, {
-          onConflict: 'id'
-        });
 
-      if (createError) {
-        console.error('❌ [API /beauty-businesses/create] Failed to create profile:', {
-          error: createError,
-          code: createError.code,
-          message: createError.message,
-          details: createError.details,
-          hint: createError.hint,
-          userId: user.id,
-          userEmail: user.email
-        });
-        return NextResponse.json({
-          error: 'Failed to create user profile. Please try again or contact support.',
-          details: createError.message
-        }, { status: 500 });
+      // First, check if user already exists (to preserve existing user_name)
+      const { data: existingUser } = await serviceClient
+        .from('users')
+        .select('id, user_name')
+        .eq('id', user.id)
+        .single();
+
+      // Only insert if user doesn't exist (prevent overwriting existing user_name)
+      if (!existingUser) {
+        const { error: createError } = await serviceClient
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email,
+            role: 'User',  // Database constraint only allows 'Admin' or 'User'
+            user_name: user.email?.split('@')[0] || 'User',
+            company_name: '',
+            created_at: new Date().toISOString()
+          });
+
+        if (createError) {
+          console.error('❌ [API /beauty-businesses/create] Failed to create profile:', {
+            error: createError,
+            code: createError.code,
+            message: createError.message,
+            details: createError.details,
+            hint: createError.hint,
+            userId: user.id,
+            userEmail: user.email
+          });
+
+          // If error is NOT a unique constraint violation, return error
+          if (createError.code !== '23505') {
+            return NextResponse.json({
+              error: 'Failed to create user profile. Please try again or contact support.',
+              details: createError.message
+            }, { status: 500 });
+          }
+          // If unique constraint violation, user exists now, continue
+          console.log('ℹ️ [API /beauty-businesses/create] User already exists (created concurrently), continuing...');
+        } else {
+          console.log('✅ [API /beauty-businesses/create] Profile created successfully');
+        }
+      } else {
+        console.log('ℹ️ [API /beauty-businesses/create] User already exists, preserving existing user_name');
       }
 
-      // Fetch the newly created user
+      // Fetch the user data (whether just created or already existing)
       const { data: newUserData } = await supabase
         .from('users')
         .select('role, user_name')
@@ -88,7 +107,6 @@ export async function POST(request: NextRequest) {
         .single();
 
       userData = newUserData;
-      console.log('✅ [API /beauty-businesses/create] Profile created successfully');
     }
 
     const normalizedRole = normalizeRole(userData.role);

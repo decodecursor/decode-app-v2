@@ -40,6 +40,12 @@ export default function ProfilePage() {
   const [instagramHandle, setInstagramHandle] = useState('')
   const [instagramSaved, setInstagramSaved] = useState(false)
 
+  // Display name states
+  const [displayName, setDisplayName] = useState('')
+  const [displayNameSaving, setDisplayNameSaving] = useState(false)
+  const [displayNameSaved, setDisplayNameSaved] = useState(false)
+  const [displayNameError, setDisplayNameError] = useState<string | null>(null)
+
   // Photo upload states
   const [photoUploading, setPhotoUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<string>('')
@@ -166,6 +172,7 @@ export default function ProfilePage() {
         setNewEmail(currentEmail)
         setProfilePhotoUrl(profileData.profile_photo_url || null)
         setInstagramHandle(profileData.instagram_handle || '')
+        setDisplayName(profileData.user_name || '')
       } else {
         setMessage({ type: 'error', text: 'No profile data found' })
       }
@@ -443,6 +450,44 @@ export default function ProfilePage() {
       setInstagramError(error instanceof Error ? error.message : 'Failed to save Instagram username')
     } finally {
       setInstagramSaving(false)
+    }
+  }
+
+  const saveDisplayName = async () => {
+    if (!profile || displayName.trim() === (profile.user_name || '')) return
+
+    setDisplayNameSaving(true)
+    setDisplayNameSaved(false)
+    setDisplayNameError(null)
+
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_name: displayName.trim() })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to save display name')
+      }
+
+      setProfile({
+        ...profile,
+        user_name: displayName.trim()
+      })
+
+      setDisplayNameSaved(true)
+      setTimeout(() => {
+        setDisplayNameSaved(false)
+      }, 3000)
+
+    } catch (err) {
+      console.error('Display name save error:', err)
+      setDisplayNameError(err instanceof Error ? err.message : 'Failed to save display name')
+    } finally {
+      setDisplayNameSaving(false)
     }
   }
 
@@ -748,6 +793,51 @@ export default function ProfilePage() {
               )}
             </div>
           </div>
+
+          {/* Display Name Card - Model Users Only */}
+          {profile?.role === USER_ROLES.MODEL && (
+            <div className="cosmic-card-profile w-full">
+              <h2 className="text-lg md:text-xl font-semibold text-white mb-6">Display Name</h2>
+              <div className="space-y-4">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => {
+                      setDisplayName(e.target.value)
+                      setDisplayNameError(null)
+                    }}
+                    placeholder="Your full name"
+                    className="cosmic-input w-full"
+                    autoComplete="name"
+                  />
+                </div>
+                <button
+                  onClick={saveDisplayName}
+                  disabled={displayNameSaving || displayName.trim() === (profile?.user_name || '')}
+                  className="cosmic-button-primary disabled:opacity-50 w-full"
+                >
+                  {displayNameSaving ? 'Saving...' : displayNameSaved ? 'Saved!' : 'Save'}
+                </button>
+
+                {displayNameSaved && (
+                  <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                    <p className="text-green-400 text-sm">
+                      Display name saved successfully!
+                    </p>
+                  </div>
+                )}
+
+                {displayNameError && (
+                  <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                    <p className="text-red-400 text-sm">
+                      {displayNameError}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Instagram Username Card */}
           <div className="cosmic-card-profile w-full">

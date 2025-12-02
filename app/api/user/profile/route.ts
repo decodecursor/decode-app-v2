@@ -181,13 +181,14 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { preferred_payout_method, branch_name, instagram_handle } = body
+    const { preferred_payout_method, branch_name, instagram_handle, user_name } = body
 
     console.log('📝 [PROFILE-PATCH] Update request:', {
       userId: user.id,
       preferred_payout_method,
       branch_name,
-      instagram_handle
+      instagram_handle,
+      user_name
     })
 
     // Validate preferred_payout_method if provided
@@ -211,6 +212,23 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
+    // Validate user_name if provided
+    if (user_name !== undefined && user_name !== null) {
+      const cleaned = user_name.trim()
+      if (cleaned && cleaned.length < 2) {
+        return NextResponse.json(
+          { error: 'Display name must be at least 2 characters' },
+          { status: 400 }
+        )
+      }
+      if (cleaned && cleaned.length > 100) {
+        return NextResponse.json(
+          { error: 'Display name must be less than 100 characters' },
+          { status: 400 }
+        )
+      }
+    }
+
     // Update user profile
     const updateData: any = {}
     if (preferred_payout_method !== undefined) {
@@ -221,6 +239,9 @@ export async function PATCH(request: NextRequest) {
     }
     if (instagram_handle !== undefined) {
       updateData.instagram_handle = instagram_handle
+    }
+    if (user_name !== undefined) {
+      updateData.user_name = user_name.trim()
     }
 
     if (Object.keys(updateData).length === 0) {

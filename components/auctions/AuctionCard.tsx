@@ -37,7 +37,14 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
   const [videoData, setVideoData] = useState<any>(null);
   const [loadingVideo, setLoadingVideo] = useState(true);
   const [showBusinessModal, setShowBusinessModal] = useState(false);
-  const [linkedBusiness, setLinkedBusiness] = useState<string | null>(null);
+  const [linkedBusiness, setLinkedBusiness] = useState<any>(auction.business || null);
+
+  // Update linkedBusiness when auction.business changes
+  useEffect(() => {
+    if (auction.business) {
+      setLinkedBusiness(auction.business);
+    }
+  }, [auction.business]);
 
   const currentPrice = Number(auction.auction_current_price);
   const startPrice = Number(auction.auction_start_price);
@@ -354,7 +361,23 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                     role="button"
                     aria-label="Manage beauty business link"
                   >
-                    <div className="avatar-fallback bg-gray-500">
+                    {linkedBusiness.business_photo_url ? (
+                      <img
+                        src={linkedBusiness.business_photo_url}
+                        alt={linkedBusiness.business_name || 'Beauty Business'}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to icon if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const fallbackDiv = target.nextElementSibling as HTMLElement;
+                          if (fallbackDiv) {
+                            fallbackDiv.classList.remove('hidden');
+                          }
+                        }}
+                      />
+                    ) : null}
+                    <div className={`avatar-fallback bg-gray-500 ${linkedBusiness.business_photo_url ? 'hidden' : ''}`}>
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
@@ -363,7 +386,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                   {/* Hover Tooltip */}
                   <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
                     <span className="text-white bg-black/80 px-2 py-1 rounded" style={{ fontSize: '10px' }}>
-                      Connect Beauty Business
+                      {linkedBusiness.business_name || 'Manage Beauty Business'}
                     </span>
                   </div>
                 </div>
@@ -684,7 +707,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
           const response = await fetch(`/api/auctions/${auction.id}/link-business`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ business_id: businessId }),
+            body: JSON.stringify({ linked_business_id: businessId }),
           });
 
           const result = await response.json();

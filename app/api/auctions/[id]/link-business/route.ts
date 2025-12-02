@@ -30,7 +30,7 @@ export async function PATCH(
     const body = await request.json();
     console.log('📦 [API /auctions/[id]/link-business] Request body:', body);
 
-    const { business_id } = body;
+    const { linked_business_id } = body;
 
     // Verify user is the auction creator
     const auctionService = new AuctionService();
@@ -49,9 +49,9 @@ export async function PATCH(
       );
     }
 
-    // Update auction with business_id (or null to unlink)
+    // Update auction with linked_business_id (or null to unlink)
     const result = await auctionService.updateAuction(params.id, {
-      business_id: business_id || null,
+      linked_business_id: linked_business_id || null,
     });
 
     if (!result.success) {
@@ -64,8 +64,8 @@ export async function PATCH(
       {
         success: true,
         auction_id: params.id,
-        business_id: business_id || null,
-        message: business_id ? 'Business linked successfully' : 'Business unlinked successfully',
+        linked_business_id: linked_business_id || null,
+        message: linked_business_id ? 'Business linked successfully' : 'Business unlinked successfully',
       },
       { status: 200 }
     );

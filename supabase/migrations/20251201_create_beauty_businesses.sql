@@ -30,11 +30,11 @@ CREATE POLICY "Users can update own businesses" ON beauty_businesses
 CREATE POLICY "Users can delete own businesses" ON beauty_businesses
     FOR DELETE USING (auth.uid()::text = creator_id::text);
 
--- Add business_id to auctions table for linking
-ALTER TABLE auctions ADD COLUMN IF NOT EXISTS business_id UUID REFERENCES beauty_businesses(id) ON DELETE SET NULL;
+-- Add linked_business_id to auctions table for linking
+ALTER TABLE auctions ADD COLUMN IF NOT EXISTS linked_business_id UUID REFERENCES beauty_businesses(id) ON DELETE SET NULL;
 
 -- Create index for better query performance
-CREATE INDEX IF NOT EXISTS idx_auctions_business_id ON auctions(business_id) WHERE business_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_auctions_linked_business_id ON auctions(linked_business_id) WHERE linked_business_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_beauty_businesses_creator_id ON beauty_businesses(creator_id);
 
 -- Function to update updated_at timestamp
