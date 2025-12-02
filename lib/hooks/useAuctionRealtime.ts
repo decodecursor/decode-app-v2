@@ -311,6 +311,9 @@ export function useCreatorAuctions(creatorId: string) {
         const data = await response.json();
         console.log('✅ [useCreatorAuctions] Loaded auctions:', data.auctions.length);
         setAuctions(data.auctions);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ [useCreatorAuctions] API error:', response.status, response.statusText, errorData);
       }
     } catch (error) {
       console.error('❌ [useCreatorAuctions] Error fetching creator auctions:', error);
