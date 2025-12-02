@@ -132,10 +132,19 @@ export async function GET(request: NextRequest) {
         const video = videoMap.get(auction.id)
         const hasVideo = !!(video && video.file_url)
         const videoWatched = !!(video && video.watched_to_end_at)
+
+        // Check if token has expired (24h passed with no video)
+        const tokenExpired = !!(video && video.token_expires_at &&
+          new Date(video.token_expires_at).getTime() < Date.now())
+        const noVideoUploaded = !(video && video.file_url && video.file_url.trim() !== '')
+
         // Payout unlocked if:
         // 1. No video record exists (legacy auction without video requirement), OR
-        // 2. payout_unlocked_at is set (either watched or 24hr auto-unlock)
-        const payoutUnlocked = !video || !!(video && video.payout_unlocked_at)
+        // 2. payout_unlocked_at is set (either watched or 24hr auto-unlock), OR
+        // 3. No video uploaded AND 24h expired (optimistic unlock - EventBridge will process)
+        const payoutUnlocked = !video ||
+                               !!(video && video.payout_unlocked_at) ||
+                               (noVideoUploaded && tokenExpired)
 
         return {
           auction_id: auction.id,
