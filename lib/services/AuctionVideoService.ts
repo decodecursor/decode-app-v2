@@ -354,7 +354,7 @@ export class AuctionVideoService {
       }
 
       if (new Date(data.token_expires_at) < new Date()) {
-        return { valid: false, error: '24-hour access period ended' };
+        return { valid: false, error: '24-hour recording period ended' };
       }
 
       // Check if video has already been uploaded (file_url is not empty and retake limit reached)
