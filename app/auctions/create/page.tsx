@@ -184,7 +184,7 @@ export default function CreateAuction() {
                 className="w-[160px] h-auto object-contain"
               />
             </div>
-            <h2 className="mt-0 md:text-2xl text-xl font-bold text-white mb-2">
+            <h2 className="-mt-4 md:text-2xl text-xl font-bold text-white mb-2">
               Create Beauty Auction
             </h2>
           </div>
