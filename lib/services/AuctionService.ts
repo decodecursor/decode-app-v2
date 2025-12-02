@@ -105,7 +105,7 @@ export class AuctionService {
         .select(`
           *,
           creator:users!creator_id(id, email, user_name, role, profile_photo_url, instagram_handle),
-          business:beauty_businesses!business_id(id, business_name, instagram_handle, city, business_photo_url)
+          business:beauty_businesses!linked_business_id(id, business_name, instagram_handle, city, business_photo_url)
         `)
         .eq('id', auctionId)
         .single();
@@ -152,7 +152,7 @@ export class AuctionService {
         .select(`
           *,
           creator:users!creator_id(id, email, user_name, role, profile_photo_url),
-          business:beauty_businesses!business_id(id, business_name, instagram_handle, city, business_photo_url)
+          business:beauty_businesses!linked_business_id(id, business_name, instagram_handle, city, business_photo_url)
         `)
         .order('created_at', { ascending: false });
 
@@ -356,7 +356,7 @@ export class AuctionService {
         .select(`
           *,
           creator:users!creator_id(id, email, user_name, role, profile_photo_url),
-          business:beauty_businesses!business_id(id, business_name, instagram_handle, city, business_photo_url)
+          business:beauty_businesses!linked_business_id(id, business_name, instagram_handle, city, business_photo_url)
         `)
         .eq('status', 'active')
         .lte('end_time', new Date().toISOString());
