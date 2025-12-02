@@ -397,15 +397,21 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                       <img
                         src={linkedBusiness.business_photo_url}
                         alt={linkedBusiness.business_name || 'Beauty Business'}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover rounded-full"
+                        crossOrigin="anonymous"
+                        referrerPolicy="no-referrer"
                         onError={(e) => {
                           // Fallback to icon if image fails to load
+                          console.log('🏢 [AuctionCard] Business image failed to load:', linkedBusiness.business_photo_url);
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';
                           const fallbackDiv = target.nextElementSibling as HTMLElement;
                           if (fallbackDiv) {
                             fallbackDiv.classList.remove('hidden');
                           }
+                        }}
+                        onLoad={() => {
+                          console.log('🏢 [AuctionCard] Business image loaded successfully');
                         }}
                       />
                     ) : null}
