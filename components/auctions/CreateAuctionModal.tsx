@@ -139,7 +139,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-gray-900 border border-gray-700 pt-[22px] px-6 pb-6 md:px-8 md:pb-8 shadow-xl transition-all relative">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-gray-900 border border-gray-700 pt-2 px-6 pb-6 md:px-8 md:pb-8 shadow-xl transition-all relative">
                 {/* Close button */}
                 <button
                   onClick={handleClose}
@@ -153,16 +153,16 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
 
                 {/* Header */}
                 <div className="text-center md:mb-8 mb-6">
-                  <div className="mb-3 flex justify-center">
+                  <div className="mb-0 flex justify-center">
                     <img
                       src="/images/Mascot_Letsgooo_png.png"
                       alt="Create auction mascot"
-                      className="w-[160px] h-auto object-contain"
+                      className="w-[160px] h-auto object-contain -my-8"
                     />
                   </div>
                   <Dialog.Title
                     as="h2"
-                    className="mt-2 md:text-2xl text-xl font-bold text-white mb-2"
+                    className="md:text-2xl text-xl font-bold text-white mb-2"
                   >
                     Create Auction
                   </Dialog.Title>

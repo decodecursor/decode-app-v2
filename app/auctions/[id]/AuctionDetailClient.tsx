@@ -40,6 +40,7 @@ export default function AuctionDetailClient() {
   const [cancelSuccess, setCancelSuccess] = useState(false);
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
   const [guestBidId, setGuestBidId] = useState<string | null>(null);
+  const [linkedBusiness, setLinkedBusiness] = useState<any>(null);
 
   const { auction, isConnected, error, isLoading, refresh, retry } = useAuctionRealtime(auctionId);
   const { refresh: refreshLeaderboard } = useLeaderboard(auctionId, userEmail);
@@ -71,6 +72,20 @@ export default function AuctionDetailClient() {
       setIsCreator(auction.creator_id === userId);
     }
   }, [auction, userId]);
+
+  // Lazy load business data if linked_business_id exists
+  useEffect(() => {
+    if (auction?.linked_business_id && !linkedBusiness) {
+      fetch(`/api/beauty-businesses/${auction.linked_business_id}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data?.business) {
+            setLinkedBusiness(data.business);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [auction?.linked_business_id, linkedBusiness]);
 
   // Initialize guest bid ID from localStorage on mount
   useEffect(() => {
@@ -464,7 +479,7 @@ export default function AuctionDetailClient() {
           </div>
 
           {/* Conditional layout: Dual-avatar if business linked, single-avatar otherwise */}
-          {(auction as any).business ? (
+          {linkedBusiness ? (
             /* DUAL-AVATAR LAYOUT - When beauty business is linked */
             <div className="flex items-center justify-between gap-3">
               {/* Left Avatar - Model */}
@@ -524,27 +539,27 @@ export default function AuctionDetailClient() {
                   {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
                 </p>
                 <p className={`text-gray-900 font-bold mt-0 ${
-                  ((auction as any).business.business_name || '').length > 25
+                  (linkedBusiness.business_name || '').length > 25
                     ? 'text-[12px] sm:text-[16px]'
                     : 'text-[14px] sm:text-[18px]'
                 }`}>
-                  {(auction as any).business.business_name}
+                  {linkedBusiness.business_name}
                 </p>
               </div>
 
               {/* Right Avatar - Beauty Business */}
               <div className="flex-shrink-0">
-                {(auction as any).business?.instagram_handle ? (
+                {linkedBusiness?.instagram_handle ? (
                   <a
-                    href={`https://instagram.com/${(auction as any).business.instagram_handle}`}
+                    href={`https://instagram.com/${linkedBusiness.instagram_handle}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="instagram-avatar"
                   >
-                    {(auction as any).business?.business_photo_url ? (
+                    {linkedBusiness?.business_photo_url ? (
                       <img
-                        src={(auction as any).business.business_photo_url}
-                        alt={(auction as any).business.business_name}
+                        src={linkedBusiness.business_photo_url}
+                        alt={linkedBusiness.business_name}
                       />
                     ) : (
                       <div className="avatar-fallback">
@@ -556,10 +571,10 @@ export default function AuctionDetailClient() {
                   </a>
                 ) : (
                   <div className="instagram-avatar">
-                    {(auction as any).business?.business_photo_url ? (
+                    {linkedBusiness?.business_photo_url ? (
                       <img
-                        src={(auction as any).business.business_photo_url}
-                        alt={(auction as any).business.business_name}
+                        src={linkedBusiness.business_photo_url}
+                        alt={linkedBusiness.business_name}
                       />
                     ) : (
                       <div className="avatar-fallback">
