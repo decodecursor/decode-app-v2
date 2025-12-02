@@ -646,7 +646,7 @@ export default function PayoutsPage() {
                       <div className="space-y-4">
                         <div>
                           <p className="text-gray-400 text-xs md:text-sm">Paid Amount</p>
-                          <p className="text-xl md:text-2xl font-bold text-white">
+                          <p className="text-xl md:text-2xl font-bold text-green-400">
                             {formatCurrency(payoutSummary?.totalPaidOut || 0)}
                           </p>
                         </div>

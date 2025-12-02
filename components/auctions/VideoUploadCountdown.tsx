@@ -12,6 +12,7 @@ interface VideoUploadCountdownProps {
   tokenExpiresAt: string | null; // From auction_videos.token_expires_at
   hasVideo: boolean;
   showAsFullStatus?: boolean; // If true, show full status row with camera icon and text
+  asButton?: boolean; // If true, format for button display (no "remaining" text)
 }
 
 /**
@@ -23,7 +24,7 @@ const COLOR_CLASS_MAP = {
   critical: 'text-red-400',
 } as const;
 
-export function VideoUploadCountdown({ tokenExpiresAt, hasVideo, showAsFullStatus = false }: VideoUploadCountdownProps) {
+export function VideoUploadCountdown({ tokenExpiresAt, hasVideo, showAsFullStatus = false, asButton = false }: VideoUploadCountdownProps) {
   const { formatted, colorState, shouldShow, isExpired } = useVideoUploadTimer(tokenExpiresAt, hasVideo);
 
   const colorClass = 'text-amber-400'; // Always amber for video upload countdown
@@ -71,12 +72,12 @@ export function VideoUploadCountdown({ tokenExpiresAt, hasVideo, showAsFullStatu
     );
   }
 
-  // Original compact view (just clock icon + time)
+  // Compact view - adjust based on context
   return (
-    <div className="flex items-center gap-1.5 px-1">
-      {/* Clock Icon - Same as CompactAuctionTimer */}
+    <div className={`flex items-center ${asButton ? 'justify-center gap-1.5' : 'gap-1.5 px-1'}`}>
+      {/* Clock Icon */}
       <svg
-        className={`w-[18px] h-[18px] ${colorClass}`}
+        className={`${asButton ? 'w-4 h-4' : 'w-[18px] h-[18px]'} ${colorClass}`}
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -90,8 +91,8 @@ export function VideoUploadCountdown({ tokenExpiresAt, hasVideo, showAsFullStatu
       </svg>
 
       {/* Countdown Text */}
-      <span className={`text-sm font-mono tabular-nums ${colorClass}`}>
-        {formatted} remaining
+      <span className={`${asButton ? 'text-xs' : 'text-sm'} font-mono tabular-nums ${colorClass}`}>
+        {formatted}{!asButton && ' remaining'}
       </span>
     </div>
   );

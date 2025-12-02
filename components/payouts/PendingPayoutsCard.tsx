@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { VideoUploadCountdown } from '@/components/auctions/VideoUploadCountdown';
 
 interface PendingPayoutItem {
   auction_id: string;
@@ -15,6 +16,7 @@ interface PendingPayoutItem {
   has_video: boolean;
   video_watched: boolean;
   payout_unlocked: boolean;
+  token_expires_at: string | null;
 }
 
 interface PendingPayoutsCardProps {
@@ -106,9 +108,9 @@ export function PendingPayoutsCard({
                 <div className="flex-1"></div>
 
                 {/* Placeholder for buttons (faded with card) */}
-                {!payout.payout_unlocked && payout.has_video && (
-                  <div className="px-3 py-1.5 text-xs font-medium bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/30 flex-shrink-0 invisible">
-                    Watch Video
+                {!payout.payout_unlocked && (
+                  <div className="px-3 py-1.5 text-xs font-medium bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/30 flex-shrink-0 invisible min-w-[110px]">
+                    {payout.has_video ? 'Watch Video' : 'Countdown'}
                   </div>
                 )}
                 <div className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white/2 text-gray-300 rounded-lg border border-white/10 flex-shrink-0 invisible">
@@ -166,14 +168,23 @@ export function PendingPayoutsCard({
             {!payout.payout_unlocked && (
               <div className="absolute top-4 right-0 flex pr-4 pointer-events-none">
                 <div className="flex items-center gap-2 pointer-events-auto">
-                  {/* Watch Video Button */}
-                  {payout.has_video && (
+                  {/* Watch Video Button or Countdown */}
+                  {payout.has_video ? (
                     <button
                       onClick={() => onWatchVideo(payout.auction_id, payout.auction_title)}
-                      className="px-3 py-1.5 text-xs font-medium bg-amber-500/10 text-amber-400 rounded-lg hover:bg-amber-500/30 transition-colors border border-amber-500/30 flex-shrink-0"
+                      className="px-3 py-1.5 text-xs font-medium bg-amber-500/10 text-amber-400 rounded-lg hover:bg-amber-500/30 transition-colors border border-amber-500/30 flex-shrink-0 min-w-[110px]"
                     >
                       Watch Video
                     </button>
+                  ) : (
+                    <div className="px-3 py-1.5 text-xs font-medium bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/30 flex-shrink-0 min-w-[110px]">
+                      <VideoUploadCountdown
+                        tokenExpiresAt={payout.token_expires_at}
+                        hasVideo={payout.has_video}
+                        showAsFullStatus={false}
+                        asButton={true}
+                      />
+                    </div>
                   )}
 
                   {/* Profit Breakdown Button */}

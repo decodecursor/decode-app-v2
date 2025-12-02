@@ -151,7 +151,8 @@ export async function GET(request: NextRequest) {
           // Video status
           has_video: hasVideo,
           video_watched: videoWatched,
-          payout_unlocked: payoutUnlocked
+          payout_unlocked: payoutUnlocked,
+          token_expires_at: video?.token_expires_at || null
         }
       })
 
