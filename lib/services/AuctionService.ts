@@ -104,8 +104,7 @@ export class AuctionService {
         .from('auctions')
         .select(`
           *,
-          creator:users!creator_id(id, email, user_name, role, profile_photo_url, instagram_handle),
-          business:beauty_businesses!linked_business_id(id, business_name, instagram_handle, city, business_photo_url)
+          creator:users!creator_id(id, email, user_name, role, profile_photo_url, instagram_handle)
         `)
         .eq('id', auctionId)
         .single();
@@ -147,12 +146,14 @@ export class AuctionService {
     const supabase = await createClient();
 
     try {
+      console.log('🔧 [AuctionService.listAuctions] Query filters:', filters);
+      console.log('🔧 [AuctionService.listAuctions] Executing query...');
+
       let query = supabase
         .from('auctions')
         .select(`
           *,
-          creator:users!creator_id(id, email, user_name, role, profile_photo_url),
-          business:beauty_businesses!linked_business_id(id, business_name, instagram_handle, city, business_photo_url)
+          creator:users!creator_id(id, email, user_name, role, profile_photo_url)
         `)
         .order('created_at', { ascending: false });
 
@@ -174,11 +175,26 @@ export class AuctionService {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      console.log('📊 [AuctionService.listAuctions] Query result:', {
+        success: !error,
+        error: error,
+        errorCode: error?.code,
+        errorMessage: error?.message,
+        errorDetails: error?.details,
+        errorHint: error?.hint,
+        count: data?.length || 0,
+        hasData: !!data
+      });
 
+      if (error) {
+        console.error('❌ [AuctionService.listAuctions] Query error:', error);
+        throw error;
+      }
+
+      console.log('✅ [AuctionService.listAuctions] Returning auctions:', data?.length || 0);
       return data || [];
     } catch (error) {
-      console.error('Error listing auctions:', error);
+      console.error('💥 [AuctionService.listAuctions] Exception caught:', error);
       return [];
     }
   }
@@ -355,8 +371,7 @@ export class AuctionService {
         .from('auctions')
         .select(`
           *,
-          creator:users!creator_id(id, email, user_name, role, profile_photo_url),
-          business:beauty_businesses!linked_business_id(id, business_name, instagram_handle, city, business_photo_url)
+          creator:users!creator_id(id, email, user_name, role, profile_photo_url)
         `)
         .eq('status', 'active')
         .lte('end_time', new Date().toISOString());
