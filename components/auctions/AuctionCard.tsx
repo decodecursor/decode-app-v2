@@ -523,31 +523,32 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
         {/* Action Buttons Row */}
         <div className="border-t border-gray-700 pt-2 px-2 pb-2">
           <div className="flex flex-wrap gap-2 justify-start items-center">
-            {/* Video Button - Text style for left alignment */}
-            <div className="flex flex-col gap-2">
+            {/* Video Section - Conditional rendering */}
+            {videoData?.file_url ? (
+              // State 2: Video uploaded - show clickable "View Video" button
               <button
                 onClick={() => {
-                  if (videoData?.file_url) {
-                    setShowVideoModal(true);
-                  }
+                  setShowVideoModal(true);
                 }}
-                disabled={!videoData || !videoData.file_url || loadingVideo}
-                className={`cosmic-button-secondary text-xs md:text-sm px-3 py-1.5 transition-all rounded-lg flex items-center gap-1.5 disabled:cursor-not-allowed ${
-                  !videoData || !videoData.file_url
-                    ? 'border-amber-500/30 text-amber-400 bg-amber-500/10'
-                    : 'border-white/30 hover:bg-white/10'
-                } ${!videoData || !videoData.file_url || loadingVideo ? 'opacity-50' : ''}`}
-                title={videoData?.file_url ? 'View video' : 'No video uploaded yet'}
+                disabled={loadingVideo}
+                className={`cosmic-button-secondary text-xs md:text-sm px-3 py-1.5 transition-all rounded-lg flex items-center gap-1.5 border-white/30 hover:bg-white/10 ${
+                  loadingVideo ? 'opacity-50' : ''
+                }`}
+                title="View video"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
-                <span>{videoData?.file_url ? 'View Video' : 'No Video Yet'}</span>
+                <span>View Video</span>
               </button>
-
-              {/* Upload Deadline Countdown */}
-              <VideoUploadCountdown tokenExpiresAt={videoData?.token_expires_at || null} hasVideo={!!videoData?.file_url} />
-            </div>
+            ) : (
+              // State 1 or 3: Waiting for upload or expired - show full status
+              <VideoUploadCountdown
+                tokenExpiresAt={videoData?.token_expires_at || null}
+                hasVideo={false}
+                showAsFullStatus={true}
+              />
+            )}
 
             {/* Right side buttons group */}
             <div className="flex flex-wrap gap-2 ml-auto">

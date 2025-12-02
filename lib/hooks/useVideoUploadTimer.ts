@@ -15,6 +15,7 @@ interface VideoUploadTimerState {
   formatted: string; // "23h 45m" | "45m" | "5m 30s" | "30s"
   colorState: ColorState;
   shouldShow: boolean; // false if expired or video exists
+  isExpired: boolean; // true if deadline passed and no video uploaded
   deadline: Date;
 }
 
@@ -80,6 +81,7 @@ export function useVideoUploadTimer(
         formatted: '0s',
         colorState: 'normal',
         shouldShow: false,
+        isExpired: false,
         deadline: new Date(),
       };
     }
@@ -92,12 +94,14 @@ export function useVideoUploadTimer(
     // Determine if we should show the countdown
     const notExpired = timeRemaining > 0;
     const shouldShow = !hasVideo && notExpired;
+    const isExpired = !hasVideo && !notExpired;
 
     return {
       timeRemaining,
       formatted: formatTimeRemaining(timeRemaining),
       colorState: getColorState(timeRemaining),
       shouldShow,
+      isExpired,
       deadline,
     };
   });
@@ -116,12 +120,14 @@ export function useVideoUploadTimer(
       // Check visibility conditions
       const notExpired = timeRemaining > 0;
       const shouldShow = !hasVideo && notExpired;
+      const isExpired = !hasVideo && !notExpired;
 
       setTimerState({
         timeRemaining,
         formatted: formatTimeRemaining(timeRemaining),
         colorState: getColorState(timeRemaining),
         shouldShow,
+        isExpired,
         deadline: timerState.deadline,
       });
     };
@@ -143,6 +149,7 @@ export function useVideoUploadTimer(
         formatted: '0s',
         colorState: 'normal',
         shouldShow: false,
+        isExpired: false,
         deadline: new Date(),
       });
       return;
@@ -155,12 +162,14 @@ export function useVideoUploadTimer(
 
     const notExpired = timeRemaining > 0;
     const shouldShow = !hasVideo && notExpired;
+    const isExpired = !hasVideo && !notExpired;
 
     setTimerState({
       timeRemaining,
       formatted: formatTimeRemaining(timeRemaining),
       colorState: getColorState(timeRemaining),
       shouldShow,
+      isExpired,
       deadline,
     });
   }, [tokenExpiresAt, hasVideo]);
