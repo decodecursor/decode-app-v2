@@ -108,7 +108,7 @@ export function PendingPayoutsCard({
                 <div className="flex-1"></div>
 
                 {/* Placeholder for buttons (faded with card) */}
-                {!payout.payout_unlocked && (
+                {!payout.payout_unlocked && (payout.has_video || payout.token_expires_at) && (
                   <div className="px-3 py-1.5 text-xs font-medium bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/30 flex-shrink-0 invisible min-w-[110px]">
                     {payout.has_video ? 'Watch Video' : 'Countdown'}
                   </div>
@@ -176,7 +176,7 @@ export function PendingPayoutsCard({
                     >
                       Watch Video
                     </button>
-                  ) : (
+                  ) : payout.token_expires_at ? (
                     <div className="px-3 py-1.5 text-xs font-medium bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/30 flex-shrink-0 min-w-[110px]">
                       <VideoUploadCountdown
                         tokenExpiresAt={payout.token_expires_at}
@@ -185,7 +185,7 @@ export function PendingPayoutsCard({
                         asButton={true}
                       />
                     </div>
-                  )}
+                  ) : null}
 
                   {/* Profit Breakdown Button */}
                   <button
