@@ -46,6 +46,20 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     }
   }, [auction.business]);
 
+  // Lazy load business data if linked_business_id exists but business object doesn't
+  useEffect(() => {
+    if (auction.linked_business_id && !auction.business && !linkedBusiness) {
+      fetch(`/api/beauty-businesses/${auction.linked_business_id}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data?.business) {
+            setLinkedBusiness(data.business);
+          }
+        })
+        .catch(() => {}); // Silently fail - avatar just won't show
+    }
+  }, [auction.linked_business_id, auction.business, linkedBusiness]);
+
   const currentPrice = Number(auction.auction_current_price);
   const startPrice = Number(auction.auction_start_price);
   const hasBids = auction.total_bids > 0;
