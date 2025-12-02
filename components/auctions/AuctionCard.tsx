@@ -280,12 +280,15 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
   const cardColors = getCardColors();
 
-  // Status badge
+  // Status badge with glassmorphism design
   const getStatusBadge = () => {
     // Check cancelled status FIRST (before time-based checks)
     if (auction.status === 'cancelled') {
       return (
-        <span className="px-3 py-1.5 text-base font-medium text-red-400 bg-red-900/20 rounded-full">
+        <span className="px-3 py-1.5 text-sm font-medium text-red-300 bg-red-500/20 backdrop-blur-md rounded-full border border-red-500/50 shadow-lg shadow-red-500/20 flex items-center gap-1.5">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
           Cancelled
         </span>
       );
@@ -298,14 +301,20 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
       // If auction has bids, show COMPLETED (green)
       if (auction.total_bids > 0) {
         return (
-          <span className="px-3 py-1.5 text-base font-medium text-green-300 bg-green-700/30 rounded-full">
+          <span className="px-3 py-1.5 text-sm font-medium text-green-300 bg-green-500/20 backdrop-blur-md rounded-full border border-green-500/50 shadow-lg shadow-green-500/20 flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
             Completed
           </span>
         );
       }
       // If no bids, show ENDED (gray)
       return (
-        <span className="px-3 py-1.5 text-base font-medium text-gray-300 bg-gray-700/50 rounded-full">
+        <span className="px-3 py-1.5 text-sm font-medium text-gray-300 bg-gray-500/20 backdrop-blur-md rounded-full border border-gray-500/50 shadow-lg shadow-gray-500/20 flex items-center gap-1.5">
+          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+            <rect x="6" y="6" width="12" height="12" rx="1" />
+          </svg>
           Ended
         </span>
       );
@@ -314,13 +323,20 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     switch (auction.status) {
       case 'active':
         return (
-          <span className="px-3 py-1.5 text-base font-medium text-green-300 bg-green-700/30 rounded-full">
+          <span className="px-3 py-1.5 text-sm font-medium text-green-300 bg-green-500/20 backdrop-blur-md rounded-full border border-green-500/50 shadow-lg shadow-green-500/30 flex items-center gap-1.5 animate-pulse">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+            </span>
             Live
           </span>
         );
       case 'pending':
         return (
-          <span className="px-3 py-1.5 text-base font-medium text-blue-300 bg-blue-700/30 rounded-full">
+          <span className="px-3 py-1.5 text-sm font-medium text-blue-300 bg-blue-500/20 backdrop-blur-md rounded-full border border-blue-500/50 shadow-lg shadow-blue-500/20 flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
             Upcoming
           </span>
         );
@@ -529,8 +545,8 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
         {/* Action Buttons Row */}
         <div className="border-t border-gray-700 pt-2 px-2 pb-2">
           <div className="flex flex-wrap gap-2 justify-start items-center">
-            {/* Video Section - Conditional rendering (only after loading) */}
-            {!loadingVideo && (
+            {/* Video Section - Conditional rendering (only after loading and auction ended) */}
+            {!loadingVideo && isAuctionEnded(auction) && (
               videoData?.file_url ? (
                 // State 2: Video uploaded - show clickable "View Video" button
                 <button
