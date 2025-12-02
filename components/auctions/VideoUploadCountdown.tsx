@@ -13,6 +13,7 @@ interface VideoUploadCountdownProps {
   hasVideo: boolean;
   showAsFullStatus?: boolean; // If true, show full status row with camera icon and text
   asButton?: boolean; // If true, format for button display (no "remaining" text)
+  auctionEnded?: boolean; // If true, auction has ended (used to determine if "No Video" should show)
 }
 
 /**
@@ -24,9 +25,15 @@ const COLOR_CLASS_MAP = {
   critical: 'text-red-400',
 } as const;
 
-export function VideoUploadCountdown({ tokenExpiresAt, hasVideo, showAsFullStatus = false, asButton = false }: VideoUploadCountdownProps) {
-  // If showing full status and no token exists (no video record yet), show "No Video" state
+export function VideoUploadCountdown({ tokenExpiresAt, hasVideo, showAsFullStatus = false, asButton = false, auctionEnded = false }: VideoUploadCountdownProps) {
+  // If showing full status and no token exists (no video record yet)
   if (showAsFullStatus && !tokenExpiresAt && !hasVideo) {
+    // Only show "No Video" if auction has ended (waiting for video session creation)
+    // During live auction, return null to hide this section
+    if (!auctionEnded) {
+      return null;
+    }
+
     return (
       <div className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-400">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

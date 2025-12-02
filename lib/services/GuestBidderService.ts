@@ -225,9 +225,9 @@ export class GuestBidderService {
       : 'Server';
 
     // Reduced retry logic: 2 attempts with shorter delays
-    // Total max wait time: 200 + 400 = 600ms (down from 10.8 seconds)
+    // Total max wait time: 100 + 200 = 300ms (optimized for speed)
     const maxAttempts = 2;
-    const baseDelay = 200; // Start with 200ms (reduced from 800ms)
+    const baseDelay = 100; // Start with 100ms (optimized from 200ms)
 
     console.log('[GuestBidderService] getSavedPaymentMethod START:', {
       guest_bidder_id: guestBidderId,
@@ -247,7 +247,7 @@ export class GuestBidderService {
 
         if (error || !data) {
           if (attempt < maxAttempts - 1) {
-            const delay = baseDelay + (attempt * 400); // Exponential backoff
+            const delay = baseDelay + (attempt * 200); // Reduced exponential backoff (100ms, 300ms)
             console.log(`[GuestBidderService] Payment method not found yet, retrying... (attempt ${attempt + 1}/${maxAttempts}, delay: ${delay}ms, browser: ${browserInfo})`);
             await new Promise(resolve => setTimeout(resolve, delay));
             continue;
@@ -257,6 +257,19 @@ export class GuestBidderService {
             attempts: maxAttempts,
             browser: browserInfo,
             error: error?.message
+          });
+          return null;
+        }
+
+        // OPTIMIZATION: If guest bidder has never saved a payment method, return immediately
+        // This skips all retry logic for first-time bidders
+        if (data.last_payment_method_saved_at === null) {
+          const totalTime = Date.now() - startTime;
+          console.log('[GuestBidderService] First-time bidder detected (never saved payment method), skipping retries:', {
+            guest_bidder_id: guestBidderId,
+            total_time_ms: totalTime,
+            attempt: attempt + 1,
+            browser: browserInfo
           });
           return null;
         }

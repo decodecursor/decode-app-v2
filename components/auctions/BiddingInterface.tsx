@@ -188,6 +188,32 @@ export function BiddingInterface({
     }
   }, [step, userEmail, userName, preloadedPaymentIntent, isPreloadingSetupIntent]);
 
+  // Preload PaymentIntent for cached guest users at amount step (they skip guest_info)
+  useEffect(() => {
+    if (step === 'amount' && !userEmail && guestInfo && !preloadedPaymentIntent && !isPreloadingSetupIntent) {
+      const email = guestInfo.contactMethod === 'email'
+        ? guestInfo.email
+        : `whatsapp:${guestInfo.whatsappNumber}`;
+      if (email) {
+        console.log('[BiddingInterface] 🚀 Early preload: Starting PaymentIntent for cached guest user at amount step');
+        preloadPaymentIntent(email, guestInfo.name);
+      }
+    }
+  }, [step, userEmail, guestInfo, preloadedPaymentIntent, isPreloadingSetupIntent]);
+
+  // Safety trigger: Ensure preload starts at Instagram step if not already started
+  useEffect(() => {
+    if (step === 'instagram' && !userEmail && guestInfo && !preloadedPaymentIntent && !isPreloadingSetupIntent) {
+      const email = guestInfo.contactMethod === 'email'
+        ? guestInfo.email
+        : `whatsapp:${guestInfo.whatsappNumber}`;
+      if (email) {
+        console.log('[BiddingInterface] ⚠️ Safety trigger: Starting PaymentIntent at Instagram step (preload should have started earlier)');
+        preloadPaymentIntent(email, guestInfo.name);
+      }
+    }
+  }, [step, userEmail, guestInfo, preloadedPaymentIntent, isPreloadingSetupIntent]);
+
   // Check for previous bids on mount
   useEffect(() => {
     const checkPreviousBids = async () => {
@@ -331,6 +357,9 @@ export function BiddingInterface({
 
   // Handle Instagram username submission
   const handleInstagramSubmit = async (username?: string) => {
+    const perfStart = performance.now();
+    console.log('[PERF] Instagram submit started');
+
     setInstagramUsername(username);
     const amount = parseFloat(bidAmount.replace(/,/g, ''));
 
@@ -340,40 +369,29 @@ export function BiddingInterface({
     const email = guestInfo?.email || userEmail;
     const whatsappNumber = guestInfo?.whatsappNumber;
 
-    // CRITICAL: Wait for PaymentIntent preload to complete (with timeout)
-    // This eliminates the race condition
-    if (isPreloadingSetupIntent) {
-      console.log('[BiddingInterface] ⏳ Waiting for PaymentIntent preload to complete...');
-      setIsProcessing(true); // Show loading state on Continue button
+    // OPTIMIZATION: Don't wait for preload - proceed immediately to payment step
+    // The payment step will handle showing loading state if preload is still in progress
+    console.log('[BiddingInterface] Proceeding to payment step without blocking wait', {
+      isPreloading: isPreloadingSetupIntent,
+      hasPreloadedIntent: !!preloadedPaymentIntent
+    });
 
-      // Poll for preload completion (max 5 seconds)
-      const startWait = Date.now();
-      const maxWait = 5000; // 5 second timeout
+    console.log(`[PERF] Moving to payment step: ${performance.now() - perfStart}ms`);
 
-      while (isPreloadingSetupIntent && (Date.now() - startWait) < maxWait) {
-        await new Promise(resolve => setTimeout(resolve, 100)); // Check every 100ms
-      }
-
-      const waitTime = Date.now() - startWait;
-      console.log('[BiddingInterface] ✅ PaymentIntent preload wait completed:', {
-        waitTime,
-        hasPreloadedIntent: !!preloadedPaymentIntent,
-        timedOut: waitTime >= maxWait
-      });
-
-      setIsProcessing(false);
-    }
-
-    // Move to payment step
+    // Move to payment step immediately
     setStep('payment');
 
     // Create bid with preloaded PaymentIntent if available
     if (preloadedPaymentIntent) {
       console.log('[BiddingInterface] 💚 Using preloaded PaymentIntent for instant payment form');
+      console.log(`[PERF] Starting bid creation (with preloaded intent): ${performance.now() - perfStart}ms`);
       await createBid(name, contactMethod, email, whatsappNumber, amount, username, preloadedPaymentIntent.paymentIntentId);
+      console.log(`[PERF] Bid created: ${performance.now() - perfStart}ms`);
     } else {
       console.log('[BiddingInterface] ⚠️ No preloaded PaymentIntent, using fallback flow');
+      console.log(`[PERF] Starting bid creation (fallback): ${performance.now() - perfStart}ms`);
       await createBid(name, contactMethod, email, whatsappNumber, amount, username);
+      console.log(`[PERF] Bid created: ${performance.now() - perfStart}ms`);
     }
   };
 
@@ -694,8 +712,8 @@ export function BiddingInterface({
                 Done
               </button>
             </div>
-          ) : !clientSecret && !preloadedPaymentIntent && isProcessing ? (
-            /* Loading state while payment intent is being created (fallback only) */
+          ) : !clientSecret && !preloadedPaymentIntent && (isProcessing || isPreloadingSetupIntent) ? (
+            /* Loading state while payment intent is being created OR preload is completing */
             <div className="space-y-4">
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
                 <div className="flex items-center">
@@ -704,7 +722,7 @@ export function BiddingInterface({
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                   <p className="text-sm text-blue-700 font-medium">
-                    Loading payment form...
+                    {isPreloadingSetupIntent ? 'Preparing payment form...' : isProcessing ? 'Creating your bid...' : 'Loading payment form...'}
                   </p>
                 </div>
               </div>
