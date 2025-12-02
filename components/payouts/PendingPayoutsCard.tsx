@@ -108,7 +108,7 @@ export function PendingPayoutsCard({
                 <div className="flex-1"></div>
 
                 {/* Placeholder for buttons (faded with card) */}
-                {!payout.payout_unlocked && (payout.has_video || payout.token_expires_at) && (
+                {!payout.payout_unlocked && (payout.has_video || (!payout.has_video && payout.token_expires_at && new Date(payout.token_expires_at).getTime() > Date.now())) && (
                   <div className="px-3 py-1.5 text-xs font-medium bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/30 flex-shrink-0 invisible min-w-[110px]">
                     {payout.has_video ? 'Watch Video' : 'Countdown'}
                   </div>
@@ -169,14 +169,15 @@ export function PendingPayoutsCard({
               <div className="absolute top-4 right-0 flex pr-4 pointer-events-none">
                 <div className="flex items-center gap-2 pointer-events-auto">
                   {/* Watch Video Button or Countdown */}
-                  {payout.has_video ? (
+                  {payout.has_video && (
                     <button
                       onClick={() => onWatchVideo(payout.auction_id, payout.auction_title)}
                       className="px-3 py-1.5 text-xs font-medium bg-amber-500/10 text-amber-400 rounded-lg hover:bg-amber-500/30 transition-colors border border-amber-500/30 flex-shrink-0 min-w-[110px]"
                     >
                       Watch Video
                     </button>
-                  ) : payout.token_expires_at ? (
+                  )}
+                  {!payout.has_video && payout.token_expires_at && new Date(payout.token_expires_at).getTime() > Date.now() && (
                     <div className="px-3 py-1.5 text-xs font-medium bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/30 flex-shrink-0 min-w-[110px]">
                       <VideoUploadCountdown
                         tokenExpiresAt={payout.token_expires_at}
@@ -185,7 +186,7 @@ export function PendingPayoutsCard({
                         asButton={true}
                       />
                     </div>
-                  ) : null}
+                  )}
 
                   {/* Profit Breakdown Button */}
                   <button
