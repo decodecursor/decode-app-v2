@@ -486,7 +486,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                     e.stopPropagation();
                     router.push('/dashboard/payouts');
                   }}
-                  className={`text-lg md:text-xl font-bold cursor-pointer hover:underline transition-all duration-200 ${
+                  className={`text-lg md:text-xl font-bold cursor-pointer hover:scale-110 transition-all duration-200 ${
                     shouldShowAmberPayout()
                       ? 'text-amber-400 hover:text-amber-300'
                       : 'text-white hover:text-purple-300'
