@@ -1,19 +1,12 @@
--- Fix RLS policy for beauty_businesses to allow viewing of businesses linked to auctions
--- This resolves the issue where business avatars weren't displaying on auction cards
--- because the overly restrictive policy only allowed viewing own businesses
+-- Fix RLS policy for beauty_businesses to allow public viewing
+-- Business info is displayed publicly on auction cards, so SELECT should be public
+-- INSERT/UPDATE/DELETE remain restricted to business owners
 
--- Drop the old restrictive policy
+-- Drop all existing SELECT policies
 DROP POLICY IF EXISTS "Users can view own businesses" ON beauty_businesses;
+DROP POLICY IF EXISTS "Users can view own or linked businesses" ON beauty_businesses;
 
--- Create new policy allowing viewing of:
--- 1. Own businesses (creator_id matches auth.uid())
--- 2. Businesses linked to auctions (publicly visible since auctions are public)
-CREATE POLICY "Users can view own or linked businesses" ON beauty_businesses
-    FOR SELECT USING (
-        auth.uid()::text = creator_id::text
-        OR
-        EXISTS (
-            SELECT 1 FROM auctions
-            WHERE auctions.linked_business_id = beauty_businesses.id
-        )
-    );
+-- Create simple public read policy
+-- Businesses linked to auctions are public information shown on auction cards
+CREATE POLICY "Anyone can view businesses" ON beauty_businesses
+    FOR SELECT USING (true);
