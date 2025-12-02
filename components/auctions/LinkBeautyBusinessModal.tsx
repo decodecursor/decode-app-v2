@@ -93,6 +93,11 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
   const [existingBusinesses, setExistingBusinesses] = useState<BeautyBusiness[]>([]);
   const [loadingBusinesses, setLoadingBusinesses] = useState(false);
 
+  // Search states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<BeautyBusiness[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   // Crop complete callback - MUST be before early return to follow Rules of Hooks
   const onCropComplete = useCallback(async (_: unknown, croppedAreaPixelsParam: { x: number, y: number, width: number, height: number }) => {
     if (!selectedImage) return;
@@ -142,6 +147,35 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
       fetchExistingBusinesses();
     }
   }, [isOpen, fetchExistingBusinesses]);
+
+  // Debounced search functionality
+  useEffect(() => {
+    if (!searchTerm || searchTerm.trim().length === 0) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const timer = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/beauty-businesses/search?query=${encodeURIComponent(searchTerm)}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setSearchResults(data.businesses || []);
+          }
+        }
+      } catch (error) {
+        console.error('Error searching businesses:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 400); // 400ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   // Reset state when modal closes
   const handleClose = () => {
@@ -435,63 +469,98 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink }: LinkBeautyB
           {/* Existing Business Content */}
           {businessType === 'existing' && (
             <div>
-              <label className="block text-sm font-semibold text-white mb-2">
-                My Connected Beauty Businesses
-              </label>
-
-              {/* Loading state */}
-              {loadingBusinesses && (
-                <div className="w-full px-4 py-8 bg-gray-800 border border-gray-600 rounded-lg text-center">
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-gray-400 text-sm">Loading businesses...</p>
-                  </div>
+              {/* Search Input */}
+              <div className="relative mb-4">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
                 </div>
-              )}
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search across all users"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
 
-              {/* Empty state */}
-              {!loadingBusinesses && existingBusinesses.length === 0 && (
-                <div className="w-full px-4 py-8 bg-gray-800 border border-gray-600 rounded-lg text-center">
-                  <p className="text-gray-400 text-sm">No businesses yet. Create one using "New Business"!</p>
-                </div>
-              )}
+              {/* Display businesses based on search */}
+              {(() => {
+                const businessesToShow = searchTerm.trim() ? searchResults : existingBusinesses;
+                const isLoading = searchTerm.trim() ? isSearching : loadingBusinesses;
 
-              {/* Businesses list */}
-              {!loadingBusinesses && existingBusinesses.length > 0 && (
-                <div className="space-y-3">
-                  {existingBusinesses.map((business) => (
-                    <button
-                      key={business.id}
-                      type="button"
-                      onClick={() => handleLinkExisting(business.id)}
-                      className="w-full p-4 bg-gray-800 border border-gray-600 hover:border-purple-500 rounded-lg transition-all text-left"
-                    >
-                      <div className="flex items-center gap-3">
-                        {business.business_photo_url ? (
-                          <img
-                            src={business.business_photo_url}
-                            alt={business.business_name}
-                            className="w-12 h-12 rounded-full object-cover border-2 border-purple-500"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold">
-                            {business.business_name.charAt(0)}
-                          </div>
-                        )}
-                        <div className="flex-1">
-                          <h3 className="text-white font-semibold">{business.business_name}</h3>
-                          <div className="flex items-center gap-2 text-sm text-gray-400">
-                            <InstagramIcon className="w-3 h-3 text-pink-600" />
-                            <span>@{business.instagram_handle}</span>
-                            <span>•</span>
-                            <span>{business.city}</span>
-                          </div>
+                return (
+                  <>
+                    {/* Loading state */}
+                    {isLoading && (
+                      <div className="w-full px-4 py-8 bg-gray-800 border border-gray-600 rounded-lg text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                          <p className="text-gray-400 text-sm">{searchTerm.trim() ? 'Searching...' : 'Loading businesses...'}</p>
                         </div>
                       </div>
-                    </button>
-                  ))}
-                </div>
-              )}
+                    )}
+
+                    {/* Empty state */}
+                    {!isLoading && businessesToShow.length === 0 && (
+                      <div className="w-full px-4 py-8 bg-gray-800 border border-gray-600 rounded-lg text-center">
+                        <p className="text-gray-400 text-sm">
+                          {searchTerm.trim()
+                            ? 'No businesses found matching your search.'
+                            : 'No businesses yet. Create one using "New Business"!'}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Businesses list */}
+                    {!isLoading && businessesToShow.length > 0 && (
+                      <div className="space-y-3">
+                        {businessesToShow.map((business) => (
+                          <button
+                            key={business.id}
+                            type="button"
+                            onClick={() => handleLinkExisting(business.id)}
+                            className="w-full p-4 border border-transparent hover:border-purple-500 rounded-lg transition-all text-left"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="instagram-avatar-sm">
+                                {business.business_photo_url ? (
+                                  <img
+                                    src={business.business_photo_url}
+                                    alt={business.business_name}
+                                  />
+                                ) : (
+                                  <div className="avatar-fallback">
+                                    {business.business_name.charAt(0)}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="text-white font-semibold">{business.business_name}</h3>
+                                <div className="flex items-center gap-2 text-sm text-gray-400">
+                                  <InstagramIcon className="w-3 h-3 text-pink-600" />
+                                  <a
+                                    href={`https://www.instagram.com/${business.instagram_handle}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="hover:text-pink-600 hover:underline transition-colors"
+                                  >
+                                    {business.instagram_handle}
+                                  </a>
+                                  <span>•</span>
+                                  <span>{business.city}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           )}
 
