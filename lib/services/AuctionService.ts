@@ -154,7 +154,8 @@ export class AuctionService {
         .from('auctions')
         .select(`
           *,
-          creator:users!creator_id(id, email, user_name, role, profile_photo_url)
+          creator:users!creator_id(id, email, user_name, role, profile_photo_url),
+          business:beauty_businesses!linked_business_id(id, business_name, instagram_handle, city, business_photo_url)
         `)
         .order('created_at', { ascending: false });
 
