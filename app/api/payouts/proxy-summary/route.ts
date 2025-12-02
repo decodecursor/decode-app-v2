@@ -107,12 +107,12 @@ export async function GET(request: NextRequest) {
 
       // Fetch video status for all pending auctions
       const auctionIds = (pendingAuctions || []).map(a => a.id)
-      let videoMap = new Map<string, { file_url: string | null, watched_to_end_at: string | null, payout_unlocked_at: string | null }>()
+      let videoMap = new Map<string, { file_url: string | null, watched_to_end_at: string | null, payout_unlocked_at: string | null, token_expires_at: string | null }>()
 
       if (auctionIds.length > 0) {
         const { data: videoRecords } = await supabase
           .from('auction_videos')
-          .select('auction_id, file_url, watched_to_end_at, payout_unlocked_at')
+          .select('auction_id, file_url, watched_to_end_at, payout_unlocked_at, token_expires_at')
           .in('auction_id', auctionIds)
 
         videoMap = new Map(
