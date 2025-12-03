@@ -481,7 +481,7 @@ export default function AuctionDetailClient() {
           {/* Conditional layout: Dual-avatar if business linked, single-avatar otherwise */}
           {linkedBusiness ? (
             /* DUAL-AVATAR LAYOUT - When beauty business is linked */
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-1">
               {/* Left Avatar - Model */}
               <div className="flex-shrink-0">
                 {(auction as any).creator?.instagram_handle ? (
@@ -523,7 +523,7 @@ export default function AuctionDetailClient() {
               </div>
 
               {/* Center Text - Responsive sizing based on text length */}
-              <div className="flex-1 text-center min-w-0 px-1 flex flex-col">
+              <div className="flex-1 text-center min-w-0 px-0.5 flex flex-col">
                 <h1 className={`font-normal text-gray-500 break-words mb-0 order-2 sm:order-1 ${
                   auction.title.length > 20 ? 'text-[14px] sm:text-[24px]' :
                   auction.title.length > 15 ? 'text-[14px] sm:text-[30px]' :
