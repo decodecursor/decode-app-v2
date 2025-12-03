@@ -4,7 +4,7 @@
  */
 
 import { AuctionStrategy } from '../strategies/AuctionStrategy';
-import { createClient } from '@/utils/supabase/server';
+import { createServiceRoleClient } from '@/utils/supabase/service-role';
 import type { Bid, BidStatus } from '@/lib/models/Bid.model';
 
 export class AuctionPaymentProcessor {
@@ -20,7 +20,7 @@ export class AuctionPaymentProcessor {
    */
   async manageDualPreAuth(auctionId: string, newBidId: string): Promise<void> {
     const startTime = Date.now();
-    const supabase = await createClient();
+    const supabase = createServiceRoleClient();
 
     try {
       // Get all active pre-authorized bids for this auction, sorted by bid_amount
@@ -72,7 +72,7 @@ export class AuctionPaymentProcessor {
    * Cancel a bid's pre-authorization
    */
   async cancelBidPreAuth(bid: Bid): Promise<void> {
-    const supabase = await createClient();
+    const supabase = createServiceRoleClient();
     return this.cancelBidPreAuthWithClient(supabase, bid);
   }
 
@@ -101,7 +101,7 @@ export class AuctionPaymentProcessor {
    * Capture winning bid payment
    */
   async captureWinningBid(bidId: string): Promise<{ success: boolean; error?: string }> {
-    const supabase = await createClient();
+    const supabase = createServiceRoleClient();
 
     try {
       // Get the bid
@@ -145,7 +145,7 @@ export class AuctionPaymentProcessor {
    * CRITICAL FIX: Query both 'requires_capture' AND 'succeeded' to find highest bid
    */
   async attemptFallbackCapture(auctionId: string): Promise<{ success: boolean; bid_id?: string; error?: string }> {
-    const supabase = await createClient();
+    const supabase = createServiceRoleClient();
 
     try {
       // Get top 2 authorized bids (BOTH requires_capture AND succeeded)
@@ -243,7 +243,7 @@ export class AuctionPaymentProcessor {
    * Cancel all remaining pre-authorizations for an auction
    */
   async cancelAllPreAuths(auctionId: string): Promise<void> {
-    const supabase = await createClient();
+    const supabase = createServiceRoleClient();
 
     try {
       const { data: bids, error } = await supabase
@@ -267,7 +267,7 @@ export class AuctionPaymentProcessor {
    * Helper: Update bid status
    */
   private async updateBidStatus(bidId: string, status: BidStatus): Promise<void> {
-    const supabase = await createClient();
+    const supabase = createServiceRoleClient();
     return this.updateBidStatusWithClient(supabase, bidId, status);
   }
 
@@ -288,7 +288,7 @@ export class AuctionPaymentProcessor {
     bidId: string,
     status: 'requires_capture' | 'captured' | 'cancelled' | 'failed'
   ): Promise<void> {
-    const supabase = await createClient();
+    const supabase = createServiceRoleClient();
     return this.updatePaymentIntentStatusWithClient(supabase, bidId, status);
   }
 
