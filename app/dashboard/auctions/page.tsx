@@ -105,26 +105,18 @@ export default function AuctionsDashboardPage() {
                 <StatCard
                   label="Funds Collected"
                   value={`AED ${auctions.filter((a) => a.status === 'completed').reduce((sum, a) => sum + Number(a.auction_current_price), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                  percentage="0%"
-                  previousValue="AED 0.00"
                 />
                 <StatCard
                   label="Services Funded"
                   value={auctions.filter((a) => a.status === 'completed').length}
-                  percentage="0%"
-                  previousValue={0}
                 />
                 <StatCard
                   label="Active Auctions"
                   value={auctions.filter((a) => isAuctionActive(a)).length}
-                  percentage="0%"
-                  previousValue={0}
                 />
                 <StatCard
                   label="Total Auctions"
                   value={auctions.length}
-                  percentage="0%"
-                  previousValue={0}
                 />
               </div>
             </div>
@@ -188,29 +180,19 @@ export default function AuctionsDashboardPage() {
 function StatCard({
   label,
   value,
-  percentage = '0%',
-  previousValue,
-  previousLabel = 'previous period',
 }: {
   label: string;
   value: number | string;
-  percentage?: string;
-  previousValue?: number | string;
-  previousLabel?: string;
 }) {
   return (
     <div className="bg-white/5 rounded-xl p-4 hover:bg-white/8 transition-all">
-      {/* Top row: Label and Percentage */}
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-sm text-gray-300">{label}</p>
-        <p className="text-sm text-gray-400">{percentage}</p>
-      </div>
+      {/* Label */}
+      <p className="text-sm text-gray-300 mb-2">{label}</p>
       {/* Main value */}
-      <p className="text-2xl md:text-3xl font-bold text-white mb-1">{value}</p>
-      {/* Previous period comparison */}
-      {previousValue !== undefined && (
-        <p className="text-sm text-gray-400">vs {previousValue} {previousLabel}</p>
-      )}
+      <p className="font-bold text-white mb-1" style={{ fontSize: '22px' }}>
+        <span className="hidden md:inline" style={{ fontSize: '28px' }}>{value}</span>
+        <span className="md:hidden">{value}</span>
+      </p>
     </div>
   );
 }
