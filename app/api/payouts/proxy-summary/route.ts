@@ -161,7 +161,8 @@ export async function GET(request: NextRequest) {
           model_amount: Number(auction.model_payout_amount),
           payout_status: auction.payout_status,
           // Profit breakdown - use actual winning bid amount, not auction_current_price
-          winning_amount: Number(auction.winner_bid?.bid_amount) || 0,
+          // Note: winner_bid is returned as an array by Supabase, so access first element
+          winning_amount: Number(auction.winner_bid?.[0]?.bid_amount) || 0,
           start_price: Number(auction.auction_start_price) || 0,
           profit_amount: Number(auction.profit_amount) || 0,
           platform_fee_amount: Number(auction.platform_fee_amount) || 0,
