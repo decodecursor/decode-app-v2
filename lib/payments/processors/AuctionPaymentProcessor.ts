@@ -154,7 +154,7 @@ export class AuctionPaymentProcessor {
         .from('bids')
         .select('*')
         .eq('auction_id', auctionId)
-        .in('payment_intent_status', ['requires_capture', 'succeeded'])
+        .in('payment_intent_status', ['requires_capture', 'captured'])
         .order('bid_amount', { ascending: false })
         .limit(2);
 
@@ -173,9 +173,9 @@ export class AuctionPaymentProcessor {
       // Try to capture the highest bid first
       const firstBid = bids[0];
 
-      // CRITICAL: If bid already succeeded (payment captured), just return it as winner
-      if (firstBid.payment_intent_status === 'succeeded') {
-        console.log('[AuctionPaymentProcessor] Highest bid already captured (succeeded):', firstBid.id);
+      // CRITICAL: If bid already captured, just return it as winner
+      if (firstBid.payment_intent_status === 'captured') {
+        console.log('[AuctionPaymentProcessor] Highest bid already captured:', firstBid.id);
         // Cancel any remaining pre-auths
         if (bids.length > 1 && bids[1].payment_intent_status === 'requires_capture') {
           await this.cancelBidPreAuth(bids[1]);
@@ -198,9 +198,9 @@ export class AuctionPaymentProcessor {
       if (bids.length > 1) {
         const secondBid = bids[1];
 
-        // Check if second bid is already succeeded
-        if (secondBid.payment_intent_status === 'succeeded') {
-          console.log('[AuctionPaymentProcessor] Second bid already captured (succeeded):', secondBid.id);
+        // Check if second bid is already captured
+        if (secondBid.payment_intent_status === 'captured') {
+          console.log('[AuctionPaymentProcessor] Second bid already captured:', secondBid.id);
           return { success: true, bid_id: secondBid.id };
         }
 

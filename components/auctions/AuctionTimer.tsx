@@ -38,7 +38,7 @@ export function AuctionTimer({ auction, showProgress = false, className = '' }: 
   return (
     <div className={`space-y-1 sm:space-y-2 ${className}`}>
       {/* Timer Display */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-[5px]">
         <svg
           className="w-[22px] h-[22px] sm:w-[34px] sm:h-[34px] text-gray-400"
           fill="none"

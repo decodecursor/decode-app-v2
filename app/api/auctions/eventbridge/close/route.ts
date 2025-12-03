@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
         // Filter for bids with authorized payments
         const authorizedBids = allBids.filter(b =>
           b.payment_intent_status === 'requires_capture' ||
-          b.payment_intent_status === 'succeeded'
+          b.payment_intent_status === 'captured'
         );
 
         if (authorizedBids.length > 0) {
