@@ -332,12 +332,12 @@ export class BiddingService {
         return { success: false, error: 'Bid not found' };
       }
 
-      // Update bid status to authorized
+      // Update payment_intent_status only - bid status is already set by manageDualPreAuth()
+      // DO NOT set status here - it would overwrite correct rankings due to race conditions
       const { data: updatedBid, error: updateError } = await supabase
         .from('bids')
         .update({
           payment_intent_status: 'requires_capture',
-          status: 'winning',
         })
         .eq('id', bidId)
         .select()

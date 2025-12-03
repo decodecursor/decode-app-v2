@@ -532,16 +532,17 @@ export class AuctionStrategy implements IPaymentStrategy {
 
     if (paymentIntent.metadata.bid_id) {
       // Standard path: bid_id is available in metadata
-      console.log('[AuctionStrategy] Updating bid status to winning (via bid_id):', {
+      console.log('[AuctionStrategy] Updating bid payment_intent_status (via bid_id):', {
         bid_id: paymentIntent.metadata.bid_id,
         auction_id: paymentIntent.metadata.auction_id,
       });
 
+      // Update payment_intent_status only - bid status is already set by manageDualPreAuth()
+      // DO NOT set status here - it would overwrite correct rankings due to race conditions
       const { data: updatedBid, error: updateError } = await supabase
         .from('bids')
         .update({
           payment_intent_status: 'requires_capture',
-          status: 'winning',
           updated_at: new Date().toISOString(),
         })
         .eq('id', paymentIntent.metadata.bid_id)
@@ -591,11 +592,12 @@ export class AuctionStrategy implements IPaymentStrategy {
           payment_intent_id: bid.payment_intent_id,
         });
 
+        // Update payment_intent_status only - DO NOT set status here
+        // manageDualPreAuth will be called to set correct rankings
         const { data: updatedBid, error: updateError } = await supabase
           .from('bids')
           .update({
             payment_intent_status: 'requires_capture',
-            status: 'winning',
             updated_at: new Date().toISOString(),
           })
           .eq('id', bid.id)
@@ -608,15 +610,14 @@ export class AuctionStrategy implements IPaymentStrategy {
             bid_id: bid.id,
           });
         } else {
-          console.log('[AuctionStrategy] ✅ Successfully updated bid via fallback:', {
+          console.log('[AuctionStrategy] ✅ Successfully updated bid payment_intent_status via fallback:', {
             bid_id: updatedBid.id,
             status: updatedBid.status,
             payment_intent_status: updatedBid.payment_intent_status,
-            note: 'Race condition detected and resolved automatically',
           });
 
-          // CRITICAL FIX: Re-evaluate all bids to ensure only highest is 'winning'
-          // This bid might not be the highest, so manageDualPreAuth will correct the statuses
+          // Re-evaluate all bids to ensure only highest is 'winning'
+          // This bid might not be the highest, so manageDualPreAuth will set correct statuses
           try {
             const { AuctionPaymentProcessor } = await import('@/lib/payments/processors/AuctionPaymentProcessor');
             const paymentProcessor = new AuctionPaymentProcessor();
