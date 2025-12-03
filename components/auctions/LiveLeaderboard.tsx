@@ -153,7 +153,7 @@ export function LiveLeaderboard({
                   isUser ? 'bg-blue-50' : 'hover:bg-gray-50'
                 }`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-start gap-3">
                   {/* Rank */}
                   <div className="flex-shrink-0 w-8 text-center">
                     {entry.rank === 1 ? (
