@@ -724,6 +724,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     <LinkBeautyBusinessModal
       isOpen={showBusinessModal}
       onClose={() => setShowBusinessModal(false)}
+      linkedBusinessId={linkedBusiness?.id || auction.linked_business_id || null}
       onLink={async (businessId) => {
         try {
           // Call API to link business to auction
