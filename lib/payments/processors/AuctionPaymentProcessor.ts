@@ -164,9 +164,25 @@ export class AuctionPaymentProcessor {
         return { success: false, error: 'No bids available for capture' };
       }
 
-      console.log('[AuctionPaymentProcessor] attemptFallbackCapture bids found:', bids.map(b => ({
+      // CRITICAL: Verify sorting is correct - Supabase may return wrong order
+      // Sort manually to guarantee highest bid is first
+      if (bids.length > 1) {
+        const firstAmount = Number(bids[0].bid_amount);
+        const secondAmount = Number(bids[1].bid_amount);
+        if (secondAmount > firstAmount) {
+          console.error('[AuctionPaymentProcessor] CRITICAL: Bids returned in WRONG ORDER! Sorting manually.', {
+            first: { id: bids[0].id, amount: firstAmount },
+            second: { id: bids[1].id, amount: secondAmount }
+          });
+          // Sort manually as fallback
+          bids.sort((a, b) => Number(b.bid_amount) - Number(a.bid_amount));
+        }
+      }
+
+      console.log('[AuctionPaymentProcessor] attemptFallbackCapture bids (after sort verification):', bids.map(b => ({
         id: b.id,
         bid_amount: b.bid_amount,
+        bidder_email: b.bidder_email,
         payment_intent_status: b.payment_intent_status
       })));
 

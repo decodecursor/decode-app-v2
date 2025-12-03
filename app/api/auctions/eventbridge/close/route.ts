@@ -173,8 +173,20 @@ export async function POST(request: NextRequest) {
           console.error(`[EventBridge] Error fetching captured bid:`, capturedBidError);
         }
 
+        // CRITICAL: Log full captured bid data for debugging winner selection issues
+        console.log('[EventBridge] Captured bid data:', {
+          bid_id: capturedBid?.id,
+          bid_amount: capturedBid?.bid_amount,
+          bidder_email: capturedBid?.bidder_email,
+          bidder_name: capturedBid?.bidder_name,
+          bidder_instagram: capturedBid?.bidder_instagram_username,
+          status: capturedBid?.status,
+          payment_intent_status: capturedBid?.payment_intent_status,
+          captureResult_bid_id: captureResult.bid_id
+        });
+
         if (capturedBid) {
-          console.log(`[EventBridge] Payment captured for bid ${capturedBid.id}`);
+          console.log(`[EventBridge] Payment captured for bid ${capturedBid.id}, amount: ${capturedBid.bid_amount}`);
 
           // Calculate profit amounts
           const winningAmount = Number(capturedBid.bid_amount);
