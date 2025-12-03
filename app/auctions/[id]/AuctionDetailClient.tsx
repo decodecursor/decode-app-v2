@@ -509,7 +509,7 @@ export default function AuctionDetailClient() {
                     {((auction as any).creator?.profile_photo_url || cachedCreatorPhoto) ? (
                       <img
                         src={(auction as any).creator?.profile_photo_url || cachedCreatorPhoto}
-                        alt={(auction as any).creator.user_name || 'Creator'}
+                        alt={(auction as any).creator?.user_name || 'Creator'}
                       />
                     ) : (
                       <div className="avatar-fallback">
@@ -524,7 +524,7 @@ export default function AuctionDetailClient() {
                     {((auction as any).creator?.profile_photo_url || cachedCreatorPhoto) ? (
                       <img
                         src={(auction as any).creator?.profile_photo_url || cachedCreatorPhoto}
-                        alt={(auction as any).creator.user_name || 'Creator'}
+                        alt={(auction as any).creator?.user_name || 'Creator'}
                       />
                     ) : (
                       <div className="avatar-fallback">
@@ -618,7 +618,7 @@ export default function AuctionDetailClient() {
                       {((auction as any).creator?.profile_photo_url || cachedCreatorPhoto) ? (
                         <img
                           src={(auction as any).creator?.profile_photo_url || cachedCreatorPhoto}
-                          alt={(auction as any).creator.user_name || 'Creator'}
+                          alt={(auction as any).creator?.user_name || 'Creator'}
                         />
                       ) : (
                         <div className="avatar-fallback">
@@ -633,7 +633,7 @@ export default function AuctionDetailClient() {
                       {((auction as any).creator?.profile_photo_url || cachedCreatorPhoto) ? (
                         <img
                           src={(auction as any).creator?.profile_photo_url || cachedCreatorPhoto}
-                          alt={(auction as any).creator.user_name || 'Creator'}
+                          alt={(auction as any).creator?.user_name || 'Creator'}
                         />
                       ) : (
                         <div className="avatar-fallback">
