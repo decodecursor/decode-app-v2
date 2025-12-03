@@ -808,7 +808,11 @@ export function BiddingInterface({
         - By the time user reaches payment step, Elements is already fully initialized
       */}
       {elementsOptions ? (
-        <Elements stripe={stripePromise} options={elementsOptions}>
+        <Elements
+          stripe={stripePromise}
+          options={elementsOptions}
+          key={activeClientSecret}
+        >
           {/* Render all content inside Elements provider */}
           {renderNonPaymentContent()}
           {renderPaymentContent()}
