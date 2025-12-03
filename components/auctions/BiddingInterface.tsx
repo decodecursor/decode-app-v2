@@ -108,7 +108,6 @@ export function BiddingInterface({
   } | null>(null);
   const [isPreloadingSetupIntent, setIsPreloadingSetupIntent] = useState(false);
   const [pendingBidCreation, setPendingBidCreation] = useState<Promise<void> | null>(null);
-  const [elementsPreloaded, setElementsPreloaded] = useState(false);
 
   const currentPrice = Number(auction.auction_current_price);
   const startPrice = Number(auction.auction_start_price);
@@ -559,20 +558,24 @@ export function BiddingInterface({
     );
   }
 
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 relative">
-      {/* Close button */}
-      <button
-        onClick={handleReset}
-        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-        type="button"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Place Your Bid</h3>
+  // Determine if we have a clientSecret for Stripe Elements
+  const activeClientSecret = clientSecret || preloadedPaymentIntent?.clientSecret;
 
+  // Stripe Elements options - only created when we have a clientSecret
+  const elementsOptions = activeClientSecret ? {
+    clientSecret: activeClientSecret,
+    appearance: {
+      theme: 'stripe' as const,
+      variables: {
+        colorPrimary: '#2563eb',
+        fontSizeBase: '16px',
+      },
+    },
+  } : undefined;
+
+  // Content that doesn't need Stripe Elements
+  const renderNonPaymentContent = () => (
+    <>
       {/* Step: Enter Bid Amount */}
       {step === 'amount' && (
         <form onSubmit={handleAmountSubmit} className="space-y-4">
@@ -631,29 +634,6 @@ export function BiddingInterface({
         </div>
       )}
 
-      {/* Hidden Pre-Mount: Stripe Elements initialization while user fills forms */}
-      {/* This renders invisibly during guest_info/instagram steps to pre-initialize Stripe Elements */}
-      {preloadedPaymentIntent?.clientSecret && step !== 'payment' && (step === 'guest_info' || step === 'instagram') && (
-        <div
-          className="absolute opacity-0 pointer-events-none h-0 overflow-hidden"
-          aria-hidden="true"
-          style={{ position: 'absolute', left: '-9999px', width: '400px' }}
-        >
-          <Elements stripe={stripePromise} options={{
-            clientSecret: preloadedPaymentIntent.clientSecret,
-            appearance: {
-              theme: 'stripe',
-              variables: {
-                colorPrimary: '#2563eb',
-                fontSizeBase: '16px',
-              },
-            },
-          }}>
-            <HiddenPaymentPreloader onReady={() => setElementsPreloaded(true)} />
-          </Elements>
-        </div>
-      )}
-
       {/* Step: Instagram Username */}
       {step === 'instagram' && (
         <div>
@@ -681,9 +661,13 @@ export function BiddingInterface({
           />
         </div>
       )}
+    </>
+  );
 
-      {/* Step: Payment */}
-      {step === 'payment' && (bidId || clientSecret) && (
+  // Payment step content - rendered inside Elements provider
+  const renderPaymentContent = () => (
+    <>
+      {step === 'payment' && (bidId || clientSecret || preloadedPaymentIntent?.clientSecret) && (
         <div>
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-700">
@@ -735,8 +719,8 @@ export function BiddingInterface({
                 Done
               </button>
             </div>
-          ) : !clientSecret && !preloadedPaymentIntent && (isProcessing || isPreloadingSetupIntent) ? (
-            /* Loading state while payment intent is being created OR preload is completing */
+          ) : !activeClientSecret && (isProcessing || isPreloadingSetupIntent) ? (
+            /* Loading state while payment intent is being created */
             <div className="space-y-4">
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
                 <div className="flex items-center">
@@ -756,7 +740,7 @@ export function BiddingInterface({
                 <div className="h-12 bg-gray-200 rounded"></div>
               </div>
             </div>
-          ) : (clientSecret || preloadedPaymentIntent?.clientSecret) ? (
+          ) : activeClientSecret ? (
             /* Payment form for new cards */
             <div className="space-y-4">
               {/* Saved card indicator */}
@@ -785,31 +769,76 @@ export function BiddingInterface({
                 </div>
               )}
 
-              <Elements stripe={stripePromise} options={{
-                clientSecret: preloadedPaymentIntent?.clientSecret || clientSecret,
-                appearance: {
-                  theme: 'stripe',
-                  variables: {
-                    colorPrimary: '#2563eb',
-                    fontSizeBase: '16px',
-                  },
-                },
-              }}>
-                <PaymentForm
-                  auctionId={auction.id}
-                  bidId={bidId}
-                  savedCardLast4={savedCardLast4}
-                  pendingBidCreation={pendingBidCreation}
-                  onSuccess={() => {
-                    if (onBidPlaced && bidId) onBidPlaced(bidId);
-                    handleReset();
-                  }}
-                  onCancel={handleReset}
-                />
-              </Elements>
+              <PaymentForm
+                auctionId={auction.id}
+                bidId={bidId}
+                savedCardLast4={savedCardLast4}
+                pendingBidCreation={pendingBidCreation}
+                onSuccess={() => {
+                  if (onBidPlaced && bidId) onBidPlaced(bidId);
+                  handleReset();
+                }}
+                onCancel={handleReset}
+              />
             </div>
           ) : null}
         </div>
+      )}
+    </>
+  );
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-6 relative">
+      {/* Close button */}
+      <button
+        onClick={handleReset}
+        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+        type="button"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Place Your Bid</h3>
+
+      {/*
+        ARCHITECTURE: Single persistent Elements provider
+        - Elements mounts as soon as we have a clientSecret (from preload or bid creation)
+        - Elements stays mounted across all steps, so Stripe initializes in background
+        - By the time user reaches payment step, Elements is already fully initialized
+      */}
+      {elementsOptions ? (
+        <Elements stripe={stripePromise} options={elementsOptions}>
+          {/* Render all content inside Elements provider */}
+          {renderNonPaymentContent()}
+          {renderPaymentContent()}
+        </Elements>
+      ) : (
+        /* Fallback: no clientSecret yet, render without Elements */
+        <>
+          {renderNonPaymentContent()}
+          {/* Show loading state if on payment step but no clientSecret */}
+          {step === 'payment' && (isProcessing || isPreloadingSetupIntent) && (
+            <div className="space-y-4">
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
+                <div className="flex items-center">
+                  <svg className="animate-spin h-5 w-5 text-blue-600 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <p className="text-sm text-blue-700 font-medium">
+                    Creating your bid...
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-3 animate-pulse">
+                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-32 bg-gray-200 rounded"></div>
+                <div className="h-12 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -1051,53 +1080,3 @@ function PaymentForm({
   );
 }
 
-/**
- * Hidden Payment Preloader Component
- * Mounts invisibly to pre-initialize Stripe Elements (PaymentElement + ExpressCheckout)
- * This warms up the Stripe Elements cache so the payment form appears instantly
- */
-function HiddenPaymentPreloader({ onReady }: { onReady: () => void }) {
-  const stripe = useStripe();
-  const elements = useElements();
-
-  useEffect(() => {
-    if (stripe && elements) {
-      console.log('[HiddenPaymentPreloader] ✅ Stripe Elements pre-initialized');
-      onReady();
-    }
-  }, [stripe, elements, onReady]);
-
-  return (
-    <>
-      {/* Pre-mount ExpressCheckoutElement to check payment method availability */}
-      <ExpressCheckoutElement
-        options={{
-          paymentMethods: {
-            applePay: 'auto',
-            googlePay: 'auto',
-          },
-        }}
-        onReady={(event) => {
-          console.log('[HiddenPaymentPreloader] ExpressCheckout ready:', event.availablePaymentMethods);
-        }}
-        onConfirm={() => {
-          // This won't be called since the element is hidden
-        }}
-      />
-      {/* Pre-mount PaymentElement to initialize card form */}
-      <PaymentElement
-        options={{
-          layout: 'tabs',
-          paymentMethodOrder: ['card'],
-          wallets: {
-            applePay: 'never',
-            googlePay: 'never',
-          },
-        }}
-        onReady={() => {
-          console.log('[HiddenPaymentPreloader] PaymentElement ready');
-        }}
-      />
-    </>
-  );
-}
