@@ -297,7 +297,7 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
               >
                 {auction.title}
               </a>
-              <p className="text-[10px] text-gray-500 mt-1">
+              <p className="text-[10px] text-gray-500 mt-0.5">
                 {new Date(auction.end_time).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',
