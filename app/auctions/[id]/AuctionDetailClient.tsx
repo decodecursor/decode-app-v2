@@ -324,7 +324,7 @@ export default function AuctionDetailClient() {
             {/* Left: Back button */}
             {isCreator && (
               <button
-                onClick={() => router.back()}
+                onClick={() => router.push('/dashboard/auctions')}
                 className="text-gray-600 hover:text-gray-900 flex items-center gap-[3px]"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -404,7 +404,7 @@ export default function AuctionDetailClient() {
             {/* Left: Back button */}
             {isCreator && (
               <button
-                onClick={() => router.back()}
+                onClick={() => router.push('/dashboard/auctions')}
                 className="text-gray-600 hover:text-gray-900 flex items-center gap-[3px]"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
