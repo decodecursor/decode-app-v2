@@ -128,7 +128,7 @@ export class BiddingService {
           guest_bidder_id: guestBidderId,
           bid_amount: params.bid_amount,
           payment_intent_id: paymentResult.payment_intent_id!,
-          payment_intent_status: 'requires_capture',
+          payment_intent_status: 'requires_payment_method', // Correct: user hasn't entered card yet
           status: 'pending', // Not authorized yet, won't appear in leaderboard
           ip_address: params.ip_address,
           user_agent: params.user_agent,
@@ -203,10 +203,11 @@ export class BiddingService {
       // only when bid status changes to 'winning', 'outbid', or 'captured'
       // This prevents race conditions and ensures only confirmed bids affect the price
 
-      // 6. Manage dual pre-authorizations
-      await this.paymentProcessor.manageDualPreAuth(params.auction_id, bid.id);
+      // NOTE: manageDualPreAuth is NOT called here anymore!
+      // It's called in confirmBidPayment() AFTER user has actually authorized payment.
+      // This prevents bids from appearing on leaderboard before payment is confirmed.
 
-      // 7. Check for anti-sniping
+      // 6. Check for anti-sniping
       await this.checkAntiSniping(params.auction_id);
 
       const paymentAutoConfirmed = paymentResult.metadata?.has_saved_payment_method || false;
