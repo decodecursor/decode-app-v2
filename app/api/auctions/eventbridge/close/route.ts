@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Initialize services
+    const supabase = createServiceRoleClient(); // Service role for bid queries
     const auctionService = new AuctionService();
     const biddingService = new BiddingService();
     const paymentProcessor = new AuctionPaymentProcessor();
@@ -110,7 +111,48 @@ export async function POST(request: NextRequest) {
     }
 
     // Get winning bid
-    const winningBid = await biddingService.getWinningBid(auctionId);
+    let winningBid = await biddingService.getWinningBid(auctionId);
+
+    // CRITICAL FIX: Fallback if no bid marked as 'winning'
+    // Find highest bid with authorized payment manually by querying ALL bids
+    if (!winningBid) {
+      console.warn(`[EventBridge] No bid marked as 'winning', finding highest bid manually`);
+
+      // Query ALL bids directly (bypass getAuctionBids status filter)
+      const { data: allBids, error: bidsError } = await supabase
+        .from('bids')
+        .select('*')
+        .eq('auction_id', auctionId)
+        .order('bid_amount', { ascending: false });
+
+      if (bidsError) {
+        console.error(`[EventBridge] Error fetching bids:`, bidsError);
+      } else if (allBids && allBids.length > 0) {
+        console.log(`[EventBridge] Found ${allBids.length} total bids for auction ${auctionId}`);
+
+        // Filter for bids with authorized payments
+        const authorizedBids = allBids.filter(b =>
+          b.payment_intent_status === 'requires_capture' ||
+          b.payment_intent_status === 'succeeded'
+        );
+
+        if (authorizedBids.length > 0) {
+          winningBid = authorizedBids[0]; // Already sorted by bid_amount DESC
+          console.log(`[EventBridge] Found highest authorized bid manually:`, {
+            bid_id: winningBid.id,
+            bid_amount: winningBid.bid_amount,
+            status: winningBid.status,
+            payment_intent_status: winningBid.payment_intent_status
+          });
+        } else {
+          console.warn(`[EventBridge] No authorized bids found. All ${allBids.length} bids have payment_intent_status:`,
+            allBids.map(b => ({ id: b.id, payment_intent_status: b.payment_intent_status }))
+          );
+        }
+      } else {
+        console.warn(`[EventBridge] No bids found at all for auction ${auctionId}`);
+      }
+    }
 
     if (winningBid) {
       console.log(`[EventBridge] Found winning bid ${winningBid.id} for auction ${auctionId}`);
