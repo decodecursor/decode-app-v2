@@ -146,20 +146,56 @@ export class BiddingService {
           bid_id: bid.id,
         });
 
-        try {
-          await stripe.paymentIntents.update(paymentResult.payment_intent_id, {
-            metadata: {
+        // Retry logic for metadata update (defense against race condition)
+        let updateSuccess = false;
+        let lastError = null;
+        const maxRetries = 3;
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            await stripe.paymentIntents.update(paymentResult.payment_intent_id, {
+              metadata: {
+                bid_id: bid.id,
+                auction_id: params.auction_id,
+                is_guest: params.is_guest ? 'true' : 'false',
+                guest_bidder_id: guestBidderId || '',
+              }
+            });
+            console.log('[BiddingService] Successfully updated payment intent metadata', {
+              attempt,
               bid_id: bid.id,
-              auction_id: params.auction_id,
-              is_guest: params.is_guest ? 'true' : 'false',
-              guest_bidder_id: guestBidderId || '',
+              payment_intent_id: paymentResult.payment_intent_id,
+            });
+            updateSuccess = true;
+            break;
+          } catch (updateError) {
+            lastError = updateError;
+            console.warn('[BiddingService] Metadata update attempt failed:', {
+              attempt,
+              max_retries: maxRetries,
+              error: updateError instanceof Error ? updateError.message : 'Unknown error',
+              bid_id: bid.id,
+              payment_intent_id: paymentResult.payment_intent_id,
+            });
+
+            // Wait briefly before retry (exponential backoff)
+            if (attempt < maxRetries) {
+              const delayMs = Math.min(100 * Math.pow(2, attempt - 1), 500);
+              await new Promise(resolve => setTimeout(resolve, delayMs));
             }
+          }
+        }
+
+        if (!updateSuccess) {
+          console.error('[BiddingService] ❌ Failed to update payment intent metadata after all retries:', {
+            bid_id: bid.id,
+            payment_intent_id: paymentResult.payment_intent_id,
+            retries: maxRetries,
+            last_error: lastError instanceof Error ? lastError.message : 'Unknown error',
+            note: 'Fallback webhook handler will attempt to find bid by payment_intent_id',
           });
-          console.log('[BiddingService] Successfully updated payment intent metadata');
-        } catch (updateError) {
-          console.error('[BiddingService] Failed to update payment intent metadata:', updateError);
-          // Don't throw - bid is already created, this is a non-critical error
-          // The bid will still work but may not update status properly via webhook
+          // Don't throw - bid is already created
+          // Fallback webhook handler will find the bid by payment_intent_id
         }
       }
 

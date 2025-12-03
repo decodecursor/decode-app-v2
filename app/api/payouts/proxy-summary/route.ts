@@ -90,7 +90,15 @@ export async function GET(request: NextRequest) {
       // Use serviceClient to bypass RLS - the original RLS policy doesn't include 'completed' status
       const { data: allCompletedAuctions } = await serviceClient
         .from('auctions')
-        .select('id, title, end_time, model_payout_amount, payout_status, profit_amount, platform_fee_amount, auction_current_price, auction_start_price')
+        .select(`
+          id, title, end_time,
+          model_payout_amount, payout_status,
+          profit_amount, platform_fee_amount,
+          auction_start_price,
+          winner_bid:winner_bid_id (
+            bid_amount
+          )
+        `)
         .eq('creator_id', userId)
         .eq('status', 'completed')
         .order('end_time', { ascending: false })
@@ -152,8 +160,8 @@ export async function GET(request: NextRequest) {
           ended_at: auction.end_time,
           model_amount: Number(auction.model_payout_amount),
           payout_status: auction.payout_status,
-          // Profit breakdown
-          winning_amount: Number(auction.auction_current_price) || 0,
+          // Profit breakdown - use actual winning bid amount, not auction_current_price
+          winning_amount: Number(auction.winner_bid?.bid_amount) || 0,
           start_price: Number(auction.auction_start_price) || 0,
           profit_amount: Number(auction.profit_amount) || 0,
           platform_fee_amount: Number(auction.platform_fee_amount) || 0,

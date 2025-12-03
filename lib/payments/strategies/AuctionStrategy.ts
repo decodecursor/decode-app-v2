@@ -527,10 +527,12 @@ export class AuctionStrategy implements IPaymentStrategy {
     }
 
     // Update bid status in database for auto-confirmed payments
-    if (paymentIntent.metadata.bid_id) {
-      const supabase = createServiceRoleClient();
+    const supabase = createServiceRoleClient();
+    let bidToUpdate = null;
 
-      console.log('[AuctionStrategy] Updating bid status to winning:', {
+    if (paymentIntent.metadata.bid_id) {
+      // Standard path: bid_id is available in metadata
+      console.log('[AuctionStrategy] Updating bid status to winning (via bid_id):', {
         bid_id: paymentIntent.metadata.bid_id,
         auction_id: paymentIntent.metadata.auction_id,
       });
@@ -559,20 +561,73 @@ export class AuctionStrategy implements IPaymentStrategy {
         });
       }
     } else {
-      // CRITICAL WARNING: Missing bid_id in payment intent metadata
-      console.error('[AuctionStrategy] ⚠️ CRITICAL: Missing bid_id in payment intent metadata!', {
+      // FALLBACK PATH: bid_id missing due to race condition
+      // Try to find the bid by payment_intent_id
+      console.warn('[AuctionStrategy] ⚠️ bid_id missing in metadata - attempting fallback lookup', {
         payment_intent_id: paymentIntent.id,
         auction_id: paymentIntent.metadata.auction_id,
-        customer_id: paymentIntent.customer,
-        is_guest: paymentIntent.metadata.is_guest,
-        guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
-        amount: paymentIntent.amount / 100,
-        metadata: paymentIntent.metadata,
-        warning: 'Payment was authorized but bid status cannot be updated - bid will not appear in leaderboard!',
       });
 
-      // This is a critical issue - the payment was processed but we can't update the bid
-      // The bid will remain in 'pending' status and won't appear in the leaderboard
+      const { data: pendingBids, error: lookupError } = await supabase
+        .from('bids')
+        .select('*')
+        .eq('payment_intent_id', paymentIntent.id)
+        .eq('auction_id', paymentIntent.metadata.auction_id)
+        .eq('status', 'pending')
+        .order('placed_at', { ascending: false })
+        .limit(1);
+
+      if (lookupError) {
+        console.error('[AuctionStrategy] ❌ Error looking up bid by payment_intent_id:', {
+          error: lookupError.message,
+          payment_intent_id: paymentIntent.id,
+        });
+      } else if (pendingBids && pendingBids.length > 0) {
+        // Found the bid - update it
+        const bid = pendingBids[0];
+        console.log('[AuctionStrategy] ✅ Found pending bid via fallback lookup:', {
+          bid_id: bid.id,
+          auction_id: bid.auction_id,
+          payment_intent_id: bid.payment_intent_id,
+        });
+
+        const { data: updatedBid, error: updateError } = await supabase
+          .from('bids')
+          .update({
+            payment_intent_status: 'requires_capture',
+            status: 'winning',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', bid.id)
+          .select()
+          .single();
+
+        if (updateError) {
+          console.error('[AuctionStrategy] ❌ Error updating bid via fallback:', {
+            error: updateError.message,
+            bid_id: bid.id,
+          });
+        } else {
+          console.log('[AuctionStrategy] ✅ Successfully updated bid via fallback:', {
+            bid_id: updatedBid.id,
+            status: updatedBid.status,
+            payment_intent_status: updatedBid.payment_intent_status,
+            note: 'Race condition detected and resolved automatically',
+          });
+        }
+      } else {
+        // Could not find bid - log critical error
+        console.error('[AuctionStrategy] ❌ CRITICAL: Could not find bid via fallback lookup!', {
+          payment_intent_id: paymentIntent.id,
+          auction_id: paymentIntent.metadata.auction_id,
+          customer_id: paymentIntent.customer,
+          is_guest: paymentIntent.metadata.is_guest,
+          guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
+          amount: paymentIntent.amount / 100,
+          metadata: paymentIntent.metadata,
+          warning: 'Payment was authorized but bid could not be found - manual intervention required!',
+        });
+      }
     }
   }
 
