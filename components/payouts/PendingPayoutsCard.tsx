@@ -64,11 +64,12 @@ export function PendingPayoutsCard({
           <div key={payout.auction_id} className="relative">
             {/* Card Layer - applies opacity when locked */}
             <div
-              className={`p-4 rounded-lg transition-colors bg-gray-900/80 ${
+              onClick={() => payout.payout_unlocked && onToggleSelection(payout.auction_id)}
+              className={`p-4 rounded-lg transition-all bg-gray-900/80 ${
                 selectedAuctionIds.has(payout.auction_id)
                   ? 'border border-purple-500'
                   : 'border border-gray-600'
-              } ${!payout.payout_unlocked ? 'opacity-50' : ''}`}
+              } ${!payout.payout_unlocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-purple-500 hover:bg-white/5'}`}
             >
               {/* Single Horizontal Row */}
               <div className="flex items-center gap-3 md:gap-4">
@@ -78,8 +79,8 @@ export function PendingPayoutsCard({
                     type="checkbox"
                     checked={selectedAuctionIds.has(payout.auction_id)}
                     disabled={!payout.payout_unlocked}
-                    onChange={() => onToggleSelection(payout.auction_id)}
-                    className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 cursor-pointer disabled:cursor-not-allowed"
+                    readOnly
+                    className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 pointer-events-none disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -171,7 +172,10 @@ export function PendingPayoutsCard({
                   {/* Watch Video Button or Countdown */}
                   {payout.has_video && (
                     <button
-                      onClick={() => onWatchVideo(payout.auction_id, payout.auction_title)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onWatchVideo(payout.auction_id, payout.auction_title);
+                      }}
                       className="px-3 py-1.5 text-xs font-medium bg-amber-500/10 text-amber-400 rounded-lg hover:bg-amber-500/30 transition-colors border border-amber-500/30 flex-shrink-0 min-w-[110px]"
                     >
                       Watch Video
@@ -190,7 +194,10 @@ export function PendingPayoutsCard({
 
                   {/* Profit Breakdown Button */}
                   <button
-                    onClick={() => toggleExpanded(payout.auction_id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleExpanded(payout.auction_id);
+                    }}
                     className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white/4 text-gray-300 rounded-lg hover:bg-white/10 transition-colors border border-white/20 flex-shrink-0"
                   >
                     <span>Profit Breakdown</span>
@@ -213,7 +220,10 @@ export function PendingPayoutsCard({
                 <div className="flex items-center gap-2">
                   {/* Profit Breakdown Button */}
                   <button
-                    onClick={() => toggleExpanded(payout.auction_id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleExpanded(payout.auction_id);
+                    }}
                     className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white/4 text-gray-300 rounded-lg hover:bg-white/10 transition-colors border border-white/20 flex-shrink-0"
                   >
                     <span>Profit Breakdown</span>
