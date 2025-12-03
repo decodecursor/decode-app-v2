@@ -259,7 +259,7 @@ export function PayoutHistory({ userId, userRole, onNewPayout, refreshTrigger }:
                 <div
                   key={payout.id}
                   id={`payout-${payout.id}`}
-                  className={`bg-gray-800/50 rounded-lg p-3 hover:bg-white/[0.02] transition-colors ${
+                  className={`bg-gray-800/50 rounded-lg p-3 hover:bg-white/[0.01] transition-colors ${
                     isHighlighted
                       ? 'border-2 border-purple-500/60 animate-[fadeToNormal_3s_ease-out_forwards]'
                       : 'border-2 border-transparent'
