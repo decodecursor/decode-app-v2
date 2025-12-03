@@ -539,14 +539,14 @@ export default function AuctionDetailClient() {
 
               {/* Center Text - Responsive sizing based on text length */}
               <div className="flex-1 text-center min-w-0 px-0.5 flex flex-col">
-                <h1 className={`font-normal text-gray-500 break-words mb-0 order-2 sm:order-1 ${
+                <h1 className={`font-normal text-gray-500 break-words mb-0 order-2 sm:order-2 ${
                   auction.title.length > 20 ? 'text-[14px] sm:text-[24px]' :
                   auction.title.length > 15 ? 'text-[14px] sm:text-[30px]' :
                   'text-[14px] sm:text-[36px]'
                 }`}>
                   {auction.title}
                 </h1>
-                <p className={`text-gray-900 font-bold mt-0 order-1 sm:order-2 ${
+                <p className={`text-gray-900 font-bold mt-0 order-1 sm:order-1 ${
                   ((auction as any).creator?.user_name || (auction as any).creator?.email || '').length > 25
                     ? 'text-[18px] sm:text-[16px]'
                     : 'text-[18px] sm:text-[18px]'
