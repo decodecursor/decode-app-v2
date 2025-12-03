@@ -272,7 +272,7 @@ export function PayoutHistory({ userId, userRole, onNewPayout, refreshTrigger }:
                   <div className="md:hidden">
                     {/* Row 1: AED Amount + Request ID */}
                     <div className="flex justify-between items-end mb-1">
-                      <div className="text-green-400 cosmic-label font-bold">
+                      <div className="text-green-400 font-bold text-sm">
                         AED {formatAmount(payout.payout_amount_aed)}
                       </div>
                       <div className="flex items-center gap-1">
@@ -312,7 +312,7 @@ export function PayoutHistory({ userId, userRole, onNewPayout, refreshTrigger }:
                       <span className="w-7 h-7 bg-gray-900/80 border-2 border-purple-400 text-purple-400 text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">
                         {index + 1}
                       </span>
-                      <span className="cosmic-label text-green-400 font-bold">
+                      <span className="text-green-400 font-bold text-sm">
                         AED {formatAmount(payout.payout_amount_aed)}
                       </span>
                     </div>
