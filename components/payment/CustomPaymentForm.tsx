@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { loadStripe, StripeElementsOptions } from '@stripe/stripe-js';
+import { StripeElementsOptions } from '@stripe/stripe-js';
 import {
   Elements,
   PaymentElement,
@@ -9,6 +9,7 @@ import {
   useStripe,
   useElements
 } from '@stripe/react-stripe-js';
+import { stripePromise } from '@/lib/stripe-client';
 
 interface CustomPaymentFormProps {
   paymentLinkId: string;
@@ -25,16 +26,6 @@ interface CustomPaymentFormProps {
 interface PaymentFormProps extends CustomPaymentFormProps {
   clientSecret: string;
 }
-
-// Initialize Stripe with fallback
-const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_51Rpnj8BCENH8RexyycBntN40xSM7w5MbstofjrV5tAROxMI71UDw0AKAwFFlwGN6OaMlDa62A4BukU4yZxmQ4Euz00X3NoqUYG';
-
-console.log('🔍 Stripe Publishable Key:', STRIPE_PUBLISHABLE_KEY ? 'Available' : 'Missing');
-
-const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY).catch(error => {
-  console.error('❌ Stripe SDK loading error:', error);
-  return null;
-});
 
 function PaymentForm({ 
   paymentLinkId,

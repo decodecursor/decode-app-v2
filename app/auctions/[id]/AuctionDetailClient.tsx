@@ -22,6 +22,7 @@ import { HistoricalLeaderboards } from '@/components/auctions/HistoricalLeaderbo
 import { formatBidAmount } from '@/lib/models/Bid.model';
 import { createClient } from '@/utils/supabase/client';
 import HeartAnimation from '@/components/effects/HeartAnimation';
+import { preloadStripe } from '@/lib/stripe-client';
 
 export default function AuctionDetailClient() {
   const params = useParams();
@@ -44,6 +45,12 @@ export default function AuctionDetailClient() {
 
   const { auction, isConnected, error, isLoading, refresh, retry } = useAuctionRealtime(auctionId);
   const { refresh: refreshLeaderboard } = useLeaderboard(auctionId, userEmail);
+
+  // Preload Stripe.js immediately when auction page opens
+  // This ensures Stripe is ready before user reaches payment step
+  useEffect(() => {
+    preloadStripe();
+  }, []);
 
   // Check if user is authenticated
   useEffect(() => {

@@ -1,13 +1,13 @@
 'use client'
 
 import React, { useState } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
   CardElement,
   useStripe,
   useElements
 } from '@stripe/react-stripe-js';
+import { stripePromise } from '@/lib/stripe-client';
 
 interface StripePaymentFormProps {
   paymentLinkId: string;
@@ -23,9 +23,6 @@ interface StripePaymentFormProps {
 interface PaymentFormProps extends StripePaymentFormProps {
   clientSecret?: string;
 }
-
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 // Card element styling
 const cardElementOptions = {

@@ -6,14 +6,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { loadStripe, StripeElementsOptions } from '@stripe/stripe-js';
+import { StripeElementsOptions } from '@stripe/stripe-js';
 import { Elements, PaymentElement, ExpressCheckoutElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { GuestBidderForm } from './GuestBidderForm';
 import { InstagramUsernameForm } from './InstagramUsernameForm';
 import { calculateMinimumBid, formatBidAmount } from '@/lib/models/Bid.model';
 import type { Auction } from '@/lib/models/Auction.model';
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+import { stripePromise } from '@/lib/stripe-client';
 
 // Format WhatsApp number for display (e.g., +971554275547 -> +971 55 427 5547)
 function formatWhatsAppNumber(number: string): string {
@@ -109,6 +108,7 @@ export function BiddingInterface({
   } | null>(null);
   const [isPreloadingSetupIntent, setIsPreloadingSetupIntent] = useState(false);
   const [pendingBidCreation, setPendingBidCreation] = useState<Promise<void> | null>(null);
+  const [elementsPreloaded, setElementsPreloaded] = useState(false);
 
   const currentPrice = Number(auction.auction_current_price);
   const startPrice = Number(auction.auction_start_price);
@@ -631,6 +631,29 @@ export function BiddingInterface({
         </div>
       )}
 
+      {/* Hidden Pre-Mount: Stripe Elements initialization while user fills forms */}
+      {/* This renders invisibly during guest_info/instagram steps to pre-initialize Stripe Elements */}
+      {preloadedPaymentIntent?.clientSecret && step !== 'payment' && (step === 'guest_info' || step === 'instagram') && (
+        <div
+          className="absolute opacity-0 pointer-events-none h-0 overflow-hidden"
+          aria-hidden="true"
+          style={{ position: 'absolute', left: '-9999px', width: '400px' }}
+        >
+          <Elements stripe={stripePromise} options={{
+            clientSecret: preloadedPaymentIntent.clientSecret,
+            appearance: {
+              theme: 'stripe',
+              variables: {
+                colorPrimary: '#2563eb',
+                fontSizeBase: '16px',
+              },
+            },
+          }}>
+            <HiddenPaymentPreloader onReady={() => setElementsPreloaded(true)} />
+          </Elements>
+        </div>
+      )}
+
       {/* Step: Instagram Username */}
       {step === 'instagram' && (
         <div>
@@ -1025,5 +1048,56 @@ function PaymentForm({
         {isProcessing ? 'Processing...' : 'Confirm Your Bid'}
       </button>
     </div>
+  );
+}
+
+/**
+ * Hidden Payment Preloader Component
+ * Mounts invisibly to pre-initialize Stripe Elements (PaymentElement + ExpressCheckout)
+ * This warms up the Stripe Elements cache so the payment form appears instantly
+ */
+function HiddenPaymentPreloader({ onReady }: { onReady: () => void }) {
+  const stripe = useStripe();
+  const elements = useElements();
+
+  useEffect(() => {
+    if (stripe && elements) {
+      console.log('[HiddenPaymentPreloader] ✅ Stripe Elements pre-initialized');
+      onReady();
+    }
+  }, [stripe, elements, onReady]);
+
+  return (
+    <>
+      {/* Pre-mount ExpressCheckoutElement to check payment method availability */}
+      <ExpressCheckoutElement
+        options={{
+          paymentMethods: {
+            applePay: 'auto',
+            googlePay: 'auto',
+          },
+        }}
+        onReady={(event) => {
+          console.log('[HiddenPaymentPreloader] ExpressCheckout ready:', event.availablePaymentMethods);
+        }}
+        onConfirm={() => {
+          // This won't be called since the element is hidden
+        }}
+      />
+      {/* Pre-mount PaymentElement to initialize card form */}
+      <PaymentElement
+        options={{
+          layout: 'tabs',
+          paymentMethodOrder: ['card'],
+          wallets: {
+            applePay: 'never',
+            googlePay: 'never',
+          },
+        }}
+        onReady={() => {
+          console.log('[HiddenPaymentPreloader] PaymentElement ready');
+        }}
+      />
+    </>
   );
 }
