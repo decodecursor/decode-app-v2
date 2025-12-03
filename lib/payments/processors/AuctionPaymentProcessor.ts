@@ -142,17 +142,19 @@ export class AuctionPaymentProcessor {
 
   /**
    * Attempt fallback capture (capture second highest bid if first fails)
+   * CRITICAL FIX: Query both 'requires_capture' AND 'succeeded' to find highest bid
    */
   async attemptFallbackCapture(auctionId: string): Promise<{ success: boolean; bid_id?: string; error?: string }> {
     const supabase = await createClient();
 
     try {
-      // Get top 2 pre-authorized bids
+      // Get top 2 authorized bids (BOTH requires_capture AND succeeded)
+      // CRITICAL: Must match EventBridge fallback filter to select correct winner
       const { data: bids, error } = await supabase
         .from('bids')
         .select('*')
         .eq('auction_id', auctionId)
-        .eq('payment_intent_status', 'requires_capture')
+        .in('payment_intent_status', ['requires_capture', 'succeeded'])
         .order('bid_amount', { ascending: false })
         .limit(2);
 
@@ -162,13 +164,31 @@ export class AuctionPaymentProcessor {
         return { success: false, error: 'No bids available for capture' };
       }
 
+      console.log('[AuctionPaymentProcessor] attemptFallbackCapture bids found:', bids.map(b => ({
+        id: b.id,
+        bid_amount: b.bid_amount,
+        payment_intent_status: b.payment_intent_status
+      })));
+
       // Try to capture the highest bid first
       const firstBid = bids[0];
+
+      // CRITICAL: If bid already succeeded (payment captured), just return it as winner
+      if (firstBid.payment_intent_status === 'succeeded') {
+        console.log('[AuctionPaymentProcessor] Highest bid already captured (succeeded):', firstBid.id);
+        // Cancel any remaining pre-auths
+        if (bids.length > 1 && bids[1].payment_intent_status === 'requires_capture') {
+          await this.cancelBidPreAuth(bids[1]);
+        }
+        return { success: true, bid_id: firstBid.id };
+      }
+
+      // Bid needs capture
       const firstResult = await this.captureWinningBid(firstBid.id);
 
       if (firstResult.success) {
         // Cancel remaining pre-auths
-        if (bids.length > 1) {
+        if (bids.length > 1 && bids[1].payment_intent_status === 'requires_capture') {
           await this.cancelBidPreAuth(bids[1]);
         }
         return { success: true, bid_id: firstBid.id };
@@ -177,6 +197,13 @@ export class AuctionPaymentProcessor {
       // If first bid fails and there's a second bid, try it
       if (bids.length > 1) {
         const secondBid = bids[1];
+
+        // Check if second bid is already succeeded
+        if (secondBid.payment_intent_status === 'succeeded') {
+          console.log('[AuctionPaymentProcessor] Second bid already captured (succeeded):', secondBid.id);
+          return { success: true, bid_id: secondBid.id };
+        }
+
         const secondResult = await this.captureWinningBid(secondBid.id);
 
         if (secondResult.success) {
