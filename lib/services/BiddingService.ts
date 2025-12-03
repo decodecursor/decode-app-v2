@@ -128,7 +128,7 @@ export class BiddingService {
           guest_bidder_id: guestBidderId,
           bid_amount: params.bid_amount,
           payment_intent_id: paymentResult.payment_intent_id!,
-          payment_intent_status: 'requires_payment_method', // Correct: user hasn't entered card yet
+          payment_intent_status: 'requires_capture', // Will be filtered out by manageDualPreAuth until confirmed
           status: 'pending', // Not authorized yet, won't appear in leaderboard
           ip_address: params.ip_address,
           user_agent: params.user_agent,
