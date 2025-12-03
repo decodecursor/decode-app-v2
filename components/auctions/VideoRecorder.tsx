@@ -326,18 +326,13 @@ export function VideoRecorder({
   }, [stream]);
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-full sm:max-w-[537px] mx-auto">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Header */}
         <div className="p-6 pb-4">
           <h1 className="text-[18px] sm:text-[26px] font-bold text-gray-900 text-center">
             Record Your Winner Video! 🎉
           </h1>
-          {tokenExpiresAt && !isExpired && (
-            <div className="text-sm text-amber-600 text-center mt-2">
-              Time remaining: {displayText}
-            </div>
-          )}
         </div>
 
         {/* Video Display */}
@@ -380,7 +375,6 @@ export function VideoRecorder({
                     d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
                   />
                 </svg>
-                <p className="text-lg sm:text-xl font-semibold">Ready to record?</p>
                 <p className="text-sm sm:text-base opacity-90 mt-2">
                   {MAX_VIDEO_DURATION_SECONDS}sec video message
                 </p>
@@ -433,6 +427,15 @@ export function VideoRecorder({
           )}
         </div>
 
+        {/* Timer relocated between video and controls */}
+        {tokenExpiresAt && !isExpired && (
+          <div className="px-6 pt-4 pb-2">
+            <div className="text-sm text-amber-600 text-center">
+              Time remaining: {displayText}
+            </div>
+          </div>
+        )}
+
         {/* Controls */}
         <div className="p-6 space-y-4">
           {error && (
@@ -460,7 +463,7 @@ export function VideoRecorder({
                   className={`flex-1 px-4 py-4 text-base sm:text-lg font-semibold text-white rounded-md shadow-lg flex items-center justify-center gap-2 ${
                     isExpired
                       ? 'bg-gray-400 cursor-not-allowed opacity-50'
-                      : 'bg-blue-600 hover:bg-blue-700 animate-pulse'
+                      : 'bg-blue-500 hover:bg-blue-600'
                   }`}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
