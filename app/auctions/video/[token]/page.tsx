@@ -182,13 +182,6 @@ export default function VideoRecordingPage() {
         }}
       />
 
-      {/* Countdown Timer */}
-      {tokenExpiresAt && !isExpired && (
-        <div className="max-w-3xl mx-auto mb-6" style={{ position: 'relative', zIndex: 10 }}>
-          <VideoUploadCountdown tokenExpiresAt={tokenExpiresAt?.toISOString() ?? null} hasVideo={false} />
-        </div>
-      )}
-
       {/* Video Recorder */}
       <div style={{ position: 'relative', zIndex: 10 }}>
         <VideoRecorder
@@ -203,7 +196,7 @@ export default function VideoRecordingPage() {
       </div>
 
       {/* Footer Info */}
-      <div className="max-w-3xl mx-auto mt-8" style={{ position: 'relative', zIndex: 10 }}>
+      <div className="max-w-full sm:max-w-[537px] mx-auto mt-8" style={{ position: 'relative', zIndex: 10 }}>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="text-sm text-blue-700">
             <p className="font-medium mb-1">Important</p>
