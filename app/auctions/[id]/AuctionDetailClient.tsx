@@ -42,6 +42,7 @@ export default function AuctionDetailClient() {
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
   const [guestBidId, setGuestBidId] = useState<string | null>(null);
   const [linkedBusiness, setLinkedBusiness] = useState<any>(null);
+  const [cachedCreatorPhoto, setCachedCreatorPhoto] = useState<string | null>(null);
 
   const { auction, isConnected, error, isLoading, refresh, retry } = useAuctionRealtime(auctionId);
   const { refresh: refreshLeaderboard } = useLeaderboard(auctionId, userEmail);
@@ -93,6 +94,13 @@ export default function AuctionDetailClient() {
         .catch(() => {});
     }
   }, [auction?.linked_business_id, linkedBusiness]);
+
+  // Cache creator photo URL to prevent grey placeholder during re-fetch
+  useEffect(() => {
+    if (auction && (auction as any).creator?.profile_photo_url) {
+      setCachedCreatorPhoto((auction as any).creator.profile_photo_url);
+    }
+  }, [auction]);
 
   // Initialize guest bid ID from localStorage on mount
   useEffect(() => {
@@ -498,9 +506,9 @@ export default function AuctionDetailClient() {
                     rel="noopener noreferrer"
                     className="instagram-avatar"
                   >
-                    {(auction as any).creator?.profile_photo_url ? (
+                    {((auction as any).creator?.profile_photo_url || cachedCreatorPhoto) ? (
                       <img
-                        src={(auction as any).creator.profile_photo_url}
+                        src={(auction as any).creator?.profile_photo_url || cachedCreatorPhoto}
                         alt={(auction as any).creator.user_name || 'Creator'}
                       />
                     ) : (
@@ -513,9 +521,9 @@ export default function AuctionDetailClient() {
                   </a>
                 ) : (
                   <div className="instagram-avatar">
-                    {(auction as any).creator?.profile_photo_url ? (
+                    {((auction as any).creator?.profile_photo_url || cachedCreatorPhoto) ? (
                       <img
-                        src={(auction as any).creator.profile_photo_url}
+                        src={(auction as any).creator?.profile_photo_url || cachedCreatorPhoto}
                         alt={(auction as any).creator.user_name || 'Creator'}
                       />
                     ) : (
@@ -607,9 +615,9 @@ export default function AuctionDetailClient() {
                       rel="noopener noreferrer"
                       className="instagram-avatar"
                     >
-                      {(auction as any).creator?.profile_photo_url ? (
+                      {((auction as any).creator?.profile_photo_url || cachedCreatorPhoto) ? (
                         <img
-                          src={(auction as any).creator.profile_photo_url}
+                          src={(auction as any).creator?.profile_photo_url || cachedCreatorPhoto}
                           alt={(auction as any).creator.user_name || 'Creator'}
                         />
                       ) : (
@@ -622,9 +630,9 @@ export default function AuctionDetailClient() {
                     </a>
                   ) : (
                     <div className="instagram-avatar">
-                      {(auction as any).creator?.profile_photo_url ? (
+                      {((auction as any).creator?.profile_photo_url || cachedCreatorPhoto) ? (
                         <img
-                          src={(auction as any).creator.profile_photo_url}
+                          src={(auction as any).creator?.profile_photo_url || cachedCreatorPhoto}
                           alt={(auction as any).creator.user_name || 'Creator'}
                         />
                       ) : (
