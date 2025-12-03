@@ -28,7 +28,7 @@ export class AuctionPaymentProcessor {
         .from('bids')
         .select('*')
         .eq('auction_id', auctionId)
-        .in('payment_intent_status', ['requires_capture'])
+        .in('payment_intent_status', ['requires_capture', 'captured'])
         .order('bid_amount', { ascending: false });
 
       if (error) throw error;

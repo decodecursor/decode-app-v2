@@ -46,12 +46,18 @@ export async function POST(request: NextRequest) {
           const captureResult = await paymentProcessor.attemptFallbackCapture(auction.id);
 
           if (captureResult.success) {
-            // Get the actually captured bid
-            const capturedBid = captureResult.bid_id === winningBid.id
-              ? winningBid
-              : await biddingService.getAuctionBids(auction.id, 2).then(bids =>
-                  bids.find(b => b.id === captureResult.bid_id)
-                );
+            // CRITICAL FIX: Always fetch fresh bid data by ID to ensure correct winner info
+            // Don't trust winningBid data which may be stale or from wrong bid
+            const supabase = createServiceRoleClient();
+            const { data: capturedBid, error: capturedBidError } = await supabase
+              .from('bids')
+              .select('*')
+              .eq('id', captureResult.bid_id)
+              .single();
+
+            if (capturedBidError) {
+              console.error(`[Cron] Error fetching captured bid:`, capturedBidError);
+            }
 
             if (capturedBid) {
               // Calculate profit amounts

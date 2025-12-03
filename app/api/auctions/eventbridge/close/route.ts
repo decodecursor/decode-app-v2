@@ -161,13 +161,17 @@ export async function POST(request: NextRequest) {
       const captureResult = await paymentProcessor.attemptFallbackCapture(auctionId);
 
       if (captureResult.success) {
-        // Get the actually captured bid (might be 2nd if 1st failed)
-        const capturedBid =
-          captureResult.bid_id === winningBid.id
-            ? winningBid
-            : await biddingService
-                .getAuctionBids(auctionId, 2)
-                .then((bids) => bids.find((b) => b.id === captureResult.bid_id));
+        // CRITICAL FIX: Always fetch fresh bid data by ID to ensure correct winner info
+        // Don't trust winningBid data which may be stale or from wrong bid
+        const { data: capturedBid, error: capturedBidError } = await supabase
+          .from('bids')
+          .select('*')
+          .eq('id', captureResult.bid_id)
+          .single();
+
+        if (capturedBidError) {
+          console.error(`[EventBridge] Error fetching captured bid:`, capturedBidError);
+        }
 
         if (capturedBid) {
           console.log(`[EventBridge] Payment captured for bid ${capturedBid.id}`);
