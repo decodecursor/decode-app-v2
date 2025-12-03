@@ -323,7 +323,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     switch (auction.status) {
       case 'active':
         return (
-          <span className="px-3 py-1.5 text-sm font-medium text-purple-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-purple-500 flex items-center gap-1.5 animate-pulse">
+          <span className="px-3 py-1 text-xs font-medium text-purple-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-purple-500 flex items-center gap-1.5 animate-pulse">
             <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
