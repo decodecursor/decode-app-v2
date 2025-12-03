@@ -88,37 +88,12 @@ export async function GET(request: NextRequest) {
       // Fetch all completed auctions first, then filter by payout_status in code
       // (Supabase .or() doesn't work correctly when combined with .eq() filters)
       // Use serviceClient to bypass RLS - the original RLS policy doesn't include 'completed' status
-      const { data: allCompletedAuctions, error: auctionQueryError } = await serviceClient
+      const { data: allCompletedAuctions } = await serviceClient
         .from('auctions')
-        .select(`
-          id, title, end_time,
-          model_payout_amount, payout_status,
-          profit_amount, platform_fee_amount,
-          auction_start_price,
-          auction_current_price,
-          winner_bid:winner_bid_id (
-            bid_amount
-          )
-        `)
+        .select('id, title, end_time, model_payout_amount, payout_status, profit_amount, platform_fee_amount, auction_current_price, auction_start_price')
         .eq('creator_id', userId)
         .eq('status', 'completed')
         .order('end_time', { ascending: false })
-
-      if (auctionQueryError) {
-        console.error('[Payout Debug] Query error:', auctionQueryError);
-      }
-
-      console.log('[Payout Debug] Query result:', {
-        data_exists: !!allCompletedAuctions,
-        data_length: allCompletedAuctions?.length,
-        error: auctionQueryError,
-        first_auction: allCompletedAuctions?.[0] ? {
-          id: allCompletedAuctions[0].id,
-          title: allCompletedAuctions[0].title,
-          winner_bid: allCompletedAuctions[0].winner_bid,
-          auction_current_price: allCompletedAuctions[0].auction_current_price
-        } : null
-      });
 
       // Filter in code: include auctions where payout_status is null or pending
       // (processing = payout requested, should NOT appear in pending payouts)
@@ -177,10 +152,8 @@ export async function GET(request: NextRequest) {
           ended_at: auction.end_time,
           model_amount: Number(auction.model_payout_amount),
           payout_status: auction.payout_status,
-          // Profit breakdown - use actual winning bid amount from winner_bid join
-          // Note: winner_bid is returned as an array by Supabase, so access first element
-          // Fallback to auction_current_price if winner_bid is not available
-          winning_amount: Number(auction.winner_bid?.[0]?.bid_amount || auction.auction_current_price) || 0,
+          // Profit breakdown
+          winning_amount: Number(auction.auction_current_price) || 0,
           start_price: Number(auction.auction_start_price) || 0,
           profit_amount: Number(auction.profit_amount) || 0,
           platform_fee_amount: Number(auction.platform_fee_amount) || 0,
