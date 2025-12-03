@@ -533,15 +533,15 @@ export default function AuctionDetailClient() {
                 </h1>
                 <p className={`text-gray-900 font-bold mt-0 order-1 sm:order-2 ${
                   ((auction as any).creator?.user_name || (auction as any).creator?.email || '').length > 25
-                    ? 'text-[22px] sm:text-[16px]'
-                    : 'text-[22px] sm:text-[18px]'
+                    ? 'text-[18px] sm:text-[16px]'
+                    : 'text-[18px] sm:text-[18px]'
                 }`}>
                   {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
                 </p>
                 <p className={`text-gray-900 font-bold mt-0 order-3 ${
                   (linkedBusiness.business_name || '').length > 25
-                    ? 'text-[22px] sm:text-[16px]'
-                    : 'text-[22px] sm:text-[18px]'
+                    ? 'text-[16px] sm:text-[16px]'
+                    : 'text-[16px] sm:text-[18px]'
                 }`}>
                   {linkedBusiness.business_name}
                 </p>
