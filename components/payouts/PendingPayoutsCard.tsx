@@ -69,7 +69,7 @@ export function PendingPayoutsCard({
                 selectedAuctionIds.has(payout.auction_id)
                   ? 'border border-purple-500'
                   : 'border border-gray-600'
-              } ${!payout.payout_unlocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:opacity-98'}`}
+              } ${!payout.payout_unlocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:opacity-94'}`}
             >
               {/* Single Horizontal Row */}
               <div className="flex items-center gap-3 md:gap-4">
