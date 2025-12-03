@@ -60,46 +60,62 @@ export class AuctionStrategy implements IPaymentStrategy {
         // Retrieve the existing PaymentIntent
         const existingPaymentIntent = await stripe.paymentIntents.retrieve(auctionContext.payment_intent_id);
 
-        // Calculate new amount (may have changed from estimate)
-        const aedAmount = context.amount;
-        const usdAmount = aedAmount / PAYMENT_CONFIG.currency.AED_TO_USD_RATE;
-        const usdCents = Math.round(usdAmount * 100);
+        // CRITICAL FIX: Only reuse PaymentIntent if it's still in a reusable state
+        // If already authorized (requires_capture) or in another non-reusable state,
+        // we must create a NEW PaymentIntent instead
+        const reusableStatuses = ['requires_payment_method', 'requires_confirmation'];
 
-        // Update the PaymentIntent with actual bid amount
-        const paymentIntent = await stripe.paymentIntents.update(auctionContext.payment_intent_id, {
-          amount: usdCents, // Update amount if changed
-          metadata: {
-            ...existingPaymentIntent.metadata, // Preserve existing metadata
-            type: 'auction_bid',
-            auction_id: auctionContext.auction_id,
-            bid_id: auctionContext.bid_id || '', // Will be updated after bid creation
-            bidder_email: auctionContext.bidder_email,
-            bidder_name: auctionContext.bidder_name,
-            is_guest: auctionContext.is_guest.toString(),
-            guest_bidder_id: auctionContext.guest_bidder_id || '',
-            original_amount_aed: aedAmount.toString(),
-            converted_amount_usd: usdAmount.toFixed(2),
-          },
-          description: `Bid on auction: ${context.description || auctionContext.auction_id}`,
-        });
-
-        console.log('[AuctionStrategy] Updated preloaded PaymentIntent:', {
-          payment_intent_id: paymentIntent.id,
-          customer_id: paymentIntent.customer,
-          old_amount: existingPaymentIntent.amount,
-          new_amount: usdCents,
-        });
-
-        return {
-          success: true,
-          payment_intent_id: paymentIntent.id,
-          metadata: {
-            client_secret: paymentIntent.client_secret,
-            stripe_customer_id: paymentIntent.customer as string,
-            has_saved_payment_method: false,
+        if (!reusableStatuses.includes(existingPaymentIntent.status)) {
+          console.log('[AuctionStrategy] PaymentIntent not reusable, will create new one:', {
             payment_intent_id: auctionContext.payment_intent_id,
-          },
-        };
+            current_status: existingPaymentIntent.status,
+            reusable_statuses: reusableStatuses,
+            note: 'Falling through to create fresh PaymentIntent',
+          });
+          // Fall through to create new PaymentIntent (don't return, let code continue below)
+        } else {
+          // PaymentIntent IS reusable - proceed with update
+          // Calculate new amount (may have changed from estimate)
+          const aedAmount = context.amount;
+          const usdAmount = aedAmount / PAYMENT_CONFIG.currency.AED_TO_USD_RATE;
+          const usdCents = Math.round(usdAmount * 100);
+
+          // Update the PaymentIntent with actual bid amount
+          const paymentIntent = await stripe.paymentIntents.update(auctionContext.payment_intent_id, {
+            amount: usdCents, // Update amount if changed
+            metadata: {
+              ...existingPaymentIntent.metadata, // Preserve existing metadata
+              type: 'auction_bid',
+              auction_id: auctionContext.auction_id,
+              bid_id: auctionContext.bid_id || '', // Will be updated after bid creation
+              bidder_email: auctionContext.bidder_email,
+              bidder_name: auctionContext.bidder_name,
+              is_guest: auctionContext.is_guest.toString(),
+              guest_bidder_id: auctionContext.guest_bidder_id || '',
+              original_amount_aed: aedAmount.toString(),
+              converted_amount_usd: usdAmount.toFixed(2),
+            },
+            description: `Bid on auction: ${context.description || auctionContext.auction_id}`,
+          });
+
+          console.log('[AuctionStrategy] Updated preloaded PaymentIntent:', {
+            payment_intent_id: paymentIntent.id,
+            customer_id: paymentIntent.customer,
+            old_amount: existingPaymentIntent.amount,
+            new_amount: usdCents,
+          });
+
+          return {
+            success: true,
+            payment_intent_id: paymentIntent.id,
+            metadata: {
+              client_secret: paymentIntent.client_secret,
+              stripe_customer_id: paymentIntent.customer as string,
+              has_saved_payment_method: false,
+              payment_intent_id: auctionContext.payment_intent_id,
+            },
+          };
+        }
       }
 
       // Get or create Stripe customer for guest bidders
