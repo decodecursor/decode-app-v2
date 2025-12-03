@@ -43,6 +43,7 @@ export default function AuctionDetailClient() {
   const [guestBidId, setGuestBidId] = useState<string | null>(null);
   const [linkedBusiness, setLinkedBusiness] = useState<any>(null);
   const [cachedCreatorPhoto, setCachedCreatorPhoto] = useState<string | null>(null);
+  const [cachedCreatorName, setCachedCreatorName] = useState<string | null>(null);
 
   const { auction, isConnected, error, isLoading, refresh, retry } = useAuctionRealtime(auctionId);
   const { refresh: refreshLeaderboard } = useLeaderboard(auctionId, userEmail);
@@ -95,10 +96,15 @@ export default function AuctionDetailClient() {
     }
   }, [auction?.linked_business_id, linkedBusiness]);
 
-  // Cache creator photo URL to prevent grey placeholder during re-fetch
+  // Cache creator photo URL and name to prevent grey placeholder/unknown model during re-fetch
   useEffect(() => {
-    if (auction && (auction as any).creator?.profile_photo_url) {
-      setCachedCreatorPhoto((auction as any).creator.profile_photo_url);
+    if (auction && (auction as any).creator) {
+      if ((auction as any).creator.profile_photo_url) {
+        setCachedCreatorPhoto((auction as any).creator.profile_photo_url);
+      }
+      if ((auction as any).creator.user_name || (auction as any).creator.email) {
+        setCachedCreatorName((auction as any).creator.user_name || (auction as any).creator.email);
+      }
     }
   }, [auction]);
 
@@ -547,11 +553,11 @@ export default function AuctionDetailClient() {
                   {auction.title}
                 </h1>
                 <p className={`text-gray-900 font-bold mt-0 order-1 sm:order-1 ${
-                  ((auction as any).creator?.user_name || (auction as any).creator?.email || '').length > 25
+                  ((auction as any).creator?.user_name || (auction as any).creator?.email || cachedCreatorName || '').length > 25
                     ? 'text-[18px] sm:text-[16px]'
                     : 'text-[18px] sm:text-[18px]'
                 }`}>
-                  {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
+                  {(auction as any).creator?.user_name || (auction as any).creator?.email || cachedCreatorName || 'Unknown Model'}
                 </p>
                 <p className={`text-gray-900 font-bold mt-0 order-3 ${
                   (linkedBusiness.business_name || '').length > 25
@@ -650,7 +656,7 @@ export default function AuctionDetailClient() {
                 <div className="flex-1 min-w-0">
                   <h1 className="text-[26px] sm:text-[36px] font-bold text-gray-900 break-words mb-0">{auction.title}</h1>
                   <p className="text-gray-500 text-[14px] sm:text-[18px] mt-0">
-                    for {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
+                    for {(auction as any).creator?.user_name || (auction as any).creator?.email || cachedCreatorName || 'Unknown Model'}
                   </p>
                 </div>
               </div>
