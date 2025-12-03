@@ -317,13 +317,13 @@ export class BiddingService {
 
   /**
    * Confirm bid payment authorization
-   * Updates the payment_intent_status to 'requires_capture' after client confirms
+   * CRITICAL: Verifies actual Stripe status before updating database
    */
   async confirmBidPayment(bidId: string): Promise<{ success: boolean; error?: string }> {
     const supabase = createServiceRoleClient();
 
     try {
-      // Get bid with auction_id for manageDualPreAuth
+      // Get bid with payment_intent_id and auction_id
       const { data: bid, error: fetchError } = await supabase
         .from('bids')
         .select('payment_intent_id, auction_id')
@@ -334,7 +334,29 @@ export class BiddingService {
         return { success: false, error: 'Bid not found' };
       }
 
-      // Update payment_intent_status only - DO NOT set bid status here
+      // CRITICAL FIX: Verify actual Stripe PaymentIntent status before updating DB
+      const paymentIntent = await stripe.paymentIntents.retrieve(bid.payment_intent_id);
+
+      console.log('[BiddingService] confirmBidPayment - Stripe status check:', {
+        bid_id: bidId,
+        payment_intent_id: bid.payment_intent_id,
+        stripe_status: paymentIntent.status,
+      });
+
+      // Only proceed if Stripe confirms payment is actually authorized
+      if (paymentIntent.status !== 'requires_capture') {
+        console.error('[BiddingService] Payment NOT authorized in Stripe:', {
+          bid_id: bidId,
+          expected: 'requires_capture',
+          actual: paymentIntent.status,
+        });
+        return {
+          success: false,
+          error: `Payment not authorized. Stripe status: ${paymentIntent.status}`,
+        };
+      }
+
+      // NOW safe to update DB - Stripe has confirmed authorization
       const { error: updateError } = await supabase
         .from('bids')
         .update({
@@ -344,8 +366,7 @@ export class BiddingService {
 
       if (updateError) throw updateError;
 
-      // CRITICAL: Re-evaluate bid statuses after payment confirmation
-      // This ensures the bid appears in leaderboard with correct ranking
+      // Re-evaluate bid statuses after VERIFIED payment confirmation
       await this.paymentProcessor.manageDualPreAuth(bid.auction_id, bidId);
 
       return { success: true };
