@@ -99,6 +99,7 @@ export class AuctionPaymentProcessor {
 
   /**
    * Capture winning bid payment
+   * CRITICAL: Includes safety checks to prevent incorrect 'failed' status
    */
   async captureWinningBid(bidId: string): Promise<{ success: boolean; error?: string }> {
     const supabase = createServiceRoleClient();
@@ -115,7 +116,27 @@ export class AuctionPaymentProcessor {
         return { success: false, error: 'Bid not found' };
       }
 
-      // Capture the payment
+      // SAFETY CHECK: If already captured in our DB, return success
+      if (bid.payment_intent_status === 'captured' || bid.status === 'captured') {
+        console.log('[AuctionPaymentProcessor] Bid already captured, skipping:', bidId);
+        return { success: true };
+      }
+
+      // SAFETY CHECK: If already marked as failed, don't retry (prevents loops)
+      if (bid.status === 'failed') {
+        console.log('[AuctionPaymentProcessor] Bid already failed, skipping:', bidId);
+        return { success: false, error: 'Bid already marked as failed' };
+      }
+
+      console.log('[AuctionPaymentProcessor] Attempting to capture bid:', {
+        bid_id: bidId,
+        bid_amount: bid.bid_amount,
+        payment_intent_id: bid.payment_intent_id,
+        current_status: bid.status,
+        current_payment_status: bid.payment_intent_status,
+      });
+
+      // Capture the payment (includes Stripe status pre-check)
       const result = await this.strategy.capturePayment(bid.payment_intent_id);
 
       if (result.success) {
@@ -123,9 +144,16 @@ export class AuctionPaymentProcessor {
         await this.updateBidStatus(bid.id, 'captured');
         await this.updatePaymentIntentStatus(bid.id, 'captured');
 
+        console.log('[AuctionPaymentProcessor] Successfully captured bid:', bidId);
         return { success: true };
       } else {
-        // Update bid status to failed
+        // Only mark as failed if capture truly failed (not state issues)
+        // The capturePayment function now handles "already captured" as success
+        console.error('[AuctionPaymentProcessor] Capture failed for bid:', {
+          bid_id: bidId,
+          error: result.error,
+        });
+
         await this.updateBidStatus(bid.id, 'failed');
         await this.updatePaymentIntentStatus(bid.id, 'failed');
 

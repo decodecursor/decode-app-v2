@@ -268,7 +268,7 @@ export class BiddingService {
         .from('bids')
         .select('*')
         .eq('auction_id', auctionId)
-        .in('status', ['winning', 'outbid', 'captured']) // Only show bids with confirmed payment
+        .in('status', ['winning', 'outbid', 'captured', 'cancelled']) // Show all bids except pending/failed
         .order('bid_amount', { ascending: false })
         .order('placed_at', { ascending: true })
         .limit(limit);

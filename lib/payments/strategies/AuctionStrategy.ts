@@ -297,9 +297,45 @@ export class AuctionStrategy implements IPaymentStrategy {
 
   /**
    * Capture a pre-authorized payment
+   * CRITICAL: Pre-checks Stripe status before capture to prevent incorrect 'failed' marking
    */
   async capturePayment(paymentIntentId: string): Promise<PaymentResult> {
     try {
+      // First, check current status of PaymentIntent in Stripe
+      const currentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+      console.log('[AuctionStrategy] capturePayment - checking status:', {
+        payment_intent_id: paymentIntentId,
+        current_status: currentIntent.status,
+      });
+
+      // If already captured/succeeded, return success (idempotent)
+      if (currentIntent.status === 'succeeded') {
+        console.log('[AuctionStrategy] PaymentIntent already succeeded, returning success');
+        return {
+          success: true,
+          payment_intent_id: currentIntent.id,
+          metadata: {
+            amount: currentIntent.amount,
+            status: currentIntent.status,
+          },
+        };
+      }
+
+      // If not in capturable state, return error with details
+      if (currentIntent.status !== 'requires_capture') {
+        console.error('[AuctionStrategy] PaymentIntent not in capturable state:', {
+          id: paymentIntentId,
+          status: currentIntent.status,
+          expected: 'requires_capture',
+        });
+        return {
+          success: false,
+          error: `PaymentIntent status is '${currentIntent.status}', expected 'requires_capture'`,
+        };
+      }
+
+      // Now safe to capture
       const paymentIntent = await stripe.paymentIntents.capture(paymentIntentId);
 
       return {
@@ -310,8 +346,31 @@ export class AuctionStrategy implements IPaymentStrategy {
           status: paymentIntent.status,
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Auction payment capture error:', error);
+
+      // Handle "already captured" error as success (race condition safety)
+      if (error.code === 'payment_intent_unexpected_state' ||
+          error.message?.includes('already been captured') ||
+          error.message?.includes('has a status of succeeded')) {
+        console.log('[AuctionStrategy] PaymentIntent already captured (caught in error handler)');
+        try {
+          const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+          if (intent.status === 'succeeded') {
+            return {
+              success: true,
+              payment_intent_id: intent.id,
+              metadata: {
+                amount: intent.amount,
+                status: intent.status,
+              },
+            };
+          }
+        } catch (retrieveError) {
+          console.error('Failed to retrieve PaymentIntent after error:', retrieveError);
+        }
+      }
+
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to capture payment',
