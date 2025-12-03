@@ -523,25 +523,25 @@ export default function AuctionDetailClient() {
               </div>
 
               {/* Center Text - Responsive sizing based on text length */}
-              <div className="flex-1 text-center min-w-0 px-1">
-                <h1 className={`font-bold text-gray-900 break-words mb-0 ${
-                  auction.title.length > 20 ? 'text-[18px] sm:text-[24px]' :
-                  auction.title.length > 15 ? 'text-[22px] sm:text-[30px]' :
-                  'text-[26px] sm:text-[36px]'
+              <div className="flex-1 text-center min-w-0 px-1 flex flex-col">
+                <h1 className={`font-normal text-gray-500 break-words mb-0 order-2 sm:order-1 ${
+                  auction.title.length > 20 ? 'text-[14px] sm:text-[24px]' :
+                  auction.title.length > 15 ? 'text-[14px] sm:text-[30px]' :
+                  'text-[14px] sm:text-[36px]'
                 }`}>
                   {auction.title}
                 </h1>
-                <p className={`text-gray-500 mt-0 ${
+                <p className={`text-gray-900 font-bold mt-0 order-1 sm:order-2 ${
                   ((auction as any).creator?.user_name || (auction as any).creator?.email || '').length > 25
-                    ? 'text-[12px] sm:text-[16px]'
-                    : 'text-[14px] sm:text-[18px]'
+                    ? 'text-[22px] sm:text-[16px]'
+                    : 'text-[22px] sm:text-[18px]'
                 }`}>
                   {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
                 </p>
-                <p className={`text-gray-900 font-bold mt-0 ${
+                <p className={`text-gray-900 font-bold mt-0 order-3 ${
                   (linkedBusiness.business_name || '').length > 25
-                    ? 'text-[12px] sm:text-[16px]'
-                    : 'text-[14px] sm:text-[18px]'
+                    ? 'text-[22px] sm:text-[16px]'
+                    : 'text-[22px] sm:text-[18px]'
                 }`}>
                   {linkedBusiness.business_name}
                 </p>

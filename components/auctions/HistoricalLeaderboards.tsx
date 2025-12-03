@@ -312,7 +312,8 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
                 {auction.leaderboard.map((entry) => {
                   const timeAgo = new Date(entry.placed_at).toLocaleDateString('en-US', {
                     month: 'short',
-                    day: 'numeric'
+                    day: 'numeric',
+                    year: 'numeric'
                   });
 
                   return (
