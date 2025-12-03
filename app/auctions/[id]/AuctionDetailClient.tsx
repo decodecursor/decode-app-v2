@@ -502,9 +502,9 @@ export default function AuctionDetailClient() {
           {/* Conditional layout: Dual-avatar if business linked, single-avatar otherwise */}
           {linkedBusiness ? (
             /* DUAL-AVATAR LAYOUT - When beauty business is linked */
-            <div className="flex items-center justify-between gap-1 sm:justify-between sm:gap-4 sm:bg-gray-100 sm:px-6 sm:py-4 sm:rounded-lg">
+            <div className="flex items-center justify-center gap-1 sm:gap-0 sm:relative">
               {/* Left Avatar - Model */}
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 sm:relative sm:z-10">
                 {(auction as any).creator?.instagram_handle ? (
                   <a
                     href={`https://instagram.com/${(auction as any).creator.instagram_handle}`}
@@ -544,20 +544,20 @@ export default function AuctionDetailClient() {
               </div>
 
               {/* Center Text - Responsive sizing based on text length */}
-              <div className="flex-1 text-center min-w-0 px-0.5 flex flex-col">
-                <h1 className="font-normal text-gray-500 break-words mb-0 order-2 sm:order-2 text-[14px] sm:text-[18px]">
+              <div className="flex-1 text-center min-w-0 px-0.5 flex flex-col sm:bg-gray-100 sm:h-[90px] sm:justify-center sm:px-8 sm:mx-[-45px] sm:z-[-1]">
+                <h1 className="font-normal text-gray-500 break-words mb-0 order-2 sm:order-2 text-[14px] sm:text-[17px]">
                   {auction.title}
                 </h1>
-                <p className="text-gray-900 font-bold mt-0 order-1 sm:order-1 text-[18px] sm:text-[24px]">
+                <p className="text-gray-900 font-bold mt-0 order-1 sm:order-1 text-[18px] sm:text-[23px]">
                   {(auction as any).creator?.user_name || (auction as any).creator?.email || cachedCreatorName || 'Unknown Model'}
                 </p>
-                <p className="text-gray-900 font-bold mt-0 order-3 text-[16px] sm:text-[24px]">
+                <p className="text-gray-900 font-bold mt-0 order-3 text-[16px] sm:text-[23px]">
                   {linkedBusiness.business_name}
                 </p>
               </div>
 
               {/* Right Avatar - Beauty Business */}
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 sm:relative sm:z-10">
                 {linkedBusiness?.instagram_handle ? (
                   <a
                     href={`https://instagram.com/${linkedBusiness.instagram_handle}`}
