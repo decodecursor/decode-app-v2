@@ -228,7 +228,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
       return {
         stripe: 'border-l-red-500',
         hover: 'hover:border-red-400',
-        bg: 'bg-blue-900/30 bg-gradient-to-br from-red-900/15'
+        bg: 'bg-blue-900/30 bg-gradient-to-br from-red-900/25'
       };
     }
 
@@ -241,14 +241,14 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
         return {
           stripe: 'border-l-green-500',
           hover: 'hover:border-green-400',
-          bg: 'bg-blue-900/30 bg-gradient-to-br from-green-900/15'
+          bg: 'bg-blue-900/30 bg-gradient-to-br from-green-900/25'
         };
       }
       // If no bids, ENDED (gray)
       return {
         stripe: 'border-l-gray-500',
         hover: 'hover:border-gray-400',
-        bg: 'bg-blue-900/30 bg-gradient-to-br from-gray-900/15'
+        bg: 'bg-blue-900/30 bg-gradient-to-br from-gray-900/25'
       };
     }
 
@@ -355,7 +355,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
           <div className="relative flex items-center gap-3">
             {/* Left: Title */}
             <div className="flex-1 min-w-0 pr-20">
-              <h3 className="text-lg md:text-[22px] font-semibold text-white truncate">
+              <h3 className="text-lg md:text-[26px] font-semibold text-white truncate">
                 {auction.title}
               </h3>
             </div>
