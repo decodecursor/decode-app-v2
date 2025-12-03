@@ -285,7 +285,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     // Check cancelled status FIRST (before time-based checks)
     if (auction.status === 'cancelled') {
       return (
-        <span className="px-3 py-1.5 text-sm font-medium text-red-300 bg-gray-900/80 backdrop-blur-md rounded-full border border-red-300 shadow-lg shadow-red-500/20 flex items-center gap-1.5">
+        <span className="px-3 py-1.5 text-sm font-medium text-red-500 bg-gray-900/80 backdrop-blur-md rounded-full border border-red-500 flex items-center gap-1.5">
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -301,7 +301,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
       // If auction has bids, show COMPLETED (green)
       if (auction.total_bids > 0) {
         return (
-          <span className="px-3 py-1.5 text-sm font-medium text-green-300 bg-gray-900/80 backdrop-blur-md rounded-full border border-green-300 shadow-lg shadow-green-500/20 flex items-center gap-1.5">
+          <span className="px-3 py-1.5 text-sm font-medium text-green-500 bg-gray-900/80 backdrop-blur-md rounded-full border border-green-500 flex items-center gap-1.5">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -311,7 +311,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
       }
       // If no bids, show ENDED (gray)
       return (
-        <span className="px-3 py-1.5 text-sm font-medium text-gray-300 bg-gray-900/80 backdrop-blur-md rounded-full border border-gray-300 shadow-lg shadow-gray-500/20 flex items-center gap-1.5">
+        <span className="px-3 py-1.5 text-sm font-medium text-gray-500 bg-gray-900/80 backdrop-blur-md rounded-full border border-gray-500 flex items-center gap-1.5">
           <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
             <rect x="6" y="6" width="12" height="12" rx="1" />
           </svg>
@@ -323,17 +323,17 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     switch (auction.status) {
       case 'active':
         return (
-          <span className="px-3 py-1.5 text-sm font-medium text-green-300 bg-gray-900/80 backdrop-blur-md rounded-full border border-green-300 shadow-lg shadow-green-500/30 flex items-center gap-1.5 animate-pulse">
+          <span className="px-3 py-1.5 text-sm font-medium text-purple-500 bg-gray-900/80 backdrop-blur-md rounded-full border border-purple-500 flex items-center gap-1.5 animate-pulse">
             <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
             </span>
             Live
           </span>
         );
       case 'pending':
         return (
-          <span className="px-3 py-1.5 text-sm font-medium text-blue-300 bg-gray-900/80 backdrop-blur-md rounded-full border border-blue-300 shadow-lg shadow-blue-500/20 flex items-center gap-1.5">
+          <span className="px-3 py-1.5 text-sm font-medium text-blue-500 bg-gray-900/80 backdrop-blur-md rounded-full border border-blue-500 flex items-center gap-1.5">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
