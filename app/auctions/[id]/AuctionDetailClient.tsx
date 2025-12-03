@@ -481,7 +481,9 @@ export default function AuctionDetailClient() {
           {/* Conditional layout: Dual-avatar if business linked, single-avatar otherwise */}
           {linkedBusiness ? (
             /* DUAL-AVATAR LAYOUT - When beauty business is linked */
-            <div className="flex items-center justify-between gap-1">
+            <div className="flex items-start gap-3">
+              {/* Avatar Container - Stacked vertically */}
+              <div className="flex flex-col gap-2 flex-shrink-0">
               {/* Left Avatar - Model */}
               <div className="flex-shrink-0">
                 {(auction as any).creator?.instagram_handle ? (
@@ -522,31 +524,6 @@ export default function AuctionDetailClient() {
                 )}
               </div>
 
-              {/* Center Text - Responsive sizing based on text length */}
-              <div className="flex-1 text-center min-w-0 px-0.5 flex flex-col">
-                <h1 className={`font-normal text-gray-500 break-words mb-0 order-2 sm:order-1 ${
-                  auction.title.length > 20 ? 'text-[14px] sm:text-[24px]' :
-                  auction.title.length > 15 ? 'text-[14px] sm:text-[30px]' :
-                  'text-[14px] sm:text-[36px]'
-                }`}>
-                  {auction.title}
-                </h1>
-                <p className={`text-gray-900 font-bold mt-0 order-1 sm:order-2 ${
-                  ((auction as any).creator?.user_name || (auction as any).creator?.email || '').length > 25
-                    ? 'text-[18px] sm:text-[16px]'
-                    : 'text-[18px] sm:text-[18px]'
-                }`}>
-                  {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
-                </p>
-                <p className={`text-gray-900 font-bold mt-0 order-3 ${
-                  (linkedBusiness.business_name || '').length > 25
-                    ? 'text-[16px] sm:text-[16px]'
-                    : 'text-[16px] sm:text-[18px]'
-                }`}>
-                  {linkedBusiness.business_name}
-                </p>
-              </div>
-
               {/* Right Avatar - Beauty Business */}
               <div className="flex-shrink-0">
                 {linkedBusiness?.instagram_handle ? (
@@ -585,6 +562,32 @@ export default function AuctionDetailClient() {
                     )}
                   </div>
                 )}
+              </div>
+              </div>
+
+              {/* Text Content - Left aligned */}
+              <div className="flex-1 text-left min-w-0 px-0.5 flex flex-col">
+                <p className={`text-gray-900 font-bold mt-0 order-1 ${
+                  ((auction as any).creator?.user_name || (auction as any).creator?.email || '').length > 25
+                    ? 'text-[18px]'
+                    : 'text-[18px]'
+                }`}>
+                  {(auction as any).creator?.user_name || (auction as any).creator?.email || 'Unknown Model'}
+                </p>
+                <h1 className={`font-normal text-gray-500 break-words mb-0 order-2 ${
+                  auction.title.length > 20 ? 'text-[14px]' :
+                  auction.title.length > 15 ? 'text-[14px]' :
+                  'text-[14px]'
+                }`}>
+                  {auction.title}
+                </h1>
+                <p className={`text-gray-900 font-bold mt-0 order-3 ${
+                  (linkedBusiness.business_name || '').length > 25
+                    ? 'text-[16px]'
+                    : 'text-[18px]'
+                }`}>
+                  {linkedBusiness.business_name}
+                </p>
               </div>
             </div>
           ) : (
