@@ -65,7 +65,7 @@ export function AuctionTimer({ auction, showProgress = false, className = '' }: 
 
         {/* Status badges */}
         {isEnding && !hasEnded && (
-          <span className="px-1.5 py-0.5 text-[8px] sm:text-[12px] font-medium text-orange-700 bg-orange-100 rounded-full">
+          <span className="px-2 py-px text-[8px] sm:text-[12px] font-medium text-orange-700 bg-orange-100 rounded-full">
             Ending Soon!
           </span>
         )}
