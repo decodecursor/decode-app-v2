@@ -481,7 +481,7 @@ export default function AuctionDetailClient() {
           {/* Conditional layout: Dual-avatar if business linked, single-avatar otherwise */}
           {linkedBusiness ? (
             /* DUAL-AVATAR LAYOUT - When beauty business is linked */
-            <div className="flex items-center justify-between gap-1 sm:justify-start sm:gap-3">
+            <div className="flex items-center justify-between gap-1 sm:justify-start sm:gap-2">
               {/* Left Avatar - Model */}
               <div className="flex-shrink-0">
                 {(auction as any).creator?.instagram_handle ? (
