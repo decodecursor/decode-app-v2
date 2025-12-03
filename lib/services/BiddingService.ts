@@ -322,9 +322,10 @@ export class BiddingService {
     const supabase = createServiceRoleClient();
 
     try {
+      // Get bid with auction_id for manageDualPreAuth
       const { data: bid, error: fetchError } = await supabase
         .from('bids')
-        .select('payment_intent_id')
+        .select('payment_intent_id, auction_id')
         .eq('id', bidId)
         .single();
 
@@ -332,18 +333,19 @@ export class BiddingService {
         return { success: false, error: 'Bid not found' };
       }
 
-      // Update payment_intent_status only - bid status is already set by manageDualPreAuth()
-      // DO NOT set status here - it would overwrite correct rankings due to race conditions
-      const { data: updatedBid, error: updateError } = await supabase
+      // Update payment_intent_status only - DO NOT set bid status here
+      const { error: updateError } = await supabase
         .from('bids')
         .update({
           payment_intent_status: 'requires_capture',
         })
-        .eq('id', bidId)
-        .select()
-        .single();
+        .eq('id', bidId);
 
       if (updateError) throw updateError;
+
+      // CRITICAL: Re-evaluate bid statuses after payment confirmation
+      // This ensures the bid appears in leaderboard with correct ranking
+      await this.paymentProcessor.manageDualPreAuth(bid.auction_id, bidId);
 
       return { success: true };
     } catch (error) {
