@@ -367,7 +367,8 @@ export class BiddingService {
         .select('*')
         .eq('auction_id', auctionId)
         .eq('status', 'winning')
-        .order('placed_at', { ascending: true })
+        .order('bid_amount', { ascending: false })  // CRITICAL FIX: Order by AMOUNT first
+        .order('placed_at', { ascending: true })    // Tiebreaker: earliest if equal amounts
         .limit(1)
         .maybeSingle();
 

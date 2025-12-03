@@ -42,11 +42,12 @@ export class AuctionPaymentProcessor {
       const topTwoBids = bids.slice(0, 2);
 
       // Update bid statuses - reuse the same supabase client
+      // CRITICAL FIX: Mark highest bid as 'winning' based on AMOUNT, not newBidId
       for (const bid of bids) {
-        if (bid.id === newBidId) {
-          // New highest bid
+        if (bid.id === topTwoBids[0].id) {
+          // Highest bid by amount (regardless of whether it's new)
           await this.updateBidStatusWithClient(supabase, bid.id, 'winning');
-        } else if (topTwoBids.find(b => b.id === bid.id)) {
+        } else if (topTwoBids[1] && bid.id === topTwoBids[1].id) {
           // Second highest bid
           await this.updateBidStatusWithClient(supabase, bid.id, 'outbid');
         } else {

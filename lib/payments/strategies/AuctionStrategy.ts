@@ -614,6 +614,18 @@ export class AuctionStrategy implements IPaymentStrategy {
             payment_intent_status: updatedBid.payment_intent_status,
             note: 'Race condition detected and resolved automatically',
           });
+
+          // CRITICAL FIX: Re-evaluate all bids to ensure only highest is 'winning'
+          // This bid might not be the highest, so manageDualPreAuth will correct the statuses
+          try {
+            const { AuctionPaymentProcessor } = await import('@/lib/payments/processors/AuctionPaymentProcessor');
+            const paymentProcessor = new AuctionPaymentProcessor();
+            await paymentProcessor.manageDualPreAuth(paymentIntent.metadata.auction_id, updatedBid.id);
+            console.log('[AuctionStrategy] ✅ Re-evaluated bid statuses after fallback');
+          } catch (reEvalError) {
+            console.error('[AuctionStrategy] ⚠️ Failed to re-evaluate bids:', reEvalError);
+            // Non-fatal error - bid is still authorized, just might have wrong status temporarily
+          }
         }
       } else {
         // Could not find bid - log critical error
