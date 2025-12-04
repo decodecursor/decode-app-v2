@@ -1489,7 +1489,7 @@ body {
 
   /* Override for content cards on small screens */
   .content-card-mobile-spacing {
-    margin: 0 auto !important;
+    margin: 0 auto 24px auto !important;
   }
 
   /* Ensure space-y-6 rules work on small screens - reduced spacing */
@@ -1579,7 +1579,7 @@ body {
 
   /* Override for content cards in landscape */
   .content-card-mobile-spacing {
-    margin: 0 auto !important;
+    margin: 0 auto 24px auto !important;
   }
 
   /* Ensure space-y-6 rules work in landscape - reduced spacing */
