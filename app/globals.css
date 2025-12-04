@@ -1150,7 +1150,7 @@ body {
 
   /* Content card that follows header - remove top margin but keep bottom margin for spacing between content cards */
   .content-card-mobile-spacing {
-    margin: 0 auto 12px auto !important;
+    margin: 0 auto 24px auto !important;
   }
 
   /* CRITICAL: Revenue/Transactions text labels - readable size */
