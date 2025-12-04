@@ -508,53 +508,6 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             {getStatusBadge()}
           </div>
 
-          {/* Row 2: Avatars - Mobile only, top-right corner */}
-          <div className="flex md:hidden items-center gap-0 flex-shrink-0">
-            {/* Model Image */}
-            <div className="instagram-avatar" style={{ width: '44px', height: '44px' }}>
-              {hasCreator(auction) && auction.creator.profile_photo_url ? (
-                <img
-                  src={auction.creator.profile_photo_url}
-                  alt={auction.creator.user_name || 'Model'}
-                />
-              ) : (
-                <div className="avatar-fallback">
-                  <span className="text-white text-sm font-bold">
-                    {hasCreator(auction) && auction.creator.user_name ? auction.creator.user_name.charAt(0).toUpperCase() : 'M'}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Beauty Business Image - Always use instagram-avatar style on mobile */}
-            <div className="relative z-10 -ml-[8px]">
-              <div
-                className="instagram-avatar cursor-pointer"
-                style={{ width: '44px', height: '44px' }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setShowBusinessModal(true);
-                }}
-                role="button"
-                aria-label={linkedBusiness ? "Manage beauty business link" : "Link beauty business"}
-              >
-                {linkedBusiness?.business_photo_url ? (
-                  <img
-                    src={linkedBusiness.business_photo_url}
-                    alt={linkedBusiness.business_name || 'Beauty Business'}
-                  />
-                ) : (
-                  <div className="avatar-fallback bg-gray-500">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
           {/* Description on second row if exists */}
           {auction.description && (
             <p className="mt-2 text-xs md:text-sm text-gray-300 line-clamp-2">
