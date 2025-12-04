@@ -664,11 +664,11 @@ export default function PayoutsPage() {
                     </div>
 
                     {/* Right: Mascot Image */}
-                    <div className="hidden md:block flex-shrink-0 self-start -ml-10 -mt-11 -mb-6">
+                    <div className="block flex-shrink-0 self-start -ml-4 -mt-4 -mb-2 md:-ml-10 md:-mt-11 md:-mb-6">
                       <img
                         src="/images/Mascot_Money Count_png.png"
                         alt="Money counting mascot"
-                        className="w-[240px] h-auto max-h-[216px] object-contain"
+                        className="w-[120px] md:w-[240px] h-auto max-h-[110px] md:max-h-[216px] object-contain"
                       />
                     </div>
                   </div>
