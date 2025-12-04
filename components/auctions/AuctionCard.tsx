@@ -682,7 +682,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               <button
                 onClick={() => setShowDeactivateConfirm(true)}
                 disabled={deactivating}
-                className="text-xs md:text-sm px-3 py-1.5 transition-all border border-white/30 rounded-lg hover:bg-red-500/20 hover:border-red-500 hover:text-red-300 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="text-xs md:text-sm px-3 py-1.5 transition-all border-0 md:border md:border-white/30 rounded-lg hover:bg-red-500/20 hover:border-red-500 hover:text-red-300 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Deactivate auction"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
