@@ -33,6 +33,8 @@ function AuthPageContent() {
   const [preselectedRole, setPreselectedRole] = useState<string | null>(null)
   const [authenticatedEmail, setAuthenticatedEmail] = useState('')
   const [isCheckingAuth, setIsCheckingAuth] = useState(false)
+  const [authError, setAuthError] = useState<string | null>(null)
+  const [authTimeout, setAuthTimeout] = useState(false)
 
   // Format phone number for display (XX XXX XXXX)
   const formatPhoneNumber = (value: string) => {
@@ -110,7 +112,7 @@ function AuthPageContent() {
 
     // Handle email verification return
     if (verifiedParam === 'true') {
-      checkAuthState()
+      handleMagicLinkReturn()
     }
   }, [searchParams])
 
@@ -147,6 +149,117 @@ function AuthPageContent() {
       console.error('❌ [AUTH] Error checking auth state:', error)
     } finally {
       setIsCheckingAuth(false)
+    }
+  }
+
+  // Handle magic link return with proper token processing wait
+  const handleMagicLinkReturn = async (retryCount = 0) => {
+    console.log(`🔗 [AUTH] Magic link detected (attempt ${retryCount + 1}), waiting for token processing...`)
+    setIsCheckingAuth(true)
+    setAuthError(null)
+    setAuthTimeout(false)
+
+    // Set timeout for 10 seconds
+    const timeoutId = setTimeout(() => {
+      console.error('⏱️ [AUTH] Token processing timeout after 10s')
+      setAuthTimeout(true)
+      setIsCheckingAuth(false)
+
+      // Auto-retry once after 2 seconds if this is the first attempt
+      if (retryCount === 0) {
+        console.log('🔄 [AUTH] Auto-retrying in 2 seconds...')
+        setTimeout(() => {
+          handleMagicLinkReturn(1)
+        }, 2000)
+      } else {
+        setAuthError('Authentication took too long. The link may have expired.')
+      }
+    }, 10000)
+
+    try {
+      // Wait for Supabase SDK to process tokens from hash fragment
+      // The SDK's onAuthStateChange will fire when tokens are processed
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (session) {
+        // Tokens already processed, clear timeout and proceed
+        clearTimeout(timeoutId)
+        console.log('✅ [AUTH] Session found immediately')
+        await proceedWithAuthentication()
+      } else {
+        // Wait for auth state change event (tokens being processed)
+        console.log('⏳ [AUTH] Waiting for auth state change...')
+
+        const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+          console.log('🔔 [AUTH] Auth state changed:', event)
+
+          if (event === 'SIGNED_IN' && session) {
+            clearTimeout(timeoutId)
+            authListener.subscription.unsubscribe()
+            await proceedWithAuthentication()
+          } else if (event === 'TOKEN_REFRESHED' && session) {
+            clearTimeout(timeoutId)
+            authListener.subscription.unsubscribe()
+            await proceedWithAuthentication()
+          }
+        })
+      }
+    } catch (error: any) {
+      clearTimeout(timeoutId)
+      console.error('❌ [AUTH] Error during magic link processing:', error)
+      setIsCheckingAuth(false)
+
+      // Auto-retry once after 2 seconds if this is the first attempt
+      if (retryCount === 0) {
+        console.log('🔄 [AUTH] Auto-retrying in 2 seconds...')
+        setTimeout(() => {
+          handleMagicLinkReturn(1)
+        }, 2000)
+      } else {
+        setAuthError(error.message || 'Failed to process authentication link.')
+      }
+    }
+  }
+
+  // Proceed with authentication after tokens are verified
+  const proceedWithAuthentication = async () => {
+    try {
+      const { user } = await getUserWithProxy()
+
+      if (user && user.email_confirmed_at) {
+        console.log('✅ [AUTH] User verified:', user.id)
+
+        // Store user email for role modal
+        if (user.email) {
+          setAuthenticatedEmail(user.email)
+        }
+
+        // Check if user has a profile
+        const { data: profileData } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', user.id)
+          .single()
+
+        if (profileData) {
+          // User has profile, redirect to dashboard
+          console.log('✅ [AUTH] Redirecting to dashboard')
+          router.push('/dashboard')
+        } else {
+          // Show role selection modal
+          console.log('🆕 [AUTH] New user, showing role modal')
+          setShowRoleModal(true)
+          setIsCheckingAuth(false) // Allow modal to show
+        }
+      } else {
+        // No verified user found
+        setIsCheckingAuth(false)
+        setAuthError('Authentication failed. The link may have expired or already been used.')
+      }
+    } catch (error: any) {
+      console.error('❌ [AUTH] Error verifying user:', error)
+      setIsCheckingAuth(false)
+      setAuthError('Failed to verify your account. Please try again.')
     }
   }
 
@@ -351,10 +464,50 @@ function AuthPageContent() {
   // Show loading screen when checking auth after magic link
   if (isCheckingAuth) {
     return (
-      <div className="cosmic-bg min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4" />
-          <p className="text-white text-lg">Signing you in...</p>
+      <div className="cosmic-bg min-h-screen flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          {!authError ? (
+            <>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4" />
+              <p className="text-white text-lg mb-2">Signing you in...</p>
+              <p className="text-gray-400 text-sm">Processing your authentication link</p>
+            </>
+          ) : (
+            <>
+              <div className="text-6xl mb-4">⚠️</div>
+              <h2 className="text-white text-xl font-bold mb-3">Authentication Failed</h2>
+              <p className="text-gray-300 mb-6">{authError}</p>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    setAuthError(null)
+                    setAuthTimeout(false)
+                    handleMagicLinkReturn()
+                  }}
+                  className="cosmic-button-primary w-full py-3"
+                >
+                  Try Again
+                </button>
+                <button
+                  onClick={() => {
+                    setIsCheckingAuth(false)
+                    setAuthError(null)
+                    setAuthTimeout(false)
+                    setAuthMethod('select')
+                    setAuthStep('input')
+                  }}
+                  className="cosmic-button-secondary w-full py-3"
+                >
+                  Back to Login
+                </button>
+              </div>
+              <p className="text-gray-500 text-xs mt-6">
+                {authTimeout
+                  ? 'The authentication link may have expired. Request a new one.'
+                  : 'If this problem persists, try requesting a new magic link.'}
+              </p>
+            </>
+          )}
         </div>
       </div>
     )
