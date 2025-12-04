@@ -351,7 +351,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
       <Link href={`/auctions/${auction.id}`}>
         <div className="p-5 cursor-pointer">
         {/* Header */}
-        <div className="border-b border-gray-700 pb-4 mb-4 overflow-hidden">
+        <div className="border-b border-gray-700 pb-4 mb-4">
           {/* Mobile Layout: Title row, then Avatars row, then Status row */}
           {/* Desktop Layout: All in one row with absolute positioned avatars */}
 
