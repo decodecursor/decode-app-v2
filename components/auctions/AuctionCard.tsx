@@ -359,7 +359,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
           <div className="relative flex items-center gap-2 md:gap-3">
             {/* Left: Title */}
             <div className="flex-1 min-w-0 md:pr-20">
-              <h3 className="text-base md:text-[26px] font-semibold text-white truncate">
+              <h3 className="text-[20px] md:text-[26px] font-semibold text-white truncate">
                 {auction.title}
               </h3>
             </div>
@@ -630,11 +630,11 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             )}
 
             {/* Share + QR Code buttons - inline with video */}
-            <div className="flex gap-1 md:gap-2 md:ml-auto">
+            <div className="flex gap-1 md:gap-2 ml-auto">
               {/* Share Button */}
               <button
               onClick={handleShare}
-              className={`text-xs md:text-sm px-1.5 md:px-3 py-1 md:py-1.5 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1 md:gap-1.5 ${
+              className={`text-xs md:text-sm px-1.5 md:px-3 py-1 md:py-1.5 transition-all border-0 md:border md:border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1 md:gap-1.5 ${
                 shareSuccess ? 'bg-green-500/20 text-green-300 border-green-500' : ''
               }`}
               title="Share auction"
@@ -660,7 +660,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             <button
               onClick={handleGenerateQR}
               disabled={generatingQR}
-              className="text-xs md:text-sm px-1.5 md:px-3 py-1 md:py-1.5 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1 md:gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-xs md:text-sm px-1.5 md:px-3 py-1 md:py-1.5 transition-all border-0 md:border md:border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1 md:gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
               title="Generate QR code"
             >
               <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
