@@ -358,7 +358,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
           {/* Row 1: Title + Status Badge (Mobile) / Title + Avatars + Status (Desktop) */}
           <div className="relative flex items-center gap-2 md:gap-3">
             {/* Left: Title */}
-            <div className="flex-1 min-w-0 md:pr-20">
+            <div className="flex-1 min-w-0 pr-24 md:pr-20">
               <h3 className="text-[20px] md:text-[26px] font-semibold text-white truncate">
                 {auction.title}
               </h3>
@@ -444,8 +444,8 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               )}
             </div>
 
-            {/* Right: Timer & Status Badge */}
-            <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+            {/* Right: Timer & Status Badge - Desktop only */}
+            <div className="hidden md:flex items-center gap-1 md:gap-2 flex-shrink-0">
               {auction.status === 'active' && !isAuctionEnded(auction) && (
                 <CompactAuctionTimer auction={auction} />
               )}
@@ -453,8 +453,16 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </div>
           </div>
 
-          {/* Row 2: Avatars - Mobile only, left-aligned below title */}
-          <div className="flex md:hidden items-center justify-start mt-3 gap-0">
+          {/* Row 2: Badge + Timer - Mobile only, below title */}
+          <div className="flex md:hidden items-center gap-1 mt-2">
+            {auction.status === 'active' && !isAuctionEnded(auction) && (
+              <CompactAuctionTimer auction={auction} />
+            )}
+            {getStatusBadge()}
+          </div>
+
+          {/* Row 2: Avatars - Mobile only, top-right corner */}
+          <div className="flex md:hidden absolute right-0 top-0 items-center gap-0">
             {/* Model Image */}
             <div className="instagram-avatar" style={{ width: '44px', height: '44px' }}>
               {hasCreator(auction) && auction.creator.profile_photo_url ? (
@@ -641,14 +649,14 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             >
               {shareSuccess ? (
                 <>
-                  <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-2.5 h-2.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <span>Copied!</span>
                 </>
               ) : (
                 <>
-                  <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-2.5 h-2.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                   </svg>
                   <span>Share</span>
@@ -663,7 +671,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               className="text-xs md:text-sm px-1.5 md:px-3 py-1 md:py-1.5 transition-all border-0 md:border md:border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1 md:gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
               title="Generate QR code"
             >
-              <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-2.5 h-2.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
               </svg>
               <span>{generatingQR ? 'Generating...' : 'QR Code'}</span>
