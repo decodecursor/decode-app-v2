@@ -1132,9 +1132,9 @@ body {
     margin-bottom: 0 !important;
   }
 
-  /* Ensure space-y-6 spacing works correctly - reduced on mobile */
+  /* Ensure space-y-6 spacing works correctly - consistent 24px on mobile */
   .space-y-6 > .cosmic-card:not(:first-child) {
-    margin-top: 12px !important;
+    margin-top: 24px !important;
   }
 
   /* Handle Link-wrapped cards (auction cards) in space-y containers */
