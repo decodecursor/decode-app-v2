@@ -69,7 +69,7 @@ export default function AuctionsDashboardPage() {
         <div className="flex justify-center dashboard-back-button-spacing">
           <div className="w-full md:w-[70vw] max-w-[400px] md:max-w-none px-0">
             <button
-              onClick={() => router.back()}
+              onClick={() => router.push('/dashboard')}
               className="inline-flex items-center text-gray-300 hover:text-white transition-colors"
             >
               <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
