@@ -358,7 +358,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
           {/* Row 1: Title + Status Badge (Mobile) / Title + Avatars + Status (Desktop) */}
           <div className="relative flex items-start md:items-center gap-2 md:gap-3">
             {/* Left: Title */}
-            <div className="flex-1 min-w-0 pr-24 md:pr-20">
+            <div className="flex-1 min-w-0 md:pr-20">
               <h3 className="text-[20px] md:text-[26px] font-semibold text-white truncate">
                 {auction.title}
               </h3>
@@ -462,7 +462,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
           </div>
 
           {/* Row 2: Avatars - Mobile only, top-right corner */}
-          <div className="flex md:hidden absolute right-0 top-0 items-center gap-0">
+          <div className="flex md:hidden items-center gap-0 flex-shrink-0">
             {/* Model Image */}
             <div className="instagram-avatar" style={{ width: '44px', height: '44px' }}>
               {hasCreator(auction) && auction.creator.profile_photo_url ? (
