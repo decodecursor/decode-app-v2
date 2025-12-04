@@ -663,14 +663,16 @@ export default function PayoutsPage() {
                       </div>
                     </div>
 
-                    {/* Right: Mascot Image */}
-                    <div className="block flex-shrink-0 self-start -ml-4 -mt-4 -mb-2 md:-ml-10 md:-mt-11 md:-mb-6">
-                      <img
-                        src="/images/Mascot_Money Count_png.png"
-                        alt="Money counting mascot"
-                        className="w-[120px] md:w-[240px] h-auto max-h-[110px] md:max-h-[216px] object-contain"
-                      />
-                    </div>
+                    {/* Right: Mascot Image - Only for Model users */}
+                    {userRole?.toLowerCase() === 'model' && (
+                      <div className="block flex-shrink-0 self-start -ml-4 -mt-4 -mb-2 md:-ml-10 md:-mt-11 md:-mb-6">
+                        <img
+                          src="/images/Mascot_Money Count_png.png"
+                          alt="Money counting mascot"
+                          className="w-[120px] md:w-[240px] h-auto max-h-[110px] md:max-h-[216px] object-contain"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
