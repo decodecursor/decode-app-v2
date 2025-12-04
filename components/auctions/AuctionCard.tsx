@@ -280,13 +280,13 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
   const cardColors = getCardColors();
 
-  // Status badge with glassmorphism design
+  // Status badge with glassmorphism design - 15% smaller on mobile
   const getStatusBadge = () => {
     // Check cancelled status FIRST (before time-based checks)
     if (auction.status === 'cancelled') {
       return (
-        <span className="px-3 py-1.5 text-sm font-medium text-red-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-red-500 flex items-center gap-1.5">
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <span className="px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm font-medium text-red-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-red-500 flex items-center gap-1 md:gap-1.5">
+          <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           Cancelled
@@ -301,8 +301,8 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
       // If auction has bids, show COMPLETED (green)
       if (auction.total_bids > 0) {
         return (
-          <span className="px-3 py-1.5 text-sm font-medium text-green-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-green-500 flex items-center gap-1.5">
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <span className="px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm font-medium text-green-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-green-500 flex items-center gap-1 md:gap-1.5">
+            <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Completed
@@ -311,8 +311,8 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
       }
       // If no bids, show ENDED (gray)
       return (
-        <span className="px-3 py-1.5 text-sm font-medium text-gray-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-gray-500 flex items-center gap-1.5">
-          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+        <span className="px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm font-medium text-gray-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-gray-500 flex items-center gap-1 md:gap-1.5">
+          <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="currentColor" viewBox="0 0 24 24">
             <rect x="6" y="6" width="12" height="12" rx="1" />
           </svg>
           Ended
@@ -323,18 +323,18 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     switch (auction.status) {
       case 'active':
         return (
-          <span className="px-3 py-1 text-xs font-medium text-purple-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-purple-500 flex items-center gap-1.5 animate-pulse">
-            <span className="relative flex h-2.5 w-2.5">
+          <span className="px-2 md:px-3 py-0.5 md:py-1 text-[10px] md:text-xs font-medium text-purple-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-purple-500 flex items-center gap-1 md:gap-1.5 animate-pulse">
+            <span className="relative flex h-2 w-2 md:h-2.5 md:w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 md:h-2.5 md:w-2.5 bg-purple-500"></span>
             </span>
             Live
           </span>
         );
       case 'pending':
         return (
-          <span className="px-3 py-1.5 text-sm font-medium text-blue-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-blue-500 flex items-center gap-1.5">
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <span className="px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm font-medium text-blue-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-blue-500 flex items-center gap-1 md:gap-1.5">
+            <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Upcoming
@@ -596,27 +596,28 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
         {/* Action Buttons Row */}
         <div className="border-t border-gray-700 pt-2 px-2 pb-2 overflow-hidden">
-          {/* Mobile: Stack video row above buttons / Desktop: All inline */}
-          <div className="flex flex-col md:flex-row md:flex-wrap gap-1.5 md:gap-2 md:justify-start md:items-center">
-            {/* Video Section - Own row on mobile, inline on desktop */}
+          {/* All buttons inline on one row */}
+          <div className="flex flex-wrap gap-1.5 md:gap-2 items-center">
+            {/* Video Section - Inline with other buttons */}
             {!loadingVideo && (
-              <div className="w-full md:w-auto">
+              <>
                 {videoData?.file_url ? (
                   // State 2: Video uploaded - show clickable "View Video" button
                   <button
                     onClick={() => {
                       setShowVideoModal(true);
                     }}
-                    className="cosmic-button-secondary text-xs md:text-sm px-3 py-1.5 transition-all rounded-lg flex items-center gap-1.5 border-white/30 hover:bg-white/10"
+                    className="cosmic-button-secondary text-xs md:text-sm px-2 md:px-3 py-1 md:py-1.5 transition-all rounded-lg flex items-center gap-1 md:gap-1.5 border-white/30 hover:bg-white/10"
                     title="View video"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
-                    <span>View Video</span>
+                    <span className="hidden md:inline">View Video</span>
+                    <span className="md:hidden">Video</span>
                   </button>
                 ) : (
-                  // State 1 or 3: Waiting for upload or expired - compact on mobile
+                  // State 1 or 3: Waiting for upload or expired - compact inline button
                   <VideoUploadCountdown
                     tokenExpiresAt={videoData?.token_expires_at || null}
                     hasVideo={false}
@@ -625,10 +626,10 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                     compactMobile={true}
                   />
                 )}
-              </div>
+              </>
             )}
 
-            {/* Share + QR Code buttons - Own row on mobile, inline on desktop */}
+            {/* Share + QR Code buttons - inline with video */}
             <div className="flex flex-wrap gap-1.5 md:gap-2 md:ml-auto">
               {/* Share Button */}
               <button

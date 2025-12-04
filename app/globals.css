@@ -835,9 +835,11 @@ body {
     background: rgba(80, 80, 90, 0.95) !important; /* Lighter gray with 95% opacity for readability */
   }
 
-  /* Remove avatar glow on mobile */
+  /* Remove avatar glow on mobile + reduce border thickness by 1px */
   .instagram-avatar {
     box-shadow: none !important;
+    border-width: 3px !important; /* Reduced from 4px */
+    padding: 2px !important; /* Reduced from 3px */
   }
 
   .instagram-avatar:hover {
@@ -1146,9 +1148,14 @@ body {
     margin-top: 12px !important;
   }
 
-  /* Content card that follows header - remove top margin */
+  /* Content card that follows header - remove top margin but keep bottom margin for spacing between content cards */
   .content-card-mobile-spacing {
-    margin: 0 auto !important;
+    margin: 0 auto 12px auto !important;
+  }
+
+  /* Last content card doesn't need bottom margin */
+  .content-card-mobile-spacing:last-child {
+    margin-bottom: 0 !important;
   }
 
   /* CRITICAL: Revenue/Transactions text labels - readable size */
