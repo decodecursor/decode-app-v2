@@ -546,7 +546,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               </div>
 
               {/* My Payout */}
-              <div className="text-right relative group">
+              <div className="text-left md:text-right relative group">
                 <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wide">My Payout</p>
                 <p
                   onClick={(e) => {
@@ -597,7 +597,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
         {/* Action Buttons Row */}
         <div className="border-t border-gray-700 pt-2 px-2 pb-2 overflow-hidden">
           {/* All buttons inline on one row */}
-          <div className="flex flex-wrap gap-1.5 md:gap-2 items-center">
+          <div className="flex gap-1 md:gap-2 items-center">
             {/* Video Section - Inline with other buttons */}
             {!loadingVideo && (
               <>
@@ -630,25 +630,25 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             )}
 
             {/* Share + QR Code buttons - inline with video */}
-            <div className="flex flex-wrap gap-1.5 md:gap-2 md:ml-auto">
+            <div className="flex gap-1 md:gap-2 md:ml-auto">
               {/* Share Button */}
               <button
               onClick={handleShare}
-              className={`cosmic-button-secondary text-xs md:text-sm px-3 py-1.5 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1.5 ${
+              className={`cosmic-button-secondary text-xs md:text-sm px-1.5 md:px-3 py-1 md:py-1.5 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1 md:gap-1.5 ${
                 shareSuccess ? 'bg-green-500/20 text-green-300 border-green-500' : ''
               }`}
               title="Share auction"
             >
               {shareSuccess ? (
                 <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <span>Copied!</span>
                 </>
               ) : (
                 <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                   </svg>
                   <span>Share</span>
@@ -660,10 +660,10 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             <button
               onClick={handleGenerateQR}
               disabled={generatingQR}
-              className="cosmic-button-secondary text-xs md:text-sm px-3 py-1.5 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cosmic-button-secondary text-xs md:text-sm px-1.5 md:px-3 py-1 md:py-1.5 transition-all border border-white/30 rounded-lg hover:bg-white/10 flex items-center gap-1 md:gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
               title="Generate QR code"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
               </svg>
               <span>{generatingQR ? 'Generating...' : 'QR Code'}</span>

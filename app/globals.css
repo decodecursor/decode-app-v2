@@ -1153,11 +1153,6 @@ body {
     margin: 0 auto 12px auto !important;
   }
 
-  /* Last content card doesn't need bottom margin */
-  .content-card-mobile-spacing:last-child {
-    margin-bottom: 0 !important;
-  }
-
   /* CRITICAL: Revenue/Transactions text labels - readable size */
   .cosmic-label.payment-metric-label {
     font-size: 11px !important;
