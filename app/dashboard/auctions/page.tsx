@@ -67,7 +67,7 @@ export default function AuctionsDashboardPage() {
       <div className="min-h-screen px-4 py-4 md:py-8">
         {/* Back Button */}
         <div className="flex justify-center dashboard-back-button-spacing">
-          <div style={{width: '70vw'}}>
+          <div className="w-full md:w-[70vw] max-w-[400px] md:max-w-none px-0">
             <button
               onClick={() => router.back()}
               className="inline-flex items-center text-gray-300 hover:text-white transition-colors"
@@ -82,7 +82,7 @@ export default function AuctionsDashboardPage() {
 
         {/* Header */}
         <div className="flex justify-center">
-          <div style={{width: '70vw'}}>
+          <div className="w-full md:w-[70vw]">
             <div className="cosmic-card header-card-mobile-spacing">
               <div className="flex items-center gap-3">
                 <h1 className="cosmic-heading mb-2">My Auctions</h1>
@@ -99,9 +99,9 @@ export default function AuctionsDashboardPage() {
 
         {/* Stats Cards */}
         <div className="flex justify-center">
-          <div style={{width: '70vw'}}>
+          <div className="w-full md:w-[70vw]">
             <div className="cosmic-card content-card-mobile-spacing">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
                 <StatCard
                   label="Funds Collected"
                   value={`AED ${auctions.filter((a) => a.status === 'completed').reduce((sum, a) => sum + Number(a.auction_current_price), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
@@ -125,7 +125,7 @@ export default function AuctionsDashboardPage() {
 
         {/* Auctions List */}
         <div className="flex justify-center">
-          <div style={{width: '70vw'}}>
+          <div className="w-full md:w-[70vw]">
             <div className="cosmic-card content-card-mobile-spacing">
               {isLoading ? (
                 <div className="text-center py-12">
@@ -185,13 +185,12 @@ function StatCard({
   value: number | string;
 }) {
   return (
-    <div className="bg-white/5 rounded-xl p-4 hover:bg-white/8 transition-all">
+    <div className="bg-white/5 rounded-xl p-3 md:p-4 hover:bg-white/8 transition-all">
       {/* Label */}
-      <p className="text-sm text-gray-300 mb-2">{label}</p>
+      <p className="text-xs md:text-sm text-gray-300 mb-1 md:mb-2">{label}</p>
       {/* Main value */}
-      <p className="font-bold text-white mb-1" style={{ fontSize: '22px' }}>
-        <span className="hidden md:inline" style={{ fontSize: '28px' }}>{value}</span>
-        <span className="md:hidden">{value}</span>
+      <p className="font-bold text-white mb-1 text-base md:text-[28px] truncate">
+        {value}
       </p>
     </div>
   );

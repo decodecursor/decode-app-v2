@@ -572,9 +572,9 @@ export default function PayoutsPage() {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex flex-col lg:flex-row gap-4 overflow-hidden">
                 {/* My Next Payout Card */}
-                <div className="flex-1 cosmic-card">
+                <div className="flex-1 cosmic-card overflow-hidden">
                   <div className="mb-4">
                     <h3 className="text-base md:text-lg font-semibold text-white">
                       {userRole === 'Admin' ? 'Select Payout Method' : getCardTitle('My Next Payout')}
@@ -582,31 +582,31 @@ export default function PayoutsPage() {
                   </div>
 
                   {/* Mobile: Horizontal, Desktop: Two-Column */}
-                  <div className="flex flex-row gap-4 mb-3">
+                  <div className="flex flex-row gap-3 md:gap-4 mb-3">
                     {/* Available Balance - Hidden for ADMIN */}
                     {userRole !== 'Admin' && (
-                      <div className="flex-1" style={{width: '53%'}}>
+                      <div className="flex-1 min-w-0">
                         <p className="text-gray-400 text-xs md:text-sm mb-1">Available Balance</p>
-                        <p className="text-xl md:text-2xl font-bold text-white">
+                        <p className="text-lg md:text-2xl font-bold text-white truncate">
                           {formatCurrency(payoutSummary?.availableBalance || 0)}
                         </p>
                       </div>
                     )}
 
                     {/* Payout to - Styled Subcard */}
-                    <div style={{width: '40%'}}>
+                    <div className="w-[45%] md:w-[40%] flex-shrink-0">
                       <p className="text-gray-400 text-xs md:text-sm mb-1">Payout to</p>
                       <div
                         onClick={() => setShowSelectMethodModal(true)}
-                        className={`bg-white/5 rounded-lg py-3 md:py-2 px-2 border ${
+                        className={`bg-white/5 rounded-lg py-2 md:py-2 px-2 border ${
                           selectedPayoutMethod ? 'border-purple-500' : 'border-gray-700'
-                        } cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group min-h-[48px] md:min-h-0 flex items-center`}
+                        } cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group min-h-[44px] md:min-h-0 flex items-center`}
                       >
                         <div className="flex items-center justify-between w-full">
-                          <p className="text-white text-sm font-bold">
+                          <p className="text-white text-xs md:text-sm font-bold truncate">
                             {getSelectedMethodDisplayName()}
                           </p>
-                          <div className="w-5 h-5 md:w-6 md:h-6 text-gray-400 group-hover:text-purple-400 transition-colors">
+                          <div className="w-4 h-4 md:w-6 md:h-6 text-gray-400 group-hover:text-purple-400 transition-colors flex-shrink-0">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>

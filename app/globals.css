@@ -745,6 +745,12 @@ body {
 
 /* Mobile-specific layout adjustments - CACHE BUST 2025-09-26-v4 */
 @media (max-width: 768px) {
+  /* CRITICAL: Prevent horizontal scrolling on mobile */
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
   /* Dashboard mobile: comprehensive viewport solution */
   .dashboard-page {
     /* Fallback for older browsers */
