@@ -14,6 +14,7 @@ interface VideoUploadCountdownProps {
   showAsFullStatus?: boolean; // If true, show full status row with camera icon and text
   asButton?: boolean; // If true, format for button display (no "remaining" text)
   auctionEnded?: boolean; // If true, auction has ended (used to determine if "No Video" should show)
+  compactMobile?: boolean; // If true, show compact version on mobile (camera icon + time only)
 }
 
 /**
@@ -25,7 +26,7 @@ const COLOR_CLASS_MAP = {
   critical: 'text-red-400',
 } as const;
 
-export function VideoUploadCountdown({ tokenExpiresAt, hasVideo, showAsFullStatus = false, asButton = false, auctionEnded = false }: VideoUploadCountdownProps) {
+export function VideoUploadCountdown({ tokenExpiresAt, hasVideo, showAsFullStatus = false, asButton = false, auctionEnded = false, compactMobile = false }: VideoUploadCountdownProps) {
   // If showing full status and no token exists (no video record yet)
   if (showAsFullStatus && !tokenExpiresAt && !hasVideo) {
     // Only show "No Video" if auction has ended (waiting for video session creation)
@@ -68,6 +69,32 @@ export function VideoUploadCountdown({ tokenExpiresAt, hasVideo, showAsFullStatu
 
   // Show full status row with camera icon, text, watch icon, and time
   if (showAsFullStatus) {
+    // Compact mobile: only camera icon + time
+    if (compactMobile) {
+      return (
+        <div className="flex items-center gap-2 px-3 py-1.5 text-sm">
+          {/* Camera Icon */}
+          <svg className={`w-4 h-4 ${colorClass}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+
+          {/* Mobile: Just time / Desktop: Full text */}
+          <span className={`md:hidden font-mono tabular-nums ${colorClass}`}>
+            {formatted}
+          </span>
+
+          {/* Desktop: Full status text */}
+          <span className={`hidden md:inline ${colorClass}`}>Video Upload Countdown</span>
+          <svg className={`hidden md:block w-4 h-4 ${colorClass}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className={`hidden md:inline font-mono tabular-nums ${colorClass}`}>
+            {formatted}
+          </span>
+        </div>
+      );
+    }
+
     return (
       <div className="flex items-center gap-2 px-3 py-1.5 text-sm">
         {/* Camera Icon */}

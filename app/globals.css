@@ -1130,9 +1130,9 @@ body {
     margin-bottom: 0 !important;
   }
 
-  /* Ensure space-y-6 spacing works correctly */
+  /* Ensure space-y-6 spacing works correctly - reduced on mobile */
   .space-y-6 > .cosmic-card:not(:first-child) {
-    margin-top: 24px !important;
+    margin-top: 12px !important;
   }
 
   /* Handle Link-wrapped cards (auction cards) in space-y containers */
@@ -1143,7 +1143,7 @@ body {
   }
 
   .space-y-6 > a:not(:first-child) {
-    margin-top: 24px !important;
+    margin-top: 12px !important;
   }
 
   /* Content card that follows header - remove top margin */
@@ -1490,14 +1490,14 @@ body {
     margin: 0 auto !important;
   }
 
-  /* Ensure space-y-6 rules work on small screens */
+  /* Ensure space-y-6 rules work on small screens - reduced spacing */
   .space-y-6 > .cosmic-card {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
   }
 
   .space-y-6 > .cosmic-card:not(:first-child) {
-    margin-top: 24px !important;
+    margin-top: 12px !important;
   }
 
   /* Handle Link-wrapped cards (auction cards) in space-y containers */
@@ -1508,7 +1508,7 @@ body {
   }
 
   .space-y-6 > a:not(:first-child) {
-    margin-top: 24px !important;
+    margin-top: 12px !important;
   }
 
   .amount-display-mobile {
@@ -1580,14 +1580,14 @@ body {
     margin: 0 auto !important;
   }
 
-  /* Ensure space-y-6 rules work in landscape */
+  /* Ensure space-y-6 rules work in landscape - reduced spacing */
   .space-y-6 > .cosmic-card {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
   }
 
   .space-y-6 > .cosmic-card:not(:first-child) {
-    margin-top: 24px !important;
+    margin-top: 12px !important;
   }
 
   /* Handle Link-wrapped cards (auction cards) in space-y containers */
@@ -1598,7 +1598,7 @@ body {
   }
 
   .space-y-6 > a:not(:first-child) {
-    margin-top: 24px !important;
+    margin-top: 12px !important;
   }
 
   .mobile-payment-sheet {

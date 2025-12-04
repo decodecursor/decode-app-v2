@@ -453,8 +453,8 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             </div>
           </div>
 
-          {/* Row 2: Avatars - Mobile only, stacked below title */}
-          <div className="flex md:hidden items-center justify-center mt-3 gap-0">
+          {/* Row 2: Avatars - Mobile only, left-aligned below title */}
+          <div className="flex md:hidden items-center justify-start mt-3 gap-0">
             {/* Model Image */}
             <div className="instagram-avatar" style={{ width: '44px', height: '44px' }}>
               {hasCreator(auction) && auction.creator.profile_photo_url ? (
@@ -471,54 +471,33 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               )}
             </div>
 
-            {/* Beauty Business Image */}
-            {linkedBusiness ? (
-              <div className="relative z-10 -ml-[8px]">
-                <div
-                  className="instagram-avatar cursor-pointer"
-                  style={{ width: '44px', height: '44px' }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowBusinessModal(true);
-                  }}
-                  role="button"
-                  aria-label="Manage beauty business link"
-                >
-                  {linkedBusiness.business_photo_url ? (
-                    <img
-                      src={linkedBusiness.business_photo_url}
-                      alt={linkedBusiness.business_name || 'Beauty Business'}
-                    />
-                  ) : (
-                    <div className="avatar-fallback bg-gray-500">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="relative z-10 -ml-[8px]">
-                <div
-                  className="relative w-[44px] h-[44px] rounded-full overflow-hidden border-2 border-dashed border-amber-500/30 cursor-pointer transition-all duration-200"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowBusinessModal(true);
-                  }}
-                  role="button"
-                  aria-label="Link beauty business"
-                >
-                  <div className="w-full h-full bg-amber-500/10 flex items-center justify-center opacity-75">
-                    <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {/* Beauty Business Image - Always use instagram-avatar style on mobile */}
+            <div className="relative z-10 -ml-[8px]">
+              <div
+                className="instagram-avatar cursor-pointer"
+                style={{ width: '44px', height: '44px' }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowBusinessModal(true);
+                }}
+                role="button"
+                aria-label={linkedBusiness ? "Manage beauty business link" : "Link beauty business"}
+              >
+                {linkedBusiness?.business_photo_url ? (
+                  <img
+                    src={linkedBusiness.business_photo_url}
+                    alt={linkedBusiness.business_name || 'Beauty Business'}
+                  />
+                ) : (
+                  <div className="avatar-fallback bg-gray-500">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                   </div>
-                </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
 
           {/* Description on second row if exists */}
@@ -531,8 +510,8 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
         {/* Pricing Stats */}
         <div className="mb-2 overflow-hidden">
-          {/* Mobile: 2x2 grid layout / Desktop: Single row with flex */}
-          <div className="grid grid-cols-2 gap-2 md:flex md:justify-between md:items-start md:gap-3">
+          {/* Mobile: Starting Price left, Profit+Payout right / Desktop: Full row */}
+          <div className="flex justify-between items-start gap-2 md:gap-3">
             {/* Starting Price / Current Bid / Winning Bid */}
             <div>
               <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wide">
@@ -556,53 +535,56 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               </p>
             </div>
 
-            {/* My Profit */}
-            <div className="text-right md:text-right">
-              <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wide">My Profit</p>
-              <p className="text-sm md:text-xl font-bold text-white">
-                {formatBidAmount(creatorProfit)}
-              </p>
-            </div>
+            {/* My Profit + My Payout together on mobile */}
+            <div className="flex gap-3 md:gap-6 items-start">
+              {/* My Profit */}
+              <div className="text-right">
+                <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wide">My Profit</p>
+                <p className="text-sm md:text-xl font-bold text-white">
+                  {formatBidAmount(creatorProfit)}
+                </p>
+              </div>
 
-            {/* My Payout */}
-            <div className="text-left md:text-left relative group">
-              <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wide">My Payout</p>
-              <p
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  router.push('/dashboard/payouts');
-                }}
-                className={`text-sm md:text-xl font-bold cursor-pointer hover:scale-110 transition-all duration-200 ${
-                  shouldShowAmberPayout()
-                    ? 'text-amber-400 hover:text-amber-300'
-                    : 'text-white hover:text-purple-300'
-                }`}
-              >
-                {getPayoutStatusText()}
-              </p>
-              {/* Hover Tooltip - Desktop only */}
-              <div className="hidden md:block absolute left-full ml-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                <span className="text-white bg-black/80 px-2 py-1 rounded text-xs">
-                  Request Payout
-                </span>
+              {/* My Payout */}
+              <div className="text-right relative group">
+                <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wide">My Payout</p>
+                <p
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    router.push('/dashboard/payouts');
+                  }}
+                  className={`text-sm md:text-xl font-bold cursor-pointer hover:scale-110 transition-all duration-200 ${
+                    shouldShowAmberPayout()
+                      ? 'text-amber-400 hover:text-amber-300'
+                      : 'text-white hover:text-purple-300'
+                  }`}
+                >
+                  {getPayoutStatusText()}
+                </p>
+                {/* Hover Tooltip - Desktop only */}
+                <div className="hidden md:block absolute left-full ml-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                  <span className="text-white bg-black/80 px-2 py-1 rounded text-xs">
+                    Request Payout
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* Bids + Bidders combined on mobile */}
-            <div className="flex gap-3 md:gap-6 text-right justify-end">
+            {/* Bids + Bidders - Desktop only */}
+            <div className="hidden md:flex gap-6 text-right">
               {/* Bid Count */}
               <div>
-                <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wide">Bids</p>
-                <p className="text-sm md:text-xl font-bold text-white">
+                <p className="text-xs text-gray-400 uppercase tracking-wide">Bids</p>
+                <p className="text-xl font-bold text-white">
                   {auction.total_bids}
                 </p>
               </div>
 
               {/* Bidder Count */}
               <div>
-                <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wide">Bidders</p>
-                <p className="text-sm md:text-xl font-bold text-white">
+                <p className="text-xs text-gray-400 uppercase tracking-wide">Bidders</p>
+                <p className="text-xl font-bold text-white">
                   {auction.unique_bidders}
                 </p>
               </div>
@@ -614,36 +596,40 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
         {/* Action Buttons Row */}
         <div className="border-t border-gray-700 pt-2 px-2 pb-2 overflow-hidden">
-          <div className="flex flex-wrap gap-1.5 md:gap-2 justify-start items-center">
-            {/* Video Section - Conditional rendering (only after loading) */}
+          {/* Mobile: Stack video row above buttons / Desktop: All inline */}
+          <div className="flex flex-col md:flex-row md:flex-wrap gap-1.5 md:gap-2 md:justify-start md:items-center">
+            {/* Video Section - Own row on mobile, inline on desktop */}
             {!loadingVideo && (
-              videoData?.file_url ? (
-                // State 2: Video uploaded - show clickable "View Video" button
-                <button
-                  onClick={() => {
-                    setShowVideoModal(true);
-                  }}
-                  className="cosmic-button-secondary text-xs md:text-sm px-3 py-1.5 transition-all rounded-lg flex items-center gap-1.5 border-white/30 hover:bg-white/10"
-                  title="View video"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                  <span>View Video</span>
-                </button>
-              ) : (
-                // State 1 or 3: Waiting for upload or expired - show full status
-                <VideoUploadCountdown
-                  tokenExpiresAt={videoData?.token_expires_at || null}
-                  hasVideo={false}
-                  showAsFullStatus={true}
-                  auctionEnded={isAuctionEnded(auction)}
-                />
-              )
+              <div className="w-full md:w-auto">
+                {videoData?.file_url ? (
+                  // State 2: Video uploaded - show clickable "View Video" button
+                  <button
+                    onClick={() => {
+                      setShowVideoModal(true);
+                    }}
+                    className="cosmic-button-secondary text-xs md:text-sm px-3 py-1.5 transition-all rounded-lg flex items-center gap-1.5 border-white/30 hover:bg-white/10"
+                    title="View video"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <span>View Video</span>
+                  </button>
+                ) : (
+                  // State 1 or 3: Waiting for upload or expired - compact on mobile
+                  <VideoUploadCountdown
+                    tokenExpiresAt={videoData?.token_expires_at || null}
+                    hasVideo={false}
+                    showAsFullStatus={true}
+                    auctionEnded={isAuctionEnded(auction)}
+                    compactMobile={true}
+                  />
+                )}
+              </div>
             )}
 
-            {/* Right side buttons group */}
-            <div className="flex flex-wrap gap-2 ml-auto">
+            {/* Share + QR Code buttons - Own row on mobile, inline on desktop */}
+            <div className="flex flex-wrap gap-1.5 md:gap-2 md:ml-auto">
               {/* Share Button */}
               <button
               onClick={handleShare}
