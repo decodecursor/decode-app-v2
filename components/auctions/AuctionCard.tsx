@@ -356,7 +356,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
           {/* Desktop Layout: All in one row with absolute positioned avatars */}
 
           {/* Row 1: Title + Status Badge (Mobile) / Title + Avatars + Status (Desktop) */}
-          <div className="relative flex items-center gap-2 md:gap-3">
+          <div className="relative flex items-start md:items-center gap-2 md:gap-3">
             {/* Left: Title */}
             <div className="flex-1 min-w-0 pr-24 md:pr-20">
               <h3 className="text-[20px] md:text-[26px] font-semibold text-white truncate">

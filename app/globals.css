@@ -1145,7 +1145,7 @@ body {
   }
 
   .space-y-6 > a:not(:first-child) {
-    margin-top: 12px !important;
+    margin-top: 24px !important;
   }
 
   /* Content card that follows header - remove top margin but keep bottom margin for spacing between content cards */
@@ -1510,7 +1510,7 @@ body {
   }
 
   .space-y-6 > a:not(:first-child) {
-    margin-top: 12px !important;
+    margin-top: 24px !important;
   }
 
   .amount-display-mobile {
@@ -1600,7 +1600,7 @@ body {
   }
 
   .space-y-6 > a:not(:first-child) {
-    margin-top: 12px !important;
+    margin-top: 24px !important;
   }
 
   .mobile-payment-sheet {
