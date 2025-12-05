@@ -102,7 +102,8 @@ function AuthPageContent() {
       setPreselectedRole(null)
     } else {
       // Coming from magic link (verified=true), preserve stored role
-      const storedRole = safeSessionStorage.getItem('preselectedRole') || safeLocalStorage.getItem('decode_preselectedRole')
+      // Prioritize localStorage (persists across tabs) over sessionStorage (tab-specific)
+      const storedRole = safeLocalStorage.getItem('decode_preselectedRole') || safeSessionStorage.getItem('preselectedRole')
       if (storedRole) {
         console.log('🔄 [AUTH] Magic link return - preserving stored role:', storedRole)
         setPreselectedRole(storedRole)
@@ -262,10 +263,10 @@ function AuthPageContent() {
         };
         const mappedUrlRole = urlRole ? roleMapping[urlRole.toLowerCase()] : null;
 
-        // Priority: URL role param > sessionStorage > localStorage
+        // Priority: URL role param > localStorage (cross-tab) > sessionStorage (tab-specific)
         const storedRole = mappedUrlRole ||
-                           safeSessionStorage.getItem('preselectedRole') ||
-                           safeLocalStorage.getItem('decode_preselectedRole');
+                           safeLocalStorage.getItem('decode_preselectedRole') ||
+                           safeSessionStorage.getItem('preselectedRole');
         if (storedRole) {
           console.log('🔄 [AUTH] Setting preselected role from URL/storage:', storedRole, '(was:', preselectedRole, ')');
           setPreselectedRole(storedRole);
@@ -330,7 +331,12 @@ function AuthPageContent() {
 
     try {
       // Preserve role parameter in magic link redirect
-      const roleParam = preselectedRole ? `&role=${preselectedRole.toLowerCase()}` : '';
+      // Read from storage as fallback for React state timing issues
+      // Prioritize localStorage (persists across tabs) over sessionStorage
+      const effectiveRoleForLink = preselectedRole ||
+                                    safeLocalStorage.getItem('decode_preselectedRole') ||
+                                    safeSessionStorage.getItem('preselectedRole');
+      const roleParam = effectiveRoleForLink ? `&role=${effectiveRoleForLink.toLowerCase()}` : '';
       // Use Supabase Auth magic link
       const { error } = await supabase.auth.signInWithOtp({
         email,
@@ -558,7 +564,8 @@ function AuthPageContent() {
   // Render single-page auth with both options
   if (authMethod === 'select') {
     // ALWAYS read from storage first as primary source of truth
-    const storedRole = safeSessionStorage.getItem('preselectedRole') || safeLocalStorage.getItem('decode_preselectedRole')
+    // Prioritize localStorage (persists across tabs) over sessionStorage (tab-specific)
+    const storedRole = safeLocalStorage.getItem('decode_preselectedRole') || safeSessionStorage.getItem('preselectedRole')
     const effectiveRole = storedRole || preselectedRole
     console.log('🎬 [AUTH] Modal rendering - storedRole:', storedRole, 'preselectedRole:', preselectedRole, 'effectiveRole:', effectiveRole, 'showRoleModal:', showRoleModal)
 
