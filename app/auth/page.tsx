@@ -234,11 +234,12 @@ function AuthPageContent() {
           setAuthenticatedEmail(user.email)
         }
 
-        // Restore preselected role from URL/storage before showing modal
+        // ALWAYS restore preselected role from storage before showing modal
+        // This ensures state is synchronized with storage regardless of React's async state updates
         const storedRole = safeSessionStorage.getItem('preselectedRole') ||
                            safeLocalStorage.getItem('decode_preselectedRole');
-        if (storedRole && storedRole !== preselectedRole) {
-          console.log('🔄 [AUTH] Restoring preselected role in auth flow:', storedRole);
+        if (storedRole) {
+          console.log('🔄 [AUTH] Setting preselected role from storage:', storedRole, '(was:', preselectedRole, ')');
           setPreselectedRole(storedRole);
         }
 
@@ -525,10 +526,10 @@ function AuthPageContent() {
 
   // Render single-page auth with both options
   if (authMethod === 'select') {
-    // Defensive check for preselected role
+    // ALWAYS read from storage first as primary source of truth
     const storedRole = safeSessionStorage.getItem('preselectedRole') || safeLocalStorage.getItem('decode_preselectedRole')
-    const effectiveRole = preselectedRole || storedRole
-    console.log('🎬 [AUTH] Modal rendering - preselectedRole:', preselectedRole, 'storedRole:', storedRole, 'effectiveRole:', effectiveRole, 'showRoleModal:', showRoleModal)
+    const effectiveRole = storedRole || preselectedRole
+    console.log('🎬 [AUTH] Modal rendering - storedRole:', storedRole, 'preselectedRole:', preselectedRole, 'effectiveRole:', effectiveRole, 'showRoleModal:', showRoleModal)
 
     return (
       <>
@@ -995,10 +996,10 @@ function AuthPageContent() {
   }
 
   // Fallback return - should never reach here but just in case
-  // Defensive check for preselected role (loading state)
+  // ALWAYS read from storage first as primary source of truth (loading state)
   const storedRole = safeSessionStorage.getItem('preselectedRole') || safeLocalStorage.getItem('decode_preselectedRole')
-  const effectiveRole = preselectedRole || storedRole
-  console.log('🎬 [AUTH] Loading state - Modal rendering - preselectedRole:', preselectedRole, 'storedRole:', storedRole, 'effectiveRole:', effectiveRole, 'showRoleModal:', showRoleModal)
+  const effectiveRole = storedRole || preselectedRole
+  console.log('🎬 [AUTH] Loading state - Modal rendering - storedRole:', storedRole, 'preselectedRole:', preselectedRole, 'effectiveRole:', effectiveRole, 'showRoleModal:', showRoleModal)
 
   return (
     <>
