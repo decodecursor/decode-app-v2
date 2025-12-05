@@ -568,11 +568,16 @@ function AuthPageContent() {
 
   // Render single-page auth with both options
   if (authMethod === 'select') {
-    // ALWAYS read from storage first as primary source of truth
-    // Prioritize localStorage (persists across tabs) over sessionStorage (tab-specific)
+    // ALWAYS read from multiple sources - URL params, storage, and state
+    // This handles all edge cases: new tabs, storage cleared, state timing issues
+    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+    const urlRole = urlParams?.get('role')
+    const urlRoleMapping: { [key: string]: string } = { 'admin': 'Admin', 'user': 'Staff', 'model': 'Model' }
+    const mappedUrlRole = urlRole ? urlRoleMapping[urlRole.toLowerCase()] : null
     const storedRole = safeLocalStorage.getItem('decode_preselectedRole') || safeSessionStorage.getItem('preselectedRole')
-    const effectiveRole = storedRole || preselectedRole
-    console.log('🎬 [AUTH] Modal rendering - storedRole:', storedRole, 'preselectedRole:', preselectedRole, 'effectiveRole:', effectiveRole, 'showRoleModal:', showRoleModal)
+    // Priority: storage > state > URL params (URL as final fallback)
+    const effectiveRole = storedRole || preselectedRole || mappedUrlRole
+    console.log('🎬 [AUTH] Modal rendering - storedRole:', storedRole, 'preselectedRole:', preselectedRole, 'urlRole:', urlRole, 'effectiveRole:', effectiveRole, 'showRoleModal:', showRoleModal)
 
     return (
       <>
