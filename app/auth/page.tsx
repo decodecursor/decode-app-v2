@@ -94,12 +94,17 @@ function AuthPageContent() {
         safeLocalStorage.setItem('decode_preselectedRole', mappedRole)
       }
     } else if (!verifiedParam) {
-      // Only clear stored role when no role parameter AND not coming from magic link verification
-      // This preserves the role during magic link return flow
-      console.log('🧹 [AUTH] No role parameter and not verified - clearing stored role')
-      safeSessionStorage.removeItem('preselectedRole')
-      safeLocalStorage.removeItem('decode_preselectedRole')
-      setPreselectedRole(null)
+      // Only clear if NOT coming from a preselected role flow
+      // Check localStorage first - if it has a role, user came from model/admin URL
+      const existingRole = safeLocalStorage.getItem('decode_preselectedRole')
+      if (!existingRole) {
+        console.log('🧹 [AUTH] No role parameter, not verified, no stored role - clearing')
+        safeSessionStorage.removeItem('preselectedRole')
+        setPreselectedRole(null)
+      } else {
+        console.log('🔄 [AUTH] No role param but found stored role:', existingRole)
+        setPreselectedRole(existingRole)
+      }
     } else {
       // Coming from magic link (verified=true), preserve stored role
       // Prioritize localStorage (persists across tabs) over sessionStorage (tab-specific)
