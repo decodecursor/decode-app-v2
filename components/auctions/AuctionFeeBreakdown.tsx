@@ -57,7 +57,7 @@ export function AuctionFeeBreakdown({
         <div className="flex justify-between items-center">
           <span className="text-gray-600">
             <span style={{ fontSize: '16px' }}>Auction Starting Price </span>
-            <span className="hidden sm:inline" style={{ fontSize: '11px' }}>(Beauty Service Cost):</span>
+            <span className="hidden sm:inline" style={{ fontSize: '11px' }}>(Beauty Service Price):</span>
           </span>
           <span className="text-gray-600" style={{ fontSize: '16px' }}>- {formatCurrency(auctionStartPrice)}</span>
         </div>
