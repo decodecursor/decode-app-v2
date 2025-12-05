@@ -592,7 +592,7 @@ export function BiddingInterface({
                   setBidAmount(formatted);
                   setError(null);
                 }}
-                className="w-full pl-14 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                className="w-full pl-14 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white text-gray-900"
                 placeholder={formatNumberWithCommas(Math.floor(minimumBid).toString())}
               />
             </div>
@@ -610,7 +610,7 @@ export function BiddingInterface({
           <button
             type="submit"
             disabled={isProcessing || !bidAmount}
-            className="w-full px-4 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-4 py-3 text-base font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Continue
           </button>
@@ -620,8 +620,8 @@ export function BiddingInterface({
       {/* Step: Guest Information */}
       {step === 'guest_info' && (
         <div>
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-            <p className="text-sm text-blue-700">
+          <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-md">
+            <p className="text-sm text-purple-700">
               Your bid: <span className="font-semibold">{formatBidAmount(parseFloat(bidAmount.replace(/,/g, '')))}</span>
             </p>
           </div>
@@ -637,16 +637,16 @@ export function BiddingInterface({
       {/* Step: Instagram Username */}
       {step === 'instagram' && (
         <div>
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-            <p className="text-sm text-blue-700">
+          <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-md">
+            <p className="text-sm text-purple-700">
               Your bid: <span className="font-semibold">{formatBidAmount(parseFloat(bidAmount.replace(/,/g, '')))}</span>
             </p>
             {guestInfo && (
               <>
-                <p className="text-sm text-blue-700 mt-1">
+                <p className="text-sm text-purple-700 mt-1">
                   Name: <span className="font-semibold">{guestInfo.name}</span>
                 </p>
-                <p className="text-sm text-blue-700 mt-1">
+                <p className="text-sm text-purple-700 mt-1">
                   {guestInfo.contactMethod === 'whatsapp' ? 'WhatsApp' : 'Email'}:
                   <span className="font-semibold ml-1 !no-underline">
                     {guestInfo.contactMethod === 'whatsapp' ? formatWhatsAppNumber(guestInfo.whatsappNumber!) : guestInfo.email}
@@ -669,16 +669,16 @@ export function BiddingInterface({
     <>
       {step === 'payment' && (bidId || clientSecret || preloadedPaymentIntent?.clientSecret) && (
         <div>
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-            <p className="text-sm text-blue-700">
+          <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-md">
+            <p className="text-sm text-purple-700">
               Your bid: <span className="font-semibold">{formatBidAmount(parseFloat(bidAmount.replace(/,/g, '')))}</span>
             </p>
             {guestInfo && (
               <>
-                <p className="text-sm text-blue-700 mt-1">
+                <p className="text-sm text-purple-700 mt-1">
                   Name: <span className="font-semibold">{guestInfo.name}</span>
                 </p>
-                <p className="text-sm text-blue-700 mt-1">
+                <p className="text-sm text-purple-700 mt-1">
                   {guestInfo.contactMethod === 'whatsapp' ? 'WhatsApp' : 'Email'}:
                   <span className="font-semibold ml-1 !no-underline">
                     {guestInfo.contactMethod === 'whatsapp' ? formatWhatsAppNumber(guestInfo.whatsappNumber!) : guestInfo.email}
@@ -687,7 +687,7 @@ export function BiddingInterface({
               </>
             )}
             {instagramUsername && (
-              <p className="text-sm text-blue-700 mt-1">
+              <p className="text-sm text-purple-700 mt-1">
                 Instagram: <span className="font-semibold">{instagramUsername}</span>
               </p>
             )}
@@ -722,13 +722,13 @@ export function BiddingInterface({
           ) : !activeClientSecret && (isProcessing || isPreloadingSetupIntent) ? (
             /* Loading state while payment intent is being created */
             <div className="space-y-4">
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
+              <div className="p-4 bg-purple-50 border border-purple-200 rounded-md">
                 <div className="flex items-center">
-                  <svg className="animate-spin h-5 w-5 text-blue-600 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin h-5 w-5 text-purple-600 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  <p className="text-sm text-blue-700 font-medium">
+                  <p className="text-sm text-purple-700 font-medium">
                     {isPreloadingSetupIntent ? 'Preparing payment form...' : isProcessing ? 'Creating your bid...' : 'Loading payment form...'}
                   </p>
                 </div>
@@ -745,25 +745,25 @@ export function BiddingInterface({
             <div className="space-y-4">
               {/* Saved card indicator */}
               {savedCardLast4 && (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <div className="p-3 bg-purple-50 border border-purple-200 rounded-md">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <svg className="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-5 h-5 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6zm2 2a1 1 0 000 2h2a1 1 0 000-2H6zm5 0a1 1 0 000 2h3a1 1 0 000-2h-3z" />
                       </svg>
-                      <p className="text-sm text-blue-700 font-medium">
+                      <p className="text-sm text-purple-700 font-medium">
                         💳 Using saved card ending in ****{savedCardLast4}
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setSavedCardLast4(null)}
-                      className="text-xs text-blue-600 hover:text-blue-800 underline"
+                      className="text-xs text-purple-600 hover:text-purple-800 underline"
                     >
                       Use different card
                     </button>
                   </div>
-                  <p className="text-xs text-blue-600 mt-2">
+                  <p className="text-xs text-purple-600 mt-2">
                     Click "Confirm Your Bid" to use your saved card, or enter new card details below.
                   </p>
                 </div>
@@ -824,13 +824,13 @@ export function BiddingInterface({
           {/* Show loading state if on payment step but no clientSecret */}
           {step === 'payment' && (isProcessing || isPreloadingSetupIntent) && (
             <div className="space-y-4">
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
+              <div className="p-4 bg-purple-50 border border-purple-200 rounded-md">
                 <div className="flex items-center">
-                  <svg className="animate-spin h-5 w-5 text-blue-600 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin h-5 w-5 text-purple-600 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  <p className="text-sm text-blue-700 font-medium">
+                  <p className="text-sm text-purple-700 font-medium">
                     Creating your bid...
                   </p>
                 </div>
@@ -1076,7 +1076,7 @@ function PaymentForm({
         type="button"
         onClick={handleSubmit}
         disabled={!stripe || isProcessing}
-        className="w-full px-4 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full px-4 py-3 text-base font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isProcessing ? 'Processing...' : 'Confirm Your Bid'}
       </button>

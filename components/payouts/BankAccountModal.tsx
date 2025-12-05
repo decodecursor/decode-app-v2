@@ -239,13 +239,9 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
           </p>
         </div>
 
-        {/* Message Display */}
-        {message && (
-          <div className={`mb-6 p-4 rounded-lg ${
-            message.type === 'success' 
-              ? 'bg-green-600/20 text-green-100 border border-green-500/30' 
-              : 'bg-red-600/20 text-red-100 border border-red-500/30'
-          }`}>
+        {/* Message Display - Only show errors */}
+        {message && message.type === 'error' && (
+          <div className="mb-6 p-4 rounded-lg bg-red-600/20 text-red-100 border border-red-500/30">
             {message.text}
           </div>
         )}
