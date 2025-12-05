@@ -129,7 +129,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
+          <div className="flex min-h-full items-start md:items-center justify-center p-4 pt-8 md:pt-4">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -139,7 +139,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-gray-900 border border-gray-700 pt-2 px-8 pb-4 md:px-10 md:pb-6 shadow-xl transition-all relative">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-gray-900 border border-gray-700 pt-1 px-6 pb-2 md:px-8 md:pb-3 shadow-xl transition-all relative">
                 {/* Close button */}
                 <button
                   onClick={handleClose}
@@ -152,7 +152,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                 </button>
 
                 {/* Header */}
-                <div className="text-center md:mb-8 mb-6">
+                <div className="text-center md:mb-4 mb-3">
                   <div className="mb-0 flex justify-center">
                     <img
                       src="/images/Mascot_Letsgooo_png.png"
@@ -168,7 +168,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                   </Dialog.Title>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+                <form onSubmit={handleSubmit} className="space-y-3 mb-4">
                   {/* Title */}
                   <div>
                     <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
@@ -264,7 +264,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                   )}
 
                   {/* Buttons */}
-                  <div className="flex gap-3 pt-4">
+                  <div className="flex gap-3 pt-2">
                     <button
                       type="button"
                       onClick={handleClose}
