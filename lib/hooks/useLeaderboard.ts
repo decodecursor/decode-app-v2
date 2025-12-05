@@ -96,20 +96,6 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
     }));
 
     setLeaderboard(entries);
-
-    // Calculate stats
-    if (sorted.length > 0) {
-      const amounts = sorted.map((b) => Number(b.bid_amount));
-      const uniqueBidders = new Set(sorted.map((b) => b.bidder_email)).size;
-
-      setStats({
-        total_bids: sorted.length,
-        unique_bidders: uniqueBidders,
-        highest_bid: Math.max(...amounts),
-        lowest_bid: Math.min(...amounts),
-        average_bid: amounts.reduce((sum, amt) => sum + amt, 0) / amounts.length,
-      });
-    }
   }, [limit, userEmail]);
 
   // Handle new bid event

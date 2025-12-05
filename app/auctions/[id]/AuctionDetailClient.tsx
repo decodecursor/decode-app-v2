@@ -502,9 +502,9 @@ export default function AuctionDetailClient() {
           {/* Conditional layout: Dual-avatar if business linked, single-avatar otherwise */}
           {linkedBusiness ? (
             /* DUAL-AVATAR LAYOUT - When beauty business is linked */
-            <div className="flex items-center justify-center gap-1 sm:gap-0 sm:relative">
+            <div className="flex items-center justify-center gap-0 relative">
               {/* Left Avatar - Model */}
-              <div className="flex-shrink-0 sm:relative sm:z-10">
+              <div className="flex-shrink-0 relative z-10">
                 {(auction as any).creator?.instagram_handle ? (
                   <a
                     href={`https://instagram.com/${(auction as any).creator.instagram_handle}`}
@@ -544,7 +544,7 @@ export default function AuctionDetailClient() {
               </div>
 
               {/* Center Text - Responsive sizing based on text length */}
-              <div className="flex-1 text-center min-w-0 px-0.5 flex flex-col sm:bg-gray-100 sm:h-[90px] sm:justify-center sm:px-8 sm:mx-[-45px] sm:z-[-1]">
+              <div className="flex-1 text-center min-w-0 flex flex-col bg-gray-100 h-[90px] justify-center px-8 mx-[-45px] z-[-1]">
                 <h1 className="font-normal text-gray-500 break-words mb-0 order-2 sm:order-2 text-[14px] sm:text-[16px] sm:leading-[1.25]">
                   {auction.title}
                 </h1>
@@ -557,7 +557,7 @@ export default function AuctionDetailClient() {
               </div>
 
               {/* Right Avatar - Beauty Business */}
-              <div className="flex-shrink-0 sm:relative sm:z-10">
+              <div className="flex-shrink-0 relative z-10">
                 {linkedBusiness?.instagram_handle ? (
                   <a
                     href={`https://instagram.com/${linkedBusiness.instagram_handle}`}
