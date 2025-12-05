@@ -201,7 +201,7 @@ export function PendingPayoutsCard({
                       <span className="text-white font-medium">{formatCurrency(payout.winning_amount)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400 text-[10px] md:text-sm">Service Cost</span>
+                      <span className="text-gray-400 text-[10px] md:text-sm">Auction Starting Price (Beauty Service Price)</span>
                       <span className="text-gray-400">-{formatCurrency(payout.start_price)}</span>
                     </div>
                     <div className="flex justify-between pt-1.5 md:pt-2 border-t border-white/5">
@@ -209,7 +209,7 @@ export function PendingPayoutsCard({
                       <span className="text-white font-medium">{formatCurrency(payout.profit_amount)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400 text-[10px] md:text-sm">Platform Fee (25%)</span>
+                      <span className="text-gray-400 text-[10px] md:text-sm">DECODE Service Fee (25% of Profit)</span>
                       <span className="text-gray-400">-{formatCurrency(payout.platform_fee_amount)}</span>
                     </div>
                     <div className="flex justify-between pt-1.5 md:pt-2 border-t border-white/5">
