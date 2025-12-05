@@ -93,12 +93,20 @@ function AuthPageContent() {
         safeSessionStorage.setItem('preselectedRole', mappedRole)
         safeLocalStorage.setItem('decode_preselectedRole', mappedRole)
       }
-    } else {
-      // Clear stored role when no role parameter is present (e.g., general login)
-      console.log('🧹 [AUTH] No role parameter - clearing stored role')
+    } else if (!verifiedParam) {
+      // Only clear stored role when no role parameter AND not coming from magic link verification
+      // This preserves the role during magic link return flow
+      console.log('🧹 [AUTH] No role parameter and not verified - clearing stored role')
       safeSessionStorage.removeItem('preselectedRole')
       safeLocalStorage.removeItem('decode_preselectedRole')
       setPreselectedRole(null)
+    } else {
+      // Coming from magic link (verified=true), preserve stored role
+      const storedRole = safeSessionStorage.getItem('preselectedRole') || safeLocalStorage.getItem('decode_preselectedRole')
+      if (storedRole) {
+        console.log('🔄 [AUTH] Magic link return - preserving stored role:', storedRole)
+        setPreselectedRole(storedRole)
+      }
     }
 
     // Handle invitation parameter
