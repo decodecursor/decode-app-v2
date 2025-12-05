@@ -635,11 +635,11 @@ export default function PayoutsPage() {
 
                 {/* Total Payouts Card (All Roles) */}
                 <div className="flex-1 cosmic-card">
-                  <div className="flex items-start justify-between gap-6">
+                  <div className="flex items-start justify-between gap-3 md:gap-4">
                     {/* Left: Text Content */}
                     <div className="flex-1">
                       <div className="mb-4">
-                        <h3 className="text-base md:text-lg font-semibold text-white">
+                        <h3 className="text-base md:text-lg font-semibold text-white whitespace-nowrap">
                           {getCardTitle('My Total Payouts')}
                         </h3>
                       </div>

@@ -149,8 +149,7 @@ export default function AuctionsDashboardPage() {
                         />
                       </svg>
                     </div>
-                    <h2 className="cosmic-heading mb-2 text-white">No Auctions Yet</h2>
-                    <p className="cosmic-body text-gray-300 mb-6">Create your first auction to get started</p>
+                    <h2 className="cosmic-heading mb-2 text-gray-300">No Auctions Yet</h2>
                     <button
                       onClick={() => router.push('/auctions/create')}
                       className="cosmic-button-primary px-8 py-3"
