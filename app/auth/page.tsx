@@ -234,6 +234,14 @@ function AuthPageContent() {
           setAuthenticatedEmail(user.email)
         }
 
+        // Restore preselected role from URL/storage before showing modal
+        const storedRole = safeSessionStorage.getItem('preselectedRole') ||
+                           safeLocalStorage.getItem('decode_preselectedRole');
+        if (storedRole && storedRole !== preselectedRole) {
+          console.log('🔄 [AUTH] Restoring preselected role in auth flow:', storedRole);
+          setPreselectedRole(storedRole);
+        }
+
         // Check if user has a profile
         const { data: profileData } = await supabase
           .from('users')
@@ -289,11 +297,13 @@ function AuthPageContent() {
     console.log('🔍 [AUTH] Using redirect URL:', redirectUrl);
 
     try {
+      // Preserve role parameter in magic link redirect
+      const roleParam = preselectedRole ? `&role=${preselectedRole.toLowerCase()}` : '';
       // Use Supabase Auth magic link
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${redirectUrl}/auth?verified=true`,
+          emailRedirectTo: `${redirectUrl}/auth?verified=true${roleParam}`,
         }
       })
 
@@ -528,7 +538,18 @@ function AuthPageContent() {
             userEmail={authenticatedEmail || email}
             onComplete={handleRoleModalComplete}
           />
+        ) : effectiveRole === 'Admin' || effectiveRole === 'Staff' ? (
+          <RoleSelectionModal
+            isOpen={showRoleModal}
+            userEmail={authenticatedEmail || email}
+            termsAcceptedAt={new Date().toISOString()}
+            inviteData={inviteData}
+            preselectedRole={effectiveRole}
+            onClose={() => setShowRoleModal(false)}
+            onComplete={handleRoleModalComplete}
+          />
         ) : (
+          // Default to RoleSelectionModal only if no role specified
           <RoleSelectionModal
             isOpen={showRoleModal}
             userEmail={authenticatedEmail || email}
@@ -542,6 +563,18 @@ function AuthPageContent() {
       <div className="auth-page cosmic-bg">
         <div className="min-h-screen flex items-center justify-center px-4 py-8">
           <div className="cosmic-card-login">
+            {/* Model Registration Badge - Show when preselectedRole is Model */}
+            {(preselectedRole === 'Model' || safeSessionStorage.getItem('preselectedRole') === 'Model') && (
+              <div className="mb-8 flex justify-center">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600/20 border border-purple-500/30 rounded-full">
+                  <svg className="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  <span className="text-sm font-semibold text-purple-300">Model Registration</span>
+                </div>
+              </div>
+            )}
+
             {/* Logo and Tagline */}
             <div className="text-center mb-12">
               <img
@@ -982,7 +1015,18 @@ function AuthPageContent() {
           userEmail={authenticatedEmail || email}
           onComplete={handleRoleModalComplete}
         />
+      ) : effectiveRole === 'Admin' || effectiveRole === 'Staff' ? (
+        <RoleSelectionModal
+          isOpen={showRoleModal}
+          userEmail={authenticatedEmail || email}
+          termsAcceptedAt={new Date().toISOString()}
+          inviteData={inviteData}
+          preselectedRole={effectiveRole}
+          onClose={() => setShowRoleModal(false)}
+          onComplete={handleRoleModalComplete}
+        />
       ) : (
+        // Default to RoleSelectionModal only if no role specified
         <RoleSelectionModal
           isOpen={showRoleModal}
           userEmail={authenticatedEmail || email}
