@@ -603,7 +603,7 @@ export default function PayoutsPage() {
                         } cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group min-h-[44px] md:min-h-0 flex items-center`}
                       >
                         <div className="flex items-center justify-between w-full">
-                          <p className="text-white text-xs md:text-sm font-bold truncate">
+                          <p className="text-white text-[11px] md:text-xs font-bold truncate">
                             {getSelectedMethodDisplayName()}
                           </p>
                           <div className="w-4 h-4 md:w-6 md:h-6 text-gray-400 group-hover:text-purple-400 transition-colors flex-shrink-0">

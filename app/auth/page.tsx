@@ -60,14 +60,17 @@ function AuthPageContent() {
     }
   }, [resendCooldown])
 
-  // Restore preselected role from storage on mount
+  // Restore preselected role from storage on mount (only if role parameter present)
   useEffect(() => {
+    const roleParam = searchParams?.get('role')
     const storedRole = safeSessionStorage.getItem('preselectedRole') || safeLocalStorage.getItem('decode_preselectedRole')
-    if (storedRole && !preselectedRole) {
+
+    // Only restore if there's a role parameter in URL or stored role matches current context
+    if (storedRole && !preselectedRole && roleParam) {
       console.log('🔄 [AUTH] Restoring preselected role from storage:', storedRole)
       setPreselectedRole(storedRole)
     }
-  }, [])
+  }, [searchParams])
 
   // Handle invite parameter and pre-selected role from URL
   useEffect(() => {
@@ -90,6 +93,12 @@ function AuthPageContent() {
         safeSessionStorage.setItem('preselectedRole', mappedRole)
         safeLocalStorage.setItem('decode_preselectedRole', mappedRole)
       }
+    } else {
+      // Clear stored role when no role parameter is present (e.g., general login)
+      console.log('🧹 [AUTH] No role parameter - clearing stored role')
+      safeSessionStorage.removeItem('preselectedRole')
+      safeLocalStorage.removeItem('decode_preselectedRole')
+      setPreselectedRole(null)
     }
 
     // Handle invitation parameter
@@ -565,7 +574,7 @@ function AuthPageContent() {
         <div className="min-h-screen flex items-center justify-center px-4 py-8">
           <div className="cosmic-card-login">
             {/* Model Registration Badge - Show when preselectedRole is Model */}
-            {(preselectedRole === 'Model' || safeSessionStorage.getItem('preselectedRole') === 'Model') && (
+            {preselectedRole === 'Model' && (
               <div className="mb-8 flex justify-center">
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600/20 border border-purple-500/30 rounded-full">
                   <svg className="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">

@@ -139,7 +139,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-gray-900 border border-gray-700 pt-2 px-6 pb-6 md:px-8 md:pb-8 shadow-xl transition-all relative">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-gray-900 border border-gray-700 pt-2 px-8 pb-4 md:px-10 md:pb-6 shadow-xl transition-all relative">
                 {/* Close button */}
                 <button
                   onClick={handleClose}
