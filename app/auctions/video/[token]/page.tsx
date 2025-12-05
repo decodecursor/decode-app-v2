@@ -92,7 +92,7 @@ export default function VideoRecordingPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4" />
           <p className="text-gray-600">Validating your recording link...</p>
         </div>
       </div>
@@ -197,8 +197,8 @@ export default function VideoRecordingPage() {
 
       {/* Footer Info */}
       <div className="max-w-full sm:max-w-[537px] mx-auto mt-8" style={{ position: 'relative', zIndex: 10 }}>
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="text-sm text-blue-700">
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <div className="text-sm text-purple-700">
             <p className="font-medium mb-1">Important</p>
             <ul className="space-y-1 list-disc list-inside">
               <li>Only {creatorName} can watch your video</li>
