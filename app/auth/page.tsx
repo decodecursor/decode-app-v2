@@ -251,13 +251,27 @@ function AuthPageContent() {
           setAuthenticatedEmail(user.email)
         }
 
-        // ALWAYS restore preselected role from storage before showing modal
-        // This ensures state is synchronized with storage regardless of React's async state updates
-        const storedRole = safeSessionStorage.getItem('preselectedRole') ||
+        // ALWAYS restore preselected role before showing modal
+        // Read directly from URL params to bypass React async state timing issues
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlRole = urlParams.get('role');
+        const roleMapping: { [key: string]: string } = {
+          'admin': 'Admin',
+          'user': 'Staff',
+          'model': 'Model'
+        };
+        const mappedUrlRole = urlRole ? roleMapping[urlRole.toLowerCase()] : null;
+
+        // Priority: URL role param > sessionStorage > localStorage
+        const storedRole = mappedUrlRole ||
+                           safeSessionStorage.getItem('preselectedRole') ||
                            safeLocalStorage.getItem('decode_preselectedRole');
         if (storedRole) {
-          console.log('🔄 [AUTH] Setting preselected role from storage:', storedRole, '(was:', preselectedRole, ')');
+          console.log('🔄 [AUTH] Setting preselected role from URL/storage:', storedRole, '(was:', preselectedRole, ')');
           setPreselectedRole(storedRole);
+          // Ensure storage is updated synchronously before modal renders
+          safeSessionStorage.setItem('preselectedRole', storedRole);
+          safeLocalStorage.setItem('decode_preselectedRole', storedRole);
         }
 
         // Check if user has a profile
