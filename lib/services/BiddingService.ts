@@ -474,7 +474,7 @@ export class BiddingService {
         .from('bids')
         .select('bid_amount, bidder_email')
         .eq('auction_id', auctionId)
-        .in('status', ['winning', 'outbid', 'captured']); // Only count confirmed bids
+        .in('status', ['winning', 'outbid', 'captured', 'cancelled']); // Count all confirmed bids (same filter as leaderboard)
 
       if (error) throw error;
 
