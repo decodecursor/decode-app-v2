@@ -875,7 +875,7 @@ body {
   /* Remove avatar glow on mobile + reduce border thickness by 1px */
   .instagram-avatar {
     box-shadow: none !important;
-    border-width: 2px !important; /* Reduced from 3px */
+    border-width: 3px !important; /* Increased from 2px */
     padding: 1px !important; /* Reduced from 2px */
   }
 
