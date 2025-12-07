@@ -64,9 +64,7 @@ export function VideoModal({ isOpen, onClose, auctionId, auctionTitle, onPayoutU
         </div>
 
         {/* Video Content */}
-        <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-4">
-          <VideoPlayback auctionId={auctionId} onPayoutUnlocked={onPayoutUnlocked} />
-        </div>
+        <VideoPlayback auctionId={auctionId} onPayoutUnlocked={onPayoutUnlocked} />
       </div>
     </div>
   );
