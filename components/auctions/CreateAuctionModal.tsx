@@ -129,7 +129,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-start md:items-center justify-center p-4 pt-8 md:pt-4">
+          <div className="flex min-h-full items-start md:items-center justify-center p-4 pt-[30px] md:pt-4">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -139,7 +139,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-gray-900 border border-gray-700 pt-1 px-6 pb-2 md:px-8 md:pb-3 shadow-xl transition-all relative">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-gray-900 border border-gray-700 pt-1 px-10 pb-10 shadow-xl transition-all relative">
                 {/* Close button */}
                 <button
                   onClick={handleClose}
@@ -168,7 +168,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                   </Dialog.Title>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-3 mb-4">
+                <form onSubmit={handleSubmit} className="space-y-3">
                   {/* Title */}
                   <div>
                     <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
