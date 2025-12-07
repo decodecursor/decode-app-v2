@@ -5,7 +5,7 @@
 
 export type AuctionStatus = 'pending' | 'active' | 'ended' | 'completed' | 'cancelled';
 export type PayoutStatus = 'pending' | 'processing' | 'transferred' | 'failed';
-export type AuctionDuration = 5 | 30 | 60 | 180 | 1440 | 2880; // minutes
+export type AuctionDuration = 5 | 30 | 60 | 180 | 1440 | 2880 | 4320; // minutes
 
 export interface Auction {
   id: string;
@@ -124,8 +124,9 @@ export const AUCTION_DURATIONS: { value: AuctionDuration; label: string }[] = [
   { value: 30, label: '30 Minutes' },
   { value: 60, label: '1 Hour' },
   { value: 180, label: '3 Hours' },
-  { value: 1440, label: '24 Hours' },
-  { value: 2880, label: '48 Hours' },
+  { value: 1440, label: '1 Day' },
+  { value: 2880, label: '2 Days' },
+  { value: 4320, label: '3 Days' },
 ];
 
 export function getAuctionEndTime(startTime: Date, duration: AuctionDuration): Date {
