@@ -327,6 +327,43 @@ input[type="number"] {
   color: var(--cosmic-text-primary) !important;
 }
 
+/* Fix yellow background on ALL autofilled inputs (not just cosmic-input) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: #111827 !important;
+  background-color: white !important;
+  background-image: none !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* For input fields with bg-white class - ensure no yellow on mobile */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="password"],
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Additional mobile browser support for autofill */
+input:autofill,
+select:autofill,
+textarea:autofill {
+  background-color: white !important;
+  background-image: none !important;
+}
+
 .cosmic-input::placeholder {
   color: var(--cosmic-text-secondary);
 }
@@ -579,14 +616,14 @@ body {
   width: 95px;
   height: 95px;
   border-radius: 50%;
-  /* Outer gradient border (4px) */
-  border: 4px solid transparent;
+  /* Outer gradient border (3px) */
+  border: 3px solid transparent;
   background-origin: border-box;
   background-clip: padding-box, border-box;
   /* Layered backgrounds: inner dark frame + outer gradient */
   background-image: linear-gradient(#000000, #000000), linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-  /* Inner black frame (3px) */
-  padding: 3px;
+  /* Inner black frame (2px) */
+  padding: 2px;
   cursor: pointer;
   transition: all 0.3s ease;
   box-sizing: border-box;
@@ -838,8 +875,8 @@ body {
   /* Remove avatar glow on mobile + reduce border thickness by 1px */
   .instagram-avatar {
     box-shadow: none !important;
-    border-width: 3px !important; /* Reduced from 4px */
-    padding: 2px !important; /* Reduced from 3px */
+    border-width: 2px !important; /* Reduced from 3px */
+    padding: 1px !important; /* Reduced from 2px */
   }
 
   .instagram-avatar:hover {

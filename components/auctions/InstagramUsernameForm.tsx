@@ -61,7 +61,7 @@ export function InstagramUsernameForm({ onSubmit, isLoading = false }: Instagram
               setInstagramUsername(e.target.value);
               if (error) setError(undefined);
             }}
-            className={`w-full pl-9 pr-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 ${
+            className={`w-full pl-9 pr-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white text-gray-900 ${
               error ? 'border-red-500' : 'border-gray-300'
             }`}
             placeholder="yourhandle"
@@ -83,7 +83,7 @@ export function InstagramUsernameForm({ onSubmit, isLoading = false }: Instagram
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isLoading ? (
           <span className="flex items-center justify-center gap-2">

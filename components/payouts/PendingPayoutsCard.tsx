@@ -57,7 +57,7 @@ export function PendingPayoutsCard({
       </div>
 
       {!pendingPayouts || pendingPayouts.length === 0 ? (
-        <p className="text-gray-300 text-center py-8 text-sm">No pending payouts yet. Your pending payouts will appear here.</p>
+        <p className="text-gray-300 text-center py-8 text-xs md:text-sm">No payouts yet. <br />Your first payout will appear here.</p>
       ) : (
       <div className="space-y-3">
         {pendingPayouts.map((payout) => (

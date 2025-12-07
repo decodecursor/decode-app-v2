@@ -862,7 +862,7 @@ export default function PayoutsPage() {
                 </div>
                 <h3 className="text-base md:text-lg font-semibold text-white mb-4">Payout Method Required</h3>
                 <p className="text-gray-300 text-sm md:text-base mb-6">
-                  You must configure a payment method before requesting a payout. Please set up a bank account or PayPal account in the payout methods section on the right side.
+                  You must configure a payment method before requesting a payout. Please set up a bank account or PayPal account in the payout methods section.
                 </p>
 
                 <div className="flex gap-3">
@@ -920,7 +920,7 @@ export default function PayoutsPage() {
                 {availablePayoutMethods.length === 0 && (
                   <div className="text-center py-8">
                     <p className="text-gray-400">
-                      You must configure a payment method before requesting a payout. Please set up a bank account or PayPal account in the payout methods section on the right side.
+                      You must configure a payment method before requesting a payout. Please set up a bank account or PayPal account in the payout methods section.
                     </p>
                   </div>
                 )}
