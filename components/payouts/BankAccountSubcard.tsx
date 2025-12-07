@@ -180,7 +180,7 @@ export function BankAccountSubcard({ userId, onClick, refreshKey, bankAccountDat
       
       <div>
         {bankAccount ? (
-          <p className="text-white text-xs md:text-xs font-mono">
+          <p className="text-white text-[10px] md:text-[10px] font-mono">
             {maskIban(bankAccount.iban_number)} • {bankAccount.bank_name}
           </p>
         ) : (

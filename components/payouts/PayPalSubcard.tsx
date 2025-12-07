@@ -119,7 +119,7 @@ export function PayPalSubcard({ userId, onClick, refreshKey, paypalAccountData, 
       
       <div>
         {paypalAccount ? (
-          <p className="text-white text-xs md:text-xs font-mono">
+          <p className="text-white text-[10px] md:text-[10px] font-mono">
             {maskEmail(paypalAccount.email)}
           </p>
         ) : (
