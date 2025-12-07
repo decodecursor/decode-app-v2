@@ -387,10 +387,10 @@ export default function AuctionDetailClient() {
               >
                 {copied ? (
                   <>
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    <span className="text-gray-600">Copied!</span>
+                    <span className="text-green-600">Copied!</span>
                   </>
                 ) : (
                   <>
@@ -467,10 +467,10 @@ export default function AuctionDetailClient() {
               >
                 {copied ? (
                   <>
-                    <svg className="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    <span className="text-gray-600">Copied!</span>
+                    <span className="text-green-600">Copied!</span>
                   </>
                 ) : (
                   <>

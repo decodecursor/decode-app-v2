@@ -129,7 +129,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-start md:items-center justify-center p-4 pt-[15px] md:pt-4">
+          <div className="flex min-h-full items-start md:items-center justify-center p-4 pt-[5px] md:pt-4">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
