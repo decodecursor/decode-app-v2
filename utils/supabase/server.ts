@@ -16,12 +16,12 @@ export async function createClient() {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
               // Mobile-friendly cookie settings
-              const sameSiteValue = process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const
+              // Use 'lax' consistently to match middleware and fix mobile redirect loops
               const mobileOptions = {
                 ...options,
-                // Use 'none' for production to ensure cookies work on mobile
-                // but 'lax' for development
-                sameSite: sameSiteValue,
+                // Always use 'lax' for better mobile browser compatibility
+                // 'lax' works for same-site navigation (magic links redirect to same domain)
+                sameSite: 'lax' as const,
                 secure: process.env.NODE_ENV === 'production',
                 path: '/',
                 // Extend expiry for mobile browsers
