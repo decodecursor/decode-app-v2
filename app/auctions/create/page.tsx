@@ -163,7 +163,7 @@ export default function CreateAuction() {
   return (
     <div className="cosmic-bg min-h-screen">
       <div className="flex min-h-full items-center justify-center p-4 pt-14">
-        <div className="w-full max-w-md transform overflow-hidden rounded-xl bg-gray-900 border border-gray-700 md:p-4 p-3 shadow-xl relative">
+        <div className="w-full max-w-md transform overflow-hidden rounded-xl bg-gray-900 border border-gray-700 md:px-8 md:py-4 px-6 py-3 shadow-xl relative">
           {/* Close button */}
           <button
             onClick={handleCancel}
@@ -189,7 +189,7 @@ export default function CreateAuction() {
             </h2>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+          <form onSubmit={handleSubmit} className="space-y-4 mb-3">
             {/* Title */}
             <div>
               <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
