@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ConfirmationModal } from './ConfirmationModal'
 import { USER_ROLES } from '@/types/user'
+import { formatIBAN, calculateCursorPosition } from '@/utils/iban-formatter'
 
 interface BankAccountModalProps {
   isOpen: boolean
@@ -22,6 +23,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false)
   const [removeLoading, setRemoveLoading] = useState(false)
+  const ibanInputRef = useRef<HTMLInputElement>(null)
 
   // Load existing bank account data
   useEffect(() => {
@@ -42,7 +44,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
         if (result.success && result.data) {
           const bankAccount = result.data
           setBeneficiary(bankAccount.beneficiary_name || '')
-          setIban(bankAccount.iban_number || '')
+          setIban(formatIBAN(bankAccount.iban_number || ''))
           setBank(bankAccount.bank_name || '')
           setIsConnected(true)
         }
@@ -50,6 +52,28 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
     } catch (error) {
       console.error('Error loading existing bank account:', error)
     }
+  }
+
+  const handleIbanChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target
+    const cursorPos = input.selectionStart || 0
+    const rawValue = input.value
+
+    // Format the IBAN with spaces every 4 characters
+    const formattedValue = formatIBAN(rawValue)
+
+    // Update state
+    setIban(formattedValue)
+
+    // Calculate and restore cursor position after formatting
+    const newCursorPos = calculateCursorPosition(rawValue, formattedValue, cursorPos)
+
+    // Set cursor position after React updates the DOM
+    setTimeout(() => {
+      if (ibanInputRef.current) {
+        ibanInputRef.current.setSelectionRange(newCursorPos, newCursorPos)
+      }
+    }, 0)
   }
 
   if (!isOpen) return null
@@ -279,12 +303,17 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
               IBAN
             </label>
             <input
+              ref={ibanInputRef}
               type="text"
               value={iban}
-              onChange={(e) => setIban(e.target.value)}
+              onChange={handleIbanChange}
               placeholder="AE 0700 3001 2769 3138 2000 1"
               className="w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
               disabled={loading}
+              maxLength={34}
+              autoCapitalize="characters"
+              autoComplete="off"
+              spellCheck="false"
             />
           </div>
 
