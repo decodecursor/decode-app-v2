@@ -276,14 +276,14 @@ export function PayoutHistory({ userId, userRole, onNewPayout, refreshTrigger }:
                         AED {formatAmount(payout.payout_amount_aed)}
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-purple-400 cosmic-label">ID:</span>
-                        <span className="text-white cosmic-label">{payout.payout_request_id || 'N/A'}</span>
+                        <span className="!text-purple-400 text-xs">ID:</span>
+                        <span className="text-white text-xs">{payout.payout_request_id || 'N/A'}</span>
                       </div>
                     </div>
 
                     {/* Row 2: Payout Method + Date */}
                     <div className="flex justify-between items-start">
-                      <span className="flex items-center gap-1 cosmic-label">
+                      <span className="flex items-center gap-1 text-xs">
                         <span className="text-purple-400">To:</span>
                         <span className="text-white">
                           {payout.payout_method ? formatPayoutMethod(payout.payout_method) : 'N/A'}
@@ -292,13 +292,13 @@ export function PayoutHistory({ userId, userRole, onNewPayout, refreshTrigger }:
                       <div className="flex items-center gap-1">
                         {payout.paid_at ? (
                           <>
-                            <span className="text-purple-400 cosmic-label">Paid:</span>
-                            <span className="text-white cosmic-label">{formatDate(payout.paid_at).split(' -')[0]}</span>
+                            <span className="text-purple-400 text-xs">Paid:</span>
+                            <span className="text-white text-xs">{formatDate(payout.paid_at).split(' -')[0]}</span>
                           </>
                         ) : (
                           <>
-                            <span className="text-purple-400 cosmic-label">Request:</span>
-                            <span className="text-white cosmic-label">{formatDate(payout.created_at).split(' -')[0]}</span>
+                            <span className="!text-purple-400 text-xs">Request:</span>
+                            <span className="text-white text-xs">{formatDate(payout.created_at).split(' -')[0]}</span>
                           </>
                         )}
                       </div>
