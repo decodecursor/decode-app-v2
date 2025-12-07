@@ -11,10 +11,20 @@ function VerifyContent() {
   const [message, setMessage] = useState('')
   const [success, setSuccess] = useState(false)
   const [email, setEmail] = useState('')
+  const [roleParam, setRoleParam] = useState<string>('')
 
   useEffect(() => {
     const handleVerification = async () => {
       try {
+        // Extract role parameter from query params or hash
+        let role = searchParams?.get('role')
+        if (!role && typeof window !== 'undefined') {
+          const hash = window.location.hash.substring(1)
+          const hashParams = new URLSearchParams(hash)
+          role = hashParams.get('role')
+        }
+        setRoleParam(role ? `&role=${role}` : '')
+
         // Check for query parameters first (custom token_hash flow)
         let token = searchParams?.get('token')
         let type = searchParams?.get('type')
@@ -263,7 +273,7 @@ function VerifyContent() {
                     console.error('Error checking profile:', profileError)
                     setMessage('Verification successful! Please complete your profile.')
                     setTimeout(() => {
-                      router.push('/auth?verified=true')
+                      router.push(`/auth?verified=true${roleParam}`)
                     }, 2000)
                     return
                   }
@@ -274,7 +284,7 @@ function VerifyContent() {
                   console.log('📝 No profile found - redirecting to role selection')
                   setMessage('Email verified! Please complete your profile.')
                   setTimeout(() => {
-                    router.push('/auth?verified=true')
+                    router.push(`/auth?verified=true${roleParam}`)
                   }, 2000)
                 } else {
                   // Profile exists - check approval status and redirect accordingly
@@ -301,12 +311,12 @@ function VerifyContent() {
                   console.log('⏰ Profile check timed out - assuming new user needs profile')
                   setMessage('Email verified! Please complete your profile.')
                   setTimeout(() => {
-                    router.push('/auth?verified=true')
+                    router.push(`/auth?verified=true${roleParam}`)
                   }, 2000)
                 } else {
                   setMessage('Verification successful! Please complete your profile.')
                   setTimeout(() => {
-                    router.push('/auth?verified=true')
+                    router.push(`/auth?verified=true${roleParam}`)
                   }, 2000)
                 }
               }
