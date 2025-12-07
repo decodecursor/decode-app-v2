@@ -129,7 +129,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-start md:items-center justify-center p-4 pt-[30px] md:pt-4">
+          <div className="flex min-h-full items-start md:items-center justify-center p-4 pt-[15px] md:pt-4">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -157,7 +157,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                     <img
                       src="/images/Mascot_Letsgooo_png.png"
                       alt="Create auction mascot"
-                      className="w-[160px] h-auto object-contain -my-8"
+                      className="w-[130px] md:w-[160px] h-auto object-contain -my-8"
                     />
                   </div>
                   <Dialog.Title

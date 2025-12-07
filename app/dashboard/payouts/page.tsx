@@ -623,7 +623,7 @@ export default function PayoutsPage() {
                       <button
                         onClick={handleRequestPayoutClick}
                         disabled={payoutInProcess || (userRole?.toLowerCase() === 'model' && selectedAuctionIds.size === 0)}
-                        className="w-full py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+                        className="w-full py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-600/40 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
                       >
                         {userRole?.toLowerCase() === 'model'
                           ? `Request Payout${selectedAuctionIds.size > 0 ? ` (${formatCurrency(getSelectedTotal())})` : ''}`
