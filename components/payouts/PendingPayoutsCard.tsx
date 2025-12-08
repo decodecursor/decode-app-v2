@@ -73,7 +73,7 @@ export function PendingPayoutsCard({
             >
               {/* Mobile: Stacked layout / Desktop: Horizontal row */}
               <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-                {/* Row 1 on mobile: Checkbox + Title + Date */}
+                {/* Row 1 on mobile: Checkbox + Title */}
                 <div className="flex items-start md:items-center gap-2 md:gap-3">
                   {/* Checkbox - vertically centered on mobile */}
                   <div className="flex items-center flex-shrink-0 self-center md:self-auto">
@@ -92,13 +92,18 @@ export function PendingPayoutsCard({
                       {payout.auction_title}
                     </p>
                   </div>
+                </div>
 
-                  {/* Date - Visible on mobile row 1 */}
-                  <div className="md:hidden flex-shrink-0">
-                    <p className="text-xs text-gray-400">
-                      {formatDate(payout.ended_at)}
-                    </p>
-                  </div>
+                {/* Row 2 on mobile: Amount + Date (below title) */}
+                <div className="md:hidden flex items-center justify-between pl-6">
+                  {/* Amount */}
+                  <p className="text-sm font-bold text-green-400">
+                    {formatCurrency(payout.model_amount)}
+                  </p>
+                  {/* Date */}
+                  <p className="text-xs text-gray-400">
+                    {formatDate(payout.ended_at)}
+                  </p>
                 </div>
 
                 {/* Desktop only: Amount and Date */}
