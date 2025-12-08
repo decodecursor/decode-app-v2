@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { StripeElementsOptions } from '@stripe/stripe-js';
 import {
   Elements,
@@ -48,6 +48,22 @@ function PaymentForm({
     email: customerEmail
   });
 
+  // Memoize device detection for performance (calculate once)
+  const deviceCapabilities = useMemo(() => {
+    const userAgent = navigator.userAgent;
+    const platform = navigator.platform || '';
+
+    const isIOS = /iPhone|iPad|iPod/.test(userAgent) ||
+                   /iPhone|iPad|iPod/.test(platform) ||
+                   (platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    const isAndroid = /Android/.test(userAgent);
+    const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(userAgent);
+    const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
+
+    return { isIOS, isAndroid, isMobile, isSafari };
+  }, []);
+
   // Format amount with thousands separators
   const formatAmount = (amount: number): string => {
     return amount.toLocaleString('en-US', {
@@ -58,88 +74,33 @@ function PaymentForm({
 
   // Enhanced mobile viewport control and autofocus prevention
   useEffect(() => {
-    const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-    // Mobile viewport centering and zoom prevention
-    const centerViewportOnMobile = () => {
-      if (!isMobileDevice) return;
-
-      // Scroll to center the form
-      const formContainer = document.querySelector('.cosmic-card-login');
-      if (formContainer) {
-        formContainer.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-          inline: 'center'
-        });
-      }
-
-      // Prevent zoom by ensuring viewport is at scale 1
-      window.scrollTo({
-        left: 0,
-        behavior: 'smooth'
-      });
-    };
+    const { isMobile } = deviceCapabilities;
 
     const preventPageAutofocus = () => {
-      // Remove focus from any element that might have auto-focused
       if (document.activeElement && document.activeElement !== document.body) {
-        console.log('🔒 Removing page-level autofocus from:', document.activeElement.tagName);
         (document.activeElement as HTMLElement).blur();
+      }
 
-        // Center viewport after removing focus on mobile
-        if (isMobileDevice) {
-          setTimeout(centerViewportOnMobile, 100);
+      if (isMobile) {
+        const formContainer = document.querySelector('.cosmic-card-login');
+        if (formContainer) {
+          formContainer.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'center'
+          });
         }
+        window.scrollTo({ left: 0, behavior: 'smooth' });
       }
     };
 
-    // Prevent autofocus immediately and after delays
-    preventPageAutofocus();
-    const timeoutId1 = setTimeout(preventPageAutofocus, 100);
-    const timeoutId2 = setTimeout(preventPageAutofocus, 300);
+    // Use requestAnimationFrame instead of multiple timeouts
+    requestAnimationFrame(preventPageAutofocus);
+  }, [deviceCapabilities]);
 
-    // Add viewport centering for mobile
-    if (isMobileDevice) {
-      setTimeout(centerViewportOnMobile, 200);
-    }
-
-    return () => {
-      clearTimeout(timeoutId1);
-      clearTimeout(timeoutId2);
-    };
-  }, []);
-
-  // Simplified device detection for payment capabilities
-  const detectPaymentCapabilities = () => {
-    // Check multiple ways to detect iOS devices
-    const userAgent = navigator.userAgent;
-    const platform = navigator.platform || '';
-
-    // Check for iOS - don't lowercase as iPhone/iPad have capital letters
-    const isIOS = /iPhone|iPad|iPod/.test(userAgent) ||
-                   /iPhone|iPad|iPod/.test(platform) ||
-                   (platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPad Pro detection
-
-    const isAndroid = /Android/.test(userAgent);
-    const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(userAgent);
-    const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
-
-    console.log('🔍 Device Detection:', {
-      isIOS,
-      isAndroid,
-      isMobile,
-      isSafari,
-      userAgent: navigator.userAgent,
-      platform: navigator.platform
-    });
-
-    return { isIOS, isAndroid, isMobile, isSafari };
-  };
-
-  // Dynamic ExpressCheckout configuration based on device
-  const getExpressCheckoutOptions = () => {
-    const { isIOS, isAndroid, isMobile } = detectPaymentCapabilities();
+  // Memoize ExpressCheckout configuration for performance
+  const expressCheckoutOptions = useMemo(() => {
+    const { isIOS, isAndroid } = deviceCapabilities;
 
     // Base configuration
     const baseConfig = {
@@ -153,37 +114,34 @@ function PaymentForm({
     };
 
     if (isIOS) {
-      console.log('📱 iOS device detected - showing Apple Pay only');
       return {
         ...baseConfig,
         paymentMethods: {
-          applePay: 'always' as const,  // Force Apple Pay to show on iOS
-          googlePay: 'never' as const   // Don't show Google Pay on iOS
+          applePay: 'always' as const,
+          googlePay: 'never' as const
         },
         paymentMethodOrder: ['applePay']
       };
     } else if (isAndroid) {
-      console.log('🤖 Android device - showing Google Pay and Apple Pay as fallback');
       return {
         ...baseConfig,
         paymentMethods: {
-          applePay: 'auto' as const,    // Show Apple Pay if available as fallback
-          googlePay: 'always' as const  // Always show Google Pay on Android
+          applePay: 'auto' as const,
+          googlePay: 'always' as const
         },
         paymentMethodOrder: ['googlePay', 'applePay']
       };
     } else {
-      console.log('🖥️ Desktop/other device - showing both payment methods');
       return {
         ...baseConfig,
         paymentMethods: {
-          applePay: 'auto' as const,    // Show if available
-          googlePay: 'always' as const  // Always show Google Pay on desktop
+          applePay: 'auto' as const,
+          googlePay: 'always' as const
         },
         paymentMethodOrder: ['googlePay', 'applePay']
       };
     }
-  };
+  }, [deviceCapabilities]);
 
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -271,104 +229,30 @@ function PaymentForm({
             <div className="mb-4 express-checkout-expanded" style={{ minHeight: '60px' }}>
               <div className="cosmic-input express-checkout-no-border" style={{ minHeight: '56px', display: 'block' }}>
                 <ExpressCheckoutElement
-                  options={getExpressCheckoutOptions()}
+                  options={expressCheckoutOptions}
               onReady={(event) => {
-                const { isIOS, isAndroid, isMobile, isSafari } = detectPaymentCapabilities();
+                // Use memoized device capabilities
+                const { isIOS, isAndroid } = deviceCapabilities;
 
-                console.log('🍎 Express Checkout ready - Device-specific configuration applied');
-                console.log('🍎 Available payment methods:', event.availablePaymentMethods);
-                console.log('🍎 Device info:', { isIOS, isAndroid, isMobile, isSafari });
-
-                // Log if no payment methods are available
-                if (!event.availablePaymentMethods ||
-                    (!event.availablePaymentMethods.applePay && !event.availablePaymentMethods.googlePay)) {
-                  console.warn('⚠️ No express payment methods available on this device');
-                  console.log('Debug: Check if Stripe is properly initialized and payment methods are configured');
-                }
-
-                // Function to force vertical layout on mobile
-                const forceVerticalLayout = () => {
-                  if (!isMobile) return;
-
-                  const expressCheckout = document.querySelector('.express-checkout-expanded');
-                  if (expressCheckout) {
-                    const allDivs = expressCheckout.querySelectorAll('div');
-                    const allButtons = expressCheckout.querySelectorAll('button');
-
-                    // Force vertical layout on all divs
-                    allDivs.forEach((div) => {
-                      if (div.style.display === 'flex' || getComputedStyle(div).display === 'flex') {
-                        div.style.cssText += 'flex-direction: column !important; width: 100% !important;';
-                      }
-                    });
-
-                    // Force full width on all buttons
-                    allButtons.forEach((button) => {
-                      button.style.cssText += 'width: 100% !important; max-width: 100% !important; margin-bottom: 8px !important; display: block !important;';
-                    });
-
-                    // Remove margin from last button
-                    if (allButtons.length > 0) {
-                      const lastButton = allButtons[allButtons.length - 1];
-                      if (lastButton) {
-                        lastButton.style.marginBottom = '0';
-                      }
-                    }
-                  }
-                };
-
-                // Device-specific button handling
-                setTimeout(() => {
-                  const showMoreButton = document.querySelector('button[aria-label*="Show more"], button[aria-label*="show more"], [class*="ShowMore"]') as HTMLButtonElement;
-
-                  // For single payment method devices, hide "Show More" button
-                  if (showMoreButton && (isIOS || isAndroid)) {
-                    console.log(`🔒 Hiding Show More button for ${isIOS ? 'iOS' : 'Android'} device`);
-                    showMoreButton.style.display = 'none';
-                  } else if (showMoreButton) {
-                    console.log('🔄 Auto-clicking Show More button for desktop');
-                    showMoreButton.click();
-                  }
-
-                  // Force vertical layout after Stripe renders
-                  forceVerticalLayout();
-
-                  // Only set up MutationObserver on desktop to avoid mobile input issues
-                  const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
-                                        ('ontouchstart' in window) ||
-                                        (navigator.maxTouchPoints > 0);
-
-                  if (!isMobileDevice) {
-                    // Set up MutationObserver to maintain layout (desktop only)
-                    const observer = new MutationObserver(() => {
-                      forceVerticalLayout();
-                    });
-
-                    const expressCheckout = document.querySelector('.express-checkout-expanded');
-                    if (expressCheckout) {
-                      observer.observe(expressCheckout, {
-                        childList: true,
-                        subtree: true,
-                        attributes: true,
-                        attributeFilter: ['style', 'class']
-                      });
-                    }
-                  }
-                }, 300);
-
-                // Also force layout on window resize
-                window.addEventListener('resize', forceVerticalLayout);
-
-                // Log available payment methods for debugging
-                if (event.availablePaymentMethods?.applePay) {
-                  console.log('✅ Apple Pay is available and configured');
-                }
-                if (event.availablePaymentMethods?.googlePay) {
-                  console.log('✅ Google Pay is available and configured');
-                }
+                // Minimal logging for debugging
                 if (!event.availablePaymentMethods?.applePay && !event.availablePaymentMethods?.googlePay) {
                   console.warn('⚠️ No express payment methods available');
                 }
+
+                // Lightweight button handling using requestAnimationFrame instead of setTimeout
+                requestAnimationFrame(() => {
+                  const showMoreButton = document.querySelector('button[aria-label*="Show more"], button[aria-label*="show more"]') as HTMLButtonElement;
+
+                  if (showMoreButton) {
+                    if (isIOS || isAndroid) {
+                      // Hide "Show More" button for single-payment devices
+                      showMoreButton.classList.add('hidden');
+                    } else {
+                      // Auto-expand for desktop
+                      showMoreButton.click();
+                    }
+                  }
+                });
               }}
               onConfirm={async (event) => {
                 console.log('🍎 DEBUG: Express Checkout onConfirm called', event);
@@ -459,98 +343,31 @@ function PaymentForm({
                   }
                 }}
                 onReady={() => {
-                  console.log('✅ PaymentElement ready and visible');
-                  const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                  const { isMobile } = deviceCapabilities;
 
-                  // Enhanced viewport recovery function for mobile
-                  const recoverMobileViewport = () => {
-                    if (!isMobileDevice) return;
-
-                    // Force viewport back to center
-                    const formContainer = document.querySelector('.cosmic-card-login');
-                    if (formContainer) {
-                      // Get viewport dimensions
-                      const viewportWidth = window.innerWidth;
-                      const containerRect = formContainer.getBoundingClientRect();
-
-                      // Calculate if container is off-center
-                      const containerCenter = containerRect.left + (containerRect.width / 2);
-                      const viewportCenter = viewportWidth / 2;
-                      const offset = containerCenter - viewportCenter;
-
-                      if (Math.abs(offset) > 10) {
-                        console.log('📱 Mobile viewport off-center by', offset, 'px - recovering...');
-
-                        // Scroll to recenter
-                        window.scrollTo({
-                          left: window.scrollX - offset,
-                          top: window.scrollY,
-                          behavior: 'smooth'
-                        });
-
-                        // Also use scrollIntoView as backup
-                        setTimeout(() => {
-                          formContainer.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'center',
-                            inline: 'center'
-                          });
-                        }, 100);
-                      }
-                    }
-                  };
-
-                  // Enhanced autofocus prevention for payment fields
+                  // Lightweight autofocus prevention using requestAnimationFrame
                   const preventAutofocus = () => {
-                    // Blur any currently focused element
                     if (document.activeElement && document.activeElement !== document.body) {
-                      console.log('🔒 Removing autofocus from element:', document.activeElement.tagName);
                       (document.activeElement as HTMLElement).blur();
-
-                      // Recover viewport on mobile after blur
-                      if (isMobileDevice) {
-                        setTimeout(recoverMobileViewport, 150);
-                      }
                     }
-
-                    // Target Stripe payment inputs specifically
-                    const stripeInputs = document.querySelectorAll('input[data-elements-stable-field-name], input[placeholder*="card"], input[placeholder*="Card"], input[placeholder*="expiry"], input[placeholder*="cvc"], input[placeholder*="postal"]');
-                    stripeInputs.forEach(input => {
-                      if (input === document.activeElement) {
-                        console.log('🔒 Removing focus from Stripe input:', input);
-                        (input as HTMLElement).blur();
-
-                        // Recover viewport after Stripe blur
-                        if (isMobileDevice) {
-                          setTimeout(recoverMobileViewport, 150);
-                        }
-                      }
-                    });
                   };
 
-                  // Multiple timeouts to catch different autofocus scenarios
-                  setTimeout(preventAutofocus, 100);
-                  setTimeout(preventAutofocus, 300);
-                  setTimeout(preventAutofocus, 500);
+                  // Single requestAnimationFrame instead of multiple timeouts
+                  requestAnimationFrame(() => {
+                    preventAutofocus();
 
-                  // Add viewport recovery for mobile
-                  if (isMobileDevice) {
-                    setTimeout(recoverMobileViewport, 600);
-
-                    // Set up listener for any future focus events that might shift viewport
-                    const handleFocusEvents = () => {
-                      setTimeout(recoverMobileViewport, 200);
-                    };
-
-                    document.addEventListener('focusin', handleFocusEvents);
-                    document.addEventListener('focusout', handleFocusEvents);
-
-                    // Cleanup on component unmount (though this is in onReady)
-                    setTimeout(() => {
-                      document.removeEventListener('focusin', handleFocusEvents);
-                      document.removeEventListener('focusout', handleFocusEvents);
-                    }, 30000); // Clean up after 30 seconds
-                  }
+                    // Mobile viewport centering if needed
+                    if (isMobile) {
+                      const formContainer = document.querySelector('.cosmic-card-login');
+                      if (formContainer) {
+                        formContainer.scrollIntoView({
+                          behavior: 'smooth',
+                          block: 'center',
+                          inline: 'center'
+                        });
+                      }
+                    }
+                  });
                 }}
                 onLoaderStart={() => {
                   console.log('🔄 PaymentElement loading...');
