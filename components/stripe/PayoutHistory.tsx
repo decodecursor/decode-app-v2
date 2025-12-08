@@ -219,7 +219,7 @@ export function PayoutHistory({ userId, userRole, onNewPayout, refreshTrigger }:
   if (loading) {
     return (
       <div className="cosmic-card">
-        <h3 className="text-lg font-semibold text-white mb-6">Payout History</h3>
+        <h3 className="text-base md:text-lg font-semibold text-white mb-6">Payout History</h3>
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
             <div key={i} className="h-16 bg-gray-800/50 rounded-lg animate-pulse" />
@@ -232,7 +232,7 @@ export function PayoutHistory({ userId, userRole, onNewPayout, refreshTrigger }:
   return (
     <div className="cosmic-card">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-white">Payout History</h3>
+        <h3 className="text-base md:text-lg font-semibold text-white">Payout History</h3>
         {payouts.length > 0 && (
           <button
             onClick={exportToCSV}
