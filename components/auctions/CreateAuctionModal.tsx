@@ -42,6 +42,10 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
       newErrors.auction_start_price = 'Please enter a valid starting price';
     }
 
+    if (!formData.duration) {
+      newErrors.duration = 'Please select an auction duration';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -235,9 +239,10 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                       onChange={(e) => {
                         setTouched({ ...touched, duration: true });
                         setFormData({ ...formData, duration: parseInt(e.target.value) as AuctionDuration });
+                        if (errors.duration) setErrors({ ...errors, duration: undefined });
                       }}
                       className={`w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border rounded-lg focus:outline-none transition-colors ${
-                        touched.duration ? 'border-purple-500 text-white' : 'border-gray-700 focus:border-purple-500 text-gray-400'
+                        errors.duration ? 'border-red-500 text-white' : touched.duration ? 'border-purple-500 text-white' : 'border-gray-700 focus:border-purple-500 text-gray-400'
                       }`}
                       style={{
                         color: touched.duration ? '#fff' : '#9ca3af',
@@ -253,6 +258,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                         </option>
                       ))}
                     </select>
+                    {errors.duration && <p className="mt-1 text-sm text-red-100">{errors.duration}</p>}
                   </div>
 
                   {/* Submit Error */}

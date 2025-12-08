@@ -703,7 +703,6 @@ export default function ProfilePage() {
                       onChange={handleImageSelect}
                       className="hidden"
                     />
-                    <p className="text-xs text-gray-400 text-center">JPG, PNG or GIF (max 5MB)</p>
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       className="group relative w-full px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-2xl font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-xl"

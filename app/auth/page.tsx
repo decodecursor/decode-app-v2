@@ -758,7 +758,7 @@ function AuthPageContent() {
             </div>
 
             {/* Email Section */}
-            <div className="space-y-2">
+            <form onSubmit={handleEmailSubmit} className="space-y-2">
               <input
                 type="email"
                 placeholder="Enter your email"
@@ -770,7 +770,7 @@ function AuthPageContent() {
               />
 
               <button
-                onClick={handleEmailSubmit}
+                type="submit"
                 className={`w-full py-3 text-base rounded-lg font-medium transition-all ${
                   email
                     ? 'bg-black border border-purple-600 hover:border-purple-700'
@@ -787,7 +787,7 @@ function AuthPageContent() {
                   'Continue with Email'
                 )}
               </button>
-            </div>
+            </form>
 
             {/* Error/Success Messages */}
             {message && (
