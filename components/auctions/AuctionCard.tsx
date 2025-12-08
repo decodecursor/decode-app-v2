@@ -615,7 +615,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                     onClick={() => {
                       setShowVideoModal(true);
                     }}
-                    className="text-xs md:text-sm px-1.5 md:px-3 py-1 md:py-1.5 transition-all border-0 rounded-lg hover:bg-white/10 flex items-center gap-1.5 md:gap-2"
+                    className="text-xs md:text-sm px-3 py-1 md:py-1.5 transition-all border-0 rounded-lg hover:bg-white/10 flex items-center gap-1.5 md:gap-2"
                     title="Watch video"
                   >
                     <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -642,7 +642,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               {/* Share Button */}
               <button
               onClick={handleShare}
-              className={`text-xs md:text-sm px-1.5 md:px-3 py-1 md:py-1.5 transition-all border-0 rounded-lg hover:bg-white/10 flex items-center gap-1.5 md:gap-2 ${
+              className={`text-xs md:text-sm px-3 py-1 md:py-1.5 transition-all border-0 rounded-lg hover:bg-white/10 flex items-center gap-1.5 md:gap-2 ${
                 shareSuccess ? 'bg-green-500/20 text-green-300 border-green-500' : ''
               }`}
               title="Share auction"
@@ -668,7 +668,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             <button
               onClick={handleGenerateQR}
               disabled={generatingQR}
-              className="text-xs md:text-sm px-1.5 md:px-3 py-1 md:py-1.5 transition-all border-0 rounded-lg hover:bg-white/10 flex items-center gap-1.5 md:gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-xs md:text-sm px-3 py-1 md:py-1.5 transition-all border-0 rounded-lg hover:bg-white/10 flex items-center gap-1.5 md:gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               title="Generate QR code"
             >
               <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
