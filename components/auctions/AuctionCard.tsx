@@ -501,7 +501,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
           </div>
 
           {/* Row 2: Badge + Timer - Mobile only, below title */}
-          <div className="flex md:hidden items-center gap-1">
+          <div className="flex md:hidden items-center gap-1 -mt-1">
             {auction.status === 'active' && !isAuctionEnded(auction) && (
               <CompactAuctionTimer auction={auction} />
             )}
@@ -603,7 +603,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     </Link>
 
         {/* Action Buttons Row */}
-        <div className="border-t border-gray-700 pt-2 px-0 md:px-2 pb-2 overflow-hidden">
+        <div className="border-t border-gray-700 pt-2 px-5 md:px-2 pb-2 overflow-hidden">
           {/* All buttons inline on one row */}
           <div className="flex gap-1 md:gap-2 items-center">
             {/* Video Section - Inline with other buttons */}
