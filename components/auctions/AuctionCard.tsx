@@ -285,8 +285,8 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     // Check cancelled status FIRST (before time-based checks)
     if (auction.status === 'cancelled') {
       return (
-        <span className="px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm font-medium text-red-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-red-500 flex items-center gap-1 md:gap-1.5">
-          <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <span className="px-1.5 md:px-3 py-0.5 md:py-1.5 text-[10px] md:text-sm font-medium text-red-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-red-500 flex items-center gap-0.5 md:gap-1.5">
+          <svg className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           Cancelled
@@ -301,8 +301,8 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
       // If auction has bids, show COMPLETED (green)
       if (auction.total_bids > 0) {
         return (
-          <span className="px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm font-medium text-green-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-green-500 flex items-center gap-1 md:gap-1.5">
-            <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <span className="px-1.5 md:px-3 py-0.5 md:py-1.5 text-[10px] md:text-sm font-medium text-green-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-green-500 flex items-center gap-0.5 md:gap-1.5">
+            <svg className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Completed
@@ -311,8 +311,8 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
       }
       // If no bids, show ENDED (gray)
       return (
-        <span className="px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm font-medium text-gray-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-gray-500 flex items-center gap-1 md:gap-1.5">
-          <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="currentColor" viewBox="0 0 24 24">
+        <span className="px-1.5 md:px-3 py-0.5 md:py-1.5 text-[10px] md:text-sm font-medium text-gray-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-gray-500 flex items-center gap-0.5 md:gap-1.5">
+          <svg className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" fill="currentColor" viewBox="0 0 24 24">
             <rect x="6" y="6" width="12" height="12" rx="1" />
           </svg>
           Ended
@@ -323,18 +323,18 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     switch (auction.status) {
       case 'active':
         return (
-          <span className="px-2 md:px-3 py-0.5 md:py-1 text-[8px] md:text-xs font-medium text-purple-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-purple-500 flex items-center gap-1 md:gap-1.5 animate-pulse">
-            <span className="relative flex h-2 w-2 md:h-2.5 md:w-2.5">
+          <span className="px-1.5 md:px-3 py-0.5 md:py-1 text-[6px] md:text-xs font-medium text-purple-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-purple-500 flex items-center gap-0.5 md:gap-1.5 animate-pulse">
+            <span className="relative flex h-1.5 w-1.5 md:h-2.5 md:w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 md:h-2.5 md:w-2.5 bg-purple-500"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 md:h-2.5 md:w-2.5 bg-purple-500"></span>
             </span>
             Live
           </span>
         );
       case 'pending':
         return (
-          <span className="px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm font-medium text-blue-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-blue-500 flex items-center gap-1 md:gap-1.5">
-            <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <span className="px-1.5 md:px-3 py-0.5 md:py-1.5 text-[10px] md:text-sm font-medium text-blue-500 bg-gray-900/80 backdrop-blur-md rounded-full border-2 border-blue-500 flex items-center gap-0.5 md:gap-1.5">
+            <svg className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Upcoming
@@ -382,33 +382,54 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                 )}
               </div>
 
-              {/* Beauty Business Image - Always use instagram-avatar style on mobile */}
-              <div className="relative z-10 -ml-[8px]">
-                <div
-                  className="instagram-avatar cursor-pointer"
-                  style={{ width: '50px', height: '50px' }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowBusinessModal(true);
-                  }}
-                  role="button"
-                  aria-label={linkedBusiness ? "Manage beauty business link" : "Link beauty business"}
-                >
-                  {linkedBusiness?.business_photo_url ? (
-                    <img
-                      src={linkedBusiness.business_photo_url}
-                      alt={linkedBusiness.business_name || 'Beauty Business'}
-                    />
-                  ) : (
-                    <div className="avatar-fallback bg-gray-500">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {/* Beauty Business Image */}
+              {linkedBusiness ? (
+                <div className="relative z-10 -ml-[8px]">
+                  <div
+                    className="instagram-avatar cursor-pointer"
+                    style={{ width: '50px', height: '50px' }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowBusinessModal(true);
+                    }}
+                    role="button"
+                    aria-label="Manage beauty business link"
+                  >
+                    {linkedBusiness.business_photo_url ? (
+                      <img
+                        src={linkedBusiness.business_photo_url}
+                        alt={linkedBusiness.business_name || 'Beauty Business'}
+                      />
+                    ) : (
+                      <div className="avatar-fallback bg-gray-500">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="relative z-10 -ml-[8px]">
+                  <div
+                    className="relative w-[50px] h-[50px] rounded-full overflow-hidden border-2 border-dashed border-amber-500/30 cursor-pointer transition-all duration-200"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowBusinessModal(true);
+                    }}
+                    role="button"
+                    aria-label="Link beauty business"
+                  >
+                    <div className="w-full h-full bg-amber-500/10 flex items-center justify-center opacity-75">
+                      <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Center: Model & Business Images - Hidden on mobile, shown on desktop */}

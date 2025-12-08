@@ -82,7 +82,7 @@ export function PendingPayoutsCard({
                       checked={selectedAuctionIds.has(payout.auction_id)}
                       disabled={!payout.payout_unlocked}
                       readOnly
-                      className="w-6 h-6 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 pointer-events-none disabled:cursor-not-allowed"
+                      className="w-[18px] h-[18px] md:w-6 md:h-6 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 pointer-events-none disabled:cursor-not-allowed"
                     />
                   </div>
 

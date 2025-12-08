@@ -126,7 +126,7 @@ export function VideoUploadCountdown({ tokenExpiresAt, hasVideo, showAsFullStatu
     <div className={`flex items-center ${asButton ? 'justify-center gap-1.5' : 'gap-1.5 px-1'}`}>
       {/* Clock Icon */}
       <svg
-        className={`${asButton ? 'w-3.5 h-3.5' : 'w-[18px] h-[18px]'} ${colorClass}`}
+        className={`${asButton ? 'w-2.5 h-2.5 md:w-3.5 md:h-3.5' : 'w-[18px] h-[18px]'} ${colorClass}`}
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -140,7 +140,7 @@ export function VideoUploadCountdown({ tokenExpiresAt, hasVideo, showAsFullStatu
       </svg>
 
       {/* Countdown Text */}
-      <span className={`${asButton ? 'text-xs' : 'text-sm'} font-mono tabular-nums ${colorClass}`}>
+      <span className={`${asButton ? 'text-[8px] md:text-xs' : 'text-sm'} font-mono tabular-nums ${colorClass}`}>
         {formatted}{!asButton && ' remaining'}
       </span>
     </div>
