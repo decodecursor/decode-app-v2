@@ -161,8 +161,8 @@ function AuthPageContent() {
           .single()
 
         if (profileData) {
-          // User has profile, redirect to dashboard
-          router.push('/dashboard')
+          // User has profile, use full page navigation for middleware (mobile fix)
+          window.location.href = '/dashboard'
         } else {
           // Show role selection modal
           setShowRoleModal(true)
@@ -339,9 +339,22 @@ function AuthPageContent() {
           .single()
 
         if (profileData) {
-          // User has profile, redirect to dashboard
-          console.log('✅ [AUTH] Redirecting to dashboard')
-          router.push('/dashboard')
+          // User has profile, verify session is properly set before redirecting
+          console.log('✅ [AUTH] User has profile, verifying session before redirect...')
+
+          // Verify session is properly established (critical for mobile)
+          const { data: { session } } = await supabase.auth.getSession()
+          if (!session) {
+            console.error('❌ [AUTH] Session not established after authentication')
+            setIsCheckingAuth(false)
+            setAuthError('Session could not be established. Please try again.')
+            return
+          }
+
+          console.log('✅ [AUTH] Session verified, redirecting to dashboard')
+          // Use full page navigation to ensure middleware runs (critical for mobile)
+          window.location.href = '/dashboard'
+          return
         } else {
           // Show role selection modal
           console.log('🆕 [AUTH] New user, showing role modal')
@@ -492,9 +505,9 @@ function AuthPageContent() {
 
       // Check if user has profile
       if (data.user?.hasProfile) {
-        // User has profile, redirect to dashboard
+        // User has profile, use full page navigation for middleware (mobile fix)
         console.log('✅ [AUTH] User has profile, redirecting to dashboard')
-        router.push('/dashboard')
+        window.location.href = '/dashboard'
       } else {
         // Show role selection modal for new users
         console.log('🆕 [AUTH] New user, showing role selection')
