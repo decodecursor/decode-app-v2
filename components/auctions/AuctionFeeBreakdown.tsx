@@ -49,17 +49,17 @@ export function AuctionFeeBreakdown({
       <div className="space-y-3">
         {/* Current/Winning Bid */}
         <div className="flex justify-between items-center">
-          <span className="text-gray-600 font-semibold" style={{ fontSize: '17px' }}>{isCompleted ? 'Winning Bid:' : 'Highest Bid:'}</span>
-          <span className="font-semibold text-gray-600" style={{ fontSize: '16px' }}>{formatCurrency(currentBid)}</span>
+          <span className="text-gray-600 font-semibold text-[16px] sm:text-[17px]">{isCompleted ? 'Winning Bid:' : 'Highest Bid:'}</span>
+          <span className="font-semibold text-gray-600 text-[15px] sm:text-[16px]">{formatCurrency(currentBid)}</span>
         </div>
 
         {/* Starting Price */}
         <div className="flex justify-between items-center">
           <span className="text-gray-600">
-            <span style={{ fontSize: '16px' }}>Auction Starting Price </span>
-            <span className="hidden sm:inline" style={{ fontSize: '11px' }}>(Beauty Service Price):</span>
+            <span className="text-[15px] sm:text-[16px]">Auction Starting Price </span>
+            <span className="hidden sm:inline text-[10px] sm:text-[11px]">(Beauty Service Price):</span>
           </span>
-          <span className="text-gray-600" style={{ fontSize: '16px' }}>- {formatCurrency(auctionStartPrice)}</span>
+          <span className="text-gray-600 text-[15px] sm:text-[16px]">- {formatCurrency(auctionStartPrice)}</span>
         </div>
 
         <div className="border-t border-gray-200 my-3"></div>
@@ -67,31 +67,31 @@ export function AuctionFeeBreakdown({
         {/* Profit Calculation */}
         <div className="flex justify-between items-center">
           <span className="text-gray-600 font-semibold">
-            <span style={{ fontSize: '17px' }}>Profit </span>
-            <span className="hidden sm:inline" style={{ fontSize: '11px' }}>(Highest Bid – Auction Starting Price):</span>
+            <span className="text-[16px] sm:text-[17px]">Profit </span>
+            <span className="hidden sm:inline text-[10px] sm:text-[11px]">(Highest Bid – Auction Starting Price):</span>
           </span>
-          <span className="font-semibold text-gray-600" style={{ fontSize: '16px' }}>{formatCurrency(profit)}</span>
+          <span className="font-semibold text-gray-600 text-[15px] sm:text-[16px]">{formatCurrency(profit)}</span>
         </div>
 
         {/* DECODE Fee */}
         <div className="flex justify-between items-center">
           <span className="text-gray-600">
-            <span style={{ fontSize: '16px' }}>DECODE Service Fee </span>
-            <span className="hidden sm:inline" style={{ fontSize: '11px' }}>({DEFAULT_AUCTION_FEE_PERCENTAGE}% of Profit):</span>
+            <span className="text-[15px] sm:text-[16px]">DECODE Service Fee </span>
+            <span className="hidden sm:inline text-[10px] sm:text-[11px]">({DEFAULT_AUCTION_FEE_PERCENTAGE}% of Profit):</span>
           </span>
-          <span className="text-gray-600" style={{ fontSize: '16px' }}>- {formatCurrency(decodeFee)}</span>
+          <span className="text-gray-600 text-[15px] sm:text-[16px]">- {formatCurrency(decodeFee)}</span>
         </div>
 
         <div className="border-t border-gray-300 my-3"></div>
 
         {/* Model Net Earnings */}
         <div className="flex justify-between items-center">
-          <span className="font-bold text-gray-900" style={{ fontSize: '18px' }}>Your Net Profit:</span>
-          <span className="text-xl font-bold text-gray-900">{formatCurrency(modelEarnings)}</span>
+          <span className="font-bold text-gray-900 text-[17px] sm:text-[18px]">Your Net Profit:</span>
+          <span className="text-[19px] sm:text-xl font-bold text-gray-900">{formatCurrency(modelEarnings)}</span>
         </div>
 
         {!isCompleted && currentBid > auctionStartPrice && (
-          <p className="text-gray-500 mt-2 italic" style={{ fontSize: '10px' }}>
+          <p className="text-gray-500 mt-2 italic text-[9px] sm:text-[10px]">
             * Amounts update with the highest bid; final at auction end.
           </p>
         )}

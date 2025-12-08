@@ -157,7 +157,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                     <img
                       src="/images/Mascot_Letsgooo_png.png"
                       alt="Create auction mascot"
-                      className="w-[130px] md:w-[160px] h-auto object-contain -my-8"
+                      className="w-[100px] md:w-[160px] h-auto object-contain -my-8"
                     />
                   </div>
                   <Dialog.Title

@@ -501,7 +501,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
           </div>
 
           {/* Row 2: Badge + Timer - Mobile only, below title */}
-          <div className="flex md:hidden items-center gap-1 mt-2">
+          <div className="flex md:hidden items-center gap-1">
             {auction.status === 'active' && !isAuctionEnded(auction) && (
               <CompactAuctionTimer auction={auction} />
             )}
@@ -603,7 +603,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     </Link>
 
         {/* Action Buttons Row */}
-        <div className="border-t border-gray-700 pt-2 px-2 pb-2 overflow-hidden">
+        <div className="border-t border-gray-700 pt-2 px-0 md:px-2 pb-2 overflow-hidden">
           {/* All buttons inline on one row */}
           <div className="flex gap-1 md:gap-2 items-center">
             {/* Video Section - Inline with other buttons */}
@@ -618,7 +618,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                     className="text-xs md:text-sm px-1.5 md:px-3 py-1 md:py-1.5 transition-all border-0 rounded-lg hover:bg-white/10 flex items-center gap-1 md:gap-1.5"
                     title="Watch video"
                   >
-                    <svg className="w-2.5 h-2.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-[11px] h-[11px] md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
                     <span className="hidden md:inline">Watch Video</span>
@@ -685,7 +685,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                 className="text-xs md:text-sm px-3 py-1.5 transition-all border-0 rounded-lg hover:bg-red-500/20 hover:border-red-500 hover:text-red-300 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Deactivate auction"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-[11px] h-[11px] md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                 </svg>
                 <span>{deactivating ? 'Deactivating...' : 'Deactivate'}</span>

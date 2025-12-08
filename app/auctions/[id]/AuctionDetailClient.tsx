@@ -54,6 +54,11 @@ export default function AuctionDetailClient() {
     preloadStripe();
   }, []);
 
+  // Scroll to top when page loads or auction changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [auctionId]);
+
   // Check if user is authenticated
   useEffect(() => {
     const checkUser = async () => {
