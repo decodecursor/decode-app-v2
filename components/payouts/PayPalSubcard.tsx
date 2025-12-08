@@ -108,7 +108,7 @@ export function PayPalSubcard({ userId, onClick, refreshKey, paypalAccountData, 
         </div>
       )}
       <div className="flex items-center justify-between mb-2 md:mb-1">
-        <h4 className="text-white font-medium text-sm md:text-sm">PayPal</h4>
+        <h4 className="text-white font-medium text-[15px] md:text-[15px]">PayPal</h4>
         <div className="w-6 h-6 md:w-7 md:h-7 bg-purple-600/20 rounded-lg flex items-center justify-center">
           {/* PayPal P logo */}
           <div className="w-4 h-4 md:w-4 md:h-4 text-purple-400 font-bold text-xs md:text-xs flex items-center justify-center">

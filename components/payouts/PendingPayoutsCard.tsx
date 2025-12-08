@@ -73,10 +73,10 @@ export function PendingPayoutsCard({
             >
               {/* Mobile: Stacked layout / Desktop: Horizontal row */}
               <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-                {/* Row 1 on mobile: Checkbox + Title + Amount */}
-                <div className="flex items-center gap-2 md:gap-3">
-                  {/* Checkbox */}
-                  <div className="flex items-center flex-shrink-0">
+                {/* Row 1 on mobile: Checkbox + Title + Date */}
+                <div className="flex items-start md:items-center gap-2 md:gap-3">
+                  {/* Checkbox - vertically centered on mobile */}
+                  <div className="flex items-center flex-shrink-0 self-center md:self-auto">
                     <input
                       type="checkbox"
                       checked={selectedAuctionIds.has(payout.auction_id)}
@@ -93,10 +93,10 @@ export function PendingPayoutsCard({
                     </p>
                   </div>
 
-                  {/* Amount - Visible on mobile row 1 */}
+                  {/* Date - Visible on mobile row 1 */}
                   <div className="md:hidden flex-shrink-0">
-                    <p className="text-sm font-bold text-green-400">
-                      {formatCurrency(payout.model_amount)}
+                    <p className="text-xs text-gray-400">
+                      {formatDate(payout.ended_at)}
                     </p>
                   </div>
                 </div>
@@ -134,15 +134,8 @@ export function PendingPayoutsCard({
                   </div>
                 </div>
 
-                {/* Row 2 on mobile: Date + Buttons */}
-                <div className="flex md:hidden items-center justify-between gap-2 pl-6">
-                  {/* End Date */}
-                  <div className="flex-shrink-0">
-                    <p className="text-xs text-gray-400">
-                      {formatDate(payout.ended_at)}
-                    </p>
-                  </div>
-
+                {/* Row 2 on mobile: Buttons only */}
+                <div className="flex md:hidden items-center justify-end gap-2 pl-6">
                   {/* Mobile buttons row */}
                   <div className="flex items-center gap-1.5">
                     {/* Watch Video Button or Countdown - Only for locked cards */}
@@ -201,7 +194,7 @@ export function PendingPayoutsCard({
                       <span className="text-white font-medium">{formatCurrency(payout.winning_amount)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400 text-[10px] md:text-sm">Auction Starting Price (Beauty Service Price)</span>
+                      <span className="text-gray-400 text-[8px] md:text-sm">Auction Starting Price (Beauty Service Price)</span>
                       <span className="text-gray-400">-{formatCurrency(payout.start_price)}</span>
                     </div>
                     <div className="flex justify-between pt-1.5 md:pt-2 border-t border-white/5">
@@ -209,7 +202,7 @@ export function PendingPayoutsCard({
                       <span className="text-white font-medium">{formatCurrency(payout.profit_amount)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400 text-[10px] md:text-sm">DECODE Service Fee (25% of Profit)</span>
+                      <span className="text-gray-400 text-[8px] md:text-sm">DECODE Service Fee (25% of Profit)</span>
                       <span className="text-gray-400">-{formatCurrency(payout.platform_fee_amount)}</span>
                     </div>
                     <div className="flex justify-between pt-1.5 md:pt-2 border-t border-white/5">
