@@ -603,7 +603,7 @@ export default function PayoutsPage() {
                         } cursor-pointer hover:border-purple-500 hover:bg-white/8 transition-all group min-h-[44px] md:min-h-0 flex items-center`}
                       >
                         <div className="flex items-center justify-between w-full">
-                          <p className="text-white text-[11px] md:text-xs font-bold truncate">
+                          <p className="text-white text-[12px] md:text-xs font-bold truncate">
                             {getSelectedMethodDisplayName()}
                           </p>
                           <div className="w-4 h-4 md:w-6 md:h-6 text-gray-400 group-hover:text-purple-400 transition-colors flex-shrink-0">
@@ -623,7 +623,7 @@ export default function PayoutsPage() {
                       <button
                         onClick={handleRequestPayoutClick}
                         disabled={payoutInProcess || (userRole?.toLowerCase() === 'model' && selectedAuctionIds.size === 0)}
-                        className="w-full py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-600/40 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+                        className="w-full py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-600/40 disabled:cursor-not-allowed text-white text-[14px] font-medium rounded-lg transition-colors"
                       >
                         {userRole?.toLowerCase() === 'model'
                           ? `Request Payout${selectedAuctionIds.size > 0 ? ` (${formatCurrency(getSelectedTotal())})` : ''}`

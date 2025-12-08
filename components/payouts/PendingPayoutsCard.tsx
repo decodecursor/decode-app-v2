@@ -71,120 +71,90 @@ export function PendingPayoutsCard({
                   : 'border border-gray-600'
               } ${!payout.payout_unlocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:opacity-85'}`}
             >
-              {/* Mobile: Stacked layout / Desktop: Horizontal row */}
-              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-                {/* Row 1 on mobile: Checkbox + Title + Date */}
-                <div className="flex items-start md:items-center gap-2 md:gap-3">
-                  {/* Checkbox - vertically centered on mobile */}
-                  <div className="flex items-center flex-shrink-0 self-center md:self-auto">
-                    <input
-                      type="checkbox"
-                      checked={selectedAuctionIds.has(payout.auction_id)}
-                      disabled={!payout.payout_unlocked}
-                      readOnly
-                      className="w-6 h-6 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 pointer-events-none disabled:cursor-not-allowed"
-                    />
-                  </div>
+              {/* Mobile: Single horizontal row / Desktop: Horizontal row */}
+              <div className="flex flex-row items-center gap-2 md:gap-4">
+                {/* Checkbox - vertically centered */}
+                <div className="flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={selectedAuctionIds.has(payout.auction_id)}
+                    disabled={!payout.payout_unlocked}
+                    readOnly
+                    className="w-6 h-6 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 pointer-events-none disabled:cursor-not-allowed"
+                  />
+                </div>
 
-                  {/* Treatment Name */}
-                  <div className="flex-1 min-w-0 md:w-40 md:flex-none">
+                {/* Title + Amount + Date stacked vertically on mobile, horizontal on desktop */}
+                <div className="flex flex-col gap-0.5 flex-1 min-w-0 md:flex-row md:items-center md:flex-initial md:gap-4">
+                  {/* Title */}
+                  <div className="md:w-40 md:flex-none">
                     <p className="font-semibold text-white text-[15px] md:text-base truncate">
                       {payout.auction_title}
                     </p>
                   </div>
 
-                  {/* Date - Mobile only, on same line as title */}
-                  <div className="md:hidden flex-shrink-0">
-                    <p className="text-xs text-white">
-                      {formatDate(payout.ended_at)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Row 2 on mobile: Amount + Buttons */}
-                <div className="md:hidden flex items-center gap-2">
                   {/* Amount */}
-                  <p className="text-sm font-bold text-green-400">
-                    {formatCurrency(payout.model_amount)}
-                  </p>
-
-                  {/* Buttons */}
-                  <div className="flex items-center gap-1.5">
-                    {/* Watch Video Button or Countdown - Only for locked cards */}
-                    {!payout.payout_unlocked && payout.has_video && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onWatchVideo(payout.auction_id, payout.auction_title);
-                        }}
-                        className="flex items-center justify-center h-7 px-2 text-[10px] font-medium bg-amber-500/10 text-amber-400 rounded-md hover:bg-amber-500/30 transition-colors border border-amber-500/30"
-                      >
-                        Watch Video
-                      </button>
-                    )}
-                    {!payout.payout_unlocked && !payout.has_video && payout.token_expires_at && new Date(payout.token_expires_at).getTime() > Date.now() && (
-                      <div className="flex items-center justify-center h-7 px-2 text-[10px] font-medium bg-amber-500/10 text-amber-400 rounded-md border border-amber-500/30">
-                        <VideoUploadCountdown
-                          tokenExpiresAt={payout.token_expires_at}
-                          hasVideo={payout.has_video}
-                          showAsFullStatus={false}
-                          asButton={true}
-                        />
-                      </div>
-                    )}
-
-                    {/* Profit Breakdown Button - Mobile */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleExpanded(payout.auction_id);
-                      }}
-                      className="flex items-center gap-0.5 h-7 px-2 text-[10px] font-medium bg-white/4 text-gray-300 rounded-md hover:bg-white/10 transition-colors border border-white/20"
-                    >
-                      <span>Details</span>
-                      <svg
-                        className={`w-3 h-3 transition-transform ${expandedItems.has(payout.auction_id) ? 'rotate-180' : ''}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Desktop only: Amount and Date */}
-                <div className="hidden md:flex md:items-center md:gap-4 md:flex-1">
-                  {/* Amount */}
-                  <div className="w-36">
-                    <p className="text-base font-bold text-green-400">
+                  <div className="md:w-36">
+                    <p className="text-sm md:text-base font-bold text-green-400">
                       {formatCurrency(payout.model_amount)}
                     </p>
                   </div>
 
-                  {/* End Date */}
-                  <div className="w-28">
-                    <p className="text-sm text-white">
+                  {/* Date */}
+                  <div className="md:w-28">
+                    <p className="text-xs md:text-sm text-white">
                       {formatDate(payout.ended_at)}
                     </p>
                   </div>
+                </div>
 
-                  {/* Spacer to push buttons right */}
-                  <div className="flex-1"></div>
+                {/* Desktop spacer - hidden on mobile */}
+                <div className="hidden md:flex md:flex-1"></div>
 
-                  {/* Placeholder for buttons (faded with card) - Desktop only */}
-                  {!payout.payout_unlocked && (payout.has_video || (!payout.has_video && payout.token_expires_at && new Date(payout.token_expires_at).getTime() > Date.now())) && (
-                    <div className="px-3 py-1.5 text-xs font-medium bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/30 flex-shrink-0 invisible min-w-[110px]">
-                      {payout.has_video ? 'Watch Video' : 'Countdown'}
+                {/* Buttons group - right aligned on mobile via ml-auto, desktop uses invisible placeholders */}
+                <div className="flex items-center gap-1.5 ml-auto md:ml-0 md:invisible">
+                  {/* Watch Video Button or Countdown - Only for locked cards */}
+                  {!payout.payout_unlocked && payout.has_video && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onWatchVideo(payout.auction_id, payout.auction_title);
+                      }}
+                      className="flex items-center justify-center h-7 md:h-8 px-2 md:px-3 text-[10px] md:text-xs font-medium bg-amber-500/10 md:bg-amber-500/20 text-amber-400 rounded-md md:rounded-lg hover:bg-amber-500/30 transition-colors border border-amber-500/30 flex-shrink-0 md:min-w-[110px]"
+                    >
+                      Watch Video
+                    </button>
+                  )}
+                  {!payout.payout_unlocked && !payout.has_video && payout.token_expires_at && new Date(payout.token_expires_at).getTime() > Date.now() && (
+                    <div className="flex items-center justify-center h-7 md:h-8 px-2 md:px-3 text-[10px] md:text-xs font-medium bg-amber-500/10 md:bg-amber-500/20 text-amber-400 rounded-md md:rounded-lg border border-amber-500/30 flex-shrink-0 md:min-w-[110px]">
+                      <VideoUploadCountdown
+                        tokenExpiresAt={payout.token_expires_at}
+                        hasVideo={payout.has_video}
+                        showAsFullStatus={false}
+                        asButton={true}
+                      />
                     </div>
                   )}
-                  <div className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white/2 text-gray-300 rounded-lg border border-white/10 flex-shrink-0 invisible">
-                    <span>Profit Breakdown</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                  {/* Profit Breakdown Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleExpanded(payout.auction_id);
+                    }}
+                    className="flex items-center gap-0.5 md:gap-1 h-7 md:h-8 px-2 md:px-3 text-[10px] md:text-xs font-medium bg-white/4 md:bg-white/2 text-gray-300 rounded-md md:rounded-lg hover:bg-white/10 transition-colors border border-white/20 md:border-white/10 flex-shrink-0"
+                  >
+                    <span className="md:inline">Details</span>
+                    <span className="hidden md:inline">Profit Breakdown</span>
+                    <svg
+                      className={`w-3 h-3 md:w-4 md:h-4 transition-transform ${expandedItems.has(payout.auction_id) ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
-                  </div>
+                  </button>
                 </div>
               </div>
 
