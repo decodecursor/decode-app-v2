@@ -71,23 +71,23 @@ export function PendingPayoutsCard({
                   : 'border border-gray-600'
               } ${!payout.payout_unlocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:opacity-85'}`}
             >
-              {/* Mobile: Single horizontal row / Desktop: Horizontal row */}
-              <div className="flex flex-row items-center gap-2 md:gap-4">
-                {/* Checkbox - vertically centered */}
-                <div className="flex-shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={selectedAuctionIds.has(payout.auction_id)}
-                    disabled={!payout.payout_unlocked}
-                    readOnly
-                    className="w-6 h-6 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 pointer-events-none disabled:cursor-not-allowed"
-                  />
-                </div>
+              {/* Mobile: Two rows stacked / Desktop: Single horizontal row */}
+              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                {/* Row 1 on mobile: Checkbox + Title + Date */}
+                <div className="flex flex-row items-center gap-2 md:gap-4 w-full md:w-auto">
+                  {/* Checkbox */}
+                  <div className="flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={selectedAuctionIds.has(payout.auction_id)}
+                      disabled={!payout.payout_unlocked}
+                      readOnly
+                      className="w-6 h-6 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 pointer-events-none disabled:cursor-not-allowed"
+                    />
+                  </div>
 
-                {/* Title + Amount + Date: Mobile has Title+Date on one row, Amount below. Desktop is horizontal. */}
-                <div className="flex flex-col gap-0.5 flex-1 min-w-0 md:flex-row md:items-center md:flex-initial md:gap-4">
-                  {/* Row 1: Title + Date (mobile only, side-by-side) */}
-                  <div className="flex flex-row items-center justify-between gap-2 md:contents">
+                  {/* Title + Date container */}
+                  <div className="flex flex-row items-center justify-between gap-2 flex-1 min-w-0 md:contents">
                     {/* Title */}
                     <div className="md:w-40 md:flex-none">
                       <p className="font-semibold text-white text-[15px] md:text-base truncate">
@@ -103,19 +103,28 @@ export function PendingPayoutsCard({
                     </div>
                   </div>
 
-                  {/* Row 2: Amount */}
-                  <div className="md:w-36 md:order-2">
+                  {/* Amount - desktop only (via order-2) */}
+                  <div className="hidden md:block md:w-36 md:order-2">
                     <p className="text-sm md:text-base font-bold text-green-400">
                       {formatCurrency(payout.model_amount)}
                     </p>
                   </div>
                 </div>
 
-                {/* Desktop spacer - hidden on mobile */}
-                <div className="hidden md:flex md:flex-1"></div>
+                {/* Row 2 on mobile: Amount + Buttons */}
+                <div className="flex flex-row items-center justify-between gap-2 w-full md:w-auto md:flex-1">
+                  {/* Amount - mobile only */}
+                  <div className="md:hidden">
+                    <p className="text-sm font-bold text-green-400">
+                      {formatCurrency(payout.model_amount)}
+                    </p>
+                  </div>
 
-                {/* Buttons group - right aligned on mobile via ml-auto, desktop uses invisible placeholders */}
-                <div className="flex items-center gap-1.5 ml-auto md:ml-0 md:invisible">
+                  {/* Desktop spacer */}
+                  <div className="hidden md:flex md:flex-1"></div>
+
+                  {/* Buttons group - right aligned on mobile, desktop uses invisible placeholders */}
+                  <div className="flex items-center gap-1.5 md:ml-0 md:invisible">
                   {/* Watch Video Button or Countdown - Only for locked cards */}
                   {!payout.payout_unlocked && payout.has_video && (
                     <button
@@ -158,6 +167,7 @@ export function PendingPayoutsCard({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
+                </div>
                 </div>
               </div>
 

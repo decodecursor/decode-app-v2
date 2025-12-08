@@ -186,9 +186,15 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
     const scale = Math.random() * Math.random() * 0.8 + 0.4
     const bound = 30 + Math.random() * 20
 
-    // Responsive vertical offset: 3cm mobile (113px), 15cm desktop (567px)
+    // Responsive vertical offset: 3cm mobile (113px), desktop varies (middle or lower)
     const isMobile = window.innerWidth <= 768
-    const verticalOffset = isMobile ? 113 : 567
+    let verticalOffset
+    if (isMobile) {
+      verticalOffset = 113
+    } else {
+      // Desktop: 50% chance for lower start (567px), 50% for middle start (283px)
+      verticalOffset = Math.random() < 0.5 ? 567 : 283
+    }
 
     const heart = generateHeart(
       targetX + (Math.random() - 0.5) * targetWidth, // Random x around target
@@ -206,7 +212,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
     // Generate hearts periodically for 2 seconds
     let heartCount = 0
     const isMobile = window.innerWidth <= 768
-    const maxHearts = isMobile ? 96 : 288 // Desktop: 3x hearts, Mobile: unchanged
+    const maxHearts = isMobile ? 192 : 576 // Desktop: 576 hearts (doubled), Mobile: 192
     
     checkIntervalRef.current = setInterval(() => {
       if (heartCount < maxHearts) {

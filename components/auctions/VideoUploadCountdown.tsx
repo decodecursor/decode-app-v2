@@ -140,7 +140,7 @@ export function VideoUploadCountdown({ tokenExpiresAt, hasVideo, showAsFullStatu
       </svg>
 
       {/* Countdown Text */}
-      <span className={`${asButton ? 'text-sm' : 'text-sm'} font-mono tabular-nums ${colorClass}`}>
+      <span className={`${asButton ? 'text-xs' : 'text-sm'} font-mono tabular-nums ${colorClass}`}>
         {formatted}{!asButton && ' remaining'}
       </span>
     </div>
