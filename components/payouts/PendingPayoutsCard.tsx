@@ -73,7 +73,7 @@ export function PendingPayoutsCard({
             >
               {/* Mobile: Stacked layout / Desktop: Horizontal row */}
               <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-                {/* Row 1 on mobile: Checkbox + Title */}
+                {/* Row 1 on mobile: Checkbox + Title + Date */}
                 <div className="flex items-start md:items-center gap-2 md:gap-3">
                   {/* Checkbox - vertically centered on mobile */}
                   <div className="flex items-center flex-shrink-0 self-center md:self-auto">
@@ -92,56 +92,23 @@ export function PendingPayoutsCard({
                       {payout.auction_title}
                     </p>
                   </div>
+
+                  {/* Date - Mobile only, on same line as title */}
+                  <div className="md:hidden flex-shrink-0">
+                    <p className="text-xs text-gray-400">
+                      {formatDate(payout.ended_at)}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Row 2 on mobile: Amount + Date (below title) */}
-                <div className="md:hidden flex items-center justify-between pl-6">
+                {/* Row 2 on mobile: Amount + Buttons */}
+                <div className="md:hidden flex items-center justify-between">
                   {/* Amount */}
                   <p className="text-sm font-bold text-green-400">
                     {formatCurrency(payout.model_amount)}
                   </p>
-                  {/* Date */}
-                  <p className="text-xs text-gray-400">
-                    {formatDate(payout.ended_at)}
-                  </p>
-                </div>
 
-                {/* Desktop only: Amount and Date */}
-                <div className="hidden md:flex md:items-center md:gap-4 md:flex-1">
-                  {/* Amount */}
-                  <div className="w-36">
-                    <p className="text-base font-bold text-green-400">
-                      {formatCurrency(payout.model_amount)}
-                    </p>
-                  </div>
-
-                  {/* End Date */}
-                  <div className="w-28">
-                    <p className="text-sm text-white">
-                      {formatDate(payout.ended_at)}
-                    </p>
-                  </div>
-
-                  {/* Spacer to push buttons right */}
-                  <div className="flex-1"></div>
-
-                  {/* Placeholder for buttons (faded with card) - Desktop only */}
-                  {!payout.payout_unlocked && (payout.has_video || (!payout.has_video && payout.token_expires_at && new Date(payout.token_expires_at).getTime() > Date.now())) && (
-                    <div className="px-3 py-1.5 text-xs font-medium bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/30 flex-shrink-0 invisible min-w-[110px]">
-                      {payout.has_video ? 'Watch Video' : 'Countdown'}
-                    </div>
-                  )}
-                  <div className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white/2 text-gray-300 rounded-lg border border-white/10 flex-shrink-0 invisible">
-                    <span>Profit Breakdown</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Row 2 on mobile: Buttons only */}
-                <div className="flex md:hidden items-center justify-end gap-2 pl-6">
-                  {/* Mobile buttons row */}
+                  {/* Buttons */}
                   <div className="flex items-center gap-1.5">
                     {/* Watch Video Button or Countdown - Only for locked cards */}
                     {!payout.payout_unlocked && payout.has_video && (
@@ -186,6 +153,39 @@ export function PendingPayoutsCard({
                     </button>
                   </div>
                 </div>
+
+                {/* Desktop only: Amount and Date */}
+                <div className="hidden md:flex md:items-center md:gap-4 md:flex-1">
+                  {/* Amount */}
+                  <div className="w-36">
+                    <p className="text-base font-bold text-green-400">
+                      {formatCurrency(payout.model_amount)}
+                    </p>
+                  </div>
+
+                  {/* End Date */}
+                  <div className="w-28">
+                    <p className="text-sm text-white">
+                      {formatDate(payout.ended_at)}
+                    </p>
+                  </div>
+
+                  {/* Spacer to push buttons right */}
+                  <div className="flex-1"></div>
+
+                  {/* Placeholder for buttons (faded with card) - Desktop only */}
+                  {!payout.payout_unlocked && (payout.has_video || (!payout.has_video && payout.token_expires_at && new Date(payout.token_expires_at).getTime() > Date.now())) && (
+                    <div className="px-3 py-1.5 text-xs font-medium bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/30 flex-shrink-0 invisible min-w-[110px]">
+                      {payout.has_video ? 'Watch Video' : 'Countdown'}
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white/2 text-gray-300 rounded-lg border border-white/10 flex-shrink-0 invisible">
+                    <span>Profit Breakdown</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               {/* Expandable Profit Breakdown */}
@@ -200,7 +200,7 @@ export function PendingPayoutsCard({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400 text-[8px] md:text-sm">Auction Starting Price (Beauty Service Price)</span>
-                      <span className="text-gray-400">-{formatCurrency(payout.start_price)}</span>
+                      <span className="text-gray-400 text-[10px] md:text-xs">-{formatCurrency(payout.start_price)}</span>
                     </div>
                     <div className="flex justify-between pt-1.5 md:pt-2 border-t border-white/5">
                       <span className="text-white font-medium">Profit</span>
@@ -208,7 +208,7 @@ export function PendingPayoutsCard({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400 text-[8px] md:text-sm">DECODE Service Fee (25% of Profit)</span>
-                      <span className="text-gray-400">-{formatCurrency(payout.platform_fee_amount)}</span>
+                      <span className="text-gray-400 text-[10px] md:text-xs">-{formatCurrency(payout.platform_fee_amount)}</span>
                     </div>
                     <div className="flex justify-between pt-1.5 md:pt-2 border-t border-white/5">
                       <span className="text-green-400 font-semibold">Your Payout</span>
