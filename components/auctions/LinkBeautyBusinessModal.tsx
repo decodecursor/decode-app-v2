@@ -618,8 +618,11 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
                     type="text"
                     required
                     value={formData.instagramHandle}
-                    onChange={(e) => setFormData({ ...formData, instagramHandle: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, instagramHandle: e.target.value.toLowerCase() })}
                     placeholder="glowbeauty"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck="false"
                     className="flex-1 px-2 py-3 bg-transparent text-white placeholder-gray-500 focus:outline-none"
                   />
                 </div>
@@ -706,22 +709,24 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
 
                 {/* STATE 2: Saved Photo Preview (when savedBusinessPhoto exists but not editing) */}
                 {!selectedImage && savedBusinessPhoto && (
-                  <div className="space-y-3">
-                    <div className="flex justify-center">
+                  <div className="flex justify-center">
+                    <div className="relative inline-block">
                       <img
                         src={savedBusinessPhoto}
                         alt="Business profile"
-                        className="w-32 rounded-full border-2 border-purple-500"
-                        style={{ height: '108.8px' }}
+                        className="w-32 h-32 rounded-full border-2 border-purple-500 object-cover"
                       />
+                      <button
+                        type="button"
+                        onClick={removeSavedPhoto}
+                        className="absolute -top-2 -right-2 flex items-center gap-1.5 px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-full shadow-lg transition-colors"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Remove
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={removeSavedPhoto}
-                      className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-                    >
-                      Remove Photo
-                    </button>
                   </div>
                 )}
 

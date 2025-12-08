@@ -84,26 +84,29 @@ export function PendingPayoutsCard({
                   />
                 </div>
 
-                {/* Title + Amount + Date stacked vertically on mobile, horizontal on desktop */}
+                {/* Title + Amount + Date: Mobile has Title+Date on one row, Amount below. Desktop is horizontal. */}
                 <div className="flex flex-col gap-0.5 flex-1 min-w-0 md:flex-row md:items-center md:flex-initial md:gap-4">
-                  {/* Title */}
-                  <div className="md:w-40 md:flex-none">
-                    <p className="font-semibold text-white text-[15px] md:text-base truncate">
-                      {payout.auction_title}
-                    </p>
+                  {/* Row 1: Title + Date (mobile only, side-by-side) */}
+                  <div className="flex flex-row items-center justify-between gap-2 md:contents">
+                    {/* Title */}
+                    <div className="md:w-40 md:flex-none">
+                      <p className="font-semibold text-white text-[15px] md:text-base truncate">
+                        {payout.auction_title}
+                      </p>
+                    </div>
+
+                    {/* Date */}
+                    <div className="md:w-28 md:order-3">
+                      <p className="text-xs md:text-sm text-white">
+                        {formatDate(payout.ended_at)}
+                      </p>
+                    </div>
                   </div>
 
-                  {/* Amount */}
-                  <div className="md:w-36">
+                  {/* Row 2: Amount */}
+                  <div className="md:w-36 md:order-2">
                     <p className="text-sm md:text-base font-bold text-green-400">
                       {formatCurrency(payout.model_amount)}
-                    </p>
-                  </div>
-
-                  {/* Date */}
-                  <div className="md:w-28">
-                    <p className="text-xs md:text-sm text-white">
-                      {formatDate(payout.ended_at)}
                     </p>
                   </div>
                 </div>

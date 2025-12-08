@@ -359,7 +359,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
             <button
               onClick={() => setShowRemoveConfirmation(true)}
               disabled={loading}
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium md:py-3 md:px-4 py-2 px-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white text-[13px] font-medium md:py-3 md:px-4 py-2 px-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Remove Account
             </button>
@@ -367,7 +367,7 @@ export function BankAccountModal({ isOpen, onClose, userId, onSuccess, userRole,
           <button
             onClick={handleSaveBankAccount}
             disabled={loading || !beneficiary || !iban || !bank}
-            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium md:py-3 md:px-4 py-2 px-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-[13px] font-medium md:py-3 md:px-4 py-2 px-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Saving...' : isConnected ? 'Update Account' : 'Connect Bank Account'}
           </button>
