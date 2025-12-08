@@ -462,7 +462,7 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
             >
               <span className="font-medium text-sm">Existing Business</span>
               <span className="text-[10px] opacity-90 mt-0.5">
-                {businessType === 'existing' ? 'Select from list' : 'Select from my list'}
+                Select
               </span>
             </button>
 
@@ -480,7 +480,7 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
             >
               <span className="font-medium text-sm">New Business</span>
               <span className="text-[10px] opacity-90 mt-0.5">
-                {businessType === 'new' ? 'Fill in details below' : 'Connect new beauty business'}
+                Connect
               </span>
             </button>
           </div>
@@ -711,7 +711,8 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
                       <img
                         src={savedBusinessPhoto}
                         alt="Business profile"
-                        className="w-32 h-32 rounded-full border-2 border-purple-500"
+                        className="w-32 rounded-full border-2 border-purple-500"
+                        style={{ height: '108.8px' }}
                       />
                     </div>
                     <button
