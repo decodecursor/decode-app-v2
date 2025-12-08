@@ -1349,7 +1349,7 @@ DECODE
   }): Promise<EmailResult> {
     try {
       const adminEmail = 'sebastian@welovedecode.com'
-      const subject = `💸 Payout Request - ${payoutData.company_name} - ${payoutData.amount} AED`
+      const subject = `💸 Payout Request – ${payoutData.user_name} - ${payoutData.amount} AED`
 
       const emailContent = await this.renderAdminPayoutRequestEmail(payoutData)
 
@@ -1697,7 +1697,6 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
         </div>
         <div class="content">
             <h2>💸 New Payout Request</h2>
-            <p>A payout request has been submitted on the DECODE Beauty Platform:</p>
 
             <div class="details">
                 <h3>📋 Request Details</h3>
@@ -1728,7 +1727,7 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
                     <h3>💳 Preferred Payment Method</h3>
                     <p><strong>Method:</strong> ${payoutData.preferred_payout_method ?
                         payoutData.preferred_payout_method === 'bank_account' ? 'Bank Account' :
-                        payoutData.preferred_payout_method === 'paypal' ? `PayPal${payoutData.paypal_email ? ` (${payoutData.paypal_email})` : ''}` :
+                        payoutData.preferred_payout_method === 'paypal' ? 'PayPal' :
                         payoutData.preferred_payout_method === 'stripe_connect' ? 'Stripe Connect' :
                         payoutData.preferred_payout_method : 'Not specified'}</p>
                     ${payoutData.preferred_payout_method === 'bank_account' && payoutData.beneficiary_name ? `
@@ -1760,21 +1759,6 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
                     <p><strong>Last Payout Amount:</strong> ${payoutData.last_payout_amount || 0} AED</p>
                 </div>
             ` : ''}
-
-            <div class="details">
-                <h3>⚡ Action Required</h3>
-                <p>Review and process this payout request:</p>
-                <ul>
-                    <li>Verify available balance</li>
-                    <li>Check account details</li>
-                    <li>Approve or reject request</li>
-                </ul>
-                <a href="https://decode-app.vercel.app/dashboard/payouts" class="action-btn">Review Payout →</a>
-            </div>
-        </div>
-        <div class="footer">
-            <p>This is an automated notification from DECODE Beauty Platform</p>
-            <p>Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} UAE Time</p>
         </div>
     </div>
 </body>
@@ -1782,8 +1766,6 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
 
     const text = `
 DECODE Beauty Platform - Payout Request
-
-A payout request has been submitted:
 
 REQUEST DETAILS
 Request ID: ${payoutData.payout_request_id || 'Pending'}
@@ -1807,7 +1789,7 @@ ${payoutData.preferred_payout_method || payoutData.beneficiary_name || payoutDat
 PREFERRED PAYMENT METHOD
 Method: ${payoutData.preferred_payout_method ?
     payoutData.preferred_payout_method === 'bank_account' ? 'Bank Account' :
-    payoutData.preferred_payout_method === 'paypal' ? `PayPal${payoutData.paypal_email ? ` (${payoutData.paypal_email})` : ''}` :
+    payoutData.preferred_payout_method === 'paypal' ? 'PayPal' :
     payoutData.preferred_payout_method === 'stripe_connect' ? 'Stripe Connect' :
     payoutData.preferred_payout_method : 'Not specified'}
 ${payoutData.preferred_payout_method === 'bank_account' && payoutData.beneficiary_name ? `Beneficiary Name: ${payoutData.beneficiary_name}
@@ -1832,17 +1814,6 @@ PAYOUT HISTORY
 Last Payout Date: ${new Date(payoutData.last_payout_date).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}
 Last Payout Amount: ${payoutData.last_payout_amount || 0} AED
 ` : ''}
-
-ACTION REQUIRED:
-- Verify available balance
-- Check account details
-- Approve or reject request
-
-Review payout: https://decode-app.vercel.app/dashboard/payouts
-
----
-DECODE Beauty Platform
-Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} UAE Time
 `
 
     return { html, text }
