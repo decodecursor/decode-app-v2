@@ -293,11 +293,11 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
             <div className="mb-3">
               <a
                 href={`/auctions/${auction.id}`}
-                className="font-medium text-lg text-gray-900 hover:text-blue-600 hover:underline transition-colors block truncate"
+                className="font-medium text-lg text-gray-900 hover:text-pink-600 hover:underline transition-colors block truncate"
               >
                 {auction.title}
               </a>
-              <p className="text-[10px] text-gray-500 mt-px">
+              <p className="text-[10px] text-gray-500">
                 {new Date(auction.end_time).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',
