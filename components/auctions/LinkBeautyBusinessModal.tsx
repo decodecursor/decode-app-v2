@@ -539,7 +539,7 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
                             className="w-full p-4 border border-transparent hover:border-purple-500 rounded-lg transition-all text-left"
                           >
                             <div className="flex items-center gap-3">
-                              <div className="instagram-avatar-sm">
+                              <div className="instagram-avatar-sm flex-shrink-0">
                                 {business.business_photo_url ? (
                                   <img
                                     src={business.business_photo_url}

@@ -367,7 +367,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             {/* Mobile Avatars - Right aligned with title */}
             <div className="flex md:hidden items-center gap-0 flex-shrink-0">
               {/* Model Image */}
-              <div className="instagram-avatar" style={{ width: '44px', height: '44px' }}>
+              <div className="instagram-avatar" style={{ width: '50px', height: '50px' }}>
                 {hasCreator(auction) && auction.creator.profile_photo_url ? (
                   <img
                     src={auction.creator.profile_photo_url}
@@ -386,7 +386,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               <div className="relative z-10 -ml-[8px]">
                 <div
                   className="instagram-avatar cursor-pointer"
-                  style={{ width: '44px', height: '44px' }}
+                  style={{ width: '50px', height: '50px' }}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
