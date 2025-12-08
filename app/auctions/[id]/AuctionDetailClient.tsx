@@ -165,7 +165,10 @@ export default function AuctionDetailClient() {
 
   // Refresh auction data by reloading the page (refreshes everything including video)
   const handleRefresh = () => {
-    window.location.reload();
+    setIsRefreshing(true);
+    setTimeout(() => {
+      window.location.reload();
+    }, 400);
   };
 
   // Combined refresh for both auction and leaderboard after bid placement
@@ -755,7 +758,7 @@ export default function AuctionDetailClient() {
                   </dd>
                 </div>
                 {auction.winner_name && (
-                  <div className="flex justify-between pt-3 border-t border-gray-200">
+                  <div className="flex justify-between mt-2.5 pt-2.5 border-t border-gray-200">
                     <dt className="text-sm text-gray-600">Winner</dt>
                     <dd className="text-sm text-gray-600">{auction.winner_name}</dd>
                   </div>
