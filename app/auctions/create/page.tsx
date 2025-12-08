@@ -181,7 +181,7 @@ export default function CreateAuction() {
               <img
                 src="/images/Mascot_Letsgooo_png.png"
                 alt="Create auction mascot"
-                className="w-[160px] h-auto object-contain"
+                className="w-[100px] md:w-[160px] h-auto object-contain"
               />
             </div>
             <h2 className="-mt-4 md:text-2xl text-xl font-bold text-white mb-2">
