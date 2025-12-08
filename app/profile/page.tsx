@@ -816,7 +816,7 @@ export default function ProfilePage() {
                   disabled={displayNameSaving || displayName.trim() === (profile?.user_name || '')}
                   className="cosmic-button-primary disabled:opacity-50 w-full"
                 >
-                  {displayNameSaving ? 'Saving...' : displayNameSaved ? 'Saved!' : 'Save'}
+                  {displayNameSaving ? 'Changing...' : displayNameSaved ? 'Changed!' : 'Change'}
                 </button>
 
                 {displayNameSaved && (
@@ -869,7 +869,7 @@ export default function ProfilePage() {
                 disabled={instagramSaving || instagramHandle.trim() === (profile?.instagram_handle || '')}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
-                {instagramSaving ? 'Saving...' : instagramSaved ? 'Saved!' : 'Save'}
+                {instagramSaving ? 'Changing...' : instagramSaved ? 'Changed!' : 'Change'}
               </button>
 
               {instagramSaved && (
