@@ -378,10 +378,10 @@ export default function AuctionDetailClient() {
                 className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-2 text-[10px] sm:text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50"
                 title="Refresh auction data"
               >
-                <svg className={`w-3 h-3 sm:w-4 sm:h-4 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-3 h-3 sm:w-4 sm:h-4 ${isRefreshing ? 'animate-spin text-green-500' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                <span>{isRefreshing ? '...' : 'Refresh'}</span>
+                <span>Refresh</span>
               </button>
               <button
                 onClick={handleCopyLink}
@@ -458,10 +458,10 @@ export default function AuctionDetailClient() {
                 className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50"
                 title="Refresh auction data"
               >
-                <svg className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-3 h-3 ${isRefreshing ? 'animate-spin text-green-500' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                <span>{isRefreshing ? '...' : 'Refresh'}</span>
+                <span>Refresh</span>
               </button>
               <button
                 onClick={handleCopyLink}
@@ -758,7 +758,7 @@ export default function AuctionDetailClient() {
                   </dd>
                 </div>
                 {auction.winner_name && (
-                  <div className="flex justify-between mt-2.5 pt-2.5 border-t border-gray-200">
+                  <div className="flex justify-between mt-3 pt-3 border-t border-gray-200">
                     <dt className="text-sm text-gray-600">Winner</dt>
                     <dd className="text-sm text-gray-600">{auction.winner_name}</dd>
                   </div>
