@@ -82,27 +82,27 @@ export function PendingPayoutsCard({
                       checked={selectedAuctionIds.has(payout.auction_id)}
                       disabled={!payout.payout_unlocked}
                       readOnly
-                      className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 pointer-events-none disabled:cursor-not-allowed"
+                      className="w-6 h-6 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 pointer-events-none disabled:cursor-not-allowed"
                     />
                   </div>
 
                   {/* Treatment Name */}
                   <div className="flex-1 min-w-0 md:w-40 md:flex-none">
-                    <p className="font-semibold text-white text-sm md:text-base truncate">
+                    <p className="font-semibold text-white text-[15px] md:text-base truncate">
                       {payout.auction_title}
                     </p>
                   </div>
 
                   {/* Date - Mobile only, on same line as title */}
                   <div className="md:hidden flex-shrink-0">
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-white">
                       {formatDate(payout.ended_at)}
                     </p>
                   </div>
                 </div>
 
                 {/* Row 2 on mobile: Amount + Buttons */}
-                <div className="md:hidden flex items-center justify-between">
+                <div className="md:hidden flex items-center gap-2">
                   {/* Amount */}
                   <p className="text-sm font-bold text-green-400">
                     {formatCurrency(payout.model_amount)}
