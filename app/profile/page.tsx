@@ -695,7 +695,7 @@ export default function ProfilePage() {
 
               {/* Modern Upload Button */}
               {!selectedImage && (
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -703,9 +703,10 @@ export default function ProfilePage() {
                       onChange={handleImageSelect}
                       className="hidden"
                     />
+                    <p className="text-xs text-gray-400 text-center">JPG, PNG or GIF (max 5MB)</p>
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="group relative px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-2xl font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+                      className="group relative w-full px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-2xl font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
                     >
                       <div className="flex items-center justify-center gap-3">
                         <div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center group-hover:bg-opacity-30 transition-all">
@@ -717,7 +718,6 @@ export default function ProfilePage() {
                       </div>
                       <div className="absolute inset-0 bg-white bg-opacity-0 group-hover:bg-opacity-10 rounded-2xl transition-all duration-300"></div>
                     </button>
-                    <p className="text-sm text-gray-400 text-center">JPG, PNG or GIF (max 5MB)</p>
                   </div>
               )}
             </div>
