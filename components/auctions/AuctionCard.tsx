@@ -759,9 +759,9 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             e.stopPropagation();
           }}
         >
-          <h3 className="text-lg font-semibold text-white mb-4">Deactivate Auction?</h3>
+          <h3 className="text-lg font-semibold text-white mb-4">Deactivate Auction</h3>
           <p className="text-gray-300 mb-6">
-            Are you sure you want to deactivate this auction? This action will prevent new bids.
+            All payment authorizations will be released and auction ends without a winner.
           </p>
 
           <div className="flex gap-3 justify-end">

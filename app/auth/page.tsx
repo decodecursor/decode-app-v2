@@ -182,6 +182,57 @@ function AuthPageContent() {
     setAuthError(null)
     setAuthTimeout(false)
 
+    // MOBILE FIX: Extract tokens from hash fragment manually
+    // Mobile browsers may not auto-process hash tokens properly (Safari ITP, cookie restrictions)
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.substring(1)
+      if (hash) {
+        const hashParams = new URLSearchParams(hash)
+        const accessToken = hashParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token')
+
+        if (accessToken && refreshToken) {
+          console.log('🔑 [AUTH] Found tokens in hash, manually setting session for mobile compatibility')
+          try {
+            // Set session client-side
+            const { error: sessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken
+            })
+
+            if (!sessionError) {
+              console.log('✅ [AUTH] Manual session set successful')
+
+              // Also set via server proxy for cookie persistence on mobile
+              try {
+                await fetch('/api/auth/proxy-user', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ access_token: accessToken, refresh_token: refreshToken })
+                })
+                console.log('✅ [AUTH] Server-side cookie set via proxy')
+              } catch (proxyError) {
+                console.warn('⚠️ [AUTH] Proxy cookie set failed, but client session is set:', proxyError)
+              }
+
+              // Clear hash from URL for security
+              window.history.replaceState(null, '', window.location.pathname + window.location.search)
+
+              // Proceed with authentication
+              await proceedWithAuthentication()
+              return
+            } else {
+              console.error('❌ [AUTH] Manual session set failed:', sessionError)
+            }
+          } catch (tokenError) {
+            console.error('❌ [AUTH] Manual token extraction failed:', tokenError)
+            // Fall through to existing SDK-based logic
+          }
+        }
+      }
+    }
+
     // Set timeout for 10 seconds
     const timeoutId = setTimeout(() => {
       console.error('⏱️ [AUTH] Token processing timeout after 10s')
