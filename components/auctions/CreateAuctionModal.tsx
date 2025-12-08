@@ -237,16 +237,15 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                       id="duration"
                       value={formData.duration}
                       onChange={(e) => {
-                        setTouched({ ...touched, duration: true });
                         setFormData({ ...formData, duration: parseInt(e.target.value) as AuctionDuration });
                         if (errors.duration) setErrors({ ...errors, duration: undefined });
                       }}
                       className={`w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border rounded-lg focus:outline-none transition-colors ${
-                        errors.duration ? 'border-red-500 text-white' : touched.duration ? 'border-purple-500 text-white' : 'border-gray-700 focus:border-purple-500 text-gray-400'
+                        errors.duration ? 'border-red-500' : 'border-gray-700 focus:border-purple-500'
                       }`}
                       style={{
-                        color: touched.duration ? '#fff' : '#9ca3af',
-                        WebkitTextFillColor: touched.duration ? '#fff' : '#9ca3af',
+                        color: formData.duration ? '#fff' : '#9ca3af',
+                        WebkitTextFillColor: formData.duration ? '#fff' : '#9ca3af',
                         cursor: 'pointer'
                       } as React.CSSProperties}
                       disabled={isSubmitting}
@@ -280,12 +279,8 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                     </button>
                     <button
                       type="submit"
-                      disabled={isSubmitting || !formData.title.trim() || !formData.auction_start_price || !touched.duration}
-                      className={`flex-1 font-medium md:py-3 md:px-4 py-2 px-3 rounded-lg transition-colors ${
-                        formData.title.trim() && formData.auction_start_price && touched.duration
-                          ? 'bg-purple-600 hover:bg-purple-500 text-white'
-                          : 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                      }`}
+                      disabled={isSubmitting}
+                      className="flex-1 font-medium md:py-3 md:px-4 py-2 px-3 rounded-lg transition-colors bg-purple-600 hover:bg-purple-500 text-white disabled:bg-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed"
                     >
                       {isSubmitting ? 'Creating...' : 'Create Auction'}
                     </button>
