@@ -758,7 +758,7 @@ export default function AuctionDetailClient() {
                   </dd>
                 </div>
                 {auction.winner_name && (
-                  <div className="flex justify-between mt-3 pt-3 border-t border-gray-200">
+                  <div className="flex justify-between mt-3 pt-1.5 border-t border-gray-200">
                     <dt className="text-sm text-gray-600">Winner</dt>
                     <dd className="text-sm text-gray-600">{auction.winner_name}</dd>
                   </div>
