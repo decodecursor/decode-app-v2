@@ -19,7 +19,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
   const [formData, setFormData] = useState({
     title: '',
     auction_start_price: '',
-    duration: 60 as AuctionDuration,
+    duration: '' as unknown as AuctionDuration,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -104,7 +104,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
     setFormData({
       title: '',
       auction_start_price: '',
-      duration: 60,
+      duration: '' as unknown as AuctionDuration,
     });
     setErrors({});
     setSubmitError(null);
@@ -232,8 +232,6 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                     <select
                       id="duration"
                       value={formData.duration}
-                      onMouseDown={() => setTouched({ ...touched, duration: true })}
-                      onClick={() => setTouched({ ...touched, duration: true })}
                       onChange={(e) => {
                         setTouched({ ...touched, duration: true });
                         setFormData({ ...formData, duration: parseInt(e.target.value) as AuctionDuration });
@@ -248,6 +246,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
                       } as React.CSSProperties}
                       disabled={isSubmitting}
                     >
+                      <option value="" disabled>Select duration</option>
                       {AUCTION_DURATIONS.map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}

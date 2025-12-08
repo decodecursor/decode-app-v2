@@ -14,7 +14,7 @@ export default function CreateAuction() {
   const [formData, setFormData] = useState({
     title: '',
     auction_start_price: '',
-    duration: 60 as AuctionDuration
+    duration: '' as unknown as AuctionDuration
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [durationChanged, setDurationChanged] = useState(false)
@@ -249,9 +249,15 @@ export default function CreateAuction() {
                   setFormData({ ...formData, duration: parseInt(e.target.value) as AuctionDuration })
                   setDurationChanged(true)
                 }}
-                className={`w-full md:px-4 md:py-3 px-3 py-2 h-[42px] md:h-[50px] bg-gray-800 border ${durationChanged ? 'border-purple-500' : 'border-gray-700'} rounded-lg text-white focus:border-purple-500 focus:outline-none transition-colors`}
+                className={`w-full md:px-4 md:py-3 px-3 py-2 h-[42px] md:h-[50px] bg-gray-800 border ${durationChanged ? 'border-purple-500' : 'border-gray-700'} rounded-lg focus:border-purple-500 focus:outline-none transition-colors`}
+                style={{
+                  color: durationChanged ? '#fff' : '#9ca3af',
+                  WebkitTextFillColor: durationChanged ? '#fff' : '#9ca3af',
+                  cursor: 'pointer'
+                } as React.CSSProperties}
                 disabled={creating}
               >
+                <option value="" disabled>Select duration</option>
                 {AUCTION_DURATIONS.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
