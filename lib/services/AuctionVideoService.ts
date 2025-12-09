@@ -364,6 +364,8 @@ export class AuctionVideoService {
         return {
           valid: false,
           already_uploaded: true,
+          auction_id: data.auction_id,
+          bid_id: data.bid_id,
           error: 'Video already uploaded. Maximum retakes reached.',
         };
       }

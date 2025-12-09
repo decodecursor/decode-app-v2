@@ -28,6 +28,8 @@ export async function POST(request: NextRequest) {
             success: true,
             valid: false,
             already_uploaded: true,
+            auction_id: result.auction_id,
+            bid_id: result.bid_id,
             error: result.error || 'Video already uploaded',
           },
           { status: 200 } // 200 not 400, since this is a "success" state (video was uploaded)

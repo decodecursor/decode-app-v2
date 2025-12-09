@@ -62,6 +62,8 @@ export default function VideoRecordingPage() {
 
       // Check if video already uploaded
       if (result.already_uploaded) {
+        setAuctionId(result.auction_id);
+        setBidId(result.bid_id);
         setUploadSuccess(true);
         return;
       }
