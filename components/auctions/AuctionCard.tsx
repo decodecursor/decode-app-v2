@@ -113,7 +113,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     return hasEnded &&
            auction.total_bids > 0 &&
            creatorProfit > 0 &&
-           auction.payout_status !== 'transferred';
+           auction.payout_status !== 'transferred' && auction.payout_status !== 'processing';
   };
 
   // Handle share auction

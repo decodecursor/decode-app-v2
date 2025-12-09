@@ -8,7 +8,6 @@ import { PayoutHistory } from '@/components/stripe/PayoutHistory'
 import { PayoutMethodsCard } from '@/components/payouts/PayoutMethodsCard'
 import { PendingPayoutsCard } from '@/components/payouts/PendingPayoutsCard'
 import { VideoModal } from '@/components/auctions/VideoModal'
-import HeartAnimation from '@/components/effects/HeartAnimation'
 import { createClient } from '@/utils/supabase/client'
 import type { User } from '@supabase/supabase-js'
 
@@ -65,7 +64,6 @@ export default function PayoutsPage() {
   const [availablePayoutMethods, setAvailablePayoutMethods] = useState<PayoutMethod[]>([])
   const [showSelectMethodModal, setShowSelectMethodModal] = useState(false)
   const [showNoPaymentMethodModal, setShowNoPaymentMethodModal] = useState(false)
-  const [heartAnimatingId, setHeartAnimatingId] = useState<string | null>(null)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [bankAccountData, setBankAccountData] = useState<any>(null)
   const [paypalAccountData, setPaypalAccountData] = useState<any>(null)
@@ -496,13 +494,53 @@ export default function PayoutsPage() {
     )
   }
 
-  const handleNewPayout = (payoutId: string) => {
-    setHeartAnimatingId(payoutId)
+  // Create stars effect for new payout (same as payment link creation)
+  const createStarsEffect = (elementId: string) => {
+    if (typeof window === 'undefined') return
 
-    // Auto-clear heart animation after 3 seconds
-    setTimeout(() => {
-      setHeartAnimatingId(null)
-    }, 3000)
+    const cardElement = document.getElementById(elementId)
+    if (!cardElement) return
+
+    const rect = cardElement.getBoundingClientRect()
+    const totalStars = 30
+    const starTypes = ['star-sparkle', 'star-dot', 'star-diamond', 'star-triangle', 'click-star']
+    const animations = ['magic-fly-1', 'magic-fly-2', 'magic-fly-3', 'magic-fly-4', 'magic-fly-5', 'magic-spiral']
+
+    for (let i = 0; i < totalStars; i++) {
+      setTimeout(() => {
+        if (typeof window === 'undefined') return
+
+        const star = document.createElement('div')
+        const starType = starTypes[Math.floor(Math.random() * starTypes.length)]
+        star.className = `click-star ${starType}`
+
+        const x = rect.left + Math.random() * rect.width
+        const y = rect.top + Math.random() * rect.height
+
+        star.style.left = x + 'px'
+        star.style.top = y + 'px'
+
+        const animation = animations[Math.floor(Math.random() * animations.length)]
+        star.classList.add(animation || 'magic-fly-1')
+
+        const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#fff']
+        if (starType === 'star-dot') {
+          star.style.background = colors[Math.floor(Math.random() * colors.length)] || '#ffd700'
+        }
+
+        document.body.appendChild(star)
+
+        setTimeout(() => {
+          if (star.parentNode) {
+            star.parentNode.removeChild(star)
+          }
+        }, 2500)
+      }, i * 30)
+    }
+  }
+
+  const handleNewPayout = (payoutId: string) => {
+    createStarsEffect(payoutId)
   }
 
   // Scroll to payout history after requesting a payout
@@ -514,12 +552,6 @@ export default function PayoutsPage() {
 
   return (
     <div className="cosmic-bg min-h-screen">
-      {/* Heart Animation - Positioned at specific payout */}
-      <HeartAnimation
-        isActive={heartAnimatingId !== null}
-        targetElementId={heartAnimatingId || undefined}
-      />
-
       <div className="min-h-screen px-4 py-4 md:py-8">
         {/* Back to Dashboard Button */}
         <div className="flex justify-center mb-6 md:mb-0">
