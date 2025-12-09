@@ -302,56 +302,91 @@ export function BiddingInterface({
     email?: string;
     whatsappNumber?: string;
   }) => {
-    setGuestInfo(info);
+    setIsProcessing(true);
+    setError(null);
 
-    // Save guest info to localStorage for consecutive bids
-    // This ensures the correct format (with combined whatsappNumber) is cached
     try {
-      const cacheKey = `decode_guest_bidder_${auction.id}`;
-      localStorage.setItem(cacheKey, JSON.stringify(info));
-      console.log('💾 [BiddingInterface] Saved guest info to cache');
-    } catch (error) {
-      console.error('Error saving guest info to cache:', error);
-    }
+      setGuestInfo(info);
 
-    // Trigger preload immediately with new guest info (before checking previous bids)
-    const preloadEmail = info.contactMethod === 'email'
-      ? info.email
-      : `whatsapp:${info.whatsappNumber}`;
-    if (preloadEmail && !preloadedPaymentIntent && !isPreloadingSetupIntent) {
-      console.log('[BiddingInterface] 🚀 Triggering preload in handleGuestInfoSubmit');
-      preloadPaymentIntent(preloadEmail, info.name);
-    }
-
-    // Check if this guest has bid before on this auction
-    const email = info.contactMethod === 'email' ? info.email : `whatsapp:${info.whatsappNumber}`;
-    if (email) {
+      // Save guest info to localStorage for consecutive bids
+      // This ensures the correct format (with combined whatsappNumber) is cached
       try {
-        const response = await fetch(`/api/auctions/${auction.id}/user-bids?email=${encodeURIComponent(email)}`);
-        if (response.ok) {
-          const data = await response.json();
-
-          if (data.bids && data.bids.length > 0) {
-            // Guest has bid before - use saved Instagram and skip to payment
-            setIsRepeatBidder(true);
-
-            const mostRecentBid = data.bids[0];
-            const savedInstagram = mostRecentBid.bidder_instagram_username;
-            setInstagramUsername(savedInstagram);
-
-            // Skip Instagram step and go directly to payment
-            const amount = parseFloat(bidAmount.replace(/,/g, ''));
-            await createBid(info.name, info.contactMethod, info.email, info.whatsappNumber, amount, savedInstagram);
-            return;
-          }
-        }
-      } catch (err) {
-        console.error('Error checking guest previous bids:', err);
+        const cacheKey = `decode_guest_bidder_${auction.id}`;
+        localStorage.setItem(cacheKey, JSON.stringify(info));
+        console.log('💾 [BiddingInterface] Saved guest info to cache');
+      } catch (error) {
+        console.error('Error saving guest info to cache:', error);
       }
-    }
 
-    // New guest bidder - show Instagram form
-    setStep('instagram');
+      // Trigger preload immediately with new guest info (before checking previous bids)
+      const preloadEmail = info.contactMethod === 'email'
+        ? info.email
+        : `whatsapp:${info.whatsappNumber}`;
+      if (preloadEmail && !preloadedPaymentIntent && !isPreloadingSetupIntent) {
+        console.log('[BiddingInterface] 🚀 Triggering preload in handleGuestInfoSubmit');
+        preloadPaymentIntent(preloadEmail, info.name);
+      }
+
+      // Check if this guest has bid before on this auction
+      const email = info.contactMethod === 'email' ? info.email : `whatsapp:${info.whatsappNumber}`;
+      if (email) {
+        try {
+          // Add timeout to prevent hanging
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+          console.log('[BiddingInterface] Checking previous bids for email:', email);
+          const response = await fetch(
+            `/api/auctions/${auction.id}/user-bids?email=${encodeURIComponent(email)}`,
+            { signal: controller.signal }
+          );
+          clearTimeout(timeoutId);
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log('[BiddingInterface] Previous bids check result:', {
+              has_bids: data.bids && data.bids.length > 0,
+              bid_count: data.bids?.length || 0
+            });
+
+            if (data.bids && data.bids.length > 0) {
+              // Guest has bid before - use saved Instagram and skip to payment
+              setIsRepeatBidder(true);
+
+              const mostRecentBid = data.bids[0];
+              const savedInstagram = mostRecentBid.bidder_instagram_username;
+              setInstagramUsername(savedInstagram);
+
+              console.log('[BiddingInterface] Repeat bidder detected, proceeding to payment');
+              // Skip Instagram step and go directly to payment
+              const amount = parseFloat(bidAmount.replace(/,/g, ''));
+              await createBid(info.name, info.contactMethod, info.email, info.whatsappNumber, amount, savedInstagram);
+              return;
+            }
+          } else {
+            console.warn('[BiddingInterface] Previous bids API returned error:', response.status);
+            // Fallback: treat as new bidder
+          }
+        } catch (err) {
+          if (err instanceof Error && err.name === 'AbortError') {
+            console.warn('[BiddingInterface] Previous bids check timed out, treating as new bidder');
+          } else {
+            console.error('[BiddingInterface] Error checking guest previous bids:', err);
+          }
+          // Fallback: treat as new bidder on any error
+        }
+      }
+
+      // New guest bidder - show Instagram form
+      console.log('[BiddingInterface] New bidder, showing Instagram form');
+      setStep('instagram');
+    } catch (err) {
+      console.error('[BiddingInterface] Error in handleGuestInfoSubmit:', err);
+      setError(err instanceof Error ? err.message : 'Failed to process guest information. Please try again.');
+      setStep('guest_info'); // Stay on current step to show error
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   // Handle Instagram username submission
@@ -631,6 +666,11 @@ export function BiddingInterface({
             onCancel={() => setStep('amount')}
             isLoading={isProcessing}
           />
+          {error && (
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
         </div>
       )}
 
