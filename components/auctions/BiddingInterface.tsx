@@ -189,7 +189,7 @@ export function BiddingInterface({
     if (userEmail && userName && isRepeatBidder) {
       // Create bid with saved Instagram username (if any)
       setStep('payment');
-      await createBid(userName, 'email', userEmail, undefined, amount, instagramUsername);
+      await createBid(userName, 'email', userEmail, undefined, amount, instagramUsername, preloadedPaymentIntent?.paymentIntentId);
       return;
     }
 
@@ -204,7 +204,8 @@ export function BiddingInterface({
         guestInfo.email,
         guestInfo.whatsappNumber,
         amount,
-        instagramUsername
+        instagramUsername,
+        preloadedPaymentIntent?.paymentIntentId
       );
       return;
     }
@@ -277,7 +278,7 @@ export function BiddingInterface({
               // Skip Instagram step and go directly to payment
               setStep('payment');
               const amount = parseFloat(bidAmount.replace(/,/g, ''));
-              await createBid(info.name, info.contactMethod, info.email, info.whatsappNumber, amount, savedInstagram);
+              await createBid(info.name, info.contactMethod, info.email, info.whatsappNumber, amount, savedInstagram, preloadedPaymentIntent?.paymentIntentId);
               return;
             }
           } else {
