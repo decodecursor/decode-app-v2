@@ -6,6 +6,7 @@
 import { createServiceRoleClient } from '@/utils/supabase/service-role';
 import type { GuestBidder, CreateGuestBidderDto } from '@/lib/models/GuestBidder.model';
 import { normalizeEmail, validateEmail, validateGuestName } from '@/lib/models/GuestBidder.model';
+import { guestBidderCache } from '@/lib/cache/GuestBidderCache';
 
 export class GuestBidderService {
   /**
@@ -29,7 +30,18 @@ export class GuestBidderService {
 
       const normalizedEmail = normalizeEmail(params.email);
 
-      // Check if guest bidder already exists
+      // Check cache first (saves ~50-100ms DB query)
+      const cached = guestBidderCache.get(normalizedEmail);
+      if (cached && cached.name === params.name) {
+        console.log('[GuestBidderService] Cache hit - skipping DB query');
+        return {
+          success: true,
+          guest_bidder_id: cached.id,
+          stripe_customer_id: cached.stripe_customer_id || undefined,
+        };
+      }
+
+      // Cache miss - check if guest bidder already exists in database
       const { data: existing, error: fetchError } = await supabase
         .from('guest_bidders')
         .select('*')
@@ -37,6 +49,16 @@ export class GuestBidderService {
         .single();
 
       if (existing) {
+        // Cache the result for future requests
+        guestBidderCache.set(normalizedEmail, {
+          id: existing.id,
+          email: existing.email,
+          name: existing.name,
+          stripe_customer_id: existing.stripe_customer_id,
+          default_payment_method_id: existing.default_payment_method_id,
+          last_payment_method_saved_at: existing.last_payment_method_saved_at,
+        });
+
         return {
           success: true,
           guest_bidder_id: existing.id,
@@ -55,6 +77,16 @@ export class GuestBidderService {
         .single();
 
       if (createError) throw createError;
+
+      // Cache the newly created guest bidder
+      guestBidderCache.set(normalizedEmail, {
+        id: newGuest.id,
+        email: newGuest.email,
+        name: newGuest.name,
+        stripe_customer_id: newGuest.stripe_customer_id,
+        default_payment_method_id: newGuest.default_payment_method_id,
+        last_payment_method_saved_at: newGuest.last_payment_method_saved_at,
+      });
 
       return {
         success: true,
@@ -224,117 +256,124 @@ export class GuestBidderService {
       ? (navigator.userAgent.includes('Edg') ? 'Edge' : 'Other')
       : 'Server';
 
-    // Reduced retry logic: 2 attempts with shorter delays
-    // Total max wait time: 100 + 200 = 300ms (optimized for speed)
-    const maxAttempts = 2;
-    const baseDelay = 100; // Start with 100ms (optimized from 200ms)
-
     console.log('[GuestBidderService] getSavedPaymentMethod START:', {
       guest_bidder_id: guestBidderId,
       browser: browserInfo,
       timestamp: new Date().toISOString()
     });
 
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const queryStartTime = Date.now();
+    try {
+      // First attempt - no delay
+      const { data, error } = await supabase
+        .from('guest_bidders')
+        .select('default_payment_method_id, stripe_customer_id, last_payment_method_saved_at')
+        .eq('id', guestBidderId)
+        .single();
 
-      try {
-        const { data, error } = await supabase
+      if (error || !data) {
+        console.error('[GuestBidderService] Guest bidder not found:', {
+          guest_bidder_id: guestBidderId,
+          error: error?.message
+        });
+        return null;
+      }
+
+      // OPTIMIZATION 1: Early exit for first-time bidders
+      // If last_payment_method_saved_at is null, user has NEVER saved a payment method
+      // Skip all retry logic - no webhook delay is possible
+      if (data.last_payment_method_saved_at === null) {
+        const totalTime = Date.now() - startTime;
+        console.log('[GuestBidderService] First-time bidder (never saved payment method), immediate return:', {
+          guest_bidder_id: guestBidderId,
+          total_time_ms: totalTime,
+          browser: browserInfo
+        });
+        return null;
+      }
+
+      // OPTIMIZATION 2: If payment method exists, return immediately
+      if (data.default_payment_method_id && data.stripe_customer_id) {
+        const totalTime = Date.now() - startTime;
+        console.log('[GuestBidderService] Found saved payment method:', {
+          guest_bidder_id: guestBidderId,
+          payment_method_id: data.default_payment_method_id,
+          customer_id: data.stripe_customer_id,
+          saved_at: data.last_payment_method_saved_at,
+          total_time_ms: totalTime,
+          browser: browserInfo
+        });
+        return data.default_payment_method_id;
+      }
+
+      // OPTIMIZATION 3: If customer exists but no payment method, first-time bidder (no retry needed)
+      if (data.stripe_customer_id && !data.default_payment_method_id) {
+        const totalTime = Date.now() - startTime;
+        console.log('[GuestBidderService] No saved payment method (first-time bidder with customer):', {
+          guest_bidder_id: guestBidderId,
+          customer_id: data.stripe_customer_id,
+          total_time_ms: totalTime,
+          browser: browserInfo
+        });
+        return null;
+      }
+
+      // EDGE CASE: Timestamp exists but payment_method_id is missing
+      // This indicates webhook race condition - do single retry with minimal delay
+      if (data.last_payment_method_saved_at && !data.default_payment_method_id) {
+        console.warn('[GuestBidderService] Webhook race condition detected - timestamp exists but no payment_method_id, retrying once:', {
+          guest_bidder_id: guestBidderId,
+          last_saved_at: data.last_payment_method_saved_at,
+          browser: browserInfo
+        });
+
+        // Single retry with 50ms delay (optimized from 100-300ms)
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const { data: retryData } = await supabase
           .from('guest_bidders')
-          .select('default_payment_method_id, stripe_customer_id, last_payment_method_saved_at')
+          .select('default_payment_method_id')
           .eq('id', guestBidderId)
           .single();
 
-        if (error || !data) {
-          if (attempt < maxAttempts - 1) {
-            const delay = baseDelay + (attempt * 200); // Reduced exponential backoff (100ms, 300ms)
-            console.log(`[GuestBidderService] Payment method not found yet, retrying... (attempt ${attempt + 1}/${maxAttempts}, delay: ${delay}ms, browser: ${browserInfo})`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-            continue;
-          }
-          console.error('[GuestBidderService] No guest bidder found after all attempts:', {
-            guest_bidder_id: guestBidderId,
-            attempts: maxAttempts,
-            browser: browserInfo,
-            error: error?.message
-          });
-          return null;
-        }
+        const totalTime = Date.now() - startTime;
 
-        // OPTIMIZATION: If guest bidder has never saved a payment method, return immediately
-        // This skips all retry logic for first-time bidders
-        if (data.last_payment_method_saved_at === null) {
-          const totalTime = Date.now() - startTime;
-          console.log('[GuestBidderService] First-time bidder detected (never saved payment method), skipping retries:', {
+        if (retryData?.default_payment_method_id) {
+          console.log('[GuestBidderService] Found payment method on retry:', {
             guest_bidder_id: guestBidderId,
-            total_time_ms: totalTime,
-            attempt: attempt + 1,
-            browser: browserInfo
-          });
-          return null;
-        }
-
-        // If payment method exists, return it immediately
-        if (data.default_payment_method_id && data.stripe_customer_id) {
-          const queryTime = Date.now() - queryStartTime;
-          const totalTime = Date.now() - startTime;
-          console.log('[GuestBidderService] Found saved payment method:', {
-            guest_bidder_id: guestBidderId,
-            payment_method_id: data.default_payment_method_id,
-            customer_id: data.stripe_customer_id,
-            saved_at: data.last_payment_method_saved_at,
-            attempt: attempt + 1,
-            query_time_ms: queryTime,
+            payment_method_id: retryData.default_payment_method_id,
             total_time_ms: totalTime,
             browser: browserInfo
           });
-          return data.default_payment_method_id;
+          return retryData.default_payment_method_id;
         }
 
-        // If stripe_customer_id exists but no payment method, this is a first-time bidder
-        // Return immediately without retry - no need to wait for webhook
-        if (data.stripe_customer_id && !data.default_payment_method_id) {
-          const totalTime = Date.now() - startTime;
-          console.log('[GuestBidderService] No saved payment method for guest (first-time bidder, has customer but no saved card):', {
-            guest_bidder_id: guestBidderId,
-            customer_id: data.stripe_customer_id,
-            total_time_ms: totalTime,
-            attempt: attempt + 1,
-            browser: browserInfo
-          });
-          return null;
-        }
-
-        // If no stripe_customer_id at all, this might be a webhook delay scenario
-        // Only retry in this specific case
-        if (!data.stripe_customer_id && attempt < maxAttempts - 1) {
-          const delay = baseDelay + (attempt * 200);
-          console.log(`[GuestBidderService] No customer ID found, retrying for potential webhook delay (attempt ${attempt + 1}/${maxAttempts}, delay: ${delay}ms, browser: ${browserInfo})`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          continue;
-        }
-
-      } catch (error) {
-        const delay = baseDelay + (attempt * 200); // Reduced backoff (was 400ms)
-        console.error(`[GuestBidderService] Error getting saved payment method (attempt ${attempt + 1}/${maxAttempts}):`, {
-          error,
+        console.warn('[GuestBidderService] Payment method still missing after retry:', {
           guest_bidder_id: guestBidderId,
+          total_time_ms: totalTime,
           browser: browserInfo
         });
-        if (attempt < maxAttempts - 1) {
-          await new Promise(resolve => setTimeout(resolve, delay));
-        }
+        return null;
       }
-    }
 
-    const totalTime = Date.now() - startTime;
-    console.error('[GuestBidderService] No saved payment method found after all attempts:', {
-      guest_bidder_id: guestBidderId,
-      attempts: maxAttempts,
-      total_time_ms: totalTime,
-      browser: browserInfo
-    });
-    return null;
+      // No saved payment method
+      const totalTime = Date.now() - startTime;
+      console.log('[GuestBidderService] No saved payment method found:', {
+        guest_bidder_id: guestBidderId,
+        total_time_ms: totalTime,
+        browser: browserInfo
+      });
+      return null;
+
+    } catch (error) {
+      const totalTime = Date.now() - startTime;
+      console.error('[GuestBidderService] Error getting saved payment method:', {
+        error,
+        guest_bidder_id: guestBidderId,
+        total_time_ms: totalTime,
+        browser: browserInfo
+      });
+      return null;
+    }
   }
 
   /**

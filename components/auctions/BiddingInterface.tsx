@@ -13,6 +13,7 @@ import { InstagramUsernameForm } from './InstagramUsernameForm';
 import { calculateMinimumBid, formatBidAmount } from '@/lib/models/Bid.model';
 import type { Auction } from '@/lib/models/Auction.model';
 import { stripePromise } from '@/lib/stripe-client';
+import { usePaymentPreload } from './hooks/usePaymentPreload';
 
 // Format WhatsApp number for display (e.g., +971554275547 -> +971 55 427 5547)
 function formatWhatsAppNumber(number: string): string {
@@ -100,13 +101,6 @@ export function BiddingInterface({
     customerId: string;
     guestBidderId: string;
   } | null>(null);
-  const [preloadedPaymentIntent, setPreloadedPaymentIntent] = useState<{
-    clientSecret: string;
-    paymentIntentId: string;
-    customerId: string;
-    guestBidderId: string;
-  } | null>(null);
-  const [isPreloadingSetupIntent, setIsPreloadingSetupIntent] = useState(false);
   const [pendingBidCreation, setPendingBidCreation] = useState<Promise<void> | null>(null);
 
   const currentPrice = Number(auction.auction_current_price);
@@ -117,101 +111,29 @@ export function BiddingInterface({
   const isAuctionActive =
     auction.status === 'active' && new Date(auction.end_time) > new Date();
 
-  // Preload PaymentIntent for instant payment form loading
-  // This creates a PaymentIntent with estimated amount (minimumBid) so that
-  // Stripe Elements (including Google Pay/Apple Pay) can initialize immediately
-  const preloadPaymentIntent = async (email: string, name: string) => {
-    if (isPreloadingSetupIntent || preloadedPaymentIntent) return;
+  // Consolidated payment preload hook - replaces 4 separate useEffect hooks
+  // Automatically preloads PaymentIntent when email + name are available
+  const email = guestInfo?.contactMethod === 'email'
+    ? guestInfo.email
+    : guestInfo?.contactMethod === 'whatsapp'
+    ? `whatsapp:${guestInfo.whatsappNumber}`
+    : userEmail;
 
-    setIsPreloadingSetupIntent(true);
-    console.log('[BiddingInterface] 🚀 Preloading PaymentIntent with estimated amount:', {
-      email,
-      name,
-      estimatedAmount: minimumBid,
-    });
+  const name = guestInfo?.name || userName;
 
-    try {
-      const response = await fetch('/api/stripe/payment-intent-preload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          auction_id: auction.id,
-          bidder_email: email,
-          bidder_name: name,
-          estimated_amount: minimumBid,
-        }),
-      });
+  const {
+    preloadedData: preloadedPaymentIntent,
+    isPreloading: isPreloadingSetupIntent
+  } = usePaymentPreload({
+    auctionId: auction.id,
+    email: email || null,
+    name: name || null,
+    estimatedAmount: minimumBid,
+    enabled: !!(email && name), // Only enable when we have both email and name
+  });
 
-      const data = await response.json();
-
-      if (data.success && data.client_secret) {
-        setPreloadedPaymentIntent({
-          clientSecret: data.client_secret,
-          paymentIntentId: data.payment_intent_id,
-          customerId: data.customer_id,
-          guestBidderId: data.guest_bidder_id,
-        });
-        console.log('[BiddingInterface] ✅ PaymentIntent preloaded successfully:', {
-          paymentIntentId: data.payment_intent_id,
-          customerId: data.customer_id,
-        });
-      } else {
-        console.error('[BiddingInterface] ❌ Failed to preload PaymentIntent:', data.error);
-      }
-    } catch (err) {
-      console.error('[BiddingInterface] ❌ Error preloading PaymentIntent:', err);
-    } finally {
-      setIsPreloadingSetupIntent(false);
-    }
-  };
-
-  // Preload PaymentIntent when entering guest_info step (for guests)
-  // This gives us 3-5 seconds headstart while user fills Instagram form
-  useEffect(() => {
-    if (step === 'guest_info' && guestInfo && !preloadedPaymentIntent && !isPreloadingSetupIntent) {
-      const email = guestInfo.contactMethod === 'email'
-        ? guestInfo.email
-        : `whatsapp:${guestInfo.whatsappNumber}`;
-      if (email) {
-        console.log('[BiddingInterface] 🚀 Early preload: Starting PaymentIntent at guest_info step');
-        preloadPaymentIntent(email, guestInfo.name);
-      }
-    }
-  }, [step, guestInfo, preloadedPaymentIntent, isPreloadingSetupIntent]);
-
-  // Preload PaymentIntent for logged-in users at amount step (they skip guest_info)
-  useEffect(() => {
-    if (step === 'amount' && userEmail && userName && !preloadedPaymentIntent && !isPreloadingSetupIntent) {
-      console.log('[BiddingInterface] 🚀 Early preload: Starting PaymentIntent for logged-in user');
-      preloadPaymentIntent(userEmail, userName);
-    }
-  }, [step, userEmail, userName, preloadedPaymentIntent, isPreloadingSetupIntent]);
-
-  // Preload PaymentIntent for cached guest users at amount step (they skip guest_info)
-  useEffect(() => {
-    if (step === 'amount' && !userEmail && guestInfo && !preloadedPaymentIntent && !isPreloadingSetupIntent) {
-      const email = guestInfo.contactMethod === 'email'
-        ? guestInfo.email
-        : `whatsapp:${guestInfo.whatsappNumber}`;
-      if (email) {
-        console.log('[BiddingInterface] 🚀 Early preload: Starting PaymentIntent for cached guest user at amount step');
-        preloadPaymentIntent(email, guestInfo.name);
-      }
-    }
-  }, [step, userEmail, guestInfo, preloadedPaymentIntent, isPreloadingSetupIntent]);
-
-  // Safety trigger: Ensure preload starts at Instagram step if not already started
-  useEffect(() => {
-    if (step === 'instagram' && !userEmail && guestInfo && !preloadedPaymentIntent && !isPreloadingSetupIntent) {
-      const email = guestInfo.contactMethod === 'email'
-        ? guestInfo.email
-        : `whatsapp:${guestInfo.whatsappNumber}`;
-      if (email) {
-        console.log('[BiddingInterface] ⚠️ Safety trigger: Starting PaymentIntent at Instagram step (preload should have started earlier)');
-        preloadPaymentIntent(email, guestInfo.name);
-      }
-    }
-  }, [step, userEmail, guestInfo, preloadedPaymentIntent, isPreloadingSetupIntent]);
+  // NOTE: Payment preload now handled by usePaymentPreload hook above
+  // No more manual useEffect hooks needed - hook automatically triggers when email + name available
 
   // Check for previous bids on mount
   useEffect(() => {
@@ -318,14 +240,8 @@ export function BiddingInterface({
         console.error('Error saving guest info to cache:', error);
       }
 
-      // Trigger preload immediately with new guest info (before checking previous bids)
-      const preloadEmail = info.contactMethod === 'email'
-        ? info.email
-        : `whatsapp:${info.whatsappNumber}`;
-      if (preloadEmail && !preloadedPaymentIntent && !isPreloadingSetupIntent) {
-        console.log('[BiddingInterface] 🚀 Triggering preload in handleGuestInfoSubmit');
-        preloadPaymentIntent(preloadEmail, info.name);
-      }
+      // NOTE: Preload now handled automatically by usePaymentPreload hook
+      // Hook will trigger when guestInfo state updates with email + name
 
       // Check if this guest has bid before on this auction
       const email = info.contactMethod === 'email' ? info.email : `whatsapp:${info.whatsappNumber}`;
@@ -333,7 +249,7 @@ export function BiddingInterface({
         try {
           // Add timeout to prevent hanging
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+          const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout (optimized from 10s)
 
           console.log('[BiddingInterface] Checking previous bids for email:', email);
           const response = await fetch(
@@ -359,6 +275,7 @@ export function BiddingInterface({
 
               console.log('[BiddingInterface] Repeat bidder detected, proceeding to payment');
               // Skip Instagram step and go directly to payment
+              setStep('payment');
               const amount = parseFloat(bidAmount.replace(/,/g, ''));
               await createBid(info.name, info.contactMethod, info.email, info.whatsappNumber, amount, savedInstagram);
               return;
