@@ -215,6 +215,7 @@ export async function POST(request: NextRequest) {
         .from('user_paypal_accounts')
         .select('*')
         .eq('user_id', userId)
+        .eq('is_primary', true)
         .maybeSingle()
 
       await emailService.sendAdminPayoutRequestNotification({

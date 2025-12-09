@@ -616,8 +616,8 @@ body {
   width: 95px;
   height: 95px;
   border-radius: 50%;
-  /* Outer gradient border (4px) */
-  border: 4px solid transparent;
+  /* Outer gradient border (5px) */
+  border: 5px solid transparent;
   background-origin: border-box;
   background-clip: padding-box, border-box;
   /* Layered backgrounds: inner dark frame + outer gradient */

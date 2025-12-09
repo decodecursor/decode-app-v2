@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { email, confirm_email } = body
+    const { email, confirm_email, account_type } = body
 
     // Validate required fields
     if (!email?.trim()) {
@@ -91,6 +91,14 @@ export async function POST(request: Request) {
       )
     }
 
+    // Validate account_type if provided
+    if (account_type && !['personal', 'business'].includes(account_type.toLowerCase())) {
+      return NextResponse.json(
+        { error: 'Account type must be either "personal" or "business"' },
+        { status: 400 }
+      )
+    }
+
     // Check if user already has a PayPal account
     const { data: existingAccount } = await supabase
       .from('user_paypal_account')
@@ -112,6 +120,7 @@ export async function POST(request: Request) {
       .insert({
         user_id: user.id,
         email: email.trim().toLowerCase(),
+        account_type: account_type?.toLowerCase() || 'personal',
         is_primary: true,
         is_verified: false,
         status: 'pending',
@@ -159,7 +168,7 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json()
-    const { email, confirm_email } = body
+    const { email, confirm_email, account_type } = body
 
     // Validate required fields
     if (!email?.trim()) {
@@ -185,13 +194,29 @@ export async function PUT(request: Request) {
       )
     }
 
+    // Validate account_type if provided
+    if (account_type && !['personal', 'business'].includes(account_type.toLowerCase())) {
+      return NextResponse.json(
+        { error: 'Account type must be either "personal" or "business"' },
+        { status: 400 }
+      )
+    }
+
+    // Build update data object
+    const updateData: any = {
+      email: email.trim().toLowerCase(),
+      updated_at: new Date().toISOString()
+    }
+
+    // Only update account_type if provided
+    if (account_type) {
+      updateData.account_type = account_type.toLowerCase()
+    }
+
     // Update existing PayPal account
     const { data: updatedAccount, error: updateError } = await supabase
       .from('user_paypal_account')
-      .update({
-        email: email.trim().toLowerCase(),
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('user_id', user.id)
       .eq('is_primary', true)
       .select()

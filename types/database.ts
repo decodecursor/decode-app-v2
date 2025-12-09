@@ -471,6 +471,7 @@ export interface Database {
           id: string
           user_id: string
           email: string
+          account_type: string
           paypal_account_id: string | null
           is_verified: boolean
           is_primary: boolean
@@ -482,6 +483,7 @@ export interface Database {
           id?: string
           user_id: string
           email: string
+          account_type?: string
           paypal_account_id?: string | null
           is_verified?: boolean
           is_primary?: boolean
@@ -493,6 +495,7 @@ export interface Database {
           id?: string
           user_id?: string
           email?: string
+          account_type?: string
           paypal_account_id?: string | null
           is_verified?: boolean
           is_primary?: boolean
