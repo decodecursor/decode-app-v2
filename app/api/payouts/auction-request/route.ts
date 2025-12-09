@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
       } else {
         // Check for PayPal account
         const { data: paypalAccount } = await supabase
-          .from('user_paypal_accounts')
+          .from('user_paypal_account')
           .select('id')
           .eq('user_id', userId)
           .eq('is_primary', true)
@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
     if (payoutMethod === 'paypal') {
       // Try to fetch primary PayPal account first
       let { data: paypalAccount } = await supabase
-        .from('user_paypal_accounts')
+        .from('user_paypal_account')
         .select('*')
         .eq('user_id', userId)
         .eq('is_primary', true)
@@ -183,7 +183,7 @@ export async function POST(request: NextRequest) {
       // If no primary account, fetch any PayPal account
       if (!paypalAccount) {
         const { data: anyPaypalAccount } = await supabase
-          .from('user_paypal_accounts')
+          .from('user_paypal_account')
           .select('*')
           .eq('user_id', userId)
           .order('created_at', { ascending: false })
@@ -306,7 +306,7 @@ export async function POST(request: NextRequest) {
 
       // Try to fetch primary PayPal account first
       let { data: paypalAccount } = await supabase
-        .from('user_paypal_accounts')
+        .from('user_paypal_account')
         .select('*')
         .eq('user_id', userId)
         .eq('is_primary', true)
@@ -315,7 +315,7 @@ export async function POST(request: NextRequest) {
       // If no primary account found but payout method is paypal, fetch any PayPal account
       if (!paypalAccount && payoutMethod === 'paypal') {
         const { data: anyPaypalAccount } = await supabase
-          .from('user_paypal_accounts')
+          .from('user_paypal_account')
           .select('*')
           .eq('user_id', userId)
           .order('created_at', { ascending: false })

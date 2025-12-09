@@ -17,7 +17,6 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, userRole, onMe
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
   const [confirmEmail, setConfirmEmail] = useState('')
-  const [accountType, setAccountType] = useState<'personal' | 'business'>('personal')
   const [isConnected, setIsConnected] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false)
@@ -43,7 +42,6 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, userRole, onMe
           const paypalAccount = result.data
           setEmail(paypalAccount.email || '')
           setConfirmEmail(paypalAccount.email || '')
-          setAccountType(paypalAccount.account_type || 'personal')
           setIsConnected(true)
         }
       }
@@ -85,8 +83,7 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, userRole, onMe
         credentials: 'include',
         body: JSON.stringify({
           email: email.trim(),
-          confirm_email: confirmEmail.trim(),
-          account_type: accountType
+          confirm_email: confirmEmail.trim()
         })
       })
 
@@ -124,7 +121,6 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, userRole, onMe
     if (!isConnected) {
       setEmail('')
       setConfirmEmail('')
-      setAccountType('personal')
     }
     setMessage(null)
     setShowRemoveConfirmation(false)
@@ -152,7 +148,6 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, userRole, onMe
         // Reset form state
         setEmail('')
         setConfirmEmail('')
-        setAccountType('personal')
         setIsConnected(false)
         setShowRemoveConfirmation(false)
 
@@ -263,38 +258,6 @@ export function PayPalModal({ isOpen, onClose, userId, onSuccess, userRole, onMe
               className="w-full md:px-4 md:py-3 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
               disabled={loading}
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Account Type
-            </label>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setAccountType('personal')}
-                className={`flex-1 px-4 py-3 rounded-lg border transition-all ${
-                  accountType === 'personal'
-                    ? 'bg-purple-600 border-purple-500 text-white'
-                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-600'
-                }`}
-                disabled={loading}
-              >
-                Personal
-              </button>
-              <button
-                type="button"
-                onClick={() => setAccountType('business')}
-                className={`flex-1 px-4 py-3 rounded-lg border transition-all ${
-                  accountType === 'business'
-                    ? 'bg-purple-600 border-purple-500 text-white'
-                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-600'
-                }`}
-                disabled={loading}
-              >
-                Business
-              </button>
-            </div>
           </div>
         </div>
 
