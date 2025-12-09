@@ -2062,7 +2062,7 @@ Last Payout Amount: ${payoutData.last_payout_amount || 0} AED
                     <span>- AED ${data.platform_fee.toFixed(2)}</span>
                 </div>
                 <div class="detail-row" style="font-weight: bold; font-size: 18px;">
-                    <span>Your Payout:</span>
+                    <span>My Payout:</span>
                     <span style="color: #4CAF50;">AED ${data.model_payout.toFixed(2)}</span>
                 </div>
             </div>
@@ -2099,7 +2099,7 @@ Winner: ${data.winner_name}
 YOUR EARNINGS BREAKDOWN
 Winning Bid: AED ${data.winning_bid_amount.toFixed(2)}
 Platform Fee (25%): - AED ${data.platform_fee.toFixed(2)}
-Your Payout: AED ${data.model_payout.toFixed(2)}
+My Payout: AED ${data.model_payout.toFixed(2)}
 
 NEXT STEPS
 The winner has 24 hours to upload their personalized video message.

@@ -223,7 +223,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
           clearInterval(checkIntervalRef.current)
         }
       }
-    }, 100) // Generate a heart every 100ms
+    }, 20) // Generate a heart every 20ms (5x faster spawn rate)
     
     // Start the animation loop
     updateHearts()

@@ -194,7 +194,7 @@ export function PendingPayoutsCard({
                       <span className="text-gray-400 text-[8.5px] md:text-[13px]">-{formatCurrency(payout.platform_fee_amount)}</span>
                     </div>
                     <div className="flex justify-between pt-1.5 md:pt-2 border-t border-white/5">
-                      <span className="text-green-400 font-semibold">Your Payout</span>
+                      <span className="text-green-400 font-semibold">My Payout</span>
                       <span className="text-green-400 font-bold">{formatCurrency(payout.model_amount)}</span>
                     </div>
                   </div>
