@@ -440,10 +440,10 @@ export default function AuctionDetailClient() {
                 onClick={() => router.push('/dashboard/auctions')}
                 className="text-gray-600 hover:text-gray-900 flex items-center gap-[3px]"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-[17px] h-[17px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                <span>Back</span>
+                <span className="text-[14px]">Back</span>
               </button>
             )}
             {/* Right: Action buttons */}

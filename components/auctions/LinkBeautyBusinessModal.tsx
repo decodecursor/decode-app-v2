@@ -536,7 +536,11 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
                             key={business.id}
                             type="button"
                             onClick={() => handleLinkExisting(business.id)}
-                            className="w-full p-4 border border-transparent hover:border-purple-500 rounded-lg transition-all text-left"
+                            className={`w-full p-4 border rounded-lg transition-all text-left ${
+                              business.id === selectedBusinessId || business.id === linkedBusinessId
+                                ? 'border-purple-500'
+                                : 'border-transparent hover:border-purple-500'
+                            }`}
                           >
                             <div className="flex items-center gap-3">
                               <div className="instagram-avatar-sm flex-shrink-0">
@@ -552,7 +556,17 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
                                 )}
                               </div>
                               <div className="flex-1">
-                                <h3 className="text-white font-semibold">{business.business_name}</h3>
+                                <div className="flex items-center gap-2">
+                                  <h3 className="text-white font-semibold">{business.business_name}</h3>
+                                  {/* Green checkmark right after business name */}
+                                  {(business.id === selectedBusinessId || business.id === linkedBusinessId) && (
+                                    <div className="w-5 h-5 bg-green-600/80 rounded-full flex items-center justify-center flex-shrink-0">
+                                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                      </svg>
+                                    </div>
+                                  )}
+                                </div>
                                 <div className="flex items-center gap-2 text-sm text-gray-400">
                                   <InstagramIcon className="w-3 h-3 text-pink-600" />
                                   <a
@@ -568,14 +582,6 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
                                   <span>{business.city}</span>
                                 </div>
                               </div>
-                              {/* Green checkmark for selected/linked business */}
-                              {(business.id === selectedBusinessId || business.id === linkedBusinessId) && (
-                                <div className="w-5 h-5 bg-green-600/80 rounded-full flex items-center justify-center flex-shrink-0">
-                                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                  </svg>
-                                </div>
-                              )}
                             </div>
                           </button>
                         ))}
