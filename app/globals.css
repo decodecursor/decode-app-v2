@@ -712,6 +712,61 @@ body {
   font-weight: bold;
 }
 
+/* Instagram-style Profile Avatar - Card variant for auction cards */
+.instagram-avatar-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  /* Outer gradient border (thinner for small cards) */
+  border: 2px solid transparent;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  /* Layered backgrounds: inner dark frame + outer gradient */
+  background-image: linear-gradient(#000000, #000000), linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  /* Inner black frame (thinner for small cards) */
+  padding: 3px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.instagram-avatar-card:hover {
+  transform: scale(1.05);
+}
+
+.instagram-avatar-card img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: none;
+  object-fit: cover;
+  display: block;
+  background: transparent;
+}
+
+.instagram-avatar-card .avatar-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: none;
+  background: #6B7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #374151;
+}
+
+@media (min-width: 768px) {
+  .instagram-avatar-card {
+    width: 54px;
+    height: 54px;
+  }
+}
+
 /* Navigation button styling with larger font */
 .nav-button {
   font-size: 17px;
