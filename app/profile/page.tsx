@@ -78,14 +78,15 @@ export default function ProfilePage() {
         if (!authUser) {
           console.log('🚪 Profile: No authenticated user, redirecting to auth')
           router.push('/auth')
+          // Don't clear authLoading - keep showing spinner during redirect
           return
         }
         setUser(authUser)
+        setAuthLoading(false) // Only clear loading when auth succeeds
       } catch (error) {
         console.error('Auth check failed:', error)
         router.push('/auth')
-      } finally {
-        setAuthLoading(false)
+        // Don't clear authLoading - keep showing spinner during redirect
       }
     }
 
