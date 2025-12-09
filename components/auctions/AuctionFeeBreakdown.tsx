@@ -56,10 +56,10 @@ export function AuctionFeeBreakdown({
         {/* Starting Price */}
         <div className="flex justify-between items-center">
           <span className="text-gray-600">
-            <span className="text-[15px] sm:text-[16px]">Auction Starting Price </span>
+            <span className="text-[13px] sm:text-[14px]">Auction Starting Price </span>
             <span className="hidden sm:inline text-[10px] sm:text-[11px]">(Beauty Service Price):</span>
           </span>
-          <span className="text-gray-600 text-[15px] sm:text-[16px]">- {formatCurrency(auctionStartPrice)}</span>
+          <span className="text-gray-600 text-[13px] sm:text-[14px]">- {formatCurrency(auctionStartPrice)}</span>
         </div>
 
         <div className="border-t border-gray-200 my-3"></div>
@@ -76,10 +76,10 @@ export function AuctionFeeBreakdown({
         {/* DECODE Fee */}
         <div className="flex justify-between items-center">
           <span className="text-gray-600">
-            <span className="text-[15px] sm:text-[16px]">DECODE Service Fee </span>
+            <span className="text-[13px] sm:text-[14px]">DECODE Service Fee </span>
             <span className="hidden sm:inline text-[10px] sm:text-[11px]">({DEFAULT_AUCTION_FEE_PERCENTAGE}% of Profit):</span>
           </span>
-          <span className="text-gray-600 text-[15px] sm:text-[16px]">- {formatCurrency(decodeFee)}</span>
+          <span className="text-gray-600 text-[13px] sm:text-[14px]">- {formatCurrency(decodeFee)}</span>
         </div>
 
         <div className="border-t border-gray-300 my-3"></div>

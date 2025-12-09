@@ -196,9 +196,13 @@ export default function AuctionDetailClient() {
       refreshLeaderboard()
     ]);
 
-    // Scroll to top of page on both mobile and desktop after bid
+    // Scroll to absolute top of page on both mobile and desktop after bid
+    // Using instant scroll to ensure we reach the top without being interrupted by DOM updates
     if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo(0, 0);
+      // Force scroll to document element as well to ensure absolute top
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0; // For older browsers
     }
 
     // Second refresh after 2 seconds to catch database updates

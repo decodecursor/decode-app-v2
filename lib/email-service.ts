@@ -1419,7 +1419,7 @@ DECODE
 <body>
     <div class="container">
         <div class="header">
-            <h1>DECODE Beauty Platform</h1>
+            <h1>DECODE</h1>
             <p>Administrative Notification</p>
         </div>
         <div class="content">
@@ -1538,7 +1538,7 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
 <body>
     <div class="container">
         <div class="header">
-            <h1>DECODE Beauty Platform</h1>
+            <h1>DECODE</h1>
             <p>Administrative Notification</p>
         </div>
         <div class="content">
@@ -1666,6 +1666,9 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
     last_payout_date?: string
     last_payout_amount?: number
     request_date: string
+    auction_ids?: string[]
+    auction_titles?: string[]
+    auction_amounts?: number[]
   }): Promise<{
     html: string
     text: string
@@ -1692,7 +1695,7 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
 <body>
     <div class="container">
         <div class="header">
-            <h1>DECODE Beauty Platform</h1>
+            <h1>DECODE</h1>
             <p>Administrative Notification</p>
         </div>
         <div class="content">
@@ -1712,6 +1715,21 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
                 <p><strong>Role:</strong> ${payoutData.user_role}</p>
                 <p><strong>User ID:</strong> ${payoutData.user_id}</p>
             </div>
+
+            ${payoutData.auction_ids && payoutData.auction_ids.length > 0 ? `
+                <div class="details">
+                    <h3>🎯 Auction Details</h3>
+                    <p><strong>Number of Auctions:</strong> ${payoutData.auction_ids.length}</p>
+                    ${payoutData.auction_ids.map((id, index) => `
+                        <div style="margin: 10px 0; padding: 10px; background: #fff; border-left: 3px solid #6366f1;">
+                            <p style="margin: 5px 0;"><strong>Auction ${index + 1}:</strong></p>
+                            <p style="margin: 5px 0;"><strong>ID:</strong> ${id}</p>
+                            ${payoutData.auction_titles && payoutData.auction_titles[index] ? `<p style="margin: 5px 0;"><strong>Title:</strong> ${payoutData.auction_titles[index]}</p>` : ''}
+                            ${payoutData.auction_amounts && payoutData.auction_amounts[index] ? `<p style="margin: 5px 0;"><strong>Payout Amount:</strong> ${payoutData.auction_amounts[index]} AED</p>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
 
             <div class="details">
                 <h3>🏢 Company Details</h3>
@@ -1736,15 +1754,21 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
                         <p><strong>IBAN:</strong> ${payoutData.iban_number || 'Not specified'}</p>
                         ${payoutData.account_type ? `<p><strong>Account Type:</strong> ${payoutData.account_type}</p>` : ''}
                     ` : ''}
+                    ${payoutData.preferred_payout_method === 'paypal' && payoutData.paypal_email ? `
+                        <p><strong>PayPal Email:</strong> ${payoutData.paypal_email}</p>
+                        <p><strong>PayPal Account Type:</strong> ${payoutData.paypal_account_type || 'Personal'}</p>
+                    ` : ''}
+                    ${payoutData.preferred_payout_method === 'stripe_connect' ? `
+                        <p><strong>Stripe Connect ID:</strong> ${payoutData.stripe_connect_account_id || 'Not connected'}</p>
+                    ` : ''}
                     ${payoutData.beneficiary_name && payoutData.preferred_payout_method !== 'bank_account' ? `
                         <h4>🏦 Bank Account Details</h4>
                         <p><strong>Beneficiary Name:</strong> ${payoutData.beneficiary_name}</p>
                         <p><strong>Bank Name:</strong> ${payoutData.bank_name || 'Not specified'}</p>
                         <p><strong>Account Type:</strong> ${payoutData.account_type || 'Not specified'}</p>
                         <p><strong>IBAN:</strong> ${payoutData.iban_number || 'N/A'}</p>
-                        <p><strong>Stripe Connect ID:</strong> ${payoutData.stripe_connect_account_id || 'Not connected'}</p>
                     ` : ''}
-                    ${payoutData.paypal_email ? `
+                    ${payoutData.paypal_email && payoutData.preferred_payout_method !== 'paypal' ? `
                         <h4>💙 PayPal Account Details</h4>
                         <p><strong>PayPal Email:</strong> ${payoutData.paypal_email}</p>
                         <p><strong>Account Type:</strong> ${payoutData.paypal_account_type || 'Personal'}</p>
@@ -1765,7 +1789,7 @@ Generated at: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })} 
 </html>`
 
     const text = `
-DECODE Beauty Platform - Payout Request
+DECODE - Payout Request
 
 REQUEST DETAILS
 Request ID: ${payoutData.payout_request_id || 'Pending'}
@@ -1778,6 +1802,16 @@ Email: ${payoutData.user_email}
 Role: ${payoutData.user_role}
 User ID: ${payoutData.user_id}
 
+${payoutData.auction_ids && payoutData.auction_ids.length > 0 ? `
+AUCTION DETAILS
+Number of Auctions: ${payoutData.auction_ids.length}
+${payoutData.auction_ids.map((id, index) => `
+Auction ${index + 1}:
+  ID: ${id}${payoutData.auction_titles && payoutData.auction_titles[index] ? `
+  Title: ${payoutData.auction_titles[index]}` : ''}${payoutData.auction_amounts && payoutData.auction_amounts[index] ? `
+  Payout Amount: ${payoutData.auction_amounts[index]} AED` : ''}
+`).join('')}
+` : ''}
 COMPANY DETAILS
 Company: ${payoutData.company_name}
 Branch: ${payoutData.branch_name || 'Not specified'}
@@ -1796,14 +1830,16 @@ ${payoutData.preferred_payout_method === 'bank_account' && payoutData.beneficiar
 Bank: ${payoutData.bank_name || 'Not specified'}
 IBAN: ${payoutData.iban_number || 'Not specified'}${payoutData.account_type ? `
 Account Type: ${payoutData.account_type}` : ''}` : ''}
+${payoutData.preferred_payout_method === 'paypal' && payoutData.paypal_email ? `PayPal Email: ${payoutData.paypal_email}
+PayPal Account Type: ${payoutData.paypal_account_type || 'Personal'}` : ''}
+${payoutData.preferred_payout_method === 'stripe_connect' ? `Stripe Connect ID: ${payoutData.stripe_connect_account_id || 'Not connected'}` : ''}
 ${payoutData.beneficiary_name && payoutData.preferred_payout_method !== 'bank_account' ? `
 BANK ACCOUNT DETAILS
 Beneficiary Name: ${payoutData.beneficiary_name}
 Bank Name: ${payoutData.bank_name || 'Not specified'}
 Account Type: ${payoutData.account_type || 'Not specified'}
 IBAN: ${payoutData.iban_number || 'N/A'}
-Stripe Connect ID: ${payoutData.stripe_connect_account_id || 'Not connected'}
-` : ''}${payoutData.paypal_email ? `
+` : ''}${payoutData.paypal_email && payoutData.preferred_payout_method !== 'paypal' ? `
 PAYPAL ACCOUNT DETAILS
 PayPal Email: ${payoutData.paypal_email}
 Account Type: ${payoutData.paypal_account_type || 'Personal'}

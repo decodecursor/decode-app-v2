@@ -252,12 +252,9 @@ export async function POST(request: NextRequest) {
         .eq('user_id', userId)
         .maybeSingle()
 
-      // Include auction details in user_name field for now (will be visible in email)
-      const auctionDetails = `${userData.user_name || 'MODEL User'} - Auction Payout (${auctions.length} auctions: ${auctions.map(a => a.title).join(', ')})`
-
       await emailService.sendAdminPayoutRequestNotification({
         payout_request_id: payoutRequestId,
-        user_name: auctionDetails,
+        user_name: userData.user_name || 'MODEL User',
         user_email: user.email || '',
         user_role: 'model',
         user_id: userId,
@@ -273,7 +270,10 @@ export async function POST(request: NextRequest) {
         preferred_payout_method: payoutMethod,
         paypal_email: paypalAccount?.email,
         paypal_account_type: paypalAccount?.account_type,
-        request_date: new Date().toISOString()
+        request_date: new Date().toISOString(),
+        auction_ids: auctions.map(a => a.id),
+        auction_titles: auctions.map(a => a.title),
+        auction_amounts: auctions.map(a => a.model_payout_amount)
       })
 
       console.log('✅ [AUCTION-PAYOUT-REQUEST] Admin notification email sent')
