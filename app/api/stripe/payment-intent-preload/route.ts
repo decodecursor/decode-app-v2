@@ -44,12 +44,14 @@ export async function POST(request: NextRequest) {
       auction_id,
     });
 
-    // Get or create guest bidder to get Stripe customer ID
+    // STEP 1: Get or create guest bidder (includes cache lookup + DB query)
+    const guestStartTime = Date.now();
     const guestService = new GuestBidderService();
     const guestResult = await guestService.getOrCreateGuestBidder({
       email: bidder_email,
       name: bidder_name,
     });
+    const guestTime = Date.now() - guestStartTime;
 
     if (!guestResult.success) {
       return NextResponse.json(
@@ -58,7 +60,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create PaymentIntent using AuctionStrategy
+    console.log('[PaymentIntent Preload API] ⏱️ GuestBidder lookup/create completed:', {
+      time_ms: guestTime,
+      guest_bidder_id: guestResult.guest_bidder_id,
+      had_stripe_customer: !!guestResult.stripe_customer_id,
+    });
+
+    // STEP 2: Create PaymentIntent with Stripe API
+    const stripeStartTime = Date.now();
     const strategy = new AuctionStrategy();
     const paymentResult = await strategy.createPayment({
       amount: estimated_amount,
@@ -71,6 +80,7 @@ export async function POST(request: NextRequest) {
       guest_stripe_customer_id: guestResult.stripe_customer_id,
       guest_bidder_id: guestResult.guest_bidder_id,
     } as any);
+    const stripeTime = Date.now() - stripeStartTime;
 
     if (!paymentResult.success) {
       return NextResponse.json(
@@ -79,12 +89,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('[PaymentIntent Preload API] ⏱️ Stripe PaymentIntent creation completed:', {
+      time_ms: stripeTime,
+      payment_intent_id: paymentResult.payment_intent_id,
+    });
+
     const totalTime = Date.now() - startTime;
-    console.log('[PaymentIntent Preload API] PaymentIntent created successfully:', {
+    const overhead = totalTime - guestTime - stripeTime;
+
+    console.log('[PaymentIntent Preload API] ✅ PaymentIntent created successfully:', {
       payment_intent_id: paymentResult.payment_intent_id,
       customer_id: guestResult.stripe_customer_id,
       guest_bidder_id: guestResult.guest_bidder_id,
-      total_time_ms: totalTime,
+      timing_breakdown: {
+        guest_bidder_ms: guestTime,
+        stripe_api_ms: stripeTime,
+        overhead_ms: overhead,
+        total_ms: totalTime,
+      },
+      performance_metrics: {
+        guest_percentage: Math.round((guestTime / totalTime) * 100),
+        stripe_percentage: Math.round((stripeTime / totalTime) * 100),
+      },
     });
 
     return NextResponse.json({

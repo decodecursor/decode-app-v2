@@ -122,6 +122,9 @@ export class AuctionStrategy implements IPaymentStrategy {
       let customerId: string | undefined = auctionContext.guest_stripe_customer_id;
       let savedPaymentMethodId: string | null = null;
 
+      // OPTIMIZATION: Detect preload flow to skip unnecessary saved payment method check
+      const isPreloadFlow = auctionContext.bid_id === 'preload';
+
       // OPTIMIZATION: Parallelize customer validation and saved payment method check
       // These operations are independent and can run simultaneously
       if (auctionContext.is_guest) {
@@ -146,10 +149,15 @@ export class AuctionStrategy implements IPaymentStrategy {
             : Promise.resolve(null),
 
           // Saved payment method check (runs in parallel)
-          auctionContext.guest_bidder_id
+          // OPTIMIZATION: Skip during preload flow - first-time bidders won't have saved methods
+          !isPreloadFlow && auctionContext.guest_bidder_id
             ? guestService.getSavedPaymentMethod(auctionContext.guest_bidder_id)
             : Promise.resolve(null)
         ]);
+
+        if (isPreloadFlow) {
+          console.log('[AuctionStrategy] ⚡ Preload flow detected - skipped saved payment method check for performance');
+        }
 
         // Handle customer validation result
         if (customerId && !validatedCustomer) {
