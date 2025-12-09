@@ -1384,6 +1384,144 @@ DECODE
   }
 
   /**
+   * Send auction completed notification to model
+   */
+  async sendModelAuctionCompletedEmail(data: {
+    model_email: string
+    model_name: string
+    auction_id: string
+    auction_title: string
+    winning_bid_amount: number
+    winner_name: string
+    platform_fee: number
+    model_payout: number
+    dashboard_url: string
+  }): Promise<EmailResult> {
+    try {
+      console.log(`📧 Sending auction completed email to model ${data.model_email}`)
+
+      const subject = `🎉 Your Auction Completed Successfully - ${data.auction_title}`
+
+      const emailContent = await this.renderModelAuctionCompletedEmail(data)
+
+      const result = await this.sendEmail({
+        to: data.model_email,
+        subject,
+        html: emailContent.html,
+        text: emailContent.text
+      })
+
+      await this.logEmail({
+        recipientEmail: data.model_email,
+        emailType: 'model_auction_completed',
+        subject,
+        status: result.success ? 'sent' : 'failed',
+        emailServiceId: result.messageId,
+        errorMessage: result.error
+      })
+
+      return result
+    } catch (error) {
+      console.error('Error sending model auction completed email:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    }
+  }
+
+  /**
+   * Send video uploaded notification to model
+   */
+  async sendModelVideoUploadedEmail(data: {
+    model_email: string
+    model_name: string
+    auction_id: string
+    auction_title: string
+    winner_name: string
+    video_uploaded_at: string
+    dashboard_url: string
+  }): Promise<EmailResult> {
+    try {
+      console.log(`📧 Sending video uploaded email to model ${data.model_email}`)
+
+      const subject = `📹 Winner Has Uploaded Video - ${data.auction_title}`
+
+      const emailContent = await this.renderModelVideoUploadedEmail(data)
+
+      const result = await this.sendEmail({
+        to: data.model_email,
+        subject,
+        html: emailContent.html,
+        text: emailContent.text
+      })
+
+      await this.logEmail({
+        recipientEmail: data.model_email,
+        emailType: 'model_video_uploaded',
+        subject,
+        status: result.success ? 'sent' : 'failed',
+        emailServiceId: result.messageId,
+        errorMessage: result.error
+      })
+
+      return result
+    } catch (error) {
+      console.error('Error sending model video uploaded email:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    }
+  }
+
+  /**
+   * Send payout request confirmation to model
+   */
+  async sendModelPayoutRequestConfirmedEmail(data: {
+    model_email: string
+    model_name: string
+    payout_request_id: string
+    payout_amount: number
+    payout_method: string
+    request_date: string
+    dashboard_url: string
+    support_email: string
+  }): Promise<EmailResult> {
+    try {
+      console.log(`📧 Sending payout request confirmed email to model ${data.model_email}`)
+
+      const subject = `✅ Payout Request Received - ${data.payout_request_id}`
+
+      const emailContent = await this.renderModelPayoutRequestConfirmedEmail(data)
+
+      const result = await this.sendEmail({
+        to: data.model_email,
+        subject,
+        html: emailContent.html,
+        text: emailContent.text
+      })
+
+      await this.logEmail({
+        recipientEmail: data.model_email,
+        emailType: 'model_payout_confirmed',
+        subject,
+        status: result.success ? 'sent' : 'failed',
+        emailServiceId: result.messageId,
+        errorMessage: result.error
+      })
+
+      return result
+    } catch (error) {
+      console.error('Error sending model payout confirmed email:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    }
+  }
+
+  /**
    * Render admin user registration notification email
    */
   private async renderAdminUserRegistrationEmail(userData: {
@@ -1853,6 +1991,365 @@ PAYOUT HISTORY
 Last Payout Date: ${new Date(payoutData.last_payout_date).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}
 Last Payout Amount: ${payoutData.last_payout_amount || 0} AED
 ` : ''}
+`
+
+    return { html, text }
+  }
+
+  /**
+   * Render model auction completed email
+   */
+  private async renderModelAuctionCompletedEmail(data: {
+    model_email: string
+    model_name: string
+    auction_id: string
+    auction_title: string
+    winning_bid_amount: number
+    winner_name: string
+    platform_fee: number
+    model_payout: number
+    dashboard_url: string
+  }): Promise<{
+    html: string
+    text: string
+  }> {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auction Completed Successfully</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+        .success-icon { font-size: 48px; color: #4CAF50; margin-bottom: 20px; text-align: center; }
+        .amount { font-size: 32px; font-weight: bold; color: #4CAF50; margin: 20px 0; text-align: center; }
+        .details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .detail-row:last-child { border-bottom: none; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+        .button { display: inline-block; background: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>DECODE</h1>
+            <h2>🎉 Auction Completed Successfully!</h2>
+        </div>
+        <div class="content">
+            <div class="success-icon">✅</div>
+            <h3 style="text-align: center;">Congratulations, ${data.model_name}!</h3>
+            <p style="text-align: center;">Your auction "${data.auction_title}" has ended with a winning bid!</p>
+
+            <div class="details">
+                <h4>Winning Bid</h4>
+                <div class="amount">AED ${data.winning_bid_amount.toFixed(2)}</div>
+                <p style="text-align: center;"><strong>Winner:</strong> ${data.winner_name}</p>
+            </div>
+
+            <div class="details">
+                <h4>Your Earnings Breakdown</h4>
+                <div class="detail-row">
+                    <span>Winning Bid:</span>
+                    <span>AED ${data.winning_bid_amount.toFixed(2)}</span>
+                </div>
+                <div class="detail-row">
+                    <span>Platform Fee (25%):</span>
+                    <span>- AED ${data.platform_fee.toFixed(2)}</span>
+                </div>
+                <div class="detail-row" style="font-weight: bold; font-size: 18px;">
+                    <span>Your Payout:</span>
+                    <span style="color: #4CAF50;">AED ${data.model_payout.toFixed(2)}</span>
+                </div>
+            </div>
+
+            <div class="details">
+                <h4>📹 Next Steps</h4>
+                <p>The winner has <strong>24 hours</strong> to upload their personalized video message.</p>
+                <p>Once uploaded, you'll receive another notification. You'll need to watch the video to unlock your payout.</p>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="${data.dashboard_url}" class="button">View Dashboard</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>This email was sent by DECODE Beauty Platform</p>
+            <p>If you have any questions, please contact support.</p>
+        </div>
+    </div>
+</body>
+</html>`
+
+    const text = `
+DECODE - Auction Completed Successfully!
+
+Congratulations, ${data.model_name}!
+
+Your auction "${data.auction_title}" has ended with a winning bid!
+
+WINNING BID
+Amount: AED ${data.winning_bid_amount.toFixed(2)}
+Winner: ${data.winner_name}
+
+YOUR EARNINGS BREAKDOWN
+Winning Bid: AED ${data.winning_bid_amount.toFixed(2)}
+Platform Fee (25%): - AED ${data.platform_fee.toFixed(2)}
+Your Payout: AED ${data.model_payout.toFixed(2)}
+
+NEXT STEPS
+The winner has 24 hours to upload their personalized video message.
+Once uploaded, you'll receive another notification. You'll need to watch the video to unlock your payout.
+
+View Dashboard: ${data.dashboard_url}
+
+---
+DECODE Beauty Platform
+If you have any questions, please contact support.
+`
+
+    return { html, text }
+  }
+
+  /**
+   * Render model video uploaded email
+   */
+  private async renderModelVideoUploadedEmail(data: {
+    model_email: string
+    model_name: string
+    auction_id: string
+    auction_title: string
+    winner_name: string
+    video_uploaded_at: string
+    dashboard_url: string
+  }): Promise<{
+    html: string
+    text: string
+  }> {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Winner Has Uploaded Video</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+        .info-icon { font-size: 48px; color: #2196F3; margin-bottom: 20px; text-align: center; }
+        .details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+        .button { display: inline-block; background: #2196F3; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .important-note { background: #FFF3CD; border-left: 4px solid #FFC107; padding: 15px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>DECODE</h1>
+            <h2>📹 Winner Has Uploaded Video!</h2>
+        </div>
+        <div class="content">
+            <div class="info-icon">🎬</div>
+            <h3 style="text-align: center;">Great news, ${data.model_name}!</h3>
+            <p style="text-align: center;">The winner of "${data.auction_title}" has uploaded their personalized video message.</p>
+
+            <div class="details">
+                <h4>Auction Details</h4>
+                <p><strong>Auction:</strong> ${data.auction_title}</p>
+                <p><strong>Winner:</strong> ${data.winner_name}</p>
+                <p><strong>Video Uploaded:</strong> ${new Date(data.video_uploaded_at).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}</p>
+            </div>
+
+            <div class="important-note">
+                <h4 style="margin-top: 0;">⚡ Action Required to Unlock Payout</h4>
+                <p style="margin-bottom: 0;">You must <strong>watch the entire video</strong> to unlock your payout. Once you've watched it completely, your earnings will be available for withdrawal.</p>
+            </div>
+
+            <div class="details">
+                <h4>What to do next:</h4>
+                <ol>
+                    <li>Go to your dashboard</li>
+                    <li>Find this auction in your completed auctions</li>
+                    <li>Watch the winner's video message</li>
+                    <li>Once watched, your payout will be unlocked</li>
+                </ol>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="${data.dashboard_url}" class="button">Watch Video & Unlock Payout</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>This email was sent by DECODE Beauty Platform</p>
+            <p>If you have any questions, please contact support.</p>
+        </div>
+    </div>
+</body>
+</html>`
+
+    const text = `
+DECODE - Winner Has Uploaded Video!
+
+Great news, ${data.model_name}!
+
+The winner of "${data.auction_title}" has uploaded their personalized video message.
+
+AUCTION DETAILS
+Auction: ${data.auction_title}
+Winner: ${data.winner_name}
+Video Uploaded: ${new Date(data.video_uploaded_at).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}
+
+⚡ ACTION REQUIRED TO UNLOCK PAYOUT
+You must watch the entire video to unlock your payout. Once you've watched it completely, your earnings will be available for withdrawal.
+
+WHAT TO DO NEXT:
+1. Go to your dashboard
+2. Find this auction in your completed auctions
+3. Watch the winner's video message
+4. Once watched, your payout will be unlocked
+
+Watch Video & Unlock Payout: ${data.dashboard_url}
+
+---
+DECODE Beauty Platform
+If you have any questions, please contact support.
+`
+
+    return { html, text }
+  }
+
+  /**
+   * Render model payout request confirmed email
+   */
+  private async renderModelPayoutRequestConfirmedEmail(data: {
+    model_email: string
+    model_name: string
+    payout_request_id: string
+    payout_amount: number
+    payout_method: string
+    request_date: string
+    dashboard_url: string
+    support_email: string
+  }): Promise<{
+    html: string
+    text: string
+  }> {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payout Request Confirmed</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+        .success-icon { font-size: 48px; color: #4CAF50; margin-bottom: 20px; text-align: center; }
+        .request-id { background: #E8F5E9; border: 2px solid #4CAF50; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0; }
+        .request-id-value { font-size: 24px; font-weight: bold; color: #4CAF50; font-family: monospace; }
+        .details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .detail-row:last-child { border-bottom: none; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+        .button { display: inline-block; background: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>DECODE</h1>
+            <h2>✅ Payout Request Received</h2>
+        </div>
+        <div class="content">
+            <div class="success-icon">✓</div>
+            <h3 style="text-align: center;">Thank you, ${data.model_name}!</h3>
+            <p style="text-align: center;">We've received your payout request and it's being processed.</p>
+
+            <div class="request-id">
+                <p style="margin: 0 0 10px 0; font-size: 14px; color: #666;">Request ID</p>
+                <div class="request-id-value">${data.payout_request_id}</div>
+                <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">Save this for your records</p>
+            </div>
+
+            <div class="details">
+                <h4>Payout Details</h4>
+                <div class="detail-row">
+                    <span>Amount:</span>
+                    <span><strong>AED ${data.payout_amount.toFixed(2)}</strong></span>
+                </div>
+                <div class="detail-row">
+                    <span>Payment Method:</span>
+                    <span>${data.payout_method}</span>
+                </div>
+                <div class="detail-row">
+                    <span>Request Date:</span>
+                    <span>${new Date(data.request_date).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}</span>
+                </div>
+                <div class="detail-row">
+                    <span>Status:</span>
+                    <span style="color: #FFA726; font-weight: bold;">Processing</span>
+                </div>
+            </div>
+
+            <div class="details">
+                <h4>⏱️ Processing Timeline</h4>
+                <p>Your payout will be processed within <strong>2-3 business days</strong>.</p>
+                <p>You'll receive the funds directly to your configured payment method.</p>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="${data.dashboard_url}" class="button">Track Status in Dashboard</a>
+            </div>
+
+            <p style="text-align: center; color: #666; font-size: 14px; margin-top: 30px;">
+                If you have any questions about your payout, please contact us at ${data.support_email}
+            </p>
+        </div>
+        <div class="footer">
+            <p>This email was sent by DECODE Beauty Platform</p>
+            <p>Request ID: ${data.payout_request_id}</p>
+        </div>
+    </div>
+</body>
+</html>`
+
+    const text = `
+DECODE - Payout Request Received
+
+Thank you, ${data.model_name}!
+
+We've received your payout request and it's being processed.
+
+REQUEST ID
+${data.payout_request_id}
+(Save this for your records)
+
+PAYOUT DETAILS
+Amount: AED ${data.payout_amount.toFixed(2)}
+Payment Method: ${data.payout_method}
+Request Date: ${new Date(data.request_date).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}
+Status: Processing
+
+PROCESSING TIMELINE
+Your payout will be processed within 2-3 business days.
+You'll receive the funds directly to your configured payment method.
+
+Track Status: ${data.dashboard_url}
+
+If you have any questions about your payout, please contact us at ${data.support_email}
+
+---
+DECODE Beauty Platform
+Request ID: ${data.payout_request_id}
 `
 
     return { html, text }

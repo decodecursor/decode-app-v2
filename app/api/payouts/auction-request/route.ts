@@ -271,6 +271,29 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ [AUCTION-PAYOUT-REQUEST] Payout created successfully:', payout.id)
 
+    // Send model confirmation email
+    try {
+      console.log('📧 [AUCTION-PAYOUT-REQUEST] Sending confirmation email to model...')
+
+      await emailService.sendModelPayoutRequestConfirmedEmail({
+        model_email: user.email || '',
+        model_name: userData.user_name || 'Model',
+        payout_request_id: payoutRequestId,
+        payout_amount: totalAmount,
+        payout_method: payoutMethod === 'bank_account' ? 'Bank Account' :
+                       payoutMethod === 'paypal' ? 'PayPal' :
+                       payoutMethod || 'Unknown',
+        request_date: new Date().toISOString(),
+        dashboard_url: 'https://app.welovedecode.com/dashboard',
+        support_email: 'noreply@welovedecode.com'
+      })
+
+      console.log('✅ [AUCTION-PAYOUT-REQUEST] Model confirmation email sent')
+    } catch (emailError) {
+      // Non-blocking
+      console.error('⚠️ [AUCTION-PAYOUT-REQUEST] Failed to send model confirmation email:', emailError)
+    }
+
     // Send email notification to admin
     try {
       console.log('📧 [AUCTION-PAYOUT-REQUEST] Sending admin notification email...')

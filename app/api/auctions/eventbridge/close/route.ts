@@ -17,6 +17,7 @@ import { AuctionPaymentSplitter } from '@/lib/payments/processors/AuctionPayment
 import { AuctionNotificationService } from '@/lib/services/AuctionNotificationService';
 import { AuctionVideoService } from '@/lib/services/AuctionVideoService';
 import { getEventBridgeScheduler } from '@/lib/services/EventBridgeScheduler';
+import { emailService } from '@/lib/email-service';
 
 interface EventBridgePayload {
   auctionId: string;
@@ -239,6 +240,39 @@ export async function POST(request: NextRequest) {
             winningAmount,
             startPrice
           );
+
+          // Send model notification email
+          try {
+            // Fetch model user data
+            const { data: modelUser } = await supabase
+              .from('users')
+              .select('email, user_name')
+              .eq('id', auction.creator_id)
+              .single();
+
+            if (modelUser?.email) {
+              console.log(`📧 [EventBridge] Sending auction completed email to model: ${modelUser.email}`);
+
+              await emailService.sendModelAuctionCompletedEmail({
+                model_email: modelUser.email,
+                model_name: modelUser.user_name || 'Model',
+                auction_id: auctionId,
+                auction_title: auction.title,
+                winning_bid_amount: winningAmount,
+                winner_name: capturedBid.bidder_name,
+                platform_fee: platformFee,
+                model_payout: modelPayout,
+                dashboard_url: 'https://app.welovedecode.com/dashboard'
+              });
+
+              console.log(`✅ [EventBridge] Model auction completed email sent`);
+            } else {
+              console.warn(`⚠️ [EventBridge] No email found for model: ${auction.creator_id}`);
+            }
+          } catch (emailError) {
+            // Non-blocking - log error but don't fail auction completion
+            console.error(`❌ [EventBridge] Failed to send model email:`, emailError);
+          }
 
           // Create video recording session (generates secure token)
           const sessionResult = await videoService.createRecordingSession({

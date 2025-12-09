@@ -12,6 +12,7 @@ import { AuctionPaymentProcessor } from '@/lib/payments/processors/AuctionPaymen
 import { AuctionPaymentSplitter } from '@/lib/payments/processors/AuctionPaymentSplitter';
 import { AuctionNotificationService } from '@/lib/services/AuctionNotificationService';
 import { AuctionVideoService } from '@/lib/services/AuctionVideoService';
+import { emailService } from '@/lib/email-service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -131,6 +132,39 @@ export async function POST(request: NextRequest) {
                 winningAmount,
                 startPrice
               );
+
+              // Send model notification email
+              try {
+                // Fetch model user data
+                const supabase = createServiceRoleClient();
+                const { data: modelUser } = await supabase
+                  .from('users')
+                  .select('email, user_name')
+                  .eq('id', auction.creator_id)
+                  .single();
+
+                if (modelUser?.email) {
+                  console.log(`📧 [Cron] Sending auction completed email to model: ${modelUser.email}`);
+
+                  await emailService.sendModelAuctionCompletedEmail({
+                    model_email: modelUser.email,
+                    model_name: modelUser.user_name || 'Model',
+                    auction_id: auction.id,
+                    auction_title: auction.title,
+                    winning_bid_amount: winningAmount,
+                    winner_name: capturedBid.bidder_name,
+                    platform_fee: platformFee,
+                    model_payout: modelPayout,
+                    dashboard_url: 'https://app.welovedecode.com/dashboard'
+                  });
+
+                  console.log(`✅ [Cron] Model auction completed email sent`);
+                } else {
+                  console.warn(`⚠️ [Cron] No email found for model: ${auction.creator_id}`);
+                }
+              } catch (emailError) {
+                console.error(`❌ [Cron] Failed to send model email:`, emailError);
+              }
 
               // Create video recording session
               const sessionResult = await videoService.createRecordingSession({

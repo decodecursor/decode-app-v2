@@ -6,6 +6,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { createServiceRoleClient } from '@/utils/supabase/service-role';
 import { getEventBridgeScheduler } from '@/lib/services/EventBridgeScheduler';
+import { emailService } from '@/lib/email-service';
 import type {
   AuctionVideo,
   CreateAuctionVideoDto,
@@ -276,6 +277,50 @@ export class AuctionVideoService {
       if (auctionUpdateError) {
         console.error('Error updating auction has_video flag:', auctionUpdateError);
         // Don't fail the upload - video is already saved successfully
+      }
+
+      // Send model notification email about video upload
+      try {
+        // Use service role client for queries (service context)
+        const serviceSupabase = createServiceRoleClient();
+
+        // Fetch auction and model details
+        const { data: auctionData } = await serviceSupabase
+          .from('auctions')
+          .select(`
+            id,
+            title,
+            creator_id,
+            creator:users!creator_id(email, user_name)
+          `)
+          .eq('id', params.auction_id)
+          .single();
+
+        if (auctionData?.creator?.email) {
+          console.log(`📧 [VideoService] Sending video uploaded email to model: ${auctionData.creator.email}`);
+
+          // Fetch winner name from bid
+          const { data: winnerBid } = await serviceSupabase
+            .from('bids')
+            .select('bidder_name')
+            .eq('id', params.bid_id)
+            .single();
+
+          await emailService.sendModelVideoUploadedEmail({
+            model_email: auctionData.creator.email,
+            model_name: auctionData.creator.user_name || 'Model',
+            auction_id: params.auction_id,
+            auction_title: auctionData.title,
+            winner_name: winnerBid?.bidder_name || 'the winner',
+            video_uploaded_at: new Date().toISOString(),
+            dashboard_url: 'https://app.welovedecode.com/dashboard'
+          });
+
+          console.log(`✅ [VideoService] Model video uploaded email sent`);
+        }
+      } catch (emailError) {
+        // Non-blocking
+        console.error(`❌ [VideoService] Failed to send model email:`, emailError);
       }
 
       return {

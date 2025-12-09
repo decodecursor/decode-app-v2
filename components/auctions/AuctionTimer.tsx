@@ -32,7 +32,7 @@ export function AuctionTimer({ auction, showProgress = false, className = '' }: 
     if (hasEnded) return 'bg-gray-400';
     if (isCritical) return 'bg-red-500';
     if (isEnding) return 'bg-orange-500';
-    return 'bg-blue-500';
+    return 'bg-purple-500';
   };
 
   return (

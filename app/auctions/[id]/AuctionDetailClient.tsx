@@ -332,7 +332,7 @@ export default function AuctionDetailClient() {
 
   return (
     <div
-      className="min-h-screen relative"
+      className="min-h-screen relative auction-detail-page"
       style={{
         backgroundColor: '#F9FAFB'
       }}

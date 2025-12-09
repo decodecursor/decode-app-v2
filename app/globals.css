@@ -939,6 +939,11 @@ body {
     transform: none !important;
   }
 
+  /* Detail page avatar - slightly thicker black circle on mobile */
+  .auction-detail-page .instagram-avatar {
+    padding: 2.5px !important;
+  }
+
   /* Mobile user info styling - increased sizes */
   .user-info-company {
     font-size: 13px;

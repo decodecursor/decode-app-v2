@@ -234,6 +234,30 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Payout created successfully:', payout.id)
 
+    // Send model confirmation email
+    try {
+      console.log('📧 [PAYOUT-REQUEST] Sending confirmation email to model...')
+
+      await emailService.sendModelPayoutRequestConfirmedEmail({
+        model_email: userEmail,
+        model_name: userData?.user_name || 'User',
+        payout_request_id: payoutRequestId,
+        payout_amount: amount,
+        payout_method: payoutMethod === 'bank_account' ? 'Bank Account' :
+                       payoutMethod === 'paypal' ? 'PayPal' :
+                       payoutMethod === 'stripe_connect' ? 'Stripe Connect' :
+                       payoutMethod || 'Unknown',
+        request_date: new Date().toISOString(),
+        dashboard_url: 'https://app.welovedecode.com/dashboard',
+        support_email: 'noreply@welovedecode.com'
+      })
+
+      console.log('✅ [PAYOUT-REQUEST] Model confirmation email sent')
+    } catch (emailError) {
+      // Non-blocking
+      console.error('⚠️ [PAYOUT-REQUEST] Failed to send model confirmation email:', emailError)
+    }
+
     // Send email notification to admin
     try {
       console.log('📧 Sending admin notification email...')
