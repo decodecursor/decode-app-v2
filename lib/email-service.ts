@@ -1346,6 +1346,9 @@ DECODE
     last_payout_date?: string
     last_payout_amount?: number
     request_date: string
+    auction_ids?: string[]
+    auction_titles?: string[]
+    auction_amounts?: number[]
   }): Promise<EmailResult> {
     try {
       const adminEmail = 'sebastian@welovedecode.com'
