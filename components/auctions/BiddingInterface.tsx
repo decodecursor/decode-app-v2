@@ -465,7 +465,8 @@ export function BiddingInterface({
     setError(null);
     setPaymentAutoConfirmed(false);
     setPreloadedSetupIntent(null);
-    setPreloadedPaymentIntent(null); // Clear preloaded PaymentIntent for consecutive bids
+    // Note: preloadedPaymentIntent is managed by usePaymentPreload hook
+    // It will reset when email/name changes or component remounts
 
     // For guest bidders: Load cached data from localStorage
     if (!userEmail) {
