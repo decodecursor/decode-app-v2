@@ -22,34 +22,23 @@ function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
 
 /**
  * Alternating Time/Instagram Username Component
- * Toggles between showing time and Instagram username every 3 seconds
+ * Displays time or Instagram username based on global toggle state
  */
 function AlternatingTimeUsername({
   time,
-  instagramUsername
+  instagramUsername,
+  showInstagram
 }: {
   time: string;
   instagramUsername?: string;
+  showInstagram: boolean;
 }) {
-  const [showInstagram, setShowInstagram] = useState(false);
-
-  useEffect(() => {
-    // Only toggle if Instagram username exists
-    if (!instagramUsername) return;
-
-    const interval = setInterval(() => {
-      setShowInstagram((prev) => !prev);
-    }, 3000); // Toggle every 3 seconds
-
-    return () => clearInterval(interval);
-  }, [instagramUsername]);
-
   // If no Instagram username, just show time
   if (!instagramUsername) {
     return <p className="text-xs text-gray-500">{time}</p>;
   }
 
-  // Alternate between time and Instagram username
+  // Alternate between time and Instagram username based on prop
   return (
     <p className="text-xs text-gray-500 flex items-center gap-1">
       {showInstagram ? (
@@ -95,6 +84,18 @@ export function LiveLeaderboard({
     userEmail,
     limit
   );
+
+  // Global toggle state for synchronized Instagram/time display
+  const [showInstagram, setShowInstagram] = useState(false);
+
+  // Single interval to synchronize all top 3 bidders
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setShowInstagram((prev) => !prev);
+    }, 3000); // Toggle every 3 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   if (isLoading) {
     return <LeaderboardSkeleton />;
@@ -183,6 +184,7 @@ export function LiveLeaderboard({
                       <AlternatingTimeUsername
                         time={formatted.time}
                         instagramUsername={entry.bidder_instagram_username}
+                        showInstagram={showInstagram}
                       />
                     ) : (
                       <p className="text-xs text-gray-500">{formatted.time}</p>
