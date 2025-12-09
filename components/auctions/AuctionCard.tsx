@@ -697,13 +697,13 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               <span>{generatingQR ? 'Generating...' : 'Scan'}</span>
             </button>
 
-            {/* Deactivate Button */}
+            {/* Cancel Button */}
             {shouldShowDeactivateButton && (
               <button
                 onClick={() => setShowDeactivateConfirm(true)}
                 disabled={deactivating}
-                className="p-1.5 md:p-2 transition-all border border-gray-500/50 rounded-lg hover:bg-gray-500/10 hover:border-gray-500 text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Deactivate auction"
+                className="text-xs md:text-sm px-3 py-1 md:py-1.5 transition-all border-0 rounded-lg hover:bg-white/10 flex items-center gap-1.5 md:gap-2 text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Cancel auction"
               >
                 {deactivating ? (
                   <svg className="animate-spin w-3 h-3 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24">
@@ -712,9 +712,10 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                   </svg>
                 ) : (
                   <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 )}
+                <span>Cancel</span>
               </button>
             )}
             </div>
@@ -785,7 +786,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
             e.stopPropagation();
           }}
         >
-          <h3 className="text-lg font-semibold text-white mb-4">Deactivate Auction</h3>
+          <h3 className="text-lg font-semibold text-white mb-4">Cancel Auction</h3>
           <p className="text-gray-300 mb-6">
             All payment authorizations will be released and auction ends without a winner.
           </p>
@@ -796,14 +797,14 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               disabled={deactivating}
               className="px-4 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800 transition-all disabled:opacity-50"
             >
-              Cancel
+              No, Keep Auction
             </button>
             <button
               onClick={handleDeactivate}
               disabled={deactivating}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all disabled:opacity-50"
             >
-              {deactivating ? 'Deactivating...' : 'Deactivate'}
+              {deactivating ? 'Cancelling...' : 'Yes, Cancel'}
             </button>
           </div>
         </div>
