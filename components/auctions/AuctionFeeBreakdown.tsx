@@ -91,7 +91,7 @@ export function AuctionFeeBreakdown({
         </div>
 
         {!isCompleted && currentBid > auctionStartPrice && (
-          <p className="text-gray-500 mt-2 italic text-[9px] sm:text-[10px]">
+          <p className="text-gray-500 mt-2 italic text-[10px] sm:text-[11px]">
             * Amounts update with the highest bid; final at auction end.
           </p>
         )}

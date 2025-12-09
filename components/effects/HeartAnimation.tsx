@@ -92,7 +92,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
       z-index: 99999;
       pointer-events: none;
       transform: scale(${scale});
-      animation: heartfade 5.72s linear;
+      animation: heartfade 2.86s linear;
       font-size: 24px;
       line-height: 1;
     `
@@ -114,7 +114,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
       bound: xBound,
       direction: xStart,
       scale,
-      time: isMobile ? 5720 : 7150, // Desktop: 7.15s (slower), Mobile: 5.72s
+      time: isMobile ? 2860 : 3575, // Desktop: 3.575s (50% reduced), Mobile: 2.86s (50% reduced)
       element: heartElement
     }
 
@@ -135,7 +135,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
         heart.element.style.left = `${heart.x + heart.direction * heart.bound * Math.sin(heart.y * heart.scale / 30) / heart.y * 200}px`
 
         // Update opacity based on time remaining
-        const maxTime = isMobile ? 5720 : 7150
+        const maxTime = isMobile ? 2860 : 3575
         const opacity = heart.time / maxTime
         heart.element.style.opacity = `${opacity}`
 

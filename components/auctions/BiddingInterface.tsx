@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { StripeElementsOptions } from '@stripe/stripe-js';
 import { Elements, PaymentElement, ExpressCheckoutElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { GuestBidderForm } from './GuestBidderForm';
@@ -789,16 +789,18 @@ export function BiddingInterface({
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6 relative">
-      {/* Close button */}
-      <button
-        onClick={handleReset}
-        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-        type="button"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+      {/* Close button - only show after user proceeds past amount step */}
+      {step !== 'amount' && (
+        <button
+          onClick={handleReset}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+          type="button"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Place Your Bid</h3>
 
       {/*
@@ -872,8 +874,8 @@ function PaymentForm({
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Device detection for payment capabilities
-  const detectPaymentCapabilities = () => {
+  // Device detection for payment capabilities (memoized - runs once)
+  const paymentCapabilities = useMemo(() => {
     const userAgent = navigator.userAgent;
     const platform = navigator.platform || '';
 
@@ -885,11 +887,11 @@ function PaymentForm({
     const isAndroid = /Android/.test(userAgent);
 
     return { isIOS, isAndroid };
-  };
+  }, []);
 
-  // Get ExpressCheckout options based on device
-  const getExpressCheckoutOptions = () => {
-    const { isIOS, isAndroid } = detectPaymentCapabilities();
+  // Get ExpressCheckout options based on device (memoized - stable reference)
+  const expressCheckoutOptions = useMemo(() => {
+    const { isIOS, isAndroid } = paymentCapabilities;
 
     const baseConfig = {
       buttonTheme: {
@@ -930,7 +932,7 @@ function PaymentForm({
         paymentMethodOrder: ['googlePay', 'applePay'],
       };
     }
-  };
+  }, [paymentCapabilities]);
 
   // Confirm bid payment after successful authorization
   const confirmBidPayment = async () => {
@@ -1035,10 +1037,7 @@ function PaymentForm({
         {/* Express Checkout (Apple Pay / Google Pay) */}
         <div className="mb-4" style={{ minHeight: '50px' }}>
           <ExpressCheckoutElement
-            options={getExpressCheckoutOptions()}
-            onReady={(event) => {
-              console.log('Express Checkout ready:', event.availablePaymentMethods);
-            }}
+            options={expressCheckoutOptions}
             onConfirm={handleExpressCheckoutConfirm}
           />
         </div>
