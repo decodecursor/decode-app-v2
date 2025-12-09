@@ -205,7 +205,7 @@ export default function AuctionDetailClient() {
       document.body.scrollTop = 0; // For older browsers
     }
 
-    // Second refresh after 2 seconds to catch database updates
+    // Second refresh after 1 second to catch database updates
     // This ensures we get the updated data even if the first refresh was too quick
     setTimeout(async () => {
       console.log('💰 [AuctionDetail] Secondary refresh after bid...');
@@ -213,13 +213,13 @@ export default function AuctionDetailClient() {
         refresh(),
         refreshLeaderboard()
       ]);
-    }, 2000);
+    }, 1000);
 
-    // Third refresh after 5 seconds as final fallback
+    // Third refresh after 3 seconds as final fallback
     setTimeout(async () => {
       console.log('💰 [AuctionDetail] Final refresh after bid...');
       await refreshLeaderboard();
-    }, 5000);
+    }, 3000);
   };
 
   // Cancel auction

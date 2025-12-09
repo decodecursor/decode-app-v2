@@ -74,6 +74,10 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
 
     // Only update if we have valid bids, otherwise keep existing leaderboard
     if (validBids.length === 0) {
+      console.log('⚠️ [useLeaderboard] No valid bids to display', {
+        total_bids: bids.length,
+        bid_statuses: bids.map(b => ({ id: b.id, status: b.status }))
+      });
       return;
     }
 
@@ -112,14 +116,18 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
           return updated;
         });
       } else if (event.type === 'bid_updated') {
-        // If bid is now valid (winning/outbid/captured), refresh from API
-        if (event.bid.status === 'winning' || event.bid.status === 'outbid' || event.bid.status === 'captured') {
-          fetchLeaderboard();
-        }
-        // Update existing bid
+        // Always refresh from API to ensure we have the latest bid status
+        // Don't rely on event payload timing - fetch fresh from database
+        console.log('🔄 [useLeaderboard] Bid updated, refreshing from API...', {
+          bid_id: event.bid.id,
+          status: event.bid.status,
+          amount: event.bid.bid_amount
+        });
+        fetchLeaderboard();
+
+        // Also update local state
         setAllBids((prev) => {
           const updated = prev.map((b) => (b.id === event.bid.id ? event.bid : b));
-          updateLeaderboard(updated);
           return updated;
         });
       }

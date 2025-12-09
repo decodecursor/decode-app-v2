@@ -622,7 +622,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     </Link>
 
         {/* Action Buttons Row */}
-        <div className="border-t border-gray-700 pt-2 px-5 pb-2 mx-5 overflow-hidden">
+        <div className="border-t border-gray-700 pt-2 pb-2 mx-5 overflow-hidden">
           {/* All buttons inline on one row */}
           <div className="flex gap-1 md:gap-2 items-center">
             {/* Video Section - Inline with other buttons */}
