@@ -294,7 +294,7 @@ export class AuctionVideoService {
             creator:users!creator_id(email, user_name)
           `)
           .eq('id', params.auction_id)
-          .single();
+          .single() as any;
 
         if (auctionData?.creator?.email) {
           console.log(`📧 [VideoService] Sending video uploaded email to model: ${auctionData.creator.email}`);
