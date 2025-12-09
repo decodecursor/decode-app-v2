@@ -722,7 +722,7 @@ body {
   height: 50px;
   border-radius: 50%;
   /* Outer gradient border (thinner for small cards) */
-  border: 2px solid transparent;
+  border: 2.5px solid transparent;
   background-origin: border-box;
   background-clip: padding-box, border-box;
   /* Layered backgrounds: inner dark frame + outer gradient */

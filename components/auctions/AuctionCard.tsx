@@ -637,7 +637,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
                     className="text-xs md:text-sm px-3 py-1 md:py-1.5 transition-all border-0 rounded-lg hover:bg-white/10 flex items-center gap-1.5 md:gap-2"
                     title="Watch video"
                   >
-                    <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="flex-shrink-0 w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
                     <span className="hidden md:inline">Watch Video</span>

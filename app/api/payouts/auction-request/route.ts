@@ -170,6 +170,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // If payout method is PayPal, validate that account exists with email
+    if (payoutMethod === 'paypal') {
+      // Try to fetch primary PayPal account first
+      let { data: paypalAccount } = await supabase
+        .from('user_paypal_accounts')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_primary', true)
+        .maybeSingle()
+
+      // If no primary account, fetch any PayPal account
+      if (!paypalAccount) {
+        const { data: anyPaypalAccount } = await supabase
+          .from('user_paypal_accounts')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+
+        paypalAccount = anyPaypalAccount
+      }
+
+      // Validate PayPal email exists
+      if (!paypalAccount || !paypalAccount.email) {
+        console.error('❌ [AUCTION-PAYOUT-REQUEST] PayPal payout method selected but no valid PayPal email found for user:', userId)
+        return NextResponse.json(
+          { error: 'PayPal payout method requires a valid PayPal email. Please update your PayPal account in settings.' },
+          { status: 400 }
+        )
+      }
+
+      console.log('✅ [AUCTION-PAYOUT-REQUEST] PayPal account validated:', paypalAccount.email)
+    }
+
     // Generate unique payout request ID
     const payoutRequestId = await generateUniquePayoutRequestId(async (id) => {
       const { data } = await supabase
@@ -246,12 +281,34 @@ export async function POST(request: NextRequest) {
         .eq('user_id', userId)
         .maybeSingle()
 
-      const { data: paypalAccount } = await supabase
+      // Try to fetch primary PayPal account first
+      let { data: paypalAccount } = await supabase
         .from('user_paypal_accounts')
         .select('*')
         .eq('user_id', userId)
         .eq('is_primary', true)
         .maybeSingle()
+
+      // If no primary account found but payout method is paypal, fetch any PayPal account
+      if (!paypalAccount && payoutMethod === 'paypal') {
+        const { data: anyPaypalAccount } = await supabase
+          .from('user_paypal_accounts')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+
+        paypalAccount = anyPaypalAccount
+
+        if (paypalAccount && !paypalAccount.is_primary) {
+          console.log('⚠️ [AUCTION-PAYOUT-REQUEST] Using non-primary PayPal account for user:', userId)
+        }
+
+        if (!paypalAccount || !paypalAccount.email) {
+          console.error('❌ [AUCTION-PAYOUT-REQUEST] PayPal method selected but no PayPal account with email found')
+        }
+      }
 
       await emailService.sendAdminPayoutRequestNotification({
         payout_request_id: payoutRequestId,
