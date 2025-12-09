@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getUserWithProxy } from '@/utils/auth-helper'
@@ -71,6 +71,7 @@ export default function PayoutsPage() {
   const [paypalAccountData, setPaypalAccountData] = useState<any>(null)
   const [selectedAuctionIds, setSelectedAuctionIds] = useState<Set<string>>(new Set())
   const [videoModalAuction, setVideoModalAuction] = useState<{ id: string; title: string } | null>(null)
+  const payoutHistoryRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
   // Handler for watching video from PendingPayoutsCard
@@ -344,6 +345,7 @@ export default function PayoutsPage() {
           setSelectedAuctionIds(new Set())
           await fetchPayoutSummary(user.id)
           setRefreshTrigger(prev => prev + 1)
+          scrollToPayoutHistory()
         } else {
           const errorData = await response.json()
           setRequestError(errorData.error || 'Failed to request payout')
@@ -378,6 +380,7 @@ export default function PayoutsPage() {
           setRequestAmount('')
           await fetchPayoutSummary(user.id)
           setRefreshTrigger(prev => prev + 1)
+          scrollToPayoutHistory()
         } else {
           const errorData = await response.json()
           setRequestError(errorData.error || 'Failed to request payout')
@@ -500,6 +503,13 @@ export default function PayoutsPage() {
     setTimeout(() => {
       setHeartAnimatingId(null)
     }, 3000)
+  }
+
+  // Scroll to payout history after requesting a payout
+  const scrollToPayoutHistory = () => {
+    setTimeout(() => {
+      payoutHistoryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 300) // Small delay to allow PayoutHistory to refresh
   }
 
   return (
@@ -701,7 +711,11 @@ export default function PayoutsPage() {
             )}
 
             {/* Payout History - Hidden for ADMIN */}
-            {user && userRole !== 'Admin' && <PayoutHistory userId={user.id} userRole={userRole} onNewPayout={handleNewPayout} refreshTrigger={refreshTrigger} />}
+            {user && userRole !== 'Admin' && (
+              <div ref={payoutHistoryRef}>
+                <PayoutHistory userId={user.id} userRole={userRole} onNewPayout={handleNewPayout} refreshTrigger={refreshTrigger} />
+              </div>
+            )}
           </div>
         </div>
 

@@ -259,14 +259,11 @@ export function PayoutHistory({ userId, userRole, onNewPayout, refreshTrigger }:
                 <div
                   key={payout.id}
                   id={`payout-${payout.id}`}
-                  className={`bg-gray-800/50 rounded-lg p-3 hover:opacity-94 transition-colors ${
+                  className={`rounded-lg p-3 hover:opacity-94 transition-all duration-300 ${
                     isHighlighted
-                      ? 'border-2 border-purple-500/60 animate-[fadeToNormal_3s_ease-out_forwards]'
-                      : 'border-2 border-transparent'
+                      ? 'bg-purple-900/30 border-l-4 border-l-purple-500 border border-purple-400/60 shadow-xl shadow-purple-500/30 scale-[1.02] animate-pulse'
+                      : 'bg-gray-800/50 border-2 border-transparent'
                   }`}
-                  style={{
-                    animationDelay: isHighlighted ? '0s' : undefined
-                  }}
                 >
                   {/* Mobile Layout - Hidden on desktop */}
                   <div className="md:hidden">
