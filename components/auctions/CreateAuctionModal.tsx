@@ -43,7 +43,7 @@ export function CreateAuctionModal({ isOpen, onClose, onSuccess }: CreateAuction
     }
 
     if (!formData.duration) {
-      newErrors.duration = 'Please select an auction duration';
+      newErrors.duration = 'Please select a duration';
     }
 
     setErrors(newErrors);

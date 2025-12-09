@@ -61,6 +61,10 @@ export default function CreateAuction() {
       newErrors.auction_start_price = 'Minimum starting price is AED 5'
     }
 
+    if (!formData.duration) {
+      newErrors.duration = 'Please select a duration'
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -248,8 +252,11 @@ export default function CreateAuction() {
                 onChange={(e) => {
                   setFormData({ ...formData, duration: parseInt(e.target.value) as AuctionDuration })
                   setDurationChanged(true)
+                  if (errors.duration) setErrors({ ...errors, duration: undefined })
                 }}
-                className={`w-full md:px-4 md:py-3 px-3 py-2 h-[42px] md:h-[50px] bg-gray-800 border ${durationChanged ? 'border-purple-500' : 'border-gray-700'} rounded-lg focus:border-purple-500 focus:outline-none transition-colors`}
+                className={`w-full md:px-4 md:py-3 px-3 py-2 h-[42px] md:h-[50px] bg-gray-800 border rounded-lg focus:outline-none transition-colors ${
+                  errors.duration ? 'border-red-500' : durationChanged ? 'border-purple-500' : 'border-gray-700 focus:border-purple-500'
+                }`}
                 style={{
                   color: durationChanged ? '#fff' : '#9ca3af',
                   WebkitTextFillColor: durationChanged ? '#fff' : '#9ca3af',
@@ -264,6 +271,7 @@ export default function CreateAuction() {
                   </option>
                 ))}
               </select>
+              {errors.duration && <p className="mt-1 text-sm text-red-100">{errors.duration}</p>}
             </div>
 
             {/* Submit Error */}

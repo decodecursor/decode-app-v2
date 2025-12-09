@@ -132,13 +132,13 @@ export function PendingPayoutsCard({
                         e.stopPropagation();
                         onWatchVideo(payout.auction_id, payout.auction_title);
                       }}
-                      className="flex items-center justify-center h-7 md:h-8 px-2 md:px-3 text-[10px] md:text-xs font-medium bg-amber-500/10 md:bg-amber-500/20 text-amber-400 rounded-md md:rounded-lg hover:bg-amber-500/30 transition-colors border border-amber-500/30 flex-shrink-0 md:min-w-[110px]"
+                      className="flex items-center justify-center h-[22px] md:h-8 px-1.5 md:px-3 text-[10px] md:text-xs font-medium bg-amber-500/10 md:bg-amber-500/20 text-amber-400 rounded-md md:rounded-lg hover:bg-amber-500/30 transition-colors border border-amber-500/30 flex-shrink-0 md:min-w-[110px]"
                     >
                       Watch Video
                     </button>
                   )}
                   {!payout.payout_unlocked && !payout.has_video && payout.token_expires_at && new Date(payout.token_expires_at).getTime() > Date.now() && (
-                    <div className="flex items-center justify-center h-7 md:h-8 px-2 md:px-3 text-[10px] md:text-xs font-medium bg-amber-500/10 md:bg-amber-500/20 text-amber-400 rounded-md md:rounded-lg border border-amber-500/30 flex-shrink-0 md:min-w-[110px]">
+                    <div className="flex items-center justify-center h-[22px] md:h-8 px-1.5 md:px-3 text-[10px] md:text-xs font-medium bg-amber-500/10 md:bg-amber-500/20 text-amber-400 rounded-md md:rounded-lg border border-amber-500/30 flex-shrink-0 md:min-w-[110px]">
                       <VideoUploadCountdown
                         tokenExpiresAt={payout.token_expires_at}
                         hasVideo={payout.has_video}
@@ -154,7 +154,7 @@ export function PendingPayoutsCard({
                       e.stopPropagation();
                       toggleExpanded(payout.auction_id);
                     }}
-                    className="flex items-center gap-0.5 md:gap-1 h-7 md:h-8 px-2 md:px-3 text-[10px] md:text-xs font-medium bg-white/4 md:bg-white/2 text-gray-300 rounded-md md:rounded-lg hover:bg-white/10 transition-colors border border-white/20 md:border-white/10 flex-shrink-0"
+                    className="flex items-center gap-0.5 md:gap-1 h-[22px] md:h-8 px-1.5 md:px-3 text-[10px] md:text-xs font-medium bg-white/4 md:bg-white/2 text-gray-300 rounded-md md:rounded-lg hover:bg-white/10 transition-colors border border-white/20 md:border-white/10 flex-shrink-0"
                   >
                     <span className="md:inline">Details</span>
                     <span className="hidden md:inline">Profit Breakdown</span>
@@ -182,16 +182,16 @@ export function PendingPayoutsCard({
                       <span className="text-white font-medium">{formatCurrency(payout.winning_amount)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400 text-[8px] md:text-sm">Auction Starting Price (Beauty Service Price)</span>
-                      <span className="text-gray-400 text-[10px] md:text-xs">-{formatCurrency(payout.start_price)}</span>
+                      <span className="text-gray-400 text-[8.5px] md:text-[13px]">Auction Starting Price (Beauty Service Price)</span>
+                      <span className="text-gray-400 text-[8.5px] md:text-[13px]">-{formatCurrency(payout.start_price)}</span>
                     </div>
                     <div className="flex justify-between pt-1.5 md:pt-2 border-t border-white/5">
                       <span className="text-white font-medium">Profit</span>
                       <span className="text-white font-medium">{formatCurrency(payout.profit_amount)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400 text-[8px] md:text-sm">DECODE Service Fee (25% of Profit)</span>
-                      <span className="text-gray-400 text-[10px] md:text-xs">-{formatCurrency(payout.platform_fee_amount)}</span>
+                      <span className="text-gray-400 text-[8.5px] md:text-[13px]">DECODE Service Fee (25% of Profit)</span>
+                      <span className="text-gray-400 text-[8.5px] md:text-[13px]">-{formatCurrency(payout.platform_fee_amount)}</span>
                     </div>
                     <div className="flex justify-between pt-1.5 md:pt-2 border-t border-white/5">
                       <span className="text-green-400 font-semibold">Your Payout</span>

@@ -719,7 +719,7 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
                       <button
                         type="button"
                         onClick={removeSavedPhoto}
-                        className="absolute -top-2 -right-2 flex items-center gap-1.5 px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-full shadow-lg transition-colors"
+                        className="absolute top-0 right-0 flex items-center gap-1.5 px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-full shadow-lg transition-colors"
                       >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
