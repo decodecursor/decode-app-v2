@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import PaymentHeartAnimation from '@/components/effects/PaymentHeartAnimation'
-import AITextLoading from '@/components/ui/AITextLoading'
 
 interface PaymentDetails {
   id: string
@@ -259,14 +258,10 @@ function PaymentSuccessContent() {
 
 function LoadingFallback() {
   return (
-    <div className="cosmic-bg">
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="rounded-xl overflow-hidden shadow-lg">
-          <AITextLoading />
-        </div>
-      </div>
+    <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto" />
     </div>
-  )
+)
 }
 
 export default function PaymentSuccessPage() {
