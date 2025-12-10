@@ -20,13 +20,9 @@
       }
     ],
     "baseUrl": ".",
-    "paths": {
-      "@/*": ["./*"],
-      "@/components/*": ["./components/*"],
-      "@/lib/*": ["./lib/*"],
-      "@/app/*": ["./app/*"],
-      "@/types/*": ["./types/*"]
-    },
+   "paths": {
+  "@/*": ["./*"]
+},
     "forceConsistentCasingInFileNames": true,
     "noUncheckedIndexedAccess": false,
     "noImplicitReturns": false,

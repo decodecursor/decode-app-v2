@@ -6,7 +6,7 @@ import { createClient } from '@/utils/supabase/client'
 import { getUserWithProxy } from '@/utils/auth-helper'
 import RoleSelectionModal from '@/components/RoleSelectionModal'
 import ModelRegistrationModal from '@/components/ModelRegistrationModal'
-import AITextLoading from '../../../components/ui/AITextLoading'
+import AITextLoading from '@/components/ui/AITextLoading'
 import { safeLocalStorage, safeSessionStorage } from '@/utils/storage-helper'
 import { COUNTRY_CODES } from '@/lib/country-codes'
 
