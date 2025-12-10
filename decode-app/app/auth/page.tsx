@@ -1161,7 +1161,6 @@ export default function AuthPage() {
       <div className="auth-page cosmic-bg-model">
         <div className="min-h-screen flex items-center justify-center px-4">
           <div className="rounded-xl overflow-hidden shadow-lg">
-            <AITextLoading />
           </div>
         </div>
       </div>
