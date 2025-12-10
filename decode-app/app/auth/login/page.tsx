@@ -14,7 +14,6 @@ export default function AuthLoginPage() {
   return (
     <div className="cosmic-bg-model min-h-screen flex items-center justify-center px-4">
       <div className="rounded-xl overflow-hidden shadow-lg">
-        <AITextLoading />
       </div>
     </div>
   )
