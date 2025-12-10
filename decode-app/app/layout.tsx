@@ -3,7 +3,6 @@ import "./globals.css";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { UserProvider } from "@/providers/UserContext";
 import SessionMonitor from "@/components/SessionMonitor";
-import GlobalLoadingWrapper from "@/components/GlobalLoadingWrapper";
 
 export const metadata: Metadata = {
   title: "WeLoveDecode",
@@ -33,14 +32,12 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://js.stripe.com" />
       </head>
       <body className="antialiased">
-        <AuthProvider>
-          <UserProvider>
-            <GlobalLoadingWrapper>
-              <SessionMonitor />
-              {children}
-            </GlobalLoadingWrapper>
-          </UserProvider>
-        </AuthProvider>
+      <AuthProvider>
+    <UserProvider>
+      <SessionMonitor />
+      {children}
+    </UserProvider>
+  </AuthProvider>
       </body>
     </html>
   );
