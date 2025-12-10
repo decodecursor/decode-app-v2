@@ -585,8 +585,7 @@ function AuthPageContent() {
         <div className="text-center max-w-md">
           {!authError ? (
             <div className="rounded-xl overflow-hidden shadow-lg">
-              <AITextLoading />
-            </div>
+                       </div>
           ) : (
             <>
               <div className="text-6xl mb-4">⚠️</div>
