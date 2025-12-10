@@ -106,6 +106,9 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
   const [existingBusinesses, setExistingBusinesses] = useState<BeautyBusiness[]>([]);
   const [loadingBusinesses, setLoadingBusinesses] = useState(false);
 
+  // Linked business state (to fetch and display the currently linked business)
+  const [linkedBusinessData, setLinkedBusinessData] = useState<BeautyBusiness | null>(null);
+
   // Search states
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<BeautyBusiness[]>([]);
@@ -154,6 +157,25 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
     }
   }, []);
 
+  // Fetch the linked business by ID
+  const fetchLinkedBusiness = useCallback(async (businessId: string) => {
+    try {
+      const response = await fetch(`/api/beauty-businesses/${businessId}`);
+
+      if (!response.ok) {
+        console.error('Error fetching linked business:', businessId);
+        return;
+      }
+
+      const data = await response.json();
+      if (data.success && data.business) {
+        setLinkedBusinessData(data.business as BeautyBusiness);
+      }
+    } catch (error) {
+      console.error('Error fetching linked business:', error);
+    }
+  }, []);
+
   // Fetch businesses when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -162,9 +184,11 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
       // Auto-select "Existing Business" tab if there's a linked business
       if (linkedBusinessId) {
         setBusinessType('existing');
+        // Fetch the linked business to ensure it appears in the list
+        fetchLinkedBusiness(linkedBusinessId);
       }
     }
-  }, [isOpen, fetchExistingBusinesses, linkedBusinessId]);
+  }, [isOpen, fetchExistingBusinesses, fetchLinkedBusiness, linkedBusinessId]);
 
   // Debounced search functionality
   useEffect(() => {
@@ -216,6 +240,9 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
     setShowSuccess(false);
     setCroppedBlob(null);
     setTempCroppedBlob(null);
+
+    // Reset linked business data
+    setLinkedBusinessData(null);
 
     onClose();
   };
@@ -507,7 +534,12 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
 
               {/* Display businesses based on search */}
               {(() => {
-                const businessesToShow = searchTerm.trim() ? searchResults : existingBusinesses;
+                let businessesToShow = searchTerm.trim() ? searchResults : existingBusinesses;
+
+                // Add linked business to the list if it exists and isn't already included
+                if (linkedBusinessData && !businessesToShow.find(b => b.id === linkedBusinessData.id)) {
+                  businessesToShow = [linkedBusinessData, ...businessesToShow];
+                }
 
                 // Sort to put linked business at the top
                 const sortedBusinesses = linkedBusinessId
