@@ -216,4 +216,6 @@ For support, email support@decode.beauty or create an issue in the repository.
     git commit -m "Trivial trigger commit to force Vercel deployment after history fix"
     git push origin main
     ```
+
+    next step required
 <!-- Last updated: 2025-09-22 - Database migration completed - service amounts now display correctly -->
