@@ -35,15 +35,8 @@ export function VideoUploadCountdown({ tokenExpiresAt, hasVideo, showAsFullStatu
       return null;
     }
 
-    // Compact inline button style matching Share/QR Code buttons
-    return (
-      <div className="flex items-center gap-1 md:gap-2 px-3 py-1 md:py-1.5 text-xs md:text-sm text-gray-400 border-0 rounded-lg" style={{ border: 'none' }}>
-        <svg className="flex-shrink-0 w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-        </svg>
-        <span>No Video</span>
-      </div>
-    );
+    // Hide "No Video" button for cleaner UI
+    return null;
   }
 
   const { formatted, colorState, shouldShow, isExpired } = useVideoUploadTimer(tokenExpiresAt, hasVideo);
@@ -52,17 +45,8 @@ export function VideoUploadCountdown({ tokenExpiresAt, hasVideo, showAsFullStatu
 
   // Handle expired state when showing full status
   if (showAsFullStatus && isExpired) {
-    // Compact inline button style matching Share/QR Code buttons
-    return (
-      <div className="flex items-center gap-1 md:gap-2 px-3 py-1 md:py-1.5 text-xs md:text-sm text-gray-400 border-0 rounded-lg" style={{ border: 'none' }}>
-        {/* Camera Icon */}
-        <svg className="flex-shrink-0 w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-        </svg>
-        <span className="hidden md:inline">No Video Uploaded</span>
-        <span className="md:hidden">No Video</span>
-      </div>
-    );
+    // Hide "No Video Uploaded" button for cleaner UI
+    return null;
   }
 
   // Don't render if conditions not met
