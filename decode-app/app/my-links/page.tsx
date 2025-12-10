@@ -9,7 +9,6 @@ import Link from 'next/link'
 import QRCode from 'qrcode'
 import HeartAnimation from '@/components/effects/HeartAnimation'
 import { formatUserNameWithStyle } from '@/lib/user-utils'
-import AITextLoading from '@/components/ui/AITextLoading'
 
 interface PaymentLink {
   id: string
@@ -1866,7 +1865,10 @@ export default function MyLinks() {
       <div className="cosmic-bg-model">
         <div className="min-h-screen flex items-center justify-center px-4">
           <div className="rounded-xl overflow-hidden shadow-lg">
-            <AITextLoading />
+            {/* REPLACEMENT SPINNER */}
+            <div className="flex items-center justify-center w-full h-96">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500" />
+            </div>
           </div>
         </div>
       </div>
