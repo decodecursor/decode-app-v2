@@ -1,0 +1,770 @@
+/**
+ * Auction Strategy
+ * Payment strategy for MODEL user auctions with pre-authorization
+ */
+
+import Stripe from 'stripe';
+import {
+  IPaymentStrategy,
+  PaymentContext,
+  PaymentResult,
+  RefundResult,
+} from '../core/PaymentStrategy.interface';
+import { getAuctionConfig, PAYMENT_CONFIG } from '../config/paymentConfig';
+import { GuestBidderService } from '@/lib/services/GuestBidderService';
+import { createServiceRoleClient } from '@/utils/supabase/service-role';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2025-06-30.basil',
+});
+
+export interface AuctionPaymentContext extends PaymentContext {
+  auction_id: string;
+  bid_id: string;
+  bidder_email: string;
+  bidder_name: string;
+  is_guest: boolean;
+  guest_stripe_customer_id?: string;
+  guest_bidder_id?: string;
+  payment_intent_id?: string; // For preloaded PaymentIntent flow
+}
+
+export class AuctionStrategy implements IPaymentStrategy {
+  private config = getAuctionConfig();
+
+  getName(): string {
+    return 'auction';
+  }
+
+  canHandle(context: PaymentContext): boolean {
+    // This strategy handles auction-related payments
+    return 'auction_id' in context && this.config.enabled;
+  }
+
+  /**
+   * Create a Stripe PaymentIntent with manual capture for pre-authorization
+   */
+  async createPayment(context: PaymentContext): Promise<PaymentResult> {
+    try {
+      const auctionContext = context as AuctionPaymentContext;
+
+      // If payment_intent_id is provided, we're using preloaded PaymentIntent
+      // Update the existing PaymentIntent with actual bid amount
+      if (auctionContext.payment_intent_id) {
+        console.log('[AuctionStrategy] Using preloaded PaymentIntent flow:', {
+          payment_intent_id: auctionContext.payment_intent_id,
+          auction_id: auctionContext.auction_id,
+          new_amount: context.amount,
+        });
+
+        // Retrieve the existing PaymentIntent
+        const existingPaymentIntent = await stripe.paymentIntents.retrieve(auctionContext.payment_intent_id);
+
+        // CRITICAL FIX: Only reuse PaymentIntent if it's still in a reusable state
+        // If already authorized (requires_capture) or in another non-reusable state,
+        // we must create a NEW PaymentIntent instead
+        const reusableStatuses = ['requires_payment_method', 'requires_confirmation'];
+
+        if (!reusableStatuses.includes(existingPaymentIntent.status)) {
+          console.log('[AuctionStrategy] PaymentIntent not reusable, will create new one:', {
+            payment_intent_id: auctionContext.payment_intent_id,
+            current_status: existingPaymentIntent.status,
+            reusable_statuses: reusableStatuses,
+            note: 'Falling through to create fresh PaymentIntent',
+          });
+          // Fall through to create new PaymentIntent (don't return, let code continue below)
+        } else {
+          // PaymentIntent IS reusable - proceed with update
+          // Calculate new amount (may have changed from estimate)
+          const aedAmount = context.amount;
+          const usdAmount = aedAmount / PAYMENT_CONFIG.currency.AED_TO_USD_RATE;
+          const usdCents = Math.round(usdAmount * 100);
+
+          // Update the PaymentIntent with actual bid amount
+          const paymentIntent = await stripe.paymentIntents.update(auctionContext.payment_intent_id, {
+            amount: usdCents, // Update amount if changed
+            metadata: {
+              ...existingPaymentIntent.metadata, // Preserve existing metadata
+              type: 'auction_bid',
+              auction_id: auctionContext.auction_id,
+              bid_id: auctionContext.bid_id || '', // Will be updated after bid creation
+              bidder_email: auctionContext.bidder_email,
+              bidder_name: auctionContext.bidder_name,
+              is_guest: auctionContext.is_guest.toString(),
+              guest_bidder_id: auctionContext.guest_bidder_id || '',
+              original_amount_aed: aedAmount.toString(),
+              converted_amount_usd: usdAmount.toFixed(2),
+            },
+            description: `Bid on auction: ${context.description || auctionContext.auction_id}`,
+          });
+
+          console.log('[AuctionStrategy] Updated preloaded PaymentIntent:', {
+            payment_intent_id: paymentIntent.id,
+            customer_id: paymentIntent.customer,
+            old_amount: existingPaymentIntent.amount,
+            new_amount: usdCents,
+          });
+
+          return {
+            success: true,
+            payment_intent_id: paymentIntent.id,
+            metadata: {
+              client_secret: paymentIntent.client_secret,
+              stripe_customer_id: paymentIntent.customer as string,
+              has_saved_payment_method: false,
+              payment_intent_id: auctionContext.payment_intent_id,
+            },
+          };
+        }
+      }
+
+      // Get or create Stripe customer for guest bidders
+      let customerId: string | undefined = auctionContext.guest_stripe_customer_id;
+      let savedPaymentMethodId: string | null = null;
+
+      // OPTIMIZATION: Detect preload flow to skip unnecessary saved payment method check
+      const isPreloadFlow = auctionContext.bid_id === 'preload';
+
+      // OPTIMIZATION: Parallelize customer validation and saved payment method check
+      // These operations are independent and can run simultaneously
+      if (auctionContext.is_guest) {
+        const guestService = new GuestBidderService();
+
+        const [validatedCustomer, fetchedPaymentMethodId] = await Promise.all([
+          // Customer validation (only if customer ID exists)
+          customerId
+            ? stripe.customers.retrieve(customerId).catch((error: any) => {
+                if (error.code === 'resource_missing') {
+                  console.warn('[AuctionStrategy] ⚠️ Stored customer ID no longer exists in Stripe, will create new customer:', {
+                    old_customer_id: customerId,
+                    guest_bidder_id: auctionContext.guest_bidder_id,
+                    error: error.message
+                  });
+                  return null; // Signal that customer needs to be recreated
+                }
+                // Re-throw other errors (network issues, etc.)
+                console.error('[AuctionStrategy] ❌ Error validating Stripe customer:', error);
+                throw error;
+              })
+            : Promise.resolve(null),
+
+          // Saved payment method check (runs in parallel)
+          // OPTIMIZATION: Skip during preload flow - first-time bidders won't have saved methods
+          !isPreloadFlow && auctionContext.guest_bidder_id
+            ? guestService.getSavedPaymentMethod(auctionContext.guest_bidder_id)
+            : Promise.resolve(null)
+        ]);
+
+        if (isPreloadFlow) {
+          console.log('[AuctionStrategy] ⚡ Preload flow detected - skipped saved payment method check for performance');
+        }
+
+        // Handle customer validation result
+        if (customerId && !validatedCustomer) {
+          customerId = undefined; // Force new customer creation
+        } else if (customerId && validatedCustomer) {
+          console.log('[AuctionStrategy] ✅ Validated existing Stripe customer:', customerId);
+        }
+
+        // Store saved payment method from parallel fetch
+        savedPaymentMethodId = fetchedPaymentMethodId;
+
+        // Log saved payment method status
+        if (auctionContext.guest_bidder_id) {
+          console.log('[AuctionStrategy] Saved payment method check:', {
+            payment_method_id: savedPaymentMethodId,
+            has_saved_payment: !!savedPaymentMethodId,
+            guest_bidder_id: auctionContext.guest_bidder_id,
+          });
+
+          if (savedPaymentMethodId) {
+            console.log('[AuctionStrategy] Using saved payment method:', {
+              payment_method_id: savedPaymentMethodId,
+              source: 'database',
+              guest_bidder_id: auctionContext.guest_bidder_id,
+            });
+          }
+        }
+
+        // Create new customer if needed (sequential after validation)
+        if (!customerId) {
+          console.log('[AuctionStrategy] Creating new Stripe customer for guest bidder:', {
+            email: auctionContext.bidder_email,
+            guest_bidder_id: auctionContext.guest_bidder_id
+          });
+
+          const customer = await stripe.customers.create({
+            email: auctionContext.bidder_email,
+            name: auctionContext.bidder_name,
+            metadata: {
+              is_guest_bidder: 'true',
+              auction_id: auctionContext.auction_id,
+            },
+          });
+          customerId = customer.id;
+
+          console.log('[AuctionStrategy] ✅ Created new Stripe customer:', customerId);
+
+          // CRITICAL: Save customer ID to database immediately (Edge browser fix)
+          if (auctionContext.guest_bidder_id) {
+            await guestService.updateStripeCustomerId(auctionContext.guest_bidder_id, customerId);
+            console.log('[AuctionStrategy] ✅ Updated guest bidder with new customer ID:', {
+              guest_bidder_id: auctionContext.guest_bidder_id,
+              customer_id: customerId,
+            });
+          }
+        }
+      }
+
+      // Convert AED amount to USD (Stripe doesn't support AED directly)
+      const aedAmount = context.amount;
+      const usdAmount = aedAmount / PAYMENT_CONFIG.currency.AED_TO_USD_RATE;
+      const usdCents = Math.round(usdAmount * 100);
+
+      // Validate Stripe minimum charge amount ($0.50 USD)
+      const STRIPE_MINIMUM_USD = 0.50;
+      if (usdAmount < STRIPE_MINIMUM_USD) {
+        const minimumAED = Math.ceil(STRIPE_MINIMUM_USD * PAYMENT_CONFIG.currency.AED_TO_USD_RATE);
+        return {
+          success: false,
+          error: `Bid amount too low. Minimum bid is AED ${minimumAED} (Stripe minimum charge is $${STRIPE_MINIMUM_USD} USD)`,
+        };
+      }
+
+      // Create PaymentIntent with manual capture (pre-authorization)
+      const paymentIntentParams: Stripe.PaymentIntentCreateParams = {
+        amount: usdCents, // Amount in USD cents
+        currency: 'usd',
+        customer: customerId || undefined,
+        capture_method: 'manual', // Pre-authorize only, capture later
+        // Only set setup_future_usage when NO saved payment method exists
+        // Cannot use both setup_future_usage and off_session=true together
+        ...(savedPaymentMethodId ? {} : { setup_future_usage: 'off_session' }),
+        metadata: {
+          type: 'auction_bid',
+          auction_id: auctionContext.auction_id,
+          bid_id: auctionContext.bid_id,
+          bidder_email: auctionContext.bidder_email,
+          bidder_name: auctionContext.bidder_name,
+          is_guest: auctionContext.is_guest.toString(),
+          guest_bidder_id: auctionContext.guest_bidder_id || '',
+          original_amount_aed: aedAmount.toString(),
+          converted_amount_usd: usdAmount.toFixed(2),
+        },
+        description: `Bid on auction: ${context.description || auctionContext.auction_id}`,
+      };
+
+      // Always enable automatic payment methods and require user confirmation
+      // This ensures users see the payment screen on every bid, even with saved cards
+      paymentIntentParams.automatic_payment_methods = {
+        enabled: true,
+        allow_redirects: 'never', // Prevent redirect-based payment methods
+      };
+
+      // If saved payment method exists, attach it but don't auto-confirm
+      // User will still need to confirm on the payment screen
+      if (savedPaymentMethodId) {
+        paymentIntentParams.payment_method = savedPaymentMethodId;
+      }
+
+      // Parallelize PaymentIntent creation and card last4 fetch for better performance
+      const startTime = Date.now();
+
+      const [paymentIntent, paymentMethodDetails] = await Promise.all([
+        stripe.paymentIntents.create(paymentIntentParams),
+        savedPaymentMethodId
+          ? stripe.paymentMethods.retrieve(savedPaymentMethodId).catch(error => {
+              console.error('[AuctionStrategy] Error fetching payment method details:', error);
+              return null;
+            })
+          : Promise.resolve(null)
+      ]);
+
+      const stripeTime = Date.now() - startTime;
+      console.log('[AuctionStrategy] Stripe calls completed in', stripeTime, 'ms');
+
+      // Never auto-confirm - user must always see payment screen
+      const hasSavedPaymentMethod = false;
+
+      // Extract card last4 from the parallel fetch result
+      const savedCardLast4 = paymentMethodDetails?.card?.last4;
+
+      console.log('[AuctionStrategy] Payment created - returning response:', {
+        payment_intent_id: paymentIntent.id,
+        has_saved_payment_method: hasSavedPaymentMethod,
+        saved_payment_method_id: savedPaymentMethodId,
+        saved_card_last4: savedCardLast4,
+        payment_intent_status: paymentIntent.status,
+        is_guest: auctionContext.is_guest,
+        guest_bidder_id: auctionContext.guest_bidder_id,
+        auto_confirmed: savedPaymentMethodId ? true : false,
+      });
+
+      return {
+        success: true,
+        payment_intent_id: paymentIntent.id,
+        metadata: {
+          client_secret: paymentIntent.client_secret,
+          stripe_customer_id: customerId,
+          has_saved_payment_method: hasSavedPaymentMethod,
+          saved_card_last4: savedCardLast4,
+        },
+      };
+    } catch (error) {
+      console.error('Auction payment creation error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to create payment intent',
+      };
+    }
+  }
+
+  /**
+   * Capture a pre-authorized payment
+   * CRITICAL: Pre-checks Stripe status before capture to prevent incorrect 'failed' marking
+   */
+  async capturePayment(paymentIntentId: string): Promise<PaymentResult> {
+    try {
+      // First, check current status of PaymentIntent in Stripe
+      const currentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+      console.log('[AuctionStrategy] capturePayment - checking status:', {
+        payment_intent_id: paymentIntentId,
+        current_status: currentIntent.status,
+      });
+
+      // If already captured/succeeded, return success (idempotent)
+      if (currentIntent.status === 'succeeded') {
+        console.log('[AuctionStrategy] PaymentIntent already succeeded, returning success');
+        return {
+          success: true,
+          payment_intent_id: currentIntent.id,
+          metadata: {
+            amount: currentIntent.amount,
+            status: currentIntent.status,
+          },
+        };
+      }
+
+      // If not in capturable state, return error with details
+      if (currentIntent.status !== 'requires_capture') {
+        console.error('[AuctionStrategy] PaymentIntent not in capturable state:', {
+          id: paymentIntentId,
+          status: currentIntent.status,
+          expected: 'requires_capture',
+        });
+        return {
+          success: false,
+          error: `PaymentIntent status is '${currentIntent.status}', expected 'requires_capture'`,
+        };
+      }
+
+      // Now safe to capture
+      const paymentIntent = await stripe.paymentIntents.capture(paymentIntentId);
+
+      return {
+        success: true,
+        payment_intent_id: paymentIntent.id,
+        metadata: {
+          amount: paymentIntent.amount,
+          status: paymentIntent.status,
+        },
+      };
+    } catch (error: any) {
+      console.error('Auction payment capture error:', error);
+
+      // Handle "already captured" error as success (race condition safety)
+      if (error.code === 'payment_intent_unexpected_state' ||
+          error.message?.includes('already been captured') ||
+          error.message?.includes('has a status of succeeded')) {
+        console.log('[AuctionStrategy] PaymentIntent already captured (caught in error handler)');
+        try {
+          const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+          if (intent.status === 'succeeded') {
+            return {
+              success: true,
+              payment_intent_id: intent.id,
+              metadata: {
+                amount: intent.amount,
+                status: intent.status,
+              },
+            };
+          }
+        } catch (retrieveError) {
+          console.error('Failed to retrieve PaymentIntent after error:', retrieveError);
+        }
+      }
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to capture payment',
+      };
+    }
+  }
+
+  /**
+   * Cancel a pre-authorized payment
+   */
+  async cancelPayment(paymentIntentId: string): Promise<PaymentResult> {
+    try {
+      const paymentIntent = await stripe.paymentIntents.cancel(paymentIntentId);
+
+      return {
+        success: true,
+        payment_intent_id: paymentIntent.id,
+        metadata: {
+          status: paymentIntent.status,
+        },
+      };
+    } catch (error) {
+      console.error('Auction payment cancellation error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to cancel payment',
+      };
+    }
+  }
+
+  /**
+   * Handle Stripe webhook events for auctions
+   */
+  async handleWebhook(event: Stripe.Event): Promise<void> {
+    // Only process auction-related events
+    if (event.type.startsWith('payment_intent.')) {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+
+      // Check if this is an auction payment
+      if (paymentIntent.metadata?.type !== 'auction_bid') {
+        return;
+      }
+
+      switch (event.type) {
+        case 'payment_intent.amount_capturable_updated':
+          await this.handleAmountCapturableUpdated(paymentIntent);
+          break;
+
+        case 'payment_intent.succeeded':
+          await this.handlePaymentSucceeded(paymentIntent);
+          break;
+
+        case 'payment_intent.payment_failed':
+          await this.handlePaymentFailed(paymentIntent);
+          break;
+
+        case 'payment_intent.canceled':
+          await this.handlePaymentCanceled(paymentIntent);
+          break;
+
+        default:
+          console.log(`Unhandled auction event type: ${event.type}`);
+      }
+    }
+  }
+
+  /**
+   * Refund a captured payment
+   */
+  async refundPayment(paymentIntentId: string, amount?: number): Promise<RefundResult> {
+    try {
+      const refund = await stripe.refunds.create({
+        payment_intent: paymentIntentId,
+        amount: amount ? Math.round(amount * 100) : undefined,
+      });
+
+      return {
+        success: true,
+        refund_id: refund.id,
+        amount_refunded: refund.amount / 100,
+      };
+    } catch (error) {
+      console.error('Auction refund error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to refund payment',
+      };
+    }
+  }
+
+  /**
+   * Get payment details
+   */
+  async getPaymentDetails(paymentIntentId: string): Promise<Stripe.PaymentIntent> {
+    return await stripe.paymentIntents.retrieve(paymentIntentId);
+  }
+
+  /**
+   * Private webhook handlers
+   */
+  private async handleAmountCapturableUpdated(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+    const webhookReceivedTime = new Date().toISOString();
+    console.log('Auction bid pre-authorized (webhook received):', {
+      payment_intent_id: paymentIntent.id,
+      auction_id: paymentIntent.metadata.auction_id,
+      amount: paymentIntent.amount / 100,
+      webhook_received_at: webhookReceivedTime,
+      payment_intent_created: new Date(paymentIntent.created * 1000).toISOString(),
+      processing_delay_ms: Date.now() - (paymentIntent.created * 1000),
+    });
+
+    // Save payment method for guest bidders
+    if (paymentIntent.metadata.is_guest === 'true' && paymentIntent.metadata.guest_bidder_id) {
+      const startTime = Date.now();
+      const paymentMethodId = paymentIntent.payment_method as string;
+      const customerId = paymentIntent.customer as string;
+
+      console.log('[AuctionStrategy] Processing guest bidder payment method save:', {
+        guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
+        payment_method_id: paymentMethodId,
+        customer_id: customerId,
+        has_payment_method: !!paymentMethodId,
+        has_customer: !!customerId,
+      });
+
+      if (paymentMethodId && customerId) {
+        try {
+          // CRITICAL FIX FOR EDGE: Explicitly attach payment method to customer
+          // This ensures the payment method is saved even if Edge's automatic attachment fails
+          const attachStartTime = Date.now();
+          await stripe.paymentMethods.attach(paymentMethodId, {
+            customer: customerId,
+          });
+          const attachTime = Date.now() - attachStartTime;
+
+          console.log('[AuctionStrategy] Successfully attached payment method to customer:', {
+            payment_method_id: paymentMethodId,
+            customer_id: customerId,
+            attach_time_ms: attachTime,
+            timestamp: new Date().toISOString(),
+          });
+
+          // Then save to database
+          const saveStartTime = Date.now();
+          const guestService = new GuestBidderService();
+          await guestService.savePaymentMethod(
+            paymentIntent.metadata.guest_bidder_id,
+            paymentMethodId
+          );
+          const saveTime = Date.now() - saveStartTime;
+
+          console.log('[AuctionStrategy] Successfully saved payment method for guest bidder:', {
+            guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
+            payment_method_id: paymentMethodId,
+            customer_id: customerId,
+            db_save_time_ms: saveTime,
+            total_processing_time_ms: Date.now() - startTime,
+            timestamp: new Date().toISOString(),
+          });
+
+          // Verify the save was successful by reading it back
+          const verifyStartTime = Date.now();
+          const savedMethod = await guestService.getSavedPaymentMethod(paymentIntent.metadata.guest_bidder_id);
+          const verifyTime = Date.now() - verifyStartTime;
+
+          if (savedMethod === paymentMethodId) {
+            console.log('[AuctionStrategy] ✅ Verified payment method saved correctly:', {
+              guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
+              verified: true,
+              verify_time_ms: verifyTime,
+            });
+          } else {
+            console.error('[AuctionStrategy] ⚠️ Payment method verification failed:', {
+              guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
+              expected: paymentMethodId,
+              actual: savedMethod,
+              verify_time_ms: verifyTime,
+            });
+          }
+
+        } catch (error: any) {
+          // If payment method is already attached, that's OK
+          if (error.code === 'resource_already_exists') {
+            console.log('[AuctionStrategy] Payment method already attached to customer (OK), saving to DB');
+            const guestService = new GuestBidderService();
+            await guestService.savePaymentMethod(
+              paymentIntent.metadata.guest_bidder_id,
+              paymentMethodId
+            );
+            console.log('[AuctionStrategy] Saved pre-attached payment method to database');
+          } else {
+            console.error('[AuctionStrategy] ❌ Error attaching/saving payment method:', {
+              error: error.message,
+              error_code: error.code,
+              error_type: error.type,
+              guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
+              payment_method_id: paymentMethodId,
+              customer_id: customerId,
+              processing_time_ms: Date.now() - startTime,
+            });
+            throw error;
+          }
+        }
+      } else {
+        console.error('[AuctionStrategy] ❌ Missing payment method or customer ID:', {
+          payment_method_id: paymentMethodId,
+          customer_id: customerId,
+          has_payment_method: !!paymentMethodId,
+          has_customer: !!customerId,
+          guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
+        });
+      }
+    }
+
+    // Update bid status in database for auto-confirmed payments
+    const supabase = createServiceRoleClient();
+    let bidToUpdate = null;
+
+    if (paymentIntent.metadata.bid_id) {
+      // Standard path: bid_id is available in metadata
+      console.log('[AuctionStrategy] Updating bid payment_intent_status (via bid_id):', {
+        bid_id: paymentIntent.metadata.bid_id,
+        auction_id: paymentIntent.metadata.auction_id,
+      });
+
+      // Update payment_intent_status only - bid status is already set by manageDualPreAuth()
+      // DO NOT set status here - it would overwrite correct rankings due to race conditions
+      const { data: updatedBid, error: updateError } = await supabase
+        .from('bids')
+        .update({
+          payment_intent_status: 'requires_capture',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', paymentIntent.metadata.bid_id)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error('[AuctionStrategy] ❌ Error updating bid status:', {
+          error: updateError.message,
+          bid_id: paymentIntent.metadata.bid_id,
+        });
+      } else {
+        console.log('[AuctionStrategy] ✅ Successfully updated bid status:', {
+          bid_id: updatedBid.id,
+          status: updatedBid.status,
+          payment_intent_status: updatedBid.payment_intent_status,
+        });
+      }
+    } else {
+      // FALLBACK PATH: bid_id missing due to race condition
+      // Try to find the bid by payment_intent_id
+      console.warn('[AuctionStrategy] ⚠️ bid_id missing in metadata - attempting fallback lookup', {
+        payment_intent_id: paymentIntent.id,
+        auction_id: paymentIntent.metadata.auction_id,
+      });
+
+      const { data: pendingBids, error: lookupError } = await supabase
+        .from('bids')
+        .select('*')
+        .eq('payment_intent_id', paymentIntent.id)
+        .eq('auction_id', paymentIntent.metadata.auction_id)
+        .eq('status', 'pending')
+        .order('placed_at', { ascending: false })
+        .limit(1);
+
+      if (lookupError) {
+        console.error('[AuctionStrategy] ❌ Error looking up bid by payment_intent_id:', {
+          error: lookupError.message,
+          payment_intent_id: paymentIntent.id,
+        });
+      } else if (pendingBids && pendingBids.length > 0) {
+        // Found the bid - update it
+        const bid = pendingBids[0];
+        console.log('[AuctionStrategy] ✅ Found pending bid via fallback lookup:', {
+          bid_id: bid.id,
+          auction_id: bid.auction_id,
+          payment_intent_id: bid.payment_intent_id,
+        });
+
+        // Update payment_intent_status only - DO NOT set status here
+        // manageDualPreAuth will be called to set correct rankings
+        const { data: updatedBid, error: updateError } = await supabase
+          .from('bids')
+          .update({
+            payment_intent_status: 'requires_capture',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', bid.id)
+          .select()
+          .single();
+
+        if (updateError) {
+          console.error('[AuctionStrategy] ❌ Error updating bid via fallback:', {
+            error: updateError.message,
+            bid_id: bid.id,
+          });
+        } else {
+          console.log('[AuctionStrategy] ✅ Successfully updated bid payment_intent_status via fallback:', {
+            bid_id: updatedBid.id,
+            status: updatedBid.status,
+            payment_intent_status: updatedBid.payment_intent_status,
+          });
+
+          // Re-evaluate all bids to ensure only highest is 'winning'
+          // This bid might not be the highest, so manageDualPreAuth will set correct statuses
+          try {
+            const { AuctionPaymentProcessor } = await import('@/lib/payments/processors/AuctionPaymentProcessor');
+            const paymentProcessor = new AuctionPaymentProcessor();
+            await paymentProcessor.manageDualPreAuth(paymentIntent.metadata.auction_id, updatedBid.id);
+            console.log('[AuctionStrategy] ✅ Re-evaluated bid statuses after fallback');
+          } catch (reEvalError) {
+            console.error('[AuctionStrategy] ⚠️ Failed to re-evaluate bids:', reEvalError);
+            // Non-fatal error - bid is still authorized, just might have wrong status temporarily
+          }
+        }
+      } else {
+        // Could not find bid - log critical error
+        console.error('[AuctionStrategy] ❌ CRITICAL: Could not find bid via fallback lookup!', {
+          payment_intent_id: paymentIntent.id,
+          auction_id: paymentIntent.metadata.auction_id,
+          customer_id: paymentIntent.customer,
+          is_guest: paymentIntent.metadata.is_guest,
+          guest_bidder_id: paymentIntent.metadata.guest_bidder_id,
+          amount: paymentIntent.amount / 100,
+          metadata: paymentIntent.metadata,
+          warning: 'Payment was authorized but bid could not be found - manual intervention required!',
+        });
+      }
+    }
+  }
+
+  private async handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+    console.log('Auction payment captured successfully:', {
+      payment_intent_id: paymentIntent.id,
+      auction_id: paymentIntent.metadata.auction_id,
+      amount: paymentIntent.amount / 100,
+    });
+
+    // Update auction and payout records
+    // This will be handled by the AuctionService
+  }
+
+  private async handlePaymentFailed(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+    console.error('Auction payment failed:', {
+      payment_intent_id: paymentIntent.id,
+      auction_id: paymentIntent.metadata.auction_id,
+      error: paymentIntent.last_payment_error?.message,
+    });
+
+    // Mark bid as failed and attempt fallback to second highest bid
+    // This will be handled by the BiddingService
+  }
+
+  private async handlePaymentCanceled(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+    console.log('Auction payment canceled:', {
+      payment_intent_id: paymentIntent.id,
+      auction_id: paymentIntent.metadata.auction_id,
+    });
+
+    // Update bid status to canceled
+    // This will be handled by the BiddingService
+  }
+
+  /**
+   * Get pre-auth expiry time (7 days from now)
+   */
+  getPreAuthExpiryTime(): Date {
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + this.config.settings.preAuthDuration);
+    return expiryDate;
+  }
+}

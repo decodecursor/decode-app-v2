@@ -1,0 +1,2108 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Heart Animation Keyframes - Using only opacity and top */
+@keyframes heartfade {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Payout Highlight Animation - Purple fade to normal */
+@keyframes fadeToNormal {
+  0% {
+    background-color: rgba(147, 51, 234, 0.3); /* purple-600/30 */
+    border-color: rgba(168, 85, 247, 0.6); /* purple-500/60 */
+  }
+  100% {
+    background-color: rgba(255, 255, 255, 0.05); /* bg-white/5 */
+    border-color: transparent;
+  }
+}
+
+/* AI Text Loading Gradient Animation */
+@keyframes gradientShift {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+
+
+/* Cosmic Design System - CSS Custom Properties */
+:root {
+  /* Cosmic Color Palette */
+  --cosmic-card-bg: rgba(255, 255, 255, 0.1);
+  --cosmic-text-primary: #ffffff;
+  --cosmic-text-secondary: rgba(255, 255, 255, 0.7);
+  --cosmic-border: rgba(255, 255, 255, 0.3);
+  --cosmic-border-focus: rgba(255, 255, 255, 0.6);
+  --cosmic-button-gradient-start: #333333;
+  --cosmic-button-gradient-end: #000000;
+}
+
+/* Remove border from express checkout cosmic-input to avoid double frame */
+.express-checkout-no-border.cosmic-input {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  width: 100% !important;
+  min-height: 56px !important;
+  display: block !important;
+}
+
+/* Target Stripe iframe if present */
+.express-checkout-expanded iframe,
+.express-checkout-expanded [class*="__PrivateStripeElement"] {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Express Checkout Expanded State - Force show all payment methods */
+.express-checkout-expanded [class*="CollapsedWrapper"] {
+  display: none !important;
+}
+
+.express-checkout-expanded [class*="ExpandedWrapper"] {
+  display: block !important;
+}
+
+.express-checkout-expanded [class*="show more"],
+.express-checkout-expanded [class*="Show more"],
+.express-checkout-expanded [class*="Show More"],
+.express-checkout-expanded [aria-label*="show more"],
+.express-checkout-expanded [aria-label*="Show more"],
+.express-checkout-expanded [aria-label*="Show More"] {
+  display: none !important;
+}
+
+/* Express checkout layout - Comprehensive targeting for vertical stack on mobile */
+.express-checkout-expanded,
+.express-checkout-expanded > div,
+.express-checkout-expanded [class*="ExpressCheckoutElement"],
+.express-checkout-expanded [class*="express-checkout"],
+.express-checkout-expanded [class*="ExpressCheckout"] {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Target all possible payment method containers */
+.express-checkout-expanded [class*="PaymentMethod"],
+.express-checkout-expanded [class*="payment-method"],
+.express-checkout-expanded [class*="PaymentOption"],
+.express-checkout-expanded [class*="wallet"],
+.express-checkout-expanded [class*="Button"],
+.express-checkout-expanded > div > div,
+.express-checkout-expanded > div > div > div {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  flex: none !important;
+  display: block !important;
+}
+
+/* Target Stripe's internal button containers */
+.express-checkout-expanded div[style*="display: flex"],
+.express-checkout-expanded div[style*="display:flex"] {
+  flex-direction: column !important;
+  width: 100% !important;
+}
+
+/* Force grid layout as fallback */
+.express-checkout-expanded > div:first-child {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-gap: 12px !important;
+  width: 100% !important;
+}
+
+/* Desktop: side-by-side layout */
+@media (min-width: 769px) {
+  .express-checkout-expanded,
+  .express-checkout-expanded > div,
+  .express-checkout-expanded [class*="ExpressCheckoutElement"],
+  .express-checkout-expanded [class*="express-checkout"],
+  .express-checkout-expanded [class*="ExpressCheckout"] {
+    flex-direction: row !important;
+    gap: 8px !important;
+  }
+  
+  .express-checkout-expanded > div:first-child {
+    display: flex !important;
+    grid-template-columns: none !important;
+  }
+  
+  .express-checkout-expanded [class*="PaymentMethod"],
+  .express-checkout-expanded [class*="payment-method"],
+  .express-checkout-expanded [class*="PaymentOption"],
+  .express-checkout-expanded [class*="wallet"],
+  .express-checkout-expanded [class*="Button"] {
+    flex: 1 !important;
+    width: auto !important;
+  }
+}
+
+/* Base Cosmic Background */
+.cosmic-bg {
+  background-image: url('/starry-background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  /* Fallback color if image fails */
+  background-color: #1a1625;
+}
+
+/* Model-specific Cosmic Background with Pattern */
+.cosmic-bg-model {
+  position: relative;
+  min-height: 100vh;
+  background-color: #1a1625;
+}
+
+.cosmic-bg-model::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('/Pattern.jpeg');
+  background-position: top left;
+  background-repeat: repeat;
+  background-size: 41%; /* Mobile */
+  opacity: 0.5;
+  filter: brightness(2) contrast(0.5);
+  pointer-events: none;
+  z-index: 0;
+}
+
+@media (min-width: 1024px) {
+  .cosmic-bg-model::before {
+    background-size: 31%; /* Desktop */
+  }
+}
+
+/* Auction Detail Background - Responsive sizing */
+.auction-detail-bg {
+  background-size: 41%; /* Mobile: adjusted for better tiling */
+}
+
+@media (min-width: 1024px) {
+  .auction-detail-bg {
+    background-size: 31%; /* Desktop: adjusted for better tiling */
+  }
+}
+
+/* Cosmic Card Container */
+.cosmic-card {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 17px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  width: 70vw;
+  margin: 0 auto;
+}
+
+/* Fix: Prevent cosmic-card from breaking grid layouts */
+.grid .cosmic-card {
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Login Screen Specific Card */
+.cosmic-card-login {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 32px;
+  min-height: 500px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  margin: 0 auto;
+}
+
+/* Responsive width for cosmic-card-login */
+@media (min-width: 768px) {
+  .cosmic-card-login {
+    width: 24.5vw;
+  }
+}
+
+/* Purple radio buttons and checkboxes */
+input[type="radio"]:checked,
+input[type="checkbox"]:checked {
+  accent-color: #a855f7;
+  background-color: #a855f7;
+}
+
+/* Terms text 11px font size */
+.terms-text-11px {
+  font-size: 11px !important;
+}
+
+/* Gray terms checkbox - match password eye icon color */
+.terms-checkbox {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 16px !important;
+  height: 16px !important;
+  border: 1px solid #9ca3af !important;
+  border-radius: 4px !important;
+  background-color: transparent !important;
+  cursor: pointer !important;
+  position: relative !important;
+}
+
+.terms-checkbox:checked {
+  background-color: #9ca3af !important;
+  border-color: #9ca3af !important;
+}
+
+.terms-checkbox:checked::after {
+  content: '✓' !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  color: #000000 !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+}
+
+/* Smaller Stats Cards */
+.stats-card {
+  width: 30% !important;
+  max-width: 300px;
+}
+
+/* Hide number input arrows/spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Cosmic Input Fields */
+.cosmic-input {
+  background: transparent;
+  border: 1px solid var(--cosmic-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--cosmic-text-primary);
+  font-family: 'Inter', sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  width: 100%;
+  transition: border-color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Dark grey background for select dropdown options */
+.cosmic-input option {
+  background-color: #374151;
+  color: white;
+}
+
+/* Enhanced desktop dropdown styling to match mobile professionalism */
+@media (min-width: 768px) {
+  select.cosmic-input {
+    border-width: 1px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 10px 12px;
+    /* Custom grey dropdown arrow - 20% wider */
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14.4' height='9.6' viewBox='0 0 12 8'%3E%3Cpath fill='%239ca3af' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 14.4px 9.6px;
+    padding-right: 30px;
+  }
+
+  /* Ensure dropdown maintains 1px border when open/focused */
+  select.cosmic-input:focus {
+    border-width: 1px !important;
+    outline: none;
+  }
+}
+
+/* Fix yellow background on autofilled inputs */
+.cosmic-input:-webkit-autofill,
+.cosmic-input:-webkit-autofill:hover,
+.cosmic-input:-webkit-autofill:focus,
+.cosmic-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+  -webkit-text-fill-color: var(--cosmic-text-primary) !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Additional autofill styling for other browsers */
+.cosmic-input:autofill {
+  background-color: transparent !important;
+  background-image: none !important;
+  color: var(--cosmic-text-primary) !important;
+}
+
+/* Fix yellow background on ALL autofilled inputs (not just cosmic-input) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: #111827 !important;
+  background-color: white !important;
+  background-image: none !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* For input fields with bg-white class - ensure no yellow on mobile */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="password"],
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Additional mobile browser support for autofill */
+input:autofill,
+select:autofill,
+textarea:autofill {
+  background-color: white !important;
+  background-image: none !important;
+}
+
+.cosmic-input::placeholder {
+  color: var(--cosmic-text-secondary);
+}
+
+.cosmic-input:focus {
+  outline: none;
+  border-color: #a855f7;
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+}
+
+/* Input field with content - dark blue background */
+.cosmic-input.has-content {
+  background-color: #1e293b;
+}
+
+/* Ensure focus styling works with filled inputs */
+.cosmic-input.has-content:focus {
+  background-color: #1e293b;
+  border-color: #a855f7;
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+}
+
+/* Cosmic Primary Button */
+.cosmic-button-primary {
+  background: linear-gradient(135deg, var(--cosmic-button-gradient-start) 0%, var(--cosmic-button-gradient-end) 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  color: var(--cosmic-text-primary);
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  width: 100%;
+}
+
+.cosmic-button-primary:hover {
+  transform: scale(1.02);
+  background: linear-gradient(135deg, #555555 0%, #333333 100%);
+}
+
+.cosmic-button-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Cosmic Typography */
+.cosmic-logo {
+  font-family: 'Inter', sans-serif;
+  font-weight: 300;
+  font-size: 32px;
+  letter-spacing: 2px;
+  color: var(--cosmic-text-primary);
+  text-align: center;
+}
+
+.cosmic-heading {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 24px;
+  color: var(--cosmic-text-primary);
+}
+
+.cosmic-body {
+  font-family: 'Inter', sans-serif;
+  font-weight: 300;
+  font-size: 16px;
+  color: var(--cosmic-text-primary);
+}
+
+.cosmic-label {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--cosmic-text-primary);
+}
+
+/* Base Body Styling */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
+  color: var(--cosmic-text-primary);
+  /* Prevent white background from showing on mobile when keyboard opens */
+  background-color: #1a1625;
+  /* Ensure full height coverage */
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+
+/* Secondary Button Style */
+.cosmic-button-secondary {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: underline;
+  border: none;
+  padding: 8px 16px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cosmic-button-secondary:hover {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+/* Mobile Payment Styles */
+.mobile-payment-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.mobile-payment-overlay.active {
+  opacity: 1;
+}
+
+.mobile-payment-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.mobile-payment-sheet.active {
+  transform: translateY(0);
+}
+
+.mobile-payment-handle {
+  width: 40px;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  margin: 12px auto 8px;
+}
+
+/* Touch-friendly payment button */
+.mobile-payment-button {
+  min-height: 56px;
+  font-size: 18px;
+  font-weight: 600;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+}
+
+.mobile-payment-button:active {
+  transform: scale(0.98);
+}
+
+/* Mobile form inputs */
+.mobile-form-input {
+  min-height: 48px;
+  font-size: 16px; /* Prevent zoom on iOS */
+  border-radius: 12px;
+  padding: 12px 16px;
+  transition: all 0.2s ease;
+}
+
+.mobile-form-input:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+}
+
+/* Mobile animations */
+@keyframes mobile-slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes mobile-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.mobile-slide-up {
+  animation: mobile-slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.mobile-fade-in {
+  animation: mobile-fade-in 0.3s ease;
+}
+
+/* Improved touch targets */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Profile-specific card styling - narrow width for profile page */
+.cosmic-card-profile {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  width: 28vw;
+  margin: 0 auto;
+}
+
+/* Responsive override for cosmic-card-profile on mobile */
+@media (max-width: 768px) {
+  .cosmic-card-profile {
+    width: 90vw !important;
+    max-width: 400px !important;
+    padding: 20px !important;
+    margin: 16px auto !important;
+    background: rgba(255, 255, 255, 0.3) !important;
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  }
+}
+
+/* Dashboard-specific card styling */
+.cosmic-card-dashboard {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 17px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  width: 70vw;
+  margin: 0 auto;
+}
+
+/* Mobile override - match profile card styling */
+@media (max-width: 768px) {
+  .cosmic-card-dashboard {
+    padding: 10px;
+    width: 90vw;
+    max-width: 400px;
+    margin: 0 auto;
+    border-radius: 20px;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(17, 24, 39, 0.8) !important; /* Match profile card - darker gray-900 */
+    border: 1px solid rgb(55, 65, 81) !important; /* Match profile card - gray-700 */
+  }
+}
+
+/* Instagram-style Profile Avatar */
+.instagram-avatar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 95px;
+  height: 95px;
+  border-radius: 50%;
+  /* Outer gradient border (5px) */
+  border: 5px solid transparent;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  /* Layered backgrounds: inner dark frame + outer gradient */
+  background-image: linear-gradient(#000000, #000000), linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  /* Inner black frame (4px) */
+  padding: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.instagram-avatar:hover {
+  transform: scale(1.05);
+}
+
+.instagram-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: none;
+  object-fit: cover;
+  display: block;
+  background: transparent;
+}
+
+.instagram-avatar .avatar-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: none;
+  background: #6B7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #374151;
+}
+
+@media (min-width: 768px) {
+  .instagram-avatar {
+    width: 90px;
+    height: 90px;
+  }
+}
+
+/* Instagram-style Profile Avatar - Small variant for subcards */
+.instagram-avatar-sm {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  /* Outer gradient border */
+  border: 2px solid transparent;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  /* Layered backgrounds: inner dark frame + outer gradient */
+  background-image: linear-gradient(#000000, #000000), linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  /* Inner black frame */
+  padding: 1.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.instagram-avatar-sm:hover {
+  transform: scale(1.05);
+}
+
+.instagram-avatar-sm img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: none;
+  object-fit: cover;
+  display: block;
+  background: transparent;
+}
+
+.instagram-avatar-sm .avatar-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: none;
+  background: #6B7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #374151;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* Instagram-style Profile Avatar - Card variant for auction cards */
+.instagram-avatar-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  /* Outer gradient border (thinner for small cards) */
+  border: 2.5px solid transparent;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  /* Layered backgrounds: inner dark frame + outer gradient */
+  background-image: linear-gradient(#000000, #000000), linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  /* Inner black frame (thinner for small cards) */
+  padding: 3px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.instagram-avatar-card:hover {
+  transform: scale(1.05);
+}
+
+.instagram-avatar-card img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: none;
+  object-fit: cover;
+  display: block;
+  background: transparent;
+}
+
+.instagram-avatar-card .avatar-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: none;
+  background: #6B7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #374151;
+}
+
+@media (min-width: 768px) {
+  .instagram-avatar-card {
+    width: 54px;
+    height: 54px;
+  }
+}
+
+/* Navigation button styling with larger font */
+.nav-button {
+  font-size: 17px;
+  font-weight: 500;
+  padding: 12px 24px;
+}
+
+/* Black Create PayLink button */
+.create-paylink-button {
+  background: linear-gradient(135deg, #2d2d2d 0%, #000000 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 17px;
+  font-weight: 500;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.create-paylink-button:hover {
+  transform: scale(1.02);
+  background: linear-gradient(135deg, #404040 0%, #1a1a1a 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* User Info Text Styling */
+.user-info-name {
+  font-size: 17px;
+  font-weight: 600;
+  color: white;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.user-info-company {
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+/* Ensure all radio buttons are circular */
+.role-radio {
+  border-radius: 50% !important;
+}
+
+/* Purple radio buttons for disabled/preselected roles */
+.role-radio:disabled:checked {
+  appearance: none;
+  background-color: #a855f7 !important;
+  border-color: #a855f7 !important;
+  border-radius: 50% !important;
+  background-image: radial-gradient(circle, white 40%, transparent 50%) !important;
+}
+
+/* GLOBAL: Handle Link-wrapped cards (auction cards) in space-y containers */
+.space-y-6 > a {
+  display: block;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.space-y-6 > a:not(:first-child) {
+  margin-top: 24px;
+}
+
+/* Mobile-specific layout adjustments - CACHE BUST 2025-09-26-v4 */
+@media (max-width: 768px) {
+  /* CRITICAL: Prevent horizontal scrolling on mobile */
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
+  /* Dashboard mobile: comprehensive viewport solution */
+  .dashboard-page {
+    /* Fallback for older browsers */
+    height: 100vh;
+    /* Custom property fallback for JS solution */
+    height: calc(var(--vh, 1vh) * 100);
+    /* Modern browsers: dynamic viewport height (accounts for Safari chrome) */
+    height: 100dvh;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .dashboard-page .min-h-screen {
+    /* Fallback for older browsers */
+    height: 100vh;
+    /* Custom property fallback for JS solution */
+    height: calc(var(--vh, 1vh) * 100);
+    /* Modern browsers: dynamic viewport height */
+    height: 100dvh;
+    padding: 50px 16px 0;
+    overflow: hidden;
+    box-sizing: border-box;
+    min-height: auto;
+  }
+
+  /* Background: proper coverage without crops - FIXED for mobile */
+  .cosmic-bg {
+    background-size: cover;
+    background-position: center center;
+    /* CRITICAL: Use scroll instead of fixed on mobile - fixed is broken on iOS Safari */
+    background-attachment: scroll;
+    background-repeat: no-repeat;
+    /* Extend beyond viewport to prevent white space when keyboard opens */
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* Auth page mobile: comprehensive viewport solution to eliminate white area */
+  .auth-page .cosmic-bg {
+    /* Ensure full coverage when keyboard opens */
+    min-height: 100vh;
+    min-height: calc(var(--vh, 1vh) * 100);
+    min-height: 100dvh;
+    /* Force background to cover entire scrollable area */
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .auth-page .min-h-screen {
+    /* Proper mobile viewport height handling */
+    min-height: 100vh;
+    min-height: calc(var(--vh, 1vh) * 100);
+    min-height: 100dvh;
+    /* Allow scrolling when keyboard appears */
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ensure cosmic-card-login is properly contained on mobile */
+  .auth-page .cosmic-card-login {
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+
+  /* Auth page terms text - smaller on mobile */
+  .auth-page .terms-text-11px {
+    font-size: 10px !important;
+  }
+
+
+  .cosmic-card {
+    padding: 10px;
+    width: 90vw;
+    max-width: 400px;
+    margin: 0 auto;  /* Changed from 20px auto to 0 auto */
+    border-radius: 20px;
+    box-shadow: none !important; /* Remove shadow glow on mobile */
+    border: 1px solid rgba(255, 255, 255, 0.4) !important; /* Same border as desktop */
+    backdrop-filter: none !important; /* No blur to prevent glow */
+    -webkit-backdrop-filter: none !important; /* No blur for Safari */
+    background: rgba(80, 80, 90, 0.95) !important; /* Lighter gray with 95% opacity for readability */
+  }
+
+  /* Remove avatar glow on mobile + reduce border thickness by 1px */
+  .instagram-avatar {
+    box-shadow: none !important;
+    border-width: 4px !important; /* Increased from 3px */
+    padding: 2px !important; /* Increased from 1px */
+  }
+
+  .instagram-avatar:hover {
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  /* Detail page avatar - slightly thicker black circle on mobile */
+  .auction-detail-page .instagram-avatar {
+    padding: 2.5px !important;
+  }
+
+  /* Mobile user info styling - increased sizes */
+  .user-info-company {
+    font-size: 13px;
+  }
+  
+  .cosmic-logo {
+    font-size: 28px;
+  }
+  
+  .cosmic-input {
+    padding: 10px 16px;
+    font-size: 16px; /* Prevent zoom on iOS */
+    border-radius: 12px;
+    min-height: 42px; /* Optimized touch target */
+    position: relative;
+    z-index: 10;
+    -webkit-appearance: none; /* Remove iOS default styling */
+    appearance: none;
+  }
+
+  /* Ensure inputs are always accessible on mobile */
+  .cosmic-input:focus {
+    position: relative;
+    z-index: 20;
+  }
+
+  /* Custom grey dropdown arrow for select elements on mobile - 20% wider */
+  select.cosmic-input {
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14.4' height='9.6' viewBox='0 0 12 8'%3E%3Cpath fill='%239ca3af' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 14.4px 9.6px;
+    padding-right: 30px;
+  }
+
+  .cosmic-button-primary {
+    padding: 12px 20px;
+    min-height: 48px; /* Optimized touch target */
+    font-size: 16px;
+    border-radius: 16px;
+    font-weight: 600;
+  }
+
+  /* Mobile payment form styles */
+  .payment-form-mobile {
+    padding: 24px 20px;
+  }
+
+  .payment-form-mobile .form-section {
+    margin-bottom: 24px;
+  }
+
+  .payment-form-mobile h1 {
+    font-size: 24px;
+    line-height: 1.2;
+  }
+
+  .payment-form-mobile h2 {
+    font-size: 20px;
+    line-height: 1.3;
+  }
+
+  .payment-form-mobile h3 {
+    font-size: 18px;
+    line-height: 1.3;
+  }
+
+  /* Amount display mobile optimization */
+  .amount-display-mobile {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+
+  /* Express checkout mobile-specific overrides with maximum specificity */
+  .express-checkout-expanded {
+    width: 100% !important;
+    min-height: 60px !important;
+    position: relative !important;
+  }
+
+  /* Ensure Stripe elements are visible on iOS Safari */
+  .express-checkout-expanded iframe,
+  .express-checkout-expanded > div {
+    min-height: 56px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  /* Target all nested divs and force vertical layout */
+  .express-checkout-expanded div,
+  .express-checkout-expanded > div,
+  .express-checkout-expanded > div > div,
+  .express-checkout-expanded > div > div > div,
+  .express-checkout-expanded [class*="ExpressCheckoutElement"] > div,
+  .express-checkout-expanded [id*="express-checkout"] > div {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Override any inline styles */
+  .express-checkout-expanded [style*="flex-direction: row"],
+  .express-checkout-expanded [style*="flex-direction:row"] {
+    flex-direction: column !important;
+  }
+  
+  /* Target payment method buttons with all possible selectors */
+  .express-checkout-expanded [class*="PaymentMethod"],
+  .express-checkout-expanded [class*="paymentMethod"],
+  .express-checkout-expanded [class*="payment-method"],
+  .express-checkout-expanded [class*="WalletButton"],
+  .express-checkout-expanded [class*="wallet-button"],
+  .express-checkout-expanded button,
+  .express-checkout-expanded > div > button,
+  .express-checkout-expanded > div > div > button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    margin: 0 0 8px 0 !important;
+    display: block !important;
+    flex: none !important;
+  }
+  
+  /* Specific targeting for Apple Pay and Google Pay */
+  .express-checkout-expanded button[aria-label*="Apple Pay"],
+  .express-checkout-expanded button[aria-label*="Google Pay"],
+  .express-checkout-expanded button[aria-label*="apple pay"],
+  .express-checkout-expanded button[aria-label*="google pay"],
+  .express-checkout-expanded [class*="apple-pay"],
+  .express-checkout-expanded [class*="google-pay"],
+  .express-checkout-expanded [class*="ApplePay"],
+  .express-checkout-expanded [class*="GooglePay"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+    margin-bottom: 8px !important;
+  }
+  
+  /* Last button should have no margin */
+  .express-checkout-expanded button:last-child,
+  .express-checkout-expanded > div > button:last-child,
+  .express-checkout-expanded > div > div > button:last-child {
+    margin-bottom: 0 !important;
+  }
+
+  /* Professional info mobile layout */
+  .professional-info-mobile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 12px;
+  }
+
+  .professional-avatar-mobile {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .professional-details-mobile {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .professional-name-mobile {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .professional-email-mobile {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* MOBILE PAYMENT LINK STYLES - MOVED INSIDE MEDIA QUERY */
+  /* Professional mobile design for my-links page */
+  .my-links-container {
+    width: 90vw !important;
+    max-width: 90vw !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Compact header */
+  .my-links-header-mobile {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 0 !important;
+  }
+
+  .my-links-header-mobile h1 {
+    font-size: 24px !important;
+    margin: 0 !important;
+  }
+
+  .my-links-header-mobile a:not([class*="bg-black"]) {
+    width: auto !important;
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    border-radius: 18px !important;
+  }
+
+  /* Payment link card styles for mobile - preserve desktop colors */
+  .payment-link-card-mobile {
+    padding: 16px !important;
+    border-radius: 12px !important;
+    margin-bottom: 12px !important;
+    position: relative !important;
+  }
+
+  /* Remove giant status overlays on mobile */
+  .status-overlay-mobile {
+    display: none !important;
+  }
+
+  /* Compact status badge */
+  .payment-link-status-mobile {
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    border-radius: 12px !important;
+  }
+
+  /* Client name styling */
+  .payment-link-client-mobile {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Service title */
+  .payment-link-title-mobile {
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    color: rgba(255,255,255,0.8) !important;
+    margin: 0 !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Amount - prominent */
+  .payment-link-amount-mobile {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Add bottom margin to header cards */
+  .header-card-mobile-spacing {
+    margin-bottom: 24px !important;
+  }
+
+  /* Remove vertical margins from content cards in space-y containers */
+  .space-y-6 > .cosmic-card {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Ensure space-y-6 spacing works correctly - consistent 24px on mobile */
+  .space-y-6 > .cosmic-card:not(:first-child) {
+    margin-top: 24px !important;
+  }
+
+  /* Handle Link-wrapped cards (auction cards) in space-y containers */
+  .space-y-6 > a {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    display: block;
+  }
+
+  .space-y-6 > a:not(:first-child) {
+    margin-top: 24px !important;
+  }
+
+  /* Content card that follows header - remove top margin but keep bottom margin for spacing between content cards */
+  .content-card-mobile-spacing {
+    margin: 0 auto 24px auto !important;
+  }
+
+  /* CRITICAL: Revenue/Transactions text labels - readable size */
+  .cosmic-label.payment-metric-label {
+    font-size: 11px !important;
+    margin-bottom: 1px !important;
+    line-height: 1.1 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .payment-metric-value {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    margin-bottom: 1px !important;
+    line-height: 1.1 !important;
+    flex-shrink: 0 !important;
+  }
+}
+
+/* Standardized Back to Dashboard button spacing (based on payouts page pattern) */
+.dashboard-back-button-spacing {
+  margin-bottom: 24px; /* mb-6 = 24px */
+}
+
+@media (min-width: 768px) {
+  .dashboard-back-button-spacing {
+    margin-bottom: 0; /* md:mb-0 = 0px */
+  }
+}
+
+/* Profile page specific spacing - accounts for custom layout and positioning */
+.profile-back-button-spacing {
+  margin-bottom: 24px; /* mb-6 = 24px */
+}
+
+@media (min-width: 768px) {
+  .profile-back-button-spacing {
+    margin-bottom: 24px; /* md:mb-6 = 24px - adjusted for profile layout */
+  }
+}
+
+/* Dashboard header card - push 3mm up */
+.dashboard-header-card-spacing {
+  margin-bottom: 13px; /* 24px - 11px = 13px (3mm up) */
+}
+
+/* Mobile: push dashboard header card additional 3mm up */
+@media (max-width: 768px) {
+  .dashboard-header-card-spacing {
+    margin-bottom: 2px; /* 13px - 11px = 2px (additional 3mm up on mobile) */
+  }
+
+  /* Square delete button fix for mobile - users page */
+  .user-delete-button-mobile {
+    width: 28px !important;
+    height: 28px !important;
+    padding: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Permanent hover colors for header buttons - users page */
+  .user-header-create-branch-mobile {
+    color: white !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .user-header-invite-user-mobile {
+    color: white !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+}
+
+/* Mobile alignment fixes for Back to Dashboard buttons */
+@media (max-width: 768px) {
+  .payment-create-back-button {
+    width: 90vw !important;
+    max-width: 400px !important;
+    padding: 0 20px !important;
+  }
+
+  /* Override width constraint for left-aligned back button */
+  .payment-create-back-button-left .payment-create-back-button {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .payment-create-back-button-left {
+    justify-content: flex-start !important;
+  }
+
+  /* Profile button mobile left alignment override */
+  .profile-button-mobile-left {
+    width: auto !important;
+    margin: 0 !important;
+  }
+
+  /* Payments button mobile left alignment override */
+  .payments-back-button {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  /* Mobile: Model users have darker back button text and arrows */
+  body[data-user-role="Model"] .text-gray-300 {
+    color: #374151 !important; /* text-gray-700 - darker grey */
+  }
+
+}
+
+/* Desktop-specific styles for payment create page */
+@media (min-width: 769px) {
+  .payment-create-back-button-left .payment-create-container {
+    max-width: 28vw !important;
+  }
+
+  /* Profile button desktop alignment - match cosmic-card-profile exactly */
+  .profile-button-mobile-left {
+    width: 28vw !important;
+    margin: 0 auto !important;
+  }
+
+  .profile-back-button {
+    padding-left: 0 !important;
+  }
+
+  .profile-back-button button {
+    margin-left: auto !important;
+  }
+
+  /* Payments back button desktop alignment - match payments-container */
+  .payments-back-button {
+    width: 70vw !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+  }
+}
+
+/* Desktop: restore header-to-content gap */
+@media (min-width: 769px) {
+  .cosmic-card {
+    margin: 20px auto !important;
+  }
+}
+
+/* Magic Button Full Effect Styles */
+.magic-button {
+  background: linear-gradient(45deg, #667eea, #764ba2) !important;
+  border: none !important;
+  padding: 20px 40px !important;
+  border-radius: 50px !important;
+  color: white !important;
+  font-size: 1.3em !important;
+  cursor: pointer !important;
+  position: relative !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+  text-decoration: none !important;
+  display: inline-block !important;
+  font-weight: 600 !important;
+}
+
+.magic-button:hover {
+  transform: translateY(-3px) scale(1.05) !important;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5) !important;
+  color: white !important;
+  text-decoration: none !important;
+}
+
+.hover-sparkle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: #ffd700;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 50;
+  animation: hoverSparkle 1s ease-out forwards;
+}
+
+@keyframes hoverSparkle {
+  0% { transform: scale(0); opacity: 1; }
+  50% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0) translateY(-20px); opacity: 0; }
+}
+
+.click-star {
+  position: absolute;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.star-sparkle:before {
+  content: '✨';
+  font-size: 12px;
+}
+
+.star-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #ffd700;
+}
+
+.star-diamond:before {
+  content: '💎';
+  font-size: 8px;
+}
+
+.star-triangle:before {
+  content: '🔺';
+  font-size: 8px;
+}
+
+@keyframes magic-fly-1 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(100px, -100px) scale(0); opacity: 0; }
+}
+
+@keyframes magic-fly-2 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(-100px, -100px) scale(0); opacity: 0; }
+}
+
+@keyframes magic-fly-3 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(150px, 50px) scale(0); opacity: 0; }
+}
+
+@keyframes magic-fly-4 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(-150px, 50px) scale(0); opacity: 0; }
+}
+
+@keyframes magic-fly-5 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(50px, 150px) scale(0); opacity: 0; }
+}
+
+@keyframes magic-spiral {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(100px, -100px) rotate(360deg) scale(0); opacity: 0; }
+}
+
+@keyframes buttonShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.magic-fly-1 { animation: magic-fly-1 2s ease-out forwards; }
+.magic-fly-2 { animation: magic-fly-2 2s ease-out forwards; }
+.magic-fly-3 { animation: magic-fly-3 2s ease-out forwards; }
+.magic-fly-4 { animation: magic-fly-4 2s ease-out forwards; }
+.magic-fly-5 { animation: magic-fly-5 2s ease-out forwards; }
+.magic-spiral { animation: magic-spiral 2.5s ease-out forwards; }
+
+/* Stripe Connect Component Styling */
+.StripeElement {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 8px !important;
+  padding: 12px 16px !important;
+  color: #ffffff !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+.StripeElement--focus {
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3) !important;
+}
+
+.StripeElement--invalid {
+  border-color: #ef4444 !important;
+}
+
+/* Stripe Connect Account Onboarding Container */
+#account-onboarding {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* Mobile-only styles for payment create page */
+@media (max-width: 767px) {
+  .payment-create-container {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 16px;
+  }
+
+  /* Mobile left alignment for back button */
+  .payment-create-back-button-left .payment-create-container {
+    margin-left: 0 !important;
+    max-width: none !important;
+  }
+
+  .payment-create-card {
+    width: 100% !important;
+    padding: 20px !important;
+  }
+
+  .payment-create-button {
+    width: 100% !important;
+    padding: 16px !important;
+    font-size: 16px !important;
+  }
+
+  /* Touch-friendly inputs */
+  .payment-create-input {
+    min-height: 48px !important;
+    font-size: 16px !important; /* Prevents zoom on iOS */
+  }
+
+  /* Mobile-friendly dropdown */
+  .client-suggestions-mobile {
+    max-height: 200px !important;
+    overflow-y: auto !important;
+  }
+
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .cosmic-card {
+    margin: 0 auto;  /* Changed from 16px auto to 0 auto */
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  /* Override for header cards on small screens */
+  .header-card-mobile-spacing {
+    margin: 0 auto 24px auto !important;
+  }
+
+  /* Override for content cards on small screens */
+  .content-card-mobile-spacing {
+    margin: 0 auto 24px auto !important;
+  }
+
+  /* Ensure space-y-6 rules work on small screens - reduced spacing */
+  .space-y-6 > .cosmic-card {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .space-y-6 > .cosmic-card:not(:first-child) {
+    margin-top: 12px !important;
+  }
+
+  /* Handle Link-wrapped cards (auction cards) in space-y containers */
+  .space-y-6 > a {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    display: block;
+  }
+
+  .space-y-6 > a:not(:first-child) {
+    margin-top: 24px !important;
+  }
+
+  .amount-display-mobile {
+    font-size: 28px;
+  }
+
+  .cosmic-button-primary {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  .mobile-payment-button {
+    min-height: 48px;
+    font-size: 16px;
+  }
+}
+
+/* Status Ribbons for PayLink Cards */
+.ribbon {
+  position: absolute;
+  bottom: 0;
+  left: -5px;
+  padding: 3px 10px;
+  font-size: 9px;
+  font-weight: bold;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-top-right-radius: 8px;
+  z-index: 10;
+}
+
+.ribbon-paid {
+  background: rgb(34 197 94);
+}
+
+.ribbon-expired {
+  background: rgb(239 68 68);
+}
+
+.ribbon-deactivated {
+  background: rgb(239 68 68);
+}
+
+/* ReactCrop Circular Selection Styling */
+.ReactCrop__crop-selection {
+  border-radius: 50% !important;
+}
+
+.ReactCrop__drag-handle {
+  border-radius: 50% !important;
+}
+
+/* Landscape orientation adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+  .cosmic-card {
+    max-height: 90vh;
+    overflow-y: auto;
+    margin: 0 auto;  /* Changed from 10px auto to 0 auto */
+  }
+
+  /* Override for header cards in landscape */
+  .header-card-mobile-spacing {
+    margin: 0 auto 24px auto !important;
+  }
+
+  /* Override for content cards in landscape */
+  .content-card-mobile-spacing {
+    margin: 0 auto 24px auto !important;
+  }
+
+  /* Ensure space-y-6 rules work in landscape - reduced spacing */
+  .space-y-6 > .cosmic-card {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .space-y-6 > .cosmic-card:not(:first-child) {
+    margin-top: 12px !important;
+  }
+
+  /* Handle Link-wrapped cards (auction cards) in space-y containers */
+  .space-y-6 > a {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    display: block;
+  }
+
+  .space-y-6 > a:not(:first-child) {
+    margin-top: 24px !important;
+  }
+
+  .mobile-payment-sheet {
+    max-height: 80vh;
+  }
+}
+
+/* Ensure payment page buttons are clickable */
+.payment-back-button {
+  position: relative !important;
+  z-index: 1000 !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* Custom Date Picker Purple Theme Overrides */
+.date-picker-purple .rdp-months {
+  display: flex !important;
+  gap: 1rem !important;
+}
+
+.date-picker-purple .rdp-nav_button,
+.date-picker-purple .rdp-nav_button_previous,
+.date-picker-purple .rdp-nav_button_next,
+.date-picker-purple button[name="previous-month"],
+.date-picker-purple button[name="next-month"] {
+  color: #a855f7 !important;
+  border-color: #a855f7 !important;
+}
+
+.date-picker-purple .rdp-nav_button:hover,
+.date-picker-purple .rdp-nav_button_previous:hover,
+.date-picker-purple .rdp-nav_button_next:hover,
+.date-picker-purple button[name="previous-month"]:hover,
+.date-picker-purple button[name="next-month"]:hover {
+  color: #9333ea !important;
+  border-color: #9333ea !important;
+}
+
+.date-picker-purple .rdp-day_today,
+.date-picker-purple .rdp-day[aria-current="date"] {
+  color: #a855f7 !important;
+  font-weight: bold !important;
+  background-color: transparent !important;
+}
+
+.date-picker-purple .rdp-day_selected,
+.date-picker-purple .rdp-day_range_start,
+.date-picker-purple .rdp-day_range_end,
+.date-picker-purple .rdp-day[aria-selected="true"] {
+  background-color: #a855f7 !important;
+  color: white !important;
+  border-radius: 50% !important;
+  border: none !important;
+}
+
+.date-picker-purple .rdp-day_range_middle {
+  background-color: #a855f7 !important;
+  opacity: 0.3 !important;
+  color: white !important;
+  border-radius: 0 !important;
+  border: none !important;
+}
+
+/* Mobile Responsive Design for Payments/Earnings Page */
+@media (max-width: 767px) {
+  /* Container for payments page */
+  .payments-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 16px !important;
+    margin: 0 auto !important;
+  }
+
+  /* Header elements on same line */
+  .payments-header-mobile {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+
+  .payments-header-mobile h1 {
+    font-size: 20px !important;
+    margin: 0 !important;
+  }
+
+  .payments-header-mobile a,
+  .payments-header-mobile button {
+    width: auto !important;
+    font-size: 14px !important;
+    padding: 8px 16px !important;
+    white-space: nowrap !important;
+  }
+
+  /* 2x2 grid for metrics - compressed */
+  .payments-metrics-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .payments-metrics-grid > div {
+    min-height: 75px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+
+
+  .payment-metric-change {
+    font-size: 9px !important;
+    line-height: 1.1 !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Keep percentage text consistent across devices */
+  .payment-metric-percentage {
+    font-size: 10px !important;
+  }
+
+  .payment-metric-comparison {
+    font-size: 8px !important;
+    line-height: 1.1 !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Horizontal scroll for date filters */
+  .payments-filters-scroll {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 4px !important;
+    display: flex !important;
+    gap: 4px !important;
+  }
+
+  .payments-filters-scroll::-webkit-scrollbar {
+    height: 3px !important;
+  }
+
+  .payments-filters-scroll::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1) !important;
+  }
+
+  .payments-filters-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.3) !important;
+    border-radius: 2px !important;
+  }
+
+  /* Date filter buttons - improved for better mobile UX */
+  .payments-filters-scroll button {
+    flex-shrink: 0 !important;
+    padding: 4px 12px !important;
+    font-size: 11px !important;
+    border-radius: 6px !important;
+    min-width: 65px !important;
+    max-width: 50px !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+  }
+
+  /* Fixed width buttons to prevent scrolling on mobile */
+  @media (max-width: 768px) {
+    .payments-filters-mobile-fixed {
+      display: flex !important;
+      gap: 4px !important;
+      width: 100% !important;
+      max-width: 240px !important;
+    }
+
+    .payments-filters-mobile-fixed button {
+      flex: 1 !important;
+      min-width: 0 !important;
+      padding: 4px 5px !important;
+      font-size: 10px !important;
+    }
+  }
+
+  /* Chart container for mobile - ensure Y-axis containment */
+  .payments-chart-container {
+    padding: 12px 8px 8px 16px !important; /* left padding increased for Y-axis */
+  }
+
+  /* Y-axis labels smaller */
+  .payments-chart-yaxis .text-xs {
+    font-size: 8px !important;
+  }
+
+  .payments-chart-mobile {
+    height: 150px !important;
+    overflow: hidden !important;
+  }
+
+  .payments-chart-mobile .flex {
+    height: 150px !important;
+  }
+
+  .payments-chart-mobile .chart-bar {
+    min-width: 20px !important;
+  }
+
+  /* Y-axis labels simplified */
+  .payments-chart-yaxis {
+    width: 35px !important;
+    font-size: 9px !important;
+  }
+
+  /* Add gap between Y-axis and chart on mobile */
+  @media (max-width: 768px) {
+    .payments-chart-yaxis-mobile {
+      width: 45px !important;
+      padding-right: 8px !important;
+    }
+    .payments-chart-area-mobile {
+      margin-left: 6px !important;
+      overflow: hidden !important;
+    }
+    /* Align chart labels with bars and prevent overflow */
+    .chart-labels-mobile {
+      margin-left: 51px !important;
+      overflow: hidden !important;
+      font-size: 8px !important;
+      padding-right: 4px !important;
+    }
+  }
+
+  /* Compress analytics card overall */
+  .analytics-card-mobile {
+    padding: 12px !important;
+  }
+
+  /* Reduce Period text size on mobile */
+  @media (max-width: 768px) {
+    .period-text-mobile {
+      font-size: 9px !important;
+    }
+  }
+
+  .analytics-card-mobile h2 {
+    font-size: 18px !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Make h3 headers same size as Analytics h2 on mobile */
+  .analytics-card-mobile h3 {
+    font-size: 18px !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Fix container widths - DESKTOP remains at 70vw */
+  .payments-container {
+    width: 70vw !important;
+  }
+
+  /* MOBILE ONLY - proper centering */
+  @media (max-width: 768px) {
+    .payments-container-mobile {
+      width: 90vw !important;
+      max-width: 90vw !important;
+      margin: 0 auto !important;
+      padding: 0 !important;
+    }
+  }
+
+  /* Back button styling */
+  .payments-back-button-mobile {
+    font-size: 14px !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* Create PayLink button */
+  .create-paylink-button-mobile {
+    font-size: 16px !important;
+    padding: 12px 20px !important;
+  }
+
+  /* Export button */
+  .export-button-mobile {
+    font-size: 12px !important;
+    padding: 8px 12px !important;
+  }
+
+  /* Paid PayLinks section */
+  .paid-paylinks-container {
+    max-height: 400px !important;
+    overflow-y: auto !important;
+  }
+
+  .paid-paylink-card {
+    padding: 12px !important;
+    border-radius: 8px !important;
+    background: rgba(255,255,255,0.05) !important;
+    margin-bottom: 8px !important;
+  }
+
+  .paid-paylink-title {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: white !important;
+    margin-bottom: 2px !important;
+  }
+
+  .paid-paylink-client {
+    font-size: 12px !important;
+    color: rgba(255,255,255,0.7) !important;
+    margin-bottom: 2px !important;
+  }
+
+  .paid-paylink-info {
+    font-size: 12px !important;
+    color: rgba(255,255,255,0.6) !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+
+  .paid-paylink-amount {
+    font-weight: 600 !important;
+    color: #10b981 !important;
+  }
+}
+
+/* Utility class to remove text underline (React inline styles don't support !important) */
+.no-underline {
+  text-decoration: none !important;
+}
+

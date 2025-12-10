@@ -1,0 +1,297 @@
+import { NextResponse } from 'next/server'
+import { createClient } from '@/utils/supabase/server'
+
+// Email validation regex
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// GET - Retrieve user's PayPal account information
+export async function GET() {
+  try {
+    const supabase = await createClient()
+
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 }
+      )
+    }
+
+    // Get user's PayPal account
+    const { data: paypalAccount, error } = await supabase
+      .from('user_paypal_account')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_primary', true)
+      .single()
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+      console.error('Error fetching PayPal account:', error)
+      return NextResponse.json(
+        { error: 'Failed to fetch PayPal account' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: paypalAccount || null
+    })
+
+  } catch (error) {
+    console.error('PayPal account GET error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+// POST - Save new PayPal account data
+export async function POST(request: Request) {
+  try {
+    const supabase = await createClient()
+
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 }
+      )
+    }
+
+    const body = await request.json()
+    const { email, confirm_email, account_type } = body
+
+    // Validate required fields
+    if (!email?.trim()) {
+      return NextResponse.json(
+        { error: 'PayPal email address is required' },
+        { status: 400 }
+      )
+    }
+
+    // Validate email format
+    if (!EMAIL_REGEX.test(email.trim())) {
+      return NextResponse.json(
+        { error: 'Please enter a valid email address' },
+        { status: 400 }
+      )
+    }
+
+    // Validate email confirmation if provided
+    if (confirm_email && email.trim() !== confirm_email.trim()) {
+      return NextResponse.json(
+        { error: 'Email addresses do not match' },
+        { status: 400 }
+      )
+    }
+
+    // Validate account_type if provided
+    if (account_type && !['personal', 'business'].includes(account_type.toLowerCase())) {
+      return NextResponse.json(
+        { error: 'Account type must be either "personal" or "business"' },
+        { status: 400 }
+      )
+    }
+
+    // Check if user already has a PayPal account
+    const { data: existingAccount } = await supabase
+      .from('user_paypal_account')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('is_primary', true)
+      .single()
+
+    if (existingAccount) {
+      return NextResponse.json(
+        { error: 'PayPal account already exists. Use PUT to update.' },
+        { status: 409 }
+      )
+    }
+
+    // Insert new PayPal account
+    const { data: newAccount, error: insertError } = await supabase
+      .from('user_paypal_account')
+      .insert({
+        user_id: user.id,
+        email: email.trim().toLowerCase(),
+        account_type: account_type?.toLowerCase() || 'personal',
+        is_primary: true,
+        is_verified: false,
+        status: 'pending',
+        paypal_account_id: null
+      })
+      .select()
+      .single()
+
+    if (insertError) {
+      console.error('Error inserting PayPal account:', insertError)
+      return NextResponse.json(
+        { error: 'Failed to save PayPal account' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: newAccount,
+      message: 'PayPal account added successfully'
+    })
+
+  } catch (error) {
+    console.error('PayPal account POST error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+// PUT - Update existing PayPal account
+export async function PUT(request: Request) {
+  try {
+    const supabase = await createClient()
+
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 }
+      )
+    }
+
+    const body = await request.json()
+    const { email, confirm_email, account_type } = body
+
+    // Validate required fields
+    if (!email?.trim()) {
+      return NextResponse.json(
+        { error: 'PayPal email address is required' },
+        { status: 400 }
+      )
+    }
+
+    // Validate email format
+    if (!EMAIL_REGEX.test(email.trim())) {
+      return NextResponse.json(
+        { error: 'Please enter a valid email address' },
+        { status: 400 }
+      )
+    }
+
+    // Validate email confirmation if provided
+    if (confirm_email && email.trim() !== confirm_email.trim()) {
+      return NextResponse.json(
+        { error: 'Email addresses do not match' },
+        { status: 400 }
+      )
+    }
+
+    // Validate account_type if provided
+    if (account_type && !['personal', 'business'].includes(account_type.toLowerCase())) {
+      return NextResponse.json(
+        { error: 'Account type must be either "personal" or "business"' },
+        { status: 400 }
+      )
+    }
+
+    // Build update data object
+    const updateData: any = {
+      email: email.trim().toLowerCase(),
+      updated_at: new Date().toISOString()
+    }
+
+    // Only update account_type if provided
+    if (account_type) {
+      updateData.account_type = account_type.toLowerCase()
+    }
+
+    // Update existing PayPal account
+    const { data: updatedAccount, error: updateError } = await supabase
+      .from('user_paypal_account')
+      .update(updateData)
+      .eq('user_id', user.id)
+      .eq('is_primary', true)
+      .select()
+      .single()
+
+    if (updateError) {
+      console.error('Error updating PayPal account:', updateError)
+      return NextResponse.json(
+        { error: 'Failed to update PayPal account' },
+        { status: 500 }
+      )
+    }
+
+    if (!updatedAccount) {
+      return NextResponse.json(
+        { error: 'PayPal account not found' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: updatedAccount,
+      message: 'PayPal account updated successfully'
+    })
+
+  } catch (error) {
+    console.error('PayPal account PUT error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+// DELETE - Remove PayPal account
+export async function DELETE() {
+  try {
+    const supabase = await createClient()
+
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 }
+      )
+    }
+
+    // Delete PayPal account
+    const { error: deleteError } = await supabase
+      .from('user_paypal_account')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('is_primary', true)
+
+    if (deleteError) {
+      console.error('Error deleting PayPal account:', deleteError)
+      return NextResponse.json(
+        { error: 'Failed to delete PayPal account' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'PayPal account removed successfully'
+    })
+
+  } catch (error) {
+    console.error('PayPal account DELETE error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

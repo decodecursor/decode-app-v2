@@ -1,0 +1,36 @@
+
+> decode-app@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.3.4
+   - Local:        http://localhost:3000
+   - Network:      http://10.255.255.254:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 26.3s
+ ○ Compiling /payment/create ...
+ ✓ Compiled /payment/create in 31.2s (914 modules)
+ ○ Compiling /dashboard ...
+ ✓ Compiled /api/payment/create-session in 13452.8s (1184 modules)
+❌ Create checkout session error: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at POST (app/api/payment/create-session/route.ts:11:44)
+   9 | export async function POST(request: NextRequest) {
+  10 |   try {
+> 11 |     const { paymentLinkId } = await request.json();
+     |                                            ^
+  12 |
+  13 |     // Validate input
+  14 |     if (!paymentLinkId) {
+ ○ Compiling /payment/create ...
+ ✓ Compiled /payment/create in 16.5s (525 modules)
+ ○ Compiling /pay/[linkId] ...
+ ✓ Compiled /pay/[linkId] in 11.8s (614 modules)
+ GET /payment/create 200 in 64413ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 16s (630 modules)
+ GET /pay/d9c6ec18-bd50-44ea-8cfc-5cb42b331b77 200 in 69788ms
+ GET /favicon.ico 200 in 32386ms
+ ○ Compiling /dashboard ...
+ GET /pay/d9c6ec18-bd50-44ea-8cfc-5cb42b331b77 200 in 62694ms
