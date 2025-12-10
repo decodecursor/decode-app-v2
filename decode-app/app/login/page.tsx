@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import AITextLoading from '@/components/ui/AITextLoading'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -13,10 +12,8 @@ export default function LoginPage() {
   }, [router])
 
   return (
-    <div className="cosmic-bg-model min-h-screen flex items-center justify-center px-4">
-      <div className="rounded-xl overflow-hidden shadow-lg">
-        <AITextLoading />
-      </div>
+    <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500" />
     </div>
-  )
+)
 }
