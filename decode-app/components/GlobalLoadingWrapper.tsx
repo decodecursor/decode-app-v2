@@ -1,7 +1,6 @@
 "use client";
 
 import { useUser } from "@/providers/UserContext";
-import AITextLoading from "@/components/ui/AITextLoading";
 
 export default function GlobalLoadingWrapper({ children }: { children: React.ReactNode }) {
   const { loading, authCompleted } = useUser();
@@ -9,8 +8,8 @@ export default function GlobalLoadingWrapper({ children }: { children: React.Rea
   // Show loading until auth check is complete
   if (loading || !authCompleted) {
     return (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white">
-        <AITextLoading />
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto" />
       </div>
     );
   }
