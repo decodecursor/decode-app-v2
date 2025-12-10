@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import AITextLoading from '../../../components/ui/AITextLoading'
 
 export default function AuthLoginPage() {
   const router = useRouter()
