@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import AITextLoading from '@/components/ui/AITextLoading'
 
 function VerifyContent() {
   const router = useRouter()
@@ -451,11 +450,11 @@ function VerifyContent() {
 
 export default function VerifyPage() {
   return (
-    <Suspense fallback={
+<Suspense fallback={
       <div className="cosmic-bg-model">
         <div className="min-h-screen flex items-center justify-center px-4">
-          <div className="rounded-xl overflow-hidden shadow-lg">
-            <AITextLoading />
+          <div className="text-white text-lg font-medium">
+            Loading verification...
           </div>
         </div>
       </div>
