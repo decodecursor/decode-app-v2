@@ -206,4 +206,14 @@ This project is proprietary and confidential.
 
 For support, email support@decode.beauty or create an issue in the repository.
 
+### ✅ Next Step
+
+1.  **Replace the content** of your local `README.md` file with the content above.
+2.  **Save the file.**
+3.  **Run the final commands:**
+    ```bash
+    git add .
+    git commit -m "Trivial trigger commit to force Vercel deployment after history fix"
+    git push origin main
+    ```
 <!-- Last updated: 2025-09-22 - Database migration completed - service amounts now display correctly -->
