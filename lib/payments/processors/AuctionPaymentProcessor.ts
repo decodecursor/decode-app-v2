@@ -43,6 +43,9 @@ export class AuctionPaymentProcessor {
 
       // Update bid statuses - reuse the same supabase client
       // CRITICAL FIX: Mark highest bid as 'winning' based on AMOUNT, not newBidId
+      // NOTE: Each updateBidStatusWithClient call triggers a separate Postgres UPDATE
+      // which fires a separate realtime event to all connected clients.
+      // The frontend debounces these events to prevent leaderboard flickering.
       for (const bid of bids) {
         if (bid.id === topTwoBids[0].id) {
           // Highest bid by amount (regardless of whether it's new)

@@ -1,10 +1,16 @@
 /**
- * Stripe PaymentIntent Preload API
- * Creates a PaymentIntent for preloading payment forms before bid creation
+ * Stripe PaymentIntent Preload API (User-Specific Preload - Fallback Path)
  *
- * This endpoint creates a PaymentIntent with an estimated amount (minimum bid)
- * which allows Stripe Elements (including ExpressCheckoutElement) to initialize
- * immediately, providing instant payment form loading.
+ * IMPORTANT: This is now a FALLBACK path. The main path is the anonymous preload API
+ * which is triggered on page load and provides instant Google Pay button loading.
+ *
+ * This endpoint creates a PaymentIntent with user identity (email/name) when available.
+ * It includes guest bidder lookup which adds 100-300ms overhead, but allows checking
+ * for saved payment methods.
+ *
+ * NOTE: Cannot parallelize guest bidder lookup and PaymentIntent creation because
+ * PaymentIntent needs the guest_stripe_customer_id from the lookup. The anonymous
+ * preload API skips this entirely for maximum speed.
  */
 
 import { NextRequest, NextResponse } from 'next/server';

@@ -573,7 +573,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
               </div>
 
               {/* My Payout */}
-              <div className="text-left relative group">
+              <div className="text-right md:text-left relative group">
                 <p className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wide">My Payout</p>
                 <p
                   onClick={(e) => {

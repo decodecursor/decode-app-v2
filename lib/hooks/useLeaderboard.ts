@@ -5,11 +5,26 @@
 
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { getAuctionRealtimeManager, type BidEvent } from '@/lib/realtime/AuctionRealtimeManager';
 import type { Bid, LeaderboardEntry } from '@/lib/models/Bid.model';
 import { formatBidderNameForLeaderboard, formatBidAmount } from '@/lib/models/Bid.model';
 import { usePageVisibility } from './usePageVisibility';
+
+/**
+ * Debounce utility function
+ * Delays function execution until after a specified delay has passed since the last call
+ */
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  delay: number
+): (...args: Parameters<T>) => void {
+  let timeoutId: NodeJS.Timeout | null = null;
+  return (...args: Parameters<T>) => {
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+}
 
 interface LeaderboardStats {
   total_bids: number;
@@ -102,6 +117,16 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
     setLeaderboard(entries);
   }, [limit, userEmail]);
 
+  // Create debounced version of fetchLeaderboard
+  // This prevents multiple rapid API calls when multiple bids are updated sequentially
+  const debouncedFetchRef = useRef<(() => void) | null>(null);
+
+  if (!debouncedFetchRef.current) {
+    debouncedFetchRef.current = debounce(() => {
+      fetchLeaderboard();
+    }, 300); // 300ms delay to coalesce rapid updates
+  }
+
   // Handle new bid event
   const handleBidEvent = useCallback(
     (event: BidEvent) => {
@@ -116,23 +141,27 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
           return updated;
         });
       } else if (event.type === 'bid_updated') {
-        // Always refresh from API to ensure we have the latest bid status
-        // Don't rely on event payload timing - fetch fresh from database
-        console.log('🔄 [useLeaderboard] Bid updated, refreshing from API...', {
+        console.log('🔄 [useLeaderboard] Bid updated, applying optimistic update...', {
           bid_id: event.bid.id,
           status: event.bid.status,
           amount: event.bid.bid_amount
         });
-        fetchLeaderboard();
 
-        // Also update local state
+        // OPTIMISTIC UPDATE: Update local state immediately for instant UI feedback
         setAllBids((prev) => {
           const updated = prev.map((b) => (b.id === event.bid.id ? event.bid : b));
+          updateLeaderboard(updated); // Update UI instantly with new data
           return updated;
         });
+
+        // VERIFICATION: Fetch from API in background (debounced)
+        // Multiple rapid updates will be coalesced into a single API call
+        if (debouncedFetchRef.current) {
+          debouncedFetchRef.current();
+        }
       }
     },
-    [updateLeaderboard, fetchLeaderboard]
+    [updateLeaderboard]
   );
 
   useEffect(() => {

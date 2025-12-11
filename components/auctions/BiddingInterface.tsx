@@ -69,6 +69,9 @@ interface BiddingInterfaceProps {
   auction: Auction;
   userEmail?: string;
   userName?: string;
+  // PERFORMANCE OPTIMIZATION: Anonymous preload from page mount
+  preloadedClientSecret?: string | null;
+  preloadedPaymentIntentId?: string | null;
   onBidPlaced?: (bidId: string) => void;
 }
 
@@ -76,6 +79,8 @@ export function BiddingInterface({
   auction,
   userEmail,
   userName,
+  preloadedClientSecret,
+  preloadedPaymentIntentId,
   onBidPlaced,
 }: BiddingInterfaceProps) {
   const [step, setStep] = useState<'amount' | 'guest_info' | 'instagram' | 'payment'>('amount');
@@ -188,8 +193,10 @@ export function BiddingInterface({
     // If user is logged in and is a repeat bidder, skip directly to payment
     if (userEmail && userName && isRepeatBidder) {
       // Create bid with saved Instagram username (if any)
+      // Use preloaded PaymentIntent for instant payment
+      const paymentIntentToUse = preloadedPaymentIntentId || preloadedPaymentIntent?.paymentIntentId;
       setStep('payment');
-      await createBid(userName, 'email', userEmail, undefined, amount, instagramUsername, preloadedPaymentIntent?.paymentIntentId);
+      await createBid(userName, 'email', userEmail, undefined, amount, instagramUsername, paymentIntentToUse);
       return;
     }
 
@@ -197,6 +204,8 @@ export function BiddingInterface({
     if (!userEmail && guestInfo && isRepeatBidder) {
       console.log('✨ [BiddingInterface] Repeat guest bidder detected, skipping forms');
       // Create bid with cached guest info and Instagram username
+      // Use preloaded PaymentIntent for instant payment
+      const paymentIntentToUse = preloadedPaymentIntentId || preloadedPaymentIntent?.paymentIntentId;
       setStep('payment');
       await createBid(
         guestInfo.name,
@@ -205,7 +214,7 @@ export function BiddingInterface({
         guestInfo.whatsappNumber,
         amount,
         instagramUsername,
-        preloadedPaymentIntent?.paymentIntentId
+        paymentIntentToUse
       );
       return;
     }
@@ -276,9 +285,11 @@ export function BiddingInterface({
 
               console.log('[BiddingInterface] Repeat bidder detected, proceeding to payment');
               // Skip Instagram step and go directly to payment
+              // Use preloaded PaymentIntent for instant payment
+              const paymentIntentToUse = preloadedPaymentIntentId || preloadedPaymentIntent?.paymentIntentId;
               setStep('payment');
               const amount = parseFloat(bidAmount.replace(/,/g, ''));
-              await createBid(info.name, info.contactMethod, info.email, info.whatsappNumber, amount, savedInstagram, preloadedPaymentIntent?.paymentIntentId);
+              await createBid(info.name, info.contactMethod, info.email, info.whatsappNumber, amount, savedInstagram, paymentIntentToUse);
               return;
             }
           } else {
@@ -334,10 +345,18 @@ export function BiddingInterface({
     setStep('payment');
 
     // Create bid with preloaded PaymentIntent if available
-    if (preloadedPaymentIntent) {
-      console.log('[BiddingInterface] 💚 Using preloaded PaymentIntent for instant payment form');
+    // Prioritize anonymous preload for fastest performance
+    const paymentIntentToUse =
+      preloadedPaymentIntentId || // Anonymous preload (from page mount) - FASTEST
+      preloadedPaymentIntent?.paymentIntentId; // User-specific preload
+
+    if (paymentIntentToUse) {
+      console.log('[BiddingInterface] 💚 Using preloaded PaymentIntent for instant payment form', {
+        from_anonymous_preload: !!preloadedPaymentIntentId,
+        payment_intent_id: paymentIntentToUse,
+      });
       console.log(`[PERF] Starting bid creation (with preloaded intent): ${performance.now() - perfStart}ms`);
-      await createBid(name, contactMethod, email, whatsappNumber, amount, username, preloadedPaymentIntent.paymentIntentId);
+      await createBid(name, contactMethod, email, whatsappNumber, amount, username, paymentIntentToUse);
       console.log(`[PERF] Bid created: ${performance.now() - perfStart}ms`);
     } else {
       console.log('[BiddingInterface] ⚠️ No preloaded PaymentIntent, using fallback flow');
@@ -513,7 +532,25 @@ export function BiddingInterface({
   }
 
   // Determine if we have a clientSecret for Stripe Elements
-  const activeClientSecret = clientSecret || preloadedPaymentIntent?.clientSecret;
+  // Prioritize anonymous preload (from page mount) for instant Google Pay rendering
+  const activeClientSecret =
+    preloadedClientSecret || // Anonymous preload (from page mount) - FASTEST
+    clientSecret || // Bid creation
+    preloadedPaymentIntent?.clientSecret; // User-specific preload
+
+  // Log active clientSecret source for debugging
+  useEffect(() => {
+    if (activeClientSecret) {
+      console.log('[BiddingInterface] ⚡ Active clientSecret source:', {
+        from_anonymous_preload: !!preloadedClientSecret,
+        from_bid_creation: !!clientSecret,
+        from_user_preload: !!preloadedPaymentIntent?.clientSecret,
+        note: preloadedClientSecret
+          ? 'Using anonymous preload - Google Pay button will be INSTANT!'
+          : 'Using fallback clientSecret',
+      });
+    }
+  }, [activeClientSecret, preloadedClientSecret, clientSecret, preloadedPaymentIntent?.clientSecret]);
 
   // Stripe Elements options - only created when we have a clientSecret
   const elementsOptions = activeClientSecret ? {

@@ -150,7 +150,7 @@ export function LiveLeaderboard({
             return (
               <div
                 key={entry.id}
-                className={`px-4 py-3 transition-colors ${
+                className={`px-4 py-3 transition-all duration-300 ease-in-out ${
                   isUser ? 'bg-blue-50' : 'hover:bg-gray-50'
                 }`}
               >

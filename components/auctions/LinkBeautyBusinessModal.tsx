@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import Cropper from 'react-easy-crop';
 import { createClient } from '@/utils/supabase/client';
@@ -106,6 +106,9 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
   const [existingBusinesses, setExistingBusinesses] = useState<BeautyBusiness[]>([]);
   const [loadingBusinesses, setLoadingBusinesses] = useState(false);
 
+  // Linked business state (to fetch and display the currently linked business)
+  const [linkedBusinessData, setLinkedBusinessData] = useState<BeautyBusiness | null>(null);
+
   // Search states
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<BeautyBusiness[]>([]);
@@ -154,12 +157,37 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
     }
   }, []);
 
+  // Fetch the linked business by ID
+  const fetchLinkedBusiness = useCallback(async (businessId: string) => {
+    try {
+      const response = await fetch(`/api/beauty-businesses/${businessId}`);
+
+      if (!response.ok) {
+        console.error('Error fetching linked business:', businessId);
+        return;
+      }
+
+      const data = await response.json();
+      if (data.success && data.business) {
+        setLinkedBusinessData(data.business as BeautyBusiness);
+      }
+    } catch (error) {
+      console.error('Error fetching linked business:', error);
+    }
+  }, []);
+
   // Fetch businesses when modal opens
   useEffect(() => {
     if (isOpen) {
       fetchExistingBusinesses();
+
+      // Auto-select "Existing Business" tab if there's a linked business
+      if (linkedBusinessId) {
+        setBusinessType('existing');
+        fetchLinkedBusiness(linkedBusinessId);
+      }
     }
-  }, [isOpen, fetchExistingBusinesses]);
+  }, [isOpen, fetchExistingBusinesses, fetchLinkedBusiness, linkedBusinessId]);
 
   // Debounced search functionality
   useEffect(() => {
@@ -212,8 +240,30 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
     setCroppedBlob(null);
     setTempCroppedBlob(null);
 
+    // Reset linked business data
+    setLinkedBusinessData(null);
+
     onClose();
   };
+
+  // Compute sorted businesses list with linked business at the top
+  const sortedBusinesses = useMemo(() => {
+    let businessesToShow = searchTerm.trim() ? searchResults : existingBusinesses;
+
+    // Add linked business to the list if it exists and isn't already included
+    if (linkedBusinessData && !businessesToShow.find(b => b.id === linkedBusinessData.id)) {
+      businessesToShow = [linkedBusinessData, ...businessesToShow];
+    }
+
+    // Sort to put linked business at the top
+    return linkedBusinessId
+      ? [...businessesToShow].sort((a, b) => {
+          if (a.id === linkedBusinessId) return -1;
+          if (b.id === linkedBusinessId) return 1;
+          return 0;
+        })
+      : businessesToShow;
+  }, [searchTerm, searchResults, existingBusinesses, linkedBusinessData, linkedBusinessId]);
 
   if (!isOpen) return null;
 
@@ -501,95 +551,88 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
               </div>
 
               {/* Display businesses based on search */}
-              {(() => {
-                const businessesToShow = searchTerm.trim() ? searchResults : existingBusinesses;
-                const isLoading = searchTerm.trim() ? isSearching : loadingBusinesses;
+              <>
+                {/* Loading state */}
+                {(searchTerm.trim() ? isSearching : loadingBusinesses) && (
+                  <div className="w-full px-4 py-8 bg-gray-800 border border-gray-600 rounded-lg text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                      <p className="text-gray-400 text-sm">{searchTerm.trim() ? 'Searching...' : 'Loading businesses...'}</p>
+                    </div>
+                  </div>
+                )}
 
-                return (
-                  <>
-                    {/* Loading state */}
-                    {isLoading && (
-                      <div className="w-full px-4 py-8 bg-gray-800 border border-gray-600 rounded-lg text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                          <p className="text-gray-400 text-sm">{searchTerm.trim() ? 'Searching...' : 'Loading businesses...'}</p>
-                        </div>
-                      </div>
-                    )}
+                {/* Empty state */}
+                {!(searchTerm.trim() ? isSearching : loadingBusinesses) && sortedBusinesses.length === 0 && (
+                  <div className="w-full px-4 py-8 bg-gray-800 border border-gray-600 rounded-lg text-center">
+                    <p className="text-gray-400 text-sm">
+                      {searchTerm.trim()
+                        ? 'No businesses found matching your search.'
+                        : 'No businesses yet. Create one using "New Business"!'}
+                    </p>
+                  </div>
+                )}
 
-                    {/* Empty state */}
-                    {!isLoading && businessesToShow.length === 0 && (
-                      <div className="w-full px-4 py-8 bg-gray-800 border border-gray-600 rounded-lg text-center">
-                        <p className="text-gray-400 text-sm">
-                          {searchTerm.trim()
-                            ? 'No businesses found matching your search.'
-                            : 'No businesses yet. Create one using "New Business"!'}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Businesses list */}
-                    {!isLoading && businessesToShow.length > 0 && (
-                      <div className="space-y-3">
-                        {businessesToShow.map((business) => (
-                          <button
-                            key={business.id}
-                            type="button"
-                            onClick={() => handleLinkExisting(business.id)}
-                            className={`w-full p-4 border rounded-lg transition-all text-left ${
-                              business.id === selectedBusinessId || business.id === linkedBusinessId
-                                ? 'border-purple-500'
-                                : 'border-transparent hover:border-purple-500'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="instagram-avatar-sm flex-shrink-0">
-                                {business.business_photo_url ? (
-                                  <img
-                                    src={business.business_photo_url}
-                                    alt={business.business_name}
-                                  />
-                                ) : (
-                                  <div className="avatar-fallback">
-                                    {business.business_name.charAt(0)}
-                                  </div>
-                                )}
+                {/* Businesses list */}
+                {!(searchTerm.trim() ? isSearching : loadingBusinesses) && sortedBusinesses.length > 0 && (
+                  <div className="space-y-3">
+                    {sortedBusinesses.map((business) => (
+                      <button
+                        key={business.id}
+                        type="button"
+                        onClick={() => handleLinkExisting(business.id)}
+                        className={`w-full p-4 border rounded-lg transition-all text-left ${
+                          business.id === selectedBusinessId || business.id === linkedBusinessId
+                            ? 'border-purple-500'
+                            : 'border-transparent hover:border-purple-500'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="instagram-avatar-sm flex-shrink-0">
+                            {business.business_photo_url ? (
+                              <img
+                                src={business.business_photo_url}
+                                alt={business.business_name}
+                              />
+                            ) : (
+                              <div className="avatar-fallback">
+                                {business.business_name.charAt(0)}
                               </div>
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <h3 className="text-white font-semibold">{business.business_name}</h3>
-                                  {/* Green checkmark right after business name */}
-                                  {(business.id === selectedBusinessId || business.id === linkedBusinessId) && (
-                                    <div className="w-5 h-5 bg-green-600/80 rounded-full flex items-center justify-center flex-shrink-0">
-                                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                      </svg>
-                                    </div>
-                                  )}
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-white font-semibold">{business.business_name}</h3>
+                              {/* Green checkmark right after business name */}
+                              {(business.id === selectedBusinessId || business.id === linkedBusinessId) && (
+                                <div className="w-5 h-5 bg-green-600/80 rounded-full flex items-center justify-center flex-shrink-0">
+                                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
                                 </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-400">
-                                  <InstagramIcon className="w-3 h-3 text-pink-600" />
-                                  <a
-                                    href={`https://www.instagram.com/${business.instagram_handle}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="hover:text-pink-600 hover:underline transition-colors"
-                                  >
-                                    {business.instagram_handle}
-                                  </a>
-                                  <span>•</span>
-                                  <span>{business.city}</span>
-                                </div>
-                              </div>
+                              )}
                             </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
+                            <div className="flex items-center gap-2 text-sm text-gray-400">
+                              <InstagramIcon className="w-3 h-3 text-pink-600" />
+                              <a
+                                href={`https://www.instagram.com/${business.instagram_handle}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="hover:text-pink-600 hover:underline transition-colors"
+                              >
+                                {business.instagram_handle}
+                              </a>
+                              <span>•</span>
+                              <span>{business.city}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
             </div>
           )}
 
