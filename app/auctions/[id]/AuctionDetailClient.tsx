@@ -62,6 +62,7 @@ export default function AuctionDetailClient() {
   const currentPrice = auction ? Number(auction.auction_current_price) : 0;
   const startPrice = auction ? Number(auction.auction_start_price) : 0;
   const minimumBid = auction ? calculateMinimumBid(currentPrice, startPrice) : 0;
+  const hasBids = auction ? auction.total_bids > 0 : false;
 
   const {
     clientSecret: preloadedClientSecret,
@@ -354,10 +355,6 @@ export default function AuctionDetailClient() {
       </div>
     );
   }
-
-  const currentPrice = Number(auction.auction_current_price);
-  const startPrice = Number(auction.auction_start_price);
-  const hasBids = auction.total_bids > 0;
 
   return (
     <div
