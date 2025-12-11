@@ -880,6 +880,25 @@ body {
     min-height: 100dvh;
   }
 
+  /* Cosmic page: scrollable pages with cosmic background */
+  .cosmic-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+    position: relative;
+    /* Allow scrolling - NO overflow: hidden */
+  }
+
+  .cosmic-page .min-h-screen {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 16px;
+    box-sizing: border-box;
+  }
+
+  .cosmic-page .container {
+    padding-top: 16px;
+  }
+
   /* Auth page mobile: comprehensive viewport solution to eliminate white area */
   .auth-page .cosmic-bg {
     /* Ensure full coverage when keyboard opens */

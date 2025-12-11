@@ -149,7 +149,19 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
 
         // OPTIMISTIC UPDATE: Update local state immediately for instant UI feedback
         setAllBids((prev) => {
-          const updated = prev.map((b) => (b.id === event.bid.id ? event.bid : b));
+          // Check if bid exists in local state
+          const existingIndex = prev.findIndex(b => b.id === event.bid.id);
+
+          let updated;
+          if (existingIndex >= 0) {
+            // Update existing bid
+            updated = prev.map((b) => (b.id === event.bid.id ? event.bid : b));
+          } else {
+            // Bid not in local state - ADD it (handles missed new_bid events or pending bids)
+            console.log('📥 [useLeaderboard] Adding bid that was missing from local state:', event.bid.id);
+            updated = [...prev, event.bid];
+          }
+
           updateLeaderboard(updated); // Update UI instantly with new data
           return updated;
         });

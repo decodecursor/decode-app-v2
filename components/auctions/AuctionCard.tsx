@@ -446,7 +446,7 @@ export function AuctionCard({
           <div className="relative flex items-start md:items-center gap-2 md:gap-3">
             {/* Left: Title */}
             <div className="flex-1 min-w-0 md:pr-20">
-              <h3 className="text-[20px] md:text-[26px] font-semibold text-white truncate">
+              <h3 className="text-[22px] md:text-[26px] font-semibold text-white truncate">
                 {auction.title}
               </h3>
             </div>

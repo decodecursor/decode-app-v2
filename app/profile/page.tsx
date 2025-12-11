@@ -553,7 +553,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="cosmic-bg dashboard-page">
+    <div className="cosmic-bg cosmic-page">
       <div className="container mx-auto px-4 py-4 md:py-8">
         {/* Message Display */}
         {message && (
