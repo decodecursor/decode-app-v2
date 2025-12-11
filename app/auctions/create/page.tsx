@@ -197,7 +197,7 @@ export default function CreateAuction() {
             {/* Title */}
             <div>
               <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
-                Auction Title
+                Title
               </label>
               <input
                 type="text"
@@ -219,7 +219,7 @@ export default function CreateAuction() {
             {/* Starting Price */}
             <div>
               <label htmlFor="auction_start_price" className="block text-sm font-medium text-gray-300 mb-2">
-                Starting Price
+                Starting Price = Beauty Service Price
               </label>
               <div className="relative">
                 <span className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400">AED</span>
@@ -244,7 +244,7 @@ export default function CreateAuction() {
             {/* Duration */}
             <div>
               <label htmlFor="duration" className="block text-sm font-medium text-gray-300 mb-2">
-                Auction Duration
+                Duration
               </label>
               <select
                 id="duration"
@@ -264,7 +264,7 @@ export default function CreateAuction() {
                 } as React.CSSProperties}
                 disabled={creating}
               >
-                <option value="" disabled>Select duration</option>
+                <option value="" disabled>Select</option>
                 {AUCTION_DURATIONS.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
