@@ -871,7 +871,7 @@ body {
   /* Background: proper coverage without crops - FIXED for mobile */
   .cosmic-bg {
     background-size: cover;
-    background-position: center center;
+    background-position: 62% center;
     /* CRITICAL: Use scroll instead of fixed on mobile - fixed is broken on iOS Safari */
     background-attachment: scroll;
     background-repeat: no-repeat;

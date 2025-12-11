@@ -1393,6 +1393,7 @@ DECODE
     auction_title: string
     winning_bid_amount: number
     winner_name: string
+    auction_start_price: number
     platform_fee: number
     model_payout: number
     dashboard_url: string
@@ -1400,7 +1401,7 @@ DECODE
     try {
       console.log(`📧 Sending auction completed email to model ${data.model_email}`)
 
-      const subject = `🎉 Your Auction Completed Successfully - ${data.auction_title}`
+      const subject = `🎉 Your Beauty Auction "${data.auction_title}" Completed Successfully`
 
       const emailContent = await this.renderModelAuctionCompletedEmail(data)
 
@@ -2006,6 +2007,7 @@ Last Payout Amount: ${payoutData.last_payout_amount || 0} AED
     auction_title: string
     winning_bid_amount: number
     winner_name: string
+    auction_start_price: number
     platform_fee: number
     model_payout: number
     dashboard_url: string
@@ -2023,10 +2025,10 @@ Last Payout Amount: ${payoutData.last_payout_amount || 0} AED
     <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .header { background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 30px; text-align: left; border-radius: 8px 8px 0 0; }
         .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-        .success-icon { font-size: 48px; color: #4CAF50; margin-bottom: 20px; text-align: center; }
-        .amount { font-size: 32px; font-weight: bold; color: #4CAF50; margin: 20px 0; text-align: center; }
+        .success-icon { font-size: 48px; color: #4CAF50; margin-bottom: 20px; text-align: left; }
+        .amount { font-size: 32px; font-weight: bold; color: #4CAF50; margin: 20px 0; text-align: left; }
         .details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
         .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
         .detail-row:last-child { border-bottom: none; }
@@ -2041,36 +2043,35 @@ Last Payout Amount: ${payoutData.last_payout_amount || 0} AED
             <h2>🎉 Auction Completed Successfully!</h2>
         </div>
         <div class="content">
-            <div class="success-icon">✅</div>
-            <h3 style="text-align: center;">Congratulations, ${data.model_name}!</h3>
-            <p style="text-align: center;">Your auction "${data.auction_title}" has ended with a winning bid!</p>
+            <h3 style="text-align: left;">Congrats, ${data.model_name}!</h3>
+            <p style="text-align: left;">Your beauty auction "${data.auction_title}" has ended with a winning bid.</p>
 
             <div class="details">
                 <h4>Winning Bid</h4>
-                <div class="amount">AED ${data.winning_bid_amount.toFixed(2)}</div>
-                <p style="text-align: center;"><strong>Winner:</strong> ${data.winner_name}</p>
+                <div class="amount">AED ${data.winning_bid_amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                <p style="text-align: left;">${data.winner_name}</p>
             </div>
 
             <div class="details">
-                <h4>Your Earnings Breakdown</h4>
+                <h4>Auction Breakdown</h4>
                 <div class="detail-row">
                     <span>Winning Bid:</span>
-                    <span>AED ${data.winning_bid_amount.toFixed(2)}</span>
+                    <span>AED ${data.winning_bid_amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                 </div>
                 <div class="detail-row">
-                    <span>Platform Fee (25%):</span>
-                    <span>- AED ${data.platform_fee.toFixed(2)}</span>
+                    <span>Beauty Service Price:</span>
+                    <span>- AED ${data.auction_start_price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                 </div>
                 <div class="detail-row" style="font-weight: bold; font-size: 18px;">
-                    <span>My Payout:</span>
-                    <span style="color: #4CAF50;">AED ${data.model_payout.toFixed(2)}</span>
+                    <span>Your Payout:</span>
+                    <span style="color: #4CAF50;">AED ${data.model_payout.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                 </div>
             </div>
 
             <div class="details">
-                <h4>📹 Next Steps</h4>
-                <p>The winner has <strong>24 hours</strong> to upload their personalized video message.</p>
-                <p>Once uploaded, you'll receive another notification. You'll need to watch the video to unlock your payout.</p>
+                <h4>Next Step</h4>
+                <p>The winner has <strong>24 hours</strong> to upload their video message.</p>
+                <p>You'll be notified once it's uploaded—watch it to unlock your payout.</p>
             </div>
 
             <div style="text-align: center;">
@@ -2078,8 +2079,7 @@ Last Payout Amount: ${payoutData.last_payout_amount || 0} AED
             </div>
         </div>
         <div class="footer">
-            <p>This email was sent by DECODE Beauty Platform</p>
-            <p>If you have any questions, please contact support.</p>
+            <p>If you have any questions, please contact DECODE support.</p>
         </div>
     </div>
 </body>
@@ -2088,28 +2088,26 @@ Last Payout Amount: ${payoutData.last_payout_amount || 0} AED
     const text = `
 DECODE - Auction Completed Successfully!
 
-Congratulations, ${data.model_name}!
+Congrats, ${data.model_name}!
 
-Your auction "${data.auction_title}" has ended with a winning bid!
+Your beauty auction "${data.auction_title}" has ended with a winning bid.
 
-WINNING BID
-Amount: AED ${data.winning_bid_amount.toFixed(2)}
-Winner: ${data.winner_name}
+Winning Bid
+AED ${data.winning_bid_amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+${data.winner_name}
 
-YOUR EARNINGS BREAKDOWN
-Winning Bid: AED ${data.winning_bid_amount.toFixed(2)}
-Platform Fee (25%): - AED ${data.platform_fee.toFixed(2)}
-My Payout: AED ${data.model_payout.toFixed(2)}
+Auction Breakdown
+Winning Bid: AED ${data.winning_bid_amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+Beauty Service Price: - AED ${data.auction_start_price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+Your Payout: AED ${data.model_payout.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
 
-NEXT STEPS
-The winner has 24 hours to upload their personalized video message.
-Once uploaded, you'll receive another notification. You'll need to watch the video to unlock your payout.
+Next Step
+The winner has 24 hours to upload their video message.
+You'll be notified once it's uploaded—watch it to unlock your payout.
 
 View Dashboard: ${data.dashboard_url}
 
----
-DECODE Beauty Platform
-If you have any questions, please contact support.
+If you have any questions, please contact DECODE support.
 `
 
     return { html, text }
