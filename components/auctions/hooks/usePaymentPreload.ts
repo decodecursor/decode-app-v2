@@ -19,7 +19,7 @@
  * );
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 interface PreloadState {
   isPreloading: boolean;
@@ -57,6 +57,17 @@ export function usePaymentPreload({
   const preloadRef = useRef<Promise<void> | null>(null);
   const preloadedForRef = useRef<string>('');
 
+  // Reset function to clear cache for consecutive bids
+  const reset = useCallback(() => {
+    console.log('[usePaymentPreload] 🔄 Resetting cache');
+    preloadedForRef.current = '';
+    setState({
+      isPreloading: false,
+      preloadedData: null,
+      error: null,
+    });
+  }, []);
+
   useEffect(() => {
     // Only preload once per unique user (email + name combination)
     if (!enabled || !email || !name || !auctionId) {
@@ -68,7 +79,12 @@ export function usePaymentPreload({
 
     // Skip if already preloaded for this user
     if (preloadedForRef.current === cacheKey) {
-      console.log('[usePaymentPreload] Already preloaded for:', { email, name });
+      console.log('[usePaymentPreload] ✋ Already preloaded for:', {
+        email,
+        name,
+        cache_key: cacheKey,
+        note: 'If this appears during consecutive bids, reset() was not called'
+      });
       return;
     }
 
@@ -158,5 +174,5 @@ export function usePaymentPreload({
     preloadRef.current = preload();
   }, [enabled, email, name, auctionId, estimatedAmount]);
 
-  return state;
+  return { ...state, reset };
 }

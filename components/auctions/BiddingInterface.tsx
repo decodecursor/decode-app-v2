@@ -128,7 +128,8 @@ export function BiddingInterface({
 
   const {
     preloadedData: preloadedPaymentIntent,
-    isPreloading: isPreloadingSetupIntent
+    isPreloading: isPreloadingSetupIntent,
+    reset: resetPaymentPreload
   } = usePaymentPreload({
     auctionId: auction.id,
     email: email || null,
@@ -485,8 +486,10 @@ export function BiddingInterface({
     setError(null);
     setPaymentAutoConfirmed(false);
     setPreloadedSetupIntent(null);
-    // Note: preloadedPaymentIntent is managed by usePaymentPreload hook
-    // It will reset when email/name changes or component remounts
+
+    // Clear the payment preload cache for consecutive bids
+    resetPaymentPreload();
+    console.log('🔄 [BiddingInterface] Cleared payment preload cache for fresh bid');
 
     // For guest bidders: Load cached data from localStorage
     if (!userEmail) {

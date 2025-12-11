@@ -70,8 +70,8 @@ export default function AuctionDetailClient() {
     isPreloading: isAnonymousPreloading,
   } = useAnonymousPaymentPreload({
     auctionId,
-    minimumBid,
-    enabled: !!auction && !isCreator, // Only preload for non-creators
+    estimatedAmount: 500, // Default estimate in AED - will be updated during bid creation
+    enabled: !isCreator, // Start immediately for non-creators (don't wait for auction)
   });
 
   useEffect(() => {

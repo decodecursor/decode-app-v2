@@ -1,14 +1,24 @@
 /**
  * Anonymous Stripe PaymentIntent Preload API
  *
- * Creates a PaymentIntent BEFORE user identity (email/name) is known.
- * This enables instant Google Pay button rendering (<500ms) by shifting
- * the 500-1500ms Stripe API delay into background while user fills forms.
+ * Creates a PaymentIntent IMMEDIATELY on auction page load, BEFORE user identity
+ * (email/name) is known, using an estimated amount (default: 500 AED).
  *
- * Key Differences from Regular Preload:
+ * This enables instant Google Pay button rendering (<500ms) by shifting the
+ * 500-1500ms Stripe API delay into background while user reads auction details
+ * and fills forms.
+ *
+ * Key Features:
+ * - Starts IMMEDIATELY on page mount (parallel with auction data fetch)
  * - No guest bidder lookup (saves 100-300ms)
- * - Minimal metadata (just auction_id and amount)
- * - PaymentIntent will be updated with user info when bid is created
+ * - Uses estimated_amount as default - typically 500 AED
+ * - PaymentIntent amount will be UPDATED to actual bid amount during bid creation
+ * - Minimal metadata (just auction_id and estimated amount)
+ * - User info added to metadata when bid is created
+ *
+ * Performance Impact:
+ * - Before: Sequential waterfall (1000-3000ms)
+ * - After: Parallel loading (500-1500ms) - 50% faster
  *
  * Cost Impact: None - Stripe PaymentIntents are free to create
  */

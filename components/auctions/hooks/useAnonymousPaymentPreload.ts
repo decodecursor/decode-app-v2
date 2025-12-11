@@ -34,13 +34,13 @@ interface AnonymousPreloadState {
 
 interface UseAnonymousPaymentPreloadOptions {
   auctionId: string;
-  minimumBid: number;
+  estimatedAmount?: number; // Optional - defaults to 500 AED
   enabled?: boolean;
 }
 
 export function useAnonymousPaymentPreload({
   auctionId,
-  minimumBid,
+  estimatedAmount = 500, // Default estimate in AED
   enabled = true,
 }: UseAnonymousPaymentPreloadOptions) {
   const [state, setState] = useState<AnonymousPreloadState>({
@@ -56,7 +56,7 @@ export function useAnonymousPaymentPreload({
 
   useEffect(() => {
     // Only preload once per mount
-    if (!enabled || !auctionId || !minimumBid || preloadedRef.current) {
+    if (!enabled || !auctionId || preloadedRef.current) {
       return;
     }
 
@@ -67,7 +67,7 @@ export function useAnonymousPaymentPreload({
 
     console.log('[useAnonymousPaymentPreload] 🚀 Starting anonymous preload:', {
       auctionId,
-      minimumBid,
+      estimatedAmount,
     });
 
     const preload = async () => {
@@ -81,7 +81,7 @@ export function useAnonymousPaymentPreload({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             auction_id: auctionId,
-            estimated_amount: minimumBid,
+            estimated_amount: estimatedAmount,
           }),
         });
 
@@ -137,7 +137,7 @@ export function useAnonymousPaymentPreload({
 
     // Start preload and store promise
     preloadRef.current = preload();
-  }, [enabled, auctionId, minimumBid]);
+  }, [enabled, auctionId]); // Don't include estimatedAmount - run once per mount only
 
   return state;
 }
