@@ -1,8 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/auctions/cron/cleanup-videos",
-      "schedule": "0 0 * * *"
-    }
-  ]
-}

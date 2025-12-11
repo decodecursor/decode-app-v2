@@ -92,7 +92,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
       z-index: 99999;
       pointer-events: none;
       transform: scale(${scale});
-      animation: heartfade 2.86s linear;
+      animation: heartfade ${isMobile ? '5.5s' : '7s'} cubic-bezier(0.33, 1, 0.68, 1);
       font-size: 24px;
       line-height: 1;
     `
@@ -114,7 +114,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
       bound: xBound,
       direction: xStart,
       scale,
-      time: isMobile ? 2860 : 3575, // Desktop: 3.575s (50% reduced), Mobile: 2.86s (50% reduced)
+      time: isMobile ? 5500 : 7000, // Desktop: 7s, Mobile: 5.5s (doubled for more visible hearts)
       element: heartElement
     }
 
@@ -124,7 +124,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
   const updateHearts = () => {
     const deltaTime = 16 // ~60fps
     const isMobile = window.innerWidth <= 768
-    const speed = isMobile ? 1.12 : 0.896 // Desktop 20% slower
+    const speed = isMobile ? 0.57 : 0.457 // Desktop 20% slower, 49% reduction overall to compensate for 2x lifespan
 
     heartsRef.current = heartsRef.current.filter(heart => {
       heart.time -= deltaTime
@@ -135,7 +135,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
         heart.element.style.left = `${heart.x + heart.direction * heart.bound * Math.sin(heart.y * heart.scale / 30) / heart.y * 200}px`
 
         // Update opacity based on time remaining
-        const maxTime = isMobile ? 2860 : 3575
+        const maxTime = isMobile ? 5500 : 7000
         const opacity = heart.time / maxTime
         heart.element.style.opacity = `${opacity}`
 
@@ -209,7 +209,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
   }
 
   const startAnimation = () => {
-    // Generate hearts periodically for 2 seconds
+    // Generate hearts rapidly for dramatic burst effect (~6s desktop, ~2s mobile)
     let heartCount = 0
     const isMobile = window.innerWidth <= 768
     const maxHearts = isMobile ? 192 : 576 // Desktop: 576 hearts (doubled), Mobile: 192
@@ -223,7 +223,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
           clearInterval(checkIntervalRef.current)
         }
       }
-    }, 20) // Generate a heart every 20ms (5x faster spawn rate)
+    }, 10.4) // Generate a heart every 10.4ms (~96 hearts/sec for dramatic burst)
     
     // Start the animation loop
     updateHearts()

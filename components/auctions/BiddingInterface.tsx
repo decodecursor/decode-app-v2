@@ -558,7 +558,7 @@ export function BiddingInterface({
     appearance: {
       theme: 'stripe' as const,
       variables: {
-        colorPrimary: '#2563eb',
+        colorPrimary: '#7C3AED',
         fontSizeBase: '16px',
       },
     },

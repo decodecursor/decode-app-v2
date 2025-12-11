@@ -114,6 +114,9 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
   const [searchResults, setSearchResults] = useState<BeautyBusiness[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
+  // Focus state for border styling
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+
   // Crop complete callback - MUST be before early return to follow Rules of Hooks
   const onCropComplete = useCallback(async (_: unknown, croppedAreaPixelsParam: { x: number, y: number, width: number, height: number }) => {
     if (!selectedImage) return;
@@ -545,8 +548,12 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onFocus={() => setFocusedField('search')}
+                  onBlur={() => setFocusedField(null)}
                   placeholder="Search across all users"
-                  className="w-full pl-10 pr-4 py-[7px] bg-gray-800 border-0 rounded-lg text-white placeholder-gray-500 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className={`w-full pl-10 pr-4 py-[7px] bg-gray-800 border rounded-lg text-white placeholder-gray-500 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                    focusedField === 'search' && searchTerm ? 'border-purple-500' : 'border-gray-600'
+                  }`}
                 />
               </div>
 
@@ -649,8 +656,12 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
                   required
                   value={formData.businessName}
                   onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+                  onFocus={() => setFocusedField('businessName')}
+                  onBlur={() => setFocusedField(null)}
                   placeholder="Glow Beauty Salon"
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className={`w-full px-4 py-3 bg-gray-800 border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                    focusedField === 'businessName' && formData.businessName ? 'border-purple-500' : 'border-gray-600'
+                  }`}
                 />
               </div>
 
@@ -659,7 +670,9 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
                 <label className="block text-sm text-gray-300 mb-2">
                   Instagram Handle
                 </label>
-                <div className="flex items-center bg-gray-800 border border-gray-600 rounded-lg focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent">
+                <div className={`flex items-center bg-gray-800 border rounded-lg focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent ${
+                  focusedField === 'instagram' && formData.instagramHandle ? 'border-purple-500' : 'border-gray-600'
+                }`}>
                   <div className="pl-4">
                     <InstagramIcon className="w-4 h-4 text-pink-600" />
                   </div>
@@ -668,6 +681,8 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
                     required
                     value={formData.instagramHandle}
                     onChange={(e) => setFormData({ ...formData, instagramHandle: e.target.value.toLowerCase() })}
+                    onFocus={() => setFocusedField('instagram')}
+                    onBlur={() => setFocusedField(null)}
                     placeholder="glowbeauty"
                     autoCapitalize="none"
                     autoCorrect="off"
@@ -687,8 +702,12 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
                   required
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  onFocus={() => setFocusedField('city')}
+                  onBlur={() => setFocusedField(null)}
                   placeholder="Dubai"
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className={`w-full px-4 py-3 bg-gray-800 border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                    focusedField === 'city' && formData.city ? 'border-purple-500' : 'border-gray-600'
+                  }`}
                 />
               </div>
 

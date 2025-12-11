@@ -129,8 +129,27 @@ export default function VideoRecordingPage() {
 
   if (uploadSuccess) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+      <div
+        className="min-h-screen flex items-center justify-center px-4"
+        style={{
+          backgroundColor: '#F9FAFB',
+          position: 'relative'
+        }}
+      >
+        {/* Background layer with opacity */}
+        <div
+          className="absolute inset-0 pointer-events-none auction-detail-bg"
+          style={{
+            backgroundImage: 'url(/Pattern.jpeg)',
+            backgroundPosition: 'top left',
+            backgroundRepeat: 'repeat',
+            opacity: 0.5,
+            zIndex: 1
+          }}
+        />
+
+        {/* Success Modal */}
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center" style={{ position: 'relative', zIndex: 10 }}>
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
               className="w-8 h-8 text-green-600"
