@@ -1446,7 +1446,7 @@ DECODE
     try {
       console.log(`📧 Sending video uploaded email to model ${data.model_email}`)
 
-      const subject = `📹 Winner Has Uploaded Video - ${data.auction_title}`
+      const subject = `📹 Winner Video Uploaded`
 
       const emailContent = await this.renderModelVideoUploadedEmail(data)
 
@@ -1492,7 +1492,7 @@ DECODE
     try {
       console.log(`📧 Sending payout request confirmed email to model ${data.model_email}`)
 
-      const subject = `✅ Payout Request Received - ${data.payout_request_id}`
+      const subject = `💰 Payout Request Processing - ${data.payout_request_id}`
 
       const emailContent = await this.renderModelPayoutRequestConfirmedEmail(data)
 
@@ -2151,33 +2151,23 @@ If you have any questions, please contact DECODE support.
     <div class="container">
         <div class="header">
             <h1>DECODE</h1>
-            <h2>📹 Winner Has Uploaded Video!</h2>
+            <h2>Winner Video</h2>
         </div>
         <div class="content">
             <div class="info-icon">🎬</div>
             <h3 style="text-align: center;">Great news, ${data.model_name}!</h3>
-            <p style="text-align: center;">The winner of "${data.auction_title}" has uploaded their personalized video message.</p>
+            <p style="text-align: center;">The winner of beauty auction "${data.auction_title}" has uploaded the video message.</p>
 
             <div class="details">
-                <h4>Auction Details</h4>
+                <h4>Beauty Auction</h4>
                 <p><strong>Auction:</strong> ${data.auction_title}</p>
                 <p><strong>Winner:</strong> ${data.winner_name}</p>
-                <p><strong>Video Uploaded:</strong> ${new Date(data.video_uploaded_at).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}</p>
+                <p><strong>Video Uploaded:</strong> ${new Date(data.video_uploaded_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Dubai' })}</p>
             </div>
 
             <div class="important-note">
-                <h4 style="margin-top: 0;">⚡ Action Required to Unlock Payout</h4>
-                <p style="margin-bottom: 0;">You must <strong>watch the entire video</strong> to unlock your payout. Once you've watched it completely, your earnings will be available for withdrawal.</p>
-            </div>
-
-            <div class="details">
-                <h4>What to do next:</h4>
-                <ol>
-                    <li>Go to your dashboard</li>
-                    <li>Find this auction in your completed auctions</li>
-                    <li>Watch the winner's video message</li>
-                    <li>Once watched, your payout will be unlocked</li>
-                </ol>
+                <h4 style="margin-top: 0;">Action Required</h4>
+                <p style="margin-bottom: 0;">Watch the full video to unlock your payout.</p>
             </div>
 
             <div style="text-align: center;">
@@ -2185,39 +2175,31 @@ If you have any questions, please contact DECODE support.
             </div>
         </div>
         <div class="footer">
-            <p>This email was sent by DECODE Beauty Platform</p>
-            <p>If you have any questions, please contact support.</p>
+            <p>If you have any questions, please contact DECODE support.</p>
         </div>
     </div>
 </body>
 </html>`
 
     const text = `
-DECODE - Winner Has Uploaded Video!
+DECODE - Winner Video
 
 Great news, ${data.model_name}!
 
-The winner of "${data.auction_title}" has uploaded their personalized video message.
+The winner of beauty auction "${data.auction_title}" has uploaded the video message.
 
-AUCTION DETAILS
+BEAUTY AUCTION
 Auction: ${data.auction_title}
 Winner: ${data.winner_name}
-Video Uploaded: ${new Date(data.video_uploaded_at).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}
+Video Uploaded: ${new Date(data.video_uploaded_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Dubai' })}
 
-⚡ ACTION REQUIRED TO UNLOCK PAYOUT
-You must watch the entire video to unlock your payout. Once you've watched it completely, your earnings will be available for withdrawal.
-
-WHAT TO DO NEXT:
-1. Go to your dashboard
-2. Find this auction in your completed auctions
-3. Watch the winner's video message
-4. Once watched, your payout will be unlocked
+ACTION REQUIRED
+Watch the full video to unlock your payout.
 
 Watch Video & Unlock Payout: ${data.dashboard_url}
 
 ---
-DECODE Beauty Platform
-If you have any questions, please contact support.
+If you have any questions, please contact DECODE support.
 `
 
     return { html, text }
@@ -2265,24 +2247,22 @@ If you have any questions, please contact support.
     <div class="container">
         <div class="header">
             <h1>DECODE</h1>
-            <h2>✅ Payout Request Received</h2>
+            <h2>Payout Request Processing</h2>
         </div>
         <div class="content">
-            <div class="success-icon">✓</div>
             <h3 style="text-align: center;">Thank you, ${data.model_name}!</h3>
             <p style="text-align: center;">We've received your payout request and it's being processed.</p>
 
             <div class="request-id">
-                <p style="margin: 0 0 10px 0; font-size: 14px; color: #666;">Request ID</p>
+                <p style="margin: 0 0 10px 0; font-size: 14px; color: #666;">Payout Request ID</p>
                 <div class="request-id-value">${data.payout_request_id}</div>
-                <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">Save this for your records</p>
             </div>
 
             <div class="details">
                 <h4>Payout Details</h4>
                 <div class="detail-row">
                     <span>Amount:</span>
-                    <span><strong>AED ${data.payout_amount.toFixed(2)}</strong></span>
+                    <span><strong>AED ${data.payout_amount.toLocaleString('en-AE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
                 </div>
                 <div class="detail-row">
                     <span>Payment Method:</span>
@@ -2290,18 +2270,13 @@ If you have any questions, please contact support.
                 </div>
                 <div class="detail-row">
                     <span>Request Date:</span>
-                    <span>${new Date(data.request_date).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}</span>
-                </div>
-                <div class="detail-row">
-                    <span>Status:</span>
-                    <span style="color: #FFA726; font-weight: bold;">Processing</span>
+                    <span>${new Date(data.request_date).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true, timeZone: 'Asia/Dubai' })}</span>
                 </div>
             </div>
 
             <div class="details">
-                <h4>⏱️ Processing Timeline</h4>
+                <h4>Next Step</h4>
                 <p>Your payout will be processed within <strong>2-3 business days</strong>.</p>
-                <p>You'll receive the funds directly to your configured payment method.</p>
             </div>
 
             <div style="text-align: center;">
@@ -2309,45 +2284,34 @@ If you have any questions, please contact support.
             </div>
 
             <p style="text-align: center; color: #666; font-size: 14px; margin-top: 30px;">
-                If you have any questions about your payout, please contact us at ${data.support_email}
+                If you have any questions, please contact DECODE support.
             </p>
-        </div>
-        <div class="footer">
-            <p>This email was sent by DECODE Beauty Platform</p>
-            <p>Request ID: ${data.payout_request_id}</p>
         </div>
     </div>
 </body>
 </html>`
 
     const text = `
-DECODE - Payout Request Received
+DECODE - Payout Request Processing
 
 Thank you, ${data.model_name}!
 
 We've received your payout request and it's being processed.
 
-REQUEST ID
+PAYOUT REQUEST ID
 ${data.payout_request_id}
-(Save this for your records)
 
 PAYOUT DETAILS
-Amount: AED ${data.payout_amount.toFixed(2)}
+Amount: AED ${data.payout_amount.toLocaleString('en-AE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 Payment Method: ${data.payout_method}
-Request Date: ${new Date(data.request_date).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}
-Status: Processing
+Request Date: ${new Date(data.request_date).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true, timeZone: 'Asia/Dubai' })}
 
-PROCESSING TIMELINE
+NEXT STEP
 Your payout will be processed within 2-3 business days.
-You'll receive the funds directly to your configured payment method.
 
 Track Status: ${data.dashboard_url}
 
-If you have any questions about your payout, please contact us at ${data.support_email}
-
----
-DECODE Beauty Platform
-Request ID: ${data.payout_request_id}
+If you have any questions, please contact DECODE support.
 `
 
     return { html, text }
