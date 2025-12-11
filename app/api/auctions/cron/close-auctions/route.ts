@@ -153,6 +153,7 @@ export async function POST(request: NextRequest) {
                     auction_title: auction.title,
                     winning_bid_amount: winningAmount,
                     winner_name: capturedBid.bidder_name,
+                    auction_start_price: startPrice,
                     platform_fee: platformFee,
                     model_payout: modelPayout,
                     dashboard_url: 'https://app.welovedecode.com/dashboard'
