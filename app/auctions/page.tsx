@@ -7,18 +7,29 @@
 
 import React, { useState } from 'react';
 import { useActiveAuctions } from '@/lib/hooks/useAuctionRealtime';
+import { useAuctionCardsData } from '@/lib/hooks/useAuctionCardsData';
 import { AuctionCard, AuctionCardSkeleton } from '@/components/auctions/AuctionCard';
 import type { AuctionStatus } from '@/lib/models/Auction.model';
 
 export default function AuctionsPage() {
   const { auctions, isConnected } = useActiveAuctions();
+  const { enrichedAuctions, isLoading } = useAuctionCardsData(auctions);
   const [filter, setFilter] = useState<AuctionStatus | 'all'>('active');
 
   // Filter auctions based on status
-  const filteredAuctions = auctions.filter((auction) => {
+  const filteredAuctions = enrichedAuctions.filter((auction) => {
     if (filter === 'all') return true;
     return auction.status === filter;
   });
+
+  // Show loading spinner while coordinating all card data
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -38,13 +49,13 @@ export default function AuctionsPage() {
           <div className="mt-6 flex gap-2">
             <FilterTab
               label="Active"
-              count={auctions.filter((a) => a.status === 'active').length}
+              count={enrichedAuctions.filter((a) => a.status === 'active').length}
               active={filter === 'active'}
               onClick={() => setFilter('active')}
             />
             <FilterTab
               label="All"
-              count={auctions.length}
+              count={enrichedAuctions.length}
               active={filter === 'all'}
               onClick={() => setFilter('all')}
             />
@@ -54,7 +65,7 @@ export default function AuctionsPage() {
 
       {/* Auctions Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {auctions.length === 0 ? (
+        {enrichedAuctions.length === 0 ? (
           <div className="text-center py-12">
             <svg
               className="mx-auto w-16 h-16 text-gray-400 mb-4"
@@ -79,7 +90,13 @@ export default function AuctionsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAuctions.map((auction) => (
-              <AuctionCard key={auction.id} auction={auction} showCreator />
+              <AuctionCard
+                key={auction.id}
+                auction={auction}
+                videoData={auction.videoData}
+                businessData={auction.businessData}
+                showCreator
+              />
             ))}
           </div>
         )}

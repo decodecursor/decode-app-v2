@@ -22,13 +22,21 @@ import { VideoUploadCountdown } from './VideoUploadCountdown';
 import { getAuctionRealtimeManager, type VideoEvent } from '@/lib/realtime/AuctionRealtimeManager';
 import { usePageVisibility } from '@/lib/hooks/usePageVisibility';
 import { useRef } from 'react';
+import type { VideoData, BusinessData } from '@/lib/hooks/useAuctionCardsData';
 
 interface AuctionCardProps {
   auction: Auction | AuctionWithCreator;
   showCreator?: boolean;
+  videoData?: VideoData | null;
+  businessData?: BusinessData | null;
 }
 
-export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) {
+export function AuctionCard({
+  auction,
+  showCreator = false,
+  videoData: propsVideoData,
+  businessData: propsBusinessData
+}: AuctionCardProps) {
   const router = useRouter();
   const [shareSuccess, setShareSuccess] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
@@ -37,10 +45,12 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
-  const [videoData, setVideoData] = useState<any>(null);
-  const [loadingVideo, setLoadingVideo] = useState(true);
+  const [videoData, setVideoData] = useState<any>(propsVideoData ?? null);
+  const [loadingVideo, setLoadingVideo] = useState(propsVideoData === undefined);
   const [showBusinessModal, setShowBusinessModal] = useState(false);
-  const [linkedBusiness, setLinkedBusiness] = useState<any>(auction.business || null);
+  const [linkedBusiness, setLinkedBusiness] = useState<any>(
+    propsBusinessData ?? auction.business ?? null
+  );
 
   // Track page visibility for mobile reconnection
   const { visibilityChangeCount } = usePageVisibility();
@@ -54,7 +64,13 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
   }, [auction.business]);
 
   // Lazy load business data if linked_business_id exists but business object doesn't
+  // Only fetch if data not provided via props (backward compatibility)
   useEffect(() => {
+    if (propsBusinessData !== undefined) {
+      setLinkedBusiness(propsBusinessData);
+      return;
+    }
+
     // Lazy load business data if not already included in auction
     if (auction.linked_business_id && !auction.business && !linkedBusiness) {
       fetch(`/api/beauty-businesses/${auction.linked_business_id}`)
@@ -66,7 +82,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
         })
         .catch(() => {});
     }
-  }, [auction.linked_business_id, auction.business, linkedBusiness]);
+  }, [auction.linked_business_id, auction.business, linkedBusiness, propsBusinessData]);
 
   const currentPrice = Number(auction.auction_current_price);
   const startPrice = Number(auction.auction_start_price);
@@ -200,7 +216,14 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
   };
 
   // Fetch video data on mount and when has_video flag changes
+  // Only fetch if data not provided via props (backward compatibility)
   useEffect(() => {
+    if (propsVideoData !== undefined) {
+      setVideoData(propsVideoData);
+      setLoadingVideo(false);
+      return;
+    }
+
     const fetchVideo = async () => {
       try {
         setLoadingVideo(true);
@@ -221,7 +244,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
     };
 
     fetchVideo();
-  }, [auction.id, auction.has_video]); // React to has_video changes from real-time updates
+  }, [auction.id, auction.has_video, propsVideoData]); // React to has_video changes from real-time updates
 
   // Subscribe to real-time video updates
   useEffect(() => {
