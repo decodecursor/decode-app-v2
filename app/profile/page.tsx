@@ -28,7 +28,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [emailSaving, setEmailSaving] = useState(false)
   const [instagramSaving, setInstagramSaving] = useState(false)
   const [companyNameSaving, setCompanyNameSaving] = useState(false)
