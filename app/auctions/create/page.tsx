@@ -49,20 +49,20 @@ export default function CreateAuction() {
     const newErrors: Record<string, string> = {}
 
     if (!formData.title.trim()) {
-      newErrors.title = 'Title is required'
+      newErrors.title = 'Please enter title'
     } else if (formData.title.length < 3) {
       newErrors.title = 'Title must be at least 3 characters'
     }
 
     const startPrice = parseFloat(formData.auction_start_price.replace(/,/g, ''))
     if (!formData.auction_start_price || isNaN(startPrice) || startPrice <= 0) {
-      newErrors.auction_start_price = 'Please enter a valid starting price'
+      newErrors.auction_start_price = 'Please enter starting price'
     } else if (startPrice < 5) {
       newErrors.auction_start_price = 'Minimum starting price is AED 5'
     }
 
     if (!formData.duration) {
-      newErrors.duration = 'Please select a duration'
+      newErrors.duration = 'Please select duration'
     }
 
     setErrors(newErrors)
@@ -213,7 +213,7 @@ export default function CreateAuction() {
                 placeholder="Russian Lips"
                 disabled={creating}
               />
-              {errors.title && <p className="mt-1 text-sm text-red-100">{errors.title}</p>}
+              {errors.title && <p className="mt-1 text-sm text-red-500">{errors.title}</p>}
             </div>
 
             {/* Starting Price */}
@@ -237,7 +237,7 @@ export default function CreateAuction() {
                 />
               </div>
               {errors.auction_start_price && (
-                <p className="mt-1 text-sm text-red-100">{errors.auction_start_price}</p>
+                <p className="mt-1 text-sm text-red-500">{errors.auction_start_price}</p>
               )}
             </div>
 
@@ -277,7 +277,7 @@ export default function CreateAuction() {
                   </option>
                 ))}
               </select>
-              {errors.duration && <p className="mt-1 text-sm text-red-100">{errors.duration}</p>}
+              {errors.duration && <p className="mt-1 text-sm text-red-500">{errors.duration}</p>}
             </div>
 
             {/* Submit Error */}
