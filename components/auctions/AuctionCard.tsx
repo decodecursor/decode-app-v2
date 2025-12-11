@@ -94,7 +94,7 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
       case 'pending':
         return formatBidAmount(0);
       case 'processing':
-        return 'Processing...';
+        return 'Processing';
       case 'transferred':
         return formatBidAmount(creatorProfit); // Could fetch actual amount from payout table
       case 'failed':
