@@ -27,10 +27,6 @@ const COLOR_CLASS_MAP = {
 } as const;
 
 export function VideoUploadCountdown({ tokenExpiresAt, hasVideo, showAsFullStatus = false, asButton = false, auctionEnded = false, compactMobile = false }: VideoUploadCountdownProps) {
-  // Always hide video upload countdown for cleaner UI
-  // Users only see video button when video exists (handled by AuctionCard)
-  return null;
-
   // If showing full status and no token exists (no video record yet)
   // Hide "No Video" status for cleaner UI
   if (showAsFullStatus && !tokenExpiresAt && !hasVideo) {
