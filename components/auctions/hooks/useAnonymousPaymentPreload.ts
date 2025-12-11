@@ -139,5 +139,16 @@ export function useAnonymousPaymentPreload({
     preloadRef.current = preload();
   }, [enabled, auctionId]); // Don't include estimatedAmount - run once per mount only
 
-  return state;
+  return {
+    ...state,
+    resetAnonymousPreload: () => {
+      setState({
+        isPreloading: false,
+        clientSecret: null,
+        paymentIntentId: null,
+        error: null,
+      });
+      preloadedRef.current = false;
+    },
+  };
 }

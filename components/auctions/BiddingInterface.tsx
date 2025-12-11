@@ -72,6 +72,7 @@ interface BiddingInterfaceProps {
   // PERFORMANCE OPTIMIZATION: Anonymous preload from page mount
   preloadedClientSecret?: string | null;
   preloadedPaymentIntentId?: string | null;
+  resetAnonymousPreload?: () => void;
   onBidPlaced?: (bidId: string) => void;
 }
 
@@ -81,6 +82,7 @@ export function BiddingInterface({
   userName,
   preloadedClientSecret,
   preloadedPaymentIntentId,
+  resetAnonymousPreload,
   onBidPlaced,
 }: BiddingInterfaceProps) {
   const [step, setStep] = useState<'amount' | 'guest_info' | 'instagram' | 'payment'>('amount');
@@ -227,8 +229,9 @@ export function BiddingInterface({
     if (!userEmail && guestInfo && isRepeatBidder) {
       console.log('✨ [BiddingInterface] Repeat guest bidder detected, skipping forms');
       // Create bid with cached guest info and Instagram username
-      // Use preloaded PaymentIntent for instant payment
-      const paymentIntentToUse = preloadedPaymentIntentId || preloadedPaymentIntent?.paymentIntentId;
+      // For repeat bidders, only use user-specific preload (not anonymous)
+      // Anonymous preload is for FIRST-time bidders only
+      const paymentIntentToUse = preloadedPaymentIntent?.paymentIntentId;
       setStep('payment');
       await createBid(
         guestInfo.name,
@@ -511,6 +514,7 @@ export function BiddingInterface({
 
     // Clear the payment preload cache for consecutive bids
     resetPaymentPreload();
+    resetAnonymousPreload?.();
     console.log('🔄 [BiddingInterface] Cleared payment preload cache for fresh bid');
 
     // For guest bidders: Load cached data from localStorage

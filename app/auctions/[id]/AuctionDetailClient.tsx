@@ -68,6 +68,7 @@ export default function AuctionDetailClient() {
     clientSecret: preloadedClientSecret,
     paymentIntentId: preloadedPaymentIntentId,
     isPreloading: isAnonymousPreloading,
+    resetAnonymousPreload,
   } = useAnonymousPaymentPreload({
     auctionId,
     estimatedAmount: 500, // Default estimate in AED - will be updated during bid creation
@@ -753,6 +754,7 @@ export default function AuctionDetailClient() {
                 userName={userName}
                 preloadedClientSecret={preloadedClientSecret}
                 preloadedPaymentIntentId={preloadedPaymentIntentId}
+                resetAnonymousPreload={resetAnonymousPreload}
                 onBidPlaced={handleBidPlaced}
               />
             )}

@@ -63,7 +63,7 @@ export default function AuctionsDashboardPage() {
   }
 
   return (
-    <div className="cosmic-bg">
+    <div className="cosmic-bg dashboard-page">
       <div className="min-h-screen px-4 py-4 md:py-8">
         {/* Back Button */}
         <div className="flex justify-center dashboard-back-button-spacing">
