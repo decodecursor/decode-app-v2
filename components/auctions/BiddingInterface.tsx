@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { StripeElementsOptions } from '@stripe/stripe-js';
 import { Elements, PaymentElement, ExpressCheckoutElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { GuestBidderForm } from './GuestBidderForm';
@@ -108,6 +108,10 @@ export function BiddingInterface({
   } | null>(null);
   const [pendingBidCreation, setPendingBidCreation] = useState<Promise<void> | null>(null);
 
+  // Ref for the card container (for auto-scroll)
+  const cardRef = useRef<HTMLDivElement>(null);
+  const prevStepRef = useRef<typeof step | null>(null);
+
   const currentPrice = Number(auction.auction_current_price);
   const startPrice = Number(auction.auction_start_price);
   const minimumBid = calculateMinimumBid(currentPrice, startPrice);
@@ -177,6 +181,24 @@ export function BiddingInterface({
 
     checkPreviousBids();
   }, [auction.id, userEmail, guestInfo?.email]);
+
+  // Auto-scroll to top of card when transitioning from guest_info step
+  useEffect(() => {
+    const prevStep = prevStepRef.current;
+
+    // Only scroll when transitioning FROM guest_info to another step
+    if (prevStep === 'guest_info' && step !== 'guest_info' && cardRef.current) {
+      setTimeout(() => {
+        cardRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }, 300);
+    }
+
+    // Update the previous step ref
+    prevStepRef.current = step;
+  }, [step]);
 
   // Handle bid amount submission
   const handleAmountSubmit = async (e: React.FormEvent) => {
@@ -787,7 +809,7 @@ export function BiddingInterface({
   );
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 relative">
+    <div ref={cardRef} className="bg-white border border-gray-200 rounded-lg p-6 relative">
       {/* Close button - only show after user proceeds past amount step */}
       {step !== 'amount' && (
         <button

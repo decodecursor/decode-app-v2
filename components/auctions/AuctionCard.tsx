@@ -29,13 +29,15 @@ interface AuctionCardProps {
   showCreator?: boolean;
   videoData?: VideoData | null;
   businessData?: BusinessData | null;
+  onReady?: () => void;
 }
 
 export function AuctionCard({
   auction,
   showCreator = false,
   videoData: propsVideoData,
-  businessData: propsBusinessData
+  businessData: propsBusinessData,
+  onReady
 }: AuctionCardProps) {
   const router = useRouter();
   const [shareSuccess, setShareSuccess] = useState(false);
@@ -295,6 +297,11 @@ export function AuctionCard({
       });
     }
   }, [visibilityChangeCount, auction.id]);
+
+  // Signal when component is fully mounted and ready
+  useEffect(() => {
+    onReady?.();
+  }, [onReady]);
 
   const closeQRModal = () => {
     setShowQRModal(false);

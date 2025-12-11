@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useActiveAuctions } from '@/lib/hooks/useAuctionRealtime';
 import { useAuctionCardsData } from '@/lib/hooks/useAuctionCardsData';
 import { AuctionCard, AuctionCardSkeleton } from '@/components/auctions/AuctionCard';
@@ -15,6 +15,8 @@ export default function AuctionsPage() {
   const { auctions, isConnected } = useActiveAuctions();
   const { enrichedAuctions, isLoading } = useAuctionCardsData(auctions);
   const [filter, setFilter] = useState<AuctionStatus | 'all'>('active');
+  const [readyCards, setReadyCards] = useState(0);
+  const [allCardsReady, setAllCardsReady] = useState(false);
 
   // Filter auctions based on status
   const filteredAuctions = enrichedAuctions.filter((auction) => {
@@ -22,8 +24,29 @@ export default function AuctionsPage() {
     return auction.status === filter;
   });
 
-  // Show loading spinner while coordinating all card data
-  if (isLoading) {
+  // Handle card ready callback
+  const handleCardReady = useCallback(() => {
+    setReadyCards(prev => prev + 1);
+  }, []);
+
+  // Reset ready count when filtered auctions change
+  useEffect(() => {
+    setReadyCards(0);
+    setAllCardsReady(false);
+  }, [filteredAuctions.length, isLoading]);
+
+  // Check if all cards are ready
+  useEffect(() => {
+    if (!isLoading && filteredAuctions.length > 0 && readyCards >= filteredAuctions.length) {
+      setAllCardsReady(true);
+    } else if (!isLoading && filteredAuctions.length === 0) {
+      // No cards to render, mark as ready immediately
+      setAllCardsReady(true);
+    }
+  }, [isLoading, filteredAuctions.length, readyCards]);
+
+  // Show loading spinner while coordinating all card data OR waiting for cards to render
+  if (isLoading || !allCardsReady) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600" />
@@ -96,6 +119,7 @@ export default function AuctionsPage() {
                 videoData={auction.videoData}
                 businessData={auction.businessData}
                 showCreator
+                onReady={handleCardReady}
               />
             ))}
           </div>
