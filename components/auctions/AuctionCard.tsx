@@ -19,6 +19,9 @@ import { VideoPlayback } from './VideoPlayback';
 import { VideoModal } from './VideoModal';
 import { LinkBeautyBusinessModal } from './LinkBeautyBusinessModal';
 import { VideoUploadCountdown } from './VideoUploadCountdown';
+import { getAuctionRealtimeManager, type VideoEvent } from '@/lib/realtime/AuctionRealtimeManager';
+import { usePageVisibility } from '@/lib/hooks/usePageVisibility';
+import { useRef } from 'react';
 
 interface AuctionCardProps {
   auction: Auction | AuctionWithCreator;
@@ -38,6 +41,10 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
   const [loadingVideo, setLoadingVideo] = useState(true);
   const [showBusinessModal, setShowBusinessModal] = useState(false);
   const [linkedBusiness, setLinkedBusiness] = useState<any>(auction.business || null);
+
+  // Track page visibility for mobile reconnection
+  const { visibilityChangeCount } = usePageVisibility();
+  const prevVisibilityCountRef = useRef(visibilityChangeCount);
 
   // Update linkedBusiness when auction.business changes
   useEffect(() => {
@@ -215,6 +222,56 @@ export function AuctionCard({ auction, showCreator = false }: AuctionCardProps) 
 
     fetchVideo();
   }, [auction.id, auction.has_video]); // React to has_video changes from real-time updates
+
+  // Subscribe to real-time video updates
+  useEffect(() => {
+    const realtimeManager = getAuctionRealtimeManager();
+
+    const handleVideoEvent = (event: VideoEvent) => {
+      console.log('Video event received:', event.type, event.video);
+
+      // Update videoData with new watch status
+      setVideoData((prev: any) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          watched_to_end_at: event.video.watched_to_end_at,
+          payout_unlocked_at: event.video.payout_unlocked_at,
+        };
+      });
+    };
+
+    // Subscribe to video updates for this auction
+    const unsubscribe = realtimeManager.subscribeToAuctionVideo(
+      auction.id,
+      handleVideoEvent
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [auction.id]);
+
+  // Handle page visibility changes for mobile reconnection
+  useEffect(() => {
+    if (visibilityChangeCount > prevVisibilityCountRef.current) {
+      console.log('Page became visible, refreshing video data...');
+      prevVisibilityCountRef.current = visibilityChangeCount;
+
+      const realtimeManager = getAuctionRealtimeManager();
+      realtimeManager.reconnectAll().then(() => {
+        // Refetch video data to ensure sync
+        fetch(`/api/auctions/${auction.id}/video/view`)
+          .then(res => res.ok ? res.json() : null)
+          .then(data => {
+            if (data?.video) {
+              setVideoData(data.video);
+            }
+          })
+          .catch(err => console.error('Error refreshing video:', err));
+      });
+    }
+  }, [visibilityChangeCount, auction.id]);
 
   const closeQRModal = () => {
     setShowQRModal(false);

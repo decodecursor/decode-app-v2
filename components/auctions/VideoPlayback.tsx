@@ -9,6 +9,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { isVideoExpired } from '@/lib/models/AuctionVideo.model';
 import type { AuctionVideo } from '@/lib/models/AuctionVideo.model';
+import { getAuctionRealtimeManager, type VideoEvent } from '@/lib/realtime/AuctionRealtimeManager';
 
 function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
@@ -42,6 +43,39 @@ export function VideoPlayback({ auctionId, auction, className = '', onPayoutUnlo
   useEffect(() => {
     fetchVideo();
   }, [auctionId, auction?.has_video]); // React to has_video changes from real-time updates
+
+  // Subscribe to real-time video updates for multi-tab sync
+  useEffect(() => {
+    const realtimeManager = getAuctionRealtimeManager();
+
+    const handleVideoEvent = (event: VideoEvent) => {
+      console.log('VideoPlayback: Video event received:', event.type);
+
+      // Update video state if watch status changed
+      setVideo((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          watched_to_end_at: event.video.watched_to_end_at,
+          payout_unlocked_at: event.video.payout_unlocked_at,
+        };
+      });
+
+      // Update unlock success flag
+      if (event.type === 'video_watched') {
+        setUnlockSuccess(true);
+      }
+    };
+
+    const unsubscribe = realtimeManager.subscribeToAuctionVideo(
+      auctionId,
+      handleVideoEvent
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [auctionId]);
 
   const fetchVideo = async () => {
     try {

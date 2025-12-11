@@ -19,14 +19,27 @@ export type BidEvent = {
   auction_id: string;
 };
 
+export type VideoEvent = {
+  type: 'video_watched' | 'video_updated';
+  video: {
+    id: string;
+    auction_id: string;
+    watched_to_end_at: string | null;
+    payout_unlocked_at: string | null;
+    file_url: string | null;
+  };
+};
+
 export type AuctionEventCallback = (event: AuctionEvent) => void;
 export type BidEventCallback = (event: BidEvent) => void;
+export type VideoEventCallback = (event: VideoEvent) => void;
 
 export class AuctionRealtimeManager {
   private supabase = createClient();
   private channels: Map<string, RealtimeChannel> = new Map();
   private auctionCallbacks: Map<string, Set<AuctionEventCallback>> = new Map();
   private bidCallbacks: Map<string, Set<BidEventCallback>> = new Map();
+  private videoCallbacks: Map<string, Set<VideoEventCallback>> = new Map();
 
   /**
    * Subscribe to auction updates
@@ -138,6 +151,57 @@ export class AuctionRealtimeManager {
         this.channels.get(channelName)?.unsubscribe();
         this.channels.delete(channelName);
         this.bidCallbacks.delete(channelName);
+      }
+    };
+  }
+
+  /**
+   * Subscribe to video updates for an auction
+   */
+  subscribeToAuctionVideo(
+    auctionId: string,
+    callback: VideoEventCallback
+  ): () => void {
+    const channelName = `video:${auctionId}`;
+
+    // Add callback to set
+    if (!this.videoCallbacks.has(channelName)) {
+      this.videoCallbacks.set(channelName, new Set());
+    }
+    this.videoCallbacks.get(channelName)!.add(callback);
+
+    // Create channel if it doesn't exist
+    if (!this.channels.has(channelName)) {
+      const channel = this.supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'auction_videos',
+            filter: `auction_id=eq.${auctionId}`,
+          },
+          (payload) => {
+            this.handleVideoUpdate(payload, auctionId);
+          }
+        )
+        .subscribe((status) => {
+          console.log(`Video channel ${channelName} status:`, status);
+        });
+
+      this.channels.set(channelName, channel);
+    }
+
+    // Return unsubscribe function
+    return () => {
+      this.videoCallbacks.get(channelName)?.delete(callback);
+
+      // Remove channel if no more callbacks
+      if (this.videoCallbacks.get(channelName)?.size === 0) {
+        this.channels.get(channelName)?.unsubscribe();
+        this.channels.delete(channelName);
+        this.videoCallbacks.delete(channelName);
       }
     };
   }
@@ -345,6 +409,38 @@ export class AuctionRealtimeManager {
   }
 
   /**
+   * Handle video update
+   */
+  private handleVideoUpdate(payload: any, auctionId: string) {
+    const video = payload.new;
+    const oldVideo = payload.old;
+
+    let eventType: VideoEvent['type'] = 'video_updated';
+
+    // Check if watch status changed
+    if (!oldVideo?.watched_to_end_at && video?.watched_to_end_at) {
+      eventType = 'video_watched';
+      console.log('Video watched to end for auction:', auctionId);
+    }
+
+    const event: VideoEvent = {
+      type: eventType,
+      video: {
+        id: video.id,
+        auction_id: video.auction_id,
+        watched_to_end_at: video.watched_to_end_at,
+        payout_unlocked_at: video.payout_unlocked_at,
+        file_url: video.file_url,
+      },
+    };
+
+    const channelName = `video:${auctionId}`;
+    this.videoCallbacks.get(channelName)?.forEach((callback) => {
+      callback(event);
+    });
+  }
+
+  /**
    * Unsubscribe from all channels
    */
   unsubscribeAll() {
@@ -354,6 +450,7 @@ export class AuctionRealtimeManager {
     this.channels.clear();
     this.auctionCallbacks.clear();
     this.bidCallbacks.clear();
+    this.videoCallbacks.clear();
   }
 
   /**
@@ -442,6 +539,34 @@ export class AuctionRealtimeManager {
                 )
                 .subscribe((status) => {
                   console.log(`Reconnected bids channel ${channelName}:`, status);
+                  resolve();
+                });
+
+              this.channels.set(channelName, newChannel);
+            } else {
+              resolve();
+            }
+          } else if (channelName.startsWith('video:')) {
+            const auctionId = channelName.replace('video:', '');
+            const callbacks = this.videoCallbacks.get(channelName);
+
+            if (callbacks && callbacks.size > 0) {
+              const newChannel = this.supabase
+                .channel(channelName)
+                .on(
+                  'postgres_changes',
+                  {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'auction_videos',
+                    filter: `auction_id=eq.${auctionId}`,
+                  },
+                  (payload) => {
+                    this.handleVideoUpdate(payload, auctionId);
+                  }
+                )
+                .subscribe((status) => {
+                  console.log(`Reconnected video channel ${channelName}:`, status);
                   resolve();
                 });
 
