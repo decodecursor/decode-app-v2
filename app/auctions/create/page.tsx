@@ -17,7 +17,6 @@ export default function CreateAuction() {
     duration: '' as unknown as AuctionDuration
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [durationChanged, setDurationChanged] = useState(false)
   const [hasRedirected, setHasRedirected] = useState(false)
 
   const router = useRouter()
@@ -162,7 +161,7 @@ export default function CreateAuction() {
   }
 
   // Check if all fields are filled (have purple borders)
-  const allFieldsFilled = formData.title.trim() && formData.auction_start_price && durationChanged
+  const allFieldsFilled = formData.title.trim() && formData.auction_start_price && formData.duration
 
   return (
     <div className="cosmic-bg min-h-screen">
@@ -251,17 +250,16 @@ export default function CreateAuction() {
                 value={formData.duration}
                 onChange={(e) => {
                   setFormData({ ...formData, duration: parseInt(e.target.value) as AuctionDuration })
-                  setDurationChanged(true)
                   if (errors.duration) setErrors({ ...errors, duration: undefined })
                 }}
                 className={`w-full md:px-4 md:py-3 px-3 py-2 pr-10 h-[42px] md:h-[50px] bg-gray-800 border rounded-lg focus:outline-none transition-colors appearance-none ${
-                  errors.duration ? 'border-red-500' : (creating || durationChanged) ? 'border-purple-500' : 'border-gray-700 focus:border-purple-500'
+                  errors.duration ? 'border-red-500' : (creating || formData.duration) ? 'border-purple-500' : 'border-gray-700 focus:border-purple-500'
                 }`}
                 style={{
-                  color: durationChanged ? '#fff' : '#9ca3af',
-                  WebkitTextFillColor: durationChanged ? '#fff' : '#9ca3af',
+                  color: formData.duration ? '#fff' : '#9ca3af',
+                  WebkitTextFillColor: formData.duration ? '#fff' : '#9ca3af',
                   cursor: 'pointer',
-                  backgroundImage: durationChanged
+                  backgroundImage: formData.duration
                     ? "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23fff' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")"
                     : "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")",
                   backgroundPosition: 'right 0.75rem center',
