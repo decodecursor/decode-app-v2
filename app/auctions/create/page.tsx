@@ -254,13 +254,17 @@ export default function CreateAuction() {
                   setDurationChanged(true)
                   if (errors.duration) setErrors({ ...errors, duration: undefined })
                 }}
-                className={`w-full md:px-4 md:py-3 px-3 py-2 h-[42px] md:h-[50px] bg-gray-800 border rounded-lg focus:outline-none transition-colors ${
+                className={`w-full md:px-4 md:py-3 px-3 py-2 pr-10 h-[42px] md:h-[50px] bg-gray-800 border rounded-lg focus:outline-none transition-colors appearance-none ${
                   errors.duration ? 'border-red-500' : durationChanged ? 'border-purple-500' : 'border-gray-700 focus:border-purple-500'
                 }`}
                 style={{
                   color: durationChanged ? '#fff' : '#9ca3af',
                   WebkitTextFillColor: durationChanged ? '#fff' : '#9ca3af',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23d1d5db' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")",
+                  backgroundPosition: 'right 0.75rem center',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundSize: '1.5em 1.5em'
                 } as React.CSSProperties}
                 disabled={creating}
               >
