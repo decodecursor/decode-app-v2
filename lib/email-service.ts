@@ -1401,7 +1401,7 @@ DECODE
     try {
       console.log(`📧 Sending auction completed email to model ${data.model_email}`)
 
-      const subject = `🎉 Your Beauty Auction "${data.auction_title}" Completed Successfully`
+      const subject = `Your Beauty Auction "${data.auction_title}" Ended Successfully`
 
       const emailContent = await this.renderModelAuctionCompletedEmail(data)
 
@@ -2021,62 +2021,45 @@ Last Payout Amount: ${payoutData.last_payout_amount || 0} AED
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auction Completed Successfully</title>
+    <title>Auction Ended Successfully</title>
     <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 30px; text-align: left; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-        .success-icon { font-size: 48px; color: #4CAF50; margin-bottom: 20px; text-align: left; }
-        .amount { font-size: 32px; font-weight: bold; color: #4CAF50; margin: 20px 0; text-align: left; }
-        .details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .detail-row:last-child { border-bottom: none; }
-        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-        .button { display: inline-block; background: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .content { padding: 20px 0; }
+        h3 { margin: 0 0 10px 0; font-size: 20px; }
+        h4 { margin: 20px 0 10px 0; font-size: 16px; color: #333; }
+        p { margin: 5px 0; }
+        .section { margin: 20px 0; }
+        .button { display: inline-block; background: #8B5CF6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .footer { margin-top: 30px; color: #666; font-size: 14px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>DECODE</h1>
-            <h2>🎉 Auction Completed Successfully!</h2>
-        </div>
         <div class="content">
-            <h3 style="text-align: left;">Congrats, ${data.model_name}!</h3>
-            <p style="text-align: left;">Your beauty auction "${data.auction_title}" has ended with a winning bid.</p>
+            <h3>Congrats, ${data.model_name}!</h3>
+            <p>Your beauty auction "${data.auction_title}" has ended successfully.</p>
 
-            <div class="details">
-                <h4>Winning Bid</h4>
-                <div class="amount">AED ${data.winning_bid_amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-                <p style="text-align: left;">${data.winner_name}</p>
+            <div class="section">
+                <h4>Winner</h4>
+                <p>Winning Bid: AED ${data.winning_bid_amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                <p>Winner: ${data.winner_name}</p>
             </div>
 
-            <div class="details">
+            <div class="section">
                 <h4>Auction Breakdown</h4>
-                <div class="detail-row">
-                    <span>Winning Bid:</span>
-                    <span>AED ${data.winning_bid_amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-                </div>
-                <div class="detail-row">
-                    <span>Beauty Service Price:</span>
-                    <span>- AED ${data.auction_start_price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-                </div>
-                <div class="detail-row" style="font-weight: bold; font-size: 18px;">
-                    <span>Your Payout:</span>
-                    <span style="color: #4CAF50;">AED ${data.model_payout.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-                </div>
+                <p>Winning Bid: AED ${data.winning_bid_amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                <p>Beauty Service Price: - AED ${data.auction_start_price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                <p>Your Payout: AED ${data.model_payout.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
             </div>
 
-            <div class="details">
+            <div class="section">
                 <h4>Next Step</h4>
-                <p>The winner has <strong>24 hours</strong> to upload their video message.</p>
+                <p>The winner has 24 hours to record a video message.</p>
                 <p>You'll be notified once it's uploaded—watch it to unlock your payout.</p>
             </div>
 
-            <div style="text-align: center;">
-                <a href="${data.dashboard_url}" class="button">View Dashboard</a>
-            </div>
+            <a href="${data.dashboard_url}" class="button">View Dashboard</a>
         </div>
         <div class="footer">
             <p>If you have any questions, please contact DECODE support.</p>
@@ -2086,15 +2069,12 @@ Last Payout Amount: ${payoutData.last_payout_amount || 0} AED
 </html>`
 
     const text = `
-DECODE - Auction Completed Successfully!
-
 Congrats, ${data.model_name}!
+Your beauty auction "${data.auction_title}" has ended successfully.
 
-Your beauty auction "${data.auction_title}" has ended with a winning bid.
-
-Winning Bid
-AED ${data.winning_bid_amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-${data.winner_name}
+Winner
+Winning Bid: AED ${data.winning_bid_amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+Winner: ${data.winner_name}
 
 Auction Breakdown
 Winning Bid: AED ${data.winning_bid_amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
@@ -2102,7 +2082,7 @@ Beauty Service Price: - AED ${data.auction_start_price.toLocaleString('en-US', {
 Your Payout: AED ${data.model_payout.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
 
 Next Step
-The winner has 24 hours to upload their video message.
+The winner has 24 hours to record a video message.
 You'll be notified once it's uploaded—watch it to unlock your payout.
 
 View Dashboard: ${data.dashboard_url}

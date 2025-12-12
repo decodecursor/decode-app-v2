@@ -933,7 +933,17 @@ export default function PayoutsPage() {
         {/* Select Method Modal */}
         {showSelectMethodModal && (
           <div className="fixed inset-0 bg-black/50 flex items-end md:items-center justify-center z-50 md:p-4">
-            <div className="bg-gray-900 rounded-t-xl md:rounded-xl border border-gray-700 p-6 w-full max-w-md md:mx-auto">
+            <div className="bg-gray-900 rounded-t-xl md:rounded-xl border border-gray-700 p-6 w-full max-w-md md:mx-auto relative">
+              {/* Close button */}
+              <button
+                onClick={() => setShowSelectMethodModal(false)}
+                className="absolute md:top-4 md:right-4 top-2 right-2 text-gray-400 hover:text-white transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
               <h3 className="text-base md:text-lg font-semibold text-white mb-4">Select Payout Method</h3>
 
               <div className="space-y-3 mb-6">
