@@ -401,9 +401,11 @@ function AuthPageContent() {
 
     try {
       // Preserve role parameter in magic link redirect
-      // Read from storage as fallback for React state timing issues
-      // Prioritize localStorage (persists across tabs) over sessionStorage
-      const effectiveRoleForLink = preselectedRole ||
+      // ALWAYS check window.location.search FIRST - most reliable during React hydration
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlRoleParam = urlParams.get('role');
+      const effectiveRoleForLink = urlRoleParam ||
+                                    preselectedRole ||
                                     safeLocalStorage.getItem('decode_preselectedRole') ||
                                     safeSessionStorage.getItem('preselectedRole');
       const roleParam = effectiveRoleForLink ? `&role=${effectiveRoleForLink.toLowerCase()}` : '';
