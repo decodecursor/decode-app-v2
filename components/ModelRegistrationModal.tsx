@@ -63,33 +63,20 @@ export default function ModelRegistrationModal({ isOpen, userEmail, onComplete }
 
       console.log('🎭 [ModelRegistration] Creating model profile:', profileData);
 
-      // Try direct Supabase upsert first (handles both new and existing users)
-      const { data: insertedProfile, error: insertError } = await supabase
-        .from('users')
-        .upsert(profileData, { onConflict: 'id' })
-        .select()
-        .single();
+      // Always use API route to ensure admin email notification is sent
+      const response = await fetch('/api/auth/create-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileData),
+      });
 
-      if (insertError) {
-        console.log('⚠️ [ModelRegistration] Direct insert failed, trying API proxy:', insertError);
-
-        // Fallback to API route
-        const response = await fetch('/api/auth/create-profile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(profileData),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to create profile');
-        }
-
-        const { data: apiProfile } = await response.json();
-        console.log('✅ [ModelRegistration] Profile created via API:', apiProfile);
-      } else {
-        console.log('✅ [ModelRegistration] Profile created directly:', insertedProfile);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create profile');
       }
+
+      const { data: createdProfile } = await response.json();
+      console.log('✅ [ModelRegistration] Profile created via API:', createdProfile);
 
       // Success - redirect to dashboard
       onComplete('Model');
