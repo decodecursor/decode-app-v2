@@ -25,6 +25,7 @@ export async function GET(
 
     // Format leaderboard - show full names
     const leaderboard = bids.map((bid, index) => ({
+      id: bid.id,
       rank: index + 1,
       bidder_name: bid.bidder_name,
       bidder_email: bid.bidder_email,

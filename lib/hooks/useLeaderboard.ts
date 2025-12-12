@@ -57,9 +57,9 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
       if (response.ok) {
         const data = await response.json();
 
-        // Convert to leaderboard entries
+        // Convert to leaderboard entries - use real bid ID from API
         const entries: LeaderboardEntry[] = data.leaderboard.map((item: any, index: number) => ({
-          id: `bid-${index}`,
+          id: item.id || `bid-${index}`,
           bidder_name: item.bidder_name,
           bid_amount: item.bid_amount,
           placed_at: item.placed_at,
@@ -68,8 +68,51 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
           bidder_instagram_username: item.bidder_instagram_username,
         }));
 
-        setLeaderboard(entries);
-        setStats(data.statistics);
+        // MERGE LOGIC: Never reduce displayed entries during background fetches
+        // Only applies after initial load (prevents flickering during payment processing)
+        setLeaderboard((prevLeaderboard) => {
+          if (!isInitialLoad && prevLeaderboard.length > 0) {
+            // Create map of new entries by ID for quick lookup
+            const newEntriesMap = new Map(entries.map(e => [e.id, e]));
+
+            // Start with new entries
+            const mergedEntries = [...entries];
+
+            // Add any existing entries that aren't in new data (may be pending payment)
+            for (const existing of prevLeaderboard) {
+              if (!newEntriesMap.has(existing.id)) {
+                mergedEntries.push(existing);
+              }
+            }
+
+            // Re-sort and re-rank the merged list
+            mergedEntries.sort((a, b) => {
+              const amountDiff = b.bid_amount - a.bid_amount;
+              if (amountDiff !== 0) return amountDiff;
+              return new Date(a.placed_at).getTime() - new Date(b.placed_at).getTime();
+            });
+
+            // Assign correct ranks and limit to top N
+            return mergedEntries.slice(0, limit).map((entry, index) => ({
+              ...entry,
+              rank: index + 1,
+            }));
+          }
+          // Initial load: just set the entries directly
+          return entries;
+        });
+
+        // Don't reduce bid counts during background fetches
+        setStats((prevStats) => {
+          if (!isInitialLoad && prevStats) {
+            return {
+              ...data.statistics,
+              total_bids: Math.max(data.statistics.total_bids, prevStats.total_bids),
+              unique_bidders: Math.max(data.statistics.unique_bidders, prevStats.unique_bidders),
+            };
+          }
+          return data.statistics;
+        });
       }
     } catch (error) {
       console.error('Error fetching leaderboard:', error);

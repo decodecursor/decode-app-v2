@@ -114,7 +114,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
       bound: xBound,
       direction: xStart,
       scale,
-      time: isMobile ? 5500 : 7000, // Desktop: 7s, Mobile: 5.5s (doubled for more visible hearts)
+      time: isMobile ? 5500 : 7000, // Desktop: 7s (travels 575px upward), Mobile: 5.5s (travels 565px upward)
       element: heartElement
     }
 
@@ -124,7 +124,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
   const updateHearts = () => {
     const deltaTime = 16 // ~60fps
     const isMobile = window.innerWidth <= 768
-    const speed = isMobile ? 0.57 : 0.457 // Desktop 20% slower, 49% reduction overall to compensate for 2x lifespan
+    const speed = isMobile ? 1.71 : 1.371 // 3x faster (desktop: 1.371 vs 0.457, mobile: 1.71 vs 0.57) for dramatic effect
 
     heartsRef.current = heartsRef.current.filter(heart => {
       heart.time -= deltaTime
@@ -134,7 +134,7 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
         heart.element.style.top = `${heart.y}px`
         heart.element.style.left = `${heart.x + heart.direction * heart.bound * Math.sin(heart.y * heart.scale / 30) / heart.y * 200}px`
 
-        // Update opacity based on time remaining
+        // Update opacity based on time remaining (Desktop: 7s/575px travel, Mobile: 5.5s/565px travel)
         const maxTime = isMobile ? 5500 : 7000
         const opacity = heart.time / maxTime
         heart.element.style.opacity = `${opacity}`
@@ -186,14 +186,15 @@ export default function HeartAnimation({ isActive, targetElementId }: HeartAnima
     const scale = Math.random() * Math.random() * 0.8 + 0.4
     const bound = 30 + Math.random() * 20
 
-    // Responsive vertical offset: 3cm mobile (113px), desktop varies (middle or lower)
+    // Responsive vertical offset: spawn below target, travel upward to be fully visible
     const isMobile = window.innerWidth <= 768
     let verticalOffset
     if (isMobile) {
-      verticalOffset = 113
+      // Mobile: Spawn 200-400px below target, travel upward 565px to end 365-165px above target
+      verticalOffset = 200 + Math.random() * 200
     } else {
-      // Desktop: 50% chance for lower start (567px), 50% for middle start (283px)
-      verticalOffset = Math.random() < 0.5 ? 567 : 283
+      // Desktop: Spawn 300-600px below target, travel upward 575px to end 275-25px above target
+      verticalOffset = 300 + Math.random() * 300
     }
 
     const heart = generateHeart(
