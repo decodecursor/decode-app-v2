@@ -640,13 +640,16 @@ function AuthPageContent() {
     const urlRoleMapping: { [key: string]: string } = { 'admin': 'Admin', 'user': 'Staff', 'model': 'Model' }
     const mappedUrlRole = urlRole ? urlRoleMapping[urlRole.toLowerCase()] : null
     const storedRole = safeLocalStorage.getItem('decode_preselectedRole') || safeSessionStorage.getItem('preselectedRole')
-    // Priority: URL params > storage > state (trust fresh URL params first)
-    const effectiveRole = mappedUrlRole || storedRole || preselectedRole
+    // Also check searchParams hook (more reliable during React hydration)
+    const searchParamsRole = searchParams?.get('role')
+    const mappedSearchParamsRole = searchParamsRole ? urlRoleMapping[searchParamsRole.toLowerCase()] : null
+    // Priority: URL params > searchParams hook > storage > state
+    const effectiveRole = mappedUrlRole || mappedSearchParamsRole || storedRole || preselectedRole
     // Normalize role for comparison (case-insensitive)
     const normalizedRole = effectiveRole?.toLowerCase()
     const isModelRole = normalizedRole === 'model'
     const isAdminOrStaff = normalizedRole === 'admin' || normalizedRole === 'staff'
-    console.log('🎬 [AUTH] Modal rendering - mappedUrlRole:', mappedUrlRole, 'storedRole:', storedRole, 'preselectedRole:', preselectedRole, 'effectiveRole:', effectiveRole, 'isModelRole:', isModelRole, 'showRoleModal:', showRoleModal)
+    console.log('🎬 [AUTH] Modal rendering - urlRole:', mappedUrlRole, 'searchParamsRole:', mappedSearchParamsRole, 'storedRole:', storedRole, 'stateRole:', preselectedRole, '→ effective:', effectiveRole, 'isModelRole:', isModelRole)
 
     return (
       <>
