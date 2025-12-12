@@ -650,10 +650,12 @@ function AuthPageContent() {
     // Normalize role for comparison (case-insensitive)
     const normalizedRole = effectiveRole?.toLowerCase()
     // URL param is the most reliable source - check it directly for model role
-    // This prevents fallback to wrong modal when other sources are null during hydration
     const urlRoleDirect = urlParams?.get('role')?.toLowerCase() || searchParams?.get('role')?.toLowerCase()
-    const isModelRole = urlRoleDirect === 'model' || normalizedRole === 'model'
     const isAdminOrStaff = urlRoleDirect === 'admin' || urlRoleDirect === 'user' || normalizedRole === 'admin' || normalizedRole === 'staff'
+    // If coming from magic link (verified=true) and NOT explicitly admin/staff, default to Model
+    // This is the primary direct registration use case - admin/staff come through invites with explicit role
+    const isVerifiedFlow = urlParams?.get('verified') === 'true' || searchParams?.get('verified') === 'true'
+    const isModelRole = urlRoleDirect === 'model' || normalizedRole === 'model' || (isVerifiedFlow && !isAdminOrStaff)
     console.log('🎬 [AUTH] Modal rendering - urlRoleDirect:', urlRoleDirect, 'effective:', effectiveRole, 'isModelRole:', isModelRole)
 
     return (
