@@ -207,7 +207,7 @@ export default function CreateAuction() {
                   if (errors.title) setErrors({ ...errors, title: undefined })
                 }}
                 className={`w-full md:px-4 md:py-3 px-3 py-2 h-[42px] md:h-[50px] bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
-                  errors.title ? 'border-red-500' : (creating || formData.title.trim()) ? 'border-purple-500' : 'border-gray-700 focus:border-purple-500'
+                  errors.title ? 'border-red-500' : (creating || formData.title.trim()) ? '!border-purple-500' : 'border-gray-700 focus:border-purple-500'
                 }`}
                 placeholder="Russian Lips"
                 disabled={creating}
@@ -229,7 +229,7 @@ export default function CreateAuction() {
                   onChange={handleAuctionPriceChange}
                   inputMode="numeric"
                   className={`w-full pl-14 md:pl-16 md:pr-4 pr-3 md:py-3 py-2 h-[42px] md:h-[50px] bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
-                    errors.auction_start_price ? 'border-red-500' : (creating || formData.auction_start_price) ? 'border-purple-500' : 'border-gray-700 focus:border-purple-500'
+                    errors.auction_start_price ? 'border-red-500' : (creating || formData.auction_start_price) ? '!border-purple-500' : 'border-gray-700 focus:border-purple-500'
                   }`}
                   placeholder="800"
                   disabled={creating}
@@ -253,7 +253,7 @@ export default function CreateAuction() {
                   if (errors.duration) setErrors({ ...errors, duration: undefined })
                 }}
                 className={`w-full md:px-4 md:py-3 px-3 py-2 pr-10 h-[42px] md:h-[50px] bg-gray-800 border rounded-lg focus:outline-none transition-colors appearance-none ${
-                  errors.duration ? 'border-red-500' : (creating || formData.duration) ? 'border-purple-500' : 'border-gray-700 focus:border-purple-500'
+                  errors.duration ? 'border-red-500' : (creating || formData.duration) ? '!border-purple-500' : 'border-gray-700 focus:border-purple-500'
                 }`}
                 style={{
                   color: formData.duration ? '#fff' : '#9ca3af',

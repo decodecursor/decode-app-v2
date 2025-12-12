@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -23,6 +23,7 @@ import { getAuctionRealtimeManager, type VideoEvent } from '@/lib/realtime/Aucti
 import { usePageVisibility } from '@/lib/hooks/usePageVisibility';
 import { useRef } from 'react';
 import type { VideoData, BusinessData } from '@/lib/hooks/useAuctionCardsData';
+import { useCardReady } from '@/lib/hooks/useCardReady';
 
 interface AuctionCardProps {
   auction: Auction | AuctionWithCreator;
@@ -298,10 +299,29 @@ export function AuctionCard({
     }
   }, [visibilityChangeCount, auction.id]);
 
-  // Signal when component is fully mounted and ready
+  // Collect image URLs that need to be preloaded for full card readiness
+  const imageUrlsToPreload = useMemo(() => {
+    const urls: (string | null | undefined)[] = [];
+    // Creator profile photo
+    if (hasCreator(auction) && auction.creator.profile_photo_url) {
+      urls.push(auction.creator.profile_photo_url);
+    }
+    // Business logo
+    if (linkedBusiness?.business_photo_url) {
+      urls.push(linkedBusiness.business_photo_url);
+    }
+    return urls;
+  }, [auction, linkedBusiness]);
+
+  // Wait for images to load and browser to paint before signaling ready
+  const { isReady: cardFullyReady } = useCardReady(imageUrlsToPreload);
+
+  // Signal when component is fully ready (images loaded + painted)
   useEffect(() => {
-    onReady?.();
-  }, [onReady]);
+    if (cardFullyReady) {
+      onReady?.();
+    }
+  }, [cardFullyReady, onReady]);
 
   const closeQRModal = () => {
     setShowQRModal(false);
