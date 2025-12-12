@@ -86,6 +86,10 @@ interface PreviousAuction {
   auction_current_price: number;
   total_bids: number;
   leaderboard?: LeaderboardEntry[];
+  statistics?: {
+    total_bids: number;
+    unique_bidders: number;
+  };
 }
 
 interface HistoricalLeaderboardsProps {
@@ -145,7 +149,8 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
 
               return {
                 ...auction,
-                leaderboard: lbData.leaderboard || []
+                leaderboard: lbData.leaderboard || [],
+                statistics: lbData.statistics
               };
             } catch (error) {
               console.error(`[HistoricalLeaderboards] Error fetching leaderboard for auction ${auction.id}:`, error);
@@ -302,7 +307,7 @@ export function HistoricalLeaderboards({ creatorId, currentAuctionId }: Historic
                   month: 'short',
                   day: 'numeric',
                   year: 'numeric'
-                })} · {auction.total_bids} bid{auction.total_bids !== 1 ? 's' : ''}
+                })} · {auction.statistics?.total_bids ?? auction.leaderboard?.length ?? 0} bid{(auction.statistics?.total_bids ?? auction.leaderboard?.length ?? 0) !== 1 ? 's' : ''}
               </p>
             </div>
 

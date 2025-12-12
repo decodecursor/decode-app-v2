@@ -249,7 +249,7 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
               <select
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
-                className="cosmic-input text-sm !border !border-purple-500 focus:!border-purple-500 focus:!ring-purple-500 !text-gray-700 !w-[117px] md:!w-[92px] placeholder:text-gray-400"
+                className="cosmic-input text-sm !border !border-gray-300 focus:!border-purple-500 focus:!ring-purple-500 !text-gray-700 !w-[117px] md:!w-[92px] placeholder:text-gray-400"
                 disabled={isLoading}
               >
                 {COUNTRY_CODES.map((country) => (
@@ -266,7 +266,7 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
                   setWhatsappNumber(formatted);
                   if (errors.contact) setErrors({ ...errors, contact: undefined });
                 }}
-                className="cosmic-input flex-1 !border !border-purple-500 focus:!border-purple-500 focus:!ring-purple-500 !text-gray-700 placeholder:text-gray-400"
+                className="cosmic-input flex-1 !border !border-gray-300 focus:!border-purple-500 focus:!ring-purple-500 !text-gray-700 placeholder:text-gray-400"
                 placeholder="50 123 4567"
                 disabled={isLoading}
                 autoComplete="tel"
@@ -309,7 +309,7 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full px-4 py-3 text-base font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">

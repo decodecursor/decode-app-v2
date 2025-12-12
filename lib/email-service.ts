@@ -2056,7 +2056,7 @@ Last Payout Amount: ${payoutData.last_payout_amount || 0} AED
             <div class="section">
                 <h4>Next Step</h4>
                 <p>The winner has 24 hours to record a video message.</p>
-                <p>You'll be notified once it's uploaded—watch it to unlock your payout.</p>
+                <p>You'll be notified once it's uploaded — watch it to unlock your payout.</p>
             </div>
 
             <a href="${data.dashboard_url}" class="button">View Dashboard</a>
@@ -2083,7 +2083,7 @@ Your Payout: AED ${data.model_payout.toLocaleString('en-US', {minimumFractionDig
 
 Next Step
 The winner has 24 hours to record a video message.
-You'll be notified once it's uploaded—watch it to unlock your payout.
+You'll be notified once it's uploaded — watch it to unlock your payout.
 
 View Dashboard: ${data.dashboard_url}
 
