@@ -157,7 +157,35 @@ export function useLeaderboard(auctionId: string, userEmail?: string, limit: num
       bidder_instagram_username: bid.bidder_instagram_username,
     }));
 
-    setLeaderboard(entries);
+    // MERGE LOGIC: Preserve existing entries when realtime events update leaderboard
+    // Prevents bids from disappearing if they weren't in allBids (only populated via realtime events)
+    setLeaderboard((prevLeaderboard) => {
+      if (prevLeaderboard.length > 0) {
+        const newEntriesMap = new Map(entries.map(e => [e.id, e]));
+        const mergedEntries = [...entries];
+
+        // Preserve entries not in new data (may be from API but no realtime event yet)
+        for (const existing of prevLeaderboard) {
+          if (!newEntriesMap.has(existing.id)) {
+            mergedEntries.push(existing);
+          }
+        }
+
+        // Re-sort by amount desc, then time asc
+        mergedEntries.sort((a, b) => {
+          const amountDiff = b.bid_amount - a.bid_amount;
+          if (amountDiff !== 0) return amountDiff;
+          return new Date(a.placed_at).getTime() - new Date(b.placed_at).getTime();
+        });
+
+        // Limit to top N and assign ranks
+        return mergedEntries.slice(0, limit).map((entry, index) => ({
+          ...entry,
+          rank: index + 1,
+        }));
+      }
+      return entries;
+    });
   }, [limit, userEmail]);
 
   // Create debounced version of fetchLeaderboard

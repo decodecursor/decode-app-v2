@@ -572,8 +572,8 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
                 {/* Search no results message - shown when search returns nothing but linked business exists */}
                 {searchTerm.trim() && !isSearching && searchResults.length === 0 && sortedBusinesses.length > 0 && (
                   <div className="w-full px-4 py-3 mb-3 bg-gray-800 border border-gray-600 rounded-lg text-center">
-                    <p className="text-gray-400 text-sm">
-                      Not on the network yet. Ask them to join.
+                    <p className="text-gray-400 text-xs">
+                      No business found matching your search.
                     </p>
                   </div>
                 )}
@@ -581,9 +581,9 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
                 {/* Empty state */}
                 {!(searchTerm.trim() ? isSearching : loadingBusinesses) && sortedBusinesses.length === 0 && (
                   <div className="w-full px-4 py-8 bg-gray-800 border border-gray-600 rounded-lg text-center">
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-gray-400 text-xs">
                       {searchTerm.trim()
-                        ? 'No businesses found matching your search.'
+                        ? 'No business found matching your search.'
                         : 'No businesses yet. Create one using "New Business"!'}
                     </p>
                   </div>

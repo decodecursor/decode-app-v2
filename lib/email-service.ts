@@ -2192,53 +2192,36 @@ If you have any questions, please contact DECODE support.
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .content { padding: 30px; }
-        .request-id { padding: 15px 0; margin: 20px 0; }
-        .request-id-value { font-size: 24px; font-weight: bold; color: #333; font-family: monospace; }
-        .details { padding: 20px 0; margin: 20px 0; }
-        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; }
-        .button { display: inline-block; background: #9333EA; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .section { margin: 20px 0; }
+        .button { display: inline-block; background: #9333EA; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 10px 0; }
         .button:hover { background: #7E22CE; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="content">
-            <h3>Thank you, ${data.model_name}!</h3>
+            <p>Thank you, ${data.model_name}!</p>
             <p>We've received your payout request and it's being processed.</p>
 
-            <div class="request-id">
-                <p style="margin: 0 0 10px 0; font-size: 14px; color: #666;">Payout Request ID</p>
-                <div class="request-id-value">${data.payout_request_id}</div>
+            <div class="section">
+                <p>Payout Request ID</p>
+                <p>${data.payout_request_id}</p>
             </div>
 
-            <div class="details">
-                <h4>Payout Details</h4>
-                <div class="detail-row">
-                    <span>Amount:</span>
-                    <span><strong>AED ${data.payout_amount.toLocaleString('en-AE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
-                </div>
-                <div class="detail-row">
-                    <span>Payment Method:</span>
-                    <span>${data.payout_method}</span>
-                </div>
-                <div class="detail-row">
-                    <span>Request Date:</span>
-                    <span>${new Date(data.request_date).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true, timeZone: 'Asia/Dubai' })}</span>
-                </div>
+            <div class="section">
+                <p>Payout Details</p>
+                <p>Amount: AED ${data.payout_amount.toLocaleString('en-AE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <p>Payment Method: ${data.payout_method}</p>
+                <p>Request Date: ${new Date(data.request_date).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true, timeZone: 'Asia/Dubai' })}</p>
             </div>
 
-            <div class="details">
-                <h4>Next Step</h4>
-                <p>Your payout will be processed within <strong>1-3 business days</strong>.</p>
-            </div>
-
-            <div>
+            <div class="section">
+                <p>Next Step</p>
+                <p>Your payout will be processed within 1-2 business days.</p>
                 <a href="${data.dashboard_url}" class="button">Track Status</a>
             </div>
 
-            <p style="color: #666; font-size: 14px; margin-top: 30px;">
-                If you have any questions, please contact DECODE support.
-            </p>
+            <p>If you have any questions, please contact DECODE support.</p>
         </div>
     </div>
 </body>
@@ -2246,20 +2229,18 @@ If you have any questions, please contact DECODE support.
 
     const text = `
 Thank you, ${data.model_name}!
-
 We've received your payout request and it's being processed.
 
-PAYOUT REQUEST ID
+Payout Request ID
 ${data.payout_request_id}
 
-PAYOUT DETAILS
+Payout Details
 Amount: AED ${data.payout_amount.toLocaleString('en-AE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 Payment Method: ${data.payout_method}
-Request Date: ${new Date(data.request_date).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true, timeZone: 'Asia/Dubai' })}
+Request Date: ${new Date(data.request_date).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true, timeZone: 'Asia/Dubai' })}
 
-NEXT STEP
-Your payout will be processed within 1-3 business days.
-
+Next Step
+Your payout will be processed within 1-2 business days.
 Track Status: ${data.dashboard_url}
 
 If you have any questions, please contact DECODE support.
