@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     if (!whatsappService.isConfigured()) {
       console.error('❌ [OTP] WhatsApp service not configured')
       return NextResponse.json(
-        { error: 'WhatsApp authentication is not configured. Please contact support.' },
+        { error: 'WhatsApp integration with Meta is in progress.\nFor now, please use email below.' },
         { status: 500 }
       )
     }

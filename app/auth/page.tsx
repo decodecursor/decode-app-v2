@@ -44,10 +44,11 @@ function AuthPageContent() {
     return `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5, 9)}`
   }
 
-  // Auto-hide messages after 5 seconds
+  // Auto-hide messages (errors: 5s, info: 15s)
   useEffect(() => {
-    if (message && message.toLowerCase().includes('error')) {
-      const timer = setTimeout(() => setMessage(''), 5000)
+    if (message) {
+      const isError = message.toLowerCase().includes('error')
+      const timer = setTimeout(() => setMessage(''), isError ? 5000 : 15000)
       return () => clearTimeout(timer)
     }
   }, [message])
@@ -794,7 +795,7 @@ function AuthPageContent() {
               <div className={`mt-6 p-3 rounded-lg text-sm text-center ${
                 message.toLowerCase().includes('error')
                   ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                  : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                  : 'bg-blue-500/10 text-blue-300 border border-blue-500/20'
               }`}>
                 {message}
               </div>
@@ -803,9 +804,9 @@ function AuthPageContent() {
             {/* Terms and Privacy */}
             <p className="text-center text-gray-400 font-light mt-8" style={{ fontSize: '12px' }}>
               By continuing, you agree to DECODE's<br />
-              <a href="https://welovedecode.com/#terms" className="hover:underline">Terms of Service</a>
+              <a href="https://welovedecode.com/#terms" className="underline hover:underline">Terms of Service</a>
               {' '}and{' '}
-              <a href="https://welovedecode.com/#privacy" className="hover:underline">Privacy Policy</a>.
+              <a href="https://welovedecode.com/#privacy" className="underline hover:underline">Privacy Policy</a>.
             </p>
           </div>
         </div>
@@ -924,7 +925,7 @@ function AuthPageContent() {
               <div className={`mt-6 p-3 rounded-lg text-sm text-center ${
                 message.toLowerCase().includes('error')
                   ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                  : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                  : 'bg-blue-500/10 text-blue-300 border border-blue-500/20'
               }`}>
                 {message}
               </div>
@@ -1100,7 +1101,7 @@ function AuthPageContent() {
               <div className={`mt-6 p-3 rounded-lg text-sm text-center ${
                 message.toLowerCase().includes('error')
                   ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                  : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                  : 'bg-blue-500/10 text-blue-300 border border-blue-500/20'
               }`}>
                 {message}
               </div>

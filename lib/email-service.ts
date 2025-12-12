@@ -1446,7 +1446,7 @@ DECODE
     try {
       console.log(`📧 Sending video uploaded email to model ${data.model_email}`)
 
-      const subject = `📹 Winner Video Uploaded`
+      const subject = `Your Winner Video Uploaded`
 
       const emailContent = await this.renderModelVideoUploadedEmail(data)
 
@@ -1492,7 +1492,7 @@ DECODE
     try {
       console.log(`📧 Sending payout request confirmed email to model ${data.model_email}`)
 
-      const subject = `💰 Payout Request Processing - ${data.payout_request_id}`
+      const subject = `Your Payout Request - AED ${data.payout_amount.toLocaleString('en-AE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
       const emailContent = await this.renderModelPayoutRequestConfirmedEmail(data)
 
@@ -2114,69 +2114,49 @@ If you have any questions, please contact DECODE support.
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Winner Has Uploaded Video</title>
+    <title>Your Winner Video Uploaded</title>
     <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-        .info-icon { font-size: 48px; color: #2196F3; margin-bottom: 20px; text-align: center; }
-        .details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-        .button { display: inline-block; background: #2196F3; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-        .important-note { background: #FFF3CD; border-left: 4px solid #FFC107; padding: 15px; margin: 20px 0; }
+        .button { display: inline-block; background: #9333EA; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .button:hover { background: #7E22CE; }
+        h3 { margin: 0 0 10px 0; font-size: 16px; font-weight: 600; color: #666; }
+        p { margin: 0 0 10px 0; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>DECODE</h1>
-            <h2>Winner Video</h2>
-        </div>
-        <div class="content">
-            <div class="info-icon">🎬</div>
-            <h3 style="text-align: center;">Great news, ${data.model_name}!</h3>
-            <p style="text-align: center;">The winner of beauty auction "${data.auction_title}" has uploaded the video message.</p>
+        <p>Great news, ${data.model_name}!</p>
+        <p>The winner of your beauty auction "${data.auction_title}" has uploaded your video message.</p>
 
-            <div class="details">
-                <h4>Beauty Auction</h4>
-                <p><strong>Auction:</strong> ${data.auction_title}</p>
-                <p><strong>Winner:</strong> ${data.winner_name}</p>
-                <p><strong>Video Uploaded:</strong> ${new Date(data.video_uploaded_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Dubai' })}</p>
-            </div>
+        <h3 style="margin-top: 30px;">Video Details</h3>
+        <p><strong>Beauty Auction:</strong> ${data.auction_title}</p>
+        <p><strong>Winner:</strong> ${data.winner_name}</p>
+        <p><strong>Video Uploaded:</strong> ${new Date(data.video_uploaded_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Dubai' })}</p>
 
-            <div class="important-note">
-                <h4 style="margin-top: 0;">Action Required</h4>
-                <p style="margin-bottom: 0;">Watch the full video to unlock your payout.</p>
-            </div>
+        <h3 style="margin-top: 30px;">Next Step</h3>
+        <p>Watch the full video to unlock your payout.</p>
+        <a href="${data.dashboard_url}" class="button">Watch Video</a>
 
-            <div style="text-align: center;">
-                <a href="${data.dashboard_url}" class="button">Watch Video & Unlock Payout</a>
-            </div>
-        </div>
-        <div class="footer">
-            <p>If you have any questions, please contact DECODE support.</p>
-        </div>
+        <p style="margin-top: 30px; color: #666; font-size: 14px;">If you have any questions, please contact DECODE support.</p>
     </div>
 </body>
 </html>`
 
     const text = `
-DECODE - Winner Video
-
 Great news, ${data.model_name}!
 
-The winner of beauty auction "${data.auction_title}" has uploaded the video message.
+The winner of your beauty auction "${data.auction_title}" has uploaded your video message.
 
-BEAUTY AUCTION
-Auction: ${data.auction_title}
+VIDEO DETAILS
+Beauty Auction: ${data.auction_title}
 Winner: ${data.winner_name}
 Video Uploaded: ${new Date(data.video_uploaded_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Dubai' })}
 
-ACTION REQUIRED
+NEXT STEP
 Watch the full video to unlock your payout.
 
-Watch Video & Unlock Payout: ${data.dashboard_url}
+Watch Video: ${data.dashboard_url}
 
 ---
 If you have any questions, please contact DECODE support.
@@ -2211,27 +2191,20 @@ If you have any questions, please contact DECODE support.
     <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-        .success-icon { font-size: 48px; color: #4CAF50; margin-bottom: 20px; text-align: center; }
-        .request-id { background: #E8F5E9; border: 2px solid #4CAF50; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0; }
-        .request-id-value { font-size: 24px; font-weight: bold; color: #4CAF50; font-family: monospace; }
-        .details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .detail-row:last-child { border-bottom: none; }
-        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-        .button { display: inline-block; background: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .content { padding: 30px; }
+        .request-id { padding: 15px 0; margin: 20px 0; }
+        .request-id-value { font-size: 24px; font-weight: bold; color: #333; font-family: monospace; }
+        .details { padding: 20px 0; margin: 20px 0; }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; }
+        .button { display: inline-block; background: #9333EA; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .button:hover { background: #7E22CE; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>DECODE</h1>
-            <h2>Payout Request Processing</h2>
-        </div>
         <div class="content">
-            <h3 style="text-align: center;">Thank you, ${data.model_name}!</h3>
-            <p style="text-align: center;">We've received your payout request and it's being processed.</p>
+            <h3>Thank you, ${data.model_name}!</h3>
+            <p>We've received your payout request and it's being processed.</p>
 
             <div class="request-id">
                 <p style="margin: 0 0 10px 0; font-size: 14px; color: #666;">Payout Request ID</p>
@@ -2256,14 +2229,14 @@ If you have any questions, please contact DECODE support.
 
             <div class="details">
                 <h4>Next Step</h4>
-                <p>Your payout will be processed within <strong>2-3 business days</strong>.</p>
+                <p>Your payout will be processed within <strong>1-3 business days</strong>.</p>
             </div>
 
-            <div style="text-align: center;">
-                <a href="${data.dashboard_url}" class="button">Track Status in Dashboard</a>
+            <div>
+                <a href="${data.dashboard_url}" class="button">Track Status</a>
             </div>
 
-            <p style="text-align: center; color: #666; font-size: 14px; margin-top: 30px;">
+            <p style="color: #666; font-size: 14px; margin-top: 30px;">
                 If you have any questions, please contact DECODE support.
             </p>
         </div>
@@ -2272,8 +2245,6 @@ If you have any questions, please contact DECODE support.
 </html>`
 
     const text = `
-DECODE - Payout Request Processing
-
 Thank you, ${data.model_name}!
 
 We've received your payout request and it's being processed.
@@ -2287,7 +2258,7 @@ Payment Method: ${data.payout_method}
 Request Date: ${new Date(data.request_date).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true, timeZone: 'Asia/Dubai' })}
 
 NEXT STEP
-Your payout will be processed within 2-3 business days.
+Your payout will be processed within 1-3 business days.
 
 Track Status: ${data.dashboard_url}
 
