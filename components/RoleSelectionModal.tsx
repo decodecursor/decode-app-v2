@@ -298,43 +298,21 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
       
       console.log('🔄 [ROLE MODAL] Creating profile:', profileData)
 
-      let profileError = null
-      
-      // Try direct upsert first (handles both new and existing users)
-      try {
-        console.log('🔄 [ROLE MODAL] Trying direct profile creation...')
-        const { error } = await supabase.from('users').upsert(profileData, { onConflict: 'id' })
-        
-        if (error) {
-          profileError = error
-          throw error
-        }
-        
-        console.log('✅ [ROLE MODAL] Direct profile creation successful')
-      } catch (directError) {
-        console.log('⚠️ [ROLE MODAL] Direct profile creation failed, trying proxy...', directError.message)
-        
-        // Try proxy profile creation
-        try {
-          console.log('🔄 [ROLE MODAL] Using proxy profile creation...')
-          const proxyResponse = await fetch('/api/auth/create-profile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(profileData)
-          })
-          
-          const proxyData = await proxyResponse.json()
-          
-          if (!proxyResponse.ok || !proxyData.success) {
-            throw new Error(proxyData.error || 'Proxy profile creation failed')
-          }
-          
-          console.log('✅ [ROLE MODAL] Proxy profile creation successful')
-        } catch (proxyError) {
-          console.error('❌ [ROLE MODAL] Both direct and proxy profile creation failed')
-          throw profileError || proxyError
-        }
+      // Always use API route to ensure admin email notification is sent
+      console.log('🔄 [ROLE MODAL] Creating profile via API...')
+      const proxyResponse = await fetch('/api/auth/create-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileData)
+      })
+
+      const proxyData = await proxyResponse.json()
+
+      if (!proxyResponse.ok || !proxyData.success) {
+        throw new Error(proxyData.error || 'Profile creation failed')
       }
+
+      console.log('✅ [ROLE MODAL] Profile creation successful')
       onComplete(role)
     } catch (error) {
       console.error('Profile creation error:', error)
