@@ -647,9 +647,12 @@ function AuthPageContent() {
     const effectiveRole = mappedUrlRole || mappedSearchParamsRole || storedRole || preselectedRole
     // Normalize role for comparison (case-insensitive)
     const normalizedRole = effectiveRole?.toLowerCase()
-    const isModelRole = normalizedRole === 'model'
-    const isAdminOrStaff = normalizedRole === 'admin' || normalizedRole === 'staff'
-    console.log('🎬 [AUTH] Modal rendering - urlRole:', mappedUrlRole, 'searchParamsRole:', mappedSearchParamsRole, 'storedRole:', storedRole, 'stateRole:', preselectedRole, '→ effective:', effectiveRole, 'isModelRole:', isModelRole)
+    // URL param is the most reliable source - check it directly for model role
+    // This prevents fallback to wrong modal when other sources are null during hydration
+    const urlRoleDirect = urlParams?.get('role')?.toLowerCase() || searchParams?.get('role')?.toLowerCase()
+    const isModelRole = urlRoleDirect === 'model' || normalizedRole === 'model'
+    const isAdminOrStaff = urlRoleDirect === 'admin' || urlRoleDirect === 'user' || normalizedRole === 'admin' || normalizedRole === 'staff'
+    console.log('🎬 [AUTH] Modal rendering - urlRoleDirect:', urlRoleDirect, 'effective:', effectiveRole, 'isModelRole:', isModelRole)
 
     return (
       <>
