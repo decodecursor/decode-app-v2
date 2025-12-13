@@ -584,7 +584,7 @@ export function LinkBeautyBusinessModal({ isOpen, onClose, onLink, linkedBusines
                     <p className="text-gray-400 text-xs">
                       {searchTerm.trim()
                         ? 'No business found matching your search.'
-                        : 'No businesses yet. Create one using "New Business"!'}
+                        : 'No connected beauty businesses yet'}
                     </p>
                   </div>
                 )}

@@ -103,6 +103,7 @@ export async function POST(request: NextRequest) {
         company_name: profileData.company_name,
         branch_name: profileData.branch_name,
         approval_status: profileData.approval_status || 'approved',
+        instagram_handle: profileData.instagram_handle,
         created_at: new Date().toISOString()
       })
 

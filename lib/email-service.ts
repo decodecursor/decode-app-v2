@@ -1225,6 +1225,7 @@ DECODE
     company_name?: string
     branch_name?: string
     approval_status?: string
+    instagram_handle?: string | null
     invited_by?: string
     created_at: string
   }): Promise<EmailResult> {
@@ -1533,6 +1534,7 @@ DECODE
     company_name?: string
     branch_name?: string
     approval_status?: string
+    instagram_handle?: string | null
     invited_by?: string
     created_at: string
   }): Promise<{
@@ -1572,6 +1574,7 @@ DECODE
                 <h3>👤 User Details</h3>
                 <p><strong>Name:</strong> ${userData.user_name}</p>
                 <p><strong>Email:</strong> ${userData.email}</p>
+                ${userData.instagram_handle ? `<p><strong>Instagram:</strong> @${userData.instagram_handle}</p>` : ''}
                 <p><strong>Role:</strong> ${userData.role}</p>
                 <p><strong>Company:</strong> ${userData.company_name || 'Not specified'}</p>
                 <p><strong>Branch:</strong> ${userData.branch_name || 'Not specified'}</p>
@@ -1609,6 +1612,7 @@ A new user has registered:
 USER DETAILS
 Name: ${userData.user_name}
 Email: ${userData.email}
+${userData.instagram_handle ? `Instagram: @${userData.instagram_handle}` : ''}
 Role: ${userData.role}
 Company: ${userData.company_name || 'Not specified'}
 Branch: ${userData.branch_name || 'Not specified'}

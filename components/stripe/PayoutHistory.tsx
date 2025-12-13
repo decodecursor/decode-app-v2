@@ -248,7 +248,10 @@ export function PayoutHistory({ userId, userRole, onNewPayout, refreshTrigger }:
       </div>
       
       {payouts.length === 0 ? (
-        <p className="text-gray-300 text-center py-8 text-xs md:text-sm">No payouts yet. Your first payout will appear here.</p>
+        <p className="text-gray-300 text-center py-8 text-xs md:text-sm">
+          No payouts yet.<br />
+          Your payouts will appear here.
+        </p>
       ) : (
         <>
           <div className="space-y-3">
