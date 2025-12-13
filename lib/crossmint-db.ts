@@ -1,13 +1,13 @@
 // Database operations for Crossmint integration
 // Handles all database interactions related to wallets and transactions
 
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createServiceRoleClient } from '@/utils/supabase/service-role';
 import { generateUniqueShortId, generateUniquePaymentLinkRequestId } from '@/lib/short-id';
+
+// Lazy initialization to avoid build-time errors
+function getSupabase() {
+  return createServiceRoleClient();
+}
 import { v4 as uuidv4 } from 'uuid';
 import {
   CrossmintUser,
@@ -30,7 +30,7 @@ export class CrossmintDatabaseService {
     walletAddress: string,
     crossmintWalletId: string
   ): Promise<void> {
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from('users')
       .update({
         wallet_address: walletAddress,
@@ -54,7 +54,7 @@ export class CrossmintDatabaseService {
       serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'MISSING'
     });
     
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('users')
       .select('*')
       .eq('id', userId)
@@ -74,7 +74,7 @@ export class CrossmintDatabaseService {
    * Get user by email with wallet information
    */
   async getUserByEmail(email: string): Promise<CrossmintUser | null> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('users')
       .select('*')
       .eq('email', email)
@@ -95,7 +95,7 @@ export class CrossmintDatabaseService {
    */
   private async shortIdExists(shortId: string): Promise<boolean> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from('payment_links')
         .select('short_id')
         .eq('short_id', shortId)
@@ -121,7 +121,7 @@ export class CrossmintDatabaseService {
    */
   private async checkPaymentLinkRequestIdExists(requestId: string): Promise<boolean> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from('payment_links')
         .select('paymentlink_request_id')
         .eq('paymentlink_request_id', requestId)
@@ -192,7 +192,7 @@ export class CrossmintDatabaseService {
       amount_aed: paymentLinkData.amount_aed
     });
 
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('payment_links')
       .insert(paymentLinkData)
       .select('*')
@@ -223,7 +223,7 @@ export class CrossmintDatabaseService {
   async getPaymentLink(linkId: string): Promise<CrossmintPaymentLink | null> {
     // First try to find by short_id (8 characters)
     if (linkId.length === 8) {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from('payment_links')
         .select('*')
         .eq('short_id', linkId)
@@ -235,7 +235,7 @@ export class CrossmintDatabaseService {
     }
 
     // Fallback to UUID lookup (for backward compatibility)
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('payment_links')
       .select('*')
       .eq('id', linkId)
@@ -253,7 +253,7 @@ export class CrossmintDatabaseService {
    * Update payment link status
    */
   async updatePaymentLinkStatus(linkId: string, isActive: boolean): Promise<void> {
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from('payment_links')
       .update({ 
         is_active: isActive,
@@ -274,7 +274,7 @@ export class CrossmintDatabaseService {
     fee_amount_aed: number;
     total_amount_aed: number;
   }): Promise<void> {
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from('payment_links')
       .update({
         ...fees,
@@ -293,7 +293,7 @@ export class CrossmintDatabaseService {
    * Record a new wallet transaction
    */
   async recordTransaction(transaction: Omit<WalletTransaction, 'id' | 'created_at' | 'updated_at'>): Promise<WalletTransaction> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('wallet_transactions')
       .insert({
         ...transaction,
@@ -327,7 +327,7 @@ export class CrossmintDatabaseService {
       updateData.completed_at = completedAt.toISOString();
     }
 
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from('wallet_transactions')
       .update(updateData)
       .eq('id', transactionId);
@@ -341,7 +341,7 @@ export class CrossmintDatabaseService {
    * Get user transactions for dashboard
    */
   async getUserTransactions(userId: string, limit: number = 50): Promise<WalletTransaction[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('wallet_transactions')
       .select('*')
       .eq('user_id', userId)
@@ -359,7 +359,7 @@ export class CrossmintDatabaseService {
    * Get transaction by Crossmint transaction ID
    */
   async getTransactionByCrossmintId(crossmintTransactionId: string): Promise<WalletTransaction | null> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('wallet_transactions')
       .select('*')
       .eq('crossmint_transaction_id', crossmintTransactionId)
@@ -380,7 +380,7 @@ export class CrossmintDatabaseService {
    */
   async deactivateExpiredLinks(): Promise<number> {
     // TODO: Uncomment when auto_deactivate_expired_links function is added to database
-    // const { data, error } = await supabase.rpc('auto_deactivate_expired_links');
+    // const { data, error } = await getSupabase().rpc('auto_deactivate_expired_links');
     // if (error) {
     //   throw new Error(`Failed to deactivate expired links: ${error.message}`);
     // }
@@ -396,7 +396,7 @@ export class CrossmintDatabaseService {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('payment_links')
       .select('*')
       .lt('expiration_date', tomorrow.toISOString())
@@ -417,7 +417,7 @@ export class CrossmintDatabaseService {
    */
   async getUserTransactionSummary(userId: string) {
     // TODO: Uncomment when user_transaction_summary view is added to database
-    // const { data, error } = await supabase
+    // const { data, error } = await getSupabase()
     //   .from('user_transaction_summary')
     //   .select('*')
     //   .eq('user_id', userId)
@@ -453,7 +453,7 @@ export class CrossmintDatabaseService {
    * Get marketplace statistics (admin only)
    */
   async getMarketplaceStats() {
-    const { data: totalRevenue, error: revenueError } = await supabase
+    const { data: totalRevenue, error: revenueError } = await getSupabase()
       .from('wallet_transactions')
       .select('amount_usdc')
       .eq('transaction_type', 'fee_collected')
@@ -463,7 +463,7 @@ export class CrossmintDatabaseService {
       throw new Error(`Failed to get revenue stats: ${revenueError.message}`);
     }
 
-    const { data: activeLinks, error: linksError } = await supabase
+    const { data: activeLinks, error: linksError } = await getSupabase()
       .from('payment_links')
       .select('id')
       .eq('is_active', true);
@@ -472,7 +472,7 @@ export class CrossmintDatabaseService {
       throw new Error(`Failed to get active links: ${linksError.message}`);
     }
 
-    const { data: totalUsers, error: usersError } = await supabase
+    const { data: totalUsers, error: usersError } = await getSupabase()
       .from('users')
       .select('id')
       .not('wallet_address', 'is', null);

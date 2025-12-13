@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { emailService } from '@/lib/email-service'
 
 export async function POST(request: NextRequest) {
@@ -9,26 +9,9 @@ export async function POST(request: NextRequest) {
     const profileData = await request.json()
     
     console.log('📝 [CREATE-PROFILE] Creating profile:', profileData)
-    
-    // Check environment variables
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    
-    if (!supabaseUrl || !anonKey) {
-      console.error('❌ [CREATE-PROFILE] Missing environment variables')
-      return NextResponse.json(
-        { success: false, error: 'Server configuration error' },
-        { status: 500 }
-      )
-    }
-    
-    // Create supabase client
-    const supabase = createClient(supabaseUrl, anonKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
+
+    // Use service role client to bypass RLS for profile creation
+    const supabase = createServiceRoleClient()
 
     // Check if user already exists to preserve user_name
     const { data: existingUser } = await supabase

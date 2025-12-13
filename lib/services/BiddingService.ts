@@ -15,9 +15,16 @@ import Stripe from 'stripe';
 const ANTI_SNIPING_THRESHOLD = 60; // seconds
 const ANTI_SNIPING_EXTENSION = 60; // seconds
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-06-30.basil',
-});
+// Lazy initialization to avoid build-time errors when env vars aren't available
+let stripeInstance: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!stripeInstance) {
+    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2025-06-30.basil',
+    });
+  }
+  return stripeInstance;
+}
 
 export class BiddingService {
   private auctionService: AuctionService;
@@ -153,7 +160,7 @@ export class BiddingService {
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
           try {
-            await stripe.paymentIntents.update(paymentResult.payment_intent_id, {
+            await getStripe().paymentIntents.update(paymentResult.payment_intent_id, {
               metadata: {
                 bid_id: bid.id,
                 auction_id: params.auction_id,
@@ -335,7 +342,7 @@ export class BiddingService {
       }
 
       // CRITICAL FIX: Verify actual Stripe PaymentIntent status before updating DB
-      const paymentIntent = await stripe.paymentIntents.retrieve(bid.payment_intent_id);
+      const paymentIntent = await getStripe().paymentIntents.retrieve(bid.payment_intent_id);
 
       console.log('[BiddingService] confirmBidPayment - Stripe status check:', {
         bid_id: bidId,

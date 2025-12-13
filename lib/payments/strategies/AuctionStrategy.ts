@@ -14,9 +14,16 @@ import { getAuctionConfig, PAYMENT_CONFIG } from '../config/paymentConfig';
 import { GuestBidderService } from '@/lib/services/GuestBidderService';
 import { createServiceRoleClient } from '@/utils/supabase/service-role';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-06-30.basil',
-});
+// Lazy initialization to avoid build-time errors when env vars aren't available
+let stripeInstance: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!stripeInstance) {
+    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2025-06-30.basil',
+    });
+  }
+  return stripeInstance;
+}
 
 export interface AuctionPaymentContext extends PaymentContext {
   auction_id: string;
@@ -58,7 +65,7 @@ export class AuctionStrategy implements IPaymentStrategy {
         });
 
         // Retrieve the existing PaymentIntent
-        const existingPaymentIntent = await stripe.paymentIntents.retrieve(auctionContext.payment_intent_id);
+        const existingPaymentIntent = await getStripe().paymentIntents.retrieve(auctionContext.payment_intent_id);
 
         // CRITICAL FIX: Only reuse PaymentIntent if it's still in a reusable state
         // If already authorized (requires_capture) or in another non-reusable state,
@@ -81,7 +88,7 @@ export class AuctionStrategy implements IPaymentStrategy {
           const usdCents = Math.round(usdAmount * 100);
 
           // Update the PaymentIntent with actual bid amount
-          const paymentIntent = await stripe.paymentIntents.update(auctionContext.payment_intent_id, {
+          const paymentIntent = await getStripe().paymentIntents.update(auctionContext.payment_intent_id, {
             amount: usdCents, // Update amount if changed
             metadata: {
               ...existingPaymentIntent.metadata, // Preserve existing metadata
@@ -133,7 +140,7 @@ export class AuctionStrategy implements IPaymentStrategy {
         const [validatedCustomer, fetchedPaymentMethodId] = await Promise.all([
           // Customer validation (only if customer ID exists)
           customerId
-            ? stripe.customers.retrieve(customerId).catch((error: any) => {
+            ? getStripe().customers.retrieve(customerId).catch((error: any) => {
                 if (error.code === 'resource_missing') {
                   console.warn('[AuctionStrategy] ⚠️ Stored customer ID no longer exists in Stripe, will create new customer:', {
                     old_customer_id: customerId,
@@ -193,7 +200,7 @@ export class AuctionStrategy implements IPaymentStrategy {
             guest_bidder_id: auctionContext.guest_bidder_id
           });
 
-          const customer = await stripe.customers.create({
+          const customer = await getStripe().customers.create({
             email: auctionContext.bidder_email,
             name: auctionContext.bidder_name,
             metadata: {
@@ -271,9 +278,9 @@ export class AuctionStrategy implements IPaymentStrategy {
       const startTime = Date.now();
 
       const [paymentIntent, paymentMethodDetails] = await Promise.all([
-        stripe.paymentIntents.create(paymentIntentParams),
+        getStripe().paymentIntents.create(paymentIntentParams),
         savedPaymentMethodId
-          ? stripe.paymentMethods.retrieve(savedPaymentMethodId).catch(error => {
+          ? getStripe().paymentMethods.retrieve(savedPaymentMethodId).catch(error => {
               console.error('[AuctionStrategy] Error fetching payment method details:', error);
               return null;
             })
@@ -326,7 +333,7 @@ export class AuctionStrategy implements IPaymentStrategy {
   async capturePayment(paymentIntentId: string): Promise<PaymentResult> {
     try {
       // First, check current status of PaymentIntent in Stripe
-      const currentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      const currentIntent = await getStripe().paymentIntents.retrieve(paymentIntentId);
 
       console.log('[AuctionStrategy] capturePayment - checking status:', {
         payment_intent_id: paymentIntentId,
@@ -360,7 +367,7 @@ export class AuctionStrategy implements IPaymentStrategy {
       }
 
       // Now safe to capture
-      const paymentIntent = await stripe.paymentIntents.capture(paymentIntentId);
+      const paymentIntent = await getStripe().paymentIntents.capture(paymentIntentId);
 
       return {
         success: true,
@@ -379,7 +386,7 @@ export class AuctionStrategy implements IPaymentStrategy {
           error.message?.includes('has a status of succeeded')) {
         console.log('[AuctionStrategy] PaymentIntent already captured (caught in error handler)');
         try {
-          const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+          const intent = await getStripe().paymentIntents.retrieve(paymentIntentId);
           if (intent.status === 'succeeded') {
             return {
               success: true,
@@ -407,7 +414,7 @@ export class AuctionStrategy implements IPaymentStrategy {
    */
   async cancelPayment(paymentIntentId: string): Promise<PaymentResult> {
     try {
-      const paymentIntent = await stripe.paymentIntents.cancel(paymentIntentId);
+      const paymentIntent = await getStripe().paymentIntents.cancel(paymentIntentId);
 
       return {
         success: true,
@@ -466,7 +473,7 @@ export class AuctionStrategy implements IPaymentStrategy {
    */
   async refundPayment(paymentIntentId: string, amount?: number): Promise<RefundResult> {
     try {
-      const refund = await stripe.refunds.create({
+      const refund = await getStripe().refunds.create({
         payment_intent: paymentIntentId,
         amount: amount ? Math.round(amount * 100) : undefined,
       });
@@ -489,7 +496,7 @@ export class AuctionStrategy implements IPaymentStrategy {
    * Get payment details
    */
   async getPaymentDetails(paymentIntentId: string): Promise<Stripe.PaymentIntent> {
-    return await stripe.paymentIntents.retrieve(paymentIntentId);
+    return await getStripe().paymentIntents.retrieve(paymentIntentId);
   }
 
   /**
@@ -525,7 +532,7 @@ export class AuctionStrategy implements IPaymentStrategy {
           // CRITICAL FIX FOR EDGE: Explicitly attach payment method to customer
           // This ensures the payment method is saved even if Edge's automatic attachment fails
           const attachStartTime = Date.now();
-          await stripe.paymentMethods.attach(paymentMethodId, {
+          await getStripe().paymentMethods.attach(paymentMethodId, {
             customer: customerId,
           });
           const attachTime = Date.now() - attachStartTime;

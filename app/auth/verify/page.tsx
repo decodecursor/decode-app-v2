@@ -211,7 +211,7 @@ function VerifyContent() {
               console.log('✅ Email verified successfully for user:', verificationData.user.id)
               setEmail(verificationData.user.email || '')
               setSuccess(true)
-              setMessage('Email verified successfully! Checking your profile...')
+              setMessage('Checking your profile...')
               
               // If we have session data from proxy verification, set it explicitly
               if (verificationData.session) {

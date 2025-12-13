@@ -3,7 +3,7 @@
 
 import { crossmintService } from '@/lib/crossmint';
 import { crossmintDB } from '@/lib/crossmint-db';
-import { supabase } from '@/lib/supabase';
+import { createServiceRoleClient } from '@/utils/supabase/service-role';
 
 interface TransferRequest {
   paymentLinkId: string;
@@ -122,6 +122,7 @@ export class TransferService {
       console.log(`🔄 Retrying failed transfer: ${transactionId}`);
 
       // Get the failed transaction
+      const supabase = createServiceRoleClient();
       const { data: transaction, error } = await supabase
         .from('wallet_transactions')
         .select(`
@@ -191,6 +192,7 @@ export class TransferService {
    */
   async getPendingTransfers(): Promise<any[]> {
     try {
+      const supabase = createServiceRoleClient();
       const { data: pendingTransfers, error } = await supabase
         .from('wallet_transactions')
         .select(`
@@ -219,6 +221,7 @@ export class TransferService {
    */
   async getFailedTransfers(): Promise<any[]> {
     try {
+      const supabase = createServiceRoleClient();
       const { data: failedTransfers, error } = await supabase
         .from('wallet_transactions')
         .select(`
@@ -246,7 +249,7 @@ export class TransferService {
    * Manual transfer completion (for admin use)
    */
   async manuallyCompleteTransfer(
-    transactionId: string, 
+    transactionId: string,
     crossmintTransactionId: string,
     adminUserId: string
   ): Promise<void> {
@@ -256,6 +259,7 @@ export class TransferService {
       await crossmintDB.updateTransactionStatus(transactionId, 'completed', new Date());
 
       // Add admin completion metadata
+      const supabase = createServiceRoleClient();
       await supabase
         .from('wallet_transactions')
         .update({
@@ -286,6 +290,7 @@ export class TransferService {
     pendingCount: number;
   }> {
     try {
+      const supabase = createServiceRoleClient();
       const { data: pendingTransfers, error } = await supabase
         .from('wallet_transactions')
         .select('amount_usdc, amount_aed')
