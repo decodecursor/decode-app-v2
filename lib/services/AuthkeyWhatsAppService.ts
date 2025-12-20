@@ -117,7 +117,7 @@ class AuthkeyWhatsAppService {
           mobile: parsed.mobile,
           wid: templateWid,
           type: 'text',
-          bodyValues: bodyValues,
+          ...bodyValues,  // Spread at root level (AUTHKEY expects this format)
         }),
       });
 
@@ -130,10 +130,14 @@ class AuthkeyWhatsAppService {
           updated_at: new Date().toISOString(),
         };
 
-        if (response.ok && data.Message === 'Submitted Successfully') {
+        const dbIsSuccess =
+          data.Message === 'Submitted Successfully' ||
+          data.message?.whatsapp === 'Submitted Successfully';
+
+        if (response.ok && dbIsSuccess) {
           updateData.status = 'sent';
           updateData.sent_at = new Date().toISOString();
-          updateData.authkey_message_id = data.LogId || null;
+          updateData.authkey_message_id = data.LogID || data.LogId || null;
         } else {
           updateData.status = 'failed';
           updateData.failed_at = new Date().toISOString();
@@ -154,12 +158,17 @@ class AuthkeyWhatsAppService {
         };
       }
 
-      // Check for success in response
-      if (data.Message === 'Submitted Successfully') {
-        console.log('[AuthkeyWhatsApp] Message sent successfully. LogId:', data.LogId);
+      // Check for success in response (handle both AUTHKEY response formats)
+      const isSuccess =
+        data.Message === 'Submitted Successfully' ||
+        data.message?.whatsapp === 'Submitted Successfully';
+
+      if (isSuccess) {
+        const logId = data.LogID || data.LogId;
+        console.log('[AuthkeyWhatsApp] Message sent successfully. LogID:', logId);
         return {
           success: true,
-          messageId: data.LogId,
+          messageId: logId,
         };
       }
 
