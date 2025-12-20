@@ -10,6 +10,7 @@ import { GuestBidderService } from './GuestBidderService';
 import { AuctionPaymentProcessor } from '@/lib/payments/processors/AuctionPaymentProcessor';
 import { AuctionStrategy } from '@/lib/payments/strategies/AuctionStrategy';
 import { getAuctionConfig } from '@/lib/payments/config/paymentConfig';
+import { authkeyWhatsAppService } from './AuthkeyWhatsAppService';
 import Stripe from 'stripe';
 
 const ANTI_SNIPING_THRESHOLD = 60; // seconds
@@ -376,6 +377,11 @@ export class BiddingService {
       // Re-evaluate bid statuses after VERIFIED payment confirmation
       await this.paymentProcessor.manageDualPreAuth(bid.auction_id, bidId);
 
+      // Send WhatsApp bid confirmation (async, don't block on failure)
+      this.sendBidConfirmationWhatsApp(bidId, bid.auction_id).catch((err) => {
+        console.error('[BiddingService] WhatsApp notification failed:', err);
+      });
+
       return { success: true };
     } catch (error) {
       console.error('Error confirming bid payment:', error);
@@ -461,6 +467,78 @@ export class BiddingService {
     if (timeRemaining > 0 && timeRemaining <= ANTI_SNIPING_THRESHOLD) {
       await this.auctionService.extendAuctionTime(auctionId, ANTI_SNIPING_EXTENSION);
       console.log(`Anti-sniping: Extended auction ${auctionId} by ${ANTI_SNIPING_EXTENSION} seconds`);
+    }
+  }
+
+  /**
+   * Send WhatsApp bid confirmation notification
+   * Only sends if bidder chose WhatsApp as contact method
+   */
+  private async sendBidConfirmationWhatsApp(bidId: string, auctionId: string): Promise<void> {
+    const supabase = createServiceRoleClient();
+
+    try {
+      // Fetch bid details
+      const { data: bid, error: bidError } = await supabase
+        .from('bids')
+        .select('contact_method, whatsapp_number, bidder_name, bid_amount')
+        .eq('id', bidId)
+        .single();
+
+      if (bidError || !bid) {
+        console.log('[BiddingService] Could not fetch bid for WhatsApp notification:', bidId);
+        return;
+      }
+
+      // Only send if contact method is WhatsApp
+      if (bid.contact_method !== 'whatsapp' || !bid.whatsapp_number) {
+        console.log('[BiddingService] Bidder prefers email, skipping WhatsApp notification');
+        return;
+      }
+
+      // Fetch auction with creator
+      const { data: auction, error: auctionError } = await supabase
+        .from('auctions')
+        .select('title, creator_id')
+        .eq('id', auctionId)
+        .single();
+
+      if (auctionError || !auction) {
+        console.error('[BiddingService] Could not fetch auction for WhatsApp notification');
+        return;
+      }
+
+      // Fetch model name
+      const { data: creator, error: creatorError } = await supabase
+        .from('users')
+        .select('user_name')
+        .eq('id', auction.creator_id)
+        .single();
+
+      if (creatorError || !creator) {
+        console.error('[BiddingService] Could not fetch creator for WhatsApp notification');
+        return;
+      }
+
+      // Send WhatsApp notification
+      console.log('[BiddingService] Sending WhatsApp bid confirmation to:', bid.whatsapp_number.substring(0, 7) + '****');
+
+      const result = await authkeyWhatsAppService.sendBidConfirmation({
+        bidId,
+        phone: bid.whatsapp_number,
+        bidderName: bid.bidder_name,
+        bidAmount: Number(bid.bid_amount),
+        auctionTitle: auction.title,
+        modelName: creator.user_name,
+      });
+
+      if (result.success) {
+        console.log('[BiddingService] WhatsApp bid confirmation sent. Message ID:', result.messageId);
+      } else {
+        console.error('[BiddingService] WhatsApp bid confirmation failed:', result.error);
+      }
+    } catch (error) {
+      console.error('[BiddingService] Error sending WhatsApp notification:', error);
     }
   }
 
