@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { whatsappService, WhatsAppService } from '@/lib/whatsapp-service'
 
 /**
@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Initialize Supabase admin client
-    const supabase = await createClient()
+    // Initialize Supabase admin client (service role bypasses RLS)
+    const supabase = createServiceRoleClient()
 
     // Check rate limiting: max 3 OTP sends per 15 minutes
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString()
