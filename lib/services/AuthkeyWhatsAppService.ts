@@ -109,15 +109,15 @@ class AuthkeyWhatsAppService {
       const response = await fetch(this.apiUrl, {
         method: 'POST',
         headers: {
-          'Authorization': `Basic ${this.apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          authkey: this.apiKey,  // AUTHKEY expects authkey in body, not header
           country_code: parsed.countryCode,
           mobile: parsed.mobile,
           wid: templateWid,
           type: 'text',
-          ...bodyValues,  // Spread at root level (AUTHKEY expects this format)
+          ...bodyValues,
         }),
       });
 
