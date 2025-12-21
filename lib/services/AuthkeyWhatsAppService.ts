@@ -114,10 +114,10 @@ class AuthkeyWhatsAppService {
         },
         body: JSON.stringify({
           country_code: parsed.countryCode,
-          mobile: parsed.mobile,
+          mobile: `${parsed.countryCode}${parsed.mobile}`,  // Full number with country code
           wid: templateWid,
           type: 'text',
-          bodyValues: bodyValues,  // NESTED - matching AUTHKEY docs exactly
+          bodyValues: bodyValues,
         }),
       });
 
