@@ -155,15 +155,7 @@ class AuthkeyWhatsAppService {
           .eq('id', messageLog.id);
       }
 
-      if (!response.ok) {
-        console.error('[AuthkeyWhatsApp] API error:', data);
-        return {
-          success: false,
-          error: data.Message || data.error || 'Failed to send WhatsApp message',
-        };
-      }
-
-      // Check for success in response (handle both AUTHKEY response formats)
+      // AUTHKEY returns HTTP 400 even on success - check response body instead
       const isSuccess =
         data.Message === 'Submitted Successfully' ||
         data.message?.whatsapp === 'Submitted Successfully';
@@ -177,9 +169,11 @@ class AuthkeyWhatsAppService {
         };
       }
 
+      // Only fail if response body indicates failure
+      console.error('[AuthkeyWhatsApp] API error:', data);
       return {
         success: false,
-        error: data.Message || 'Unexpected response from AUTHKEY',
+        error: data.Message || data.error || 'Failed to send WhatsApp message',
       };
 
     } catch (error) {
