@@ -2,16 +2,12 @@
 // GET /api/wallet/balance - Get user's wallet balance and pending amounts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceRoleClient } from '@/utils/supabase/service-role';
 import { crossmintService } from '@/lib/crossmint';
 import { crossmintDB } from '@/lib/crossmint-db';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-) as any;
-
 export async function GET(request: NextRequest) {
+  const supabase = createServiceRoleClient();
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
@@ -100,6 +96,7 @@ export async function GET(request: NextRequest) {
 }
 
 async function calculateTransactionBalance(userId: string) {
+  const supabase = createServiceRoleClient();
   try {
     // Get all completed transactions for the user
     const { data: transactions, error } = await supabase
@@ -162,6 +159,7 @@ async function calculateTransactionBalance(userId: string) {
 }
 
 async function calculatePendingAmounts(userId: string) {
+  const supabase = createServiceRoleClient();
   try {
     // Get pending payment transactions
     const { data: pendingPayments, error: paymentsError } = await supabase
@@ -217,6 +215,7 @@ async function calculatePendingAmounts(userId: string) {
 }
 
 async function getRecentTransactionSummary(userId: string) {
+  const supabase = createServiceRoleClient();
   try {
     // Get recent transactions (last 30 days)
     const thirtyDaysAgo = new Date();

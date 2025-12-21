@@ -3,7 +3,7 @@
 
 import { crossmintService } from '@/lib/crossmint';
 import { crossmintDB } from '@/lib/crossmint-db';
-import { supabase } from '@/lib/supabase';
+import { createServiceRoleClient } from '@/utils/supabase/service-role';
 
 export interface WalletCreationResult {
   success: boolean;
@@ -171,6 +171,7 @@ export class WalletCreationService {
     failed: number;
     results: Array<{ userId: string; email: string; success: boolean; error?: string; }>;
   }> {
+    const supabase = createServiceRoleClient();
     try {
       // Get users without wallets
       const { data: users, error } = await supabase

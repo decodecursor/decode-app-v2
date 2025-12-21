@@ -1,11 +1,15 @@
 /**
  * Webhook Utilities for DECODE Payment Platform
- * 
+ *
  * Helper functions for webhook processing, testing, and monitoring
  */
 
 import crypto from 'crypto'
-import { supabase } from './supabase'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
+
+function getSupabase() {
+  return createServiceRoleClient();
+}
 
 export interface WebhookTestResult {
   success: boolean
@@ -112,7 +116,7 @@ export async function getWebhookStats(days: number = 7): Promise<{
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
-    const { data: events, error } = await supabase
+    const { data: events, error } = await getSupabase()
       .from('webhook_events')
       .select('event_type, status, processed_at, created_at')
       .gte('created_at', startDate.toISOString())
@@ -245,7 +249,7 @@ export async function getRecentWebhookEvents(limit: number = 10): Promise<{
   error?: string
 }> {
   try {
-    const { data: events, error } = await supabase
+    const { data: events, error } = await getSupabase()
       .from('webhook_events')
       .select(`
         id,
@@ -289,7 +293,7 @@ export async function retryFailedWebhookEvent(eventId: string): Promise<{
   error?: string
 }> {
   try {
-    const { data: event, error: fetchError } = await supabase
+    const { data: event, error: fetchError } = await getSupabase()
       .from('webhook_events')
       .select('event_data, event_type')
       .eq('id', eventId)
@@ -313,7 +317,7 @@ export async function retryFailedWebhookEvent(eventId: string): Promise<{
     })
 
     // Update the event status
-    await supabase
+    await getSupabase()
       .from('webhook_events')
       .update({
         status: 'processed',
@@ -346,7 +350,7 @@ export async function cleanupOldWebhookEvents(daysToKeep: number = 90): Promise<
     const cutoffDate = new Date()
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep)
 
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('webhook_events')
       .delete()
       .lt('created_at', cutoffDate.toISOString())

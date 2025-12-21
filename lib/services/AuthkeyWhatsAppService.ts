@@ -101,10 +101,13 @@ class AuthkeyWhatsAppService {
 
     try {
       // Build request body matching EXACT format from AUTHKEY console
+      // mobile = full number without + (e.g., "971554275547")
+      const mobileNumber = phone.replace('+', '');
+
       const requestBody = {
         authkey: this.apiKey,
         country_code: parsed.countryCode,
-        mobile: `${parsed.countryCode}${parsed.mobile}`,  // WITH country code prefix
+        mobile: mobileNumber,
         wid: templateWid,
         type: 'text',
         ...bodyValues,  // Template vars at root level (e.g., "1": "OTP")
@@ -113,8 +116,8 @@ class AuthkeyWhatsAppService {
       console.log('[AuthkeyWhatsApp] Sending template message:', {
         template: templateName,
         wid: templateWid,
-        phone: `+${parsed.countryCode}${parsed.mobile.substring(0, 3)}****`,
-        mobile: requestBody.mobile,
+        mobile: mobileNumber,
+        country_code: parsed.countryCode,
       });
 
       const response = await fetch('https://console.authkey.io/restapi/requestjson.php', {

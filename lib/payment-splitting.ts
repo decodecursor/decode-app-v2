@@ -1,5 +1,3 @@
-import { supabase } from './supabase'
-
 export interface SplitRecipient {
   id?: string
   paymentLinkId?: string

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { supabase } from '@/lib/supabase'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { getBusinessDisplayName } from '@/lib/user-display'
 import PaymentPageClient from '@/components/payment/PaymentPageClient'
 
@@ -23,9 +23,10 @@ interface PaymentLinkData {
 
 // Server-side function to fetch payment data for metadata
 async function fetchPaymentDataForMetadata(linkId: string): Promise<PaymentLinkData | null> {
+  const supabase = createServiceRoleClient();
   try {
     console.log('🔍 Server: Fetching payment link for metadata:', linkId)
-    
+
     // Fetch payment link data
     const { data: paymentLink, error: linkError } = await supabase
       .from('payment_links')

@@ -1,5 +1,10 @@
-import { supabase } from './supabase'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { emailService } from './email-service'
+
+// Helper to get Supabase client - deferred to avoid build-time initialization
+function getSupabase() {
+  return createServiceRoleClient();
+}
 
 /**
  * Webhook Event Handlers for DECODE Payment Platform
@@ -93,7 +98,7 @@ async function handlePaymentSuccess(data: WebhookEventData): Promise<void> {
   }
 
   // First, verify the payment link exists
-  const { data: paymentLink, error: linkError } = await supabase
+  const { data: paymentLink, error: linkError } = await getSupabase()
     .from('payment_links')
     .select('id, amount_aed, title, creator_id')
     .eq('id', paymentLinkId)
@@ -123,7 +128,7 @@ async function handlePaymentSuccess(data: WebhookEventData): Promise<void> {
   }
 
   // Use upsert to handle duplicate webhook deliveries
-  const { error: transactionError } = await supabase
+  const { error: transactionError } = await getSupabase()
     .from('transactions')
     .upsert(transactionData, { 
       onConflict: 'id',
@@ -189,7 +194,7 @@ async function handlePaymentFailure(data: WebhookEventData): Promise<void> {
     } as any
   }
 
-  const { error: transactionError } = await supabase
+  const { error: transactionError } = await getSupabase()
     .from('transactions')
     .upsert(transactionData, { 
       onConflict: 'id',
@@ -242,7 +247,7 @@ async function handlePaymentPending(data: WebhookEventData): Promise<void> {
     } as any
   }
 
-  const { error: transactionError } = await supabase
+  const { error: transactionError } = await getSupabase()
     .from('transactions')
     .upsert(transactionData, { 
       onConflict: 'id',
@@ -264,7 +269,7 @@ async function handlePaymentCancellation(data: WebhookEventData): Promise<void> 
   console.log(`🔄 Processing payment cancellation/refund: ${data.id}`)
   
   // Update existing transaction status
-  const { error: updateError } = await supabase
+  const { error: updateError } = await getSupabase()
     .from('transactions')
     .update({
       status: data.status === 'refunded' ? 'refunded' : 'cancelled',
@@ -292,7 +297,7 @@ async function handlePaymentExpiration(data: WebhookEventData): Promise<void> {
   console.log(`⏰ Processing payment expiration: ${data.id}`)
   
   // Update transaction status if it exists
-  const { error: updateError } = await supabase
+  const { error: updateError } = await getSupabase()
     .from('transactions')
     .update({
       status: 'expired',
@@ -332,7 +337,7 @@ async function sendPaymentConfirmationEmail({
 }): Promise<void> {
   try {
     // Get creator information
-    const { data: creator } = await supabase
+    const { data: creator } = await getSupabase()
       .from('users')
       .select('user_name, email')
       .eq('id', creatorId)
@@ -377,7 +382,7 @@ async function sendPaymentFailureEmail(
     if (!buyerEmail) return
 
     // Get payment link information
-    const { data: paymentLink } = await supabase
+    const { data: paymentLink } = await getSupabase()
       .from('payment_links')
       .select('title')
       .eq('id', paymentLinkId)
@@ -419,7 +424,7 @@ async function notifyCreatorOfFailedPayment(
 ): Promise<void> {
   try {
     // Get creator information
-    const { data: paymentLink } = await supabase
+    const { data: paymentLink } = await getSupabase()
       .from('payment_links')
       .select(`
         creator_id,
@@ -457,7 +462,7 @@ async function sendCreatorPaymentNotification(
 ): Promise<void> {
   try {
     // Get creator information
-    const { data: paymentLink } = await supabase
+    const { data: paymentLink } = await getSupabase()
       .from('payment_links')
       .select(`
         creator_id,
@@ -509,7 +514,7 @@ async function updatePaymentLinkStats(paymentLinkId: string): Promise<void> {
     console.log(`📊 Updating stats for payment link: ${paymentLinkId}`)
     
     // Example: Update a stats cache table
-    // const { data: stats } = await supabase.rpc('update_payment_link_stats', {
+    // const { data: stats } = await getSupabase().rpc('update_payment_link_stats', {
     //   link_id: paymentLinkId
     // })
     
@@ -524,7 +529,7 @@ async function updatePaymentLinkStats(paymentLinkId: string): Promise<void> {
  */
 async function logUnhandledEvent(event: WebhookEvent): Promise<void> {
   try {
-    await supabase.from('webhook_events').insert({
+    await getSupabase().from('webhook_events').insert({
       event_type: event.type,
       event_data: JSON.parse(JSON.stringify(event.data)),
       signature: event.signature,
@@ -564,7 +569,7 @@ export async function getWebhookEventStatus(eventId: string): Promise<{
   error?: string
 }> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('webhook_events')
       .select('status, processed_at, error_message')
       .eq('event_data->>id', eventId)

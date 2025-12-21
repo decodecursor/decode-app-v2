@@ -2,16 +2,11 @@
 // POST /api/wallet/create
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServiceRoleClient } from '@/utils/supabase/service-role';
 import { walletCreationService } from '@/lib/wallet-creation';
 
-// Initialize Supabase client with service role for server-side operations
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-) as any;
-
 export async function POST(request: NextRequest) {
+  const supabase = createServiceRoleClient();
   try {
     const { userId, userEmail } = await request.json();
 
