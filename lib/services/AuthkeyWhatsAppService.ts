@@ -100,29 +100,27 @@ class AuthkeyWhatsAppService {
     }
 
     try {
-      // Build request body matching EXACT format from AUTHKEY console
-      // mobile = full number without + (e.g., "971554275547")
-      const mobileNumber = phone.replace('+', '');
-
+      // Build request body per AUTHKEY official docs
+      // https://authkey.io/whatsapp-api-docs
       const requestBody = {
-        authkey: this.apiKey,
         country_code: parsed.countryCode,
-        mobile: mobileNumber,
+        mobile: parsed.mobile,      // Just mobile number, WITHOUT country code
         wid: templateWid,
         type: 'text',
-        ...bodyValues,  // Template vars at root level (e.g., "1": "OTP")
+        bodyValues: bodyValues,     // Nested object, not spread
       };
 
       console.log('[AuthkeyWhatsApp] Sending template message:', {
         template: templateName,
         wid: templateWid,
-        mobile: mobileNumber,
+        mobile: parsed.mobile,
         country_code: parsed.countryCode,
       });
 
       const response = await fetch('https://console.authkey.io/restapi/requestjson.php', {
         method: 'POST',
         headers: {
+          'Authorization': `Basic ${this.apiKey}`,  // Auth in header per docs
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody),
