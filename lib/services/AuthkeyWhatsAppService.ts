@@ -100,25 +100,30 @@ class AuthkeyWhatsAppService {
     }
 
     try {
+      // Build request body matching EXACT format from AUTHKEY console
+      const requestBody = {
+        authkey: this.apiKey,
+        country_code: parsed.countryCode,
+        mobile: `${parsed.countryCode}${parsed.mobile}`,  // WITH country code prefix
+        wid: templateWid,
+        type: 'text',
+        ...bodyValues,  // Template vars at root level (e.g., "1": "OTP")
+      };
+
       console.log('[AuthkeyWhatsApp] Sending template message:', {
         template: templateName,
         wid: templateWid,
         phone: `+${parsed.countryCode}${parsed.mobile.substring(0, 3)}****`,
+        mobile: requestBody.mobile,
       });
 
-      // Use query parameter endpoint (matches AUTHKEY docs)
-      const params = new URLSearchParams({
-        authkey: this.apiKey,
-        country_code: parsed.countryCode,
-        mobile: parsed.mobile,
-        wid: templateWid,
-        ...bodyValues,  // Spread template vars as query params (e.g., "1": "OTP")
+      const response = await fetch('https://console.authkey.io/restapi/requestjson.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
       });
-
-      const response = await fetch(
-        `https://console.authkey.io/request?${params.toString()}`,
-        { method: 'GET' }
-      );
 
       const data = await response.json();
 
