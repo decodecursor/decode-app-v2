@@ -100,20 +100,19 @@ class AuthkeyWhatsAppService {
     }
 
     try {
-      // Build request body per AUTHKEY official docs
-      // https://authkey.io/whatsapp-api-docs
+      // Build request body - mobile needs country code prefix for WhatsApp lookup
       const requestBody = {
         country_code: parsed.countryCode,
-        mobile: parsed.mobile,      // Just mobile number, WITHOUT country code
+        mobile: `${parsed.countryCode}${parsed.mobile}`,  // WITH country code prefix
         wid: templateWid,
         type: 'text',
-        bodyValues: bodyValues,     // Nested object, not spread
+        bodyValues: bodyValues,
       };
 
       console.log('[AuthkeyWhatsApp] Sending template message:', {
         template: templateName,
         wid: templateWid,
-        mobile: parsed.mobile,
+        mobile: `${parsed.countryCode}${parsed.mobile}`,
         country_code: parsed.countryCode,
       });
 
