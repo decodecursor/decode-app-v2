@@ -106,20 +106,19 @@ class AuthkeyWhatsAppService {
         phone: `+${parsed.countryCode}${parsed.mobile.substring(0, 3)}****`,
       });
 
-      const response = await fetch(this.apiUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          country_code: parsed.countryCode,
-          mobile: `${parsed.countryCode}${parsed.mobile}`,  // Full number with country code
-          wid: templateWid,
-          type: 'text',
-          bodyValues: bodyValues,
-        }),
+      // Use query parameter endpoint (matches AUTHKEY docs)
+      const params = new URLSearchParams({
+        authkey: this.apiKey,
+        country_code: parsed.countryCode,
+        mobile: parsed.mobile,
+        wid: templateWid,
+        ...bodyValues,  // Spread template vars as query params (e.g., "1": "OTP")
       });
+
+      const response = await fetch(
+        `https://console.authkey.io/request?${params.toString()}`,
+        { method: 'GET' }
+      );
 
       const data = await response.json();
 
