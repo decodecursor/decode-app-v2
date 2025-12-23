@@ -153,13 +153,15 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 
 // Fallback manual transaction handling
 async function handleCheckoutSessionManually(session: Stripe.Checkout.Session, paymentLinkId: string) {
-  // Find the transaction by session ID (most reliable method)
+  // Find the most recent pending transaction for this payment link
   const { data: transaction, error: findError } = await supabaseAdmin
     .from('transactions')
     .select('*')
     .eq('payment_link_id', paymentLinkId)
-    .eq('processor_session_id', session.id)
     .eq('payment_processor', 'stripe')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(1)
     .single();
 
   if (findError || !transaction) {
