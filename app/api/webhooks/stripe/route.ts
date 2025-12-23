@@ -392,6 +392,51 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
 
     await updateTransactionToCompleted(transaction, paymentIntent);
 
+    // Send admin email notification (since checkout.session.completed may not fire)
+    try {
+      const { data: paymentLink } = await supabaseAdmin
+        .from('payment_links')
+        .select('*')
+        .eq('id', paymentLinkId)
+        .single();
+
+      if (paymentLink) {
+        const { data: creator } = await supabaseAdmin
+          .from('users')
+          .select('user_name, email, company_name, branch_name')
+          .eq('id', paymentLink.creator_id)
+          .single();
+
+        const adminEmailResult = await emailService.sendAdminPaymentNotification({
+          payment_link_id: paymentLink.id,
+          paymentlink_request_id: paymentLink.paymentlink_request_id,
+          transaction_id: transaction.id,
+          service_amount_aed: paymentLink.service_amount_aed || 0,
+          decode_amount_aed: paymentLink.decode_amount_aed || 0,
+          total_amount_aed: paymentLink.total_amount_aed || paymentIntent.amount / 100,
+          platform_fee: paymentLink.decode_amount_aed || 0,
+          company_name: creator?.company_name || 'Unknown Company',
+          staff_name: creator?.user_name || 'Unknown Staff',
+          branch_name: creator?.branch_name,
+          client_name: paymentLink.client_name || 'Unknown Client',
+          client_email: paymentLink.client_email || '',
+          client_phone: paymentLink.client_phone || '',
+          service_name: paymentLink.title || 'Service Payment',
+          service_description: paymentLink.description,
+          payment_method: 'Card',
+          payment_processor: 'stripe',
+          processor_transaction_id: paymentIntent.id,
+          completed_at: new Date().toISOString()
+        });
+        console.log('✅ Admin payment notification sent from payment_intent.succeeded:', adminEmailResult.success ? 'SUCCESS' : 'FAILED');
+      } else {
+        console.error('❌ Payment link not found for admin email');
+      }
+    } catch (emailError) {
+      console.error('⚠️ Failed to send admin email from payment_intent.succeeded:', emailError);
+      // Don't fail the webhook if email fails
+    }
+
   } catch (error) {
     console.error('❌ Error handling payment intent succeeded:', error);
     throw error;
