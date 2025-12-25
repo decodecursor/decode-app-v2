@@ -156,8 +156,12 @@ export async function POST(request: NextRequest) {
       // Existing user found
       console.log('✅ [OTP-VERIFY] Existing user found:', existingUser.id)
       userId = existingUser.id
-      userEmail = existingUser.email
       hasProfile = true
+
+      // Get the auth user's actual email (profile email may differ from auth email)
+      const { data: authUser } = await supabase.auth.admin.getUserById(existingUser.id)
+      userEmail = authUser?.user?.email || existingUser.email
+      console.log('🔍 [OTP-VERIFY] Auth user email:', userEmail)
     }
 
     // For WhatsApp OTP, we'll use a simplified session approach
