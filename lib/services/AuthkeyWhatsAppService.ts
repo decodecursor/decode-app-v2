@@ -10,7 +10,7 @@ import { parseE164, isValidE164 } from '@/lib/phone-utils';
 // Template IDs from AUTHKEY console
 export const AUTHKEY_TEMPLATES = {
   AUTH_OTP: '22008',           // otpmsg - for OTP login
-  BID_CONFIRMATION: '21831',   // bid_confirmation_1 - for bid placed
+  BID_CONFIRMATION: '22237',   // bid_confirmation_2 - for bid placed (with button URL)
 } as const;
 
 export interface SendTemplateParams {
@@ -18,6 +18,7 @@ export interface SendTemplateParams {
   templateWid: string;                    // Template ID from AUTHKEY
   templateName: string;                   // Human-readable template name
   bodyValues: Record<string, string>;     // Placeholder values
+  buttonValues?: Record<string, string>;  // Button URL placeholders
   bidId?: string;                         // Optional bid reference
   bidderId?: string;                      // Optional bidder reference
 }
@@ -35,6 +36,7 @@ export interface BidConfirmationParams {
   bidAmount: number;
   auctionTitle: string;
   modelName: string;
+  auctionId: string;
 }
 
 /**
@@ -63,7 +65,7 @@ class AuthkeyWhatsAppService {
    * Send a WhatsApp template message via AUTHKEY
    */
   async sendTemplate(params: SendTemplateParams): Promise<SendTemplateResult> {
-    const { phone, templateWid, templateName, bodyValues, bidId, bidderId } = params;
+    const { phone, templateWid, templateName, bodyValues, buttonValues, bidId, bidderId } = params;
 
     // Validate phone number
     if (!isValidE164(phone)) {
@@ -101,13 +103,18 @@ class AuthkeyWhatsAppService {
 
     try {
       // Build request body - AUTHKEY prepends country_code to mobile internally
-      const requestBody = {
+      const requestBody: Record<string, unknown> = {
         country_code: parsed.countryCode,
         mobile: parsed.mobile,  // Just local number - AUTHKEY adds country_code
         wid: templateWid,
         type: 'text',
         bodyValues: bodyValues,
       };
+
+      // Add button values if present (for dynamic URL buttons)
+      if (buttonValues && Object.keys(buttonValues).length > 0) {
+        requestBody.buttonValues = buttonValues;
+      }
 
       console.log('[AuthkeyWhatsApp] Sending template message:', {
         template: templateName,
@@ -214,17 +221,20 @@ class AuthkeyWhatsAppService {
    * Send bid confirmation notification
    */
   async sendBidConfirmation(params: BidConfirmationParams): Promise<SendTemplateResult> {
-    const { bidId, phone, bidderName, bidAmount, auctionTitle, modelName } = params;
+    const { bidId, phone, bidderName, bidAmount, auctionTitle, modelName, auctionId } = params;
 
     return this.sendTemplate({
       phone,
       templateWid: AUTHKEY_TEMPLATES.BID_CONFIRMATION,
-      templateName: 'bid_confirmation_1',
+      templateName: 'bid_confirmation_2',
       bodyValues: {
         '1': bidderName,
         '2': bidAmount.toString(),
         '3': auctionTitle,
         '4': modelName,
+      },
+      buttonValues: {
+        button1: auctionId,  // For "View Auction" URL: app.welovedecode.com/auctions/{auctionId}
       },
       bidId,
     });

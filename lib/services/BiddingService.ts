@@ -530,6 +530,7 @@ export class BiddingService {
         bidAmount: Number(bid.bid_amount),
         auctionTitle: auction.title,
         modelName: creator.user_name,
+        auctionId,
       });
 
       if (result.success) {
