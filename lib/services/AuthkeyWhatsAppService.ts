@@ -9,7 +9,7 @@ import { parseE164, isValidE164 } from '@/lib/phone-utils';
 
 // Template IDs from AUTHKEY console
 export const AUTHKEY_TEMPLATES = {
-  AUTH_OTP: '21835',           // auth_template - for OTP login
+  AUTH_OTP: '22008',           // otpmsg - for OTP login
   BID_CONFIRMATION: '21831',   // bid_confirmation_1 - for bid placed
 } as const;
 
@@ -205,7 +205,7 @@ class AuthkeyWhatsAppService {
     return this.sendTemplate({
       phone,
       templateWid: AUTHKEY_TEMPLATES.AUTH_OTP,
-      templateName: 'auth_template',
+      templateName: 'otpmsg',
       bodyValues: { '1': otpCode },
     });
   }
