@@ -137,7 +137,7 @@ export function useAnonymousPaymentPreload({
 
     // Start preload and store promise
     preloadRef.current = preload();
-  }, [enabled, auctionId]); // Don't include estimatedAmount - run once per mount only
+  }, [enabled, auctionId, estimatedAmount]); // Include estimatedAmount to use correct bid amount
 
   return {
     ...state,

@@ -71,8 +71,8 @@ export default function AuctionDetailClient() {
     resetAnonymousPreload,
   } = useAnonymousPaymentPreload({
     auctionId,
-    estimatedAmount: 500, // Default estimate in AED - will be updated during bid creation
-    enabled: !isCreator, // Start immediately for non-creators (don't wait for auction)
+    estimatedAmount: minimumBid || 500, // Use actual minimum bid, fallback to 500
+    enabled: !isCreator && minimumBid > 0, // Wait for auction data before preloading
   });
 
   useEffect(() => {
