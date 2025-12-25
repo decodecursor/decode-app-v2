@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
 
 /**
  * POST /api/auth/verify-whatsapp-otp
@@ -30,8 +30,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Initialize Supabase admin client
-    const supabase = await createClient()
+    // Initialize Supabase admin client (service role bypasses RLS)
+    const supabase = createServiceRoleClient()
 
     // Fetch the OTP record from database
     const { data: otpRecord, error: fetchError } = await supabase
