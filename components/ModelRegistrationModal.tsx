@@ -59,6 +59,8 @@ export default function ModelRegistrationModal({ isOpen, userEmail, onComplete }
         approval_status: 'approved',
         terms_accepted_at: new Date().toISOString(),
         instagram_handle: cleanedInstagram || null,
+        // Save phone number from WhatsApp auth for re-login lookup
+        phone_number: user.user_metadata?.phone_number || null,
       };
 
       console.log('🎭 [ModelRegistration] Creating model profile:', profileData);
