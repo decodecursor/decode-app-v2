@@ -497,6 +497,23 @@ function AuthPageContent() {
       // OTP verified successfully
       console.log('✅ [AUTH] WhatsApp OTP verified')
 
+      // Exchange token for session (like magic link does)
+      if (data.hashed_token) {
+        console.log('🔐 [AUTH] Exchanging token for session...')
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          token_hash: data.hashed_token,
+          type: 'email',  // magiclink type uses 'email'
+        })
+
+        if (verifyError) {
+          console.error('❌ [AUTH] Failed to establish session:', verifyError)
+          setMessage('Failed to establish session. Please try again.')
+          setWhatsappLoading(false)
+          return
+        }
+        console.log('✅ [AUTH] Session established')
+      }
+
       // Store phone as placeholder email for role modal
       setAuthenticatedEmail(`${fullPhone}@whatsapp.user`)
 

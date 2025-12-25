@@ -189,37 +189,51 @@ export async function POST(request: NextRequest) {
       // Use the generated properties to create session
       authResult = adminAuthData
     } else {
-      // New user - create account with temporary email
-      console.log('🆕 [OTP-VERIFY] Creating new user with temp email')
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      // New user - create account with admin API (auto-confirmed)
+      console.log('🆕 [OTP-VERIFY] Creating new user with admin API')
+
+      const { data: adminUser, error: createError } = await supabase.auth.admin.createUser({
         email: tempEmail,
         password: tempPassword,
-        options: {
-          data: {
-            phone_number: phoneNumber,
-            auth_method: 'whatsapp_otp',
-            phone_verified: true
-          },
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth?verified=true`
+        email_confirm: true,  // Auto-confirm so we can generate magic link
+        user_metadata: {
+          phone_number: phoneNumber,
+          auth_method: 'whatsapp_otp',
+          phone_verified: true
         }
       })
 
-      if (signUpError || !signUpData.user) {
-        console.error('❌ [OTP-VERIFY] Failed to create user:', signUpError)
+      if (createError || !adminUser.user) {
+        console.error('❌ [OTP-VERIFY] Failed to create user:', createError)
         return NextResponse.json(
-          { error: 'Failed to create user session. Please try again.' },
+          { error: 'Failed to create user. Please try again.' },
           { status: 500 }
         )
       }
 
-      userId = signUpData.user.id
-      authResult = signUpData
+      userId = adminUser.user.id
       console.log('✅ [OTP-VERIFY] Created new Supabase Auth user:', userId)
+
+      // Generate magic link for the new user to establish session
+      const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email: tempEmail,
+      })
+
+      if (linkError || !linkData) {
+        console.error('❌ [OTP-VERIFY] Failed to generate session link:', linkError)
+        return NextResponse.json(
+          { error: 'Failed to create session. Please try again.' },
+          { status: 500 }
+        )
+      }
+
+      authResult = linkData
     }
 
     console.log('✅ [OTP-VERIFY] Authentication successful for phone:', phoneNumber.substring(0, 7) + '****')
 
-    // Return success (session will be handled client-side)
+    // Return success with token for client to establish session
     return NextResponse.json({
       success: true,
       message: 'Authentication successful',
@@ -227,7 +241,9 @@ export async function POST(request: NextRequest) {
         id: userId,
         phoneNumber: phoneNumber,
         hasProfile: hasProfile
-      }
+      },
+      // Token for client to exchange for session (same as magic link flow)
+      hashed_token: authResult?.properties?.hashed_token || null
     })
 
   } catch (error: any) {
