@@ -514,6 +514,7 @@ function AuthPageContent() {
       } else {
         // Show role selection modal for new users
         console.log('🆕 [AUTH] New user, showing role selection')
+        setAuthMethod('select')  // Switch to select view which has the modal
         setShowRoleModal(true)
       }
     } catch (error: any) {
