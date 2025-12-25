@@ -100,10 +100,10 @@ class AuthkeyWhatsAppService {
     }
 
     try {
-      // Build request body - mobile needs country code prefix for WhatsApp lookup
+      // Build request body - AUTHKEY prepends country_code to mobile internally
       const requestBody = {
         country_code: parsed.countryCode,
-        mobile: `${parsed.countryCode}${parsed.mobile}`,  // WITH country code prefix
+        mobile: parsed.mobile,  // Just local number - AUTHKEY adds country_code
         wid: templateWid,
         type: 'text',
         bodyValues: bodyValues,
@@ -112,7 +112,7 @@ class AuthkeyWhatsAppService {
       console.log('[AuthkeyWhatsApp] Sending template message:', {
         template: templateName,
         wid: templateWid,
-        mobile: `${parsed.countryCode}${parsed.mobile}`,
+        mobile: parsed.mobile,
         country_code: parsed.countryCode,
       });
 
