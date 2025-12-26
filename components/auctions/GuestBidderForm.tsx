@@ -6,8 +6,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { COUNTRY_CODES } from '@/lib/country-codes';
 import { safeLocalStorage } from '@/utils/storage-helper';
+import { CountryCodeSelector } from '@/components/ui/CountryCodeSelector';
 
 type ContactMethod = 'whatsapp' | 'email';
 
@@ -246,18 +246,12 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
               WhatsApp Number
             </label>
             <div className="flex space-x-2">
-              <select
+              <CountryCodeSelector
                 value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
-                className="cosmic-input text-sm !border !border-gray-300 focus:!border-purple-500 focus:!ring-purple-500 !text-gray-700 !w-[117px] md:!w-[92px] placeholder:text-gray-400"
+                onChange={setCountryCode}
                 disabled={isLoading}
-              >
-                {COUNTRY_CODES.map((country) => (
-                  <option key={country.code} value={country.code}>
-                    {country.flag} {country.code}
-                  </option>
-                ))}
-              </select>
+                variant="light"
+              />
               <input
                 type="tel"
                 value={whatsappNumber}

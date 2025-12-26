@@ -7,7 +7,7 @@ import { getUserWithProxy } from '@/utils/auth-helper'
 import RoleSelectionModal from '@/components/RoleSelectionModal'
 import ModelRegistrationModal from '@/components/ModelRegistrationModal'
 import { safeLocalStorage, safeSessionStorage } from '@/utils/storage-helper'
-import { COUNTRY_CODES } from '@/lib/country-codes'
+import { CountryCodeSelector } from '@/components/ui/CountryCodeSelector'
 
 type AuthMethod = 'select' | 'email' | 'whatsapp'
 type AuthStep = 'input' | 'verify' | 'success'
@@ -735,18 +735,12 @@ function AuthPageContent() {
             {/* WhatsApp Section */}
             <div className="space-y-2 mb-6">
               <div className="flex space-x-2">
-                <select
+                <CountryCodeSelector
                   value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
-                  className="cosmic-input text-sm border border-purple-500 !w-[117px] md:!w-[92px]"
+                  onChange={setCountryCode}
                   disabled={emailLoading || whatsappLoading}
-                >
-                  {COUNTRY_CODES.map((country) => (
-                    <option key={country.code} value={country.code}>
-                      {country.flag} {country.code}
-                    </option>
-                  ))}
-                </select>
+                  variant="dark"
+                />
 
                 <input
                   type="tel"
@@ -1084,18 +1078,12 @@ function AuthPageContent() {
 
             <form onSubmit={handleWhatsAppSubmit} className="space-y-6">
               <div className="flex space-x-2">
-                <select
+                <CountryCodeSelector
                   value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
-                  className="cosmic-input w-32"
+                  onChange={setCountryCode}
                   disabled={whatsappLoading}
-                >
-                  {COUNTRY_CODES.map((country) => (
-                    <option key={country.code} value={country.code}>
-                      {country.flag} {country.code}
-                    </option>
-                  ))}
-                </select>
+                  variant="dark"
+                />
 
                 <input
                   type="tel"
