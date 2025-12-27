@@ -1,4 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+/* Emoji font - only applies to emoji Unicode ranges, not regular text */
+@font-face {
+  font-family: 'Emoji';
+  src: local("Apple Color Emoji"), local("Segoe UI Emoji"), local("Noto Color Emoji"), local("Android Emoji");
+  unicode-range: U+1F1E0-1F1FF, U+1F300-1F9FF, U+2600-26FF, U+2700-27BF, U+FE00-FE0F, U+1F900-1F9FF;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -448,7 +456,7 @@ html,
 body {
   margin: 0;
   padding: 0;
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", 'Inter', 'Segoe UI', -apple-system, sans-serif;
+  font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
   color: var(--cosmic-text-primary);
   /* Prevent white background from showing on mobile when keyboard opens */
   background-color: #1a1625;
@@ -457,9 +465,9 @@ body {
   min-height: 100dvh;
 }
 
-/* Emoji font for flag display - overrides Inter font */
+/* Emoji font for flag display - uses unicode-range targeted @font-face */
 .emoji-font {
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif !important;
+  font-family: 'Emoji', 'Inter', sans-serif;
 }
 
 /* Secondary Button Style */
