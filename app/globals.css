@@ -448,7 +448,7 @@ html,
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", 'Inter', 'Segoe UI', -apple-system, sans-serif;
   color: var(--cosmic-text-primary);
   /* Prevent white background from showing on mobile when keyboard opens */
   background-color: #1a1625;
