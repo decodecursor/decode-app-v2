@@ -8,6 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { safeLocalStorage } from '@/utils/storage-helper';
 import { CountryCodeSelector } from '@/components/ui/CountryCodeSelector';
+import { findCountryByCode } from '@/lib/country-codes';
 
 type ContactMethod = 'whatsapp' | 'email';
 
@@ -261,7 +262,7 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
                   if (errors.contact) setErrors({ ...errors, contact: undefined });
                 }}
                 className="cosmic-input flex-1 !border !border-gray-300 focus:!border-purple-500 focus:!ring-purple-500 !text-gray-700 placeholder:text-gray-400"
-                placeholder="50 123 4567"
+                placeholder={findCountryByCode(countryCode)?.placeholder || '50 123 4567'}
                 disabled={isLoading}
                 autoComplete="tel"
               />

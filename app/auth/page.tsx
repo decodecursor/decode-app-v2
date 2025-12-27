@@ -8,6 +8,7 @@ import RoleSelectionModal from '@/components/RoleSelectionModal'
 import ModelRegistrationModal from '@/components/ModelRegistrationModal'
 import { safeLocalStorage, safeSessionStorage } from '@/utils/storage-helper'
 import { CountryCodeSelector } from '@/components/ui/CountryCodeSelector'
+import { findCountryByCode } from '@/lib/country-codes'
 
 type AuthMethod = 'select' | 'email' | 'whatsapp'
 type AuthStep = 'input' | 'verify' | 'success'
@@ -744,7 +745,7 @@ function AuthPageContent() {
 
                 <input
                   type="tel"
-                  placeholder="50 123 4567"
+                  placeholder={findCountryByCode(countryCode)?.placeholder || '50 123 4567'}
                   value={formatPhoneNumber(phoneNumber)}
                   onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                   className="cosmic-input flex-1"
@@ -1087,7 +1088,7 @@ function AuthPageContent() {
 
                 <input
                   type="tel"
-                  placeholder="Phone number"
+                  placeholder={findCountryByCode(countryCode)?.placeholder || '50 123 4567'}
                   value={formatPhoneNumber(phoneNumber)}
                   onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                   className="cosmic-input flex-1"
