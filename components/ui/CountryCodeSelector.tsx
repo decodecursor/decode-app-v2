@@ -203,7 +203,7 @@ export function CountryCodeSelector({
       onClick={() => handleSelect(country, close)}
       className={`w-full flex items-center gap-3 px-3 py-2.5 sm:py-2 transition-colors ${styles.option}`}
     >
-      <span className="text-xl flex-shrink-0" style={{ fontFamily: '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif' }}>{country.flag}</span>
+      <span className="text-xl flex-shrink-0 emoji-font">{country.flag}</span>
       <span className="flex-1 text-left text-sm truncate">
         {highlightMatch(country.country, searchQuery, variant)}
       </span>
@@ -275,7 +275,7 @@ export function CountryCodeSelector({
   // Trigger button content
   const triggerContent = (
     <>
-      <span className="text-lg" style={{ fontFamily: '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif' }}>{selectedCountry.flag}</span>
+      <span className="text-lg emoji-font">{selectedCountry.flag}</span>
       <span className="text-sm font-medium">{selectedCountry.code}</span>
       <svg
         className="w-4 h-4 text-current opacity-60"

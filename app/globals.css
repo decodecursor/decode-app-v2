@@ -457,6 +457,10 @@ body {
   min-height: 100dvh;
 }
 
+/* Emoji font for flag display - overrides Inter font */
+.emoji-font {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif !important;
+}
 
 /* Secondary Button Style */
 .cosmic-button-secondary {
