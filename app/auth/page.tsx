@@ -22,7 +22,7 @@ function AuthPageContent() {
   const [authMethod, setAuthMethod] = useState<AuthMethod>('select')
   const [authStep, setAuthStep] = useState<AuthStep>('input')
   const [email, setEmail] = useState('')
-  const [countryCode, setCountryCode] = useState('+971')
+  const [countryCode, setCountryCode] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [otpCode, setOtpCode] = useState(['', '', '', '', '', ''])
   const [emailLoading, setEmailLoading] = useState(false)
@@ -37,12 +37,34 @@ function AuthPageContent() {
   const [authError, setAuthError] = useState<string | null>(null)
   const [authTimeout, setAuthTimeout] = useState(false)
 
-  // Format phone number for display (XX XXX XXXX)
+  // Parse placeholder to get grouping pattern (e.g., "50 123 4567" -> [2, 3, 4])
+  const getFormatPattern = (placeholder: string): number[] => {
+    return placeholder.split(' ').map(group => group.length)
+  }
+
+  // Format phone number based on country's placeholder pattern (no digit limit)
   const formatPhoneNumber = (value: string) => {
     const digits = value.replace(/\D/g, '')
-    if (digits.length <= 2) return digits
-    if (digits.length <= 5) return `${digits.slice(0, 2)} ${digits.slice(2)}`
-    return `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5, 9)}`
+    if (!digits) return ''
+
+    const country = findCountryByCode(countryCode)
+    const pattern = country ? getFormatPattern(country.placeholder) : [2, 3, 4]
+
+    const parts: string[] = []
+    let pos = 0
+
+    for (const groupSize of pattern) {
+      if (pos >= digits.length) break
+      parts.push(digits.slice(pos, pos + groupSize))
+      pos += groupSize
+    }
+
+    // Append any remaining digits (no truncation)
+    if (pos < digits.length) {
+      parts.push(digits.slice(pos))
+    }
+
+    return parts.join(' ')
   }
 
   // Auto-hide messages (errors: 5s, info: 15s)

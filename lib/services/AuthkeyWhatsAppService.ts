@@ -234,7 +234,7 @@ class AuthkeyWhatsAppService {
         '4': modelName,
       },
       buttonValues: {
-        button1: auctionId,  // For "View Auction" URL: app.welovedecode.com/auctions/{auctionId}
+        '0': auctionId,  // For "View Auction" URL: app.welovedecode.com/auctions/{auctionId}
       },
       bidId,
     });

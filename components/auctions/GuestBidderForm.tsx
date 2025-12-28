@@ -25,20 +25,32 @@ interface GuestBidderFormProps {
 }
 
 /**
- * Format phone number to UAE format: XX XXX XXXX
+ * Format phone number based on country's placeholder pattern
  */
-const formatUAEPhoneNumber = (value: string): string => {
-  // Remove all non-numeric characters
-  const cleaned = value.replace(/\D/g, '');
+const formatPhoneNumber = (value: string, dialCode: string): string => {
+  const digits = value.replace(/\D/g, '');
+  if (!digits) return '';
 
-  // Apply UAE format: XX XXX XXXX
-  if (cleaned.length <= 2) {
-    return cleaned;
-  } else if (cleaned.length <= 5) {
-    return `${cleaned.slice(0, 2)} ${cleaned.slice(2)}`;
-  } else {
-    return `${cleaned.slice(0, 2)} ${cleaned.slice(2, 5)} ${cleaned.slice(5, 9)}`;
+  const country = findCountryByCode(dialCode);
+  const pattern = country
+    ? country.placeholder.split(' ').map(g => g.length)
+    : [2, 3, 4];
+
+  const parts: string[] = [];
+  let pos = 0;
+
+  for (const groupSize of pattern) {
+    if (pos >= digits.length) break;
+    parts.push(digits.slice(pos, pos + groupSize));
+    pos += groupSize;
   }
+
+  // Append remaining digits (no cap!)
+  if (pos < digits.length) {
+    parts.push(digits.slice(pos));
+  }
+
+  return parts.join(' ');
 };
 
 export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = false }: GuestBidderFormProps) {
@@ -46,7 +58,7 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
   const [name, setName] = useState('');
   const [contactMethod, setContactMethod] = useState<ContactMethod | null>(null);
   const [email, setEmail] = useState('');
-  const [countryCode, setCountryCode] = useState('+971'); // UAE default
+  const [countryCode, setCountryCode] = useState(''); // Auto-detect
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [errors, setErrors] = useState<{ name?: string; contact?: string; method?: string }>({});
 
@@ -257,7 +269,7 @@ export function GuestBidderForm({ auctionId, onSubmit, onCancel, isLoading = fal
                 type="tel"
                 value={whatsappNumber}
                 onChange={(e) => {
-                  const formatted = formatUAEPhoneNumber(e.target.value);
+                  const formatted = formatPhoneNumber(e.target.value, countryCode);
                   setWhatsappNumber(formatted);
                   if (errors.contact) setErrors({ ...errors, contact: undefined });
                 }}
