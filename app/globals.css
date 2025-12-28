@@ -1,11 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
-/* Emoji font - only applies to emoji Unicode ranges, not regular text */
-@font-face {
-  font-family: 'Emoji';
-  src: local("Apple Color Emoji"), local("Segoe UI Emoji"), local("Noto Color Emoji"), local("Android Emoji");
-  unicode-range: U+1F1E0-1F1FF, U+1F300-1F9FF, U+2600-26FF, U+2700-27BF, U+FE00-FE0F, U+1F900-1F9FF;
-}
 
 @tailwind base;
 @tailwind components;
@@ -465,9 +459,9 @@ body {
   min-height: 100dvh;
 }
 
-/* Emoji font for flag display - uses unicode-range targeted @font-face */
+/* Emoji font for flag display - direct font stack for reliable cross-platform rendering */
 .emoji-font {
-  font-family: 'Emoji', 'Inter', sans-serif !important;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", "Android Emoji", "EmojiSymbols", sans-serif !important;
 }
 
 /* Secondary Button Style */
