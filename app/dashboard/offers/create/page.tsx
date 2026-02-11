@@ -171,7 +171,7 @@ export default function CreateOfferPage() {
 
   if (loading) {
     return (
-      <div className="cosmic-bg min-h-screen flex items-center justify-center">
+      <div className="cosmic-bg cosmic-bg-dark min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
       </div>
     )
@@ -179,7 +179,7 @@ export default function CreateOfferPage() {
 
   if (!businessId) {
     return (
-      <div className="cosmic-bg min-h-screen flex items-center justify-center px-4">
+      <div className="cosmic-bg cosmic-bg-dark min-h-screen flex items-center justify-center px-4">
         <div className="cosmic-card-profile text-center">
           <p className="text-white mb-4">{message || 'Business profile not found.'}</p>
           <button
@@ -194,7 +194,7 @@ export default function CreateOfferPage() {
   }
 
   return (
-    <div className="cosmic-bg min-h-screen px-4 py-8">
+    <div className="cosmic-bg cosmic-bg-dark min-h-screen px-4 py-8">
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
