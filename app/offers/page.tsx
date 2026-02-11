@@ -162,7 +162,7 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
       {/* Content */}
       <div className="p-4">
         {/* Salon info */}
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-[14px]">
           {logoUrl ? (
             <img src={logoUrl} alt="" className="w-7 h-7 rounded-full object-cover bg-white/10" />
           ) : (
@@ -184,7 +184,7 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
         </div>
 
         {/* Title */}
-        <h3 className="text-[15px] font-semibold text-white mb-1 line-clamp-1">
+        <h3 className="text-[15px] font-semibold text-white mb-[3px] line-clamp-1">
           {offer.title}
         </h3>
 
