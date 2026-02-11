@@ -221,7 +221,6 @@ export default function CreateOfferPage() {
               required
               maxLength={100}
             />
-            <p className="text-xs text-gray-300 mt-1">{title.length}/100</p>
           </div>
 
           {/* Description */}
@@ -230,12 +229,11 @@ export default function CreateOfferPage() {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value.slice(0, 500))}
-              placeholder="What's included in this offer?"
+              placeholder="Short offer description"
               className="cosmic-input"
-              rows={3}
+              rows={2}
               maxLength={500}
             />
-            <p className="text-xs text-gray-300 mt-1">{description.length}/500</p>
           </div>
 
           {/* Category */}
@@ -255,7 +253,7 @@ export default function CreateOfferPage() {
           {/* Price row */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-gray-100 mb-1">Price (AED)</label>
+              <label className="block text-sm text-gray-100 mb-1">Offer Price</label>
               <input
                 type="number"
                 value={price}
@@ -273,7 +271,7 @@ export default function CreateOfferPage() {
                 type="number"
                 value={originalPrice}
                 onChange={(e) => setOriginalPrice(e.target.value)}
-                placeholder="199 (optional)"
+                placeholder="199"
                 className="cosmic-input"
                 min={0}
                 step="0.01"
