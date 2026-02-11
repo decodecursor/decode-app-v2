@@ -200,7 +200,7 @@ export default function CreateOfferPage() {
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => router.push('/dashboard/offers')}
-            className="text-gray-400 hover:text-white text-sm"
+            className="text-gray-200 hover:text-white text-sm"
           >
             &larr; Back
           </button>
@@ -211,7 +211,7 @@ export default function CreateOfferPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Title */}
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Title</label>
+            <label className="block text-sm text-gray-100 mb-1">Title</label>
             <input
               type="text"
               value={title}
@@ -221,12 +221,12 @@ export default function CreateOfferPage() {
               required
               maxLength={100}
             />
-            <p className="text-xs text-gray-500 mt-1">{title.length}/100</p>
+            <p className="text-xs text-gray-300 mt-1">{title.length}/100</p>
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Description</label>
+            <label className="block text-sm text-gray-100 mb-1">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value.slice(0, 500))}
@@ -235,12 +235,12 @@ export default function CreateOfferPage() {
               rows={3}
               maxLength={500}
             />
-            <p className="text-xs text-gray-500 mt-1">{description.length}/500</p>
+            <p className="text-xs text-gray-300 mt-1">{description.length}/500</p>
           </div>
 
           {/* Category */}
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Category</label>
+            <label className="block text-sm text-gray-100 mb-1">Category</label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -255,7 +255,7 @@ export default function CreateOfferPage() {
           {/* Price row */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-gray-300 mb-1">Price (AED)</label>
+              <label className="block text-sm text-gray-100 mb-1">Price (AED)</label>
               <input
                 type="number"
                 value={price}
@@ -268,7 +268,7 @@ export default function CreateOfferPage() {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-300 mb-1">Original Price</label>
+              <label className="block text-sm text-gray-100 mb-1">Original Price</label>
               <input
                 type="number"
                 value={originalPrice}
@@ -284,7 +284,7 @@ export default function CreateOfferPage() {
           {/* Quantity + Duration row */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-gray-300 mb-1">Quantity</label>
+              <label className="block text-sm text-gray-100 mb-1">Quantity</label>
               <input
                 type="number"
                 value={quantity}
@@ -297,7 +297,7 @@ export default function CreateOfferPage() {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-300 mb-1">Duration</label>
+              <label className="block text-sm text-gray-100 mb-1">Duration</label>
               <select
                 value={duration}
                 onChange={(e) => setDuration(Number(e.target.value))}
@@ -312,7 +312,7 @@ export default function CreateOfferPage() {
 
           {/* Image Upload */}
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Image</label>
+            <label className="block text-sm text-gray-100 mb-1">Image</label>
             <input
               ref={fileInputRef}
               type="file"
@@ -343,7 +343,7 @@ export default function CreateOfferPage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full h-32 border border-dashed border-white/20 rounded-lg flex flex-col items-center justify-center text-gray-500 hover:border-purple-500/40 hover:text-gray-400 transition-colors"
+                className="w-full h-32 border border-dashed border-white/40 rounded-lg flex flex-col items-center justify-center text-gray-300 hover:border-purple-500/40 hover:text-gray-100 transition-colors"
               >
                 <svg className="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
