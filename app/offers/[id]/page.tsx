@@ -158,16 +158,22 @@ export default function OfferDetailPage() {
             <span className="text-sm text-white/40">{offer.business_name?.charAt(0)}</span>
           </div>
         )}
-        <div className="flex-1">
-          <p className="text-base font-semibold text-white">{offer.business_name}</p>
-          <div className="flex items-center gap-3 text-sm text-white/50">
-            {offer.city && <span>{offer.city}</span>}
-            {offer.google_rating != null && (
-              <span>
-                ⭐ {offer.google_rating.toFixed(1)}
-                {offer.google_reviews_count != null && ` (${offer.google_reviews_count})`}
-              </span>
-            )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="text-base font-semibold text-white truncate">{offer.business_name}</p>
+            <span className="offers-badge-category shrink-0">{offer.category}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm text-white/50">
+            <div className="flex items-center gap-3">
+              {offer.city && <span>{offer.city}</span>}
+              {offer.google_rating != null && (
+                <span>
+                  <span className="text-[10px] leading-none">⭐</span> {offer.google_rating.toFixed(1)}
+                  {offer.google_reviews_count != null && ` (${offer.google_reviews_count})`}
+                </span>
+              )}
+            </div>
+            <span className="text-xs text-white/30">{daysLeft} day{daysLeft !== 1 ? 's' : ''} left</span>
           </div>
         </div>
         {offer.whatsapp_number && (
@@ -185,9 +191,6 @@ export default function OfferDetailPage() {
           </a>
         )}
       </div>
-
-      {/* Category */}
-      <span className="offers-badge-category">{offer.category}</span>
 
       {/* Title */}
       <h1 className="text-xl font-bold text-white mt-3 mb-2">{offer.title}</h1>
@@ -211,11 +214,9 @@ export default function OfferDetailPage() {
         )}
       </div>
 
-      {/* Remaining + Expiry */}
-      <div className="flex items-center gap-4 text-sm text-white/40 mb-6">
+      {/* Remaining */}
+      <div className="text-sm text-white/40 mb-6">
         <span>{remaining} remaining</span>
-        <span>•</span>
-        <span>Expires in {daysLeft} day{daysLeft !== 1 ? 's' : ''}</span>
       </div>
 
       {/* Buy / View Only */}
