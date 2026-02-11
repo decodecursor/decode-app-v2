@@ -161,8 +161,8 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
 
       {/* Content */}
       <div className="p-4">
-        {/* Salon info + category */}
-        <div className="flex items-center gap-2 mb-1">
+        {/* Salon info */}
+        <div className="flex items-center gap-2 mb-3">
           {logoUrl ? (
             <img src={logoUrl} alt="" className="w-7 h-7 rounded-full object-cover bg-white/10" />
           ) : (
@@ -170,23 +170,17 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
               <span className="text-[10px] text-white/40">{offer.business_name?.charAt(0)}</span>
             </div>
           )}
-          <p className="flex-1 min-w-0 text-sm font-medium text-white/90 truncate">{offer.business_name}</p>
-          <span className="offers-badge-category shrink-0">{offer.category}</span>
-        </div>
-
-        {/* Reviews + days valid */}
-        <div className="flex items-center justify-between mb-2 pl-9">
-          {offer.google_rating != null ? (
-            <p className="text-xs text-white/40">
-              <span className="text-[10px] leading-none">⭐</span> {offer.google_rating.toFixed(1)}
-              {offer.google_reviews_count != null && (
-                <span> ({offer.google_reviews_count} reviews)</span>
-              )}
-            </p>
-          ) : <span />}
-          <p className="text-xs text-white/30">
-            {daysLeft} day{daysLeft !== 1 ? 's' : ''} left
-          </p>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-white/90 truncate">{offer.business_name}</p>
+            {offer.google_rating != null && (
+              <p className="text-xs text-white/40">
+                <span className="text-[10px] leading-none">⭐</span> {offer.google_rating.toFixed(1)}
+                {offer.google_reviews_count != null && (
+                  <span> ({offer.google_reviews_count} reviews)</span>
+                )}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Title */}
