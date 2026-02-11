@@ -57,14 +57,13 @@ export async function getOfferById(id: string) {
     .single()
 }
 
-export function getOfferImageUrl(imagePath: string | null, width = 400, quality = 80): string | null {
+export function getOfferImageUrl(imagePath: string | null): string | null {
   if (!imagePath) return null
+  if (imagePath.startsWith('http')) return imagePath
   const supabase = createClient()
   const { data } = supabase.storage
     .from('offer-images')
-    .getPublicUrl(imagePath, {
-      transform: { width, quality },
-    })
+    .getPublicUrl(imagePath)
   return data.publicUrl
 }
 
@@ -75,9 +74,7 @@ export function getBusinessLogoUrl(photoUrl: string | null): string | null {
   const supabase = createClient()
   const { data } = supabase.storage
     .from('offer-images')
-    .getPublicUrl(photoUrl, {
-      transform: { width: 64, quality: 80 },
-    })
+    .getPublicUrl(photoUrl)
   return data.publicUrl
 }
 

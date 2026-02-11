@@ -87,7 +87,7 @@ export default function MyDealsPage() {
           {purchases.map((p) => {
             const offer = p.beauty_offers
             const business = p.beauty_businesses
-            const imgUrl = getOfferImageUrl(offer.image_url, 120, 75)
+            const imgUrl = getOfferImageUrl(offer.image_url)
             const date = new Date(p.created_at).toLocaleDateString('en-AE', {
               day: 'numeric',
               month: 'short',

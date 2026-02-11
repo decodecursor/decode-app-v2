@@ -108,7 +108,7 @@ export default function OfferDetailPage() {
     )
   }
 
-  const imageUrl = getOfferImageUrl(offer.image_url, 600, 90)
+  const imageUrl = getOfferImageUrl(offer.image_url)
   const logoUrl = getBusinessLogoUrl(offer.business_photo_url)
   const daysLeft = getDaysUntilExpiry(offer.expires_at)
   const remaining = getQuantityRemaining(offer)
