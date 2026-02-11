@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getUserWithProxy } from '@/utils/auth-helper'
@@ -15,6 +15,18 @@ interface SessionData {
 }
 
 export default function PurchaseSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/30" />
+      </div>
+    }>
+      <PurchaseSuccessContent />
+    </Suspense>
+  )
+}
+
+function PurchaseSuccessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const sessionId = searchParams.get('session_id')
