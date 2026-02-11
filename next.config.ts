@@ -11,9 +11,6 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["@supabase/supabase-js", "date-fns", "recharts"],
   },
 
-  // Output configuration for production deployment
-  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
-
   // Environment variables validation
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
