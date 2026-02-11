@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { USER_ROLES } from '@/types/user'
 
-const CATEGORIES = ['Aesthetics', 'Hair', 'Nails', 'Spa'] as const
+const CATEGORIES = ['aesthetics', 'hair', 'nails', 'spa'] as const
 const DURATIONS = [
   { label: '3 days', days: 3 },
   { label: '7 days', days: 7 },
@@ -247,7 +247,7 @@ export default function CreateOfferPage() {
               className="cosmic-input"
             >
               {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
               ))}
             </select>
           </div>
