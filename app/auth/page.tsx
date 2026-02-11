@@ -107,7 +107,8 @@ function AuthPageContent() {
       const roleMapping: { [key: string]: string } = {
         'admin': 'Admin',
         'user': 'Staff',
-        'model': 'Model'
+        'model': 'Model',
+        'buyer': 'Buyer'
       }
       const mappedRole = roleMapping[roleParam.toLowerCase()]
       console.log('🎯 [AUTH] URL role parameter:', roleParam, '→ Mapped to:', mappedRole)
@@ -339,7 +340,8 @@ function AuthPageContent() {
         const roleMapping: { [key: string]: string } = {
           'admin': 'Admin',
           'user': 'Staff',
-          'model': 'Model'
+          'model': 'Model',
+          'buyer': 'Buyer'
         };
         const mappedUrlRole = urlRole ? roleMapping[urlRole.toLowerCase()] : null;
 
@@ -380,6 +382,44 @@ function AuthPageContent() {
           window.location.href = '/dashboard'
           return
         } else {
+          // Check if this is a Buyer registration — auto-create profile, skip modal
+          const isBuyerRole = storedRole === 'Buyer' || mappedUrlRole === 'Buyer'
+          if (isBuyerRole && user) {
+            console.log('🛒 [AUTH] Buyer role detected, auto-creating profile...')
+            try {
+              const buyerProfileData = {
+                id: user.id,
+                email: user.email,
+                user_name: user.email?.split('@')[0] || 'Buyer',
+                role: 'Buyer',
+                approval_status: 'approved',
+                terms_accepted_at: new Date().toISOString()
+              }
+              const res = await fetch('/api/auth/create-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(buyerProfileData)
+              })
+              const resData = await res.json()
+              if (!res.ok || !resData.success) {
+                throw new Error(resData.error || 'Buyer profile creation failed')
+              }
+              console.log('✅ [AUTH] Buyer profile created, redirecting...')
+              // Clean up stored role
+              safeSessionStorage.removeItem('preselectedRole')
+              safeLocalStorage.removeItem('decode_preselectedRole')
+              // Redirect to the original page or /offers
+              const redirectTo = new URLSearchParams(window.location.search).get('redirectTo') || '/offers'
+              window.location.href = redirectTo
+              return
+            } catch (buyerError: any) {
+              console.error('❌ [AUTH] Buyer profile creation failed:', buyerError)
+              setIsCheckingAuth(false)
+              setAuthError(buyerError.message || 'Failed to create buyer profile.')
+              return
+            }
+          }
+
           // Show role selection modal
           console.log('🆕 [AUTH] New user, showing role modal')
           setShowRoleModal(true)
@@ -432,11 +472,13 @@ function AuthPageContent() {
                                     safeLocalStorage.getItem('decode_preselectedRole') ||
                                     safeSessionStorage.getItem('preselectedRole');
       const roleParam = effectiveRoleForLink ? `&role=${effectiveRoleForLink.toLowerCase()}` : '';
+      const redirectToParam = urlParams.get('redirectTo');
+      const redirectToQuery = redirectToParam ? `&redirectTo=${encodeURIComponent(redirectToParam)}` : '';
       // Use Supabase Auth magic link
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${redirectUrl}/auth?verified=true${roleParam}`,
+          emailRedirectTo: `${redirectUrl}/auth?verified=true${roleParam}${redirectToQuery}`,
         }
       })
 
@@ -611,7 +653,12 @@ function AuthPageContent() {
   const handleRoleModalComplete = async (role: string) => {
     setShowRoleModal(false)
     console.log('✅ [AUTH] Profile creation completed for role:', role)
-    window.location.href = '/dashboard?new_user=true'
+    if (role === 'Buyer') {
+      const redirectTo = searchParams?.get('redirectTo') || '/offers'
+      window.location.href = redirectTo
+    } else {
+      window.location.href = '/dashboard?new_user=true'
+    }
   }
 
   // Reset to start
@@ -680,7 +727,7 @@ function AuthPageContent() {
     // This handles all edge cases: new tabs, storage cleared, state timing issues
     const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
     const urlRole = urlParams?.get('role')
-    const urlRoleMapping: { [key: string]: string } = { 'admin': 'Admin', 'user': 'Staff', 'model': 'Model' }
+    const urlRoleMapping: { [key: string]: string } = { 'admin': 'Admin', 'user': 'Staff', 'model': 'Model', 'buyer': 'Buyer' }
     const mappedUrlRole = urlRole ? urlRoleMapping[urlRole.toLowerCase()] : null
     const storedRole = safeLocalStorage.getItem('decode_preselectedRole') || safeSessionStorage.getItem('preselectedRole')
     // Also check searchParams hook (more reliable during React hydration)
@@ -692,11 +739,12 @@ function AuthPageContent() {
     const normalizedRole = effectiveRole?.toLowerCase()
     // URL param is the most reliable source - check it directly for model role
     const urlRoleDirect = urlParams?.get('role')?.toLowerCase() || searchParams?.get('role')?.toLowerCase()
+    const isBuyerRole = urlRoleDirect === 'buyer' || normalizedRole === 'buyer'
     const isAdminOrStaff = urlRoleDirect === 'admin' || urlRoleDirect === 'user' || normalizedRole === 'admin' || normalizedRole === 'staff'
-    // If coming from magic link (verified=true) and NOT explicitly admin/staff, default to Model
+    // If coming from magic link (verified=true) and NOT explicitly admin/staff/buyer, default to Model
     // This is the primary direct registration use case - admin/staff come through invites with explicit role
     const isVerifiedFlow = urlParams?.get('verified') === 'true' || searchParams?.get('verified') === 'true'
-    const isModelRole = urlRoleDirect === 'model' || normalizedRole === 'model' || (isVerifiedFlow && !isAdminOrStaff)
+    const isModelRole = urlRoleDirect === 'model' || normalizedRole === 'model' || (isVerifiedFlow && !isAdminOrStaff && !isBuyerRole)
     console.log('🎬 [AUTH] Modal rendering - urlRoleDirect:', urlRoleDirect, 'effective:', effectiveRole, 'isModelRole:', isModelRole)
 
     return (

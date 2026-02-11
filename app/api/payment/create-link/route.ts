@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     // Normalize and validate user role
     const normalizedRole = normalizeRole(creator.role);
-    if (!normalizedRole || ![USER_ROLES.STAFF, USER_ROLES.ADMIN, USER_ROLES.MODEL].includes(normalizedRole)) {
+    if (!normalizedRole || !([USER_ROLES.STAFF, USER_ROLES.ADMIN, USER_ROLES.MODEL] as string[]).includes(normalizedRole)) {
       return NextResponse.json(
         { error: 'Only authenticated users can create payment links' },
         { status: 403 }

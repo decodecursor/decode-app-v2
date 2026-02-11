@@ -3,7 +3,8 @@
 export const USER_ROLES = {
   ADMIN: 'Admin',
   STAFF: 'Staff',
-  MODEL: 'Model'
+  MODEL: 'Model',
+  BUYER: 'Buyer',
 } as const
 
 export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES]
@@ -25,12 +26,14 @@ export function normalizeRole(role: any): UserRole | null {
   if (normalizedRole === USER_ROLES.ADMIN) return USER_ROLES.ADMIN
   if (normalizedRole === USER_ROLES.STAFF) return USER_ROLES.STAFF
   if (normalizedRole === USER_ROLES.MODEL) return USER_ROLES.MODEL
+  if (normalizedRole === USER_ROLES.BUYER) return USER_ROLES.BUYER
 
   // Case-insensitive matches
   const lowerRole = normalizedRole.toLowerCase()
   if (lowerRole === 'admin' || lowerRole === 'administrator') return USER_ROLES.ADMIN
   if (lowerRole === 'user' || lowerRole === 'staff' || lowerRole === 'employee' || lowerRole === 'member') return USER_ROLES.STAFF
   if (lowerRole === 'model' || lowerRole === 'beauty model') return USER_ROLES.MODEL
+  if (lowerRole === 'buyer' || lowerRole === 'customer') return USER_ROLES.BUYER
 
   console.warn(`Unknown role encountered: "${role}". Valid roles are: ${VALID_ROLES.join(', ')}`)
   return null

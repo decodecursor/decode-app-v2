@@ -2053,3 +2053,229 @@ body {
   text-decoration: none !important;
 }
 
+/* ========================================
+   BEAUTY OFFERS — Dark Theme
+   Isolated via isolation:isolate on layout wrapper
+   ======================================== */
+
+.offers-dark-theme {
+  background-color: #0a0a0a;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  isolation: isolate;
+}
+
+/* Offers Header */
+.offers-header {
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Offers Card */
+.offers-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.offers-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+/* Offers Category Pill */
+.offers-category-pill {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+
+.offers-category-pill:hover {
+  border-color: rgba(168, 85, 247, 0.4);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.offers-category-pill.active {
+  background: #a855f7;
+  border-color: #a855f7;
+  color: #ffffff;
+}
+
+/* Offers Badge (discount / sold out) */
+.offers-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+.offers-badge-discount {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.offers-badge-soldout {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Offers Price */
+.offers-price {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.offers-price-original {
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: line-through;
+}
+
+/* Offers Empty State */
+.offers-empty {
+  color: rgba(255, 255, 255, 0.4);
+  padding: 80px 20px;
+  text-align: center;
+}
+
+/* Offers Buy Button */
+.offers-buy-btn {
+  background: #E1306C;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.offers-buy-btn:hover {
+  background: #c9245e;
+}
+
+.offers-buy-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Offers Category Badge (on cards) */
+.offers-badge-category {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 12px;
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  letter-spacing: 0.02em;
+}
+
+/* Offers Divider */
+.offers-divider {
+  height: 1px;
+  background: #262626;
+  margin-top: 12px;
+}
+
+/* Offers Load More */
+.offers-load-more {
+  padding: 10px 32px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.offers-load-more:hover {
+  border-color: rgba(168, 85, 247, 0.4);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.offers-load-more:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Offers Spinner */
+.offers-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #a855f7;
+  border-radius: 50%;
+  animation: offers-spin 0.7s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes offers-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Offers View Only Notice */
+.offers-view-only {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 14px;
+}
+
+/* WhatsApp button */
+.offers-whatsapp-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(37, 211, 102, 0.15);
+  color: #25d366;
+  transition: background 0.2s ease;
+}
+
+.offers-whatsapp-btn:hover {
+  background: rgba(37, 211, 102, 0.25);
+}
+
+/* Mobile: category pills scroll */
+@media (max-width: 768px) {
+  .offers-category-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .offers-category-scroll::-webkit-scrollbar {
+    display: none;
+  }
+}
+

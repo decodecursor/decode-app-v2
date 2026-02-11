@@ -292,7 +292,7 @@ export default function RoleSelectionModal({ isOpen, userEmail, userId, termsAcc
         role: role,
         company_name: companyName.trim(),
         branch_name: branchToAssign,
-        approval_status: (role === 'Admin' || role === 'Model' || inviteData) ? 'approved' : 'pending',
+        approval_status: (role === 'Admin' || role === 'Model' || role === 'Buyer' || inviteData) ? 'approved' : 'pending',
         terms_accepted_at: termsAcceptedAt
       }
       

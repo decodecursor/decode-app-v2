@@ -182,6 +182,13 @@ export default function Dashboard() {
       // Note: Profile is automatically created by database trigger during registration
       // No need to redirect to profile setup - users should stay on dashboard
 
+      // Redirect Buyer to offers section — Buyers don't use the dashboard
+      if (profile?.role === USER_ROLES.BUYER) {
+        console.log('🛒 [DASHBOARD] Buyer role detected, redirecting to /offers/my-deals')
+        window.location.href = '/offers/my-deals'
+        return
+      }
+
       // Check if user is approved (skip check for Admins) - only if profile exists
       if (profile?.approval_status === 'pending' && profile?.role !== USER_ROLES.ADMIN) {
         console.log('⏳ [DASHBOARD] User pending approval, redirecting to pending page')
@@ -577,6 +584,14 @@ export default function Dashboard() {
                     PayLinks
                   </Link>
 
+                  {/* Beauty Offers */}
+                  <Link
+                    href="/dashboard/offers"
+                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    Offers
+                  </Link>
+
                   {/* Create PayLink - Black Button */}
                   <button
                     className="bg-gradient-to-br from-gray-800 to-black text-white border border-purple-600 hover:border-purple-700 rounded-lg text-[17px] font-medium px-6 py-3 cursor-pointer transition-all duration-200 ease-in-out hover:scale-[1.02] hover:from-gray-600 hover:to-gray-900 hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
@@ -602,6 +617,14 @@ export default function Dashboard() {
                     className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                   >
                     PayLinks
+                  </Link>
+
+                  {/* Beauty Offers */}
+                  <Link
+                    href="/dashboard/offers"
+                    className="nav-button text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    Offers
                   </Link>
 
                   {/* Create PayLink - Black Button */}
@@ -776,6 +799,22 @@ export default function Dashboard() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                           </svg>
                           PayLinks
+                        </div>
+                      </Link>
+                    )}
+
+                    {/* Show Offers for Admin and Staff roles only */}
+                    {(profile?.role === USER_ROLES.ADMIN || profile?.role === USER_ROLES.STAFF) && (
+                      <Link
+                        href="/dashboard/offers"
+                        className="block nav-button px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <div className="flex items-center">
+                          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                          </svg>
+                          Offers
                         </div>
                       </Link>
                     )}
