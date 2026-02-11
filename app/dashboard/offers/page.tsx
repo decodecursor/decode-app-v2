@@ -106,7 +106,7 @@ export default function ManageOffersPage() {
   }
 
   return (
-    <div className="cosmic-bg min-h-screen px-4 py-8">
+    <div className="cosmic-bg cosmic-bg-dark min-h-screen px-4 py-8">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
