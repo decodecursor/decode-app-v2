@@ -157,21 +157,9 @@
   background-color: #1a1625;
 }
 
-/* Dark overlay modifier for cosmic-bg */
-.cosmic-bg-dark {
-  position: relative;
-}
-.cosmic-bg-dark::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  z-index: 0;
-  pointer-events: none;
-}
-.cosmic-bg-dark > * {
-  position: relative;
-  z-index: 1;
+/* Dark overlay modifier for cosmic-bg — darkens only the background image */
+.cosmic-bg.cosmic-bg-dark {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url('/starry-background.jpg');
 }
 
 /* Auction Detail Background - Responsive sizing */
