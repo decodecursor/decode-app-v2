@@ -168,9 +168,10 @@ export default function ManageOffersPage() {
               const revenue = offer.quantity_sold * offer.price
 
               return (
-                <div
+                <Link
+                  href={`/offers/${offer.id}`}
                   key={offer.id}
-                  className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-start gap-4"
+                  className="offers-card p-4 flex items-start gap-4 no-underline block"
                 >
                   {/* Thumbnail */}
                   {offer.image_url ? (
@@ -206,14 +207,14 @@ export default function ManageOffersPage() {
                   {/* Actions */}
                   {offer.is_active && new Date(offer.expires_at) > new Date() && (
                     <button
-                      onClick={() => handleDeactivate(offer.id)}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeactivate(offer.id) }}
                       disabled={deactivating === offer.id}
                       className="text-xs text-red-400 hover:text-red-300 flex-shrink-0 px-2 py-1 border border-red-500/20 rounded hover:border-red-500/40 transition-colors"
                     >
                       {deactivating === offer.id ? '...' : 'Deactivate'}
                     </button>
                   )}
-                </div>
+                </Link>
               )
             })}
           </div>
