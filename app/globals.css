@@ -159,7 +159,7 @@
 
 /* Dark overlay modifier for cosmic-bg — darkens only the background image */
 .cosmic-bg.cosmic-bg-dark {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.67), rgba(0, 0, 0, 0.67)), url('/starry-background.jpg');
+  background-image: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), url('/starry-background.jpg');
 }
 
 /* Auction Detail Background - Responsive sizing */

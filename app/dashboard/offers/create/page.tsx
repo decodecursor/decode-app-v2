@@ -216,7 +216,7 @@ export default function CreateOfferPage() {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value.slice(0, 100))}
-              placeholder="e.g. Full Body Wax Special"
+              placeholder="HydraFacial"
               className="cosmic-input"
               required
               maxLength={100}
