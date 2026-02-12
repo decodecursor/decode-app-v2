@@ -12,6 +12,16 @@ const DURATIONS = [
   { label: '14 days', days: 14 },
 ] as const
 
+function formatWithCommas(value: string): string {
+  const parts = value.split('.')
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  return parts.join('.')
+}
+
+function stripCommas(value: string): string {
+  return value.replace(/,/g, '')
+}
+
 function generateOfferCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
   let code = ''
@@ -121,9 +131,9 @@ export default function CreateOfferPage() {
   const errors = attempted ? {
     title: !title.trim(),
     description: !description.trim(),
-    price: !price || parseFloat(price) < 5,
-    originalPrice: !originalPrice || (!!price && parseFloat(originalPrice) <= parseFloat(price)),
-    quantity: !quantity || parseInt(quantity) < 1 || parseInt(quantity) > 999,
+    price: !price || parseFloat(stripCommas(price)) < 5,
+    originalPrice: !originalPrice || (!!price && parseFloat(stripCommas(originalPrice)) <= parseFloat(stripCommas(price))),
+    quantity: !quantity || parseInt(stripCommas(quantity)) < 1 || parseInt(stripCommas(quantity)) > 999,
     image: !imageFile,
   } : {} as Record<string, boolean>
 
@@ -134,16 +144,16 @@ export default function CreateOfferPage() {
     setAttempted(true)
     if (!businessId) return
 
-    const priceNum = parseFloat(price)
-    const quantityNum = parseInt(quantity)
-    const originalPriceNum = originalPrice ? parseFloat(originalPrice) : null
+    const priceNum = parseFloat(stripCommas(price))
+    const quantityNum = parseInt(stripCommas(quantity))
+    const originalPriceNum = originalPrice ? parseFloat(stripCommas(originalPrice)) : null
 
     // Check validation
     const submitErrors = {
       title: !title.trim(),
       description: !description.trim(),
       price: !price || priceNum < 5,
-      originalPrice: !originalPrice || (!!price && parseFloat(originalPrice) <= priceNum),
+      originalPrice: !originalPrice || (!!price && parseFloat(stripCommas(originalPrice)) <= priceNum),
       quantity: !quantity || quantityNum < 1 || quantityNum > 999,
       image: !imageFile,
     }
@@ -326,26 +336,30 @@ export default function CreateOfferPage() {
             <div>
               <label className="block text-sm text-gray-100 mb-1">Offer Price</label>
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^0-9.]/g, '')
+                  setPrice(raw ? formatWithCommas(raw) : '')
+                }}
                 placeholder="99"
                 className={`cosmic-input ${errors.price ? 'border-red-500/60' : ''}`}
-                min={5}
-                step="0.01"
               />
               {errors.price && <p className="text-red-400 text-xs mt-1">Min 5 AED</p>}
             </div>
             <div>
               <label className="block text-sm text-gray-100 mb-1">Original Price</label>
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 value={originalPrice}
-                onChange={(e) => setOriginalPrice(e.target.value)}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^0-9.]/g, '')
+                  setOriginalPrice(raw ? formatWithCommas(raw) : '')
+                }}
                 placeholder="199"
                 className={`cosmic-input ${errors.originalPrice ? 'border-red-500/60' : ''}`}
-                min={0}
-                step="0.01"
               />
               {errors.originalPrice && <p className="text-red-400 text-xs mt-1">Must be higher than offer price</p>}
             </div>
@@ -356,13 +370,15 @@ export default function CreateOfferPage() {
             <div>
               <label className="block text-sm text-gray-100 mb-1">Quantity</label>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^0-9]/g, '')
+                  setQuantity(raw ? formatWithCommas(raw) : '')
+                }}
                 placeholder="10"
                 className={`cosmic-input ${errors.quantity ? 'border-red-500/60' : ''}`}
-                min={1}
-                max={999}
               />
               {errors.quantity && <p className="text-red-400 text-xs mt-1">Required (1-999)</p>}
             </div>
@@ -461,15 +477,15 @@ export default function CreateOfferPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="cosmic-button-primary w-full py-3"
+            className="offers-buy-btn w-full py-3"
           >
             {submitting ? (
               <span className="flex items-center justify-center gap-2">
                 <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                Creating...
+                Publishing...
               </span>
             ) : (
-              'Create Offer'
+              'Publish Offer'
             )}
           </button>
         </form>
