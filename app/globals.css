@@ -2187,6 +2187,7 @@ body {
   font-weight: 400;
   color: rgba(255, 255, 255, 0.4);
   text-decoration: line-through;
+  text-decoration-color: #E1306C;
 }
 
 /* Offers Empty State */
@@ -2275,7 +2276,7 @@ body {
   width: 32px;
   height: 32px;
   border: 3px solid rgba(255, 255, 255, 0.1);
-  border-top-color: #a855f7;
+  border-top-color: #E1306C;
   border-radius: 50%;
   animation: offers-spin 0.7s linear infinite;
   margin: 0 auto;

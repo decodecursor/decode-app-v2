@@ -115,9 +115,6 @@ export default function OfferDetailPage() {
   const daysLeft = getDaysUntilExpiry(offer.expires_at)
   const remaining = getQuantityRemaining(offer)
   const hasDiscount = offer.original_price && offer.original_price > offer.price
-  const discountPct = hasDiscount
-    ? Math.round((1 - offer.price / offer.original_price!) * 100)
-    : 0
 
   const isBuyer = userRole === USER_ROLES.BUYER
   const canBuy = !isLoggedIn || isBuyer
@@ -143,11 +140,6 @@ export default function OfferDetailPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-        )}
-        {hasDiscount && (
-          <span className="offers-badge offers-badge-discount absolute top-3 left-3 text-sm">
-            -{discountPct}% OFF
-          </span>
         )}
       </div>
 
@@ -175,7 +167,6 @@ export default function OfferDetailPage() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-base font-semibold text-white truncate">{offer.business_name}</p>
-            <span className="offers-badge-category shrink-0">{offer.category}</span>
           </div>
           <div className="flex items-center justify-between text-sm text-white/50">
             <div className="flex items-center gap-3">
@@ -207,7 +198,7 @@ export default function OfferDetailPage() {
       </div>
 
       {/* Title */}
-      <h1 className="text-xl font-bold text-white mt-3 mb-2">{offer.title}</h1>
+      <h1 className="text-xl font-bold text-white mt-3 mb-0">{offer.title}</h1>
 
       {/* Description */}
       {offer.description && (
@@ -223,7 +214,7 @@ export default function OfferDetailPage() {
         </span>
         {hasDiscount && (
           <span className="offers-price-original text-base">
-            <DirhamSymbol size={12} /> {offer.original_price}
+            {offer.original_price}
           </span>
         )}
       </div>
@@ -238,11 +229,9 @@ export default function OfferDetailPage() {
         <button
           onClick={handleBuyNow}
           disabled={buying}
-          className="offers-buy-btn w-full text-base py-3"
+          className="offers-buy-btn w-full"
         >
-          {buying ? 'Redirecting to checkout...' : (
-            <>Buy Now — <DirhamSymbol size={14} /> {offer.price}</>
-          )}
+          {buying ? 'Redirecting to checkout...' : 'Buy Now'}
         </button>
       ) : (
         <div className="offers-view-only">
@@ -253,11 +242,6 @@ export default function OfferDetailPage() {
           <span>View only — sign in as a buyer to purchase</span>
         </div>
       )}
-
-      {/* Expiry date */}
-      <p className="text-xs text-white/25 text-center mt-4">
-        Offer expires {new Date(offer.expires_at).toLocaleDateString('en-AE', { day: 'numeric', month: 'long', year: 'numeric' })}
-      </p>
 
       {/* Error display */}
       {error && (
