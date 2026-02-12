@@ -11,6 +11,7 @@ import {
   getOfferImageUrl,
   getBusinessLogoUrl,
   getDaysUntilExpiry,
+  getInstagramUrl,
   getQuantityRemaining,
   type PublicOffer,
 } from '@/lib/data/offers'
@@ -110,6 +111,7 @@ export default function OfferDetailPage() {
 
   const imageUrl = getOfferImageUrl(offer.image_url)
   const logoUrl = getBusinessLogoUrl(offer.business_photo_url)
+  const instagramUrl = getInstagramUrl(offer.instagram_handle)
   const daysLeft = getDaysUntilExpiry(offer.expires_at)
   const remaining = getQuantityRemaining(offer)
   const hasDiscount = offer.original_price && offer.original_price > offer.price
@@ -151,12 +153,24 @@ export default function OfferDetailPage() {
 
       {/* Salon Info */}
       <div className="flex items-center gap-3 mb-5">
-        {logoUrl ? (
-          <img src={logoUrl} alt="" className="w-11 h-11 rounded-full object-cover bg-white/10" />
+        {instagramUrl ? (
+          <a href={instagramUrl} target="_blank" rel="noopener noreferrer">
+            {logoUrl ? (
+              <img src={logoUrl} alt="" className="w-11 h-11 rounded-full object-cover bg-white/10" />
+            ) : (
+              <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center">
+                <span className="text-sm text-white/40">{offer.business_name?.charAt(0)}</span>
+              </div>
+            )}
+          </a>
         ) : (
-          <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center">
-            <span className="text-sm text-white/40">{offer.business_name?.charAt(0)}</span>
-          </div>
+          logoUrl ? (
+            <img src={logoUrl} alt="" className="w-11 h-11 rounded-full object-cover bg-white/10" />
+          ) : (
+            <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center">
+              <span className="text-sm text-white/40">{offer.business_name?.charAt(0)}</span>
+            </div>
+          )
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">

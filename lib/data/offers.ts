@@ -89,6 +89,12 @@ export function getDaysUntilExpiry(expiresAt: string): number {
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
 }
 
+export function getInstagramUrl(handle: string | null): string | null {
+  if (!handle) return null
+  if (handle.startsWith('http')) return handle
+  return `https://instagram.com/${handle.replace(/^@/, '')}`
+}
+
 export function getQuantityRemaining(offer: PublicOffer): number {
   return offer.quantity - offer.quantity_sold
 }
