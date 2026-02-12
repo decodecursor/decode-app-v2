@@ -129,10 +129,6 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
   const imageUrl = getOfferImageUrl(offer.image_url)
   const logoUrl = getBusinessLogoUrl(offer.business_photo_url)
   const daysLeft = getDaysUntilExpiry(offer.expires_at)
-  const hasDiscount = offer.original_price && offer.original_price > offer.price
-  const discountPct = hasDiscount
-    ? Math.round((1 - offer.price / offer.original_price!) * 100)
-    : 0
 
   return (
     <Link href={`/offers/${offer.id}`} className="offers-card block no-underline">
@@ -151,11 +147,6 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-        )}
-        {hasDiscount && (
-          <span className="offers-badge offers-badge-discount absolute top-2 left-2">
-            -{discountPct}%
-          </span>
         )}
       </div>
 
@@ -176,7 +167,7 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
             <p className="text-sm font-medium text-white/90 truncate">{offer.business_name}</p>
             {offer.google_rating != null && (
               <p className="text-xs text-white/40">
-                <span className="text-[7px] leading-none align-text-top">⭐</span> {offer.google_rating.toFixed(1)}
+                <span className="text-[7px] leading-none inline-block" style={{ verticalAlign: '0.15em' }}>⭐</span> {offer.google_rating.toFixed(1)}
                 {offer.google_reviews_count != null && (
                   <span> ({offer.google_reviews_count} reviews)</span>
                 )}

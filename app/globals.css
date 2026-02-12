@@ -729,8 +729,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 1.5px solid transparent;
   background-origin: border-box;
@@ -2129,7 +2129,6 @@ body {
 
 .offers-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(168, 85, 247, 0.3);
 }
 
 /* Offers Category Pill */
@@ -2147,7 +2146,7 @@ body {
 }
 
 .offers-category-pill:hover {
-  border-color: rgba(168, 85, 247, 0.4);
+  border-color: rgba(225, 48, 108, 0.4);
   color: rgba(255, 255, 255, 0.9);
 }
 
@@ -2256,7 +2255,7 @@ body {
 }
 
 .offers-load-more:hover {
-  border-color: rgba(168, 85, 247, 0.4);
+  border-color: rgba(225, 48, 108, 0.4);
   color: rgba(255, 255, 255, 0.9);
 }
 
