@@ -2222,6 +2222,12 @@ body {
   cursor: not-allowed;
 }
 
+/* Offers Price Strikethrough */
+.offers-price-strikethrough {
+  text-decoration: line-through;
+  text-decoration-color: #E1306C;
+}
+
 /* Offers Category Badge (on cards) */
 .offers-badge-category {
   display: inline-block;

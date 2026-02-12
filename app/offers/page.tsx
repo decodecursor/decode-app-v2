@@ -129,6 +129,7 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
   const imageUrl = getOfferImageUrl(offer.image_url)
   const logoUrl = getBusinessLogoUrl(offer.business_photo_url)
   const daysLeft = getDaysUntilExpiry(offer.expires_at)
+  const hasDiscount = offer.original_price && offer.original_price > offer.price
 
   return (
     <Link href={`/offers/${offer.id}`} className="offers-card block no-underline">
@@ -172,6 +173,17 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
                   <span> ({offer.google_reviews_count} reviews)</span>
                 )}
               </p>
+            )}
+          </div>
+          {/* Price */}
+          <div className="flex items-center gap-1.5 flex-shrink-0 ml-auto">
+            <span className="text-sm font-bold text-white">
+              <DirhamSymbol size={11} /> {offer.price}
+            </span>
+            {hasDiscount && (
+              <span className="text-xs text-white/30 offers-price-strikethrough">
+                <DirhamSymbol size={9} /> {offer.original_price}
+              </span>
             )}
           </div>
         </div>
