@@ -168,7 +168,7 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
             <p className="text-sm font-medium text-white/90 truncate">{offer.business_name}</p>
             {offer.google_rating != null && (
               <p className="text-xs text-white/40">
-                <span className="text-[7px] leading-none inline-block" style={{ verticalAlign: '0.15em' }}>⭐</span> {offer.google_rating.toFixed(1)}
+                <span className="text-[7px] leading-none inline-flex items-center align-middle">⭐</span> {offer.google_rating.toFixed(1)}
                 {offer.google_reviews_count != null && (
                   <span> ({offer.google_reviews_count} reviews)</span>
                 )}
@@ -177,11 +177,11 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
           </div>
           {/* Price */}
           <div className="flex items-center gap-1.5 flex-shrink-0 ml-auto self-start mt-0.5">
-            <span className="text-[16px] font-bold text-white">
+            <span className="text-[18px] font-bold text-white">
               <DirhamSymbol size={13} /> {offer.price}
             </span>
             {hasDiscount && (
-              <span className="text-[14px] text-white/30 offers-price-strikethrough">
+              <span className="text-[16px] text-white/30 offers-price-strikethrough">
                 {offer.original_price}
               </span>
             )}
@@ -202,7 +202,7 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
 
         {/* Buy button */}
         <button className="offers-buy-btn w-full">
-          Buy Now — <DirhamSymbol size={12} /> {offer.price}
+          Buy Now
         </button>
       </div>
     </Link>
