@@ -38,14 +38,14 @@ export async function getPublicOffers(offset = 0, limit = PAGE_SIZE, category?: 
   let query = supabase
     .from('public_active_offers')
     .select('*')
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1)
 
   if (category && category !== 'All') {
-    query = query.eq('category', category)
+    query = query.ilike('category', category)
   }
 
   return query
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1)
 }
 
 export async function getOfferById(id: string) {
