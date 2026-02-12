@@ -135,18 +135,6 @@ export default function ManageOffersPage() {
           </div>
         </div>
 
-        {/* Summary Stats */}
-        {offers.length > 0 && (() => {
-          const totalSold = offers.reduce((s, o) => s + o.quantity_sold, 0)
-          const totalRevenue = offers.reduce((s, o) => s + o.quantity_sold * o.price, 0)
-          return (
-            <div className="flex items-center gap-4 mb-4 text-sm text-gray-400">
-              <span>{totalSold} sold</span>
-              <span className="text-green-400">{totalRevenue.toLocaleString()} AED revenue</span>
-            </div>
-          )
-        })()}
-
         {/* Offers List */}
         {offers.length === 0 ? (
           <div className="text-center py-16">
@@ -165,7 +153,6 @@ export default function ManageOffersPage() {
           <div className="space-y-3">
             {offers.map((offer) => {
               const status = getStatus(offer)
-              const revenue = offer.quantity_sold * offer.price
 
               return (
                 <Link
@@ -199,8 +186,6 @@ export default function ManageOffersPage() {
                     <p className="text-gray-500 text-xs mt-0.5">{offer.category}</p>
                     <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
                       <span className="font-medium text-white">{offer.price} AED</span>
-                      <span>{offer.quantity_sold}/{offer.quantity} sold</span>
-                      {revenue > 0 && <span className="text-green-400">{revenue.toLocaleString()} AED revenue</span>}
                     </div>
                   </div>
 

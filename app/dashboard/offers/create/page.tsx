@@ -126,24 +126,10 @@ export default function CreateOfferPage() {
       return
     }
 
-    // Check minimum dimensions before opening crop modal
     const objectUrl = URL.createObjectURL(file)
-    const img = new window.Image()
-    img.onload = () => {
-      if (img.width < 800 || img.height < 1000) {
-        setMessage('Image too small. Minimum 800×1000px required')
-        URL.revokeObjectURL(objectUrl)
-        return
-      }
-      setRawImageSrc(objectUrl)
-      setShowCropModal(true)
-      setMessage('')
-    }
-    img.onerror = () => {
-      setMessage('Failed to load image')
-      URL.revokeObjectURL(objectUrl)
-    }
-    img.src = objectUrl
+    setRawImageSrc(objectUrl)
+    setShowCropModal(true)
+    setMessage('')
   }
 
   const handleCropComplete = (blob: Blob) => {
@@ -488,7 +474,7 @@ export default function CreateOfferPage() {
                 <svg className="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <span className="text-xs">Upload image (4:5 ratio | Min 800×1000px | Max 5MB)</span>
+                <span className="text-xs">Upload image (4:5 ratio | Max 5MB)</span>
               </button>
             )}
             {errors.image && <p className="text-red-400 text-xs mt-1">Image is required</p>}

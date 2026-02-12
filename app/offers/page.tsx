@@ -139,9 +139,9 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
   const instagramUrl = getInstagramUrl(offer.instagram_handle)
 
   return (
-    <Link href={`/offers/${offer.id}`} className="offers-card block no-underline">
+    <Link href={`/offers/${offer.id}`} className="offers-card flex flex-col no-underline">
       {/* Image */}
-      <div className="relative aspect-[4/3] bg-white/5">
+      <div className="relative aspect-[4/5] bg-white/5">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -159,7 +159,7 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className="p-4 flex flex-col flex-1">
         {/* Salon info */}
         <div className="flex items-center gap-2 mb-[15px]">
           <div
@@ -208,14 +208,12 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
         </h3>
 
         {/* Description */}
-        {offer.description && (
-          <p className="text-xs text-white/40 line-clamp-2 mb-3">
-            {offer.description}
-          </p>
-        )}
+        <p className="text-xs text-white/40 line-clamp-2 mb-3 min-h-[2.5em]">
+          {offer.description || ''}
+        </p>
 
         {/* Buy button */}
-        <button className="offers-buy-btn w-full">
+        <button className="offers-buy-btn w-full mt-auto">
           Buy Now
         </button>
       </div>

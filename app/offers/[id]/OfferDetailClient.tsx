@@ -130,12 +130,12 @@ export default function OfferDetailClient() {
       </div>
 
       {/* Offer Image */}
-      <div className="relative rounded-xl overflow-hidden bg-white/5 mb-5 max-w-[600px] mx-auto">
+      <div className="relative rounded-xl overflow-hidden bg-white/5 mb-5 aspect-[4/5]">
         {imageUrl ? (
           <img
             src={imageUrl}
             alt={offer.title}
-            className="w-full h-auto"
+            className="w-full h-full object-cover"
           />
         ) : (
           <div className="w-full aspect-[4/5] flex items-center justify-center">
