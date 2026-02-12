@@ -176,13 +176,13 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
             )}
           </div>
           {/* Price */}
-          <div className="flex items-center gap-1.5 flex-shrink-0 ml-auto">
-            <span className="text-sm font-bold text-white">
-              <DirhamSymbol size={11} /> {offer.price}
+          <div className="flex items-center gap-1.5 flex-shrink-0 ml-auto self-start mt-0.5">
+            <span className="text-[16px] font-bold text-white">
+              <DirhamSymbol size={13} /> {offer.price}
             </span>
             {hasDiscount && (
-              <span className="text-xs text-white/30 offers-price-strikethrough">
-                <DirhamSymbol size={9} /> {offer.original_price}
+              <span className="text-[14px] text-white/30 offers-price-strikethrough">
+                {offer.original_price}
               </span>
             )}
           </div>
