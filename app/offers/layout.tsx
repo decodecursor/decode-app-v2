@@ -65,11 +65,7 @@ function OffersLayoutInner({ children }: { children: React.ReactNode }) {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setOpen(!open)}
-                  className={`text-[13px] md:text-[14px] font-medium transition-colors flex items-center gap-1 ${
-                    pathname === '/offers'
-                      ? 'text-white'
-                      : 'text-white/50 hover:text-white/80'
-                  }`}
+                  className="text-[13px] md:text-[14px] font-medium transition-colors flex items-center gap-1 text-white/40 hover:text-white/60"
                 >
                   {selectedCity}
                   <svg
@@ -103,11 +99,7 @@ function OffersLayoutInner({ children }: { children: React.ReactNode }) {
 
               <Link
                 href="/offers/my-deals"
-                className={`text-[13px] md:text-[14px] font-medium transition-colors ${
-                  pathname?.startsWith('/offers/my-deals')
-                    ? 'text-white'
-                    : 'text-white/50 hover:text-white/80'
-                }`}
+                className="text-[13px] md:text-[14px] font-medium transition-colors text-white/40 hover:text-white/60"
               >
                 My Offers
               </Link>
