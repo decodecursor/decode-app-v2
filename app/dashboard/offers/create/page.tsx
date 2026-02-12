@@ -25,6 +25,8 @@ export default function CreateOfferPage() {
   const router = useRouter()
   const supabase = createClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const categoryRef = useRef<HTMLDivElement>(null)
+  const durationRef = useRef<HTMLDivElement>(null)
 
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -41,6 +43,25 @@ export default function CreateOfferPage() {
   const [originalPrice, setOriginalPrice] = useState('')
   const [quantity, setQuantity] = useState('')
   const [duration, setDuration] = useState<number>(7)
+  const [categoryOpen, setCategoryOpen] = useState(false)
+  const [durationOpen, setDurationOpen] = useState(false)
+  const [attempted, setAttempted] = useState(false)
+
+  // Close dropdowns on click outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) {
+        setCategoryOpen(false)
+      }
+      if (durationRef.current && !durationRef.current.contains(e.target as Node)) {
+        setDurationOpen(false)
+      }
+    }
+    if (categoryOpen || durationOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [categoryOpen, durationOpen])
 
   // Auth + business check
   useEffect(() => {
@@ -97,13 +118,36 @@ export default function CreateOfferPage() {
     setMessage('')
   }
 
+  const errors = attempted ? {
+    title: !title.trim(),
+    description: !description.trim(),
+    price: !price || parseFloat(price) < 5,
+    originalPrice: !originalPrice || (!!price && parseFloat(originalPrice) <= parseFloat(price)),
+    quantity: !quantity || parseInt(quantity) < 1 || parseInt(quantity) > 999,
+    image: !imageFile,
+  } : {} as Record<string, boolean>
+
+  const hasErrors = Object.values(errors).some(Boolean)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setAttempted(true)
     if (!businessId) return
 
     const priceNum = parseFloat(price)
     const quantityNum = parseInt(quantity)
     const originalPriceNum = originalPrice ? parseFloat(originalPrice) : null
+
+    // Check validation
+    const submitErrors = {
+      title: !title.trim(),
+      description: !description.trim(),
+      price: !price || priceNum < 5,
+      originalPrice: !originalPrice || (!!price && parseFloat(originalPrice) <= priceNum),
+      quantity: !quantity || quantityNum < 1 || quantityNum > 999,
+      image: !imageFile,
+    }
+    if (Object.values(submitErrors).some(Boolean)) return
 
     if (priceNum < 5) { setMessage('Price must be at least 5 AED'); return }
     if (quantityNum < 1 || quantityNum > 999) { setMessage('Quantity must be 1-999'); return }
@@ -217,10 +261,10 @@ export default function CreateOfferPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value.slice(0, 100))}
               placeholder="HydraFacial"
-              className="cosmic-input"
-              required
+              className={`cosmic-input ${errors.title ? 'border-red-500/60' : ''}`}
               maxLength={100}
             />
+            {errors.title && <p className="text-red-400 text-xs mt-1">Title is required</p>}
           </div>
 
           {/* Description */}
@@ -230,24 +274,51 @@ export default function CreateOfferPage() {
               value={description}
               onChange={(e) => setDescription(e.target.value.slice(0, 500))}
               placeholder="Short offer description"
-              className="cosmic-input"
+              className={`cosmic-input ${errors.description ? 'border-red-500/60' : ''}`}
               rows={2}
               maxLength={500}
             />
+            {errors.description && <p className="text-red-400 text-xs mt-1">Description is required</p>}
           </div>
 
           {/* Category */}
           <div>
             <label className="block text-sm text-gray-100 mb-1">Category</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="cosmic-input"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
-              ))}
-            </select>
+            <div className="relative" ref={categoryRef}>
+              <button
+                type="button"
+                onClick={() => { setCategoryOpen(!categoryOpen); setDurationOpen(false) }}
+                className="cosmic-input w-full flex items-center justify-between text-left"
+              >
+                <span>{category.charAt(0).toUpperCase() + category.slice(1)}</span>
+                <svg
+                  className={`w-4 h-4 text-white/40 transition-transform ${categoryOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {categoryOpen && (
+                <div className="absolute left-0 right-0 top-full mt-2 rounded-lg border border-white/10 bg-[#1a1a1a] shadow-xl overflow-hidden z-50">
+                  {CATEGORIES.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => { setCategory(c); setCategoryOpen(false) }}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                        category === c
+                          ? 'text-white bg-white/10'
+                          : 'text-white/60 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      {c.charAt(0).toUpperCase() + c.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Price row */}
@@ -259,11 +330,11 @@ export default function CreateOfferPage() {
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 placeholder="99"
-                className="cosmic-input"
-                required
+                className={`cosmic-input ${errors.price ? 'border-red-500/60' : ''}`}
                 min={5}
                 step="0.01"
               />
+              {errors.price && <p className="text-red-400 text-xs mt-1">Min 5 AED</p>}
             </div>
             <div>
               <label className="block text-sm text-gray-100 mb-1">Original Price</label>
@@ -272,10 +343,11 @@ export default function CreateOfferPage() {
                 value={originalPrice}
                 onChange={(e) => setOriginalPrice(e.target.value)}
                 placeholder="199"
-                className="cosmic-input"
+                className={`cosmic-input ${errors.originalPrice ? 'border-red-500/60' : ''}`}
                 min={0}
                 step="0.01"
               />
+              {errors.originalPrice && <p className="text-red-400 text-xs mt-1">Must be higher than offer price</p>}
             </div>
           </div>
 
@@ -288,23 +360,49 @@ export default function CreateOfferPage() {
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder="10"
-                className="cosmic-input"
-                required
+                className={`cosmic-input ${errors.quantity ? 'border-red-500/60' : ''}`}
                 min={1}
                 max={999}
               />
+              {errors.quantity && <p className="text-red-400 text-xs mt-1">Required (1-999)</p>}
             </div>
             <div>
               <label className="block text-sm text-gray-100 mb-1">Duration</label>
-              <select
-                value={duration}
-                onChange={(e) => setDuration(Number(e.target.value))}
-                className="cosmic-input"
-              >
-                {DURATIONS.map((d) => (
-                  <option key={d.days} value={d.days}>{d.label}</option>
-                ))}
-              </select>
+              <div className="relative" ref={durationRef}>
+                <button
+                  type="button"
+                  onClick={() => { setDurationOpen(!durationOpen); setCategoryOpen(false) }}
+                  className="cosmic-input w-full flex items-center justify-between text-left"
+                >
+                  <span>{DURATIONS.find((d) => d.days === duration)?.label}</span>
+                  <svg
+                    className={`w-4 h-4 text-white/40 transition-transform ${durationOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {durationOpen && (
+                  <div className="absolute left-0 right-0 top-full mt-2 rounded-lg border border-white/10 bg-[#1a1a1a] shadow-xl overflow-hidden z-50">
+                    {DURATIONS.map((d) => (
+                      <button
+                        key={d.days}
+                        type="button"
+                        onClick={() => { setDuration(d.days); setDurationOpen(false) }}
+                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                          duration === d.days
+                            ? 'text-white bg-white/10'
+                            : 'text-white/60 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        {d.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -341,7 +439,7 @@ export default function CreateOfferPage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full h-32 border border-dashed border-white/40 rounded-lg flex flex-col items-center justify-center text-gray-300 hover:border-purple-500/40 hover:text-gray-100 transition-colors"
+                className={`w-full h-32 border border-dashed rounded-lg flex flex-col items-center justify-center text-gray-300 hover:border-purple-500/40 hover:text-gray-100 transition-colors ${errors.image ? 'border-red-500/60' : 'border-white/40'}`}
               >
                 <svg className="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -349,6 +447,7 @@ export default function CreateOfferPage() {
                 <span className="text-xs">Upload image (max 5MB)</span>
               </button>
             )}
+            {errors.image && <p className="text-red-400 text-xs mt-1">Image is required</p>}
           </div>
 
           {/* Message */}
@@ -361,7 +460,7 @@ export default function CreateOfferPage() {
           {/* Submit */}
           <button
             type="submit"
-            disabled={submitting || !title.trim() || !price || !quantity}
+            disabled={submitting}
             className="cosmic-button-primary w-full py-3"
           >
             {submitting ? (
