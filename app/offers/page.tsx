@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { DirhamSymbol } from '@/components/DirhamSymbol'
 import {
@@ -15,6 +16,8 @@ const CATEGORIES = ['All', 'Aesthetics', 'Hair', 'Nails', 'Spa'] as const
 const PAGE_SIZE = 20
 
 export default function OffersPage() {
+  const searchParams = useSearchParams()
+  const city = searchParams.get('city') || 'UAE'
   const [activeCategory, setActiveCategory] = useState<string>('All')
   const [offers, setOffers] = useState<PublicOffer[]>([])
   const [loading, setLoading] = useState(true)
@@ -26,7 +29,7 @@ export default function OffersPage() {
     if (isInitial) setLoading(true)
     else setLoadingMore(true)
 
-    const { data, error } = await getPublicOffers(offset, PAGE_SIZE, category)
+    const { data, error } = await getPublicOffers(offset, PAGE_SIZE, category, city)
 
     if (!error && data) {
       const typed = data as unknown as PublicOffer[]
@@ -40,11 +43,13 @@ export default function OffersPage() {
 
     if (isInitial) setLoading(false)
     else setLoadingMore(false)
-  }, [activeCategory])
+  }, [activeCategory, city])
 
   useEffect(() => {
+    setOffers([])
+    setHasMore(true)
     fetchOffers(0, activeCategory)
-  }, [activeCategory])
+  }, [activeCategory, city])
 
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category)

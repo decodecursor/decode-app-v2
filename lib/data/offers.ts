@@ -33,7 +33,7 @@ export interface PublicOffer {
 
 const PAGE_SIZE = 20
 
-export async function getPublicOffers(offset = 0, limit = PAGE_SIZE, category?: string) {
+export async function getPublicOffers(offset = 0, limit = PAGE_SIZE, category?: string, city?: string) {
   const supabase = createClient()
   let query = supabase
     .from('public_active_offers')
@@ -41,6 +41,10 @@ export async function getPublicOffers(offset = 0, limit = PAGE_SIZE, category?: 
 
   if (category && category !== 'All') {
     query = query.ilike('category', category)
+  }
+
+  if (city && city !== 'UAE') {
+    query = query.ilike('city', city)
   }
 
   return query
