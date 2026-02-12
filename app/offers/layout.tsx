@@ -26,7 +26,7 @@ export default function OffersLayout({
                 style={{ height: '20px', filter: 'brightness(0) invert(1)', opacity: 0.9 }}
               />
               <div className="w-[1px] h-[20px] bg-white/40" />
-              <span className="text-xs font-medium text-white/40 tracking-wide uppercase">Offers</span>
+              <span className="text-[14px] font-medium text-white/40 tracking-wide uppercase">Offers</span>
             </Link>
 
             {/* Right nav */}

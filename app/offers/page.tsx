@@ -163,18 +163,20 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
       <div className="p-4">
         {/* Salon info */}
         <div className="flex items-center gap-2 mb-[15px]">
-          {logoUrl ? (
-            <img src={logoUrl} alt="" className="w-7 h-7 rounded-full object-cover bg-white/10" />
-          ) : (
-            <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center">
-              <span className="text-[10px] text-white/40">{offer.business_name?.charAt(0)}</span>
-            </div>
-          )}
+          <div className="instagram-avatar-xs">
+            {logoUrl ? (
+              <img src={logoUrl} alt="" />
+            ) : (
+              <div className="avatar-fallback">
+                <span className="text-white/40">{offer.business_name?.charAt(0)}</span>
+              </div>
+            )}
+          </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white/90 truncate">{offer.business_name}</p>
             {offer.google_rating != null && (
               <p className="text-xs text-white/40">
-                <span className="text-[7px] leading-none">⭐</span> {offer.google_rating.toFixed(1)}
+                <span className="text-[7px] leading-none align-text-top">⭐</span> {offer.google_rating.toFixed(1)}
                 {offer.google_reviews_count != null && (
                   <span> ({offer.google_reviews_count} reviews)</span>
                 )}
@@ -190,7 +192,7 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
 
         {/* Description */}
         {offer.description && (
-          <p className="text-sm text-white/50 line-clamp-2 mb-3">
+          <p className="text-xs text-white/40 line-clamp-2 mb-3">
             {offer.description}
           </p>
         )}

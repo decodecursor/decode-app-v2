@@ -723,6 +723,48 @@ body {
   font-weight: bold;
 }
 
+/* Instagram-style Profile Avatar - Extra-small variant for offer card avatars */
+.instagram-avatar-xs {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-image: linear-gradient(#000000, #000000), linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  padding: 1px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.instagram-avatar-xs img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: none;
+  object-fit: cover;
+  display: block;
+  background: transparent;
+}
+
+.instagram-avatar-xs .avatar-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: none;
+  background: #6B7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #374151;
+  font-size: 10px;
+  font-weight: bold;
+}
+
 /* Instagram-style Profile Avatar - Card variant for auction cards */
 .instagram-avatar-card {
   position: relative;
