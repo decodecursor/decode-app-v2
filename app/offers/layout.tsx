@@ -2,15 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
-import { useState, useRef, useEffect } from 'react'
+import { Suspense, useState, useRef, useEffect } from 'react'
 
 const CITIES = ['UAE', 'Dubai', 'Abu Dhabi', 'Sharjah', 'Ras Al Khaimah', 'Al Ain'] as const
 
-export default function OffersLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+function OffersLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -122,5 +118,13 @@ export default function OffersLayout({
 
       <main>{children}</main>
     </div>
+  )
+}
+
+export default function OffersLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense>
+      <OffersLayoutInner>{children}</OffersLayoutInner>
+    </Suspense>
   )
 }
