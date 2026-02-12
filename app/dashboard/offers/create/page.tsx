@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { USER_ROLES } from '@/types/user'
+import OfferImageCropModal from '@/components/offers/OfferImageCropModal'
 
 const CATEGORIES = ['aesthetics', 'hair', 'nails', 'spa', 'pilates'] as const
 const DURATIONS = [
@@ -44,6 +45,8 @@ export default function CreateOfferPage() {
   const [message, setMessage] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [showCropModal, setShowCropModal] = useState(false)
+  const [rawImageSrc, setRawImageSrc] = useState<string | null>(null)
 
   // Form state
   const [title, setTitle] = useState('')
@@ -123,9 +126,34 @@ export default function CreateOfferPage() {
       return
     }
 
-    setImageFile(file)
-    setImagePreview(URL.createObjectURL(file))
-    setMessage('')
+    // Check minimum dimensions before opening crop modal
+    const objectUrl = URL.createObjectURL(file)
+    const img = new window.Image()
+    img.onload = () => {
+      if (img.width < 800 || img.height < 1000) {
+        setMessage('Image too small. Minimum 800×1000px required')
+        URL.revokeObjectURL(objectUrl)
+        return
+      }
+      setRawImageSrc(objectUrl)
+      setShowCropModal(true)
+      setMessage('')
+    }
+    img.onerror = () => {
+      setMessage('Failed to load image')
+      URL.revokeObjectURL(objectUrl)
+    }
+    img.src = objectUrl
+  }
+
+  const handleCropComplete = (blob: Blob) => {
+    const ext = blob.type === 'image/webp' ? 'webp' : 'jpg'
+    const croppedFile = new File([blob], `cropped.${ext}`, { type: blob.type })
+    setImageFile(croppedFile)
+    setImagePreview(URL.createObjectURL(blob))
+    setShowCropModal(false)
+    if (rawImageSrc) URL.revokeObjectURL(rawImageSrc)
+    setRawImageSrc(null)
   }
 
   const errors = attempted ? {
@@ -174,7 +202,7 @@ export default function CreateOfferPage() {
 
       // Upload image if provided
       if (imageFile) {
-        const ext = imageFile.name.split('.').pop()
+        const ext = imageFile.type === 'image/webp' ? 'webp' : 'jpg'
         const fileName = `${businessId}/${Date.now()}.${ext}`
 
         const { error: uploadError } = await supabase.storage
@@ -460,7 +488,7 @@ export default function CreateOfferPage() {
                 <svg className="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <span className="text-xs">Upload image (max 5MB)</span>
+                <span className="text-xs">Upload image (4:5 ratio | Min 800×1000px | Max 5MB)</span>
               </button>
             )}
             {errors.image && <p className="text-red-400 text-xs mt-1">Image is required</p>}
@@ -489,6 +517,19 @@ export default function CreateOfferPage() {
             )}
           </button>
         </form>
+
+        {showCropModal && rawImageSrc && (
+          <OfferImageCropModal
+            imageSrc={rawImageSrc}
+            onCropComplete={handleCropComplete}
+            onCancel={() => {
+              setShowCropModal(false)
+              if (rawImageSrc) URL.revokeObjectURL(rawImageSrc)
+              setRawImageSrc(null)
+              if (fileInputRef.current) fileInputRef.current.value = ''
+            }}
+          />
+        )}
       </div>
     </div>
   )
