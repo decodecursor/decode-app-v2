@@ -202,26 +202,24 @@ export default function OfferDetailPage() {
 
       {/* Description */}
       {offer.description && (
-        <p className="text-sm text-white/60 leading-relaxed mb-5 whitespace-pre-line">
+        <p className="text-sm text-white/50 leading-relaxed mb-5 whitespace-pre-line">
           {offer.description}
         </p>
       )}
 
       {/* Price */}
-      <div className="flex items-baseline gap-3 mb-2">
-        <span className="offers-price text-2xl">
-          <DirhamSymbol size={18} /> {offer.price}
-        </span>
-        {hasDiscount && (
-          <span className="offers-price-original text-base">
-            {offer.original_price}
+      <div className="flex items-baseline justify-between mb-6">
+        <div className="flex items-baseline gap-3">
+          <span className="offers-price text-[26px]">
+            <DirhamSymbol size={18} /> {offer.price}
           </span>
-        )}
-      </div>
-
-      {/* Remaining */}
-      <div className="text-sm text-white/40 mb-6">
-        <span>{remaining} remaining</span>
+          {hasDiscount && (
+            <span className="offers-price-original text-lg">
+              {offer.original_price}
+            </span>
+          )}
+        </div>
+        <span className="text-sm text-white/40">{remaining} remaining</span>
       </div>
 
       {/* Buy / View Only */}
