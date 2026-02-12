@@ -126,7 +126,7 @@ export default function OfferDetailClient() {
         <Link href="/offers" className="text-sm text-white/40 hover:text-white/60 no-underline">
           ← Back to offers
         </Link>
-        <span className="text-sm text-white/40">{daysLeft} day{daysLeft !== 1 ? 's' : ''} left</span>
+        <span className="text-sm text-white/40 pr-2">{daysLeft} day{daysLeft !== 1 ? 's' : ''} left</span>
       </div>
 
       {/* Offer Image */}
@@ -228,7 +228,7 @@ export default function OfferDetailClient() {
         </div>
         {/* Right: offers left + share */}
         <div className="flex flex-col items-end gap-0">
-          <span className="text-sm text-white/40">{remaining} offers left</span>
+          <span className="text-sm text-white/40 pr-2">{remaining} offers left</span>
           <button
             onClick={() => {
               const text = `Check this offer 💅\n${window.location.href}`;
