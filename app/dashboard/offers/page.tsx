@@ -18,6 +18,7 @@ interface Offer {
   expires_at: string
   created_at: string
   image_url: string | null
+  offer_code: string | null
 }
 
 export default function ManageOffersPage() {
@@ -59,7 +60,7 @@ export default function ManageOffersPage() {
       // Fetch offers for this business
       const { data: offersData } = await supabase
         .from('beauty_offers')
-        .select('id, title, category, price, original_price, quantity, quantity_sold, is_active, expires_at, created_at, image_url')
+        .select('id, title, category, price, original_price, quantity, quantity_sold, is_active, expires_at, created_at, image_url, offer_code')
         .eq('business_id', business.id)
         .order('created_at', { ascending: false })
 
@@ -186,6 +187,20 @@ export default function ManageOffersPage() {
                     <p className="text-gray-500 text-xs mt-0.5">{offer.category}</p>
                     <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
                       <span className="font-medium text-white">{offer.price} AED</span>
+                      <span>{offer.quantity_sold}/{offer.quantity} sold</span>
+                      <span>{offer.quantity_sold * offer.price} AED earned</span>
+                    </div>
+                    <div className="flex items-center gap-4 mt-1 text-xs text-gray-400">
+                      {offer.offer_code && <span>#{offer.offer_code}</span>}
+                      <span>
+                        {(() => {
+                          const days = Math.ceil((new Date(offer.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                          if (days < 0) return 'Expired'
+                          if (days === 0) return 'Today'
+                          return `${days} days left`
+                        })()}
+                      </span>
+                      <span>{new Date(offer.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                     </div>
                   </div>
 
