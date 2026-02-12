@@ -121,10 +121,13 @@ export default function OfferDetailPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
-      {/* Back link */}
-      <Link href="/offers" className="text-sm text-white/40 hover:text-white/60 mb-4 inline-block no-underline">
-        ← Back to offers
-      </Link>
+      {/* Back link + days left */}
+      <div className="flex items-center justify-between mb-4">
+        <Link href="/offers" className="text-sm text-white/40 hover:text-white/60 no-underline">
+          ← Back to offers
+        </Link>
+        <span className="text-xs text-white/30">{daysLeft} day{daysLeft !== 1 ? 's' : ''} left</span>
+      </div>
 
       {/* Offer Image */}
       <div className="relative rounded-xl overflow-hidden bg-white/5 mb-5">
@@ -178,7 +181,6 @@ export default function OfferDetailPage() {
                 </span>
               )}
             </div>
-            <span className="text-xs text-white/30">{daysLeft} day{daysLeft !== 1 ? 's' : ''} left</span>
           </div>
         </div>
         {offer.whatsapp_number && (
@@ -193,6 +195,7 @@ export default function OfferDetailPage() {
               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
               <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a8 8 0 01-4.243-1.214l-.252-.156-2.786.828.828-2.786-.156-.252A8 8 0 1112 20z" />
             </svg>
+            <span>Chat Now</span>
           </a>
         )}
       </div>
@@ -210,16 +213,16 @@ export default function OfferDetailPage() {
       {/* Price */}
       <div className="flex items-baseline justify-between mb-6">
         <div className="flex items-baseline gap-3">
-          <span className="offers-price text-[26px]">
+          <span className="offers-price text-[34px]">
             <DirhamSymbol size={18} /> {offer.price}
           </span>
           {hasDiscount && (
-            <span className="offers-price-original text-lg">
+            <span className="offers-price-original text-[26px]">
               {offer.original_price}
             </span>
           )}
         </div>
-        <span className="text-sm text-white/40">{remaining} remaining</span>
+        <span className="text-sm text-white/40">{remaining} offers left</span>
       </div>
 
       {/* Buy / View Only */}
@@ -232,13 +235,12 @@ export default function OfferDetailPage() {
           {buying ? 'Redirecting to checkout...' : 'Buy Now'}
         </button>
       ) : (
-        <div className="offers-view-only">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-          </svg>
-          <span>View only — sign in as a buyer to purchase</span>
-        </div>
+        <button
+          onClick={handleBuyNow}
+          className="offers-buy-btn w-full"
+        >
+          Buy Now
+        </button>
       )}
 
       {/* Error display */}

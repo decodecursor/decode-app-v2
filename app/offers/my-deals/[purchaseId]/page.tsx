@@ -125,7 +125,7 @@ export default function DealDetailPage() {
         <div className="offers-empty">
           <p className="text-lg font-medium text-white/50 mb-1">{error}</p>
           <Link href="/offers/my-deals" className="text-sm text-purple-400 hover:text-purple-300 mt-3 inline-block">
-            ← Back to My Deals
+            ← Back to My Offers
           </Link>
         </div>
       </div>
@@ -143,7 +143,7 @@ export default function DealDetailPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <Link href="/offers/my-deals" className="text-sm text-white/40 hover:text-white/60 mb-4 inline-block no-underline">
-        ← Back to My Deals
+        ← Back to My Offers
       </Link>
 
       <div className="bg-white/5 rounded-xl p-6 mb-6">

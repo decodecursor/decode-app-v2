@@ -109,7 +109,7 @@ function OffersLayoutInner({ children }: { children: React.ReactNode }) {
                     : 'text-white/50 hover:text-white/80'
                 }`}
               >
-                My Deals
+                My Offers
               </Link>
             </div>
           </div>

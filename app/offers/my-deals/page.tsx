@@ -73,7 +73,7 @@ export default function MyDealsPage() {
       <Link href="/offers" className="text-sm text-white/40 hover:text-white/60 mb-4 inline-block no-underline">
         ← Back to offers
       </Link>
-      <h1 className="text-xl font-semibold mb-6">My Deals</h1>
+      <h1 className="text-xl font-semibold mb-6">My Offers</h1>
 
       {purchases.length === 0 ? (
         <div className="offers-empty">

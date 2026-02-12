@@ -187,7 +187,7 @@ async function handleCheckoutCompleted(adminClient: any, session: Stripe.Checkou
         <h2>Your purchase is confirmed!</h2>
         <p><strong>${offer.title}</strong> at ${business.business_name}</p>
         <p>Amount paid: AED ${offer.price}</p>
-        <p>You can view your deal and QR voucher in <a href="${process.env.NEXT_PUBLIC_SITE_URL}/offers/my-deals">My Deals</a>.</p>
+        <p>You can view your deal and QR voucher in <a href="${process.env.NEXT_PUBLIC_SITE_URL}/offers/my-deals">My Offers</a>.</p>
       `,
     }).catch(err => console.error(`${LOG_PREFIX} Buyer email failed:`, err))
   }
