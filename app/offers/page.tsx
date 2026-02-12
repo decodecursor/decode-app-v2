@@ -174,7 +174,7 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
             <p className="text-sm font-medium text-white/90 truncate">{offer.business_name}</p>
             {offer.google_rating != null && (
               <p className="text-xs text-white/40">
-                <span className="text-[10px] leading-none">⭐</span> {offer.google_rating.toFixed(1)}
+                <span className="text-[7px] leading-none">⭐</span> {offer.google_rating.toFixed(1)}
                 {offer.google_reviews_count != null && (
                   <span> ({offer.google_reviews_count} reviews)</span>
                 )}

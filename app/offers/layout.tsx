@@ -25,7 +25,7 @@ export default function OffersLayout({
                 alt="DECODE"
                 style={{ height: '20px', filter: 'brightness(0) invert(1)', opacity: 0.9 }}
               />
-              <div className="w-[2px] h-[20px] bg-white/40" />
+              <div className="w-[1px] h-[20px] bg-white/40" />
               <span className="text-xs font-medium text-white/40 tracking-wide uppercase">Offers</span>
             </Link>
 
@@ -33,7 +33,7 @@ export default function OffersLayout({
             <div className="flex items-center gap-4">
               <Link
                 href="/offers"
-                className={`text-xs font-medium transition-colors ${
+                className={`text-[13px] md:text-[14px] font-medium transition-colors ${
                   pathname === '/offers'
                     ? 'text-white'
                     : 'text-white/50 hover:text-white/80'
@@ -43,7 +43,7 @@ export default function OffersLayout({
               </Link>
               <Link
                 href="/offers/my-deals"
-                className={`text-xs font-medium transition-colors ${
+                className={`text-[13px] md:text-[14px] font-medium transition-colors ${
                   pathname?.startsWith('/offers/my-deals')
                     ? 'text-white'
                     : 'text-white/50 hover:text-white/80'
