@@ -166,10 +166,10 @@ export default function ManageOffersPage() {
                     <img
                       src={offer.image_url}
                       alt={offer.title}
-                      className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                      className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
                     />
                   ) : (
-                    <div className="w-16 h-16 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
+                    <div className="w-20 h-20 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
                       <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
@@ -185,22 +185,40 @@ export default function ManageOffersPage() {
                       </span>
                     </div>
                     <p className="text-gray-500 text-xs mt-0.5">{offer.category}</p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
-                      <span className="font-medium text-white">{offer.price} AED</span>
-                      <span>{offer.quantity_sold}/{offer.quantity} sold</span>
-                      <span>{offer.quantity_sold * offer.price} AED earned</span>
-                    </div>
-                    <div className="flex items-center gap-4 mt-1 text-xs text-gray-400">
-                      {offer.offer_code && <span>#{offer.offer_code}</span>}
-                      <span>
-                        {(() => {
-                          const days = Math.ceil((new Date(offer.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-                          if (days < 0) return 'Expired'
-                          if (days === 0) return 'Today'
-                          return `${days} days left`
-                        })()}
-                      </span>
-                      <span>{new Date(offer.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    <div className="grid grid-cols-3 gap-2 mt-3">
+                      <div>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Price</p>
+                        <p className="text-xs text-gray-300 font-medium">{offer.price} AED</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Sold</p>
+                        <p className="text-xs text-gray-300 font-medium">{offer.quantity_sold}/{offer.quantity}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Earned</p>
+                        <p className="text-xs text-gray-300 font-medium">{offer.quantity_sold * offer.price} AED</p>
+                      </div>
+                      {offer.offer_code && (
+                        <div>
+                          <p className="text-[10px] text-gray-500 uppercase tracking-wider">Code</p>
+                          <p className="text-xs text-gray-300 font-medium">#{offer.offer_code}</p>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Expires</p>
+                        <p className="text-xs text-gray-300 font-medium">
+                          {(() => {
+                            const days = Math.ceil((new Date(offer.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                            if (days < 0) return 'Expired'
+                            if (days === 0) return 'Today'
+                            return `${days} days`
+                          })()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Created</p>
+                        <p className="text-xs text-gray-300 font-medium">{new Date(offer.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                      </div>
                     </div>
                   </div>
 
