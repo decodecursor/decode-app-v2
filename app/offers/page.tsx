@@ -13,7 +13,7 @@ import {
   type PublicOffer,
 } from '@/lib/data/offers'
 
-const CATEGORIES = ['All', 'Aesthetics', 'Hair', 'Nails', 'Spa'] as const
+const CATEGORIES = ['All', 'Aesthetics', 'Hair', 'Nails', 'Spa', 'Pilates'] as const
 const PAGE_SIZE = 20
 
 export default function OffersPage() {
@@ -162,33 +162,22 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
       <div className="p-4">
         {/* Salon info */}
         <div className="flex items-center gap-2 mb-[15px]">
-          {instagramUrl ? (
-            <a
-              href={instagramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="instagram-avatar-xs"
-            >
-              {logoUrl ? (
-                <img src={logoUrl} alt="" />
-              ) : (
-                <div className="avatar-fallback">
-                  <span className="text-white/40">{offer.business_name?.charAt(0)}</span>
-                </div>
-              )}
-            </a>
-          ) : (
-            <div className="instagram-avatar-xs">
-              {logoUrl ? (
-                <img src={logoUrl} alt="" />
-              ) : (
-                <div className="avatar-fallback">
-                  <span className="text-white/40">{offer.business_name?.charAt(0)}</span>
-                </div>
-              )}
-            </div>
-          )}
+          <div
+            className={`instagram-avatar-xs${instagramUrl ? ' cursor-pointer' : ''}`}
+            onClick={instagramUrl ? (e: React.MouseEvent) => {
+              e.preventDefault()
+              e.stopPropagation()
+              window.open(instagramUrl, '_blank', 'noopener,noreferrer')
+            } : undefined}
+          >
+            {logoUrl ? (
+              <img src={logoUrl} alt="" />
+            ) : (
+              <div className="avatar-fallback">
+                <span className="text-white/40">{offer.business_name?.charAt(0)}</span>
+              </div>
+            )}
+          </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white/90 truncate">{offer.business_name}</p>
             {offer.google_rating != null && (

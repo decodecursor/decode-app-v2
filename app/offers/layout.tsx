@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import { Suspense, useState, useRef, useEffect } from 'react'
 
-const CITIES = ['UAE', 'Dubai', 'Abu Dhabi', 'Sharjah', 'Ras Al Khaimah', 'Al Ain'] as const
+const CITIES = ['Abu Dhabi', 'Al Ain', 'Dubai', 'Ras Al Khaimah', 'Sharjah', 'UAE'] as const
 
 function OffersLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
