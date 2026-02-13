@@ -62,13 +62,17 @@ export async function POST(request: NextRequest) {
 
     // Handle different event types with proper error handling
     try {
-      // Check if this is an auction-related event
-      const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      const isAuctionEvent = paymentIntent?.metadata?.type === 'auction_bid';
+      // Determine event routing based on metadata.type
+      const eventObject = event.data.object as any;
+      const metadataType = eventObject?.metadata?.type;
 
-      if (isAuctionEvent) {
+      if (metadataType === 'auction_bid') {
         // Route to auction strategy
         await handleAuctionEvent(event);
+      } else if (metadataType === 'beauty_offer') {
+        // Route to beauty offer handler
+        const adminClient = createServiceRoleClient();
+        await handleBeautyOfferEvent(adminClient, event);
       } else {
         // Handle regular payment link events
         switch (event.type) {
@@ -129,6 +133,296 @@ async function handleAuctionEvent(event: Stripe.Event) {
   } catch (error) {
     console.error('❌ Error handling auction webhook event:', error);
     throw error;
+  }
+}
+
+/**
+ * Handle beauty offer webhook events (embedded checkout)
+ */
+async function handleBeautyOfferEvent(adminClient: any, event: Stripe.Event) {
+  const LOG = '[BEAUTY-OFFER]';
+  console.log(`${LOG} Routing event: ${event.type}`);
+
+  if (event.type === 'payment_intent.succeeded') {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    await handleBeautyOfferPaymentSucceeded(adminClient, paymentIntent);
+  } else if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as Stripe.Checkout.Session;
+    await handleBeautyOfferCheckoutCompleted(adminClient, session);
+  } else {
+    console.log(`${LOG} Unhandled beauty_offer event type: ${event.type}`);
+  }
+}
+
+async function handleBeautyOfferPaymentSucceeded(adminClient: any, paymentIntent: Stripe.PaymentIntent) {
+  const LOG = '[BEAUTY-OFFER]';
+  const { offer_id, buyer_id, business_id } = paymentIntent.metadata || {};
+
+  if (!offer_id || !buyer_id || !business_id) {
+    throw new Error(`${LOG} Missing metadata in payment intent`);
+  }
+
+  // Re-validate offer
+  const { data: offer, error: offerError } = await adminClient
+    .from('beauty_offers')
+    .select('*, beauty_businesses!inner(id, business_name, creator_id)')
+    .eq('id', offer_id)
+    .eq('is_active', true)
+    .single();
+
+  if (offerError || !offer) {
+    console.error(`${LOG} Offer ${offer_id} not found or inactive — triggering refund`);
+    await beautyOfferAutoRefund(paymentIntent.id, paymentIntent.receipt_email, 'Offer no longer available');
+    return;
+  }
+
+  if (new Date(offer.expires_at) < new Date()) {
+    console.error(`${LOG} Offer ${offer_id} expired — triggering refund`);
+    await beautyOfferAutoRefund(paymentIntent.id, paymentIntent.receipt_email, 'Offer has expired');
+    return;
+  }
+
+  // Atomic claim: increment quantity_sold only if slots remain
+  const { data: claimResult, error: claimError } = await adminClient.rpc('claim_beauty_offer_slot', {
+    p_offer_id: offer_id,
+  });
+
+  let claimed = false;
+  if (claimError) {
+    console.warn(`${LOG} RPC not available, using conditional update`);
+    const { data: updateResult } = await adminClient
+      .from('beauty_offers')
+      .update({ quantity_sold: offer.quantity_sold + 1, updated_at: new Date().toISOString() })
+      .eq('id', offer_id)
+      .lt('quantity_sold', offer.quantity)
+      .select('id');
+
+    claimed = updateResult && updateResult.length > 0;
+  } else {
+    claimed = claimResult === true || (typeof claimResult === 'number' && claimResult > 0);
+  }
+
+  if (!claimed) {
+    console.error(`${LOG} Slot claim failed for offer ${offer_id} — sold out`);
+    await beautyOfferAutoRefund(paymentIntent.id, paymentIntent.receipt_email, 'Offer sold out');
+    return;
+  }
+
+  // Create beauty_purchases row
+  const { error: purchaseError } = await adminClient
+    .from('beauty_purchases')
+    .insert({
+      offer_id,
+      buyer_id,
+      business_id,
+      stripe_payment_intent_id: paymentIntent.id,
+      stripe_session_id: null,
+      amount_paid: offer.price,
+      currency: 'aed',
+      status: 'active',
+    });
+
+  if (purchaseError) {
+    console.error(`${LOG} Failed to create purchase:`, purchaseError);
+    throw purchaseError;
+  }
+
+  console.log(`${LOG} Purchase created for offer ${offer_id}, buyer ${buyer_id}`);
+
+  // Send emails (non-blocking)
+  const business = offer.beauty_businesses as any;
+  const buyerEmail = paymentIntent.receipt_email;
+
+  const { data: buyerUser } = await adminClient
+    .from('users')
+    .select('user_name, email')
+    .eq('id', buyer_id)
+    .single();
+
+  const { data: salonAdmin } = await adminClient
+    .from('users')
+    .select('email, user_name')
+    .eq('id', business.creator_id)
+    .single();
+
+  const emailTo = buyerEmail || buyerUser?.email;
+  if (emailTo) {
+    emailService.send({
+      to: emailTo,
+      subject: `Purchase Confirmed — ${offer.title}`,
+      html: `
+        <h2>Your purchase is confirmed!</h2>
+        <p><strong>${offer.title}</strong> at ${business.business_name}</p>
+        <p>Amount paid: AED ${offer.price}</p>
+        <p>You can view your deal and QR voucher in <a href="${process.env.NEXT_PUBLIC_SITE_URL}/offers/my-deals">My Offers</a>.</p>
+      `,
+    }).catch((err: any) => console.error(`${LOG} Buyer email failed:`, err));
+  }
+
+  if (salonAdmin?.email) {
+    emailService.send({
+      to: salonAdmin.email,
+      subject: `New Purchase — ${offer.title}`,
+      html: `
+        <h2>New offer purchase!</h2>
+        <p><strong>${offer.title}</strong></p>
+        <p>Buyer: ${buyerUser?.user_name || emailTo || 'Unknown'}</p>
+        <p>Amount: AED ${offer.price}</p>
+        <p>Remaining slots: ${offer.quantity - offer.quantity_sold - 1}</p>
+      `,
+    }).catch((err: any) => console.error(`${LOG} Salon email failed:`, err));
+  }
+}
+
+async function handleBeautyOfferCheckoutCompleted(adminClient: any, session: Stripe.Checkout.Session) {
+  const LOG = '[BEAUTY-OFFER]';
+  const { offer_id, buyer_id, business_id } = session.metadata || {};
+
+  if (!offer_id || !buyer_id || !business_id) {
+    throw new Error(`${LOG} Missing metadata in checkout session`);
+  }
+
+  const { data: offer, error: offerError } = await adminClient
+    .from('beauty_offers')
+    .select('*, beauty_businesses!inner(id, business_name, creator_id)')
+    .eq('id', offer_id)
+    .eq('is_active', true)
+    .single();
+
+  if (offerError || !offer) {
+    console.error(`${LOG} Offer ${offer_id} not found or inactive — triggering refund`);
+    const piId = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id;
+    if (piId) await beautyOfferAutoRefund(piId, session.customer_email, 'Offer no longer available');
+    return;
+  }
+
+  if (new Date(offer.expires_at) < new Date()) {
+    console.error(`${LOG} Offer ${offer_id} expired — triggering refund`);
+    const piId = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id;
+    if (piId) await beautyOfferAutoRefund(piId, session.customer_email, 'Offer has expired');
+    return;
+  }
+
+  // Atomic claim
+  const { data: claimResult, error: claimError } = await adminClient.rpc('claim_beauty_offer_slot', {
+    p_offer_id: offer_id,
+  });
+
+  let claimed = false;
+  if (claimError) {
+    console.warn(`${LOG} RPC not available, using conditional update`);
+    const { data: updateResult } = await adminClient
+      .from('beauty_offers')
+      .update({ quantity_sold: offer.quantity_sold + 1, updated_at: new Date().toISOString() })
+      .eq('id', offer_id)
+      .lt('quantity_sold', offer.quantity)
+      .select('id');
+
+    claimed = updateResult && updateResult.length > 0;
+  } else {
+    claimed = claimResult === true || (typeof claimResult === 'number' && claimResult > 0);
+  }
+
+  if (!claimed) {
+    console.error(`${LOG} Slot claim failed for offer ${offer_id} — sold out`);
+    const piId = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id;
+    if (piId) await beautyOfferAutoRefund(piId, session.customer_email, 'Offer sold out');
+    return;
+  }
+
+  const paymentIntentId = typeof session.payment_intent === 'string'
+    ? session.payment_intent
+    : session.payment_intent?.id || null;
+
+  const { error: purchaseError } = await adminClient
+    .from('beauty_purchases')
+    .insert({
+      offer_id,
+      buyer_id,
+      business_id,
+      stripe_payment_intent_id: paymentIntentId,
+      stripe_session_id: session.id,
+      amount_paid: offer.price,
+      currency: 'aed',
+      status: 'active',
+    });
+
+  if (purchaseError) {
+    console.error(`${LOG} Failed to create purchase:`, purchaseError);
+    throw purchaseError;
+  }
+
+  console.log(`${LOG} Purchase created for offer ${offer_id}, buyer ${buyer_id}`);
+
+  // Send emails (non-blocking)
+  const business = offer.beauty_businesses as any;
+  const buyerEmail = session.customer_email || session.customer_details?.email;
+
+  const { data: buyerUser } = await adminClient
+    .from('users')
+    .select('user_name, email')
+    .eq('id', buyer_id)
+    .single();
+
+  const { data: salonAdmin } = await adminClient
+    .from('users')
+    .select('email, user_name')
+    .eq('id', business.creator_id)
+    .single();
+
+  const emailTo = buyerEmail || buyerUser?.email;
+  if (emailTo) {
+    emailService.send({
+      to: emailTo,
+      subject: `Purchase Confirmed — ${offer.title}`,
+      html: `
+        <h2>Your purchase is confirmed!</h2>
+        <p><strong>${offer.title}</strong> at ${business.business_name}</p>
+        <p>Amount paid: AED ${offer.price}</p>
+        <p>You can view your deal and QR voucher in <a href="${process.env.NEXT_PUBLIC_SITE_URL}/offers/my-deals">My Offers</a>.</p>
+      `,
+    }).catch((err: any) => console.error(`${LOG} Buyer email failed:`, err));
+  }
+
+  if (salonAdmin?.email) {
+    emailService.send({
+      to: salonAdmin.email,
+      subject: `New Purchase — ${offer.title}`,
+      html: `
+        <h2>New offer purchase!</h2>
+        <p><strong>${offer.title}</strong></p>
+        <p>Buyer: ${buyerUser?.user_name || emailTo || 'Unknown'}</p>
+        <p>Amount: AED ${offer.price}</p>
+        <p>Remaining slots: ${offer.quantity - offer.quantity_sold - 1}</p>
+      `,
+    }).catch((err: any) => console.error(`${LOG} Salon email failed:`, err));
+  }
+}
+
+async function beautyOfferAutoRefund(paymentIntentId: string, email: string | null | undefined, reason: string) {
+  const LOG = '[BEAUTY-OFFER]';
+  try {
+    stripeService.ensureStripeInitialized();
+    await stripeService.stripe.refunds.create({
+      payment_intent: paymentIntentId,
+      reason: 'requested_by_customer',
+    });
+
+    console.log(`${LOG} Auto-refund issued for ${paymentIntentId}: ${reason}`);
+
+    if (email) {
+      emailService.send({
+        to: email,
+        subject: 'Refund Processed — Offer No Longer Available',
+        html: `
+          <h2>Your refund has been processed</h2>
+          <p>Unfortunately, ${reason.toLowerCase()}. Your payment has been fully refunded.</p>
+          <p>The refund will appear in your account within 5–10 business days.</p>
+        `,
+      }).catch((err: any) => console.error(`${LOG} Refund email failed:`, err));
+    }
+  } catch (error) {
+    console.error(`${LOG} Auto-refund failed:`, error);
   }
 }
 

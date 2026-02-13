@@ -5,7 +5,6 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import { DirhamSymbol } from '@/components/DirhamSymbol'
-import { USER_ROLES } from '@/types/user'
 import {
   getOfferById,
   getOfferImageUrl,
@@ -24,9 +23,7 @@ export default function OfferDetailClient() {
   const [offer, setOffer] = useState<PublicOffer | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [userRole, setUserRole] = useState<string | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [buying, setBuying] = useState(false)
 
   useEffect(() => {
     loadOffer()
@@ -49,39 +46,16 @@ export default function OfferDetailClient() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       setIsLoggedIn(true)
-      const { data: userData } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-      if (userData) setUserRole(userData.role)
     }
   }
 
-  const handleBuyNow = async () => {
+  const handleBuyNow = () => {
     if (!isLoggedIn) {
       router.push(`/auth?redirectTo=/offers/${id}&role=Buyer`)
       return
     }
 
-    setBuying(true)
-    try {
-      const res = await fetch('/api/offers/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ offerId: id }),
-      })
-      const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
-      } else {
-        setError(data.error || 'Failed to create checkout session')
-        setBuying(false)
-      }
-    } catch {
-      setError('Something went wrong. Please try again.')
-      setBuying(false)
-    }
+    router.push(`/offers/${id}/checkout`)
   }
 
   if (loading) {
@@ -115,9 +89,6 @@ export default function OfferDetailClient() {
   const daysLeft = getDaysUntilExpiry(offer.expires_at)
   const remaining = getQuantityRemaining(offer)
   const hasDiscount = offer.original_price && offer.original_price > offer.price
-
-  const isBuyer = userRole === USER_ROLES.BUYER
-  const canBuy = !isLoggedIn || isBuyer
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
@@ -245,22 +216,12 @@ export default function OfferDetailClient() {
       </div>
 
       {/* Buy / View Only */}
-      {canBuy ? (
-        <button
-          onClick={handleBuyNow}
-          disabled={buying}
-          className="offers-buy-btn w-full"
-        >
-          {buying ? 'Redirecting to checkout...' : 'Buy Now'}
-        </button>
-      ) : (
-        <button
-          onClick={handleBuyNow}
-          className="offers-buy-btn w-full"
-        >
-          Buy Now
-        </button>
-      )}
+      <button
+        onClick={handleBuyNow}
+        className="offers-buy-btn w-full"
+      >
+        Buy Now
+      </button>
 
       {/* Error display */}
       {error && (

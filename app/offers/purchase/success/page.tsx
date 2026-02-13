@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getUserWithProxy } from '@/utils/auth-helper'
+import { createClient } from '@/utils/supabase/client'
 import { DirhamSymbol } from '@/components/DirhamSymbol'
 
 interface SessionData {
@@ -30,6 +31,8 @@ function PurchaseSuccessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const sessionId = searchParams.get('session_id')
+  const paymentIntentParam = searchParams.get('payment_intent')
+  const offerIdParam = searchParams.get('offer_id')
 
   const [loading, setLoading] = useState(true)
   const [sessionData, setSessionData] = useState<SessionData | null>(null)
@@ -43,6 +46,36 @@ function PurchaseSuccessContent() {
         return
       }
 
+      // Embedded checkout flow: payment_intent + offer_id params
+      if (paymentIntentParam && offerIdParam) {
+        try {
+          const supabase = createClient()
+          const { data: offer } = await supabase
+            .from('beauty_offers')
+            .select('title, price, beauty_businesses!inner(business_name)')
+            .eq('id', offerIdParam)
+            .single()
+
+          if (offer) {
+            const business = (offer as any).beauty_businesses
+            setSessionData({
+              status: 'paid',
+              offer_title: offer.title,
+              business_name: business?.business_name || '',
+              amount_paid: offer.price,
+              currency: 'AED',
+            })
+          } else {
+            setError('Could not load purchase details')
+          }
+        } catch {
+          setError('Something went wrong')
+        }
+        setLoading(false)
+        return
+      }
+
+      // Legacy flow: session_id param
       if (!sessionId) {
         setLoading(false)
         return
@@ -63,7 +96,7 @@ function PurchaseSuccessContent() {
       setLoading(false)
     }
     init()
-  }, [router, sessionId])
+  }, [router, sessionId, paymentIntentParam, offerIdParam])
 
   if (loading) {
     return (
