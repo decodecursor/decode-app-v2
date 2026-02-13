@@ -160,6 +160,7 @@ export default function ManageOffersPage() {
                   href={`/offers/${offer.id}`}
                   key={offer.id}
                   className="offers-card p-4 flex items-start gap-4 no-underline block"
+                  style={{ background: 'rgb(48, 14, 32)' }}
                 >
                   {/* Thumbnail */}
                   {offer.image_url ? (
