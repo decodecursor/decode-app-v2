@@ -132,13 +132,12 @@ function AuthPageContent() {
         setPreselectedRole(existingRole)
       }
     } else {
-      // Coming from magic link (verified=true) but no role in URL
-      // Clear stored role to prevent stale defaults from previous visits
-      // The role param should have been preserved in the magic link URL
-      safeLocalStorage.removeItem('decode_preselectedRole')
-      safeSessionStorage.removeItem('preselectedRole')
-      setPreselectedRole(null)
-      console.log('🧹 [AUTH] Verified flow without role param - cleared stored role')
+      // Coming from magic link (verified=true), preserve stored role
+      const storedRole = safeLocalStorage.getItem('decode_preselectedRole') || safeSessionStorage.getItem('preselectedRole')
+      if (storedRole) {
+        console.log('🔄 [AUTH] Magic link return - preserving stored role:', storedRole)
+        setPreselectedRole(storedRole)
+      }
     }
 
     // Handle invitation parameter
@@ -698,11 +697,9 @@ function AuthPageContent() {
     const mappedSearchParamsRole = searchParamsRole ? urlRoleMapping[searchParamsRole.toLowerCase()] : null
     // URL param is the most reliable source - check it directly for model role
     const urlRoleDirect = urlParams?.get('role')?.toLowerCase() || searchParams?.get('role')?.toLowerCase()
-    const isVerifiedFlow = urlParams?.get('verified') === 'true' || searchParams?.get('verified') === 'true'
-    const hasUrlRole = !!urlRoleDirect
     // Priority: URL params > searchParams hook > storage > state
-    // Skip storedRole on verified flow without URL role to prevent stale defaults
-    const effectiveRole = mappedUrlRole || mappedSearchParamsRole || (isVerifiedFlow && !hasUrlRole ? null : storedRole) || preselectedRole
+    const effectiveRole = mappedUrlRole || mappedSearchParamsRole || storedRole || preselectedRole
+
     // Normalize role for comparison (case-insensitive)
     const normalizedRole = effectiveRole?.toLowerCase()
     const isBuyerRole = urlRoleDirect === 'buyer' || normalizedRole === 'buyer'
