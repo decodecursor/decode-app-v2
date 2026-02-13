@@ -6,6 +6,7 @@ import { createClient } from '@/utils/supabase/client'
 import { getUserWithProxy } from '@/utils/auth-helper'
 import RoleSelectionModal from '@/components/RoleSelectionModal'
 import ModelRegistrationModal from '@/components/ModelRegistrationModal'
+import BuyerRegistrationModal from '@/components/BuyerRegistrationModal'
 import { safeLocalStorage, safeSessionStorage } from '@/utils/storage-helper'
 import { CountryCodeSelector } from '@/components/ui/CountryCodeSelector'
 import { findCountryByCode } from '@/lib/country-codes'
@@ -382,44 +383,6 @@ function AuthPageContent() {
           window.location.href = '/dashboard'
           return
         } else {
-          // Check if this is a Buyer registration — auto-create profile, skip modal
-          const isBuyerRole = storedRole === 'Buyer' || mappedUrlRole === 'Buyer'
-          if (isBuyerRole && user) {
-            console.log('🛒 [AUTH] Buyer role detected, auto-creating profile...')
-            try {
-              const buyerProfileData = {
-                id: user.id,
-                email: user.email,
-                user_name: user.email?.split('@')[0] || 'Buyer',
-                role: 'Buyer',
-                approval_status: 'approved',
-                terms_accepted_at: new Date().toISOString()
-              }
-              const res = await fetch('/api/auth/create-profile', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(buyerProfileData)
-              })
-              const resData = await res.json()
-              if (!res.ok || !resData.success) {
-                throw new Error(resData.error || 'Buyer profile creation failed')
-              }
-              console.log('✅ [AUTH] Buyer profile created, redirecting...')
-              // Clean up stored role
-              safeSessionStorage.removeItem('preselectedRole')
-              safeLocalStorage.removeItem('decode_preselectedRole')
-              // Redirect to the original page or /offers
-              const redirectTo = new URLSearchParams(window.location.search).get('redirectTo') || '/offers'
-              window.location.href = redirectTo
-              return
-            } catch (buyerError: any) {
-              console.error('❌ [AUTH] Buyer profile creation failed:', buyerError)
-              setIsCheckingAuth(false)
-              setAuthError(buyerError.message || 'Failed to create buyer profile.')
-              return
-            }
-          }
-
           // Show role selection modal
           console.log('🆕 [AUTH] New user, showing role modal')
           setShowRoleModal(true)
@@ -749,7 +712,13 @@ function AuthPageContent() {
 
     return (
       <>
-        {isModelRole ? (
+        {isBuyerRole ? (
+          <BuyerRegistrationModal
+            isOpen={showRoleModal}
+            userEmail={authenticatedEmail || email}
+            onComplete={handleRoleModalComplete}
+          />
+        ) : isModelRole ? (
           <ModelRegistrationModal
             isOpen={showRoleModal}
             userEmail={authenticatedEmail || email}
@@ -1214,7 +1183,13 @@ function AuthPageContent() {
       </div>
 
       {/* Role Selection Modal */}
-      {effectiveRole === 'Model' ? (
+      {effectiveRole === 'Buyer' ? (
+        <BuyerRegistrationModal
+          isOpen={showRoleModal}
+          userEmail={authenticatedEmail || email}
+          onComplete={handleRoleModalComplete}
+        />
+      ) : effectiveRole === 'Model' ? (
         <ModelRegistrationModal
           isOpen={showRoleModal}
           userEmail={authenticatedEmail || email}
