@@ -131,7 +131,7 @@ export default function ManageOffersPage() {
               href="/dashboard/offers/create"
               className="bg-gradient-to-br from-gray-800 to-black text-white border border-purple-600 hover:border-purple-700 rounded-lg text-sm font-medium px-4 py-2.5 transition-all hover:scale-[1.02]"
             >
-              + New Offer
+              Create Offer
             </Link>
           </div>
         </div>
@@ -176,16 +176,13 @@ export default function ManageOffersPage() {
                     </div>
                   )}
 
-                  {/* Info */}
+                  {/* Info Grid */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="text-white font-medium text-sm truncate">{offer.title}</h3>
-                      <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${status.color}`}>
-                        {status.label}
-                      </span>
-                    </div>
-                    <p className="text-gray-500 text-xs mt-0.5">{offer.category}</p>
-                    <div className="grid grid-cols-3 gap-2 mt-3">
+                    <div className="grid grid-cols-4 gap-2">
+                      <div>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Title</p>
+                        <p className="text-xs text-white font-medium truncate">{offer.title}</p>
+                      </div>
                       <div>
                         <p className="text-[10px] text-gray-500 uppercase tracking-wider">Price</p>
                         <p className="text-xs text-gray-300 font-medium">{offer.price} AED</p>
@@ -197,6 +194,10 @@ export default function ManageOffersPage() {
                       <div>
                         <p className="text-[10px] text-gray-500 uppercase tracking-wider">Earned</p>
                         <p className="text-xs text-gray-300 font-medium">{offer.quantity_sold * offer.price} AED</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Category</p>
+                        <p className="text-xs text-gray-300 font-medium truncate">{offer.category}</p>
                       </div>
                       {offer.offer_code && (
                         <div>
@@ -222,16 +223,21 @@ export default function ManageOffersPage() {
                     </div>
                   </div>
 
-                  {/* Actions */}
-                  {offer.is_active && new Date(offer.expires_at) > new Date() && (
-                    <button
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeactivate(offer.id) }}
-                      disabled={deactivating === offer.id}
-                      className="text-xs text-red-400 hover:text-red-300 flex-shrink-0 px-2 py-1 border border-red-500/20 rounded hover:border-red-500/40 transition-colors"
-                    >
-                      {deactivating === offer.id ? '...' : 'Deactivate'}
-                    </button>
-                  )}
+                  {/* Right Column: Badge + Actions */}
+                  <div className="flex flex-col items-end justify-between self-stretch flex-shrink-0">
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${status.color}`}>
+                      {status.label}
+                    </span>
+                    {offer.is_active && new Date(offer.expires_at) > new Date() && (
+                      <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeactivate(offer.id) }}
+                        disabled={deactivating === offer.id}
+                        className="text-xs text-red-400 hover:text-red-300 px-2 py-1 border border-red-500/20 rounded hover:border-red-500/40 transition-colors"
+                      >
+                        {deactivating === offer.id ? '...' : 'Deactivate'}
+                      </button>
+                    )}
+                  </div>
                 </Link>
               )
             })}

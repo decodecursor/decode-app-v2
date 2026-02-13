@@ -2171,6 +2171,7 @@ body {
 
 .offers-card:hover {
   transform: translateY(-2px);
+  border-color: #E1306C;
 }
 
 /* Offers Category Pill */
