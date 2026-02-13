@@ -159,8 +159,7 @@ export default function ManageOffersPage() {
                 <Link
                   href={`/offers/${offer.id}`}
                   key={offer.id}
-                  className="offers-card p-4 flex items-start gap-4 no-underline block"
-                  style={{ background: 'rgb(48, 14, 32)' }}
+                  className="offers-card offers-card-dashboard p-4 flex items-start gap-4 no-underline block"
                 >
                   {/* Thumbnail */}
                   {offer.image_url ? (

@@ -2162,7 +2162,7 @@ body {
 
 /* Offers Card */
 .offers-card {
-  background: rgb(60, 18, 40);
+  background: rgba(10, 10, 20, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   overflow: hidden;
@@ -2171,6 +2171,12 @@ body {
 
 .offers-card:hover {
   transform: translateY(-2px);
+}
+
+.offers-card-dashboard {
+  background: rgb(48, 14, 32);
+}
+.offers-card-dashboard:hover {
   border-color: #E1306C;
 }
 

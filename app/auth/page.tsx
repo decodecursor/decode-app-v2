@@ -707,7 +707,7 @@ function AuthPageContent() {
     // If coming from magic link (verified=true) and NOT explicitly admin/staff/buyer, default to Model
     // This is the primary direct registration use case - admin/staff come through invites with explicit role
     const isVerifiedFlow = urlParams?.get('verified') === 'true' || searchParams?.get('verified') === 'true'
-    const isModelRole = urlRoleDirect === 'model' || normalizedRole === 'model' || (isVerifiedFlow && !isAdminOrStaff && !isBuyerRole)
+    const isModelRole = urlRoleDirect === 'model' || normalizedRole === 'model'
     console.log('🎬 [AUTH] Modal rendering - urlRoleDirect:', urlRoleDirect, 'effective:', effectiveRole, 'isModelRole:', isModelRole)
 
     return (
