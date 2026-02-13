@@ -120,7 +120,7 @@ export default function ManageOffersPage() {
             </button>
             <h1 className="text-xl font-semibold text-white">My Offers</h1>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-5">
             <Link
               href="/dashboard/offers/purchases"
               className="text-gray-400 hover:text-white text-sm transition-colors"
@@ -180,34 +180,34 @@ export default function ManageOffersPage() {
                   <div className="flex-1 min-w-0">
                     <div className="grid grid-cols-4 gap-2">
                       <div>
-                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Title</p>
-                        <p className="text-xs text-white font-medium truncate">{offer.title}</p>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Title</p>
+                        <p className="text-xs text-white font-bold truncate">{offer.title}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Price</p>
-                        <p className="text-xs text-gray-300 font-medium">{offer.price} AED</p>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Price</p>
+                        <p className="text-xs text-white font-bold">{offer.price} AED</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Sold</p>
-                        <p className="text-xs text-gray-300 font-medium">{offer.quantity_sold}/{offer.quantity}</p>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Sold</p>
+                        <p className="text-xs text-white font-bold">{offer.quantity_sold}/{offer.quantity}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Earned</p>
-                        <p className="text-xs text-gray-300 font-medium">{offer.quantity_sold * offer.price} AED</p>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Earned</p>
+                        <p className="text-xs text-white font-bold">{offer.quantity_sold * offer.price} AED</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Category</p>
-                        <p className="text-xs text-gray-300 font-medium truncate">{offer.category}</p>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Category</p>
+                        <p className="text-xs text-white font-bold truncate">{offer.category}</p>
                       </div>
                       {offer.offer_code && (
                         <div>
-                          <p className="text-[10px] text-gray-500 uppercase tracking-wider">Code</p>
-                          <p className="text-xs text-gray-300 font-medium">#{offer.offer_code}</p>
+                          <p className="text-[10px] text-gray-400 uppercase tracking-wider">Code</p>
+                          <p className="text-xs text-white font-bold">#{offer.offer_code}</p>
                         </div>
                       )}
                       <div>
-                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Expires</p>
-                        <p className="text-xs text-gray-300 font-medium">
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Expires</p>
+                        <p className="text-xs text-white font-bold">
                           {(() => {
                             const days = Math.ceil((new Date(offer.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
                             if (days < 0) return 'Expired'
@@ -217,8 +217,8 @@ export default function ManageOffersPage() {
                         </p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Created</p>
-                        <p className="text-xs text-gray-300 font-medium">{new Date(offer.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Created</p>
+                        <p className="text-xs text-white font-bold">{new Date(offer.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                       </div>
                     </div>
                   </div>
