@@ -120,7 +120,7 @@ export default function ManageOffersPage() {
             </button>
             <h1 className="text-xl font-semibold text-white">My Offers</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <Link
               href="/dashboard/offers/purchases"
               className="text-gray-400 hover:text-white text-sm transition-colors"
