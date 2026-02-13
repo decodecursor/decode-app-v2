@@ -123,13 +123,13 @@ export default function ManageOffersPage() {
           <div className="flex items-center gap-2">
             <Link
               href="/dashboard/offers/purchases"
-              className="text-gray-400 hover:text-white border border-white/10 hover:border-white/20 rounded-lg text-sm px-3 py-2.5 transition-colors"
+              className="text-gray-400 hover:text-white text-sm transition-colors"
             >
               Purchases
             </Link>
             <Link
               href="/dashboard/offers/create"
-              className="bg-gradient-to-br from-gray-800 to-black text-white border border-purple-600 hover:border-purple-700 rounded-lg text-sm font-medium px-4 py-2.5 transition-all hover:scale-[1.02]"
+              className="text-gray-400 hover:text-white text-sm transition-colors"
             >
               Create Offer
             </Link>
