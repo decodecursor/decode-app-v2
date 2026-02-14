@@ -151,7 +151,17 @@ export default function DealDetailPage() {
       </Link>
 
       <div className="bg-white/5 rounded-xl p-6 mb-6">
-        <h1 className="text-xl font-bold text-white mb-1">{offer.title}</h1>
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <h1 className="text-xl font-bold text-white">{offer.title}</h1>
+          <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${
+            purchase.status === 'active' ? 'bg-green-500/10 text-green-400' :
+            purchase.status === 'redeemed' ? 'bg-blue-500/10 text-blue-400' :
+            purchase.status === 'refunded' ? 'bg-orange-500/10 text-orange-400' :
+            'bg-white/5 text-white/40'
+          }`}>
+            {STATUS_LABELS[purchase.status] || purchase.status.charAt(0).toUpperCase() + purchase.status.slice(1)}
+          </span>
+        </div>
         <p className="text-sm text-white/50 mb-4">{business.business_name}</p>
 
         <div className="flex items-baseline gap-2 mb-2">
@@ -163,14 +173,7 @@ export default function DealDetailPage() {
           </span>
         </div>
 
-        <span className={`inline-block text-xs px-2 py-1 rounded-full ${
-          purchase.status === 'active' ? 'bg-green-500/10 text-green-400' :
-          purchase.status === 'redeemed' ? 'bg-blue-500/10 text-blue-400' :
-          purchase.status === 'refunded' ? 'bg-orange-500/10 text-orange-400' :
-          'bg-white/5 text-white/40'
-        }`}>
-          {STATUS_LABELS[purchase.status] || purchase.status.charAt(0).toUpperCase() + purchase.status.slice(1)}
-        </span>
+
       </div>
 
       {/* QR Voucher */}
