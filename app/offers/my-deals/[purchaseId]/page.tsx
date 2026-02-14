@@ -24,6 +24,10 @@ interface PurchaseDetail {
   }
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  active: 'Available',
+}
+
 export default function DealDetailPage() {
   const router = useRouter()
   const params = useParams()
@@ -165,7 +169,7 @@ export default function DealDetailPage() {
           purchase.status === 'refunded' ? 'bg-orange-500/10 text-orange-400' :
           'bg-white/5 text-white/40'
         }`}>
-          {purchase.status.charAt(0).toUpperCase() + purchase.status.slice(1)}
+          {STATUS_LABELS[purchase.status] || purchase.status.charAt(0).toUpperCase() + purchase.status.slice(1)}
         </span>
       </div>
 
@@ -221,7 +225,7 @@ export default function DealDetailPage() {
               >
                 {requesting ? 'Requesting...' : 'Request Refund'}
               </button>
-              <p className="text-xs text-white/30 text-center mt-2">
+              <p className="text-[11px] sm:text-xs text-white/30 text-center mt-2">
                 Refunds are reviewed manually within 1–2 business days
               </p>
             </div>

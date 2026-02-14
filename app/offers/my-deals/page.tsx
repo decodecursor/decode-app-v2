@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
+
 import { getUserWithProxy } from '@/utils/auth-helper'
 import { createClient } from '@/utils/supabase/client'
 import { getOfferImageUrl } from '@/lib/data/offers'
@@ -22,6 +22,10 @@ interface Purchase {
   beauty_businesses: {
     business_name: string
   }
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  active: 'Available',
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -106,26 +110,26 @@ export default function MyDealsPage() {
                 <div className="flex gap-4">
                   {imgUrl && (
                     <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-white/5">
-                      <Image
+                      <img
                         src={imgUrl}
                         alt={offer.title}
-                        width={64}
-                        height={64}
                         className="w-full h-full object-cover"
                       />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-white truncate">{offer.title}</h3>
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-sm font-medium text-white truncate">{offer.title}</h3>
+                      <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${STATUS_STYLES[p.status] || STATUS_STYLES.expired}`}>
+                        {STATUS_LABELS[p.status] || p.status.charAt(0).toUpperCase() + p.status.slice(1)}
+                      </span>
+                    </div>
                     <p className="text-xs text-white/40 mt-0.5">{business.business_name}</p>
                     <div className="flex items-center gap-3 mt-2">
                       <span className="text-sm text-white/70">
                         <DirhamSymbol size={11} /> {p.amount_paid}
                       </span>
                       <span className="text-xs text-white/30">{date}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLES[p.status] || STATUS_STYLES.expired}`}>
-                        {p.status.charAt(0).toUpperCase() + p.status.slice(1)}
-                      </span>
                     </div>
                   </div>
                   <div className="flex items-center text-white/20">
