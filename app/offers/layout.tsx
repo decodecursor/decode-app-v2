@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import { Suspense, useState, useRef, useEffect } from 'react'
+import { useAuth } from '@/providers/AuthProvider'
 
 const CITIES = ['Abu Dhabi', 'Al Ain', 'Dubai', 'Ras Al Khaimah', 'Sharjah', 'UAE'] as const
 
@@ -10,8 +11,11 @@ function OffersLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { signOut } = useAuth()
   const [open, setOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const selectedCity = searchParams.get('city') || 'UAE'
 
@@ -21,12 +25,21 @@ function OffersLayoutInner({ children }: { children: React.ReactNode }) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setOpen(false)
       }
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
     }
-    if (open) {
+    if (open || menuOpen) {
       document.addEventListener('mousedown', handleClickOutside)
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [open])
+  }, [open, menuOpen])
+
+  const handleLogout = async () => {
+    setMenuOpen(false)
+    await signOut()
+    router.push('/auth')
+  }
 
   const selectCity = (city: string) => {
     setOpen(false)
@@ -48,16 +61,39 @@ function OffersLayoutInner({ children }: { children: React.ReactNode }) {
       {!isRedeemPage && (
         <header className="offers-header sticky top-0 z-40">
           <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-            {/* Logo / Brand */}
-            <Link href="/offers" className="flex items-center gap-2">
-              <img
-                src="/logo.png"
-                alt="DECODE"
-                style={{ height: '20px', filter: 'brightness(0) invert(1)', opacity: 0.9 }}
-              />
-              <div className="w-[1px] h-[20px] bg-white/40" />
-              <span className="text-[13px] font-medium text-white/40 tracking-wide uppercase">Offers</span>
-            </Link>
+            {/* Logo / Brand with dropdown */}
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="flex items-center gap-2"
+              >
+                <img
+                  src="/logo.png"
+                  alt="DECODE"
+                  style={{ height: '20px', filter: 'brightness(0) invert(1)', opacity: 0.9 }}
+                />
+                <div className="w-[1px] h-[20px] bg-white/40" />
+                <span className="text-[13px] font-medium text-white/40 tracking-wide uppercase">Offers</span>
+              </button>
+
+              {menuOpen && (
+                <div className="absolute left-0 top-full mt-2 min-w-[160px] rounded-lg border border-white/10 bg-[#1a1a1a] shadow-xl overflow-hidden">
+                  <Link
+                    href="/offers/profile"
+                    onClick={() => setMenuOpen(false)}
+                    className="block w-full text-left px-4 py-2.5 text-[13px] text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+                  >
+                    Profile
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2.5 text-[13px] text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Right nav */}
             <div className="flex items-center gap-4">
@@ -67,7 +103,7 @@ function OffersLayoutInner({ children }: { children: React.ReactNode }) {
                   onClick={() => setOpen(!open)}
                   className="text-[13px] md:text-[14px] font-medium transition-colors flex items-center gap-1 text-white/40 hover:text-white/60"
                 >
-                  {selectedCity}
+                  {selectedCity === 'Ras Al Khaimah' ? 'RAK' : selectedCity}
                   <svg
                     className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`}
                     fill="none"
