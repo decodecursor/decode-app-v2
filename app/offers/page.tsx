@@ -141,7 +141,7 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
   return (
     <Link href={`/offers/${offer.id}`} className="offers-card flex flex-col no-underline">
       {/* Image */}
-      <div className="relative aspect-[4/5] bg-white/5">
+      <div className="relative aspect-square bg-white/5">
         {imageUrl ? (
           <img
             src={imageUrl}

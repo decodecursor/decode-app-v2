@@ -76,7 +76,7 @@ export default function MyDealsPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
       <Link href="/offers" className="text-sm text-white/40 hover:text-white/60 mb-4 inline-block no-underline">
-        ← Back to offers
+        ← Back
       </Link>
       <h1 className="text-xl font-semibold mb-6">My Offers</h1>
 

@@ -29,7 +29,7 @@ function getCroppedImg(
       const ctx = canvas.getContext('2d')!
 
       canvas.width = 1080
-      canvas.height = 1350
+      canvas.height = 1080
 
       ctx.drawImage(
         image,
@@ -40,7 +40,7 @@ function getCroppedImg(
         0,
         0,
         1080,
-        1350
+        1080
       )
 
       // Try WebP first, fall back to JPEG
@@ -112,7 +112,7 @@ export default function OfferImageCropModal({
             image={imageSrc}
             crop={crop}
             zoom={zoom}
-            aspect={4 / 5}
+            aspect={1}
             cropShape="rect"
             showGrid={true}
             onCropChange={setCrop}

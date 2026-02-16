@@ -112,7 +112,7 @@ export default function PurchasesPage() {
             href="/dashboard/offers"
             className="text-gray-400 hover:text-white text-sm mb-1 block"
           >
-            &larr; Back to Offers
+            &larr; Back
           </Link>
           <h1 className="text-xl font-semibold text-white">Purchases</h1>
         </div>
