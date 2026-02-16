@@ -101,7 +101,7 @@ export default function MyDealsPage() {
               <Link
                 key={p.id}
                 href={`/offers/my-offers/${p.id}`}
-                className="block bg-white/5 rounded-xl p-4 hover:bg-white/[0.07] transition-colors no-underline"
+                className="block bg-white/[0.07] rounded-xl p-4 hover:bg-white/[0.09] transition-colors no-underline"
               >
                 <div className="flex gap-4">
                   {imgUrl && (

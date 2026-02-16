@@ -150,7 +150,7 @@ async function handleCheckoutCompleted(adminClient: any, session: Stripe.Checkou
     : session.payment_intent?.id || null
 
   // Create beauty_purchases row
-  const { error: purchaseError } = await adminClient
+  const { data: newPurchase, error: purchaseError } = await adminClient
     .from('beauty_purchases')
     .insert({
       offer_id,
@@ -162,13 +162,15 @@ async function handleCheckoutCompleted(adminClient: any, session: Stripe.Checkou
       currency: 'aed',
       status: 'active',
     })
+    .select('id')
+    .single()
 
   if (purchaseError) {
     console.error(`${LOG_PREFIX} Failed to create purchase:`, purchaseError)
     throw purchaseError
   }
 
-  console.log(`${LOG_PREFIX} Purchase created for offer ${offer_id}, buyer ${buyer_id}`)
+  console.log(`${LOG_PREFIX} Purchase ${newPurchase.id} created for offer ${offer_id}, buyer ${buyer_id}`)
 
   // Send emails (non-blocking)
   const business = offer.beauty_businesses as any
@@ -215,6 +217,18 @@ async function handleCheckoutCompleted(adminClient: any, session: Stripe.Checkou
       `,
     }).catch(err => console.error(`${LOG_PREFIX} Salon email failed:`, err))
   }
+
+  // Admin notification
+  emailService.send({
+    to: 'sebastian@welovedecode.com',
+    subject: `Offer Purchase — ${offer.title} - ${newPurchase.id}`,
+    html: `
+      <h2>New offer purchase!</h2>
+      <p>${buyerUser?.user_name || emailTo || 'Unknown'} purchased "<strong>${offer.title}</strong>" from ${business.business_name}.</p>
+      <p>Amount: AED ${offer.price}</p>
+      <p>Purchase ID: ${newPurchase.id}</p>
+    `,
+  }).catch(err => console.error(`${LOG_PREFIX} Admin email failed:`, err))
 }
 
 async function handlePaymentIntentSucceeded(adminClient: any, paymentIntent: Stripe.PaymentIntent) {
@@ -271,7 +285,7 @@ async function handlePaymentIntentSucceeded(adminClient: any, paymentIntent: Str
   }
 
   // Create beauty_purchases row
-  const { error: purchaseError } = await adminClient
+  const { data: newPurchase, error: purchaseError } = await adminClient
     .from('beauty_purchases')
     .insert({
       offer_id,
@@ -283,13 +297,15 @@ async function handlePaymentIntentSucceeded(adminClient: any, paymentIntent: Str
       currency: 'aed',
       status: 'active',
     })
+    .select('id')
+    .single()
 
   if (purchaseError) {
     console.error(`${LOG_PREFIX} Failed to create purchase:`, purchaseError)
     throw purchaseError
   }
 
-  console.log(`${LOG_PREFIX} Purchase created for offer ${offer_id}, buyer ${buyer_id} (via PaymentIntent)`)
+  console.log(`${LOG_PREFIX} Purchase ${newPurchase.id} created for offer ${offer_id}, buyer ${buyer_id} (via PaymentIntent)`)
 
   // Send emails (non-blocking)
   const business = offer.beauty_businesses as any
@@ -334,6 +350,18 @@ async function handlePaymentIntentSucceeded(adminClient: any, paymentIntent: Str
       `,
     }).catch(err => console.error(`${LOG_PREFIX} Salon email failed:`, err))
   }
+
+  // Admin notification
+  emailService.send({
+    to: 'sebastian@welovedecode.com',
+    subject: `Offer Purchase — ${offer.title} - ${newPurchase.id}`,
+    html: `
+      <h2>New offer purchase!</h2>
+      <p>${buyerUser?.user_name || emailTo || 'Unknown'} purchased "<strong>${offer.title}</strong>" from ${business.business_name}.</p>
+      <p>Amount: AED ${offer.price}</p>
+      <p>Purchase ID: ${newPurchase.id}</p>
+    `,
+  }).catch(err => console.error(`${LOG_PREFIX} Admin email failed:`, err))
 }
 
 async function autoRefundPaymentIntent(paymentIntentId: string, buyerId: string, reason: string, email?: string | null) {

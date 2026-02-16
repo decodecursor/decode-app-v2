@@ -90,6 +90,34 @@ export default function DealDetailPage() {
       setLoading(false)
     }
     load()
+
+    // Realtime: auto-update when purchase is redeemed
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`purchase-${purchaseId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'beauty_purchases',
+          filter: `id=eq.${purchaseId}`,
+        },
+        (payload) => {
+          const updated = payload.new as { status: string; redeemed_at: string | null }
+          if (updated.status === 'redeemed') {
+            setPurchase((prev) =>
+              prev ? { ...prev, status: 'redeemed', redeemed_at: updated.redeemed_at } : prev
+            )
+            setQrDataUrl(null)
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [router, purchaseId])
 
   const handleRefund = async () => {
@@ -151,7 +179,7 @@ export default function DealDetailPage() {
         ← Back
       </Link>
 
-      <div className="bg-white/5 rounded-xl px-6 py-4 mb-6">
+      <div className="bg-white/[0.07] rounded-xl px-6 py-4 mb-6">
         <div className="flex items-center justify-between gap-2 mb-1">
           <h1 className="text-xl font-bold text-white">{offer.title}</h1>
           <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${
@@ -167,7 +195,7 @@ export default function DealDetailPage() {
       </div>
 
       {/* QR Voucher */}
-      <div className="mt-6 bg-white/5 rounded-xl p-6 text-center">
+      <div className="mt-6 bg-white/[0.07] rounded-xl p-6 text-center">
         {purchase.status === 'active' && qrDataUrl ? (
           <>
             <p className="text-xs text-white/40 mb-3">Show this QR code to redeem</p>
@@ -183,6 +211,7 @@ export default function DealDetailPage() {
               </svg>
             </div>
             <p className="text-base font-semibold text-blue-400 mb-1">Redeemed</p>
+            <p className="text-xs text-white/30 mb-1">{purchase.id}</p>
             {purchase.redeemed_at && (
               <p className="text-xs text-white/30">
                 {new Date(purchase.redeemed_at).toLocaleString('en-AE', {
@@ -204,7 +233,7 @@ export default function DealDetailPage() {
 
       {/* Refund section */}
       {purchase.status === 'active' && (daysSince <= 3 || refundRequested) && (
-        <div className="mt-6 bg-white/5 rounded-xl p-6">
+        <div className="mt-6 bg-white/[0.07] rounded-xl p-6">
           {refundRequested ? (
             <div>
               <p className="text-sm text-orange-400 font-medium mb-1">Refund Requested</p>

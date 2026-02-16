@@ -59,7 +59,15 @@ export default function RedeemPage() {
         setRedeemed(true)
       } else {
         const data = await res.json()
-        setError(data.error || 'Failed to redeem')
+        if (data.error === 'not_authenticated') {
+          window.location.href = '/sign-in'
+          return
+        }
+        if (data.error === 'wrong_salon') {
+          setError(`This offer belongs to ${data.business_name}. Please ask the staff at that salon to redeem it.`)
+        } else {
+          setError(data.error || 'Failed to redeem')
+        }
       }
     } catch {
       setError('Something went wrong')
