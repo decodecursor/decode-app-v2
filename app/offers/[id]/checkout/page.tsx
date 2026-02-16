@@ -68,7 +68,7 @@ function OfferPaymentForm({
     const { isIOS, isAndroid } = deviceCapabilities
     const baseConfig = {
       buttonTheme: {
-        applePay: 'white-outline' as const,
+        applePay: 'black' as const,
         googlePay: 'white' as const,
       },
       buttonType: { googlePay: 'plain' as const },
@@ -139,18 +139,18 @@ function OfferPaymentForm({
     <div className="min-h-screen flex items-center justify-center px-4 py-2" style={{ background: '#0a0a0a' }}>
       <div
         className="offer-checkout-card max-w-6xl md:max-w-md w-full"
-        style={{ transform: 'translateX(0)', margin: '0 auto', position: 'relative', left: '0', right: '0', background: 'rgba(10, 10, 20, 0.85)', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px', padding: '24px' }}
+        style={{ transform: 'translateX(0)', margin: '0 auto', position: 'relative', left: '0', right: '0', borderRadius: '12px', padding: '24px' }}
       >
         {/* Offer Info */}
-        <div className="bg-black rounded-lg px-4 py-6 mb-6">
+        <div className="px-4 py-6 mb-6">
           <div className="text-center flex flex-col gap-2">
-            <div className="text-xs text-white font-extrabold" style={{ fontSize: '14px' }}>
+            <div className="text-xs text-white font-extrabold" style={{ fontSize: '18px' }}>
               {offerDetails.title}
             </div>
             <div className="text-xs text-white font-extrabold" style={{ fontSize: '14px' }}>
               {offerDetails.businessName}
             </div>
-            <div className="text-xs text-white font-extrabold" style={{ fontSize: '14px' }}>
+            <div className="text-xs text-white font-extrabold" style={{ fontSize: '18px' }}>
               AED {offerDetails.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
@@ -289,7 +289,8 @@ export default function OfferCheckoutPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0a0a0a' }}>
-        <p className="text-white text-lg">Loading...</p>
+        <div className="offers-spinner" />
+        <p className="text-sm text-white/40 mt-4">Loading...</p>
       </div>
     )
   }

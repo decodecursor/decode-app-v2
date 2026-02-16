@@ -204,7 +204,7 @@ export default function OfferDetailClient() {
           <button
             onClick={() => {
               const text = `Check this offer 💅\n${window.location.href}`;
-              window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+              window.location.href = `https://wa.me/?text=${encodeURIComponent(text)}`;
             }}
             className="flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-[#25d366]/15 text-[#25d366] hover:bg-[#25d366]/25 transition-colors"
           >

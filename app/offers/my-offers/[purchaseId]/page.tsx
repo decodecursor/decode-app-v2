@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import QRCode from 'qrcode'
 import { createClient } from '@/utils/supabase/client'
+import ConfirmationModal from '@/components/payouts/ConfirmationModal'
 
 interface PurchaseDetail {
   id: string
@@ -39,6 +40,7 @@ export default function DealDetailPage() {
   const [requesting, setRequesting] = useState(false)
   const [refundRequested, setRefundRequested] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showRefundConfirm, setShowRefundConfirm] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -211,7 +213,7 @@ export default function DealDetailPage() {
           ) : canRefund ? (
             <div>
               <button
-                onClick={handleRefund}
+                onClick={() => setShowRefundConfirm(true)}
                 disabled={requesting}
                 className="w-full py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-medium transition-colors disabled:opacity-50"
               >
@@ -226,6 +228,17 @@ export default function DealDetailPage() {
               Refund window has expired (3 days from purchase)
             </p>
           ) : null}
+
+          <ConfirmationModal
+            isOpen={showRefundConfirm}
+            onClose={() => setShowRefundConfirm(false)}
+            onConfirm={() => { setShowRefundConfirm(false); handleRefund(); }}
+            title="Request Refund?"
+            message="Are you sure? Once submitted, your refund request will be reviewed and you'll receive an email confirmation."
+            confirmText="Yes, Request Refund"
+            confirmButtonClass="bg-red-600 hover:bg-red-700"
+            loading={requesting}
+          />
 
           {error && (
             <p className="text-xs text-red-400 text-center mt-2">{error}</p>
