@@ -96,11 +96,6 @@ export default function MyDealsPage() {
             const offer = p.beauty_offers
             const business = p.beauty_businesses
             const imgUrl = getOfferImageUrl(offer.image_url)
-            const date = new Date(p.created_at).toLocaleDateString('en-AE', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            })
 
             return (
               <Link
@@ -127,10 +122,9 @@ export default function MyDealsPage() {
                     </div>
                     <p className="text-xs text-white/40 mt-0.5">{business.business_name}</p>
                     <div className="flex items-center gap-3 mt-2">
-                      <span className="text-sm text-white/70">
+                      <span className="text-sm text-white/70 inline-flex items-center gap-1">
                         <DirhamSymbol size={11} /> {p.amount_paid}
                       </span>
-                      <span className="text-xs text-white/30">{date}</span>
                     </div>
                   </div>
                 </div>

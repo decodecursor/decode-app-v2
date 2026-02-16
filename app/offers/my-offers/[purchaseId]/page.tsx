@@ -5,7 +5,6 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import QRCode from 'qrcode'
 import { createClient } from '@/utils/supabase/client'
-import { DirhamSymbol } from '@/components/DirhamSymbol'
 
 interface PurchaseDetail {
   id: string
@@ -142,7 +141,7 @@ export default function DealDetailPage() {
   const business = purchase.beauty_businesses
   const purchaseDate = new Date(purchase.created_at)
   const daysSince = (Date.now() - purchaseDate.getTime()) / (1000 * 60 * 60 * 24)
-  const canRefund = purchase.status === 'active' && daysSince <= 7 && !refundRequested
+  const canRefund = purchase.status === 'active' && daysSince <= 3 && !refundRequested
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -163,17 +162,6 @@ export default function DealDetailPage() {
           </span>
         </div>
         <p className="text-sm text-white/50 mb-4">{business.business_name}</p>
-
-        <div className="flex items-baseline gap-2">
-          <span className="text-lg font-semibold text-white">
-            <DirhamSymbol size={14} /> {purchase.amount_paid}
-          </span>
-          <span className="text-xs text-white/30">
-            {purchaseDate.toLocaleDateString('en-AE', { day: 'numeric', month: 'long', year: 'numeric' })}
-          </span>
-        </div>
-
-
       </div>
 
       {/* QR Voucher */}
@@ -182,7 +170,8 @@ export default function DealDetailPage() {
           <>
             <p className="text-xs text-white/40 mb-3">Show this QR code at the salon to redeem</p>
             <img src={qrDataUrl} alt="QR Code" className="mx-auto rounded-lg" width={280} height={280} />
-            <p className="text-lg font-bold text-white mt-4">{buyerName}</p>
+            <p className="text-[10px] text-white/40 mt-3">{purchase.id.slice(0, 8).toUpperCase()}</p>
+            <p className="text-lg font-bold text-white mt-1">{buyerName}</p>
           </>
         ) : purchase.status === 'redeemed' ? (
           <>
@@ -212,7 +201,7 @@ export default function DealDetailPage() {
       </div>
 
       {/* Refund section */}
-      {purchase.status === 'active' && (
+      {purchase.status === 'active' && (daysSince <= 3 || refundRequested) && (
         <div className="mt-6 bg-white/5 rounded-xl p-6">
           {refundRequested ? (
             <div>
@@ -232,9 +221,9 @@ export default function DealDetailPage() {
                 Refunds are reviewed manually within 1–2 business days
               </p>
             </div>
-          ) : daysSince > 7 ? (
+          ) : daysSince > 3 ? (
             <p className="text-xs text-white/30 text-center">
-              Refund window has expired (7 days from purchase)
+              Refund window has expired (3 days from purchase)
             </p>
           ) : null}
 

@@ -3,7 +3,7 @@ import { createClient } from '@/utils/supabase/server'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { emailService } from '@/lib/email-service'
 
-const REFUND_WINDOW_DAYS = 7
+const REFUND_WINDOW_DAYS = 3
 const ADMIN_EMAIL = 'sebastian@welovedecode.com'
 
 export async function POST(request: NextRequest) {
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     const daysSincePurchase = (now.getTime() - purchaseDate.getTime()) / (1000 * 60 * 60 * 24)
 
     if (daysSincePurchase > REFUND_WINDOW_DAYS) {
-      return NextResponse.json({ error: 'Refund window has expired (7 days)' }, { status: 400 })
+      return NextResponse.json({ error: 'Refund window has expired (3 days)' }, { status: 400 })
     }
 
     // 3. Mark refund requested
