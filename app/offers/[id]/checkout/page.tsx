@@ -142,7 +142,7 @@ function OfferPaymentForm({
         style={{ transform: 'translateX(0)', margin: '0 auto', position: 'relative', left: '0', right: '0', borderRadius: '12px', padding: '24px', background: '#0a0a0a', border: 'none' }}
       >
         {/* Offer Info */}
-        <div className="py-0.5 mb-4" style={{ background: 'transparent', border: 'none' }}>
+        <div className="py-1.5 mb-[22px]" style={{ background: 'transparent', border: 'none' }}>
           <div className="text-center flex flex-col gap-2.5">
             <div className="text-xs text-white font-extrabold" style={{ fontSize: '28px' }}>
               {offerDetails.title}

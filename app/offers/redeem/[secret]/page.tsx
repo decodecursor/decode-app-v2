@@ -149,7 +149,7 @@ export default function RedeemPage() {
         </svg>
       </div>
 
-      <h1 className="text-xl font-semibold mb-6">Verify & Redeem</h1>
+      <h1 className="text-xl font-semibold mb-6">Redeem</h1>
 
       <div className="bg-white/5 rounded-xl p-6 mb-6 text-left">
         <p className="text-2xl font-bold text-white text-center mb-4">{voucher.buyer_name}</p>
@@ -178,11 +178,11 @@ export default function RedeemPage() {
         disabled={redeeming}
         className="w-full py-4 rounded-xl bg-green-600 hover:bg-green-500 text-white font-semibold text-base transition-colors disabled:opacity-50"
       >
-        {redeeming ? 'Redeeming...' : 'Confirm — Mark as Redeemed'}
+        {redeeming ? 'Redeeming...' : 'Confirm'}
       </button>
 
       <p className="text-xs text-white/30 mt-3">
-        Please confirm the customer&apos;s identity before redeeming.
+        Please confirm the client&apos;s identity before redeeming.
       </p>
     </div>
   )

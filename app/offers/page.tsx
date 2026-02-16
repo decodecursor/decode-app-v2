@@ -99,7 +99,7 @@ export default function OffersPage() {
           </div>
           <p className="text-lg font-medium text-white/50 mb-1">No offers yet</p>
           <p className="text-sm text-white/30">
-            Beauty deals will appear here when businesses publish them.
+            Beauty offers will appear here
           </p>
         </div>
       )}
