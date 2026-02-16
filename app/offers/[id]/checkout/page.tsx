@@ -142,22 +142,22 @@ function OfferPaymentForm({
         style={{ transform: 'translateX(0)', margin: '0 auto', position: 'relative', left: '0', right: '0', borderRadius: '12px', padding: '24px', background: '#0a0a0a', border: 'none' }}
       >
         {/* Offer Info */}
-        <div className="py-3 mb-3" style={{ background: 'transparent', border: 'none' }}>
-          <div className="text-center flex flex-col gap-2">
+        <div className="py-0.5 mb-4" style={{ background: 'transparent', border: 'none' }}>
+          <div className="text-center flex flex-col gap-2.5">
             <div className="text-xs text-white font-extrabold" style={{ fontSize: '28px' }}>
               {offerDetails.title}
             </div>
             <div className="text-xs text-white font-normal" style={{ fontSize: '14px' }}>
               {offerDetails.businessName}
             </div>
-            <div className="text-xs text-white font-extrabold" style={{ fontSize: '18px' }}>
+            <div className="text-xs text-white font-extrabold" style={{ fontSize: '16px' }}>
               AED {offerDetails.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
         </div>
 
         {/* Express Checkout */}
-        <div className="mb-4 express-checkout-expanded" style={{ minHeight: '60px' }}>
+        <div className="express-checkout-expanded" style={{ minHeight: '60px' }}>
           <div className="express-checkout-no-border" style={{ minHeight: '56px', display: 'block' }}>
             <ExpressCheckoutElement
               options={expressCheckoutOptions}
@@ -185,14 +185,14 @@ function OfferPaymentForm({
         </div>
 
         {/* Divider */}
-        <div className="flex items-center space-x-4 my-2">
+        <div className="flex items-center space-x-4 my-4">
           <div className="flex-1 h-px bg-white/20"></div>
           <span className="!text-sm text-white opacity-60">or pay with card</span>
           <div className="flex-1 h-px bg-white/20"></div>
         </div>
 
         {/* Card Form */}
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-1.5">
           <div
             style={{ fontSize: '14px', minHeight: '250px', position: 'relative' }}
           >
