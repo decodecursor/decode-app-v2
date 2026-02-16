@@ -121,7 +121,7 @@ export default function MyDealsPage() {
                       </span>
                     </div>
                     <p className="text-sm text-white/40 mt-0.5">{business.business_name}</p>
-                    <div className="flex items-center gap-3 mt-2">
+                    <div className="flex items-center gap-3 mt-0.5">
                       <span className="text-base text-white/70 inline-flex items-center gap-1">
                         <DirhamSymbol size={13} /> {p.amount_paid}
                       </span>
