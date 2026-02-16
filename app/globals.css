@@ -2235,6 +2235,7 @@ body {
   color: rgba(255, 255, 255, 0.4);
   text-decoration: line-through;
   text-decoration-color: #E1306C;
+  text-decoration-thickness: 0.5px;
 }
 
 /* Offers Empty State */
@@ -2274,6 +2275,7 @@ body {
 .offers-price-strikethrough {
   text-decoration: line-through;
   text-decoration-color: #E1306C;
+  text-decoration-thickness: 0.5px;
 }
 
 /* Offers Category Badge (on cards) */

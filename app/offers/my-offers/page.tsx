@@ -115,15 +115,15 @@ export default function MyDealsPage() {
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-sm font-medium text-white truncate">{offer.title}</h3>
+                      <h3 className="text-base font-medium text-white truncate">{offer.title}</h3>
                       <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${STATUS_STYLES[p.status] || STATUS_STYLES.expired}`}>
                         {STATUS_LABELS[p.status] || p.status.charAt(0).toUpperCase() + p.status.slice(1)}
                       </span>
                     </div>
-                    <p className="text-xs text-white/40 mt-0.5">{business.business_name}</p>
+                    <p className="text-sm text-white/40 mt-0.5">{business.business_name}</p>
                     <div className="flex items-center gap-3 mt-2">
-                      <span className="text-sm text-white/70 inline-flex items-center gap-1">
-                        <DirhamSymbol size={11} /> {p.amount_paid}
+                      <span className="text-base text-white/70 inline-flex items-center gap-1">
+                        <DirhamSymbol size={13} /> {p.amount_paid}
                       </span>
                     </div>
                   </div>

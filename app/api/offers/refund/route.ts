@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to process refund request' }, { status: 500 })
     }
 
-    // 4. Send emails (non-blocking)
+    // 4. Send emails
     const offer = purchase.beauty_offers as any
     const business = purchase.beauty_businesses as any
 
@@ -83,48 +83,60 @@ export async function POST(request: NextRequest) {
 
     const buyerEmail = buyerUser?.email
 
-    // Buyer email
+    // Send emails — must await to prevent serverless runtime from killing promises
+    const emailPromises: Promise<any>[] = []
+
     if (buyerEmail) {
-      emailService.send({
-        to: buyerEmail,
-        subject: `Refund Request Received — ${offer.title}`,
-        html: `
-          <h2>We've received your refund request</h2>
-          <p>Your refund request for <strong>${offer.title}</strong> at ${business.business_name} is being reviewed.</p>
-          <p>We'll update you within 1–2 business days.</p>
-        `,
-      }).catch(err => console.error('[BEAUTY-OFFER] Buyer refund email failed:', err))
+      emailPromises.push(
+        emailService.send({
+          to: buyerEmail,
+          subject: `Refund Request Received — ${offer.title}`,
+          html: `
+            <h2>We've received your refund request</h2>
+            <p>Your refund request for <strong>${offer.title}</strong> at ${business.business_name} is being reviewed.</p>
+            <p>We'll update you within 1–2 business days.</p>
+          `,
+        })
+      )
     }
 
-    // Admin email
-    emailService.send({
-      to: ADMIN_EMAIL,
-      subject: `Refund Request — ${offer.title}`,
-      html: `
-        <h2>New refund request</h2>
-        <p><strong>Offer:</strong> ${offer.title}</p>
-        <p><strong>Salon:</strong> ${business.business_name}</p>
-        <p><strong>Buyer:</strong> ${buyerUser?.user_name || buyerEmail || 'Unknown'} (${buyerEmail || 'no email'})</p>
-        <p><strong>Amount:</strong> AED ${offer.price}</p>
-        <p><strong>Purchase ID:</strong> ${purchaseId}</p>
-        <p><strong>Stripe PI:</strong> ${purchase.stripe_payment_intent_id || 'N/A'}</p>
-        <p><strong>Purchased:</strong> ${new Date(purchase.created_at).toLocaleString()}</p>
-      `,
-    }).catch(err => console.error('[BEAUTY-OFFER] Admin refund email failed:', err))
-
-    // Salon admin email
-    if (salonAdmin?.email) {
+    emailPromises.push(
       emailService.send({
-        to: salonAdmin.email,
-        subject: `Refund Requested — ${offer.title}`,
+        to: ADMIN_EMAIL,
+        subject: `Refund Request — ${offer.title}`,
         html: `
-          <h2>A customer has requested a refund</h2>
+          <h2>New refund request</h2>
           <p><strong>Offer:</strong> ${offer.title}</p>
-          <p><strong>Buyer:</strong> ${buyerUser?.user_name || buyerEmail || 'Unknown'}</p>
+          <p><strong>Salon:</strong> ${business.business_name}</p>
+          <p><strong>Buyer:</strong> ${buyerUser?.user_name || buyerEmail || 'Unknown'} (${buyerEmail || 'no email'})</p>
           <p><strong>Amount:</strong> AED ${offer.price}</p>
-          <p>The DECODE team will review this request and process it within 1–2 business days.</p>
+          <p><strong>Purchase ID:</strong> ${purchaseId}</p>
+          <p><strong>Stripe PI:</strong> ${purchase.stripe_payment_intent_id || 'N/A'}</p>
+          <p><strong>Purchased:</strong> ${new Date(purchase.created_at).toLocaleString()}</p>
         `,
-      }).catch(err => console.error('[BEAUTY-OFFER] Salon refund email failed:', err))
+      })
+    )
+
+    if (salonAdmin?.email) {
+      emailPromises.push(
+        emailService.send({
+          to: salonAdmin.email,
+          subject: `Refund Requested — ${offer.title}`,
+          html: `
+            <h2>A customer has requested a refund</h2>
+            <p><strong>Offer:</strong> ${offer.title}</p>
+            <p><strong>Buyer:</strong> ${buyerUser?.user_name || buyerEmail || 'Unknown'}</p>
+            <p><strong>Amount:</strong> AED ${offer.price}</p>
+            <p>The DECODE team will review this request and process it within 1–2 business days.</p>
+          `,
+        })
+      )
+    }
+
+    const emailResults = await Promise.allSettled(emailPromises)
+    const emailsFailed = emailResults.filter(r => r.status === 'rejected')
+    if (emailsFailed.length > 0) {
+      console.error('[BEAUTY-OFFER] Some refund emails failed:', emailsFailed)
     }
 
     return NextResponse.json({ success: true })
