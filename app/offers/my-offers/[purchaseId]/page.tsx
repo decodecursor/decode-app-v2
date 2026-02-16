@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import QRCode from 'qrcode'
 import { createClient } from '@/utils/supabase/client'
-import ConfirmationModal from '@/components/payouts/ConfirmationModal'
+import { ConfirmationModal } from '@/components/payouts/ConfirmationModal'
 
 interface PurchaseDetail {
   id: string
