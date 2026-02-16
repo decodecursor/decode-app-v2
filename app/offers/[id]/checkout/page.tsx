@@ -68,7 +68,7 @@ function OfferPaymentForm({
     const { isIOS, isAndroid } = deviceCapabilities
     const baseConfig = {
       buttonTheme: {
-        applePay: 'black' as const,
+        applePay: 'white' as const,
         googlePay: 'white' as const,
       },
       buttonType: { googlePay: 'plain' as const },
@@ -142,9 +142,9 @@ function OfferPaymentForm({
         style={{ transform: 'translateX(0)', margin: '0 auto', position: 'relative', left: '0', right: '0', borderRadius: '12px', padding: '24px', background: '#0a0a0a', border: 'none' }}
       >
         {/* Offer Info */}
-        <div className="py-6 mb-6" style={{ background: 'transparent', border: 'none' }}>
+        <div className="py-3 mb-3" style={{ background: 'transparent', border: 'none' }}>
           <div className="text-center flex flex-col gap-2">
-            <div className="text-xs text-white font-extrabold" style={{ fontSize: '24px' }}>
+            <div className="text-xs text-white font-extrabold" style={{ fontSize: '28px' }}>
               {offerDetails.title}
             </div>
             <div className="text-xs text-white font-normal" style={{ fontSize: '14px' }}>
@@ -332,6 +332,7 @@ export default function OfferCheckoutPage() {
         fontSizeBase: '16px',
         borderRadius: '8px',
         spacingUnit: '4px',
+        colorPrimaryText: '#ffffff',
       },
       rules: {
         '.Input': {
@@ -353,18 +354,26 @@ export default function OfferCheckoutPage() {
         },
         '.Tab': {
           backgroundColor: '#0a0a0a',
-          border: 'none',
+          border: '1px solid #0a0a0a',
+          boxShadow: 'none',
+        },
+        '.Tab:hover': {
+          backgroundColor: '#0a0a0a',
+          border: '1px solid #0a0a0a',
+          boxShadow: 'none',
         },
         '.Tab--selected': {
           backgroundColor: '#0a0a0a',
-          border: 'none',
+          border: '1px solid #0a0a0a',
+          boxShadow: 'none',
         },
         '.TabIcon': {
           fill: '#ffffff',
         },
         '.Block': {
           backgroundColor: '#0a0a0a',
-          border: 'none',
+          border: '1px solid #0a0a0a',
+          boxShadow: 'none',
         },
       },
     },

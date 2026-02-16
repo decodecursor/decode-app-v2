@@ -53,16 +53,16 @@
 /* Remove Stripe night theme container borders on checkout page */
 .express-checkout-no-border,
 .express-checkout-expanded {
-  border: none !important;
-  background: transparent !important;
+  border-color: #0a0a0a !important;
+  background: #0a0a0a !important;
 }
 
 .offer-checkout-card .p-TabContainer,
 .offer-checkout-card .p-PaymentMethodSelector,
 .offer-checkout-card [class*="TabContainer"],
 .offer-checkout-card [class*="Block"] {
-  border: none !important;
-  background: transparent !important;
+  border-color: #0a0a0a !important;
+  background: #0a0a0a !important;
 }
 
 /* Target Stripe iframe if present */
