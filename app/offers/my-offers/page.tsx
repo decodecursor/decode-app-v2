@@ -44,7 +44,7 @@ export default function MyDealsPage() {
     const load = async () => {
       const { user } = await getUserWithProxy()
       if (!user) {
-        router.replace('/auth?redirectTo=/offers/my-deals&role=Buyer')
+        router.replace('/auth?redirectTo=/offers/my-offers&role=Buyer')
         return
       }
 
@@ -66,8 +66,9 @@ export default function MyDealsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/30" />
+      <div className="offers-empty">
+        <div className="offers-spinner" />
+        <p className="text-sm text-white/40 mt-4">Loading offers...</p>
       </div>
     )
   }
@@ -104,7 +105,7 @@ export default function MyDealsPage() {
             return (
               <Link
                 key={p.id}
-                href={`/offers/my-deals/${p.id}`}
+                href={`/offers/my-offers/${p.id}`}
                 className="block bg-white/5 rounded-xl p-4 hover:bg-white/[0.07] transition-colors no-underline"
               >
                 <div className="flex gap-4">
@@ -131,11 +132,6 @@ export default function MyDealsPage() {
                       </span>
                       <span className="text-xs text-white/30">{date}</span>
                     </div>
-                  </div>
-                  <div className="flex items-center text-white/20">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
                   </div>
                 </div>
               </Link>

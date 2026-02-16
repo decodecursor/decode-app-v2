@@ -98,7 +98,7 @@ function OffersLayoutInner({ children }: { children: React.ReactNode }) {
               </div>
 
               <Link
-                href="/offers/my-deals"
+                href="/offers/my-offers"
                 className="text-[13px] md:text-[14px] font-medium transition-colors text-white/40 hover:text-white/60"
               >
                 My Offers

@@ -184,8 +184,8 @@ export default function Dashboard() {
 
       // Redirect Buyer to offers section — Buyers don't use the dashboard
       if (profile?.role === USER_ROLES.BUYER) {
-        console.log('🛒 [DASHBOARD] Buyer role detected, redirecting to /offers/my-deals')
-        window.location.href = '/offers/my-deals'
+        console.log('🛒 [DASHBOARD] Buyer role detected, redirecting to /offers/my-offers')
+        window.location.href = '/offers/my-offers'
         return
       }
 

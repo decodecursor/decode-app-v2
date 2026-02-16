@@ -47,7 +47,7 @@ export default function DealDetailPage() {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {
-        router.replace(`/auth?redirectTo=/offers/my-deals/${purchaseId}&role=Buyer`)
+        router.replace(`/auth?redirectTo=/offers/my-offers/${purchaseId}&role=Buyer`)
         return
       }
 
@@ -128,7 +128,7 @@ export default function DealDetailPage() {
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="offers-empty">
           <p className="text-lg font-medium text-white/50 mb-1">{error}</p>
-          <Link href="/offers/my-deals" className="text-sm text-purple-400 hover:text-purple-300 mt-3 inline-block">
+          <Link href="/offers/my-offers" className="text-sm text-purple-400 hover:text-purple-300 mt-3 inline-block">
             ← Back to My Offers
           </Link>
         </div>
@@ -146,11 +146,11 @@ export default function DealDetailPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <Link href="/offers/my-deals" className="text-sm text-white/40 hover:text-white/60 mb-4 inline-block no-underline">
+      <Link href="/offers/my-offers" className="text-sm text-white/40 hover:text-white/60 mb-4 inline-block no-underline">
         ← Back to My Offers
       </Link>
 
-      <div className="bg-white/5 rounded-xl p-6 mb-6">
+      <div className="bg-white/5 rounded-xl px-6 py-4 mb-6">
         <div className="flex items-center justify-between gap-2 mb-1">
           <h1 className="text-xl font-bold text-white">{offer.title}</h1>
           <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${
@@ -164,7 +164,7 @@ export default function DealDetailPage() {
         </div>
         <p className="text-sm text-white/50 mb-4">{business.business_name}</p>
 
-        <div className="flex items-baseline gap-2 mb-2">
+        <div className="flex items-baseline gap-2">
           <span className="text-lg font-semibold text-white">
             <DirhamSymbol size={14} /> {purchase.amount_paid}
           </span>

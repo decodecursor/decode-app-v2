@@ -132,7 +132,7 @@ function PurchaseSuccessContent() {
       </div>
 
       <Link
-        href="/offers/my-deals"
+        href="/offers/my-offers"
         className="inline-block mt-6 px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-medium text-sm no-underline transition-colors"
       >
         View in My Offers
