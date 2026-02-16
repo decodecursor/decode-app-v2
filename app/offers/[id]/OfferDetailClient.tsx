@@ -203,7 +203,7 @@ export default function OfferDetailClient() {
           <span className="text-sm text-white/40 pr-2">{remaining} offers left</span>
           <button
             onClick={() => {
-              const text = `Check this offer 💅\n${window.location.href}`;
+              const text = window.location.href;
               window.location.href = `https://wa.me/?text=${encodeURIComponent(text)}`;
             }}
             className="flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-[#25d366]/15 text-[#25d366] hover:bg-[#25d366]/25 transition-colors"
