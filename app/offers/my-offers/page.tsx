@@ -120,8 +120,8 @@ export default function MyDealsPage() {
                         {STATUS_LABELS[p.status] || p.status.charAt(0).toUpperCase() + p.status.slice(1)}
                       </span>
                     </div>
-                    <p className="text-sm text-white/40 mt-0.5">{business.business_name}</p>
-                    <div className="flex items-center gap-3 mt-0.5">
+                    <p className="text-sm text-white/40 mt-[1px]">{business.business_name}</p>
+                    <div className="flex items-center gap-3 mt-[1px]">
                       <span className="text-base text-white/70 inline-flex items-center gap-1">
                         <DirhamSymbol size={13} /> {p.amount_paid}
                       </span>

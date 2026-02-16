@@ -90,11 +90,11 @@ export async function POST(request: NextRequest) {
       emailPromises.push(
         emailService.send({
           to: buyerEmail,
-          subject: `Refund Request Received — ${offer.title}`,
+          subject: `Refund Request — ${offer.title}`,
           html: `
-            <h2>We've received your refund request</h2>
             <p>Your refund request for <strong>${offer.title}</strong> at ${business.business_name} is being reviewed.</p>
             <p>We'll update you within 1–2 business days.</p>
+            <p><strong>Purchase ID:</strong> ${purchaseId}</p>
           `,
         })
       )
@@ -103,16 +103,16 @@ export async function POST(request: NextRequest) {
     emailPromises.push(
       emailService.send({
         to: ADMIN_EMAIL,
-        subject: `Refund Request — ${offer.title}`,
+        subject: `Refund Request — ${business.business_name} - ${offer.title}`,
         html: `
           <h2>New refund request</h2>
           <p><strong>Offer:</strong> ${offer.title}</p>
-          <p><strong>Salon:</strong> ${business.business_name}</p>
+          <p><strong>Business:</strong> ${business.business_name}</p>
           <p><strong>Buyer:</strong> ${buyerUser?.user_name || buyerEmail || 'Unknown'} (${buyerEmail || 'no email'})</p>
           <p><strong>Amount:</strong> AED ${offer.price}</p>
           <p><strong>Purchase ID:</strong> ${purchaseId}</p>
+          <p><strong>Purchase date:</strong> ${new Date(purchase.created_at).toLocaleString()}</p>
           <p><strong>Stripe PI:</strong> ${purchase.stripe_payment_intent_id || 'N/A'}</p>
-          <p><strong>Purchased:</strong> ${new Date(purchase.created_at).toLocaleString()}</p>
         `,
       })
     )
@@ -121,12 +121,13 @@ export async function POST(request: NextRequest) {
       emailPromises.push(
         emailService.send({
           to: salonAdmin.email,
-          subject: `Refund Requested — ${offer.title}`,
+          subject: `Refund Request — ${offer.title} - ${buyerUser?.user_name || buyerEmail || 'Unknown'}`,
           html: `
-            <h2>A customer has requested a refund</h2>
+            <h2>New refund request</h2>
             <p><strong>Offer:</strong> ${offer.title}</p>
             <p><strong>Buyer:</strong> ${buyerUser?.user_name || buyerEmail || 'Unknown'}</p>
             <p><strong>Amount:</strong> AED ${offer.price}</p>
+            <p><strong>Purchase ID:</strong> ${purchaseId}</p>
             <p>The DECODE team will review this request and process it within 1–2 business days.</p>
           `,
         })
