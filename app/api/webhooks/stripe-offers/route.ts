@@ -221,12 +221,13 @@ async function handleCheckoutCompleted(adminClient: any, session: Stripe.Checkou
   // Admin notification
   emailService.send({
     to: 'sebastian@welovedecode.com',
-    subject: `Offer Purchase — ${offer.title} - ${newPurchase.id}`,
+    subject: `Offer Purchase — ${offer.title} - ${newPurchase.id.slice(0, 8).toUpperCase()}`,
     html: `
       <h2>New offer purchase!</h2>
       <p>${buyerUser?.user_name || emailTo || 'Unknown'} purchased "<strong>${offer.title}</strong>" from ${business.business_name}.</p>
       <p>Amount: AED ${offer.price}</p>
-      <p>Purchase ID: ${newPurchase.id}</p>
+      <p>Purchase ID: <strong>${newPurchase.id.slice(0, 8).toUpperCase()}</strong></p>
+      <p style="font-size:11px;color:#999;">Full ref: ${newPurchase.id}</p>
     `,
   }).catch(err => console.error(`${LOG_PREFIX} Admin email failed:`, err))
 }
@@ -354,12 +355,13 @@ async function handlePaymentIntentSucceeded(adminClient: any, paymentIntent: Str
   // Admin notification
   emailService.send({
     to: 'sebastian@welovedecode.com',
-    subject: `Offer Purchase — ${offer.title} - ${newPurchase.id}`,
+    subject: `Offer Purchase — ${offer.title} - ${newPurchase.id.slice(0, 8).toUpperCase()}`,
     html: `
       <h2>New offer purchase!</h2>
       <p>${buyerUser?.user_name || emailTo || 'Unknown'} purchased "<strong>${offer.title}</strong>" from ${business.business_name}.</p>
       <p>Amount: AED ${offer.price}</p>
-      <p>Purchase ID: ${newPurchase.id}</p>
+      <p>Purchase ID: <strong>${newPurchase.id.slice(0, 8).toUpperCase()}</strong></p>
+      <p style="font-size:11px;color:#999;">Full ref: ${newPurchase.id}</p>
     `,
   }).catch(err => console.error(`${LOG_PREFIX} Admin email failed:`, err))
 }

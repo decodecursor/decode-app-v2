@@ -94,7 +94,8 @@ export async function POST(request: NextRequest) {
           html: `
             <p>Your refund request for <strong>${offer.title}</strong> at ${business.business_name} is being reviewed.</p>
             <p>We'll update you within 1–2 business days.</p>
-            <p><strong>Purchase ID:</strong> ${purchaseId}</p>
+            <p><strong>Purchase ID:</strong> ${purchaseId.slice(0, 8).toUpperCase()}</p>
+            <p style="font-size:11px;color:#999;">Full ref: ${purchaseId}</p>
           `,
         })
       )
@@ -110,7 +111,8 @@ export async function POST(request: NextRequest) {
           <p><strong>Business:</strong> ${business.business_name}</p>
           <p><strong>Buyer:</strong> ${buyerUser?.user_name || buyerEmail || 'Unknown'} (${buyerEmail || 'no email'})</p>
           <p><strong>Amount:</strong> AED ${offer.price}</p>
-          <p><strong>Purchase ID:</strong> ${purchaseId}</p>
+          <p><strong>Purchase ID:</strong> ${purchaseId.slice(0, 8).toUpperCase()}</p>
+          <p style="font-size:11px;color:#999;">Full ref: ${purchaseId}</p>
           <p><strong>Purchase date:</strong> ${new Date(purchase.created_at).toLocaleString()}</p>
           <p><strong>Stripe PI:</strong> ${purchase.stripe_payment_intent_id || 'N/A'}</p>
         `,
@@ -127,7 +129,8 @@ export async function POST(request: NextRequest) {
             <p><strong>Offer:</strong> ${offer.title}</p>
             <p><strong>Buyer:</strong> ${buyerUser?.user_name || buyerEmail || 'Unknown'}</p>
             <p><strong>Amount:</strong> AED ${offer.price}</p>
-            <p><strong>Purchase ID:</strong> ${purchaseId}</p>
+            <p><strong>Purchase ID:</strong> ${purchaseId.slice(0, 8).toUpperCase()}</p>
+            <p style="font-size:11px;color:#999;">Full ref: ${purchaseId}</p>
             <p>The DECODE team will review this request and process it within 1–2 business days.</p>
           `,
         })

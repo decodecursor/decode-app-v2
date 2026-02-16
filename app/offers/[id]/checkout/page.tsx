@@ -136,7 +136,7 @@ function OfferPaymentForm({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-2" style={{ background: '#0a0a0a' }}>
+    <div className="flex items-center justify-center px-4 py-6" style={{ background: '#0a0a0a' }}>
       <div
         className="offer-checkout-card max-w-6xl md:max-w-md w-full"
         style={{ transform: 'translateX(0)', margin: '0 auto', position: 'relative', left: '0', right: '0', borderRadius: '12px', padding: '24px', background: '#0a0a0a', border: 'none' }}
@@ -288,7 +288,7 @@ export default function OfferCheckoutPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#0a0a0a' }}>
+      <div className="flex flex-col items-center justify-center px-4 py-6" style={{ background: '#0a0a0a', minHeight: '60vh' }}>
         <div className="offers-spinner" />
         <p className="text-sm text-white/40 mt-4">Loading...</p>
       </div>
@@ -297,7 +297,7 @@ export default function OfferCheckoutPage() {
 
   if (error || !clientSecret || !offerDetails) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0a0a0a' }}>
+      <div className="flex items-center justify-center px-4 py-6" style={{ background: '#0a0a0a', minHeight: '60vh' }}>
         <div className="max-w-md w-full text-center" style={{ background: 'rgba(10, 10, 20, 0.85)', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px', padding: '24px' }}>
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

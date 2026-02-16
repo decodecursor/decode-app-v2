@@ -41,6 +41,14 @@ export default function DealDetailPage() {
   const [refundRequested, setRefundRequested] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showRefundConfirm, setShowRefundConfirm] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const copyId = async () => {
+    if (!purchase) return
+    await navigator.clipboard.writeText(purchase.id)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
 
   useEffect(() => {
     const load = async () => {
@@ -200,7 +208,9 @@ export default function DealDetailPage() {
           <>
             <p className="text-xs text-white/40 mb-3">Show this QR code to redeem</p>
             <img src={qrDataUrl} alt="QR Code" className="mx-auto rounded-lg" width={280} height={280} />
-            <p className="text-xs text-white/40 mt-3">{purchase.id.slice(0, 8).toUpperCase()}</p>
+            <p className="text-xs text-white/40 mt-3 cursor-pointer active:scale-95 transition-transform" onClick={copyId}>
+              {copied ? 'Copied!' : purchase.id.slice(0, 8).toUpperCase()}
+            </p>
             <p className="text-xl font-bold text-white mt-1">{buyerName}</p>
           </>
         ) : purchase.status === 'redeemed' ? (
@@ -211,7 +221,9 @@ export default function DealDetailPage() {
               </svg>
             </div>
             <p className="text-base font-semibold text-blue-400 mb-1">Redeemed</p>
-            <p className="text-xs text-white/30 mb-1">{purchase.id}</p>
+            <p className="text-xs text-white/30 mb-1 cursor-pointer active:scale-95 transition-transform" onClick={copyId}>
+              {copied ? 'Copied!' : purchase.id.slice(0, 8).toUpperCase()}
+            </p>
             {purchase.redeemed_at && (
               <p className="text-xs text-white/30">
                 {new Date(purchase.redeemed_at).toLocaleString('en-AE', {

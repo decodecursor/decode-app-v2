@@ -123,7 +123,8 @@ export async function POST(req: NextRequest) {
         <h2>Your offer has been redeemed!</h2>
         <p>Your offer "<strong>${offer.title}</strong>" at ${business.business_name} has been redeemed.</p>
         <p>Amount: AED ${offer.price}</p>
-        <p>Purchase ID: ${purchase.id}</p>
+        <p>Purchase ID: <strong>${purchase.id.slice(0, 8).toUpperCase()}</strong></p>
+        <p style="font-size:11px;color:#999;">Full ref: ${purchase.id}</p>
         <p>The DECODE Team wishes you a wonderful week.</p>
       `,
     }).catch(err => console.error(`${LOG_PREFIX} Buyer email failed:`, err))
@@ -139,12 +140,13 @@ export async function POST(req: NextRequest) {
   if (salonAdmin?.email) {
     emailService.send({
       to: salonAdmin.email,
-      subject: `Offer Redeemed — ${offer.title} - ${purchase.id}`,
+      subject: `Offer Redeemed — ${offer.title} - ${purchase.id.slice(0, 8).toUpperCase()}`,
       html: `
         <h2>Offer redeemed!</h2>
         <p>${buyerName} has redeemed "<strong>${offer.title}</strong>".</p>
         <p>Amount: AED ${offer.price}</p>
-        <p>Purchase ID: ${purchase.id}</p>
+        <p>Purchase ID: <strong>${purchase.id.slice(0, 8).toUpperCase()}</strong></p>
+        <p style="font-size:11px;color:#999;">Full ref: ${purchase.id}</p>
         <p>The DECODE Team wishes you a wonderful week.</p>
       `,
     }).catch(err => console.error(`${LOG_PREFIX} Salon email failed:`, err))
@@ -158,7 +160,8 @@ export async function POST(req: NextRequest) {
       <h2>Offer redeemed</h2>
       <p>${buyerName} redeemed "<strong>${offer.title}</strong>" at ${business.business_name}.</p>
       <p>Amount: AED ${offer.price}</p>
-      <p>Purchase ID: ${purchase.id}</p>
+      <p>Purchase ID: <strong>${purchase.id.slice(0, 8).toUpperCase()}</strong></p>
+      <p style="font-size:11px;color:#999;">Full ref: ${purchase.id}</p>
     `,
   }).catch(err => console.error(`${LOG_PREFIX} Admin email failed:`, err))
 
