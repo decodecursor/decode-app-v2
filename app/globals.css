@@ -50,6 +50,21 @@
   display: block !important;
 }
 
+/* Remove Stripe night theme container borders on checkout page */
+.express-checkout-no-border,
+.express-checkout-expanded {
+  border: none !important;
+  background: transparent !important;
+}
+
+.offer-checkout-card .p-TabContainer,
+.offer-checkout-card .p-PaymentMethodSelector,
+.offer-checkout-card [class*="TabContainer"],
+.offer-checkout-card [class*="Block"] {
+  border: none !important;
+  background: transparent !important;
+}
+
 /* Target Stripe iframe if present */
 .express-checkout-expanded iframe,
 .express-checkout-expanded [class*="__PrivateStripeElement"] {

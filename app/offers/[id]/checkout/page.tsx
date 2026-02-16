@@ -139,15 +139,15 @@ function OfferPaymentForm({
     <div className="min-h-screen flex items-center justify-center px-4 py-2" style={{ background: '#0a0a0a' }}>
       <div
         className="offer-checkout-card max-w-6xl md:max-w-md w-full"
-        style={{ transform: 'translateX(0)', margin: '0 auto', position: 'relative', left: '0', right: '0', borderRadius: '12px', padding: '24px' }}
+        style={{ transform: 'translateX(0)', margin: '0 auto', position: 'relative', left: '0', right: '0', borderRadius: '12px', padding: '24px', background: '#0a0a0a', border: 'none' }}
       >
         {/* Offer Info */}
-        <div className="px-4 py-6 mb-6">
+        <div className="py-6 mb-6" style={{ background: 'transparent', border: 'none' }}>
           <div className="text-center flex flex-col gap-2">
-            <div className="text-xs text-white font-extrabold" style={{ fontSize: '18px' }}>
+            <div className="text-xs text-white font-extrabold" style={{ fontSize: '24px' }}>
               {offerDetails.title}
             </div>
-            <div className="text-xs text-white font-extrabold" style={{ fontSize: '14px' }}>
+            <div className="text-xs text-white font-normal" style={{ fontSize: '14px' }}>
               {offerDetails.businessName}
             </div>
             <div className="text-xs text-white font-extrabold" style={{ fontSize: '18px' }}>
@@ -288,7 +288,7 @@ export default function OfferCheckoutPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0a0a0a' }}>
+      <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#0a0a0a' }}>
         <div className="offers-spinner" />
         <p className="text-sm text-white/40 mt-4">Loading...</p>
       </div>
@@ -325,7 +325,7 @@ export default function OfferCheckoutPage() {
       theme: 'night',
       variables: {
         colorPrimary: '#E1306C',
-        colorBackground: '#111111',
+        colorBackground: '#0a0a0a',
         colorText: '#ffffff',
         colorDanger: '#ef4444',
         fontFamily: 'Inter, sans-serif',
@@ -350,6 +350,21 @@ export default function OfferCheckoutPage() {
           color: '#ffffff',
           fontSize: '12px',
           marginBottom: '7px',
+        },
+        '.Tab': {
+          backgroundColor: '#0a0a0a',
+          border: 'none',
+        },
+        '.Tab--selected': {
+          backgroundColor: '#0a0a0a',
+          border: 'none',
+        },
+        '.TabIcon': {
+          fill: '#ffffff',
+        },
+        '.Block': {
+          backgroundColor: '#0a0a0a',
+          border: 'none',
         },
       },
     },
