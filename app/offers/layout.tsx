@@ -63,18 +63,20 @@ function OffersLayoutInner({ children }: { children: React.ReactNode }) {
           <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
             {/* Logo / Brand with dropdown */}
             <div className="relative" ref={menuRef}>
-              <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="flex items-center gap-2"
-              >
-                <img
-                  src="/logo.png"
-                  alt="DECODE"
-                  style={{ height: '20px', filter: 'brightness(0) invert(1)', opacity: 0.9 }}
-                />
-                <div className="w-[1px] h-[20px] bg-white/40" />
-                <span className="text-[13px] font-medium text-white/40 tracking-wide uppercase">Offers</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="flex items-center gap-2"
+                >
+                  <img
+                    src="/logo.png"
+                    alt="DECODE"
+                    style={{ height: '20px', filter: 'brightness(0) invert(1)', opacity: 0.9 }}
+                  />
+                  <div className="w-[1px] h-[20px] bg-white/40" />
+                </button>
+                <Link href="/offers" className="text-[13px] font-medium text-white/40 hover:text-white/60 tracking-wide uppercase transition-colors">Offers</Link>
+              </div>
 
               {menuOpen && (
                 <div className="absolute left-0 top-full mt-2 min-w-[160px] rounded-lg border border-white/10 bg-[#1a1a1a] shadow-xl overflow-hidden">
@@ -87,7 +89,7 @@ function OffersLayoutInner({ children }: { children: React.ReactNode }) {
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-2.5 text-[13px] text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+                    className="w-full text-left px-4 py-2.5 text-[13px] text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors"
                   >
                     Logout
                   </button>

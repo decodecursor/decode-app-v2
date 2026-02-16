@@ -60,7 +60,7 @@ export default function ProfilePage() {
         href="/offers"
         className="text-[13px] text-white/40 hover:text-white/60 transition-colors inline-flex items-center gap-1 mb-6"
       >
-        ← Back to offers
+        ← Back
       </Link>
 
       <h1 className="text-xl font-semibold text-white mb-6">Profile</h1>
