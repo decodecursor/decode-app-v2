@@ -12,7 +12,7 @@ import {
 } from '@stripe/react-stripe-js'
 import { stripePromise } from '@/lib/stripe-client'
 import { createClient } from '@/utils/supabase/client'
-import { DirhamSymbol } from '@/components/DirhamSymbol'
+
 
 interface OfferDetails {
   title: string
@@ -54,7 +54,7 @@ function OfferPaymentForm({
         ;(document.activeElement as HTMLElement).blur()
       }
       if (isMobile) {
-        const formContainer = document.querySelector('.cosmic-card-login')
+        const formContainer = document.querySelector('.offer-checkout-card')
         if (formContainer) {
           formContainer.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' })
         }
@@ -136,34 +136,21 @@ function OfferPaymentForm({
   }
 
   return (
-    <div className="cosmic-bg min-h-screen flex items-center justify-center px-4 py-2">
+    <div className="min-h-screen flex items-center justify-center px-4 py-2" style={{ background: '#0a0a0a' }}>
       <div
-        className="cosmic-card-login max-w-6xl md:max-w-md w-full"
-        style={{ transform: 'translateX(0)', margin: '0 auto', position: 'relative', left: '0', right: '0' }}
+        className="offer-checkout-card max-w-6xl md:max-w-md w-full"
+        style={{ transform: 'translateX(0)', margin: '0 auto', position: 'relative', left: '0', right: '0', background: 'rgba(10, 10, 20, 0.85)', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px', padding: '24px' }}
       >
-        {/* Header */}
-        <div className="text-center mb-7">
-          <img
-            src="/logo.png"
-            alt="DECODE"
-            className="mx-auto mb-2"
-            style={{ height: '38px', filter: 'brightness(0) invert(1)' }}
-          />
-          <p className="cosmic-body opacity-70" style={{ fontSize: '0.95rem', marginTop: '-4px' }}>
-            Make Girls More Beautiful
-          </p>
-        </div>
-
         {/* Offer Info */}
         <div className="bg-black rounded-lg px-4 py-6 mb-6">
           <div className="text-center flex flex-col gap-2">
-            <div className="cosmic-body text-xs text-white font-extrabold" style={{ fontSize: '14px' }}>
+            <div className="text-xs text-white font-extrabold" style={{ fontSize: '14px' }}>
               {offerDetails.title}
             </div>
-            <div className="cosmic-body text-xs text-white font-extrabold" style={{ fontSize: '14px' }}>
+            <div className="text-xs text-white font-extrabold" style={{ fontSize: '14px' }}>
               {offerDetails.businessName}
             </div>
-            <div className="cosmic-body text-xs text-white font-extrabold" style={{ fontSize: '14px' }}>
+            <div className="text-xs text-white font-extrabold" style={{ fontSize: '14px' }}>
               AED {offerDetails.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
@@ -171,7 +158,7 @@ function OfferPaymentForm({
 
         {/* Express Checkout */}
         <div className="mb-4 express-checkout-expanded" style={{ minHeight: '60px' }}>
-          <div className="cosmic-input express-checkout-no-border" style={{ minHeight: '56px', display: 'block' }}>
+          <div className="express-checkout-no-border" style={{ minHeight: '56px', display: 'block' }}>
             <ExpressCheckoutElement
               options={expressCheckoutOptions}
               onReady={(event) => {
@@ -200,7 +187,7 @@ function OfferPaymentForm({
         {/* Divider */}
         <div className="flex items-center space-x-4 my-2">
           <div className="flex-1 h-px bg-white/20"></div>
-          <span className="!text-sm cosmic-body text-white opacity-60">or pay with card</span>
+          <span className="!text-sm text-white opacity-60">or pay with card</span>
           <div className="flex-1 h-px bg-white/20"></div>
         </div>
 
@@ -225,7 +212,7 @@ function OfferPaymentForm({
                 requestAnimationFrame(() => {
                   preventAutofocus()
                   if (isMobile) {
-                    const formContainer = document.querySelector('.cosmic-card-login')
+                    const formContainer = document.querySelector('.offer-checkout-card')
                     if (formContainer) {
                       formContainer.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' })
                     }
@@ -241,7 +228,7 @@ function OfferPaymentForm({
             </div>
           )}
 
-          <button type="submit" disabled={!stripe || loading} className="cosmic-button-primary w-full">
+          <button type="submit" disabled={!stripe || loading} className="offers-buy-btn w-full">
             {loading
               ? 'Processing...'
               : `Pay AED ${offerDetails.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
@@ -301,7 +288,7 @@ export default function OfferCheckoutPage() {
 
   if (loading) {
     return (
-      <div className="cosmic-bg min-h-screen flex items-center justify-center px-4">
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0a0a0a' }}>
         <p className="text-white text-lg">Loading...</p>
       </div>
     )
@@ -309,8 +296,8 @@ export default function OfferCheckoutPage() {
 
   if (error || !clientSecret || !offerDetails) {
     return (
-      <div className="cosmic-bg min-h-screen flex items-center justify-center px-4">
-        <div className="cosmic-card-login max-w-md w-full text-center">
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0a0a0a' }}>
+        <div className="max-w-md w-full text-center" style={{ background: 'rgba(10, 10, 20, 0.85)', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px', padding: '24px' }}>
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -322,8 +309,8 @@ export default function OfferCheckoutPage() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-white mb-4">Checkout Error</h1>
-          <p className="cosmic-body text-white opacity-80 mb-4">{error || 'Unable to load checkout'}</p>
-          <button onClick={() => router.back()} className="cosmic-button-primary">
+          <p className="text-white opacity-80 mb-4">{error || 'Unable to load checkout'}</p>
+          <button onClick={() => router.back()} className="offers-buy-btn">
             Go Back
           </button>
         </div>
@@ -336,8 +323,8 @@ export default function OfferCheckoutPage() {
     appearance: {
       theme: 'night',
       variables: {
-        colorPrimary: '#7C3AED',
-        colorBackground: '#1a1a1a',
+        colorPrimary: '#E1306C',
+        colorBackground: '#111111',
         colorText: '#ffffff',
         colorDanger: '#ef4444',
         fontFamily: 'Inter, sans-serif',
@@ -347,15 +334,15 @@ export default function OfferCheckoutPage() {
       },
       rules: {
         '.Input': {
-          backgroundColor: '#1a1a1a',
-          border: '1px solid #4d4d4d',
+          backgroundColor: '#111111',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
           color: '#ffffff',
           padding: '8px 12px',
           fontSize: '16px',
           lineHeight: '1.2',
         },
         '.Input:focus': {
-          border: '1px solid #999999',
+          border: '1px solid rgba(255, 255, 255, 0.25)',
           boxShadow: 'none',
         },
         '.Label': {
