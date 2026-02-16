@@ -168,7 +168,7 @@ export default function DealDetailPage() {
       <div className="mt-6 bg-white/5 rounded-xl p-6 text-center">
         {purchase.status === 'active' && qrDataUrl ? (
           <>
-            <p className="text-xs text-white/40 mb-3">Show this QR code at the salon to redeem</p>
+            <p className="text-xs text-white/40 mb-3">Show this QR code to redeem</p>
             <img src={qrDataUrl} alt="QR Code" className="mx-auto rounded-lg" width={280} height={280} />
             <p className="text-xs text-white/40 mt-3">{purchase.id.slice(0, 8).toUpperCase()}</p>
             <p className="text-xl font-bold text-white mt-1">{buyerName}</p>
