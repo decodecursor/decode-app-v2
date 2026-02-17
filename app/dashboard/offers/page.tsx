@@ -178,33 +178,12 @@ export default function ManageOffersPage() {
 
                   {/* Info Grid */}
                   <div className="flex-1 min-w-0">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 landscape:grid-cols-4 md:grid-cols-4 gap-2">
+                      {/* Portrait-visible: Title, Expires, Sold, Earned */}
                       <div>
                         <p className="text-[10px] text-gray-400 uppercase tracking-wider">Title</p>
                         <p className="text-xs text-white font-bold truncate">{offer.title}</p>
                       </div>
-                      <div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Price</p>
-                        <p className="text-xs text-white font-bold">{offer.price} AED</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Sold</p>
-                        <p className="text-xs text-white font-bold">{offer.quantity_sold}/{offer.quantity}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Earned</p>
-                        <p className="text-xs text-white font-bold">{offer.quantity_sold * offer.price} AED</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Category</p>
-                        <p className="text-xs text-white font-bold truncate capitalize">{offer.category}</p>
-                      </div>
-                      {offer.offer_code && (
-                        <div>
-                          <p className="text-[10px] text-gray-400 uppercase tracking-wider">Code</p>
-                          <p className="text-xs text-white font-bold">#{offer.offer_code}</p>
-                        </div>
-                      )}
                       <div>
                         <p className="text-[10px] text-gray-400 uppercase tracking-wider">Expires</p>
                         <p className="text-xs text-white font-bold">
@@ -217,6 +196,29 @@ export default function ManageOffersPage() {
                         </p>
                       </div>
                       <div>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Sold</p>
+                        <p className="text-xs text-white font-bold">{offer.quantity_sold}/{offer.quantity}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Earned</p>
+                        <p className="text-xs text-white font-bold">{offer.quantity_sold * offer.price} AED</p>
+                      </div>
+                      {/* Landscape/desktop only: Price, Category, Code, Created */}
+                      <div className="hidden landscape:block md:block">
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Price</p>
+                        <p className="text-xs text-white font-bold">{offer.price} AED</p>
+                      </div>
+                      <div className="hidden landscape:block md:block">
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Category</p>
+                        <p className="text-xs text-white font-bold truncate capitalize">{offer.category}</p>
+                      </div>
+                      {offer.offer_code && (
+                        <div className="hidden landscape:block md:block">
+                          <p className="text-[10px] text-gray-400 uppercase tracking-wider">Code</p>
+                          <p className="text-xs text-white font-bold">#{offer.offer_code}</p>
+                        </div>
+                      )}
+                      <div className="hidden landscape:block md:block">
                         <p className="text-[10px] text-gray-400 uppercase tracking-wider">Created</p>
                         <p className="text-xs text-white font-bold">{new Date(offer.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                       </div>
