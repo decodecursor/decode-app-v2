@@ -170,7 +170,7 @@ export default function PurchasesPage() {
                   className="relative bg-white/5 border border-white/10 rounded-xl p-4"
                 >
                   <span className={`absolute top-3 right-3 text-xs px-2 py-0.5 rounded-full ${badge.color}`}>{badge.label}</span>
-                  <div className="grid grid-cols-5 gap-2">
+                  <div className="grid grid-cols-5 gap-[7px]">
                     <div>
                       <p className="text-[10px] text-gray-400 uppercase tracking-wider">Buyer</p>
                       <p className="text-xs text-white font-bold truncate">{buyerName}</p>
