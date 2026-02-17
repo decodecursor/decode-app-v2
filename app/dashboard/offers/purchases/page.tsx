@@ -170,8 +170,8 @@ export default function PurchasesPage() {
                   className="relative bg-white/5 border border-white/10 rounded-xl p-3 md:p-4"
                 >
                   <span className={`absolute top-3 right-3 text-xs px-2 py-0.5 rounded-full ${badge.color}`}>{badge.label}</span>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-[7px]">
-                    <div>
+                  <div className="grid grid-cols-3 landscape:grid-cols-5 md:grid-cols-5 gap-[5px] md:gap-[6px]">
+                    <div className="hidden landscape:block md:block">
                       <p className="text-[10px] text-gray-400 uppercase tracking-wider">Buyer</p>
                       <p className="text-xs text-white font-bold truncate">{buyerName}</p>
                     </div>
@@ -187,7 +187,7 @@ export default function PurchasesPage() {
                       <p className="text-[10px] text-gray-400 uppercase tracking-wider">Purchased</p>
                       <p className="text-xs text-white font-bold">{new Date(p.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                     </div>
-                    <div>
+                    <div className="hidden landscape:block md:block">
                       <p className="text-[10px] text-gray-400 uppercase tracking-wider">Redeemed</p>
                       <p className="text-xs text-white font-bold">{p.redeemed_at ? new Date(p.redeemed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</p>
                     </div>
