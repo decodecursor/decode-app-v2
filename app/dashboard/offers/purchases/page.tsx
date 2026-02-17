@@ -169,8 +169,8 @@ export default function PurchasesPage() {
                   key={p.id}
                   className="relative bg-white/5 border border-white/10 rounded-xl p-3 md:p-4"
                 >
-                  <span className={`absolute top-3 right-3 text-[10px] md:text-xs px-2 py-0.5 rounded-full ${badge.color}`}>{badge.label}</span>
-                  <div className="grid grid-cols-3 landscape:grid-cols-5 md:grid-cols-5 gap-[5px] md:gap-[6px] max-w-2xl">
+                  <span className={`absolute top-3 right-3 text-[10px] px-2 py-0.5 rounded-full ${badge.color}`}>{badge.label}</span>
+                  <div className="grid grid-cols-3 landscape:grid-cols-5 md:grid-cols-5 gap-[2px] landscape:gap-[4px] md:gap-[6px] max-w-2xl">
                     <div className="hidden landscape:block md:block">
                       <p className="text-[10px] text-gray-400 uppercase tracking-wider">Buyer</p>
                       <p className="text-xs text-white font-bold truncate">{buyerName}</p>
