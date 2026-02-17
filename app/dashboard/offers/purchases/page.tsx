@@ -140,8 +140,8 @@ export default function PurchasesPage() {
               onClick={() => setFilter(t.key)}
               className={`text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap ${
                 filter === t.key
-                  ? 'border-purple-500 text-white bg-purple-500/20'
-                  : 'border-white/10 text-gray-400 hover:text-white'
+                  ? 'border-pink-500 text-white bg-pink-500/20'
+                  : 'border-white/10 text-gray-400 hover:text-pink-300'
               }`}
             >
               {t.label}
@@ -167,25 +167,35 @@ export default function PurchasesPage() {
               return (
                 <div
                   key={p.id}
-                  className="bg-white/5 border border-white/10 rounded-xl p-4"
+                  className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center gap-4"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="text-white text-sm font-medium truncate">{buyerName}</p>
-                      <p className="text-gray-500 text-xs truncate">{offerTitle}</p>
+                  <div className="flex-1 min-w-0">
+                    <div className="grid grid-cols-4 gap-2">
+                      <div>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Buyer</p>
+                        <p className="text-xs text-white font-bold truncate">{buyerName}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Offer</p>
+                        <p className="text-xs text-white font-bold truncate">{offerTitle}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Amount</p>
+                        <p className="text-xs text-white font-bold">{Number(p.amount_paid).toLocaleString()} AED</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Date</p>
+                        <p className="text-xs text-white font-bold">{new Date(p.created_at).toLocaleDateString()}</p>
+                      </div>
+                      {p.redeemed_at && (
+                        <div className="col-span-4">
+                          <p className="text-xs text-blue-400">Redeemed {new Date(p.redeemed_at).toLocaleDateString()}</p>
+                        </div>
+                      )}
                     </div>
-                    <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${badge.color}`}>
-                      {badge.label}
-                    </span>
                   </div>
-                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
-                    <span className="font-medium text-white">{Number(p.amount_paid).toLocaleString()} AED</span>
-                    <span>{new Date(p.created_at).toLocaleDateString()}</span>
-                    {p.redeemed_at && (
-                      <span className="text-blue-400">
-                        Redeemed {new Date(p.redeemed_at).toLocaleDateString()}
-                      </span>
-                    )}
+                  <div className="flex flex-col items-end flex-shrink-0">
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${badge.color}`}>{badge.label}</span>
                   </div>
                 </div>
               )

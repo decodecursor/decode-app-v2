@@ -159,7 +159,7 @@ export default function ManageOffersPage() {
                 <Link
                   href={`/offers/${offer.id}`}
                   key={offer.id}
-                  className="bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-colors p-4 flex items-start gap-4 no-underline block"
+                  className="bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-colors p-4 flex items-center gap-4 no-underline block"
                 >
                   {/* Thumbnail */}
                   {offer.image_url ? (
