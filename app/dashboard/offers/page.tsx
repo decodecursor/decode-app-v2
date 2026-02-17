@@ -159,17 +159,17 @@ export default function ManageOffersPage() {
                 <Link
                   href={`/offers/${offer.id}`}
                   key={offer.id}
-                  className="bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-colors p-3 gap-3 md:p-4 flex items-center md:gap-4 no-underline block"
+                  className="bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-colors p-3 gap-3 md:p-4 flex items-stretch md:gap-4 no-underline block"
                 >
                   {/* Thumbnail */}
                   {offer.image_url ? (
                     <img
                       src={offer.image_url}
                       alt={offer.title}
-                      className="w-14 h-14 md:w-20 md:h-20 rounded-lg object-cover flex-shrink-0"
+                      className="aspect-square h-full rounded-lg object-cover flex-shrink-0"
                     />
                   ) : (
-                    <div className="w-14 h-14 md:w-20 md:h-20 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
+                    <div className="aspect-square h-full rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
                       <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
@@ -182,11 +182,11 @@ export default function ManageOffersPage() {
                       {/* Portrait-visible: Title, Expires, Sold, Earned */}
                       <div>
                         <p className="text-[10px] text-gray-400 uppercase tracking-wider">Title</p>
-                        <p className="text-xs text-white font-bold truncate">{offer.title}</p>
+                        <p className="text-[11px] text-white font-bold truncate">{offer.title}</p>
                       </div>
                       <div>
                         <p className="text-[10px] text-gray-400 uppercase tracking-wider">Expires</p>
-                        <p className="text-xs text-white font-bold">
+                        <p className="text-[11px] text-white font-bold">
                           {(() => {
                             const days = Math.ceil((new Date(offer.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
                             if (days < 0) return 'Expired'
@@ -197,30 +197,30 @@ export default function ManageOffersPage() {
                       </div>
                       <div>
                         <p className="text-[10px] text-gray-400 uppercase tracking-wider">Sold</p>
-                        <p className="text-xs text-white font-bold">{offer.quantity_sold}/{offer.quantity}</p>
+                        <p className="text-[11px] text-white font-bold">{offer.quantity_sold}/{offer.quantity}</p>
                       </div>
                       <div>
                         <p className="text-[10px] text-gray-400 uppercase tracking-wider">Earned</p>
-                        <p className="text-xs text-white font-bold">{offer.quantity_sold * offer.price} AED</p>
+                        <p className="text-[11px] text-white font-bold">{offer.quantity_sold * offer.price} AED</p>
                       </div>
                       {/* Landscape/desktop only: Price, Category, Code, Created */}
                       <div className="hidden landscape:block md:block">
                         <p className="text-[10px] text-gray-400 uppercase tracking-wider">Price</p>
-                        <p className="text-xs text-white font-bold">{offer.price} AED</p>
+                        <p className="text-[11px] text-white font-bold">{offer.price} AED</p>
                       </div>
                       <div className="hidden landscape:block md:block">
                         <p className="text-[10px] text-gray-400 uppercase tracking-wider">Category</p>
-                        <p className="text-xs text-white font-bold truncate capitalize">{offer.category}</p>
+                        <p className="text-[11px] text-white font-bold truncate capitalize">{offer.category}</p>
                       </div>
                       {offer.offer_code && (
                         <div className="hidden landscape:block md:block">
                           <p className="text-[10px] text-gray-400 uppercase tracking-wider">Code</p>
-                          <p className="text-xs text-white font-bold">#{offer.offer_code}</p>
+                          <p className="text-[11px] text-white font-bold">#{offer.offer_code}</p>
                         </div>
                       )}
                       <div className="hidden landscape:block md:block">
                         <p className="text-[10px] text-gray-400 uppercase tracking-wider">Created</p>
-                        <p className="text-xs text-white font-bold">{new Date(offer.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                        <p className="text-[11px] text-white font-bold">{new Date(offer.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                       </div>
                     </div>
                   </div>
@@ -234,7 +234,7 @@ export default function ManageOffersPage() {
                       <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeactivate(offer.id) }}
                         disabled={deactivating === offer.id}
-                        className="text-xs text-red-400 hover:text-red-300 px-2 py-1 border border-red-500/20 rounded hover:border-red-500/40 transition-colors"
+                        className="text-[10px] text-red-400 hover:text-red-300 px-2 py-1 border border-red-500/20 rounded hover:border-red-500/40 transition-colors"
                       >
                         {deactivating === offer.id ? '...' : 'Deactivate'}
                       </button>
