@@ -140,8 +140,8 @@ export default function PurchasesPage() {
               onClick={() => setFilter(t.key)}
               className={`text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap ${
                 filter === t.key
-                  ? 'border-pink-500 text-white bg-pink-500/20'
-                  : 'border-white/10 text-gray-400 hover:text-pink-300'
+                  ? 'bg-[#E1306C] border-[#E1306C] text-white'
+                  : 'border-white/10 text-white/60 hover:border-[#E1306C]/40 hover:text-white/90'
               }`}
             >
               {t.label}
@@ -167,35 +167,30 @@ export default function PurchasesPage() {
               return (
                 <div
                   key={p.id}
-                  className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center gap-4"
+                  className="relative bg-white/5 border border-white/10 rounded-xl p-4"
                 >
-                  <div className="flex-1 min-w-0">
-                    <div className="grid grid-cols-4 gap-2">
-                      <div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Buyer</p>
-                        <p className="text-xs text-white font-bold truncate">{buyerName}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Offer</p>
-                        <p className="text-xs text-white font-bold truncate">{offerTitle}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Amount</p>
-                        <p className="text-xs text-white font-bold">{Number(p.amount_paid).toLocaleString()} AED</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Date</p>
-                        <p className="text-xs text-white font-bold">{new Date(p.created_at).toLocaleDateString()}</p>
-                      </div>
-                      {p.redeemed_at && (
-                        <div className="col-span-4">
-                          <p className="text-xs text-blue-400">Redeemed {new Date(p.redeemed_at).toLocaleDateString()}</p>
-                        </div>
-                      )}
+                  <span className={`absolute top-3 right-3 text-xs px-2 py-0.5 rounded-full ${badge.color}`}>{badge.label}</span>
+                  <div className="grid grid-cols-5 gap-2">
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Buyer</p>
+                      <p className="text-xs text-white font-bold truncate">{buyerName}</p>
                     </div>
-                  </div>
-                  <div className="flex flex-col items-end flex-shrink-0">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${badge.color}`}>{badge.label}</span>
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Offer</p>
+                      <p className="text-xs text-white font-bold truncate">{offerTitle}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Amount</p>
+                      <p className="text-xs text-white font-bold">{Number(p.amount_paid).toLocaleString()} AED</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Purchased</p>
+                      <p className="text-xs text-white font-bold">{new Date(p.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Redeemed</p>
+                      <p className="text-xs text-white font-bold">{p.redeemed_at ? new Date(p.redeemed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</p>
+                    </div>
                   </div>
                 </div>
               )
