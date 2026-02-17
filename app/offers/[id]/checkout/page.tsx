@@ -147,7 +147,7 @@ function OfferPaymentForm({
             <div className="text-xs text-white font-extrabold" style={{ fontSize: '28px' }}>
               {offerDetails.title}
             </div>
-            <div className="text-xs text-gray-400 font-normal" style={{ fontSize: '14px' }}>
+            <div className="text-xs text-white opacity-60 font-normal" style={{ fontSize: '14px' }}>
               {offerDetails.businessName}
             </div>
             <div className="text-xs text-white font-extrabold" style={{ fontSize: '16px' }}>

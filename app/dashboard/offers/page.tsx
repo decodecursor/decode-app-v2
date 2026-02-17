@@ -110,30 +110,30 @@ export default function ManageOffersPage() {
     <div className="cosmic-bg cosmic-bg-dark min-h-screen px-4 py-8">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
             <button
               onClick={() => router.push('/dashboard')}
-              className="text-gray-400 hover:text-white text-sm mb-1 block"
+              className="text-gray-400 hover:text-white text-sm"
             >
-              &larr; Dashboard
+              &larr; Back
             </button>
-            <h1 className="text-xl font-semibold text-white">My Offers</h1>
+            <div className="flex items-center gap-5">
+              <Link
+                href="/dashboard/offers/purchases"
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
+                Purchases
+              </Link>
+              <Link
+                href="/dashboard/offers/create"
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
+                Create Offer
+              </Link>
+            </div>
           </div>
-          <div className="flex items-center gap-5">
-            <Link
-              href="/dashboard/offers/purchases"
-              className="text-gray-400 hover:text-white text-sm transition-colors"
-            >
-              Purchases
-            </Link>
-            <Link
-              href="/dashboard/offers/create"
-              className="text-gray-400 hover:text-white text-sm transition-colors"
-            >
-              Create Offer
-            </Link>
-          </div>
+          <h1 className="text-xl font-semibold text-white mt-3">My Offers</h1>
         </div>
 
         {/* Offers List */}
@@ -159,7 +159,7 @@ export default function ManageOffersPage() {
                 <Link
                   href={`/offers/${offer.id}`}
                   key={offer.id}
-                  className="offers-card offers-card-dashboard p-4 flex items-start gap-4 no-underline block"
+                  className="bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-colors p-4 flex items-start gap-4 no-underline block"
                 >
                   {/* Thumbnail */}
                   {offer.image_url ? (
@@ -197,7 +197,7 @@ export default function ManageOffersPage() {
                       </div>
                       <div>
                         <p className="text-[10px] text-gray-400 uppercase tracking-wider">Category</p>
-                        <p className="text-xs text-white font-bold truncate">{offer.category}</p>
+                        <p className="text-xs text-white font-bold truncate capitalize">{offer.category}</p>
                       </div>
                       {offer.offer_code && (
                         <div>
