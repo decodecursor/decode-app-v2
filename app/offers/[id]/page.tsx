@@ -16,8 +16,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params
   const offer = await fetchOfferForMetadata(id)
 
-  const title = offer?.title || 'Beauty Offer'
-  const description = offer?.description || 'Check out this beauty offer on DECODE'
+  const title = offer?.title || 'Spotted This'
+  const description = offer?.description || 'Thought you\'d like it'
 
   return {
     title,
