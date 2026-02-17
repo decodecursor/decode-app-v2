@@ -91,7 +91,7 @@ export default function OfferDetailClient() {
   const hasDiscount = offer.original_price && offer.original_price > offer.price
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
+    <div className="max-w-md mx-auto px-4 py-6">
       {/* Back link + days left */}
       <div className="flex items-center justify-between mb-4">
         <Link href="/offers" className="text-sm text-white/40 hover:text-white/60 no-underline">
