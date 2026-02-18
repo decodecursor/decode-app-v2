@@ -209,7 +209,7 @@ async function handleBeautyOfferPaymentSucceeded(adminClient: any, paymentIntent
   }
 
   // Create beauty_purchases row
-  const { error: purchaseError } = await adminClient
+  const { data: purchaseRow, error: purchaseError } = await adminClient
     .from('beauty_purchases')
     .insert({
       offer_id,
@@ -220,13 +220,16 @@ async function handleBeautyOfferPaymentSucceeded(adminClient: any, paymentIntent
       amount_paid: offer.price,
       currency: 'aed',
       status: 'active',
-    });
+    })
+    .select('id')
+    .single();
 
   if (purchaseError) {
     console.error(`${LOG} Failed to create purchase:`, purchaseError);
     throw purchaseError;
   }
 
+  const purchaseId = purchaseRow?.id || 'unknown';
   console.log(`${LOG} Purchase created for offer ${offer_id}, buyer ${buyer_id}`);
 
   // Send emails (non-blocking)
@@ -272,6 +275,19 @@ async function handleBeautyOfferPaymentSucceeded(adminClient: any, paymentIntent
       `,
     }).catch((err: any) => console.error(`${LOG} Salon email failed:`, err));
   }
+
+  // Admin notification
+  emailService.send({
+    to: 'sebastian@welovedecode.com',
+    subject: `Offer Purchase — ${offer.title} - ${purchaseId.slice(0, 8).toUpperCase()}`,
+    html: `
+      <h2>New offer purchase!</h2>
+      <p>${buyerUser?.user_name || emailTo || 'Unknown'} purchased "<strong>${offer.title}</strong>" from ${business.business_name}.</p>
+      <p>Amount: AED ${offer.price}</p>
+      <p>Purchase ID: <strong>${purchaseId.slice(0, 8).toUpperCase()}</strong></p>
+      <p style="font-size:11px;color:#999;">Full ref: ${purchaseId}</p>
+    `,
+  }).catch((err: any) => console.error(`${LOG} Admin email failed:`, err));
 }
 
 async function handleBeautyOfferCheckoutCompleted(adminClient: any, session: Stripe.Checkout.Session) {
@@ -334,7 +350,7 @@ async function handleBeautyOfferCheckoutCompleted(adminClient: any, session: Str
     ? session.payment_intent
     : session.payment_intent?.id || null;
 
-  const { error: purchaseError } = await adminClient
+  const { data: purchaseRow2, error: purchaseError } = await adminClient
     .from('beauty_purchases')
     .insert({
       offer_id,
@@ -345,13 +361,16 @@ async function handleBeautyOfferCheckoutCompleted(adminClient: any, session: Str
       amount_paid: offer.price,
       currency: 'aed',
       status: 'active',
-    });
+    })
+    .select('id')
+    .single();
 
   if (purchaseError) {
     console.error(`${LOG} Failed to create purchase:`, purchaseError);
     throw purchaseError;
   }
 
+  const purchaseId = purchaseRow2?.id || 'unknown';
   console.log(`${LOG} Purchase created for offer ${offer_id}, buyer ${buyer_id}`);
 
   // Send emails (non-blocking)
@@ -397,6 +416,19 @@ async function handleBeautyOfferCheckoutCompleted(adminClient: any, session: Str
       `,
     }).catch((err: any) => console.error(`${LOG} Salon email failed:`, err));
   }
+
+  // Admin notification
+  emailService.send({
+    to: 'sebastian@welovedecode.com',
+    subject: `Offer Purchase — ${offer.title} - ${purchaseId.slice(0, 8).toUpperCase()}`,
+    html: `
+      <h2>New offer purchase!</h2>
+      <p>${buyerUser?.user_name || emailTo || 'Unknown'} purchased "<strong>${offer.title}</strong>" from ${business.business_name}.</p>
+      <p>Amount: AED ${offer.price}</p>
+      <p>Purchase ID: <strong>${purchaseId.slice(0, 8).toUpperCase()}</strong></p>
+      <p style="font-size:11px;color:#999;">Full ref: ${purchaseId}</p>
+    `,
+  }).catch((err: any) => console.error(`${LOG} Admin email failed:`, err));
 }
 
 async function beautyOfferAutoRefund(paymentIntentId: string, email: string | null | undefined, reason: string) {
