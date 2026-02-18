@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import { USER_ROLES } from '@/types/user'
+import { ConfirmationModal } from '@/components/payouts/ConfirmationModal'
 
 interface Offer {
   id: string
@@ -28,6 +29,7 @@ export default function ManageOffersPage() {
   const [loading, setLoading] = useState(true)
   const [offers, setOffers] = useState<Offer[]>([])
   const [deactivating, setDeactivating] = useState<string | null>(null)
+  const [confirmId, setConfirmId] = useState<string | null>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -77,19 +79,20 @@ export default function ManageOffersPage() {
     return { label: 'Active', color: 'text-green-400 bg-green-500/10' }
   }
 
-  const handleDeactivate = async (offerId: string) => {
-    if (!confirm('Deactivate this offer? Existing purchases remain valid. This cannot be undone.')) return
+  const confirmDeactivate = async () => {
+    if (!confirmId) return
 
-    setDeactivating(offerId)
+    setDeactivating(confirmId)
     try {
       const { error } = await supabase
         .from('beauty_offers')
         .update({ is_active: false, updated_at: new Date().toISOString() })
-        .eq('id', offerId)
+        .eq('id', confirmId)
 
       if (error) throw error
 
-      setOffers(prev => prev.map(o => o.id === offerId ? { ...o, is_active: false } : o))
+      setOffers(prev => prev.map(o => o.id === confirmId ? { ...o, is_active: false } : o))
+      setConfirmId(null)
     } catch (err: any) {
       console.error('Deactivate error:', err)
       alert('Failed to deactivate offer')
@@ -227,12 +230,12 @@ export default function ManageOffersPage() {
 
                   {/* Right Column: Badge + Actions */}
                   <div className="flex flex-col items-end justify-between self-stretch flex-shrink-0">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${status.color}`}>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${status.color}`}>
                       {status.label}
                     </span>
                     {offer.is_active && new Date(offer.expires_at) > new Date() && (
                       <button
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeactivate(offer.id) }}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmId(offer.id) }}
                         disabled={deactivating === offer.id}
                         className="text-[10px] text-red-400 hover:text-red-300 px-2 py-1 border border-red-500/20 rounded hover:border-red-500/40 transition-colors"
                       >
@@ -246,6 +249,17 @@ export default function ManageOffersPage() {
           </div>
         )}
       </div>
+
+      <ConfirmationModal
+        isOpen={!!confirmId}
+        onClose={() => setConfirmId(null)}
+        onConfirm={confirmDeactivate}
+        title="Deactivate Offer"
+        message="Existing purchases remain valid."
+        warningText="This action cannot be undone."
+        confirmText="Deactivate"
+        loading={!!deactivating}
+      />
     </div>
   )
 }

@@ -811,7 +811,7 @@ export default function Dashboard() {
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <div className="flex items-center">
-                          <span className="w-5 h-5 mr-1 flex items-center justify-center text-sm font-bold">%</span>
+                          <span className="w-5 h-5 mr-1 flex items-center justify-center text-lg font-black">%</span>
                           Offers
                         </div>
                       </Link>

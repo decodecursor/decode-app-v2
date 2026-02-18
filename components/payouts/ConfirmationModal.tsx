@@ -10,6 +10,7 @@ interface ConfirmationModalProps {
   confirmButtonClass?: string
   loading?: boolean
   children?: React.ReactNode
+  warningText?: string
 }
 
 export function ConfirmationModal({
@@ -21,7 +22,8 @@ export function ConfirmationModal({
   confirmText = "Remove",
   confirmButtonClass = "bg-red-600 hover:bg-red-700",
   loading = false,
-  children
+  children,
+  warningText = "This action cannot be undone. You will need to re-add your payment method to receive future payouts."
 }: ConfirmationModalProps) {
   if (!isOpen) return null
 
@@ -47,7 +49,7 @@ export function ConfirmationModal({
 
           <div className="bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-3 mb-6">
             <p className="text-yellow-100 text-sm">
-              ⚠️ This action cannot be undone. You will need to re-add your payment method to receive future payouts.
+              ⚠️ {warningText}
             </p>
           </div>
         </div>
