@@ -271,7 +271,7 @@ async function handleBeautyOfferPaymentSucceeded(adminClient: any, paymentIntent
         <p><strong>${offer.title}</strong></p>
         <p>Buyer: ${buyerUser?.user_name || emailTo || 'Unknown'}</p>
         <p>Amount: AED ${offer.price}</p>
-        <p>Remaining slots: ${offer.quantity - offer.quantity_sold - 1}</p>
+        <p>Remaining offers: ${offer.quantity - offer.quantity_sold - 1} of ${offer.quantity}</p>
       `,
     }).catch((err: any) => console.error(`${LOG} Salon email failed:`, err));
   }
@@ -412,7 +412,7 @@ async function handleBeautyOfferCheckoutCompleted(adminClient: any, session: Str
         <p><strong>${offer.title}</strong></p>
         <p>Buyer: ${buyerUser?.user_name || emailTo || 'Unknown'}</p>
         <p>Amount: AED ${offer.price}</p>
-        <p>Remaining slots: ${offer.quantity - offer.quantity_sold - 1}</p>
+        <p>Remaining offers: ${offer.quantity - offer.quantity_sold - 1} of ${offer.quantity}</p>
       `,
     }).catch((err: any) => console.error(`${LOG} Salon email failed:`, err));
   }

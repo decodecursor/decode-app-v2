@@ -213,7 +213,7 @@ async function handleCheckoutCompleted(adminClient: any, session: Stripe.Checkou
         <p><strong>${offer.title}</strong></p>
         <p>Buyer: ${buyerUser?.user_name || emailTo || 'Unknown'}</p>
         <p>Amount: AED ${offer.price}</p>
-        <p>Remaining slots: ${offer.quantity - offer.quantity_sold - 1}</p>
+        <p>Remaining offers: ${offer.quantity - offer.quantity_sold - 1} of ${offer.quantity}</p>
       `,
     }).catch(err => console.error(`${LOG_PREFIX} Salon email failed:`, err))
   }
@@ -347,7 +347,7 @@ async function handlePaymentIntentSucceeded(adminClient: any, paymentIntent: Str
         <p><strong>${offer.title}</strong></p>
         <p>Buyer: ${buyerUser?.user_name || emailTo || 'Unknown'}</p>
         <p>Amount: AED ${offer.price}</p>
-        <p>Remaining slots: ${offer.quantity - offer.quantity_sold - 1}</p>
+        <p>Remaining offers: ${offer.quantity - offer.quantity_sold - 1} of ${offer.quantity}</p>
       `,
     }).catch(err => console.error(`${LOG_PREFIX} Salon email failed:`, err))
   }
