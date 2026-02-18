@@ -252,9 +252,9 @@ async function handleBeautyOfferPaymentSucceeded(adminClient: any, paymentIntent
       subject: `Purchase Confirmed — ${offer.title}`,
       html: `
         <h2>Your purchase is confirmed!</h2>
-        <p><strong>${offer.title}</strong> at ${business.business_name}</p>
-        <p>Amount paid: AED ${offer.price}</p>
-        <p>You can view your deal and QR voucher in <a href="${process.env.NEXT_PUBLIC_SITE_URL}/offers/my-offers">My Offers</a>.</p>
+        <p>${offer.title} at ${business.business_name}</p>
+        <p>Amount: AED ${offer.price}</p>
+        <p>You can view your offers and QR voucher in <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://app.welovedecode.com'}/offers/my-offers">My Offers</a>.</p>
       `,
     }).catch((err: any) => console.error(`${LOG} Buyer email failed:`, err));
   }
@@ -377,9 +377,9 @@ async function handleBeautyOfferCheckoutCompleted(adminClient: any, session: Str
       subject: `Purchase Confirmed — ${offer.title}`,
       html: `
         <h2>Your purchase is confirmed!</h2>
-        <p><strong>${offer.title}</strong> at ${business.business_name}</p>
-        <p>Amount paid: AED ${offer.price}</p>
-        <p>You can view your deal and QR voucher in <a href="${process.env.NEXT_PUBLIC_SITE_URL}/offers/my-offers">My Offers</a>.</p>
+        <p>${offer.title} at ${business.business_name}</p>
+        <p>Amount: AED ${offer.price}</p>
+        <p>You can view your offers and QR voucher in <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://app.welovedecode.com'}/offers/my-offers">My Offers</a>.</p>
       `,
     }).catch((err: any) => console.error(`${LOG} Buyer email failed:`, err));
   }

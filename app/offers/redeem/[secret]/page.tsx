@@ -157,14 +157,14 @@ export default function RedeemPage() {
         </svg>
       </div>
 
-      <h1 className="text-xl font-semibold mb-6">Redeem</h1>
+      <h1 className="text-xl font-semibold mb-6">Redeem Offer</h1>
 
       <div className="bg-white/5 rounded-xl p-6 mb-6 text-left">
         <p className="text-2xl font-bold text-white text-center mb-4">{voucher.buyer_name}</p>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-white/40">Offer</span>
-            <span className="text-white font-medium">{voucher.offer_title}</span>
+            <span className="text-white/70 font-medium">{voucher.offer_title}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-white/40">Salon</span>
@@ -173,6 +173,10 @@ export default function RedeemPage() {
           <div className="flex justify-between">
             <span className="text-white/40">Amount</span>
             <span className="text-white/70">AED {voucher.amount}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-white/40">Offer ID</span>
+            <span className="text-white/70">{voucher.purchase_id.slice(0, 8).toUpperCase()}</span>
           </div>
         </div>
       </div>
