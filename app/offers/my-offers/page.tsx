@@ -87,8 +87,8 @@ export default function MyDealsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
           </div>
-          <p className="text-lg font-medium text-white/50 mb-1">No deals yet</p>
-          <p className="text-sm text-white/30">Your purchased beauty deals will appear here.</p>
+          <p className="text-lg font-medium text-white/50 mb-1">No purchases yet</p>
+          <p className="text-sm text-white/30">Your beauty offers will appear here.</p>
         </div>
       ) : (
         <div className="space-y-3">

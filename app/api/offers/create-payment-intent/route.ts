@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (!userProfile || userProfile.role !== USER_ROLES.BUYER) {
-      return NextResponse.json({ error: 'Only buyers can purchase offers' }, { status: 403 })
+      return NextResponse.json({ error: 'Purchases cannot be completed with company profiles' }, { status: 403 })
     }
 
     // 3. Parse request

@@ -309,9 +309,9 @@ export default function OfferCheckoutPage() {
               />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-white mb-4">Checkout Error</h1>
+          <h1 className="text-2xl font-bold text-white mb-4">Checkout Restriction</h1>
           <p className="text-white opacity-80 mb-4">{error || 'Unable to load checkout'}</p>
-          <button onClick={() => router.back()} className="offers-buy-btn">
+          <button onClick={() => router.back()} className="offers-buy-btn mx-auto">
             Go Back
           </button>
         </div>

@@ -178,15 +178,15 @@ export default function ManageOffersPage() {
 
                   {/* Info Grid */}
                   <div className="flex-1 min-w-0">
-                    <div className="grid grid-cols-2 landscape:grid-cols-4 md:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 landscape:grid-cols-4 md:grid-cols-4 gap-x-2 gap-y-[6px] md:gap-y-2">
                       {/* Portrait-visible: Title, Expires, Sold, Earned */}
                       <div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Title</p>
-                        <p className="text-[10px] text-white font-bold -mt-[2px] truncate">{offer.title}</p>
+                        <p className="text-[8px] text-gray-400 uppercase tracking-wider">Title</p>
+                        <p className="text-[11px] text-white font-bold -mt-[2px] truncate">{offer.title}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Expires</p>
-                        <p className="text-[10px] text-white font-bold -mt-[2px]">
+                        <p className="text-[8px] text-gray-400 uppercase tracking-wider">Expires</p>
+                        <p className="text-[11px] text-white font-bold -mt-[2px]">
                           {(() => {
                             const days = Math.ceil((new Date(offer.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
                             if (days < 0) return 'Expired'
@@ -196,31 +196,31 @@ export default function ManageOffersPage() {
                         </p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Sold</p>
-                        <p className="text-[10px] text-white font-bold -mt-[2px]">{offer.quantity_sold}/{offer.quantity}</p>
+                        <p className="text-[8px] text-gray-400 uppercase tracking-wider">Sold</p>
+                        <p className="text-[11px] text-white font-bold -mt-[2px]">{offer.quantity_sold}/{offer.quantity}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Earned</p>
-                        <p className="text-[10px] text-white font-bold -mt-[2px]">{offer.quantity_sold * offer.price} AED</p>
+                        <p className="text-[8px] text-gray-400 uppercase tracking-wider">Earned</p>
+                        <p className="text-[11px] text-white font-bold -mt-[2px]">{offer.quantity_sold * offer.price} AED</p>
                       </div>
                       {/* Landscape/desktop only: Price, Category, Code, Created */}
                       <div className="hidden landscape:block md:block">
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Price</p>
-                        <p className="text-[10px] text-white font-bold -mt-[2px]">{offer.price} AED</p>
+                        <p className="text-[8px] text-gray-400 uppercase tracking-wider">Price</p>
+                        <p className="text-[11px] text-white font-bold -mt-[2px]">{offer.price} AED</p>
                       </div>
                       <div className="hidden landscape:block md:block">
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Category</p>
-                        <p className="text-[10px] text-white font-bold -mt-[2px] truncate capitalize">{offer.category}</p>
+                        <p className="text-[8px] text-gray-400 uppercase tracking-wider">Category</p>
+                        <p className="text-[11px] text-white font-bold -mt-[2px] truncate capitalize">{offer.category}</p>
                       </div>
                       {offer.offer_code && (
                         <div className="hidden landscape:block md:block">
-                          <p className="text-[10px] text-gray-400 uppercase tracking-wider">Code</p>
-                          <p className="text-[10px] text-white font-bold -mt-[2px]">#{offer.offer_code}</p>
+                          <p className="text-[8px] text-gray-400 uppercase tracking-wider">Code</p>
+                          <p className="text-[11px] text-white font-bold -mt-[2px]">#{offer.offer_code}</p>
                         </div>
                       )}
                       <div className="hidden landscape:block md:block">
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wider">Created</p>
-                        <p className="text-[10px] text-white font-bold -mt-[2px]">{new Date(offer.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                        <p className="text-[8px] text-gray-400 uppercase tracking-wider">Created</p>
+                        <p className="text-[11px] text-white font-bold -mt-[2px]">{new Date(offer.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                       </div>
                     </div>
                   </div>

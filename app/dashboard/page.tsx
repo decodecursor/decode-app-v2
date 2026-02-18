@@ -811,9 +811,9 @@ export default function Dashboard() {
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <div className="flex items-center">
-                          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <circle cx="9" cy="9" r="2.5" strokeWidth={2} />
-                            <circle cx="15" cy="15" r="2.5" strokeWidth={2} />
+                          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="2 2 20 20">
+                            <circle cx="9" cy="9" r="2" strokeWidth={2} />
+                            <circle cx="15" cy="15" r="2" strokeWidth={2} />
                             <path strokeLinecap="round" strokeWidth={2} d="M18 6L6 18" />
                           </svg>
                           Offers

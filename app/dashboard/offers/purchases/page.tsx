@@ -125,7 +125,7 @@ export default function PurchasesPage() {
             { label: 'Redeemed', value: totalRedeemed },
             { label: 'Active', value: totalActive },
           ].map((s) => (
-            <div key={s.label} className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+            <div key={s.label} className={`bg-white/5 border border-white/10 rounded-xl p-3 text-center ${{ Revenue: 'order-1', Sold: 'order-3', Redeemed: 'order-2', Active: 'order-4' }[s.label] || ''} landscape:order-none md:order-none`}>
               <p className="text-xs text-gray-400">{s.label}</p>
               <p className="text-white font-semibold text-lg">{s.value}</p>
             </div>
@@ -155,7 +155,7 @@ export default function PurchasesPage() {
             <svg className="w-12 h-12 mx-auto mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <p className="text-gray-400">No purchases yet</p>
+            <p className="text-gray-400 text-xs">No purchases yet</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -170,7 +170,7 @@ export default function PurchasesPage() {
                   className="relative bg-white/5 border border-white/10 rounded-xl p-3 md:p-4"
                 >
                   <span className={`absolute top-3 right-3 text-[10px] px-2 py-0.5 rounded-full ${badge.color}`}>{badge.label}</span>
-                  <div className="grid grid-cols-3 landscape:grid-cols-5 md:grid-cols-5 gap-[1px] landscape:gap-[2px] md:gap-[6px] max-w-2xl pr-16">
+                  <div className="grid grid-cols-3 landscape:grid-cols-5 md:grid-cols-5 gap-[1px] landscape:gap-[2px] md:gap-[6px] max-w-2xl pr-12">
                     <div>
                       <p className="text-[10px] text-gray-400 uppercase tracking-wider">Offer</p>
                       <p className="text-xs text-white font-bold truncate">{offerTitle}</p>
