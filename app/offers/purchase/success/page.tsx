@@ -109,20 +109,13 @@ function PurchaseSuccessContent() {
   return (
     <div className="max-w-lg mx-auto px-4 py-16 text-center">
       <div className="mb-6">
-        <div className="w-16 h-16 mx-auto rounded-full bg-green-500/10 flex items-center justify-center mb-4">
-          <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
         <h1 className="text-2xl font-semibold mb-2">Purchase Confirmed!</h1>
 
         {sessionData ? (
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 space-y-3">
             <p className="text-white/80 font-medium">{sessionData.offer_title}</p>
             <p className="text-white/50 text-sm">{sessionData.business_name}</p>
-            <p className="text-white/60 text-sm mt-3">
-              Amount paid: <span className="text-white font-medium"><DirhamSymbol size={12} /> {sessionData.amount_paid}</span>
-            </p>
+            <p className="text-white font-medium"><DirhamSymbol size={12} /> {sessionData.amount_paid}</p>
           </div>
         ) : error ? (
           <p className="text-white/40 text-sm">{error}</p>
@@ -133,7 +126,10 @@ function PurchaseSuccessContent() {
 
       <Link
         href="/offers/my-offers"
-        className="inline-block mt-6 px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-medium text-sm no-underline transition-colors"
+        className="inline-block mt-6 px-6 py-3 rounded-xl text-white font-medium text-sm no-underline transition-colors"
+        style={{ backgroundColor: '#E1306C' }}
+        onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#c9245e')}
+        onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#E1306C')}
       >
         View in My Offers
       </Link>

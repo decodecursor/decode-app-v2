@@ -256,7 +256,7 @@ export default function ManageOffersPage() {
         onConfirm={confirmDeactivate}
         title="Deactivate Offer"
         message="Existing purchases remain valid."
-        warningText="This action cannot be undone."
+        warningText=""
         confirmText="Deactivate"
         loading={!!deactivating}
       />

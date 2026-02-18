@@ -47,11 +47,13 @@ export function ConfirmationModal({
             </div>
           )}
 
-          <div className="bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-3 mb-6">
-            <p className="text-yellow-100 text-sm">
-              ⚠️ {warningText}
-            </p>
-          </div>
+          {warningText && (
+            <div className="bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-3 mb-6">
+              <p className="text-yellow-100 text-sm">
+                ⚠️ {warningText}
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="flex gap-3">

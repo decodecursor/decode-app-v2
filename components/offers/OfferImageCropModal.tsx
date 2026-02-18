@@ -124,7 +124,7 @@ export default function OfferImageCropModal({
         {/* Controls */}
         <div className="px-5 pt-4 pb-5 space-y-4">
           <p className="text-xs text-white/40 text-center">
-            Position your image — shown in cards, detail page, and thumbnails
+            Position your image
           </p>
 
           {/* Zoom slider */}
