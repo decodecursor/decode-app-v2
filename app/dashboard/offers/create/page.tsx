@@ -279,7 +279,7 @@ export default function CreateOfferPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Title */}
           <div>
-            <label className="block text-sm text-gray-100 mb-1">Title</label>
+            <label className="block text-xs text-gray-100 mb-1">Title</label>
             <input
               type="text"
               value={title}
@@ -293,7 +293,7 @@ export default function CreateOfferPage() {
 
           {/* Description */}
           <div>
-            <label className="block text-sm text-gray-100 mb-1">Description</label>
+            <label className="block text-xs text-gray-100 mb-1">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value.slice(0, 500))}
@@ -307,7 +307,7 @@ export default function CreateOfferPage() {
 
           {/* Category */}
           <div>
-            <label className="block text-sm text-gray-100 mb-1">Category</label>
+            <label className="block text-xs text-gray-100 mb-1">Category</label>
             <div className="relative" ref={categoryRef}>
               <button
                 type="button"
@@ -348,7 +348,7 @@ export default function CreateOfferPage() {
           {/* Price row */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-gray-100 mb-1">Offer Price</label>
+              <label className="block text-xs text-gray-100 mb-1">Offer Price</label>
               <input
                 type="text"
                 inputMode="decimal"
@@ -363,7 +363,7 @@ export default function CreateOfferPage() {
               {errors.price && <p className="text-red-400 text-xs mt-1">Min 5 AED</p>}
             </div>
             <div>
-              <label className="block text-sm text-gray-100 mb-1">Original Price</label>
+              <label className="block text-xs text-gray-100 mb-1">Original Price</label>
               <input
                 type="text"
                 inputMode="decimal"
@@ -382,7 +382,7 @@ export default function CreateOfferPage() {
           {/* Quantity + Duration row */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-gray-100 mb-1">Quantity</label>
+              <label className="block text-xs text-gray-100 mb-1">Quantity</label>
               <input
                 type="text"
                 inputMode="numeric"
@@ -397,7 +397,7 @@ export default function CreateOfferPage() {
               {errors.quantity && <p className="text-red-400 text-xs mt-1">Required (1-999)</p>}
             </div>
             <div>
-              <label className="block text-sm text-gray-100 mb-1">Duration</label>
+              <label className="block text-xs text-gray-100 mb-1">Duration</label>
               <div className="relative" ref={durationRef}>
                 <button
                   type="button"
@@ -438,7 +438,7 @@ export default function CreateOfferPage() {
 
           {/* Image Upload */}
           <div>
-            <label className="block text-sm text-gray-100 mb-1">Image</label>
+            <label className="block text-xs text-gray-100 mb-1">Image</label>
             <input
               ref={fileInputRef}
               type="file"
@@ -451,7 +451,7 @@ export default function CreateOfferPage() {
                 <img
                   src={imagePreview}
                   alt="Preview"
-                  className="w-full h-48 object-cover rounded-lg border border-white/10"
+                  className="w-full aspect-square object-cover rounded-lg border border-white/10"
                 />
                 <button
                   type="button"
