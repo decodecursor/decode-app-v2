@@ -178,11 +178,11 @@ export default function ManageOffersPage() {
 
                   {/* Info Grid */}
                   <div className="flex-1 min-w-0">
-                    <div className="grid grid-cols-2 landscape:grid-cols-4 md:grid-cols-4 gap-x-2 gap-y-[6px] md:gap-y-2">
+                    <div className="grid grid-cols-2 landscape:grid-cols-4 md:grid-cols-4 gap-x-2 gap-y-[4px] md:gap-y-2">
                       {/* Portrait-visible: Title, Expires, Sold, Earned */}
                       <div>
                         <p className="text-[8px] text-gray-400 uppercase tracking-wider">Title</p>
-                        <p className="text-[11px] text-white font-bold -mt-[2px] truncate">{offer.title}</p>
+                        <p className="text-[12px] text-white font-bold -mt-[2px] truncate">{offer.title}</p>
                       </div>
                       <div>
                         <p className="text-[8px] text-gray-400 uppercase tracking-wider">Expires</p>
