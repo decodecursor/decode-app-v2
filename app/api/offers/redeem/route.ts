@@ -121,10 +121,9 @@ export async function POST(req: NextRequest) {
       subject: `Offer Redeemed — ${offer.title}`,
       html: `
         <h2>Your offer has been redeemed!</h2>
-        <p>Your offer "<strong>${offer.title}</strong>" at ${business.business_name} has been redeemed.</p>
+        <p>Your offer <strong>${offer.title}</strong> at <strong>${business.business_name}</strong> has been redeemed.</p>
         <p>Amount: AED ${offer.price}</p>
-        <p>Purchase ID: <strong>${purchase.id.slice(0, 8).toUpperCase()}</strong></p>
-        <p style="font-size:11px;color:#999;">Full ref: ${purchase.id}</p>
+        <p>ID: <strong>${purchase.id.slice(0, 8).toUpperCase()}</strong></p>
         <p>The DECODE Team wishes you a wonderful week.</p>
       `,
     }).catch(err => console.error(`${LOG_PREFIX} Buyer email failed:`, err))
@@ -142,11 +141,10 @@ export async function POST(req: NextRequest) {
       to: salonAdmin.email,
       subject: `Offer Redeemed — ${offer.title} - ${purchase.id.slice(0, 8).toUpperCase()}`,
       html: `
-        <h2>Offer redeemed!</h2>
-        <p>${buyerName} has redeemed "<strong>${offer.title}</strong>".</p>
+        <h2><strong>Offer redeemed!</strong></h2>
+        <p>${buyerName} has redeemed <strong>${offer.title}</strong>.</p>
         <p>Amount: AED ${offer.price}</p>
-        <p>Purchase ID: <strong>${purchase.id.slice(0, 8).toUpperCase()}</strong></p>
-        <p style="font-size:11px;color:#999;">Full ref: ${purchase.id}</p>
+        <p>ID: ${purchase.id.slice(0, 8).toUpperCase()}</p>
         <p>The DECODE Team wishes you a wonderful week.</p>
       `,
     }).catch(err => console.error(`${LOG_PREFIX} Salon email failed:`, err))
@@ -157,11 +155,10 @@ export async function POST(req: NextRequest) {
     to: 'sebastian@welovedecode.com',
     subject: `Offer Redeemed — ${offer.title}`,
     html: `
-      <h2>Offer redeemed</h2>
-      <p>${buyerName} redeemed "<strong>${offer.title}</strong>" at ${business.business_name}.</p>
+      <h2><strong>Offer redeemed!</strong></h2>
+      <p>${buyerName} redeemed <strong>${offer.title}</strong> at ${business.business_name}.</p>
       <p>Amount: AED ${offer.price}</p>
-      <p>Purchase ID: <strong>${purchase.id.slice(0, 8).toUpperCase()}</strong></p>
-      <p style="font-size:11px;color:#999;">Full ref: ${purchase.id}</p>
+      <p>ID: ${purchase.id.slice(0, 8).toUpperCase()}</p>
     `,
   }).catch(err => console.error(`${LOG_PREFIX} Admin email failed:`, err))
 

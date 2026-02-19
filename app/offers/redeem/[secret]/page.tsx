@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import Link from 'next/link'
 
 interface VoucherInfo {
   purchase_id: string
@@ -112,7 +113,13 @@ export default function RedeemPage() {
         <h1 className="text-xl font-semibold text-green-400 mb-2">Redeemed Successfully</h1>
         <p className="text-2xl font-bold text-white mb-1">{voucher.buyer_name}</p>
         <p className="text-white/50 text-sm">{voucher.offer_title}</p>
-        <p className="text-white/30 text-xs mt-1">{voucher.business_name}</p>
+        <p className="text-white text-xs mt-1">{voucher.business_name}</p>
+        <Link
+          href="/dashboard/offers"
+          className="inline-block mt-6 px-6 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white text-sm font-medium transition-colors"
+        >
+          Back to Offers
+        </Link>
       </div>
     )
   }
