@@ -903,20 +903,28 @@ export default function ProfilePage() {
           {/* Google Reviews Card - Admin Only */}
           {profile?.role === 'Admin' && businessId && (
           <div className="cosmic-card-profile w-full">
-            <h2 className="text-lg md:text-xl font-semibold text-white mb-6">Google Reviews <span className="text-red-400">*</span></h2>
+            <h2 className="text-lg md:text-xl font-semibold text-white mb-6">Google Reviews</h2>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">Rating (1.0 - 5.0)</label>
+                  <label className="block text-xs text-gray-400 mb-1">Stars Rating (1.0 - 5.0)</label>
                   <input
                     type="number"
                     value={googleRating}
                     onChange={(e) => {
-                      setGoogleRating(e.target.value)
+                      const val = e.target.value
+                      if (val === '') {
+                        setGoogleRating('')
+                      } else {
+                        const num = parseFloat(val)
+                        if (!isNaN(num) && num >= 1 && num <= 5) {
+                          setGoogleRating(val)
+                        }
+                      }
                       setGoogleRatingError(null)
                     }}
                     placeholder="4.5"
-                    className="cosmic-input w-full"
+                    className={`cosmic-input w-full ${googleRating !== '' && (parseFloat(googleRating) < 1 || parseFloat(googleRating) > 5 || isNaN(parseFloat(googleRating))) ? 'border-red-500' : ''}`}
                     min={1}
                     max={5}
                     step="0.1"
@@ -937,7 +945,6 @@ export default function ProfilePage() {
                   />
                 </div>
               </div>
-              <p className="text-xs text-gray-500">Required to publish offers</p>
               <button
                 onClick={saveGoogleRating}
                 disabled={googleRatingSaving || (!googleRating && !googleReviewsCount)}
