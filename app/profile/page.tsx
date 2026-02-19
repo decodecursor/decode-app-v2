@@ -45,6 +45,14 @@ export default function ProfilePage() {
   const [citySaved, setCitySaved] = useState(false)
   const [cityError, setCityError] = useState<string | null>(null)
 
+  // Google Reviews states
+  const [googleRating, setGoogleRating] = useState('')
+  const [googleReviewsCount, setGoogleReviewsCount] = useState('')
+  const [googleRatingSaving, setGoogleRatingSaving] = useState(false)
+  const [googleRatingSaved, setGoogleRatingSaved] = useState(false)
+  const [googleRatingError, setGoogleRatingError] = useState<string | null>(null)
+  const [businessId, setBusinessId] = useState<string | null>(null)
+
   // Display name states
   const [displayName, setDisplayName] = useState('')
   const [displayNameSaving, setDisplayNameSaving] = useState(false)
@@ -180,6 +188,21 @@ export default function ProfilePage() {
         setInstagramHandle(profileData.instagram_handle || '')
         setCity(profileData.city || '')
         setDisplayName(profileData.user_name || '')
+
+        // Fetch Google Reviews data for Admin/Staff users
+        if (profileData.role === 'Admin' || profileData.role === USER_ROLES.STAFF) {
+          const { data: biz } = await supabase
+            .from('beauty_businesses')
+            .select('id, google_rating, google_reviews_count')
+            .eq('creator_id', user.id)
+            .single()
+
+          if (biz) {
+            setBusinessId(biz.id)
+            setGoogleRating(biz.google_rating?.toString() || '')
+            setGoogleReviewsCount(biz.google_reviews_count?.toString() || '')
+          }
+        }
       } else {
         setMessage({ type: 'error', text: 'No profile data found' })
       }
@@ -266,6 +289,46 @@ export default function ProfilePage() {
       setCityError('Failed to save city')
     } finally {
       setCitySaving(false)
+    }
+  }
+
+  const saveGoogleRating = async () => {
+    if (!businessId) return
+
+    const ratingNum = parseFloat(googleRating)
+    if (!googleRating || isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+      setGoogleRatingError('Rating must be between 1.0 and 5.0')
+      return
+    }
+    if (!googleReviewsCount) {
+      setGoogleRatingError('Reviews count is required')
+      return
+    }
+
+    setGoogleRatingSaving(true)
+    setGoogleRatingSaved(false)
+    setGoogleRatingError(null)
+
+    try {
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('beauty_businesses')
+        .update({
+          google_rating: ratingNum,
+          google_reviews_count: parseInt(googleReviewsCount),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', businessId)
+
+      if (error) throw error
+
+      setGoogleRatingSaved(true)
+      setTimeout(() => setGoogleRatingSaved(false), 3000)
+    } catch (error) {
+      console.error('Error saving Google rating:', error)
+      setGoogleRatingError('Failed to save Google reviews')
+    } finally {
+      setGoogleRatingSaving(false)
     }
   }
 
@@ -830,6 +893,71 @@ export default function ProfilePage() {
                 <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
                   <p className="text-red-400 text-sm">
                     {cityError}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+          )}
+
+          {/* Google Reviews Card - Admin Only */}
+          {profile?.role === 'Admin' && businessId && (
+          <div className="cosmic-card-profile w-full">
+            <h2 className="text-lg md:text-xl font-semibold text-white mb-6">Google Reviews <span className="text-red-400">*</span></h2>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Rating (1.0 - 5.0)</label>
+                  <input
+                    type="number"
+                    value={googleRating}
+                    onChange={(e) => {
+                      setGoogleRating(e.target.value)
+                      setGoogleRatingError(null)
+                    }}
+                    placeholder="4.5"
+                    className="cosmic-input w-full"
+                    min={1}
+                    max={5}
+                    step="0.1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Reviews Count</label>
+                  <input
+                    type="number"
+                    value={googleReviewsCount}
+                    onChange={(e) => {
+                      setGoogleReviewsCount(e.target.value)
+                      setGoogleRatingError(null)
+                    }}
+                    placeholder="128"
+                    className="cosmic-input w-full"
+                    min={0}
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-gray-500">Required to publish offers</p>
+              <button
+                onClick={saveGoogleRating}
+                disabled={googleRatingSaving || (!googleRating && !googleReviewsCount)}
+                className="cosmic-button-primary disabled:opacity-50 w-full"
+              >
+                {googleRatingSaving ? 'Saving...' : googleRatingSaved ? 'Saved!' : 'Save'}
+              </button>
+
+              {googleRatingSaved && (
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                  <p className="text-green-400 text-sm">
+                    Google reviews saved successfully!
+                  </p>
+                </div>
+              )}
+
+              {googleRatingError && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                  <p className="text-red-400 text-sm">
+                    {googleRatingError}
                   </p>
                 </div>
               )}

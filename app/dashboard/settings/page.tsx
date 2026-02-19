@@ -33,8 +33,6 @@ export default function SettingsPage() {
   const [city, setCity] = useState('')
 
   // Form state — settings (shown when business exists)
-  const [googleRating, setGoogleRating] = useState('')
-  const [googleReviewsCount, setGoogleReviewsCount] = useState('')
   const [whatsappNumber, setWhatsappNumber] = useState('')
 
   useEffect(() => {
@@ -63,8 +61,6 @@ export default function SettingsPage() {
 
       if (biz) {
         setBusiness(biz)
-        setGoogleRating(biz.google_rating?.toString() || '')
-        setGoogleReviewsCount(biz.google_reviews_count?.toString() || '')
         setWhatsappNumber(biz.whatsapp_number || '')
       }
 
@@ -118,19 +114,6 @@ export default function SettingsPage() {
     e.preventDefault()
     if (!business) return
 
-    if (!googleRating || !googleReviewsCount) {
-      setMessage('Google rating and reviews count are required')
-      setMessageType('error')
-      return
-    }
-
-    const ratingNum = parseFloat(googleRating)
-    if (ratingNum < 1 || ratingNum > 5) {
-      setMessage('Rating must be between 1.0 and 5.0')
-      setMessageType('error')
-      return
-    }
-
     setSaving(true)
     setMessage('')
 
@@ -138,8 +121,6 @@ export default function SettingsPage() {
       const { error } = await supabase
         .from('beauty_businesses')
         .update({
-          google_rating: ratingNum,
-          google_reviews_count: googleReviewsCount ? parseInt(googleReviewsCount) : null,
           whatsapp_number: whatsappNumber.trim() || null,
           updated_at: new Date().toISOString(),
         })
@@ -252,40 +233,6 @@ export default function SettingsPage() {
 
             <hr className="border-white/10" />
 
-            {/* Google Reviews */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-              <h3 className="text-sm font-medium text-gray-300 mb-3">Google Reviews <span className="text-red-400">*</span></h3>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Rating (1.0 - 5.0)</label>
-                  <input
-                    type="number"
-                    value={googleRating}
-                    onChange={(e) => setGoogleRating(e.target.value)}
-                    placeholder="4.5"
-                    className="cosmic-input"
-                    min={1}
-                    max={5}
-                    step="0.1"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Reviews Count</label>
-                  <input
-                    type="number"
-                    value={googleReviewsCount}
-                    onChange={(e) => setGoogleReviewsCount(e.target.value)}
-                    placeholder="128"
-                    className="cosmic-input"
-                    min={0}
-                    required
-                  />
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mt-2">Required to publish offers</p>
-            </div>
-
             {/* WhatsApp */}
             <div>
               <h3 className="text-sm font-medium text-gray-300 mb-3">WhatsApp Contact</h3>
@@ -311,7 +258,7 @@ export default function SettingsPage() {
 
             <button
               type="submit"
-              disabled={saving || !googleRating || !googleReviewsCount}
+              disabled={saving}
               className="cosmic-button-primary w-full py-3"
             >
               {saving ? 'Saving...' : 'Save Settings'}
