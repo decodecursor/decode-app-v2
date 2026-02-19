@@ -60,7 +60,7 @@ export default function RedeemPage() {
       } else {
         const data = await res.json()
         if (data.error === 'not_authenticated') {
-          window.location.href = '/sign-in'
+          window.location.href = `/auth/login?redirectTo=${encodeURIComponent(window.location.pathname)}`
           return
         }
         if (data.error === 'wrong_salon') {

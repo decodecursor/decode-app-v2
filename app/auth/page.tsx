@@ -377,9 +377,9 @@ function AuthPageContent() {
             return
           }
 
-          console.log('✅ [AUTH] Session verified, redirecting to dashboard')
+          console.log('✅ [AUTH] Session verified, redirecting...')
           // Use full page navigation to ensure middleware runs (critical for mobile)
-          window.location.href = '/dashboard'
+          window.location.href = searchParams?.get('redirectTo') || '/dashboard'
           return
         } else {
           // Show role selection modal
@@ -553,8 +553,9 @@ function AuthPageContent() {
       // Check if user has profile
       if (data.user?.hasProfile) {
         // User has profile, use full page navigation for middleware (mobile fix)
-        console.log('✅ [AUTH] User has profile, redirecting to dashboard')
-        window.location.href = '/dashboard'
+        console.log('✅ [AUTH] User has profile, redirecting...')
+        const redirectTo = new URLSearchParams(window.location.search).get('redirectTo')
+        window.location.href = redirectTo || '/dashboard'
       } else {
         // Show role selection modal for new users
         console.log('🆕 [AUTH] New user, showing role selection')
