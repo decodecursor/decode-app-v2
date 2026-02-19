@@ -84,7 +84,7 @@ export default function CreateOfferPage() {
 
       const { data: profile } = await supabase
         .from('users')
-        .select('role')
+        .select('role, professional_center_name, instagram_handle, city, profile_photo_url')
         .eq('id', user.id)
         .single()
 
@@ -93,17 +93,44 @@ export default function CreateOfferPage() {
         return
       }
 
-      // Get or prompt business
-      const { data: business } = await supabase
+      // Get or auto-create business
+      let { data: business } = await supabase
         .from('beauty_businesses')
         .select('id')
         .eq('creator_id', user.id)
         .single()
 
       if (!business) {
-        setMessage('You need to complete your business profile first.')
-        setLoading(false)
-        return
+        const name = profile.professional_center_name
+        const ig = profile.instagram_handle
+        const city = profile.city
+
+        if (!name || !ig || !city) {
+          setMessage('Please complete your profile first (business name, Instagram, and city are required).')
+          setLoading(false)
+          return
+        }
+
+        const { data: newBiz, error: bizError } = await supabase
+          .from('beauty_businesses')
+          .insert({
+            creator_id: user.id,
+            business_name: name,
+            instagram_handle: ig,
+            city: city,
+            business_photo_url: profile.profile_photo_url || null,
+          })
+          .select('id')
+          .single()
+
+        if (bizError || !newBiz) {
+          console.error('Auto-create business error:', bizError)
+          setMessage('Failed to set up your business profile. Please try again.')
+          setLoading(false)
+          return
+        }
+
+        business = newBiz
       }
 
       setBusinessId(business.id)
