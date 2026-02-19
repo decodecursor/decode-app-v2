@@ -118,8 +118,14 @@ export default function SettingsPage() {
     e.preventDefault()
     if (!business) return
 
-    const ratingNum = googleRating ? parseFloat(googleRating) : null
-    if (ratingNum !== null && (ratingNum < 1 || ratingNum > 5)) {
+    if (!googleRating || !googleReviewsCount) {
+      setMessage('Google rating and reviews count are required')
+      setMessageType('error')
+      return
+    }
+
+    const ratingNum = parseFloat(googleRating)
+    if (ratingNum < 1 || ratingNum > 5) {
       setMessage('Rating must be between 1.0 and 5.0')
       setMessageType('error')
       return
@@ -247,8 +253,8 @@ export default function SettingsPage() {
             <hr className="border-white/10" />
 
             {/* Google Reviews */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-300 mb-3">Google Reviews</h3>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+              <h3 className="text-sm font-medium text-gray-300 mb-3">Google Reviews <span className="text-red-400">*</span></h3>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Rating (1.0 - 5.0)</label>
@@ -261,6 +267,7 @@ export default function SettingsPage() {
                     min={1}
                     max={5}
                     step="0.1"
+                    required
                   />
                 </div>
                 <div>
@@ -272,9 +279,11 @@ export default function SettingsPage() {
                     placeholder="128"
                     className="cosmic-input"
                     min={0}
+                    required
                   />
                 </div>
               </div>
+              <p className="text-xs text-gray-500 mt-2">Required to publish offers</p>
             </div>
 
             {/* WhatsApp */}
@@ -302,7 +311,7 @@ export default function SettingsPage() {
 
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || !googleRating || !googleReviewsCount}
               className="cosmic-button-primary w-full py-3"
             >
               {saving ? 'Saving...' : 'Save Settings'}

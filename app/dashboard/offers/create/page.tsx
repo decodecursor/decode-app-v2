@@ -47,6 +47,7 @@ export default function CreateOfferPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [showCropModal, setShowCropModal] = useState(false)
   const [rawImageSrc, setRawImageSrc] = useState<string | null>(null)
+  const [showGoogleModal, setShowGoogleModal] = useState(false)
 
   // Form state
   const [title, setTitle] = useState('')
@@ -96,7 +97,7 @@ export default function CreateOfferPage() {
       // Get or auto-create business
       let { data: business } = await supabase
         .from('beauty_businesses')
-        .select('id')
+        .select('id, google_rating')
         .eq('creator_id', user.id)
         .single()
 
@@ -120,7 +121,7 @@ export default function CreateOfferPage() {
             city: city,
             business_photo_url: profile.profile_photo_url || null,
           })
-          .select('id')
+          .select('id, google_rating')
           .single()
 
         if (bizError || !newBiz) {
@@ -134,6 +135,9 @@ export default function CreateOfferPage() {
       }
 
       setBusinessId(business.id)
+      if (business.google_rating == null) {
+        setShowGoogleModal(true)
+      }
       setLoading(false)
     }
     init()
@@ -282,6 +286,26 @@ export default function CreateOfferPage() {
             className="cosmic-button-primary"
           >
             Go to Profile
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (showGoogleModal) {
+    return (
+      <div className="cosmic-bg cosmic-bg-dark min-h-screen flex items-center justify-center px-4">
+        <div className="cosmic-card-profile text-center max-w-sm">
+          <div className="text-4xl mb-4">⭐</div>
+          <h2 className="text-white text-lg font-semibold mb-2">Google Rating Required</h2>
+          <p className="text-gray-400 text-sm mb-6">
+            Add your Google rating &amp; reviews to your business profile before creating offers.
+          </p>
+          <button
+            onClick={() => router.push('/dashboard/settings')}
+            className="cosmic-button-primary w-full py-3"
+          >
+            Go to Settings
           </button>
         </div>
       </div>

@@ -154,7 +154,7 @@ export default function OfferImageCropModal({
               type="button"
               onClick={handleApply}
               disabled={applying}
-              className="flex-1 py-2.5 rounded-lg bg-purple-600 text-sm text-white font-medium hover:bg-purple-500 transition-colors disabled:opacity-50"
+              className="flex-1 py-2.5 rounded-lg bg-[#E1306C] text-sm text-white font-medium hover:bg-[#c9245e] transition-colors disabled:opacity-50"
             >
               {applying ? 'Cropping...' : 'Apply Crop'}
             </button>
