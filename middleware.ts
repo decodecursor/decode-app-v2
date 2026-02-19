@@ -19,6 +19,7 @@ export const config = {
     '/profile/:path*',
     '/auctions/:path*',
     '/my-links/:path*',
+    '/offers/:path*',
     '/payment/:path*',
     '/pending-approval/:path*',
   ],
