@@ -19,6 +19,7 @@ interface UserProfile {
   role: string
   profile_photo_url?: string | null // NOTE: Requires database column: ALTER TABLE users ADD COLUMN profile_photo_url TEXT;
   instagram_handle?: string | null
+  city?: string | null
 }
 
 export default function ProfilePage() {
@@ -39,6 +40,10 @@ export default function ProfilePage() {
   const [emailVerificationSent, setEmailVerificationSent] = useState(false)
   const [instagramHandle, setInstagramHandle] = useState('')
   const [instagramSaved, setInstagramSaved] = useState(false)
+  const [city, setCity] = useState('')
+  const [citySaving, setCitySaving] = useState(false)
+  const [citySaved, setCitySaved] = useState(false)
+  const [cityError, setCityError] = useState<string | null>(null)
 
   // Display name states
   const [displayName, setDisplayName] = useState('')
@@ -110,7 +115,7 @@ export default function ProfilePage() {
         // Type casting to bypass Supabase type checking for profile_photo_url column
         const { data, error } = await supabase
           .from('users')
-          .select('id, email, user_name, professional_center_name, company_name, role, profile_photo_url, instagram_handle')
+          .select('id, email, user_name, professional_center_name, company_name, role, profile_photo_url, instagram_handle, city')
           .eq('id', user.id)
           .single() as { data: UserProfile | null, error: any }
 
@@ -173,6 +178,7 @@ export default function ProfilePage() {
         setNewEmail(currentEmail)
         setProfilePhotoUrl(profileData.profile_photo_url || null)
         setInstagramHandle(profileData.instagram_handle || '')
+        setCity(profileData.city || '')
         setDisplayName(profileData.user_name || '')
       } else {
         setMessage({ type: 'error', text: 'No profile data found' })
@@ -225,6 +231,41 @@ export default function ProfilePage() {
       setMessage({ type: 'error', text: 'Failed to update company name. Check console for details.' })
     } finally {
       setCompanyNameSaving(false)
+    }
+  }
+
+  const saveCity = async () => {
+    if (!profile || city.trim() === (profile.city || '')) return
+
+    setCitySaving(true)
+    setCitySaved(false)
+    setCityError(null)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('users')
+        .update({ city: city.trim() || null } as any)
+        .eq('id', profile.id)
+
+      if (error) {
+        console.error('City update error:', error)
+        throw error
+      }
+
+      setProfile({
+        ...profile,
+        city: city.trim() || null
+      })
+
+      setCitySaved(true)
+      setTimeout(() => {
+        setCitySaved(false)
+      }, 3000)
+    } catch (error) {
+      console.error('Error saving city:', error)
+      setCityError('Failed to save city')
+    } finally {
+      setCitySaving(false)
     }
   }
 
@@ -750,6 +791,48 @@ export default function ProfilePage() {
               >
                 Set at Registration
               </button>
+            </div>
+          </div>
+          )}
+
+          {/* City Card - Admin Only */}
+          {profile?.role === 'Admin' && (
+          <div className="cosmic-card-profile w-full">
+            <h2 className="text-lg md:text-xl font-semibold text-white mb-6">City</h2>
+            <div className="space-y-4">
+              <input
+                type="text"
+                value={city}
+                onChange={(e) => {
+                  setCity(e.target.value)
+                  setCityError(null)
+                }}
+                placeholder="e.g. Dubai"
+                className="cosmic-input w-full"
+              />
+              <button
+                onClick={saveCity}
+                disabled={citySaving || city.trim() === (profile?.city || '')}
+                className="cosmic-button-primary disabled:opacity-50 w-full"
+              >
+                {citySaving ? 'Changing...' : citySaved ? 'Changed!' : 'Change'}
+              </button>
+
+              {citySaved && (
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                  <p className="text-green-400 text-sm">
+                    City saved successfully!
+                  </p>
+                </div>
+              )}
+
+              {cityError && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                  <p className="text-red-400 text-sm">
+                    {cityError}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
           )}

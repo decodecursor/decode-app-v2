@@ -101,7 +101,7 @@ export default function CreateOfferPage() {
         .single()
 
       if (!business) {
-        setMessage('You need to set up your business profile first. Go to Settings.')
+        setMessage('You need to complete your business profile first.')
         setLoading(false)
         return
       }
@@ -251,10 +251,10 @@ export default function CreateOfferPage() {
         <div className="cosmic-card-profile text-center">
           <p className="text-white mb-4">{message || 'Business profile not found.'}</p>
           <button
-            onClick={() => router.push('/dashboard/settings')}
+            onClick={() => router.push('/profile')}
             className="cosmic-button-primary"
           >
-            Go to Settings
+            Go to Profile
           </button>
         </div>
       </div>
