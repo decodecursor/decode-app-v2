@@ -14,6 +14,19 @@ import { findCountryByCode } from '@/lib/country-codes'
 type AuthMethod = 'select' | 'email' | 'whatsapp'
 type AuthStep = 'input' | 'verify' | 'success'
 
+// Cookie helpers for cross-browser-context role persistence
+// (in-app email browsers share cookies but not localStorage)
+function setRoleCookie(role: string) {
+  document.cookie = `decode_preselectedRole=${encodeURIComponent(role)};path=/;max-age=3600;SameSite=Lax`
+}
+function getRoleCookie(): string | null {
+  const match = document.cookie.match(/(?:^|; )decode_preselectedRole=([^;]*)/)
+  return match ? decodeURIComponent(match[1]) : null
+}
+function clearRoleCookie() {
+  document.cookie = 'decode_preselectedRole=;path=/;max-age=0'
+}
+
 function AuthPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -118,6 +131,7 @@ function AuthPageContent() {
         setPreselectedRole(mappedRole)
         safeSessionStorage.setItem('preselectedRole', mappedRole)
         safeLocalStorage.setItem('decode_preselectedRole', mappedRole)
+        setRoleCookie(mappedRole)
       }
     } else if (!verifiedParam) {
       // Only clear if NOT coming from a preselected role flow
@@ -163,42 +177,6 @@ function AuthPageContent() {
       handleMagicLinkReturn()
     }
   }, [searchParams])
-
-  // Check for authenticated user (handles email verification returns)
-  const checkAuthState = async () => {
-    setIsCheckingAuth(true)
-    try {
-      const { user } = await getUserWithProxy()
-
-      if (user && user.email_confirmed_at) {
-        console.log('✅ [AUTH] Found verified user:', user.id)
-
-        // Store user email for role modal
-        if (user.email) {
-          setAuthenticatedEmail(user.email)
-        }
-
-        // Check if user has a profile
-        const { data: profileData } = await supabase
-          .from('users')
-          .select('id')
-          .eq('id', user.id)
-          .single()
-
-        if (profileData) {
-          // User has profile, use full page navigation for middleware (mobile fix)
-          window.location.href = '/dashboard'
-        } else {
-          // Show role selection modal
-          setShowRoleModal(true)
-        }
-      }
-    } catch (error) {
-      console.error('❌ [AUTH] Error checking auth state:', error)
-    } finally {
-      setIsCheckingAuth(false)
-    }
-  }
 
   // Handle magic link return with proper token processing wait
   const handleMagicLinkReturn = async (retryCount = 0) => {
@@ -345,10 +323,11 @@ function AuthPageContent() {
         };
         const mappedUrlRole = urlRole ? roleMapping[urlRole.toLowerCase()] : null;
 
-        // Priority: URL role param > localStorage (cross-tab) > sessionStorage (tab-specific)
+        // Priority: URL role param > localStorage (cross-tab) > sessionStorage (tab-specific) > cookie (cross-browser-context)
         const storedRole = mappedUrlRole ||
                            safeLocalStorage.getItem('decode_preselectedRole') ||
-                           safeSessionStorage.getItem('preselectedRole');
+                           safeSessionStorage.getItem('preselectedRole') ||
+                           getRoleCookie();
         if (storedRole) {
           console.log('🔄 [AUTH] Setting preselected role from URL/storage:', storedRole, '(was:', preselectedRole, ')');
           setPreselectedRole(storedRole);
@@ -426,21 +405,30 @@ function AuthPageContent() {
 
     try {
       // Preserve role parameter in magic link redirect
-      // ALWAYS check window.location.search FIRST - most reliable during React hydration
+      // Use URL constructor so all params are properly encoded as part of the redirect_to value
       const urlParams = new URLSearchParams(window.location.search);
       const urlRoleParam = urlParams.get('role');
       const effectiveRoleForLink = urlRoleParam ||
                                     preselectedRole ||
                                     safeLocalStorage.getItem('decode_preselectedRole') ||
-                                    safeSessionStorage.getItem('preselectedRole');
-      const roleParam = effectiveRoleForLink ? `&role=${effectiveRoleForLink.toLowerCase()}` : '';
+                                    safeSessionStorage.getItem('preselectedRole') ||
+                                    getRoleCookie();
       const redirectToParam = urlParams.get('redirectTo');
-      const redirectToQuery = redirectToParam ? `&redirectTo=${encodeURIComponent(redirectToParam)}` : '';
+
+      const redirectTarget = new URL(`${redirectUrl}/auth`);
+      redirectTarget.searchParams.set('verified', 'true');
+      if (effectiveRoleForLink) {
+        redirectTarget.searchParams.set('role', effectiveRoleForLink.toLowerCase());
+      }
+      if (redirectToParam) {
+        redirectTarget.searchParams.set('redirectTo', redirectToParam);
+      }
+
       // Use Supabase Auth magic link
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${redirectUrl}/auth?verified=true${roleParam}${redirectToQuery}`,
+          emailRedirectTo: redirectTarget.toString(),
         }
       })
 
@@ -616,6 +604,10 @@ function AuthPageContent() {
   const handleRoleModalComplete = async (role: string) => {
     setShowRoleModal(false)
     console.log('✅ [AUTH] Profile creation completed for role:', role)
+    // Clean up role persistence after successful profile creation
+    safeLocalStorage.removeItem('decode_preselectedRole')
+    safeSessionStorage.removeItem('preselectedRole')
+    clearRoleCookie()
     if (role === 'Buyer') {
       const redirectTo = searchParams?.get('redirectTo') || '/offers'
       window.location.href = redirectTo
@@ -692,7 +684,7 @@ function AuthPageContent() {
     const urlRole = urlParams?.get('role')
     const urlRoleMapping: { [key: string]: string } = { 'admin': 'Admin', 'user': 'Staff', 'model': 'Model', 'buyer': 'Buyer' }
     const mappedUrlRole = urlRole ? urlRoleMapping[urlRole.toLowerCase()] : null
-    const storedRole = safeLocalStorage.getItem('decode_preselectedRole') || safeSessionStorage.getItem('preselectedRole')
+    const storedRole = safeLocalStorage.getItem('decode_preselectedRole') || safeSessionStorage.getItem('preselectedRole') || getRoleCookie()
     // Also check searchParams hook (more reliable during React hydration)
     const searchParamsRole = searchParams?.get('role')
     const mappedSearchParamsRole = searchParamsRole ? urlRoleMapping[searchParamsRole.toLowerCase()] : null
@@ -1167,10 +1159,18 @@ function AuthPageContent() {
   }
 
   // Fallback return - should never reach here but just in case
-  // ALWAYS read from storage first as primary source of truth (loading state)
-  const storedRole = safeSessionStorage.getItem('preselectedRole') || safeLocalStorage.getItem('decode_preselectedRole')
-  const effectiveRole = storedRole || preselectedRole
-  console.log('🎬 [AUTH] Loading state - Modal rendering - storedRole:', storedRole, 'preselectedRole:', preselectedRole, 'effectiveRole:', effectiveRole, 'showRoleModal:', showRoleModal)
+  // Use the same URL-aware, normalized check as the main block
+  const fallbackUrlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+  const fallbackUrlRole = fallbackUrlParams?.get('role')
+  const fallbackRoleMapping: { [key: string]: string } = { 'admin': 'Admin', 'user': 'Staff', 'model': 'Model', 'buyer': 'Buyer' }
+  const fallbackMappedUrlRole = fallbackUrlRole ? fallbackRoleMapping[fallbackUrlRole.toLowerCase()] : null
+  const fallbackStoredRole = safeLocalStorage.getItem('decode_preselectedRole') || safeSessionStorage.getItem('preselectedRole') || getRoleCookie()
+  const effectiveRole = fallbackMappedUrlRole || fallbackStoredRole || preselectedRole
+  const fallbackNormalized = effectiveRole?.toLowerCase()
+  const fallbackIsBuyer = fallbackNormalized === 'buyer'
+  const fallbackIsModel = fallbackNormalized === 'model'
+  const fallbackIsAdminOrStaff = fallbackNormalized === 'admin' || fallbackNormalized === 'staff'
+  console.log('🎬 [AUTH] Loading state - effectiveRole:', effectiveRole, 'showRoleModal:', showRoleModal)
 
   return (
     <>
@@ -1181,19 +1181,19 @@ function AuthPageContent() {
       </div>
 
       {/* Role Selection Modal */}
-      {effectiveRole === 'Buyer' ? (
+      {fallbackIsBuyer ? (
         <BuyerRegistrationModal
           isOpen={showRoleModal}
           userEmail={authenticatedEmail || email}
           onComplete={handleRoleModalComplete}
         />
-      ) : effectiveRole === 'Model' ? (
+      ) : fallbackIsModel ? (
         <ModelRegistrationModal
           isOpen={showRoleModal}
           userEmail={authenticatedEmail || email}
           onComplete={handleRoleModalComplete}
         />
-      ) : effectiveRole === 'Admin' || effectiveRole === 'Staff' ? (
+      ) : fallbackIsAdminOrStaff ? (
         <RoleSelectionModal
           isOpen={showRoleModal}
           userEmail={authenticatedEmail || email}
@@ -1204,7 +1204,6 @@ function AuthPageContent() {
           onComplete={handleRoleModalComplete}
         />
       ) : (
-        // Default to RoleSelectionModal only if no role specified
         <RoleSelectionModal
           isOpen={showRoleModal}
           userEmail={authenticatedEmail || email}
