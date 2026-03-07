@@ -392,8 +392,8 @@ textarea:autofill {
 
 .cosmic-input:focus {
   outline: none;
-  border-color: #a855f7;
-  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+  border-color: #E1306C;
+  box-shadow: 0 0 0 2px rgba(225, 48, 108, 0.2);
 }
 
 /* Input field with content - dark blue background */
@@ -404,8 +404,8 @@ textarea:autofill {
 /* Ensure focus styling works with filled inputs */
 .cosmic-input.has-content:focus {
   background-color: #1e293b;
-  border-color: #a855f7;
-  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+  border-color: #E1306C;
+  box-shadow: 0 0 0 2px rgba(225, 48, 108, 0.2);
 }
 
 /* Cosmic Primary Button */
@@ -2262,6 +2262,8 @@ body {
 
 /* Offers Buy Button */
 .offers-buy-btn {
+  -webkit-appearance: none;
+  appearance: none;
   background: #E1306C;
   color: #ffffff;
   font-weight: 600;
