@@ -348,7 +348,7 @@ export default function CreateOfferPage() {
               className={`cosmic-input ${errors.title ? 'border-red-500/60' : ''}`}
               maxLength={100}
             />
-            {errors.title && <p className="text-red-400 text-xs mt-1">Title is required</p>}
+            {errors.title && <p className="text-red-400 text-[11px] mt-1">Title is required</p>}
           </div>
 
           {/* Description */}
@@ -364,7 +364,7 @@ export default function CreateOfferPage() {
               maxLength={500}
               style={{ overflow: 'hidden', resize: 'none' }}
             />
-            {errors.description && <p className="text-red-400 text-xs mt-1">Description is required</p>}
+            {errors.description && <p className="text-red-400 text-[11px] mt-1">Description is required</p>}
           </div>
 
           {/* Category */}
@@ -422,7 +422,7 @@ export default function CreateOfferPage() {
                 placeholder="99"
                 className={`cosmic-input ${errors.price ? 'border-red-500/60' : ''}`}
               />
-              {errors.price && <p className="text-red-400 text-xs mt-1">Min 5 AED</p>}
+              {errors.price && <p className="text-red-400 text-[11px] mt-1">Min 5 AED</p>}
             </div>
             <div>
               <label className="block text-xs text-gray-100 mb-1">Original Price</label>
@@ -437,7 +437,7 @@ export default function CreateOfferPage() {
                 placeholder="199"
                 className={`cosmic-input ${errors.originalPrice ? 'border-red-500/60' : ''}`}
               />
-              {errors.originalPrice && <p className="text-red-400 text-xs mt-1">Must be higher than offer price</p>}
+              {errors.originalPrice && <p className="text-red-400 text-[11px] mt-1">Must be higher than offer price</p>}
             </div>
           </div>
 
@@ -456,7 +456,7 @@ export default function CreateOfferPage() {
                 placeholder="10"
                 className={`cosmic-input ${errors.quantity ? 'border-red-500/60' : ''}`}
               />
-              {errors.quantity && <p className="text-red-400 text-xs mt-1">Required (1-999)</p>}
+              {errors.quantity && <p className="text-red-400 text-[11px] mt-1">Required (1-999)</p>}
             </div>
             <div>
               <label className="block text-xs text-gray-100 mb-1">Duration</label>
@@ -539,7 +539,7 @@ export default function CreateOfferPage() {
                 <span className="text-xs">Upload image (1:1 ratio)</span>
               </button>
             )}
-            {errors.image && <p className="text-red-400 text-xs mt-1">Image is required</p>}
+            {errors.image && <p className="text-red-400 text-[11px] mt-1">Image is required</p>}
           </div>
 
           {/* Message */}
