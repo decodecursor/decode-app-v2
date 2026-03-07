@@ -259,9 +259,11 @@ export default function ManageOffersPage() {
         onClose={() => setConfirmId(null)}
         onConfirm={confirmDeactivate}
         title="Deactivate Offer"
-        message="Existing purchases remain valid."
+        message="Sold vouchers must be honored and remain valid."
         warningText=""
         confirmText="Deactivate"
+        showIcon={false}
+        messageClassName="text-xs"
         loading={!!deactivating}
       />
     </div>

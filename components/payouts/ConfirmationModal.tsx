@@ -11,6 +11,8 @@ interface ConfirmationModalProps {
   loading?: boolean
   children?: React.ReactNode
   warningText?: string
+  showIcon?: boolean
+  messageClassName?: string
 }
 
 export function ConfirmationModal({
@@ -23,7 +25,9 @@ export function ConfirmationModal({
   confirmButtonClass = "bg-red-600 hover:bg-red-700",
   loading = false,
   children,
-  warningText = "This action cannot be undone. You will need to re-add your payment method to receive future payouts."
+  warningText = "This action cannot be undone. You will need to re-add your payment method to receive future payouts.",
+  showIcon = true,
+  messageClassName = "text-sm"
 }: ConfirmationModalProps) {
   if (!isOpen) return null
 
@@ -31,15 +35,17 @@ export function ConfirmationModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-gray-900 rounded-xl border border-gray-700 p-6 w-full max-w-md">
         <div className="text-center">
-          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
+          {showIcon && (
+            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          )}
 
           <h3 className="text-lg font-semibold text-white mb-4">{title}</h3>
 
-          <p className="text-gray-300 mb-4">{message}</p>
+          <p className={`${messageClassName} text-gray-300 mb-4`}>{message}</p>
 
           {children && (
             <div className="mb-6">
