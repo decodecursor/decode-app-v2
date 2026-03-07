@@ -411,32 +411,38 @@ export default function CreateOfferPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-gray-100 mb-1">Offer Price</label>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={price}
-                onChange={(e) => {
-                  const raw = e.target.value.replace(/[^0-9.]/g, '')
-                  setPrice(raw ? formatWithCommas(raw) : '')
-                }}
-                placeholder="99"
-                className={`cosmic-input ${errors.price ? 'border-red-500/60' : ''}`}
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-sm pointer-events-none select-none">د.إ</span>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={price}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/[^0-9.]/g, '')
+                    setPrice(raw ? formatWithCommas(raw) : '')
+                  }}
+                  placeholder="99"
+                  className={`cosmic-input pl-9 ${errors.price ? 'border-red-500/60' : ''}`}
+                />
+              </div>
               {errors.price && <p className="text-red-400 text-[11px] mt-1">Min 5 AED</p>}
             </div>
             <div>
               <label className="block text-xs text-gray-100 mb-1">Original Price</label>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={originalPrice}
-                onChange={(e) => {
-                  const raw = e.target.value.replace(/[^0-9.]/g, '')
-                  setOriginalPrice(raw ? formatWithCommas(raw) : '')
-                }}
-                placeholder="199"
-                className={`cosmic-input ${errors.originalPrice ? 'border-red-500/60' : ''}`}
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-sm pointer-events-none select-none">د.إ</span>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={originalPrice}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/[^0-9.]/g, '')
+                    setOriginalPrice(raw ? formatWithCommas(raw) : '')
+                  }}
+                  placeholder="199"
+                  className={`cosmic-input pl-9 ${errors.originalPrice ? 'border-red-500/60' : ''}`}
+                />
+              </div>
               {errors.originalPrice && <p className="text-red-400 text-[11px] mt-1">Must be higher than offer price</p>}
             </div>
           </div>
