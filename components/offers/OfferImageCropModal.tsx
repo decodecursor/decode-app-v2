@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import Cropper from 'react-easy-crop'
 
 interface CroppedArea {
@@ -103,11 +104,11 @@ export default function OfferImageCropModal({
     }
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4">
-      <div className="w-full max-w-md bg-[#1a1a2e] rounded-2xl overflow-hidden border border-white/10">
+      <div className="w-full max-w-md bg-[#1a1a2e] rounded-2xl overflow-hidden border border-white/10 max-h-[90vh] flex flex-col">
         {/* Crop area */}
-        <div className="relative w-full" style={{ height: '400px' }}>
+        <div className="relative w-full flex-shrink-0" style={{ height: 'min(400px, 55vh)' }}>
           <Cropper
             image={imageSrc}
             crop={crop}
@@ -122,7 +123,7 @@ export default function OfferImageCropModal({
         </div>
 
         {/* Controls */}
-        <div className="px-5 pt-4 pb-5 space-y-4">
+        <div className="px-5 pt-4 pb-5 space-y-4 flex-shrink-0 overflow-y-auto">
           <p className="text-xs text-white/40 text-center">
             Position your image
           </p>
@@ -161,6 +162,7 @@ export default function OfferImageCropModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
