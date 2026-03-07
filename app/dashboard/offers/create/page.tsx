@@ -8,9 +8,11 @@ import OfferImageCropModal from '@/components/offers/OfferImageCropModal'
 
 const CATEGORIES = ['aesthetics', 'hair', 'nails', 'spa', 'pilates'] as const
 const DURATIONS = [
+  { label: '1 day', days: 1 },
   { label: '3 days', days: 3 },
   { label: '7 days', days: 7 },
   { label: '14 days', days: 14 },
+  { label: '30 days', days: 30 },
 ] as const
 
 function formatWithCommas(value: string): string {
@@ -38,6 +40,7 @@ export default function CreateOfferPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const categoryRef = useRef<HTMLDivElement>(null)
   const durationRef = useRef<HTMLDivElement>(null)
+  const descriptionRef = useRef<HTMLTextAreaElement>(null)
 
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -142,6 +145,12 @@ export default function CreateOfferPage() {
     }
     init()
   }, [router, supabase])
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setDescription(e.target.value.slice(0, 500))
+    e.target.style.height = 'auto'
+    e.target.style.height = e.target.scrollHeight + 'px'
+  }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -346,12 +355,14 @@ export default function CreateOfferPage() {
           <div>
             <label className="block text-xs text-gray-100 mb-1">Description</label>
             <textarea
+              ref={descriptionRef}
               value={description}
-              onChange={(e) => setDescription(e.target.value.slice(0, 500))}
+              onChange={handleDescriptionChange}
               placeholder="Short offer description"
               className={`cosmic-input ${errors.description ? 'border-red-500/60' : ''}`}
-              rows={2}
+              rows={1}
               maxLength={500}
+              style={{ overflow: 'hidden', resize: 'none' }}
             />
             {errors.description && <p className="text-red-400 text-xs mt-1">Description is required</p>}
           </div>
