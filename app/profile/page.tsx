@@ -55,10 +55,19 @@ export default function ProfilePage() {
 
   // Business links states
   const [googleMapsUrl, setGoogleMapsUrl] = useState('')
+  const [googleMapsSaving, setGoogleMapsSaving] = useState(false)
+  const [googleMapsSaved, setGoogleMapsSaved] = useState(false)
+  const [googleMapsError, setGoogleMapsError] = useState<string | null>(null)
+
   const [websiteUrl, setWebsiteUrl] = useState('')
-  const [businessLinksSaving, setBusinessLinksSaving] = useState(false)
-  const [businessLinksSaved, setBusinessLinksSaved] = useState(false)
-  const [businessLinksError, setBusinessLinksError] = useState<string | null>(null)
+  const [websiteSaving, setWebsiteSaving] = useState(false)
+  const [websiteSaved, setWebsiteSaved] = useState(false)
+  const [websiteError, setWebsiteError] = useState<string | null>(null)
+
+  const [whatsappNumber, setWhatsappNumber] = useState('')
+  const [whatsappSaving, setWhatsappSaving] = useState(false)
+  const [whatsappSaved, setWhatsappSaved] = useState(false)
+  const [whatsappError, setWhatsappError] = useState<string | null>(null)
 
   // Display name states
   const [displayName, setDisplayName] = useState('')
@@ -200,7 +209,7 @@ export default function ProfilePage() {
         if (profileData.role === 'Admin' || profileData.role === USER_ROLES.STAFF) {
           const { data: biz } = await supabase
             .from('beauty_businesses')
-            .select('id, google_rating, google_reviews_count, google_maps_url, website_url')
+            .select('id, google_rating, google_reviews_count, google_maps_url, website_url, whatsapp_number')
             .eq('creator_id', user.id)
             .single()
 
@@ -210,6 +219,7 @@ export default function ProfilePage() {
             setGoogleReviewsCount(biz.google_reviews_count?.toString() || '')
             setGoogleMapsUrl(biz.google_maps_url || '')
             setWebsiteUrl(biz.website_url || '')
+            setWhatsappNumber(biz.whatsapp_number || '')
           }
         }
       } else {
@@ -341,33 +351,69 @@ export default function ProfilePage() {
     }
   }
 
-  const saveBusinessLinks = async () => {
+  const saveGoogleMapsUrl = async () => {
     if (!businessId) return
-
-    setBusinessLinksSaving(true)
-    setBusinessLinksSaved(false)
-    setBusinessLinksError(null)
-
+    setGoogleMapsSaving(true)
+    setGoogleMapsSaved(false)
+    setGoogleMapsError(null)
     try {
       const supabase = createClient()
       const { error } = await supabase
         .from('beauty_businesses')
-        .update({
-          google_maps_url: googleMapsUrl.trim() || null,
-          website_url: websiteUrl.trim() || null,
-          updated_at: new Date().toISOString(),
-        })
+        .update({ google_maps_url: googleMapsUrl.trim() || null, updated_at: new Date().toISOString() })
         .eq('id', businessId)
-
       if (error) throw error
-
-      setBusinessLinksSaved(true)
-      setTimeout(() => setBusinessLinksSaved(false), 3000)
+      setGoogleMapsSaved(true)
+      setTimeout(() => setGoogleMapsSaved(false), 3000)
     } catch (error) {
-      console.error('Error saving business links:', error)
-      setBusinessLinksError('Failed to save business links')
+      console.error('Error saving Google Maps URL:', error)
+      setGoogleMapsError('Failed to save Google Maps URL')
     } finally {
-      setBusinessLinksSaving(false)
+      setGoogleMapsSaving(false)
+    }
+  }
+
+  const saveWebsiteUrl = async () => {
+    if (!businessId) return
+    setWebsiteSaving(true)
+    setWebsiteSaved(false)
+    setWebsiteError(null)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('beauty_businesses')
+        .update({ website_url: websiteUrl.trim() || null, updated_at: new Date().toISOString() })
+        .eq('id', businessId)
+      if (error) throw error
+      setWebsiteSaved(true)
+      setTimeout(() => setWebsiteSaved(false), 3000)
+    } catch (error) {
+      console.error('Error saving website URL:', error)
+      setWebsiteError('Failed to save website URL')
+    } finally {
+      setWebsiteSaving(false)
+    }
+  }
+
+  const saveWhatsappNumber = async () => {
+    if (!businessId) return
+    setWhatsappSaving(true)
+    setWhatsappSaved(false)
+    setWhatsappError(null)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('beauty_businesses')
+        .update({ whatsapp_number: whatsappNumber.trim() || null, updated_at: new Date().toISOString() })
+        .eq('id', businessId)
+      if (error) throw error
+      setWhatsappSaved(true)
+      setTimeout(() => setWhatsappSaved(false), 3000)
+    } catch (error) {
+      console.error('Error saving WhatsApp number:', error)
+      setWhatsappError('Failed to save WhatsApp number')
+    } finally {
+      setWhatsappSaving(false)
     }
   }
 
@@ -1022,32 +1068,32 @@ export default function ProfilePage() {
                   value={googleMapsUrl}
                   onChange={(e) => {
                     setGoogleMapsUrl(e.target.value)
-                    setBusinessLinksError(null)
+                    setGoogleMapsError(null)
                   }}
-                  placeholder="https://maps.google.com/..."
+                  placeholder="Paste the Google Maps share location link here"
                   className="cosmic-input w-full"
                 />
               </div>
               <button
-                onClick={saveBusinessLinks}
-                disabled={businessLinksSaving}
+                onClick={saveGoogleMapsUrl}
+                disabled={googleMapsSaving}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
-                {businessLinksSaving ? 'Saving...' : businessLinksSaved ? 'Saved!' : 'Save'}
+                {googleMapsSaving ? 'Saving...' : googleMapsSaved ? 'Saved!' : 'Save'}
               </button>
 
-              {businessLinksSaved && (
+              {googleMapsSaved && (
                 <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
                   <p className="text-green-400 text-sm">
-                    Business links saved successfully!
+                    Google Maps URL saved successfully!
                   </p>
                 </div>
               )}
 
-              {businessLinksError && (
+              {googleMapsError && (
                 <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
                   <p className="text-red-400 text-sm">
-                    {businessLinksError}
+                    {googleMapsError}
                   </p>
                 </div>
               )}
@@ -1066,32 +1112,76 @@ export default function ProfilePage() {
                   value={websiteUrl}
                   onChange={(e) => {
                     setWebsiteUrl(e.target.value)
-                    setBusinessLinksError(null)
+                    setWebsiteError(null)
                   }}
                   placeholder="https://yourbusiness.com"
                   className="cosmic-input w-full"
                 />
               </div>
               <button
-                onClick={saveBusinessLinks}
-                disabled={businessLinksSaving}
+                onClick={saveWebsiteUrl}
+                disabled={websiteSaving}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
-                {businessLinksSaving ? 'Saving...' : businessLinksSaved ? 'Saved!' : 'Save'}
+                {websiteSaving ? 'Saving...' : websiteSaved ? 'Saved!' : 'Save'}
               </button>
 
-              {businessLinksSaved && (
+              {websiteSaved && (
                 <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
                   <p className="text-green-400 text-sm">
-                    Business links saved successfully!
+                    Website URL saved successfully!
                   </p>
                 </div>
               )}
 
-              {businessLinksError && (
+              {websiteError && (
                 <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
                   <p className="text-red-400 text-sm">
-                    {businessLinksError}
+                    {websiteError}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+          )}
+
+          {/* WhatsApp Card - Admin Only */}
+          {profile?.role === 'Admin' && businessId && (
+          <div className="cosmic-card-profile w-full">
+            <h2 className="text-lg md:text-xl font-semibold text-white mb-6">WhatsApp</h2>
+            <div className="space-y-4">
+              <div>
+                <input
+                  type="text"
+                  value={whatsappNumber}
+                  onChange={(e) => {
+                    setWhatsappNumber(e.target.value)
+                    setWhatsappError(null)
+                  }}
+                  placeholder="e.g. 971509629095"
+                  className="cosmic-input w-full"
+                />
+              </div>
+              <button
+                onClick={saveWhatsappNumber}
+                disabled={whatsappSaving}
+                className="cosmic-button-primary disabled:opacity-50 w-full"
+              >
+                {whatsappSaving ? 'Saving...' : whatsappSaved ? 'Saved!' : 'Save'}
+              </button>
+
+              {whatsappSaved && (
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                  <p className="text-green-400 text-sm">
+                    WhatsApp number saved successfully!
+                  </p>
+                </div>
+              )}
+
+              {whatsappError && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                  <p className="text-red-400 text-sm">
+                    {whatsappError}
                   </p>
                 </div>
               )}

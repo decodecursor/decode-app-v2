@@ -197,8 +197,6 @@ export default function OfferDetailClient() {
               {hasWebsite && (
                 <a
                   href={offer.website_url!}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="offers-website-btn offers-icon-only"
                   title="Visit Website"
                 >
@@ -227,7 +225,7 @@ export default function OfferDetailClient() {
       {/* Price */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-start gap-3">
-          <span className="offers-price text-[38px]">
+          <span className="offers-price text-[48px]">
             <DirhamSymbol size={18} /> {offer.price}
           </span>
           {hasDiscount && (
