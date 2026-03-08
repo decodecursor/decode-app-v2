@@ -144,7 +144,7 @@ export default function OfferDetailClient() {
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="text-base font-semibold text-white truncate">{offer.business_name}</p>
+            <p className="text-base font-semibold text-white truncate leading-tight">{offer.business_name}</p>
           </div>
           <div className="flex items-center justify-between text-sm text-white/50">
             <div className="flex items-center gap-3">
