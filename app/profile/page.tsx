@@ -1011,10 +1011,10 @@ export default function ProfilePage() {
           </div>
           )}
 
-          {/* Business Links Card - Admin Only */}
+          {/* Google Maps Card - Admin Only */}
           {profile?.role === 'Admin' && businessId && (
           <div className="cosmic-card-profile w-full">
-            <h2 className="text-lg md:text-xl font-semibold text-white mb-6">Business Links</h2>
+            <h2 className="text-lg md:text-xl font-semibold text-white mb-6">Google Maps</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Google Maps URL</label>
@@ -1025,11 +1025,43 @@ export default function ProfilePage() {
                     setGoogleMapsUrl(e.target.value)
                     setBusinessLinksError(null)
                   }}
-                  placeholder="https://maps.google.com/..."
+                  placeholder="Paste the Google Maps location share link here"
                   className="cosmic-input w-full"
                 />
                 <p className="text-xs text-gray-500 mt-1">Link to your Google Maps location</p>
               </div>
+              <button
+                onClick={saveBusinessLinks}
+                disabled={businessLinksSaving}
+                className="cosmic-button-primary disabled:opacity-50 w-full"
+              >
+                {businessLinksSaving ? 'Saving...' : businessLinksSaved ? 'Saved!' : 'Save'}
+              </button>
+
+              {businessLinksSaved && (
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                  <p className="text-green-400 text-sm">
+                    Business links saved successfully!
+                  </p>
+                </div>
+              )}
+
+              {businessLinksError && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                  <p className="text-red-400 text-sm">
+                    {businessLinksError}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+          )}
+
+          {/* Website Card - Admin Only */}
+          {profile?.role === 'Admin' && businessId && (
+          <div className="cosmic-card-profile w-full">
+            <h2 className="text-lg md:text-xl font-semibold text-white mb-6">Website</h2>
+            <div className="space-y-4">
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Website URL</label>
                 <input
