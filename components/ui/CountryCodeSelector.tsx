@@ -26,6 +26,21 @@ interface CountryCodeSelectorProps {
   className?: string;
 }
 
+function FlagImage({ countryId, fallback, size = 20 }: { countryId: string; fallback: string; size?: number }) {
+  const [error, setError] = useState(false);
+  if (error) return <span className="emoji-font">{fallback}</span>;
+  return (
+    <img
+      src={`https://flagcdn.com/w40/${countryId.toLowerCase()}.png`}
+      alt=""
+      width={size}
+      height={Math.round(size * 0.75)}
+      className="flex-shrink-0 rounded-sm object-cover"
+      onError={() => setError(true)}
+    />
+  );
+}
+
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -203,7 +218,7 @@ export function CountryCodeSelector({
       onClick={() => handleSelect(country, close)}
       className={`w-full flex items-center gap-3 px-3 py-2.5 sm:py-2 transition-colors ${styles.option}`}
     >
-      <span className="text-xl flex-shrink-0 emoji-font">{country.flag}</span>
+      <FlagImage countryId={country.id} fallback={country.flag} size={20} />
       <span className="flex-1 text-left text-sm truncate">
         {highlightMatch(country.country, searchQuery, variant)}
       </span>
@@ -275,7 +290,7 @@ export function CountryCodeSelector({
   // Trigger button content
   const triggerContent = (
     <>
-      <span className="text-lg emoji-font">{selectedCountry.flag}</span>
+      <FlagImage countryId={selectedCountry.id} fallback={selectedCountry.flag} size={20} />
       <span className="text-sm font-medium">{selectedCountry.code}</span>
       <svg
         className="w-4 h-4 text-current opacity-60"

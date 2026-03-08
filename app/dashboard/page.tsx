@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { useUser } from '@/providers/UserContext'
 import { USER_ROLES } from '@/types/user'
-import { EmailVerificationGate } from '@/components/EmailVerificationGate'
 import { detectRedirectLoop, clearRedirectLoop, getDeviceInfo } from '@/utils/storage-helper'
 
 
@@ -415,10 +414,6 @@ export default function Dashboard() {
 
 
   return (
-    <EmailVerificationGate
-      userId={user?.id}
-      userEmail={user?.email}
-    >
       <div className="cosmic-bg dashboard-page">
         <div className="min-h-screen px-4 py-1.5 md:py-8">
 
@@ -919,6 +914,5 @@ export default function Dashboard() {
 
         </div>
       </div>
-    </EmailVerificationGate>
   )
 }
