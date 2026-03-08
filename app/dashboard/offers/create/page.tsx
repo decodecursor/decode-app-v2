@@ -312,10 +312,10 @@ export default function CreateOfferPage() {
             Add your Google rating &amp; reviews to your business profile before creating offers.
           </p>
           <button
-            onClick={() => router.push('/dashboard/settings')}
+            onClick={() => router.push('/profile')}
             className="cosmic-button-primary w-full py-3"
           >
-            Go to Settings
+            Go to Profile
           </button>
         </div>
       </div>
