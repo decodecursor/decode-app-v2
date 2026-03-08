@@ -209,7 +209,7 @@ function OfferCard({ offer }: { offer: PublicOffer }) {
         </h3>
 
         {/* Description */}
-        <p className="text-xs text-white/40 line-clamp-2 mb-3 min-h-[2.5em]">
+        <p className="text-xs text-white/40 line-clamp-2 mb-3 min-h-[2.5em] text-justify">
           {offer.description || ''}
         </p>
 
