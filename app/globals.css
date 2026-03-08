@@ -681,6 +681,15 @@ body {
   color: #374151;
 }
 
+.instagram-avatar .avatar-fallback .avatar-add-photo-text {
+  font-size: 9px;
+  font-weight: 500;
+  color: #9CA3AF;
+  margin-top: 3px;
+  line-height: 1;
+  text-align: center;
+}
+
 @media (min-width: 768px) {
   .instagram-avatar {
     width: 90px;

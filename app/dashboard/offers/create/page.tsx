@@ -89,7 +89,7 @@ export default function CreateOfferPage() {
 
       const { data: profile } = await supabase
         .from('users')
-        .select('role, professional_center_name, instagram_handle, city, profile_photo_url')
+        .select('role, professional_center_name, company_name, instagram_handle, city, profile_photo_url')
         .eq('id', user.id)
         .single()
 
@@ -106,7 +106,7 @@ export default function CreateOfferPage() {
         .single()
 
       if (!business) {
-        const name = profile.professional_center_name
+        const name = profile.professional_center_name || profile.company_name
         const ig = profile.instagram_handle
         const city = profile.city
 
