@@ -1158,7 +1158,7 @@ export default function ProfilePage() {
                     setWhatsappNumber(e.target.value)
                     setWhatsappError(null)
                   }}
-                  placeholder="e.g. 971509629095"
+                  placeholder="971509629095"
                   className="cosmic-input w-full"
                 />
               </div>

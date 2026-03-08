@@ -118,7 +118,7 @@ export default function OfferDetailClient() {
       </div>
 
       {/* Salon Info */}
-      <div className="flex items-center gap-3 mb-5">
+      <div className="flex items-center gap-2 mb-5">
         {instagramUrl ? (
           <a href={instagramUrl} target="_blank" rel="noopener noreferrer">
             <div className="instagram-avatar-sm">
@@ -147,7 +147,7 @@ export default function OfferDetailClient() {
             <p className="text-base font-semibold text-white truncate">{offer.business_name}</p>
           </div>
           <div className="flex items-center justify-between text-sm text-white/50">
-            <div className="flex items-center gap-[14px]">
+            <div className="flex items-center gap-3">
               {offer.city && <span>{offer.city}</span>}
               {offer.google_rating != null && (
                 <span className="inline-flex items-center gap-0.5">
@@ -165,7 +165,7 @@ export default function OfferDetailClient() {
           const hasWebsite = !!offer.website_url
           const multipleButtons = hasWhatsapp && (hasMaps || hasWebsite)
           return (
-            <div className="flex items-center gap-2">
+            <div className={`flex items-center ${hasWhatsapp && hasMaps && hasWebsite ? 'gap-1' : 'gap-2'}`}>
               {hasWhatsapp && (
                 <a
                   href={`https://wa.me/${offer.whatsapp_number!.replace(/[^0-9]/g, '')}`}
@@ -223,7 +223,7 @@ export default function OfferDetailClient() {
       )}
 
       {/* Price */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-stretch justify-between mb-4">
         <div className="flex items-start gap-3">
           <span className="offers-price text-[48px]">
             <DirhamSymbol size={18} /> {offer.price}
@@ -235,7 +235,7 @@ export default function OfferDetailClient() {
           )}
         </div>
         {/* Right: offers left + share */}
-        <div className="flex flex-col items-end gap-0">
+        <div className="flex flex-col items-end justify-between">
           <span className="text-[13px] text-white/50 pr-2">{remaining} offers left</span>
           <button
             onClick={() => {
