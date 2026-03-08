@@ -235,7 +235,7 @@ export default function OfferDetailClient() {
           )}
         </div>
         {/* Right: offers left + share */}
-        <div className="flex flex-col items-end justify-between">
+        <div className="flex flex-col items-end justify-center gap-1.5">
           <span className="text-[13px] text-white/50 pr-2">{remaining} offers left</span>
           <button
             onClick={() => {
