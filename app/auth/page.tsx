@@ -4,9 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { getUserWithProxy } from '@/utils/auth-helper'
-import RoleSelectionModal from '@/components/RoleSelectionModal'
-import ModelRegistrationModal from '@/components/ModelRegistrationModal'
-import BuyerRegistrationModal from '@/components/BuyerRegistrationModal'
+import ProfileCompletionModal from '@/components/ProfileCompletionModal'
 import { safeLocalStorage, safeSessionStorage } from '@/utils/storage-helper'
 import { CountryCodeSelector } from '@/components/ui/CountryCodeSelector'
 import { findCountryByCode } from '@/lib/country-codes'
@@ -611,6 +609,8 @@ function AuthPageContent() {
     if (role === 'Buyer') {
       const redirectTo = searchParams?.get('redirectTo') || '/offers'
       window.location.href = redirectTo
+    } else if (role === 'Model') {
+      window.location.href = '/dashboard?new_user=true&welcome=model'
     } else {
       window.location.href = '/dashboard?new_user=true'
     }
@@ -688,54 +688,21 @@ function AuthPageContent() {
     // Also check searchParams hook (more reliable during React hydration)
     const searchParamsRole = searchParams?.get('role')
     const mappedSearchParamsRole = searchParamsRole ? urlRoleMapping[searchParamsRole.toLowerCase()] : null
-    // URL param is the most reliable source - check it directly for model role
-    const urlRoleDirect = urlParams?.get('role')?.toLowerCase() || searchParams?.get('role')?.toLowerCase()
     // Priority: URL params > searchParams hook > storage > state
     const effectiveRole = mappedUrlRole || mappedSearchParamsRole || storedRole || preselectedRole
 
-    // Normalize role for comparison (case-insensitive)
-    const normalizedRole = effectiveRole?.toLowerCase()
-    const isBuyerRole = urlRoleDirect === 'buyer' || normalizedRole === 'buyer'
-    const isAdminOrStaff = urlRoleDirect === 'admin' || urlRoleDirect === 'user' || normalizedRole === 'admin' || normalizedRole === 'staff'
-    const isModelRole = urlRoleDirect === 'model' || normalizedRole === 'model'
-    console.log('🎬 [AUTH] Modal rendering - urlRoleDirect:', urlRoleDirect, 'effective:', effectiveRole, 'isModelRole:', isModelRole)
+    console.log('🎬 [AUTH] Modal rendering - effectiveRole:', effectiveRole)
 
     return (
       <>
-        {isBuyerRole ? (
-          <BuyerRegistrationModal
-            isOpen={showRoleModal}
-            userEmail={authenticatedEmail || email}
-            onComplete={handleRoleModalComplete}
-          />
-        ) : isModelRole ? (
-          <ModelRegistrationModal
-            isOpen={showRoleModal}
-            userEmail={authenticatedEmail || email}
-            onComplete={handleRoleModalComplete}
-          />
-        ) : isAdminOrStaff ? (
-          <RoleSelectionModal
-            isOpen={showRoleModal}
-            userEmail={authenticatedEmail || email}
-            termsAcceptedAt={new Date().toISOString()}
-            inviteData={inviteData}
-            preselectedRole={effectiveRole}
-            onClose={() => setShowRoleModal(false)}
-            onComplete={handleRoleModalComplete}
-          />
-        ) : (
-          // Default to RoleSelectionModal only if no role specified
-          <RoleSelectionModal
-            isOpen={showRoleModal}
-            userEmail={authenticatedEmail || email}
-            termsAcceptedAt={new Date().toISOString()}
-            inviteData={inviteData}
-            preselectedRole={effectiveRole}
-            onClose={() => setShowRoleModal(false)}
-            onComplete={handleRoleModalComplete}
-          />
-        )}
+        <ProfileCompletionModal
+          isOpen={showRoleModal}
+          userEmail={authenticatedEmail || email}
+          preselectedRole={effectiveRole}
+          inviteData={inviteData}
+          onComplete={handleRoleModalComplete}
+          onClose={() => setShowRoleModal(false)}
+        />
       <div className="auth-page cosmic-bg">
         <div className="min-h-screen flex items-center justify-center px-4 py-8">
           <div className="cosmic-card-login">
@@ -1159,18 +1126,12 @@ function AuthPageContent() {
   }
 
   // Fallback return - should never reach here but just in case
-  // Use the same URL-aware, normalized check as the main block
   const fallbackUrlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
   const fallbackUrlRole = fallbackUrlParams?.get('role')
   const fallbackRoleMapping: { [key: string]: string } = { 'admin': 'Admin', 'user': 'Staff', 'model': 'Model', 'buyer': 'Buyer' }
   const fallbackMappedUrlRole = fallbackUrlRole ? fallbackRoleMapping[fallbackUrlRole.toLowerCase()] : null
   const fallbackStoredRole = safeLocalStorage.getItem('decode_preselectedRole') || safeSessionStorage.getItem('preselectedRole') || getRoleCookie()
   const effectiveRole = fallbackMappedUrlRole || fallbackStoredRole || preselectedRole
-  const fallbackNormalized = effectiveRole?.toLowerCase()
-  const fallbackIsBuyer = fallbackNormalized === 'buyer'
-  const fallbackIsModel = fallbackNormalized === 'model'
-  const fallbackIsAdminOrStaff = fallbackNormalized === 'admin' || fallbackNormalized === 'staff'
-  console.log('🎬 [AUTH] Loading state - effectiveRole:', effectiveRole, 'showRoleModal:', showRoleModal)
 
   return (
     <>
@@ -1180,40 +1141,14 @@ function AuthPageContent() {
         </div>
       </div>
 
-      {/* Role Selection Modal */}
-      {fallbackIsBuyer ? (
-        <BuyerRegistrationModal
-          isOpen={showRoleModal}
-          userEmail={authenticatedEmail || email}
-          onComplete={handleRoleModalComplete}
-        />
-      ) : fallbackIsModel ? (
-        <ModelRegistrationModal
-          isOpen={showRoleModal}
-          userEmail={authenticatedEmail || email}
-          onComplete={handleRoleModalComplete}
-        />
-      ) : fallbackIsAdminOrStaff ? (
-        <RoleSelectionModal
-          isOpen={showRoleModal}
-          userEmail={authenticatedEmail || email}
-          termsAcceptedAt={new Date().toISOString()}
-          inviteData={inviteData}
-          preselectedRole={effectiveRole}
-          onClose={() => setShowRoleModal(false)}
-          onComplete={handleRoleModalComplete}
-        />
-      ) : (
-        <RoleSelectionModal
-          isOpen={showRoleModal}
-          userEmail={authenticatedEmail || email}
-          termsAcceptedAt={new Date().toISOString()}
-          inviteData={inviteData}
-          preselectedRole={effectiveRole}
-          onClose={() => setShowRoleModal(false)}
-          onComplete={handleRoleModalComplete}
-        />
-      )}
+      <ProfileCompletionModal
+        isOpen={showRoleModal}
+        userEmail={authenticatedEmail || email}
+        preselectedRole={effectiveRole}
+        inviteData={inviteData}
+        onComplete={handleRoleModalComplete}
+        onClose={() => setShowRoleModal(false)}
+      />
     </>
   )
 }
