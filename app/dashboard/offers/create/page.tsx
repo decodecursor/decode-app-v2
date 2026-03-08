@@ -413,7 +413,7 @@ export default function CreateOfferPage() {
             <div>
               <label className="block text-xs text-gray-100 mb-1">Offer Price</label>
               <div className={`cosmic-input flex items-center gap-3 ${errors.price ? 'border-red-500/60' : ''}`}>
-                <DirhamSymbol size={16} className="text-white/50 flex-shrink-0" />
+                <DirhamSymbol size={14} className="text-white/50 flex-shrink-0" />
                 <input
                   type="text"
                   inputMode="decimal"
@@ -431,7 +431,7 @@ export default function CreateOfferPage() {
             <div>
               <label className="block text-xs text-gray-100 mb-1">Original Price</label>
               <div className={`cosmic-input flex items-center gap-3 ${errors.originalPrice ? 'border-red-500/60' : ''}`}>
-                <DirhamSymbol size={16} className="text-white/50 flex-shrink-0" />
+                <DirhamSymbol size={14} className="text-white/50 flex-shrink-0" />
                 <input
                   type="text"
                   inputMode="decimal"

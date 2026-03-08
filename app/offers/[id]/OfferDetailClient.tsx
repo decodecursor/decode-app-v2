@@ -34,7 +34,7 @@ export default function OfferDetailClient() {
     setLoading(true)
     const { data, error: err } = await getOfferById(id)
     if (err || !data) {
-      setError('Offer not found or no longer available.')
+      setError('Offer no longer available.')
     } else {
       setOffer(data as unknown as PublicOffer)
     }
@@ -71,12 +71,12 @@ export default function OfferDetailClient() {
     return (
       <div className="offers-empty">
         <div className="mb-4">
-          <svg className="w-12 h-12 mx-auto opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-12 h-12 mx-auto text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
         </div>
-        <p className="text-lg font-medium text-white/50 mb-1">{error || 'Offer not found'}</p>
-        <Link href="/offers" className="text-sm text-purple-400 hover:text-purple-300 mt-3 inline-block">
+        <p className="text-base font-medium text-white/50 mb-1">{error || 'Offer no longer available.'}</p>
+        <Link href="/offers" className="text-sm mt-3 inline-block" style={{ color: '#E1306C' }}>
           ← Back
         </Link>
       </div>

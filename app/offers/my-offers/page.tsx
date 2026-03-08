@@ -83,12 +83,11 @@ export default function MyDealsPage() {
       {purchases.length === 0 ? (
         <div className="offers-empty">
           <div className="mb-4">
-            <svg className="w-12 h-12 mx-auto opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-12 h-12 mx-auto text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
           </div>
           <p className="text-lg font-medium text-white/50 mb-1">No purchases yet</p>
-          <p className="text-sm text-white/30">Your beauty offers will appear here.</p>
         </div>
       ) : (
         <div className="space-y-3">
