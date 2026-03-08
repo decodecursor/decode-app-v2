@@ -225,7 +225,7 @@ export default function OfferDetailClient() {
       {/* Price */}
       <div className="flex items-stretch justify-between mb-4">
         <div className="flex items-baseline gap-3">
-          <span className="offers-price text-[48px] leading-none">
+          <span className="offers-price text-[40px] leading-none">
             <DirhamSymbol size={18} /> {offer.price}
           </span>
           {hasDiscount && (
