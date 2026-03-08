@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { USER_ROLES } from '@/types/user'
 import OfferImageCropModal from '@/components/offers/OfferImageCropModal'
+import { DirhamSymbol } from '@/components/DirhamSymbol'
 
 const CATEGORIES = ['aesthetics', 'hair', 'nails', 'spa', 'pilates'] as const
 const DURATIONS = [
@@ -411,8 +412,8 @@ export default function CreateOfferPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-gray-100 mb-1">Offer Price</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-sm pointer-events-none select-none">د.إ</span>
+              <div className={`cosmic-input flex items-center gap-3 ${errors.price ? 'border-red-500/60' : ''}`}>
+                <DirhamSymbol size={16} className="text-white/50 flex-shrink-0" />
                 <input
                   type="text"
                   inputMode="decimal"
@@ -422,15 +423,15 @@ export default function CreateOfferPage() {
                     setPrice(raw ? formatWithCommas(raw) : '')
                   }}
                   placeholder="99"
-                  className={`cosmic-input pl-9 ${errors.price ? 'border-red-500/60' : ''}`}
+                  className="flex-1 bg-transparent outline-none text-white placeholder-white/30 min-w-0"
                 />
               </div>
               {errors.price && <p className="text-red-400 text-[11px] mt-1">Min 5 AED</p>}
             </div>
             <div>
               <label className="block text-xs text-gray-100 mb-1">Original Price</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-sm pointer-events-none select-none">د.إ</span>
+              <div className={`cosmic-input flex items-center gap-3 ${errors.originalPrice ? 'border-red-500/60' : ''}`}>
+                <DirhamSymbol size={16} className="text-white/50 flex-shrink-0" />
                 <input
                   type="text"
                   inputMode="decimal"
@@ -440,7 +441,7 @@ export default function CreateOfferPage() {
                     setOriginalPrice(raw ? formatWithCommas(raw) : '')
                   }}
                   placeholder="199"
-                  className={`cosmic-input pl-9 ${errors.originalPrice ? 'border-red-500/60' : ''}`}
+                  className="flex-1 bg-transparent outline-none text-white placeholder-white/30 min-w-0"
                 />
               </div>
               {errors.originalPrice && <p className="text-red-400 text-[11px] mt-1">Must be higher than offer price</p>}

@@ -173,23 +173,23 @@ export default function PurchasesPage() {
                   <div className="grid grid-cols-3 landscape:grid-cols-5 md:grid-cols-5 gap-[1px] landscape:gap-[6px] md:gap-[6px] max-w-2xl pr-20 landscape:pr-6 md:pr-6">
                     <div>
                       <p className="text-[10px] text-gray-400 uppercase tracking-wider">Offer</p>
-                      <p className="text-[11px] landscape:text-xs md:text-xs text-white font-bold truncate">{offerTitle}</p>
+                      <p className="text-[10px] landscape:text-xs md:text-xs text-white font-bold truncate">{offerTitle}</p>
                     </div>
                     <div className="hidden landscape:block md:block">
                       <p className="text-[10px] text-gray-400 uppercase tracking-wider">Buyer</p>
-                      <p className="text-[11px] landscape:text-xs md:text-xs text-white font-bold truncate">{buyerName}</p>
+                      <p className="text-[10px] landscape:text-xs md:text-xs text-white font-bold truncate">{buyerName}</p>
                     </div>
                     <div>
                       <p className="text-[10px] text-gray-400 uppercase tracking-wider">Amount</p>
-                      <p className="text-[11px] landscape:text-xs md:text-xs text-white font-bold">{Number(p.amount_paid).toLocaleString()} AED</p>
+                      <p className="text-[10px] landscape:text-xs md:text-xs text-white font-bold">{Number(p.amount_paid).toLocaleString()} AED</p>
                     </div>
                     <div>
                       <p className="text-[10px] text-gray-400 uppercase tracking-wider">Purchased</p>
-                      <p className="text-[11px] landscape:text-xs md:text-xs text-white font-bold">{new Date(p.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                      <p className="text-[10px] landscape:text-xs md:text-xs text-white font-bold">{new Date(p.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                     </div>
                     <div className="hidden landscape:block md:block">
                       <p className="text-[10px] text-gray-400 uppercase tracking-wider">Redeemed</p>
-                      <p className="text-[11px] landscape:text-xs md:text-xs text-white font-bold">{p.redeemed_at ? new Date(p.redeemed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</p>
+                      <p className="text-[10px] landscape:text-xs md:text-xs text-white font-bold">{p.redeemed_at ? new Date(p.redeemed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</p>
                     </div>
                   </div>
                 </div>
