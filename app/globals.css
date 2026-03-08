@@ -2385,6 +2385,47 @@ body {
   background: rgba(37, 211, 102, 0.25);
 }
 
+.offers-maps-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 50px;
+  background: rgba(66, 133, 244, 0.15);
+  color: #4285F4;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.offers-maps-btn:hover {
+  background: rgba(66, 133, 244, 0.25);
+}
+
+.offers-website-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 50px;
+  background: rgba(168, 162, 185, 0.15);
+  color: #a8a2b9;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.offers-website-btn:hover {
+  background: rgba(168, 162, 185, 0.25);
+}
+
+.offers-icon-only {
+  padding: 10px;
+  gap: 0;
+}
+
 /* Mobile: category pills scroll */
 @media (max-width: 768px) {
   .offers-category-scroll {

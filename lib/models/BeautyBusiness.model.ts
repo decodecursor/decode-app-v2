@@ -10,6 +10,8 @@ export interface BeautyBusiness {
   instagram_handle: string;
   city: string;
   business_photo_url?: string;
+  google_maps_url?: string;
+  website_url?: string;
   created_at: string;
   updated_at: string;
 }
@@ -27,6 +29,8 @@ export interface UpdateBeautyBusinessDto {
   instagram_handle?: string;
   city?: string;
   business_photo_url?: string;
+  google_maps_url?: string;
+  website_url?: string;
 }
 
 export interface BeautyBusinessListItem {

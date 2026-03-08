@@ -159,21 +159,59 @@ export default function OfferDetailClient() {
             </div>
           </div>
         </div>
-        {offer.whatsapp_number && (
-          <a
-            href={`https://wa.me/${offer.whatsapp_number.replace(/[^0-9]/g, '')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="offers-whatsapp-btn"
-            title="Chat on WhatsApp"
-          >
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
-              <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a8 8 0 01-4.243-1.214l-.252-.156-2.786.828.828-2.786-.156-.252A8 8 0 1112 20z" />
-            </svg>
-            <span>Chat Now</span>
-          </a>
-        )}
+        {(() => {
+          const hasWhatsapp = !!offer.whatsapp_number
+          const hasMaps = !!offer.google_maps_url
+          const hasWebsite = !!offer.website_url
+          const multipleButtons = hasWhatsapp && (hasMaps || hasWebsite)
+          return (
+            <div className="flex items-center gap-2">
+              {hasWhatsapp && (
+                <a
+                  href={`https://wa.me/${offer.whatsapp_number!.replace(/[^0-9]/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={multipleButtons ? 'offers-whatsapp-btn offers-icon-only' : 'offers-whatsapp-btn'}
+                  title="Chat on WhatsApp"
+                >
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                    <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a8 8 0 01-4.243-1.214l-.252-.156-2.786.828.828-2.786-.156-.252A8 8 0 1112 20z" />
+                  </svg>
+                  {!multipleButtons && <span>Chat Now</span>}
+                </a>
+              )}
+              {hasMaps && (
+                <a
+                  href={offer.google_maps_url!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="offers-maps-btn offers-icon-only"
+                  title="View on Google Maps"
+                >
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
+                  </svg>
+                </a>
+              )}
+              {hasWebsite && (
+                <a
+                  href={offer.website_url!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="offers-website-btn offers-icon-only"
+                  title="Visit Website"
+                >
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="2" y1="12" x2="22" y2="12" />
+                    <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+                  </svg>
+                </a>
+              )}
+            </div>
+          )
+        })()}
       </div>
 
       {/* Title */}

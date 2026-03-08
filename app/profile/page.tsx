@@ -53,6 +53,13 @@ export default function ProfilePage() {
   const [googleRatingError, setGoogleRatingError] = useState<string | null>(null)
   const [businessId, setBusinessId] = useState<string | null>(null)
 
+  // Business links states
+  const [googleMapsUrl, setGoogleMapsUrl] = useState('')
+  const [websiteUrl, setWebsiteUrl] = useState('')
+  const [businessLinksSaving, setBusinessLinksSaving] = useState(false)
+  const [businessLinksSaved, setBusinessLinksSaved] = useState(false)
+  const [businessLinksError, setBusinessLinksError] = useState<string | null>(null)
+
   // Display name states
   const [displayName, setDisplayName] = useState('')
   const [displayNameSaving, setDisplayNameSaving] = useState(false)
@@ -193,7 +200,7 @@ export default function ProfilePage() {
         if (profileData.role === 'Admin' || profileData.role === USER_ROLES.STAFF) {
           const { data: biz } = await supabase
             .from('beauty_businesses')
-            .select('id, google_rating, google_reviews_count')
+            .select('id, google_rating, google_reviews_count, google_maps_url, website_url')
             .eq('creator_id', user.id)
             .single()
 
@@ -201,6 +208,8 @@ export default function ProfilePage() {
             setBusinessId(biz.id)
             setGoogleRating(biz.google_rating?.toString() || '')
             setGoogleReviewsCount(biz.google_reviews_count?.toString() || '')
+            setGoogleMapsUrl(biz.google_maps_url || '')
+            setWebsiteUrl(biz.website_url || '')
           }
         }
       } else {
@@ -329,6 +338,36 @@ export default function ProfilePage() {
       setGoogleRatingError('Failed to save Google reviews')
     } finally {
       setGoogleRatingSaving(false)
+    }
+  }
+
+  const saveBusinessLinks = async () => {
+    if (!businessId) return
+
+    setBusinessLinksSaving(true)
+    setBusinessLinksSaved(false)
+    setBusinessLinksError(null)
+
+    try {
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('beauty_businesses')
+        .update({
+          google_maps_url: googleMapsUrl.trim() || null,
+          website_url: websiteUrl.trim() || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', businessId)
+
+      if (error) throw error
+
+      setBusinessLinksSaved(true)
+      setTimeout(() => setBusinessLinksSaved(false), 3000)
+    } catch (error) {
+      console.error('Error saving business links:', error)
+      setBusinessLinksError('Failed to save business links')
+    } finally {
+      setBusinessLinksSaving(false)
     }
   }
 
@@ -965,6 +1004,66 @@ export default function ProfilePage() {
                 <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
                   <p className="text-red-400 text-sm">
                     {googleRatingError}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+          )}
+
+          {/* Business Links Card - Admin Only */}
+          {profile?.role === 'Admin' && businessId && (
+          <div className="cosmic-card-profile w-full">
+            <h2 className="text-lg md:text-xl font-semibold text-white mb-6">Business Links</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Google Maps URL</label>
+                <input
+                  type="url"
+                  value={googleMapsUrl}
+                  onChange={(e) => {
+                    setGoogleMapsUrl(e.target.value)
+                    setBusinessLinksError(null)
+                  }}
+                  placeholder="https://maps.google.com/..."
+                  className="cosmic-input w-full"
+                />
+                <p className="text-xs text-gray-500 mt-1">Link to your Google Maps location</p>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Website URL</label>
+                <input
+                  type="url"
+                  value={websiteUrl}
+                  onChange={(e) => {
+                    setWebsiteUrl(e.target.value)
+                    setBusinessLinksError(null)
+                  }}
+                  placeholder="https://yourbusiness.com"
+                  className="cosmic-input w-full"
+                />
+                <p className="text-xs text-gray-500 mt-1">Your business website or booking page</p>
+              </div>
+              <button
+                onClick={saveBusinessLinks}
+                disabled={businessLinksSaving}
+                className="cosmic-button-primary disabled:opacity-50 w-full"
+              >
+                {businessLinksSaving ? 'Saving...' : businessLinksSaved ? 'Saved!' : 'Save'}
+              </button>
+
+              {businessLinksSaved && (
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                  <p className="text-green-400 text-sm">
+                    Business links saved successfully!
+                  </p>
+                </div>
+              )}
+
+              {businessLinksError && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                  <p className="text-red-400 text-sm">
+                    {businessLinksError}
                   </p>
                 </div>
               )}

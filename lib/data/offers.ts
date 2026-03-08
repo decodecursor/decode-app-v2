@@ -29,6 +29,8 @@ export interface PublicOffer {
   google_reviews_count: number | null
   whatsapp_number: string | null
   instagram_handle: string | null
+  google_maps_url: string | null
+  website_url: string | null
 }
 
 const PAGE_SIZE = 20
