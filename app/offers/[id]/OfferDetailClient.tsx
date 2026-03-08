@@ -146,7 +146,7 @@ export default function OfferDetailClient() {
           <div className="flex items-center gap-2">
             <p className="text-base font-semibold text-white truncate leading-tight">{offer.business_name}</p>
           </div>
-          <div className="flex items-center justify-between text-sm text-white/50">
+          <div className="flex items-center justify-between text-[13px] text-white/50">
             <div className="flex items-center gap-3">
               {offer.city && <span>{offer.city}</span>}
               {offer.google_rating != null && (
@@ -225,7 +225,7 @@ export default function OfferDetailClient() {
       {/* Price */}
       <div className="flex items-stretch justify-between mb-4">
         <div className="flex items-baseline gap-3">
-          <span className="offers-price text-[48px]">
+          <span className="offers-price text-[48px] leading-none">
             <DirhamSymbol size={18} /> {offer.price}
           </span>
           {hasDiscount && (
