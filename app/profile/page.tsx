@@ -1016,6 +1016,18 @@ export default function ProfilePage() {
           <div className="cosmic-card-profile w-full">
             <h2 className="text-lg md:text-xl font-semibold text-white mb-6">Google Maps</h2>
             <div className="space-y-4">
+              <div>
+                <input
+                  type="url"
+                  value={googleMapsUrl}
+                  onChange={(e) => {
+                    setGoogleMapsUrl(e.target.value)
+                    setBusinessLinksError(null)
+                  }}
+                  placeholder="https://maps.google.com/..."
+                  className="cosmic-input w-full"
+                />
+              </div>
               <button
                 onClick={saveBusinessLinks}
                 disabled={businessLinksSaving}
@@ -1049,7 +1061,6 @@ export default function ProfilePage() {
             <h2 className="text-lg md:text-xl font-semibold text-white mb-6">Website</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs text-gray-400 mb-1">Website URL</label>
                 <input
                   type="url"
                   value={websiteUrl}
@@ -1060,7 +1071,6 @@ export default function ProfilePage() {
                   placeholder="https://yourbusiness.com"
                   className="cosmic-input w-full"
                 />
-                <p className="text-xs text-gray-500 mt-1">Your business website or booking page</p>
               </div>
               <button
                 onClick={saveBusinessLinks}
