@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
@@ -22,7 +22,7 @@ interface Offer {
   offer_code: string | null
 }
 
-export default function ManageOffersPage() {
+function ManageOffersContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
@@ -298,5 +298,13 @@ export default function ManageOffersPage() {
         loading={!!deactivating}
       />
     </div>
+  )
+}
+
+export default function ManageOffersPage() {
+  return (
+    <Suspense fallback={null}>
+      <ManageOffersContent />
+    </Suspense>
   )
 }
