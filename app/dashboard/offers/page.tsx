@@ -206,7 +206,7 @@ function ManageOffersContent() {
 
                   {/* Info Grid */}
                   <div className="flex-1 min-w-0">
-                    <div className="grid grid-cols-2 landscape:grid-cols-4 md:grid-cols-4 gap-x-2 md:gap-x-[9px] gap-y-[4px] md:gap-y-2">
+                    <div className="grid grid-cols-2 landscape:grid-cols-4 md:grid-cols-4 gap-x-2 md:gap-x-[10px] gap-y-[4px] md:gap-y-2">
                       {/* Portrait-visible: Title, Expires, Sold, Earned */}
                       <div>
                         <p className="text-[8px] md:text-[10px] text-gray-300 uppercase tracking-wider font-medium">Title</p>
