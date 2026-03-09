@@ -187,7 +187,7 @@ function ManageOffersContent() {
                 <Link
                   href={`/offers/${offer.id}`}
                   key={offer.id}
-                  className="bg-[#0d1529] border border-white/[0.15] rounded-xl hover:bg-[#111d35] hover:border-white/25 transition-colors p-3 gap-3 md:p-4 flex items-center md:gap-4 no-underline block"
+                  className="bg-black/20 border border-white/[0.15] rounded-xl hover:bg-black/30 hover:border-white/25 transition-colors p-3 gap-3 md:p-4 flex items-center md:gap-4 no-underline block"
                 >
                   {/* Thumbnail */}
                   {offer.image_url ? (
