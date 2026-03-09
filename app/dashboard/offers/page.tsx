@@ -162,7 +162,7 @@ function ManageOffersContent() {
         {missingContactFields.length > 0 && (
           <div className="mb-4 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3 animate-fade-in">
             <p className="text-amber-300 text-xs">
-              Your offer is live but missing: <span className="font-semibold">{missingContactFields.join(', ')}</span>
+              Offer is published but missing data: <span className="font-semibold">{missingContactFields.join(', ')}</span>
             </p>
             <Link href="/offers/profile" className="text-amber-400 hover:text-amber-300 text-xs mt-1 inline-block no-underline">
               Add in Profile &rarr;
