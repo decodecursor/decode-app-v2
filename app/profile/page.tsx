@@ -51,6 +51,8 @@ export default function ProfilePage() {
   const [googleRatingSaving, setGoogleRatingSaving] = useState(false)
   const [googleRatingSaved, setGoogleRatingSaved] = useState(false)
   const [googleRatingError, setGoogleRatingError] = useState<string | null>(null)
+  const [originalGoogleRating, setOriginalGoogleRating] = useState('')
+  const [originalGoogleReviewsCount, setOriginalGoogleReviewsCount] = useState('')
   const [businessId, setBusinessId] = useState<string | null>(null)
 
   // Business links states
@@ -58,16 +60,19 @@ export default function ProfilePage() {
   const [googleMapsSaving, setGoogleMapsSaving] = useState(false)
   const [googleMapsSaved, setGoogleMapsSaved] = useState(false)
   const [googleMapsError, setGoogleMapsError] = useState<string | null>(null)
+  const [originalGoogleMapsUrl, setOriginalGoogleMapsUrl] = useState('')
 
   const [websiteUrl, setWebsiteUrl] = useState('')
   const [websiteSaving, setWebsiteSaving] = useState(false)
   const [websiteSaved, setWebsiteSaved] = useState(false)
   const [websiteError, setWebsiteError] = useState<string | null>(null)
+  const [originalWebsiteUrl, setOriginalWebsiteUrl] = useState('')
 
   const [whatsappNumber, setWhatsappNumber] = useState('')
   const [whatsappSaving, setWhatsappSaving] = useState(false)
   const [whatsappSaved, setWhatsappSaved] = useState(false)
   const [whatsappError, setWhatsappError] = useState<string | null>(null)
+  const [originalWhatsappNumber, setOriginalWhatsappNumber] = useState('')
 
   // Display name states
   const [displayName, setDisplayName] = useState('')
@@ -220,6 +225,11 @@ export default function ProfilePage() {
             setGoogleMapsUrl(biz.google_maps_url || '')
             setWebsiteUrl(biz.website_url || '')
             setWhatsappNumber(biz.whatsapp_number || '')
+            setOriginalGoogleRating(biz.google_rating?.toString() || '')
+            setOriginalGoogleReviewsCount(biz.google_reviews_count?.toString() || '')
+            setOriginalGoogleMapsUrl(biz.google_maps_url || '')
+            setOriginalWebsiteUrl(biz.website_url || '')
+            setOriginalWhatsappNumber(biz.whatsapp_number || '')
           }
         }
       } else {
@@ -341,6 +351,8 @@ export default function ProfilePage() {
 
       if (error) throw error
 
+      setOriginalGoogleRating(googleRating)
+      setOriginalGoogleReviewsCount(googleReviewsCount)
       setGoogleRatingSaved(true)
       setTimeout(() => setGoogleRatingSaved(false), 3000)
     } catch (error) {
@@ -363,6 +375,7 @@ export default function ProfilePage() {
         .update({ google_maps_url: googleMapsUrl.trim() || null, updated_at: new Date().toISOString() })
         .eq('id', businessId)
       if (error) throw error
+      setOriginalGoogleMapsUrl(googleMapsUrl.trim())
       setGoogleMapsSaved(true)
       setTimeout(() => setGoogleMapsSaved(false), 3000)
     } catch (error) {
@@ -385,6 +398,7 @@ export default function ProfilePage() {
         .update({ website_url: websiteUrl.trim() || null, updated_at: new Date().toISOString() })
         .eq('id', businessId)
       if (error) throw error
+      setOriginalWebsiteUrl(websiteUrl.trim())
       setWebsiteSaved(true)
       setTimeout(() => setWebsiteSaved(false), 3000)
     } catch (error) {
@@ -407,6 +421,7 @@ export default function ProfilePage() {
         .update({ whatsapp_number: whatsappNumber.trim() || null, updated_at: new Date().toISOString() })
         .eq('id', businessId)
       if (error) throw error
+      setOriginalWhatsappNumber(whatsappNumber.trim())
       setWhatsappSaved(true)
       setTimeout(() => setWhatsappSaved(false), 3000)
     } catch (error) {
@@ -963,7 +978,7 @@ export default function ProfilePage() {
                 disabled={citySaving || city.trim() === (profile?.city || '')}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
-                {citySaving ? 'Changing...' : citySaved ? 'Changed!' : 'Change'}
+                {citySaving ? 'Saving...' : citySaved ? 'Saved!' : 'Save'}
               </button>
 
               {citySaved && (
@@ -1032,7 +1047,7 @@ export default function ProfilePage() {
               </div>
               <button
                 onClick={saveGoogleRating}
-                disabled={googleRatingSaving || (!googleRating && !googleReviewsCount)}
+                disabled={googleRatingSaving || (!googleRating && !googleReviewsCount) || (googleRating === originalGoogleRating && googleReviewsCount === originalGoogleReviewsCount)}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
                 {googleRatingSaving ? 'Saving...' : googleRatingSaved ? 'Saved!' : 'Save'}
@@ -1076,7 +1091,7 @@ export default function ProfilePage() {
               </div>
               <button
                 onClick={saveGoogleMapsUrl}
-                disabled={googleMapsSaving}
+                disabled={googleMapsSaving || googleMapsUrl.trim() === originalGoogleMapsUrl}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
                 {googleMapsSaving ? 'Saving...' : googleMapsSaved ? 'Saved!' : 'Save'}
@@ -1120,7 +1135,7 @@ export default function ProfilePage() {
               </div>
               <button
                 onClick={saveWebsiteUrl}
-                disabled={websiteSaving}
+                disabled={websiteSaving || websiteUrl.trim() === originalWebsiteUrl}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
                 {websiteSaving ? 'Saving...' : websiteSaved ? 'Saved!' : 'Save'}
@@ -1164,7 +1179,7 @@ export default function ProfilePage() {
               </div>
               <button
                 onClick={saveWhatsappNumber}
-                disabled={whatsappSaving}
+                disabled={whatsappSaving || whatsappNumber.trim() === originalWhatsappNumber}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
                 {whatsappSaving ? 'Saving...' : whatsappSaved ? 'Saved!' : 'Save'}
@@ -1252,7 +1267,7 @@ export default function ProfilePage() {
                   disabled={displayNameSaving || displayName.trim() === (profile?.user_name || '')}
                   className="cosmic-button-primary disabled:opacity-50 w-full"
                 >
-                  {displayNameSaving ? 'Changing...' : displayNameSaved ? 'Changed!' : 'Change'}
+                  {displayNameSaving ? 'Saving...' : displayNameSaved ? 'Saved!' : 'Save'}
                 </button>
 
                 {displayNameSaved && (
@@ -1305,7 +1320,7 @@ export default function ProfilePage() {
                 disabled={instagramSaving || instagramHandle.trim() === (profile?.instagram_handle || '')}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
-                {instagramSaving ? 'Changing...' : instagramSaved ? 'Changed!' : 'Change'}
+                {instagramSaving ? 'Saving...' : instagramSaved ? 'Saved!' : 'Save'}
               </button>
 
               {instagramSaved && (
@@ -1353,7 +1368,7 @@ export default function ProfilePage() {
                 disabled={passwordChanging || !currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()}
                 className="cosmic-button-primary disabled:opacity-50 w-full"
               >
-                {passwordChanging ? 'Changing...' : 'Change'}
+                {passwordChanging ? 'Changing...' : passwordChangedSuccess ? 'Changed!' : 'Change'}
               </button>
 
               {passwordChangedSuccess && (
