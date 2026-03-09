@@ -87,7 +87,7 @@ function ManageOffersContent() {
 
   useEffect(() => {
     if (missingContactFields.length === 0) return
-    const t = setTimeout(() => setMissingContactFields([]), 5000)
+    const t = setTimeout(() => setMissingContactFields([]), 8000)
     return () => clearTimeout(t)
   }, [missingContactFields])
 
