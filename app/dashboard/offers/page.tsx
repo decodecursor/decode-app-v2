@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import { USER_ROLES } from '@/types/user'
@@ -24,12 +24,14 @@ interface Offer {
 
 export default function ManageOffersPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
 
   const [loading, setLoading] = useState(true)
   const [offers, setOffers] = useState<Offer[]>([])
   const [deactivating, setDeactivating] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
+  const [missingContactFields, setMissingContactFields] = useState<string[]>([])
 
   useEffect(() => {
     const init = async () => {
@@ -50,13 +52,24 @@ export default function ManageOffersPage() {
       // Check business exists
       const { data: business } = await supabase
         .from('beauty_businesses')
-        .select('id')
+        .select('id, business_photo_url, city, google_rating, google_maps_url, website_url, whatsapp_number')
         .eq('creator_id', user.id)
         .single()
 
       if (!business) {
         setLoading(false)
         return
+      }
+
+      if (searchParams.get('published')) {
+        const missing: string[] = []
+        if (!business.business_photo_url) missing.push('Profile Photo')
+        if (!business.city) missing.push('City')
+        if (!business.google_rating) missing.push('Google Reviews')
+        if (!business.google_maps_url) missing.push('Google Maps')
+        if (!business.website_url) missing.push('Website')
+        if (!business.whatsapp_number) missing.push('WhatsApp')
+        setMissingContactFields(missing)
       }
 
       // Fetch offers for this business
@@ -70,7 +83,13 @@ export default function ManageOffersPage() {
       setLoading(false)
     }
     init()
-  }, [router, supabase])
+  }, [router, supabase, searchParams])
+
+  useEffect(() => {
+    if (missingContactFields.length === 0) return
+    const t = setTimeout(() => setMissingContactFields([]), 5000)
+    return () => clearTimeout(t)
+  }, [missingContactFields])
 
   const getStatus = (offer: Offer): { label: string; color: string } => {
     if (!offer.is_active) return { label: 'Inactive', color: 'text-gray-400 bg-gray-500/10' }
@@ -139,6 +158,18 @@ export default function ManageOffersPage() {
           <h1 className="text-xl font-semibold text-white mt-3">My Offers</h1>
         </div>
 
+        {/* Missing Contact Info Banner */}
+        {missingContactFields.length > 0 && (
+          <div className="mb-4 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3 animate-fade-in">
+            <p className="text-amber-300 text-xs">
+              Your offer is live but missing: <span className="font-semibold">{missingContactFields.join(', ')}</span>
+            </p>
+            <Link href="/offers/profile" className="text-amber-400 hover:text-amber-300 text-xs mt-1 inline-block no-underline">
+              Add in Profile &rarr;
+            </Link>
+          </div>
+        )}
+
         {/* Offers List */}
         {offers.length === 0 ? (
           <div className="text-center py-16">
@@ -178,11 +209,11 @@ export default function ManageOffersPage() {
                     <div className="grid grid-cols-2 landscape:grid-cols-4 md:grid-cols-4 gap-x-2 gap-y-[4px] md:gap-y-2">
                       {/* Portrait-visible: Title, Expires, Sold, Earned */}
                       <div>
-                        <p className="text-[8px] md:text-[11px] text-gray-400 uppercase tracking-wider font-medium">Title</p>
+                        <p className="text-[8px] md:text-[10px] text-gray-400 uppercase tracking-wider font-medium">Title</p>
                         <p className="text-[12px] md:text-[13px] text-white font-bold -mt-[2px] truncate">{offer.title}</p>
                       </div>
                       <div>
-                        <p className="text-[8px] md:text-[11px] text-gray-400 uppercase tracking-wider">Expires</p>
+                        <p className="text-[8px] md:text-[10px] text-gray-400 uppercase tracking-wider">Expires</p>
                         <p className="text-[11px] md:text-[13px] text-white font-bold -mt-[2px]">
                           {(() => {
                             const days = Math.ceil((new Date(offer.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
@@ -193,30 +224,30 @@ export default function ManageOffersPage() {
                         </p>
                       </div>
                       <div>
-                        <p className="text-[8px] md:text-[11px] text-gray-400 uppercase tracking-wider">Sold</p>
+                        <p className="text-[8px] md:text-[10px] text-gray-400 uppercase tracking-wider">Sold</p>
                         <p className="text-[11px] md:text-[13px] text-white font-bold -mt-[2px]">{offer.quantity_sold}/{offer.quantity}</p>
                       </div>
                       <div>
-                        <p className="text-[8px] md:text-[11px] text-gray-400 uppercase tracking-wider">Earned</p>
+                        <p className="text-[8px] md:text-[10px] text-gray-400 uppercase tracking-wider">Earned</p>
                         <p className="text-[11px] md:text-[13px] text-white font-bold -mt-[2px]">{offer.quantity_sold * offer.price} AED</p>
                       </div>
                       {/* Landscape/desktop only: Price, Category, Code, Created */}
                       <div className="hidden landscape:block md:block">
-                        <p className="text-[8px] md:text-[11px] text-gray-400 uppercase tracking-wider">Price</p>
+                        <p className="text-[8px] md:text-[10px] text-gray-400 uppercase tracking-wider">Price</p>
                         <p className="text-[11px] md:text-[13px] text-white font-bold -mt-[2px]">{offer.price} AED</p>
                       </div>
                       <div className="hidden landscape:block md:block">
-                        <p className="text-[8px] md:text-[11px] text-gray-400 uppercase tracking-wider">Category</p>
+                        <p className="text-[8px] md:text-[10px] text-gray-400 uppercase tracking-wider">Category</p>
                         <p className="text-[11px] md:text-[13px] text-white font-bold -mt-[2px] truncate capitalize">{offer.category}</p>
                       </div>
                       {offer.offer_code && (
                         <div className="hidden landscape:block md:block">
-                          <p className="text-[8px] md:text-[11px] text-gray-400 uppercase tracking-wider">Code</p>
+                          <p className="text-[8px] md:text-[10px] text-gray-400 uppercase tracking-wider">Code</p>
                           <p className="text-[11px] md:text-[13px] text-white font-bold -mt-[2px]">#{offer.offer_code}</p>
                         </div>
                       )}
                       <div className="hidden landscape:block md:block">
-                        <p className="text-[8px] md:text-[11px] text-gray-400 uppercase tracking-wider">Created</p>
+                        <p className="text-[8px] md:text-[10px] text-gray-400 uppercase tracking-wider">Created</p>
                         <p className="text-[11px] md:text-[13px] text-white font-bold -mt-[2px]">{new Date(offer.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                       </div>
                     </div>

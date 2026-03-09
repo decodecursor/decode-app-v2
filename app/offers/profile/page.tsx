@@ -47,7 +47,7 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="max-w-xl mx-auto px-4 py-12">
-        <div className="text-white/40 text-sm">Not signed in.</div>
+        <div className="text-white text-sm text-center">Not signed in.</div>
       </div>
     )
   }

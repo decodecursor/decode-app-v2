@@ -269,7 +269,7 @@ export default function CreateOfferPage() {
 
       if (insertError) throw insertError
 
-      router.push('/dashboard/offers')
+      router.push('/dashboard/offers?published=true')
     } catch (err: any) {
       console.error('Create offer error:', err)
       setMessage(err.message || 'Failed to create offer')
