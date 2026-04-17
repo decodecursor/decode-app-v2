@@ -64,7 +64,15 @@ export default function SettingsPage() {
         .single()
 
       if (!data) { router.replace('/model/setup'); return }
-      setProfile(data as Profile)
+
+      // instagram_handle lives on users, not model_profiles — fetch and merge
+      const { data: userRow } = await supabase
+        .from('users')
+        .select('instagram_handle')
+        .eq('id', user.id)
+        .single()
+
+      setProfile({ ...data, instagram_handle: userRow?.instagram_handle ?? '' } as Profile)
       setCoverPreview(data.cover_photo_url)
       setLoading(false)
     }

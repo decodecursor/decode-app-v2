@@ -75,7 +75,21 @@ export async function PATCH(request: NextRequest) {
       }
       profileUpdate.tagline = v || null
     }
-    // instagram_handle is not on model_profiles — skip for now
+    // Instagram lives on users, not model_profiles — update separately
+    if (updates.instagram !== undefined) {
+      const v = String(updates.instagram).replace(/^@/, '').toLowerCase().trim()
+      if (!v || v.length > 30 || !/^[a-z0-9_.]+$/.test(v)) {
+        return NextResponse.json({ error: 'Invalid Instagram handle' }, { status: 400 })
+      }
+      const { error: igError } = await adminClient
+        .from('users')
+        .update({ instagram_handle: v })
+        .eq('id', user.id)
+      if (igError) {
+        console.error('[Ambassador Settings] Instagram update failed:', igError)
+        return NextResponse.json({ error: 'Failed to update Instagram' }, { status: 500 })
+      }
+    }
     if (updates.isPublished !== undefined) {
       profileUpdate.is_published = updates.isPublished === true || updates.isPublished === 'true'
     }
@@ -117,14 +131,23 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    // Fetch updated profile
+    // Fetch updated profile + merge users.instagram_handle for client display
     const { data: updated } = await adminClient
       .from('model_profiles')
       .select('*')
       .eq('id', profile.id)
       .single()
 
-    return NextResponse.json({ success: true, profile: updated })
+    const { data: userRow } = await adminClient
+      .from('users')
+      .select('instagram_handle')
+      .eq('id', user.id)
+      .single()
+
+    return NextResponse.json({
+      success: true,
+      profile: { ...updated, instagram_handle: userRow?.instagram_handle ?? null },
+    })
   } catch (error) {
     console.error('[Ambassador Settings] Unexpected error:', error)
     return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
@@ -148,24 +171,7 @@ export async function DELETE(request: NextRequest) {
 
     const adminClient = createServiceRoleClient()
 
-    // Check for payment history (blocks deletion)
-    const { count: listingPayments } = await adminClient
-      .from('model_listing_payments')
-      .select('id', { count: 'exact', head: true })
-      .eq('model_profile_id', user.id)
-
-    const { count: wishPayments } = await adminClient
-      .from('model_wish_payments')
-      .select('id', { count: 'exact', head: true })
-      .eq('model_profile_id', user.id)
-
-    if ((listingPayments || 0) + (wishPayments || 0) > 0) {
-      return NextResponse.json({
-        error: 'Cannot delete account — you have payment history. Please contact support at hello@welovedecode.com',
-      }, { status: 409 })
-    }
-
-    // Delete in order: analytics → wishes → listings → payouts → profile → professional
+    // Fetch profile first so we can key child-table queries on profile.id
     const { data: profile } = await adminClient
       .from('model_profiles')
       .select('id')
@@ -176,29 +182,43 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }
 
-    // Delete analytics events
+    // Check for payment history (blocks deletion)
+    const { count: listingPayments } = await adminClient
+      .from('model_listing_payments')
+      .select('id', { count: 'exact', head: true })
+      .eq('model_id', profile.id)
+
+    const { count: wishPayments } = await adminClient
+      .from('model_wish_payments')
+      .select('id', { count: 'exact', head: true })
+      .eq('model_id', profile.id)
+
+    if ((listingPayments || 0) + (wishPayments || 0) > 0) {
+      return NextResponse.json({
+        error: 'Cannot delete account — you have payment history. Please contact support at hello@welovedecode.com',
+      }, { status: 409 })
+    }
+
+    // Delete in order: analytics → wishes → listings → payouts → profile
     await adminClient
       .from('model_analytics_events')
       .delete()
-      .eq('model_profile_id', profile.id)
+      .eq('model_id', profile.id)
 
-    // Delete wishes
     await adminClient
       .from('model_wishes')
       .delete()
-      .eq('model_profile_id', profile.id)
+      .eq('model_id', profile.id)
 
-    // Delete listings
     await adminClient
       .from('model_listings')
       .delete()
-      .eq('model_profile_id', profile.id)
+      .eq('model_id', profile.id)
 
-    // Delete payouts
     await adminClient
       .from('model_payouts')
       .delete()
-      .eq('model_profile_id', profile.id)
+      .eq('model_id', profile.id)
 
     // Delete profile
     await adminClient
