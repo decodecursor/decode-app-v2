@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { phoneNumber, turnstileToken } = body
 
-    console.log('[Ambassador OTP] Send request for:', phoneNumber?.substring(0, 7) + '****')
+    console.log('[Ambassador OTP] Step 0: Request received for:', phoneNumber?.substring(0, 7) + '****')
 
     // Validate phone
     if (!phoneNumber || typeof phoneNumber !== 'string') {
@@ -32,12 +32,14 @@ export async function POST(request: NextRequest) {
       console.warn('[Ambassador OTP] Turnstile failed — allowing request (non-blocking mode)')
     }
 
-    // Rate limit: per-phone (3/hr) and per-IP (10/hr)
+    // Rate limit: per-phone and per-IP
+    console.log('[Ambassador OTP] Step 1: Rate limit check')
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
     const [phoneLimit, ipLimit] = await Promise.all([
       authPhoneLimiter.limit(phoneNumber),
       authIpLimiter.limit(ip),
     ])
+    console.log('[Ambassador OTP] Step 1 result: phone=', phoneLimit.success, 'ip=', ipLimit.success)
     if (!phoneLimit.success || !ipLimit.success) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },
@@ -46,6 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check WhatsApp service
+    console.log('[Ambassador OTP] Step 2: AUTHKey configured=', authkeyWhatsAppService.isConfigured())
     if (!authkeyWhatsAppService.isConfigured()) {
       console.error('[Ambassador OTP] AUTHKey not configured')
       return NextResponse.json(
@@ -57,7 +60,7 @@ export async function POST(request: NextRequest) {
     const supabase = createServiceRoleClient()
 
     // Check brute-force lock
-    const { data: existingOTP } = await supabase
+    const { data: existingOTP, error: lockCheckError } = await supabase
       .from('otp_verifications')
       .select('locked_until')
       .eq('user_identifier', phoneNumber)
@@ -65,6 +68,8 @@ export async function POST(request: NextRequest) {
       .order('created_at', { ascending: false })
       .limit(1)
       .single()
+
+    console.log('[Ambassador OTP] Step 3: Lock check — data=', JSON.stringify(existingOTP), 'error=', lockCheckError?.message || 'none')
 
     if (existingOTP?.locked_until) {
       const lockExpiry = new Date(existingOTP.locked_until)
@@ -80,13 +85,16 @@ export async function POST(request: NextRequest) {
     // Generate 6-digit OTP
     const otpCode = String(Math.floor(100000 + Math.random() * 900000))
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString()
+    console.log('[Ambassador OTP] Step 4: OTP generated:', otpCode.substring(0, 2) + '****')
 
     // Delete any existing OTP for this phone (one active at a time)
-    await supabase
+    const { error: deleteError } = await supabase
       .from('otp_verifications')
       .delete()
       .eq('user_identifier', phoneNumber)
       .eq('type', 'whatsapp')
+
+    console.log('[Ambassador OTP] Step 5: Old OTP deleted, error=', deleteError?.message || 'none')
 
     // Store new OTP
     const { error: insertError } = await supabase
@@ -101,14 +109,17 @@ export async function POST(request: NextRequest) {
         locked_until: null,
       })
 
+    console.log('[Ambassador OTP] Step 6: OTP stored, error=', insertError?.message || 'none')
+
     if (insertError) {
       console.error('[Ambassador OTP] DB insert failed:', insertError)
       return NextResponse.json({ error: 'Failed to generate code. Please try again.' }, { status: 500 })
     }
 
     // Send via WhatsApp
+    console.log('[Ambassador OTP] Step 7: Calling AUTHKey sendOTP for', phoneNumber)
     const result = await authkeyWhatsAppService.sendOTP(phoneNumber, otpCode)
-    console.log('[Ambassador OTP] AUTHKey response:', JSON.stringify(result))
+    console.log('[Ambassador OTP] Step 8: AUTHKey response:', JSON.stringify(result))
 
     if (!result.success) {
       console.error('[Ambassador OTP] Send failed:', result.error)
@@ -125,14 +136,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('[Ambassador OTP] Sent successfully to:', phoneNumber.substring(0, 7) + '****')
+    console.log('[Ambassador OTP] Step 9: DONE — sent to', phoneNumber.substring(0, 7) + '****')
 
     return NextResponse.json({
       success: true,
       expiresIn: 300,
     })
   } catch (error) {
-    console.error('[Ambassador OTP] Unexpected error:', error)
+    console.error('[Ambassador OTP] CAUGHT ERROR:', error instanceof Error ? error.message : error)
+    console.error('[Ambassador OTP] Stack:', error instanceof Error ? error.stack : 'no stack')
     return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
   }
 }
