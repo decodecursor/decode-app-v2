@@ -64,7 +64,8 @@ export default function AmbassadorAuthPage() {
           sitekey: siteKey,
           callback: (token: string) => setTurnstileToken(token),
           'refresh-expired': 'auto',
-          size: 'invisible',
+          size: 'compact',
+          appearance: 'interaction-only',
         })
       }
     }
