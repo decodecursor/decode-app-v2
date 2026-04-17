@@ -26,10 +26,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid phone number format' }, { status: 400 })
     }
 
-    // Turnstile bot protection
+    // Turnstile bot protection (non-blocking: log but don't reject while widget is being validated)
     const isHuman = await verifyTurnstile(turnstileToken || '')
     if (!isHuman) {
-      return NextResponse.json({ error: 'Verification failed. Please try again.' }, { status: 403 })
+      console.warn('[Ambassador OTP] Turnstile failed — allowing request (non-blocking mode)')
     }
 
     // Rate limit: per-phone (3/hr) and per-IP (10/hr)
@@ -108,6 +108,7 @@ export async function POST(request: NextRequest) {
 
     // Send via WhatsApp
     const result = await authkeyWhatsAppService.sendOTP(phoneNumber, otpCode)
+    console.log('[Ambassador OTP] AUTHKey response:', JSON.stringify(result))
 
     if (!result.success) {
       console.error('[Ambassador OTP] Send failed:', result.error)

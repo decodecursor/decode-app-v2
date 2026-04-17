@@ -31,6 +31,7 @@ export default function AmbassadorAuthPage() {
   // Feedback
   const [error, setError] = useState('')
   const [turnstileToken, setTurnstileToken] = useState('')
+  const turnstileWidgetId = useRef<string | null>(null)
 
   const phoneInputRef = useRef<HTMLInputElement>(null)
   const countrySearchRef = useRef<HTMLInputElement>(null)
@@ -60,13 +61,14 @@ export default function AmbassadorAuthPage() {
     script.async = true
     script.onload = () => {
       if (window.turnstile) {
-        window.turnstile.render('#turnstile-container', {
+        const widgetId = window.turnstile.render('#turnstile-container', {
           sitekey: siteKey,
           callback: (token: string) => setTurnstileToken(token),
           'refresh-expired': 'auto',
           size: 'compact',
           appearance: 'interaction-only',
         })
+        turnstileWidgetId.current = widgetId
       }
     }
     document.head.appendChild(script)
@@ -88,6 +90,14 @@ export default function AmbassadorAuthPage() {
     if (pos < digits.length) parts.push(digits.slice(pos))
     return parts.join(' ')
   }, [selectedCountry])
+
+  // Reset Turnstile token (tokens are single-use; must refresh after each attempt)
+  const resetTurnstile = useCallback(() => {
+    setTurnstileToken('')
+    if (window.turnstile && turnstileWidgetId.current) {
+      window.turnstile.reset(turnstileWidgetId.current)
+    }
+  }, [])
 
   const rawDigits = phone.replace(/\D/g, '')
   const isPhoneValid = rawDigits.length >= 6
@@ -120,16 +130,19 @@ export default function AmbassadorAuthPage() {
       if (!res.ok) {
         setError(data.error || 'Failed to send code')
         setPhoneLoading(false)
+        resetTurnstile()
         return
       }
 
       // Store phone for verify page
       sessionStorage.setItem('ambassador_auth_phone', fullPhone)
       sessionStorage.setItem('ambassador_auth_country', selectedCountry.code)
+      resetTurnstile()
       router.push('/model/auth/verify')
     } catch {
       setError('Network error. Please try again.')
       setPhoneLoading(false)
+      resetTurnstile()
     }
   }
 
@@ -150,14 +163,17 @@ export default function AmbassadorAuthPage() {
       if (!res.ok) {
         setError(data.error || 'Failed to send link')
         setEmailLoading(false)
+        resetTurnstile()
         return
       }
 
       sessionStorage.setItem('ambassador_auth_email', email.toLowerCase().trim())
+      resetTurnstile()
       router.push('/model/auth/sent')
     } catch {
       setError('Network error. Please try again.')
       setEmailLoading(false)
+      resetTurnstile()
     }
   }
 
@@ -539,7 +555,8 @@ function CountryRow({
 declare global {
   interface Window {
     turnstile?: {
-      render: (selector: string, options: Record<string, unknown>) => void
+      render: (selector: string, options: Record<string, unknown>) => string
+      reset: (widgetId: string) => void
     }
   }
 }

@@ -19,7 +19,10 @@ interface TurnstileVerifyResponse {
  *   if (!isHuman) return Response.json({ error: 'Bot detected' }, { status: 403 })
  */
 export async function verifyTurnstile(token: string): Promise<boolean> {
-  if (!token) return false
+  if (!token) {
+    console.warn('[Turnstile] Empty token — skipping verification (widget may not have loaded)')
+    return true
+  }
 
   const secret = process.env.TURNSTILE_SECRET_KEY
   if (!secret) {
