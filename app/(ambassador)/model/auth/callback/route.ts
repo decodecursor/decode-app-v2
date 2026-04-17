@@ -5,24 +5,32 @@ import { createClient } from '@/utils/supabase/server'
  * GET /model/auth/callback
  *
  * Handles the redirect when a user clicks a magic link email.
- * Exchanges the auth code for a session, then redirects to
+ * Verifies the token_hash to establish a session, then redirects to
  * /model/setup (new user) or /model (existing user).
+ *
+ * The email contains a direct link with ?token_hash=...&type=magiclink
+ * (not Supabase's action_link, which uses hash fragments that server
+ * routes can't read).
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-  const code = searchParams.get('code')
+  const tokenHash = searchParams.get('token_hash')
+  const type = (searchParams.get('type') || 'magiclink') as 'magiclink' | 'email'
   const origin = request.nextUrl.origin
 
-  if (!code) {
+  if (!tokenHash) {
     return NextResponse.redirect(`${origin}/model/auth/email-error`)
   }
 
   try {
     const supabase = await createClient()
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data, error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type,
+    })
 
     if (error || !data.user) {
-      console.error('[Ambassador Callback] Session exchange failed:', error)
+      console.error('[Ambassador Callback] Token verification failed:', error)
       return NextResponse.redirect(`${origin}/model/auth/email-error`)
     }
 

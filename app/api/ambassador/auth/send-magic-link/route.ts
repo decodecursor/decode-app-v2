@@ -125,8 +125,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to send magic link. Please try again.' }, { status: 500 })
     }
 
-    // Extract the magic link URL from the generated data
-    const magicLinkUrl = linkData.properties.action_link
+    // Build our own callback URL with hashed_token as query param.
+    // admin.generateLink() returns an action_link that redirects via hash fragment (#access_token),
+    // which server-side route handlers can't read. Instead, we pass the token_hash directly.
+    const hashedToken = linkData.properties.hashed_token
+    const callbackUrl = `${origin}/model/auth/callback?token_hash=${encodeURIComponent(hashedToken)}&type=magiclink`
 
     // Send branded email via Resend
     const { error: sendError } = await resend.emails.send({
@@ -139,7 +142,7 @@ export async function POST(request: NextRequest) {
           <p style="color: #888; font-size: 13px; line-height: 1.65; margin-bottom: 32px;">
             Click the button below to sign in to your ambassador account. This link expires in 10 minutes.
           </p>
-          <a href="${magicLinkUrl}" style="display: inline-block; background: #e91e8c; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-size: 14px; font-weight: 600;">
+          <a href="${callbackUrl}" style="display: inline-block; background: #e91e8c; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-size: 14px; font-weight: 600;">
             Sign in
           </a>
           <p style="color: #555; font-size: 11px; margin-top: 32px; line-height: 1.5;">
