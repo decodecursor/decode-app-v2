@@ -7,7 +7,8 @@ import { RESERVED_SLUGS } from '@/lib/ambassador/constants'
 /**
  * POST /api/ambassador/model/setup
  *
- * Creates the model_profiles row and model_professionals row during onboarding.
+ * Creates the model_profiles row during onboarding.
+ * model_professionals is NOT created here — that's for listing creation (Slice 2).
  * Requires authenticated session.
  */
 export async function POST(request: NextRequest) {
@@ -91,39 +92,6 @@ export async function POST(request: NextRequest) {
           .getPublicUrl(path)
         coverPhotoUrl = urlData.publicUrl
       }
-    }
-
-    // Find or create model_professionals row (Instagram dedup)
-    let professionalId: string | null = null
-    const { data: existingPro } = await adminClient
-      .from('model_professionals')
-      .select('id, created_by')
-      .eq('instagram_handle', instagram)
-      .maybeSingle()
-
-    if (existingPro) {
-      if (existingPro.created_by !== user.id) {
-        return NextResponse.json({
-          error: 'This Instagram is already linked to another account',
-        }, { status: 409 })
-      }
-      professionalId = existingPro.id
-    } else {
-      const { data: newPro, error: proError } = await adminClient
-        .from('model_professionals')
-        .insert({
-          created_by: user.id,
-          name: `${firstName} ${lastName}`,
-          instagram_handle: instagram,
-        })
-        .select('id')
-        .single()
-
-      if (proError) {
-        console.error('[Ambassador Setup] Professional create failed:', proError)
-        return NextResponse.json({ error: 'Failed to create profile' }, { status: 500 })
-      }
-      professionalId = newPro.id
     }
 
     // Create model_profiles row
