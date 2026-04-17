@@ -97,12 +97,12 @@ export async function POST(request: NextRequest) {
     let professionalId: string | null = null
     const { data: existingPro } = await adminClient
       .from('model_professionals')
-      .select('id, user_id')
+      .select('id, created_by')
       .eq('instagram_handle', instagram)
       .maybeSingle()
 
     if (existingPro) {
-      if (existingPro.user_id !== user.id) {
+      if (existingPro.created_by !== user.id) {
         return NextResponse.json({
           error: 'This Instagram is already linked to another account',
         }, { status: 409 })
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
       const { data: newPro, error: proError } = await adminClient
         .from('model_professionals')
         .insert({
-          user_id: user.id,
+          created_by: user.id,
           name: `${firstName} ${lastName}`,
           instagram_handle: instagram,
         })
@@ -131,11 +131,9 @@ export async function POST(request: NextRequest) {
       .from('model_profiles')
       .insert({
         user_id: user.id,
-        professional_id: professionalId,
         slug,
         first_name: firstName,
         last_name: lastName,
-        instagram_handle: instagram,
         currency,
         cover_photo_url: coverPhotoUrl,
         cover_photo_position_y: coverPhotoPositionY,
