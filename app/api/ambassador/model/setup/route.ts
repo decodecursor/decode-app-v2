@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
         .from('model_professionals')
         .insert({
           user_id: user.id,
-          full_name: `${firstName} ${lastName}`,
+          name: `${firstName} ${lastName}`,
           instagram_handle: instagram,
         })
         .select('id')
