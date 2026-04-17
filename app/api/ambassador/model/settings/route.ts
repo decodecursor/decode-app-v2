@@ -22,7 +22,7 @@ export async function PATCH(request: NextRequest) {
     // Fetch existing profile
     const { data: profile, error: profileError } = await adminClient
       .from('model_profiles')
-      .select('id, professional_id')
+      .select('id')
       .eq('user_id', user.id)
       .single()
 
@@ -75,21 +75,7 @@ export async function PATCH(request: NextRequest) {
       }
       profileUpdate.tagline = v || null
     }
-    if (updates.instagram !== undefined) {
-      const v = String(updates.instagram).replace(/^@/, '').toLowerCase().trim()
-      if (!v) {
-        return NextResponse.json({ error: 'Instagram is required' }, { status: 400 })
-      }
-      profileUpdate.instagram_handle = v
-
-      // Also update model_professionals
-      if (profile.professional_id) {
-        await adminClient
-          .from('model_professionals')
-          .update({ instagram_handle: v })
-          .eq('id', profile.professional_id)
-      }
-    }
+    // instagram_handle is not on model_profiles — skip for now
     if (updates.isPublished !== undefined) {
       profileUpdate.is_published = updates.isPublished === true || updates.isPublished === 'true'
     }
@@ -182,7 +168,7 @@ export async function DELETE(request: NextRequest) {
     // Delete in order: analytics → wishes → listings → payouts → profile → professional
     const { data: profile } = await adminClient
       .from('model_profiles')
-      .select('id, professional_id')
+      .select('id')
       .eq('user_id', user.id)
       .single()
 
@@ -219,14 +205,6 @@ export async function DELETE(request: NextRequest) {
       .from('model_profiles')
       .delete()
       .eq('id', profile.id)
-
-    // Delete professional if exists
-    if (profile.professional_id) {
-      await adminClient
-        .from('model_professionals')
-        .delete()
-        .eq('id', profile.professional_id)
-    }
 
     // Delete storage files
     const { data: files } = await adminClient.storage
