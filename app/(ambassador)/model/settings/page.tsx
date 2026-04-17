@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { isInternalEmail } from '@/lib/ambassador/auth'
+import { CoverCameraButton } from '@/components/ambassador/CoverCameraButton'
 
 interface Profile {
   id: string
@@ -29,6 +30,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
+  const [copied, setCopied] = useState(false)
 
   // Delete modal
   const [showDelete, setShowDelete] = useState(false)
@@ -258,27 +260,9 @@ export default function SettingsPage() {
           onMouseDown={coverPreview ? handleDragStart : undefined}
           onTouchStart={coverPreview ? handleDragStart : undefined}
         >
-          <button
+          <CoverCameraButton
             onClick={(e) => { e.stopPropagation(); coverInputRef.current?.click() }}
-            style={{
-              position: 'absolute',
-              bottom: '8px',
-              right: '8px',
-              width: '34px',
-              height: '34px',
-              borderRadius: '50%',
-              background: 'rgba(0,0,0,0.6)',
-              border: '1px solid #333',
-              color: '#fff',
-              fontSize: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
-          >
-            &#128247;
-          </button>
+          />
           <input
             ref={coverInputRef}
             type="file"
@@ -299,24 +283,62 @@ export default function SettingsPage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          gap: '12px',
         }}>
-          <span style={{ fontSize: '13px', color: '#888' }}>{pageUrl}</span>
-          <button
-            onClick={async () => {
-              await navigator.clipboard.writeText(`https://${pageUrl}`)
-              showToast('Link copied')
-            }}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#888',
-              fontSize: '14px',
-              cursor: 'pointer',
-              padding: '4px',
-            }}
-          >
-            ⎘
-          </button>
+          <span style={{ fontSize: '13px', color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pageUrl}</span>
+          <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+            {/* Copy */}
+            <button
+              onClick={async () => {
+                await navigator.clipboard.writeText(`https://${pageUrl}`)
+                setCopied(true)
+                setTimeout(() => setCopied(false), 1500)
+              }}
+              style={urlIconBtnStyle}
+            >
+              {copied && (
+                <span style={{
+                  position: 'absolute',
+                  bottom: '34px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  fontSize: '10px',
+                  fontWeight: 400,
+                  color: '#fff',
+                  whiteSpace: 'nowrap',
+                }}>
+                  Copied!
+                </span>
+              )}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+            </button>
+            {/* View */}
+            <button
+              onClick={async () => {
+                if (saving) await new Promise(r => setTimeout(r, 300))
+                window.location.href = `https://${pageUrl}`
+              }}
+              style={urlIconBtnStyle}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+            {/* Edit — TODO(slice-5): build 3-step modal from settings.html:82-128 */}
+            <button
+              onClick={() => showToast('URL editing coming soon')}
+              style={urlIconBtnStyle}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -683,6 +705,20 @@ function ToggleRow({
       </span>
     </div>
   )
+}
+
+const urlIconBtnStyle: React.CSSProperties = {
+  width: '28px',
+  height: '28px',
+  borderRadius: '50%',
+  background: '#111',
+  border: '1px solid #333',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
+  padding: 0,
+  position: 'relative',
 }
 
 const rowStyle: React.CSSProperties = {

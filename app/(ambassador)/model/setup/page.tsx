@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { COUNTRY_CODES } from '@/lib/country-codes'
 import { countryToCurrency } from '@/lib/ambassador/constants'
+import { ProgressTracker } from '@/components/ambassador/ProgressTracker'
+import { CoverCameraButton } from '@/components/ambassador/CoverCameraButton'
 
 // Currency data for picker
 const POPULAR_CURRENCIES = [
@@ -234,55 +236,8 @@ export default function SetupPage() {
   return (
     <div style={{ padding: '0 24px', paddingTop: '24px', paddingBottom: '40px' }}>
       {/* Progress tracker */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: '32px',
-      }}>
-        {['Verify', 'Set up', 'Live'].map((label, i) => {
-          const isDone = i === 0
-          const isActive = i === 1
-          return (
-            <div key={label} style={{ display: 'flex', alignItems: 'center' }}>
-              <div style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: isDone ? '#e91e8c' : 'transparent',
-                border: `2px solid ${isDone || isActive ? '#e91e8c' : '#3a3a3a'}`,
-                fontSize: '10px',
-                color: isDone ? '#fff' : isActive ? '#e91e8c' : '#3a3a3a',
-                fontWeight: 600,
-                flexShrink: 0,
-              }}>
-                {isDone ? '✓' : isActive ? (
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#e91e8c' }} />
-                ) : ''}
-              </div>
-              <span style={{
-                fontSize: '9px',
-                color: isDone || isActive ? '#e91e8c' : '#555',
-                marginLeft: '4px',
-                whiteSpace: 'nowrap',
-              }}>
-                {label}
-              </span>
-              {i < 2 && (
-                <div style={{
-                  width: '40px',
-                  height: '2px',
-                  margin: '0 6px',
-                  background: isDone ? '#e91e8c' : '#3a3a3a',
-                  borderRadius: '1px',
-                }} />
-              )}
-            </div>
-          )
-        })}
+      <div style={{ marginBottom: '32px' }}>
+        <ProgressTracker steps={['Verify', 'Set up', 'Live']} step={2} />
       </div>
 
       {/* Cover photo */}
@@ -304,27 +259,10 @@ export default function SetupPage() {
         onTouchStart={coverPreview ? handleDragStart : undefined}
       >
         {/* Camera icon */}
-        <button
+        <CoverCameraButton
+          size={28}
           onClick={(e) => { e.stopPropagation(); coverInputRef.current?.click() }}
-          style={{
-            position: 'absolute',
-            bottom: '8px',
-            right: '8px',
-            width: '28px',
-            height: '28px',
-            borderRadius: '50%',
-            background: 'rgba(0,0,0,0.6)',
-            border: '1px solid #333',
-            color: '#fff',
-            fontSize: '14px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-          }}
-        >
-          &#128247;
-        </button>
+        />
         {dragging && (
           <div style={{
             position: 'absolute',
@@ -398,6 +336,7 @@ export default function SetupPage() {
             welovedecode.com/
           </span>
           <input
+            className="setupUrlInput"
             type="text"
             placeholder="your_name"
             value={slug}
@@ -409,15 +348,17 @@ export default function SetupPage() {
             style={{
               flex: 1,
               height: '100%',
-              padding: '0 8px',
+              padding: 0,
               background: 'transparent',
               border: 'none',
               color: '#fff',
-              fontSize: '15px',
+              fontSize: '13px',
+              lineHeight: 1,
               outline: 'none',
               fontFamily: 'system-ui, -apple-system, sans-serif',
             }}
           />
+          <style>{`.setupUrlInput::placeholder{color:#666}`}</style>
           {/* Status indicator */}
           <div style={{ paddingRight: '14px', flexShrink: 0 }}>
             {slugStatus === 'checking' && (
@@ -562,9 +503,16 @@ export default function SetupPage() {
 
       {/* Currency picker overlay */}
       {showCurrencyPicker && (
+        <>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 199 }} />
         <div style={{
           position: 'fixed',
-          inset: 0,
+          top: 0,
+          bottom: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '100%',
+          maxWidth: '420px',
           background: '#000',
           zIndex: 200,
           display: 'flex',
@@ -677,6 +625,7 @@ export default function SetupPage() {
             )}
           </div>
         </div>
+        </>
       )}
 
       <style>{`

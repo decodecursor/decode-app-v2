@@ -392,9 +392,16 @@ export default function AmbassadorAuthPage() {
 
       {/* Country picker overlay */}
       {showCountryPicker && (
+        <>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 199 }} />
         <div style={{
           position: 'fixed',
-          inset: 0,
+          top: 0,
+          bottom: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '100%',
+          maxWidth: '420px',
           background: '#000',
           zIndex: 200,
           display: 'flex',
@@ -513,6 +520,7 @@ export default function AmbassadorAuthPage() {
             )}
           </div>
         </div>
+        </>
       )}
     </div>
   )

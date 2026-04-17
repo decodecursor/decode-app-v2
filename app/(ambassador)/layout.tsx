@@ -1,8 +1,16 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 
 export const metadata: Metadata = {
   title: 'DECODE',
   description: 'Beauty ambassador platform',
+}
+
+export const viewport: Viewport = {
+  themeColor: '#000000',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 export default function AmbassadorLayout({
@@ -14,22 +22,15 @@ export default function AmbassadorLayout({
     <div
       style={{
         minHeight: '100vh',
-        background: '#111',
+        background: '#000',
         display: 'flex',
-        justifyContent: 'center',
+        alignItems: 'safe center',
+        justifyContent: 'safe center',
+        padding: '24px 16px',
+        overflowX: 'hidden',
       }}
     >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '500px',
-          background: '#000',
-          minHeight: '100vh',
-          position: 'relative',
-        }}
-      >
-        {children}
-      </div>
+      <div style={{ width: '100%', maxWidth: '420px' }}>{children}</div>
     </div>
   )
 }

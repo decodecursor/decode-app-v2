@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { ProgressTracker } from '@/components/ambassador/ProgressTracker'
 
 export default function VerifyOTPPage() {
   const router = useRouter()
@@ -211,14 +212,14 @@ export default function VerifyOTPPage() {
       </button>
 
       {/* Progress tracker */}
-      <ProgressTracker step={2} />
+      <ProgressTracker steps={['Sent', 'Enter code', 'Done']} step={2} />
 
       {/* Title */}
       <div style={{ textAlign: 'center', marginBottom: '40px', marginTop: '32px' }}>
         <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', marginBottom: '8px' }}>
           Enter your code
         </h1>
-        <p style={{ fontSize: '13px', color: '#888', lineHeight: 1.65 }}>
+        <p style={{ fontSize: '13px', color: '#888', lineHeight: 1.65, whiteSpace: 'nowrap' }}>
           We sent a code to {maskedPhone} on WhatsApp
         </p>
       </div>
@@ -342,70 +343,3 @@ export default function VerifyOTPPage() {
   )
 }
 
-/** 3-step progress tracker: Sent → Enter code → Done */
-function ProgressTracker({ step }: { step: 1 | 2 | 3 }) {
-  const steps = ['Sent', 'Enter code', 'Done']
-  return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '0',
-      marginTop: '8px',
-    }}>
-      {steps.map((label, i) => {
-        const stepNum = i + 1
-        const isDone = stepNum < step
-        const isActive = stepNum === step
-        return (
-          <div key={label} style={{ display: 'flex', alignItems: 'center' }}>
-            {/* Circle */}
-            <div style={{
-              width: '24px',
-              height: '24px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: isDone ? '#e91e8c' : 'transparent',
-              border: `2px solid ${isDone || isActive ? '#e91e8c' : '#3a3a3a'}`,
-              fontSize: '10px',
-              color: isDone ? '#fff' : isActive ? '#e91e8c' : '#3a3a3a',
-              fontWeight: 600,
-              flexShrink: 0,
-            }}>
-              {isDone ? '✓' : isActive ? (
-                <div style={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  background: '#e91e8c',
-                }} />
-              ) : ''}
-            </div>
-            {/* Label */}
-            <span style={{
-              fontSize: '9px',
-              color: isDone || isActive ? '#e91e8c' : '#555',
-              marginLeft: '4px',
-              marginRight: i < steps.length - 1 ? '0' : '0',
-              whiteSpace: 'nowrap',
-            }}>
-              {label}
-            </span>
-            {/* Rail */}
-            {i < steps.length - 1 && (
-              <div style={{
-                width: '40px',
-                height: '2px',
-                margin: '0 6px',
-                background: isDone ? '#e91e8c' : '#3a3a3a',
-                borderRadius: '1px',
-              }} />
-            )}
-          </div>
-        )
-      })}
-    </div>
-  )
-}

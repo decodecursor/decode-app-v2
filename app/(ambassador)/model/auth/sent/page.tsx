@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { ProgressTracker } from '@/components/ambassador/ProgressTracker'
 
 export default function MagicLinkSentPage() {
   const router = useRouter()
@@ -71,7 +72,7 @@ export default function MagicLinkSentPage() {
       </button>
 
       {/* Progress tracker */}
-      <ProgressTracker step={2} />
+      <ProgressTracker steps={['Sent', 'Open email', 'Done']} step={2} />
 
       {/* Content */}
       <div style={{ textAlign: 'center', marginTop: '32px' }}>
@@ -117,59 +118,3 @@ export default function MagicLinkSentPage() {
   )
 }
 
-function ProgressTracker({ step }: { step: 1 | 2 | 3 }) {
-  const steps = ['Sent', 'Open email', 'Done']
-  return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginTop: '8px',
-    }}>
-      {steps.map((label, i) => {
-        const stepNum = i + 1
-        const isDone = stepNum < step
-        const isActive = stepNum === step
-        return (
-          <div key={label} style={{ display: 'flex', alignItems: 'center' }}>
-            <div style={{
-              width: '24px',
-              height: '24px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: isDone ? '#e91e8c' : 'transparent',
-              border: `2px solid ${isDone || isActive ? '#e91e8c' : '#3a3a3a'}`,
-              fontSize: '10px',
-              color: isDone ? '#fff' : isActive ? '#e91e8c' : '#3a3a3a',
-              fontWeight: 600,
-              flexShrink: 0,
-            }}>
-              {isDone ? '✓' : isActive ? (
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#e91e8c' }} />
-              ) : ''}
-            </div>
-            <span style={{
-              fontSize: '9px',
-              color: isDone || isActive ? '#e91e8c' : '#555',
-              marginLeft: '4px',
-              whiteSpace: 'nowrap',
-            }}>
-              {label}
-            </span>
-            {i < steps.length - 1 && (
-              <div style={{
-                width: '40px',
-                height: '2px',
-                margin: '0 6px',
-                background: isDone ? '#e91e8c' : '#3a3a3a',
-                borderRadius: '1px',
-              }} />
-            )}
-          </div>
-        )
-      })}
-    </div>
-  )
-}
