@@ -19,11 +19,11 @@ export const checkoutLimiter = new Ratelimit({
 })
 
 /**
- * WhatsApp OTP send: 3 per phone per hour.
+ * WhatsApp OTP send: TEMP 20/hr for testing — revert to 3/hr before launch.
  */
 export const authPhoneLimiter = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(3, '1 h'),
+  limiter: Ratelimit.slidingWindow(20, '1 h'),
   prefix: 'rl:auth:phone',
 })
 
