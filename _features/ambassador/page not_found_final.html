@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Page not found</title>
+<style>
+body{margin:0;padding:24px 0;background:#111;display:flex;justify-content:center;font-family:system-ui,-apple-system,sans-serif}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+
+#nfPage{width:375px;background:#000;border-radius:24px;overflow:hidden;color:#fff;border:2px solid #1a1a1a}
+
+.nf-content{padding:160px 22px 40px;text-align:center}
+.nf-title{font-size:22px;font-weight:700;margin-bottom:14px;letter-spacing:-0.2px}
+.nf-sub{font-size:13px;color:#888;line-height:1.6;margin-bottom:40px}
+
+.nf-btn{
+  background:#e91e8c;border-radius:12px;padding:16px;text-align:center;
+  font-size:14px;font-weight:600;color:#fff;cursor:pointer;
+  text-decoration:none;display:block;
+  transition:filter 0.15s,transform 0.05s;
+}
+.nf-btn:hover{filter:brightness(1.08)}
+.nf-btn:active{transform:scale(0.99)}
+.nf-btn.loading{opacity:0.7;cursor:default}
+</style></head>
+<body>
+
+<div id="nfPage">
+<div class="nf-content">
+<div class="nf-title">Page not found</div>
+<div class="nf-sub">This page doesn't exist.</div>
+<a id="nf_btn" href="/model" class="nf-btn">Go to WeLoveDecode</a>
+</div>
+</div>
+
+<script>
+(function(){
+  // ===========================================================================
+  // ENTRY POINTS
+  // ---------------------------------------------------------------------------
+  // This page is shown automatically by the server when any non-existent URL
+  // is requested. Covers typos, stale bookmarks, old shared links, guessed
+  // slugs that don't match any ambassador.
+  //
+  // The browser URL bar keeps showing the wrong URL (standard 404 behavior).
+  // ===========================================================================
+
+  // Destination depends on auth state:
+  //   logged-in ambassador  -> /model
+  //   logged-out            -> /model/auth
+  //
+  // PRODUCTION: server-render the href based on session, OR check client-side:
+  //
+  //   try {
+  //     var hasSession = !!(document.cookie || '').match(/sb-access-token|wld-session/);
+  //     document.getElementById('nf_btn').href = hasSession ? '/model' : '/model/auth';
+  //   } catch (e) {}
+  //
+  // Default href is '/model' — if unauthenticated, the app's auth guard will
+  // redirect to /model/auth automatically.
+
+  // Loading state on button tap — prevents double-tap
+  var btn = document.getElementById('nf_btn');
+  btn.addEventListener('click', function(e){
+    if (btn.classList.contains('loading')) { e.preventDefault(); return; }
+    btn.classList.add('loading');
+    btn.textContent = 'Loading…';
+  });
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,431 @@
+<style>
+/* Pink spinner — loading state while fetching data (industry standard UX) */
+.lp-spinner{
+  width:28px;height:28px;
+  border:2.5px solid #262626;border-top-color:#e91e8c;
+  border-radius:50%;animation:lp-spin 0.8s linear infinite;
+  margin:0 auto;
+}
+@keyframes lp-spin{to{transform:rotate(360deg)}}
+
+/* Print styles — white background, black text, ink-friendly for accounting */
+@media print {
+  body{background:#fff!important}
+  #lpPage{
+    width:100%!important;
+    background:#fff!important;
+    color:#000!important;
+    border:none!important;
+    border-radius:0!important;
+    margin:0!important;
+    box-shadow:none!important;
+  }
+  #lpPage *{
+    color:#000!important;
+    background:#fff!important;
+    border-color:#ccc!important;
+  }
+  #lp_loading,#lp_supportLink{display:none!important}
+  a{color:#000!important;text-decoration:none!important}
+  .lp-spinner{display:none!important}
+  /* Keep refund banner visible in red on print for clarity */
+  #lp_refundBanner{
+    color:#c00!important;
+    background:#fff!important;
+    border:1px solid #c00!important;
+  }
+  #lp_refundBanner *{color:#c00!important}
+  /* Refund row keeps its red tint */
+  #lp_refundRow *{color:#c00!important}
+}
+</style>
+
+<div id="lpPage" style="width:375px;background:#000;border-radius:24px;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#fff;border:2px solid #1a1a1a;margin:24px auto">
+
+<!-- Loading state (shown while fetching) -->
+<div id="lp_loading" style="padding:160px 0;text-align:center">
+<div class="lp-spinner"></div>
+<div style="font-size:11px;color:#888;margin-top:16px">Loading your receipt…</div>
+</div>
+
+<!-- Error state: Receipt not found -->
+<div id="lp_notFound" style="display:none;padding:120px 24px;text-align:center">
+<div style="font-size:22px;font-weight:700;margin-bottom:10px;letter-spacing:-0.2px">Receipt not found</div>
+<div style="font-size:12px;color:#888;line-height:1.6;margin-bottom:32px">We couldn\'t find this receipt.<br>Check your email for your payment confirmation.</div>
+<a href="mailto:support@welovedecode.com" style="font-size:11px;color:#666;text-decoration:none">Need help? Contact support</a>
+</div>
+
+<!-- Refund banner (shown only when is_refunded) -->
+<div id="lp_refundBanner" style="display:none;margin:14px 20px 0;padding:12px 14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;text-align:center;font-size:12px;color:#ef4444;font-weight:500">
+This payment was refunded on <span id="lp_refundDate">—</span>
+</div>
+
+<!-- Main content wrapper (hidden until loaded) -->
+<div id="lp_content" style="display:none">
+
+<!-- Hero -->
+<div style="padding:48px 0 32px;text-align:center">
+<div id="lp_emoji" style="font-size:48px;line-height:1;margin-bottom:12px">🎉</div>
+<div id="lp_title" style="font-size:22px;font-weight:700;margin-bottom:8px;letter-spacing:-0.2px">You're live!</div>
+<div id="lp_subtitle" style="font-size:11px;color:#888">Your listing is live on Sara's page</div>
+</div>
+
+<!-- Receipt -->
+<div style="padding:0 20px 20px">
+<div style="background:#1c1c1c;border-radius:14px;padding:20px">
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+<span style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px">Visible on</span>
+<span id="lp_visibleOn" style="font-size:14px;font-weight:500">Sara Johnson's page</span>
+</div>
+<div style="height:1px;background:#262626;margin-bottom:14px"></div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+<span style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px">Category</span>
+<span id="lp_category" style="font-size:14px;font-weight:500">Hair</span>
+</div>
+<div style="height:1px;background:#262626;margin-bottom:14px"></div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+<span style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px">Duration</span>
+<span id="lp_duration" style="font-size:14px;font-weight:500">90 days</span>
+</div>
+<div style="height:1px;background:#262626;margin-bottom:14px"></div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+<span style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px">Active until</span>
+<span id="lp_activeUntil" style="font-size:14px;font-weight:500">4 July 2026</span>
+</div>
+<div style="height:1px;background:#262626;margin-bottom:14px"></div>
+
+<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:14px">
+<span style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px;padding-top:2px">Amount paid</span>
+<div style="text-align:right">
+<div id="lp_amount" style="font-size:14px;font-weight:500">AED 70</div>
+<div id="lp_presentment" style="font-size:10px;color:#666;margin-top:3px;display:none"></div>
+</div>
+</div>
+<div style="height:1px;background:#262626;margin-bottom:14px"></div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+<span style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px">Date</span>
+<span id="lp_date" style="font-size:14px;font-weight:500">7 April 2026, 9:41 AM</span>
+</div>
+<div style="height:1px;background:#262626;margin-bottom:14px"></div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+<span style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px">Reference</span>
+<span id="lp_reference" style="font-size:14px;font-weight:500">L8473921</span>
+</div>
+
+<!-- Refund row (shown only when is_refunded) -->
+<div id="lp_refundDivider" style="display:none;height:1px;background:#262626;margin-bottom:14px"></div>
+<div id="lp_refundRow" style="display:none;justify-content:space-between;align-items:start">
+<span style="font-size:9px;color:#ef4444;text-transform:uppercase;letter-spacing:0.5px;padding-top:2px">Refunded</span>
+<div style="text-align:right">
+<div id="lp_refundRowAmount" style="font-size:14px;font-weight:500;color:#ef4444">—</div>
+<div id="lp_refundRowDate" style="font-size:10px;color:#ef4444;margin-top:3px;opacity:0.7">—</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- Primary action (hidden when listing expired) -->
+<div id="lp_primaryAction" style="padding:0 20px 16px;text-align:center">
+<a id="lp_seeLink" href="#" style="font-size:14px;color:#e91e8c;font-weight:500;text-decoration:none">See your listing on Sara's page &rarr;</a>
+</div>
+
+<!-- Expired state (shown only when listing has expired) -->
+<div id="lp_expiredNote" style="display:none;padding:0 20px 16px;text-align:center">
+<div style="font-size:11px;color:#666;line-height:1.6">This listing has expired.<br>Contact <span id="lp_expiredAmbName">Sara</span> if you'd like to list again.</div>
+</div>
+
+<!-- Email confirmation note -->
+<div style="padding:0 20px 32px;text-align:center">
+<div style="font-size:11px;color:#888">We've sent a confirmation to your email</div>
+</div>
+
+<!-- Support link -->
+<div style="padding:0 20px 24px;text-align:center">
+<a id="lp_supportLink" href="#" style="font-size:11px;color:#666;text-decoration:none">Need help? Contact support</a>
+</div>
+
+</div><!-- /lp_content -->
+
+</div><!-- /lpPage -->
+
+<script>
+(function(){
+  function $(id){return document.getElementById(id);}
+
+  // ===========================================================================
+  // TRANSACTION DATA — pulled from server
+  // ---------------------------------------------------------------------------
+  // In production, the page is rendered with a transaction_id in the URL
+  // (e.g. /listing/confirmation?tx=L8473921) and fetches the full record from:
+  //
+  //   GET /api/transactions/{tx_id}
+  //
+  // Same endpoint as the Wish Gift confirmation. Transactions are
+  // distinguished by the reference prefix: L = listing, W = wish.
+  //
+  // Endpoint contract (server returns JSON object):
+  //   {
+  //     "reference":    "L8473921",
+  //     "ambassador":   { "id": "uuid", "name": "Sara Johnson", "slug": "sarajohnson" },
+  //     "professional": { "id": "uuid", "name": "Salon de Luxe" },
+  //     "category":     "Hair",
+  //     "duration_days": 90,
+  //     "active_until": "2026-07-06T09:41:00Z",
+  //     "amount":       70,
+  //     "currency":     "AED",
+  //     "symbol":       "د.إ",
+  //     "paid_at":      "2026-04-07T09:41:00Z"
+  //   }
+  //
+  // Field usage on this page:
+  //   reference       → Reference row, support email subject
+  //   ambassador.name → subtitle (first name), "Visible on {name}'s page",
+  //                     "See your listing on {first}'s page" link
+  //   ambassador.slug → primary action link href
+  //   category        → Category row
+  //   duration_days   → Duration row (as "{n} days")
+  //   active_until    → Active until row (formatted date)
+  //   amount          → Amount paid row (with currency prefix)
+  //   currency        → Amount prefix (snapshotted at payment time)
+  //   paid_at         → Date row (formatted)
+  //
+  // Currency note: amount is ALWAYS displayed in the ambassador's currency
+  // because the listing was priced in her currency. The professional paying
+  // may have used a different local currency through Stripe — Stripe handles
+  // the FX conversion, and the server stores the final amount in the
+  // ambassador's currency on the transaction record.
+  //
+  // FALLBACK: if the fetch fails, the FALLBACK_TX constant renders mockup
+  // defaults so the page still displays. In production a failed fetch should
+  // probably show an error state.
+  // ===========================================================================
+
+  // Mockup fallback. In production this entire FALLBACK is never used — server returns real data.
+  var FALLBACK_TX = {
+    reference:    'L8473921',
+    ambassador:   { name: 'Sara Johnson', slug: 'sarajohnson' },
+    professional: { name: 'Salon de Luxe' },
+    category:     'Hair',
+    duration_days: 90,
+    active_until: '2026-07-06T09:41:00Z',
+    amount:       70,
+    currency:     'AED',
+    // Presentment: only shown if different from listing currency
+    presentment_amount:   null,       // e.g. 1580 for ₹1,580 INR
+    presentment_currency: null,       // e.g. 'INR'
+    // Status flags — computed server-side
+    status:       'active',           // 'active' | 'expired' | 'refunded' | 'pending_payment'
+    is_expired:   false,              // now > active_until
+    is_refunded:  false,              // admin-initiated via Stripe refund
+    refunded_at:  null,               // ISO timestamp when refund was processed
+    refund_amount: null,              // amount refunded in listing currency
+    paid_at:      '2026-04-07T09:41:00Z'
+  };
+
+  function formatDate(iso, includeTime){
+    try {
+      var d = new Date(iso);
+      var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      var day = d.getDate();
+      var month = months[d.getMonth()];
+      var year = d.getFullYear();
+      if (!includeTime) return day + ' ' + month + ' ' + year;
+      var hours = d.getHours();
+      var mins = String(d.getMinutes()).padStart(2, '0');
+      var ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      return day + ' ' + month + ' ' + year + ', ' + hours + ':' + mins + ' ' + ampm;
+    } catch(e) {
+      return iso;
+    }
+  }
+
+  // Format presentment amount with thousands separator (e.g. 1580 → "1,580")
+  function fmtAmount(n){
+    try { return Number(n).toLocaleString(); } catch(e) { return String(n); }
+  }
+
+  function renderTransaction(tx){
+    var ambFull = (tx.ambassador && tx.ambassador.name) || 'Sara Johnson';
+    var ambFirst = ambFull.split(' ')[0];
+    var ambSlug = (tx.ambassador && tx.ambassador.slug) || '';
+
+    // Fill all receipt fields
+    $('lp_subtitle').textContent = 'Your listing is live on ' + ambFirst + '\u2019s page';
+    $('lp_visibleOn').textContent = ambFull + '\u2019s page';
+    $('lp_category').textContent = tx.category || '';
+    $('lp_duration').textContent = (tx.duration_days || 0) + ' days';
+    $('lp_activeUntil').textContent = formatDate(tx.active_until, false);
+    $('lp_amount').textContent = (tx.currency || 'USD') + ' ' + (tx.amount || 0);
+    $('lp_date').textContent = formatDate(tx.paid_at, true);
+    $('lp_reference').textContent = tx.reference || '';
+
+    // PRESENTMENT: what the professional was actually charged in their local currency
+    if (tx.presentment_amount && tx.presentment_currency && tx.presentment_currency !== tx.currency) {
+      var p = $('lp_presentment');
+      p.textContent = 'Charged as ' + tx.presentment_currency + ' ' + fmtAmount(tx.presentment_amount) + ' on your card';
+      p.style.display = 'block';
+    }
+
+    // REFUNDED STATE (highest priority — overrides other states)
+    if (tx.is_refunded) {
+      // Red banner at top
+      $('lp_refundBanner').style.display = 'block';
+      $('lp_refundDate').textContent = formatDate(tx.refunded_at, false);
+      // Hero changes — no celebration for refund
+      $('lp_emoji').textContent = '';
+      $('lp_emoji').style.display = 'none';
+      $('lp_title').textContent = 'Refunded';
+      $('lp_subtitle').textContent = 'This payment was refunded on ' + formatDate(tx.refunded_at, false);
+      // Add refund row in receipt
+      $('lp_refundRow').style.display = 'flex';
+      $('lp_refundRowDate').textContent = formatDate(tx.refunded_at, false);
+      $('lp_refundRowAmount').textContent = (tx.currency || 'USD') + ' ' + (tx.refund_amount || tx.amount || 0);
+      $('lp_refundDivider').style.display = 'block';
+      // Hide "See listing" — listing no longer exists on Sara's page
+      $('lp_primaryAction').style.display = 'none';
+    }
+    // EXPIRED STATE (hide CTA, show soft note)
+    else if (tx.is_expired) {
+      $('lp_primaryAction').style.display = 'none';
+      $('lp_expiredNote').style.display = 'block';
+      $('lp_expiredAmbName').textContent = ambFirst;
+      $('lp_subtitle').textContent = 'Your listing expired on ' + ambFirst + '\u2019s page';
+    }
+    // ACTIVE STATE (default — show "See listing" CTA)
+    else {
+      $('lp_seeLink').innerHTML = 'See your listing on ' + ambFirst + '\u2019s page \u2192';
+      if (ambSlug) $('lp_seeLink').href = '/' + ambSlug;  // Same tab
+    }
+
+    // Support mailto with locked subject format: "Support request — L8473921"
+    $('lp_supportLink').href = 'mailto:support@welovedecode.com?subject=' +
+      encodeURIComponent('Support request — ' + (tx.reference || ''));
+  }
+
+  // =========================================================================
+  // URL FORMAT: /listing/confirmation/{payment_intent_id}
+  //   payment_intent_id — Stripe's PaymentIntent ID (e.g. pi_3QXyz789abc...)
+  //                       27+ chars, globally unique, unguessable.
+  //                       Stripe itself appends this to return_url on success.
+  //                       No additional HMAC/key needed — pi_xxx is the token.
+  //
+  // Stripe also appends: payment_intent_client_secret, redirect_status.
+  // We ignore those — server is source of truth via webhook.
+  //
+  // The reference (L8473921) is shown INSIDE the receipt but NOT in the URL.
+  //
+  // ENDPOINT: GET /api/listings/by-payment-intent/{pi_id}
+  // Listings + Wish gifts are SEPARATE tables/endpoints (not unified). This page
+  // only ever calls the listings endpoint. Visual receipt template is shared.
+  //
+  // LOADING STATE: show a small pink spinner (industry-standard behavior —
+  // like Shopify, Stripe, Airbnb) until data arrives. If status returns
+  // 'pending_payment' (webhook hasn't fired yet), retry every 1s for up to
+  // 5s total — typical webhook delay is <1s.
+  // =========================================================================
+  var RETRY_INTERVAL_MS = 1000;
+  var RETRY_MAX = 5;
+  var retryCount = 0;
+
+  function loadTransaction(){
+    var pi = null;
+    try {
+      var m = window.location.pathname.match(/\/listing\/confirmation\/(pi_[^/?#]+)/);
+      if (m) pi = m[1];
+      if (!pi) {
+        var params = new URLSearchParams(window.location.search);
+        pi = params.get('payment_intent');
+      }
+    } catch(e) {}
+
+    // MOCKUP PATH: no backend available. Apply demo param, simulate 800ms load, then render.
+    if (typeof fetch !== 'function' || !pi) {
+      // Check for ?demo=notfound trigger first
+      var tx = Object.assign({}, FALLBACK_TX);
+      var demoResult = applyDemoMode(tx);
+      setTimeout(function(){
+        if (demoResult === 'notfound') { showNotFound(); return; }
+        hideLoading();
+        renderTransaction(tx);
+      }, 800);
+      return;
+    }
+
+    // PRODUCTION PATH: fetch real transaction
+    fetch('/api/listings/by-payment-intent/' + encodeURIComponent(pi), {
+      headers:{'Accept':'application/json'}
+    })
+      .then(function(res){
+        if (res.status === 404) throw new Error('not_found');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function(data){
+        if (!data || !data.reference) throw new Error('invalid payload');
+        // Pending webhook: retry briefly (typical delay <1s, max 5s)
+        if (data.status === 'pending_payment' && retryCount < RETRY_MAX) {
+          retryCount++;
+          setTimeout(loadTransaction, RETRY_INTERVAL_MS);
+          return;
+        }
+        hideLoading();
+        renderTransaction(data);
+      })
+      .catch(function(err){
+        if (err && err.message === 'not_found') {
+          showNotFound();
+        } else {
+          // Network/other error: show not-found state (conservative)
+          showNotFound();
+        }
+      });
+  }
+
+  function hideLoading(){
+    var l = $('lp_loading');
+    if (l) l.style.display = 'none';
+    var c = $('lp_content');
+    if (c) c.style.display = 'block';
+  }
+
+  function showNotFound(){
+    var l = $('lp_loading'); if (l) l.style.display = 'none';
+    var c = $('lp_content'); if (c) c.style.display = 'none';
+    var nf = $('lp_notFound'); if (nf) nf.style.display = 'block';
+  }
+
+  // MOCKUP-ONLY: apply URL-based demo states so user can preview all UI states
+  // without actually having a valid PaymentIntent. Remove this block in production.
+  function applyDemoMode(tx){
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var demo = params.get('demo');
+      if (demo === 'expired') {
+        tx.is_expired = true;
+        tx.active_until = '2025-12-01T09:41:00Z';
+      } else if (demo === 'refunded') {
+        tx.is_refunded = true;
+        tx.status = 'refunded';
+        tx.refunded_at = '2026-04-12T14:20:00Z';
+        tx.refund_amount = tx.amount;
+      } else if (demo === 'presentment') {
+        tx.presentment_amount = 1580;
+        tx.presentment_currency = 'INR';
+      } else if (demo === 'notfound') {
+        return 'notfound';
+      }
+    } catch(e) {}
+    return null;
+  }
+
+  loadTransaction();
+})();
+</script>

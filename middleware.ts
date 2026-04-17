@@ -22,5 +22,6 @@ export const config = {
     '/offers/:path*',
     '/payment/:path*',
     '/pending-approval/:path*',
+    '/model/:path*',
   ],
 }

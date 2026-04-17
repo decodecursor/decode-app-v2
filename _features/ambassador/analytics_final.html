@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Analytics — Ultramodern</title>
+<style>
+body{margin:0;padding:24px;background:#111;font-family:system-ui,-apple-system,sans-serif;color:#fff;display:flex;justify-content:center}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+#anPage{width:375px;background:#000;border-radius:24px;overflow:hidden;color:#fff;border:2px solid #1a1a1a;position:relative}
+
+/* Progress bar shared animation — growth effect on page load */
+#anPage .pbar{height:3px;border-radius:2px;background:#262626;overflow:hidden;position:relative}
+#anPage .pbar-fill{position:absolute;left:0;top:0;bottom:0;border-radius:2px;width:0;transition:width 1500ms cubic-bezier(.2,.7,.2,1)}
+#anPage .pbar-fill.pink{background:#e91e8c}
+#anPage .pbar-fill.mint{background:#34d399}
+
+/* Split bar — same growth animation */
+#anPage .split{display:flex;height:4px;border-radius:2px;overflow:hidden;margin-bottom:4px;background:#262626}
+#anPage .split-pink{background:#e91e8c;width:0;transition:width 1500ms cubic-bezier(.2,.7,.2,1)}
+#anPage .split-mint{background:#34d399;width:0;transition:width 1500ms cubic-bezier(.2,.7,.2,1)}
+
+/* Chart line + fill draw-in */
+#anPage .chart-line{stroke-dasharray:1000;stroke-dashoffset:1000;transition:stroke-dashoffset 1800ms cubic-bezier(.2,.7,.2,1)}
+#anPage .chart-line.show{stroke-dashoffset:0}
+#anPage .chart-fill{opacity:0;transition:opacity 1000ms ease 800ms}
+#anPage .chart-fill.show{opacity:1}
+
+#anPage .filter-tab{transition:color 0.15s,border-color 0.15s;cursor:pointer}
+#anPage .filter-tab.active{color:#fff;font-weight:700;border-bottom:1.5px solid #e91e8c}
+
+/* Pull-to-refresh — reusable pattern across all pages */
+#anPage{position:relative}
+#ptr{position:absolute;top:-44px;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:10px;color:#666;letter-spacing:0.3px;pointer-events:none;transition:top 0.25s cubic-bezier(.2,.7,.2,1)}
+#ptr.pulling{top:0}
+#ptr.refreshing{top:0}
+#ptr svg{transition:transform 0.25s ease}
+#ptr.refreshing svg{animation:ptrSpin 0.8s linear infinite}
+@keyframes ptrSpin{to{transform:rotate(360deg)}}
+
+/* Number count-up — no CSS needed, JS animates textContent */
+/* ============================================================
+   IN-PAGE OVERLAYS — Payouts list + Payout detail
+   Added WITHOUT touching the analytics page styles above.
+   Each overlay is a 375px screen that slides in from the right.
+============================================================ */
+#screens { position: relative; width: 375px; }
+.screen {
+  position: absolute;
+  top: 0; left: 0;
+  width: 375px;
+  max-height: 100vh;
+  overflow-y: auto;
+  background: #000;
+  border-radius: 24px;
+  color: #fff;
+  border: 2px solid #1a1a1a;
+  font-family: system-ui, -apple-system, sans-serif;
+  transform: translateX(100%);
+  transition: transform 280ms cubic-bezier(.2,.7,.2,1);
+  will-change: transform;
+  -webkit-overflow-scrolling: touch;
+}
+.screen.active { transform: translateX(0); }
+#anPage { position: relative !important; transform: none !important; transition: none !important; }
+
+/* Row hover for payouts list — subtle only, extends slightly past row edges with rounded corners */
+.po-row {
+  margin: 0 -8px;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  border-radius: 8px;
+  transition: background-color 150ms ease;
+}
+.po-row:hover { background-color: #0a0a0a; }
+
+/* Statement page — hover appears only on the reference + copy button, not on date */
+.pd-copybtn:hover { background-color: #0a0a0a; }
+</style></head><body>
+
+<div id="screens">
+<div id="anPage">
+<div id="ptr"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.2-8.55"/><path d="M21 3v6h-6"/></svg><span id="ptrLabel">Pull to refresh</span></div>
+
+<!-- Header -->
+<div style="padding:16px 20px 20px;display:flex;align-items:center;gap:12px">
+<svg onclick="history.back()" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+<span style="font-size:20px;font-weight:700">Analytics</span>
+</div>
+
+<!-- Filter tabs -->
+<div style="padding:0 20px 20px;display:flex;gap:15px">
+<div class="filter-tab" data-filter="today" style="font-size:13px;font-weight:600;color:#777;padding:6px 0 4px">Today</div>
+<div class="filter-tab active" data-filter="week" style="font-size:13px;padding:6px 0 4px">Week</div>
+<div class="filter-tab" data-filter="month" style="font-size:13px;font-weight:600;color:#777;padding:6px 0 4px">Month</div>
+<div class="filter-tab" data-filter="all" style="font-size:13px;font-weight:600;color:#777;padding:6px 0 4px">All</div>
+</div>
+
+<div style="padding:0 20px">
+
+<!-- Total earnings -->
+<div style="padding-bottom:18px;border-bottom:1px solid #1f1f1f">
+<div style="font-size:11px;color:#666;text-align:left">Total earnings</div>
+<div style="display:flex;align-items:baseline;gap:5px;margin-top:4px">
+<div id="anTotal" style="font-size:28px;font-weight:700;letter-spacing:-0.3px">$1,384</div>
+<div id="anTrend" style="font-size:11px;color:#34d399;font-weight:600">&uarr; 24%</div>
+</div>
+<svg viewBox="0 0 280 48" style="width:100%;height:48px;margin-top:14px">
+<defs><linearGradient id="gA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e91e8c" stop-opacity="0.35"/><stop offset="100%" stop-color="#e91e8c" stop-opacity="0"/></linearGradient></defs>
+<path id="anChartFill" class="chart-fill" d="M0,36 L40,28 L80,32 L120,20 L160,24 L200,14 L240,18 L280,8 L280,48 L0,48 Z" fill="url(#gA)"/>
+<path id="anChartLine" class="chart-line" d="M0,36 L40,28 L80,32 L120,20 L160,24 L200,14 L240,18 L280,8" stroke="#e91e8c" stroke-width="1.5" fill="none"/>
+</svg>
+<div id="anXLabels" style="display:flex;justify-content:space-between;font-size:10px;color:#777;margin-top:6px"><span>Mon</span><span>Wed</span><span>Fri</span><span>Sun</span></div>
+</div>
+
+<!-- Breakdown -->
+<div style="padding:18px 0;border-bottom:1px solid #1f1f1f">
+<div style="font-size:11px;color:#666;margin-bottom:10px;text-align:left">Breakdown</div>
+<div class="split">
+<div id="splitPink" class="split-pink" data-target="51"></div>
+<div id="splitMint" class="split-mint" data-target="49"></div>
+</div>
+<div style="display:flex;justify-content:space-between">
+<div><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#e91e8c;margin-right:6px;vertical-align:middle"></span><span style="font-size:11px;color:#777">Listings</span> <span id="anListingsAmount" style="font-size:11px;color:#fff;font-weight:600">$704</span></div>
+<div><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#34d399;margin-right:6px;vertical-align:middle"></span><span style="font-size:11px;color:#777">Gifts</span> <span id="anGiftsAmount" style="font-size:11px;color:#fff;font-weight:600">$680</span></div>
+</div>
+</div>
+
+<!-- Next payout -->
+<div style="padding:18px 0;border-bottom:1px solid #1f1f1f;display:flex;justify-content:space-between;align-items:flex-end">
+<div style="flex:1;min-width:0">
+<div style="font-size:11px;color:#666;text-align:left;margin-bottom:6px">Next payout</div>
+<div style="display:flex;align-items:baseline;gap:5px">
+<div id="anPayoutAmount" style="font-size:22px;font-weight:700;letter-spacing:-0.2px">$340</div>
+<div id="anPayoutDate" style="font-size:10px;color:#777">Wednesday</div>
+</div>
+</div>
+<a onclick="openPayouts()" style="font-size:13px;color:#e91e8c;font-weight:500;text-decoration:none;cursor:pointer">View payouts &rarr;</a>
+</div>
+
+<!-- 3 stat tiles — funnel layout with label, number, trend, chevron between tiles -->
+<div style="padding:18px 0;border-bottom:1px solid #1f1f1f;display:flex;align-items:stretch">
+
+<!-- Tile 1: Visits -->
+<div style="flex:1;text-align:center">
+<div style="font-size:11px;color:#666">Page visits</div>
+<div style="display:inline-flex;align-items:baseline;gap:5px;margin-top:4px">
+<div id="anVisitsCount" style="font-size:22px;font-weight:700;letter-spacing:-0.2px">247</div>
+<div id="anVisitsTrend" style="font-size:9px;color:#34d399;font-weight:600">&uarr; 18%</div>
+</div>
+</div>
+
+<!-- Funnel chevron -->
+<div style="display:flex;align-items:center;justify-content:center;width:24px">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+</div>
+
+<!-- Tile 2: Clicks -->
+<div style="flex:1;text-align:center">
+<div style="font-size:11px;color:#666">Clicks</div>
+<div style="display:inline-flex;align-items:baseline;gap:5px;margin-top:4px">
+<div id="anClicksCount" style="font-size:22px;font-weight:700;letter-spacing:-0.2px">104</div>
+<div id="anClicksTrend" style="font-size:9px;color:#34d399;font-weight:600">&uarr; 32%</div>
+</div>
+</div>
+
+<!-- Funnel chevron -->
+<div style="display:flex;align-items:center;justify-content:center;width:24px">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+</div>
+
+<!-- Tile 3: Gifts -->
+<div style="flex:1;text-align:center">
+<div style="font-size:11px;color:#666">Gifts</div>
+<div style="display:inline-flex;align-items:baseline;gap:5px;margin-top:4px">
+<div id="anGiftsCount" style="font-size:22px;font-weight:700;letter-spacing:-0.2px">8</div>
+<div id="anGiftsTrend" style="font-size:9px;color:#e91e8c;font-weight:600">&darr; 5%</div>
+</div>
+</div>
+
+</div>
+
+<!-- Clicks by listings + Clicks by wishes side-by-side -->
+<div style="padding:18px 0;border-bottom:1px solid #1f1f1f;display:flex;gap:20px">
+
+<!-- LISTINGS column -->
+<div onclick="window.location.href='/listings'" style="flex:1;min-width:0;cursor:pointer">
+<div style="font-size:11px;color:#666;margin-bottom:12px;text-align:left">Clicks by listings</div>
+<div id="anListingsRows">__LISTINGS_ROWS__</div>
+<!-- Top listing inside the column -->
+<div style="margin-top:18px;padding-top:14px;border-top:1px solid #1f1f1f">
+<div style="font-size:11px;color:#666;margin-bottom:6px;text-align:left">Top listing</div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:6px">
+<div style="min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+<div id="anTopListingName" style="font-size:12px;font-weight:600;color:#fff">Salon de Luxe</div>
+<div id="anTopListingMeta" style="font-size:10px;color:#777;margin-top:2px;text-align:left">82 days</div>
+</div>
+<span id="anTopListingAmount" style="font-size:12px;color:#fff;font-weight:600;flex-shrink:0">$1,200</span>
+</div>
+</div>
+</div>
+
+<!-- WISHES column -->
+<div onclick="window.location.href='/wishlist'" style="flex:1;min-width:0;cursor:pointer">
+<div style="font-size:11px;color:#666;margin-bottom:12px;text-align:left">Clicks by wishes</div>
+<div id="anWishesRows">__WISHES_ROWS__</div>
+<!-- Top gifter inside the column -->
+<div style="margin-top:18px;padding-top:14px;border-top:1px solid #1f1f1f">
+<div style="font-size:11px;color:#666;margin-bottom:6px;text-align:left">Top gifter</div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:6px">
+<div style="min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+<div id="anTopGifterName" style="font-size:12px;font-weight:600;color:#fff">Ahmed K.</div>
+<div id="anTopGifterMeta" style="font-size:10px;color:#777;margin-top:2px;text-align:left">1 gift</div>
+</div>
+<span id="anTopGifterAmount" style="font-size:12px;color:#fff;font-weight:600;flex-shrink:0">$500</span>
+</div>
+</div>
+</div>
+
+</div>
+
+</div>
+
+<div style="padding:24px 20px 20px"></div>
+</div>
+
+<!-- ============================================================
+     OVERLAY 1: PAYOUTS LIST (slides in from right on "View payouts →")
+============================================================ -->
+<div class="screen" id="poScreen">
+
+<div style="padding:16px 20px 20px;display:flex;align-items:center;gap:12px">
+<svg onclick="closePayouts()" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+<span style="font-size:20px;font-weight:700">Payouts</span>
+</div>
+
+<div style="padding:0 20px 16px"><div style="background:#1c1c1c;border-radius:14px;padding:20px">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+<div style="font-size:11px;color:#666">Next payout</div>
+<div style="background:#34d399;border-radius:20px;padding:4px 10px;font-size:9px;font-weight:700;color:#000;letter-spacing:0.3px">SCHEDULED</div>
+</div>
+<div style="display:flex;align-items:baseline;gap:8px">
+<div style="font-size:28px;font-weight:700;letter-spacing:-0.3px">$340.00</div>
+<div style="font-size:11px;font-weight:600;color:#666;letter-spacing:0.8px">USD</div>
+</div>
+<div style="font-size:10px;color:#777;margin-top:4px">Wednesday, 15 April 2026</div>
+</div></div>
+
+<div style="padding:0 20px 16px"><div style="background:#1c1c1c;border-radius:14px;padding:18px 18px 8px">
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<div>
+<div style="font-size:11px;color:#666;text-align:left">Total</div>
+<div style="font-size:10px;color:#777;margin-top:4px;text-align:left">5 payouts</div>
+</div>
+<span style="font-size:22px;font-weight:700;letter-spacing:-0.2px">$1,740.00</span>
+</div>
+
+<div style="height:1px;background:#1f1f1f;margin:0 -18px 4px"></div>
+
+<div class="po-row" onclick="openPayoutDetail('P8473921','8 April 2026','$420.00',4,3)" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #1f1f1f;cursor:pointer">
+<div>
+<div style="font-size:14px;font-weight:700">8 April 2026</div>
+<div style="font-size:10px;color:#777;margin-top:4px">P8473921</div>
+</div>
+<div style="text-align:right">
+<div style="font-size:15px;font-weight:600">$420.00</div>
+<div style="font-size:10px;color:#34d399;margin-top:4px">Paid</div>
+</div>
+</div>
+
+<div class="po-row" onclick="openPayoutDetail('P2918473','1 April 2026','$280.00',3,1)" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #1f1f1f;cursor:pointer">
+<div>
+<div style="font-size:14px;font-weight:700">1 April 2026</div>
+<div style="font-size:10px;color:#777;margin-top:4px">P2918473</div>
+</div>
+<div style="text-align:right">
+<div style="font-size:15px;font-weight:600">$280.00</div>
+<div style="font-size:10px;color:#34d399;margin-top:4px">Paid</div>
+</div>
+</div>
+
+<div class="po-row" onclick="openPayoutDetail('P5639204','25 March 2026','$540.00',5,2)" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #1f1f1f;cursor:pointer">
+<div>
+<div style="font-size:14px;font-weight:700">25 March 2026</div>
+<div style="font-size:10px;color:#777;margin-top:4px">P5639204</div>
+</div>
+<div style="text-align:right">
+<div style="font-size:15px;font-weight:600">$540.00</div>
+<div style="font-size:10px;color:#34d399;margin-top:4px">Paid</div>
+</div>
+</div>
+
+<div class="po-row" onclick="openPayoutDetail('P7284015','18 March 2026','$190.00',2,1)" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #1f1f1f;cursor:pointer">
+<div>
+<div style="font-size:14px;font-weight:700">18 March 2026</div>
+<div style="font-size:10px;color:#777;margin-top:4px">P7284015</div>
+</div>
+<div style="text-align:right">
+<div style="font-size:15px;font-weight:600">$190.00</div>
+<div style="font-size:10px;color:#34d399;margin-top:4px">Paid</div>
+</div>
+</div>
+
+<div class="po-row" onclick="openPayoutDetail('P3947162','11 March 2026','$310.00',3,2)" style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;cursor:pointer">
+<div>
+<div style="font-size:14px;font-weight:700">11 March 2026</div>
+<div style="font-size:10px;color:#777;margin-top:4px">P3947162</div>
+</div>
+<div style="text-align:right">
+<div style="font-size:15px;font-weight:600">$310.00</div>
+<div style="font-size:10px;color:#34d399;margin-top:4px">Paid</div>
+</div>
+</div>
+
+</div></div>
+
+<div style="padding:20px"></div>
+</div>
+
+<!-- ============================================================
+     OVERLAY 2: PAYOUT DETAIL (slides in from right on row tap)
+     Breakdown is hardcoded to the most recent payout (P8473921)
+     for the mockup. In production each row taps into its own detail.
+============================================================ -->
+<div class="screen" id="pdScreen">
+
+<div style="padding:16px 20px 20px;display:flex;align-items:center;gap:12px">
+<svg onclick="closePayoutDetail()" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+<span style="font-size:20px;font-weight:700">Statement</span>
+</div>
+
+<div style="padding:0 20px 16px"><div style="background:#1c1c1c;border-radius:14px;padding:20px">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+<div style="font-size:11px;color:#666">Payout</div>
+<div style="background:#34d399;border-radius:20px;padding:4px 10px;font-size:9px;font-weight:700;color:#000;letter-spacing:0.3px">PAID</div>
+</div>
+
+<div style="display:flex;align-items:baseline;gap:8px">
+<div id="pdAmount" style="font-size:28px;font-weight:700;letter-spacing:-0.3px">$420.00</div>
+<div style="font-size:11px;font-weight:600;color:#666;letter-spacing:0.8px">USD</div>
+</div>
+
+<div style="font-size:10px;color:#777;margin-top:4px;display:flex;align-items:center;gap:5px">
+<span id="pdDate">8 April 2026</span>
+<span id="pdSep" style="color:#555;font-size:14px;line-height:1">&bull;</span>
+<span class="pd-copybtn" onclick="copyPid()" style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:3px 6px;margin:-3px -6px;border-radius:6px;transition:background-color 150ms ease">
+<span id="pdPid">P8473921</span>
+<svg id="pdCopyIcon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+</span>
+</div>
+
+<div style="display:flex;gap:20px;margin-top:16px;padding-top:14px;border-top:0.5px solid #272727">
+<div><div id="pdListingsCount" style="font-size:15px;font-weight:700">4</div><div style="font-size:9px;color:#666;margin-top:2px;letter-spacing:0.3px">Listings</div></div>
+<div><div id="pdWishesCount" style="font-size:15px;font-weight:700">3</div><div style="font-size:9px;color:#666;margin-top:2px;letter-spacing:0.3px">Wishes</div></div>
+<div style="margin-left:auto;text-align:right"><div style="font-size:10px;color:#999">Emirates NBD</div><div style="font-size:10px;color:#666">&bull;&bull;&bull;&bull; 4821</div></div>
+</div>
+</div></div>
+
+<div style="padding:4px 40px 0">
+<div style="font-size:10px;color:#666;letter-spacing:0.8px;text-transform:uppercase;margin:8px 0 6px">Listings</div>
+</div>
+
+<div style="padding:0 40px">
+<div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid #1f1f1f">
+<div><div style="font-size:13px;font-weight:700">Salon de Luxe</div><div style="font-size:10px;color:#777;margin-top:4px">30-day renewal · 3 April 2026</div></div>
+<div style="font-size:14px;font-weight:600">$60.00</div>
+</div>
+<div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid #1f1f1f">
+<div><div style="font-size:13px;font-weight:700">Dr. Gabriel Paez</div><div style="font-size:10px;color:#777;margin-top:4px">60-day package · 4 April 2026</div></div>
+<div style="font-size:14px;font-weight:600">$90.00</div>
+</div>
+<div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid #1f1f1f">
+<div><div style="font-size:13px;font-weight:700">Lash Salon</div><div style="font-size:10px;color:#777;margin-top:4px">30-day package · 5 April 2026</div></div>
+<div style="font-size:14px;font-weight:600">$45.00</div>
+</div>
+<div style="display:flex;justify-content:space-between;padding:14px 0">
+<div><div style="font-size:13px;font-weight:700">Brow Bar</div><div style="font-size:10px;color:#777;margin-top:4px">30-day package · 6 April 2026</div></div>
+<div style="font-size:14px;font-weight:600">$45.00</div>
+</div>
+</div>
+
+<div style="padding:4px 40px 0">
+<div style="font-size:10px;color:#666;letter-spacing:0.8px;text-transform:uppercase;margin:18px 0 6px">Wishes</div>
+</div>
+
+<div style="padding:0 40px 24px">
+<div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid #1f1f1f">
+<div><div style="font-size:13px;font-weight:700">Lip filler</div><div style="font-size:10px;color:#777;margin-top:4px">Sara Johnson · 5 April 2026</div></div>
+<div style="font-size:14px;font-weight:600">$75.00</div>
+</div>
+<div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid #1f1f1f">
+<div><div style="font-size:13px;font-weight:700">Botox</div><div style="font-size:10px;color:#777;margin-top:4px">Anonymous · 6 April 2026</div></div>
+<div style="font-size:14px;font-weight:600">$60.00</div>
+</div>
+<div style="display:flex;justify-content:space-between;padding:14px 0">
+<div><div style="font-size:13px;font-weight:700">Lash lift</div><div style="font-size:10px;color:#777;margin-top:4px">Layla Farouk · 7 April 2026</div></div>
+<div style="font-size:14px;font-weight:600">$45.00</div>
+</div>
+</div>
+
+<div style="padding:20px"></div>
+</div>
+
+</div>
+<!-- end #screens -->
+
+<script>
+/* ============================================================
+   OVERLAY NAVIGATION — Payouts list + Statement
+   Lives alongside the Analytics page, never touches its DOM.
+
+   PRODUCTION FLOW (what Claude Code wires up):
+   - openPayouts()          → cached GET /api/ambassador/payouts (first tap only)
+                              → PTR inside overlay re-fetches
+   - openPayoutDetail(id)   → GET /api/ambassador/payouts/:id → render breakdown
+                              → show skeleton while loading
+   - closePayouts/Detail    → CSS slide-out only, no fetch
+   - ESC key                → closes topmost overlay
+   - Each screen keeps its own scroll position
+============================================================ */
+
+var POScrollPos = 0; // preserves Payouts list scroll when Statement opens
+
+function openPayouts(){
+  /* PROD: if (!payoutsCache) fetch('/api/ambassador/payouts').then(render); */
+  var s = document.getElementById('poScreen');
+  s.classList.add('active');
+  s.scrollTop = 0;
+}
+function closePayouts(){
+  document.getElementById('poScreen').classList.remove('active');
+}
+
+function openPayoutDetail(pid, date, amount, listings, wishes){
+  /* PROD: fetch('/api/ambassador/payouts/' + pid).then(data => {
+            populate hero + breakdown sections from data
+          }); */
+  var poScreen = document.getElementById('poScreen');
+  POScrollPos  = poScreen.scrollTop; // remember where we were
+
+  document.getElementById('pdPid').textContent   = pid;
+  document.getElementById('pdDate').textContent  = date;
+  document.getElementById('pdAmount').textContent = amount;
+  document.getElementById('pdListingsCount').textContent = listings;
+  document.getElementById('pdWishesCount').textContent   = wishes;
+
+  var pd = document.getElementById('pdScreen');
+  pd.classList.add('active');
+  pd.scrollTop = 0;
+}
+function closePayoutDetail(){
+  document.getElementById('pdScreen').classList.remove('active');
+  // Restore Payouts list scroll position after transition completes
+  setTimeout(function(){
+    document.getElementById('poScreen').scrollTop = POScrollPos;
+  }, 0);
+}
+
+/* ESC closes topmost overlay */
+document.addEventListener('keydown', function(e){
+  if (e.key !== 'Escape') return;
+  var pd = document.getElementById('pdScreen');
+  var po = document.getElementById('poScreen');
+  if (pd.classList.contains('active'))       closePayoutDetail();
+  else if (po.classList.contains('active'))  closePayouts();
+});
+
+/* Copy payout ID with fallback for older browsers */
+function copyPid(){
+  var pidEl  = document.getElementById('pdPid');
+  var dateEl = document.getElementById('pdDate');
+  var sepEl  = document.getElementById('pdSep');
+  var iconEl = document.getElementById('pdCopyIcon');
+  if (pidEl.dataset.swapping === '1') return;
+
+  var pid = pidEl.textContent;
+
+  // Modern API → fallback → optimistic (always show Copied!)
+  var copied = false;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(pid);
+      copied = true;
+    }
+  } catch(e){}
+  if (!copied){
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = pid;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    } catch(e){}
+  }
+
+  pidEl.dataset.swapping = '1';
+  var origDate = dateEl.textContent;
+  var origPid  = pidEl.textContent;
+
+  dateEl.textContent = '';
+  sepEl.style.display = 'none';
+  iconEl.style.display = 'none';
+  pidEl.textContent = 'Copied!';
+  pidEl.style.color = '#34d399';
+  pidEl.style.fontWeight = '600';
+
+  setTimeout(function(){
+    dateEl.textContent = origDate;
+    sepEl.style.display = '';
+    iconEl.style.display = '';
+    pidEl.textContent = origPid;
+    pidEl.style.color = '';
+    pidEl.style.fontWeight = '';
+    pidEl.dataset.swapping = '0';
+  }, 1300);
+}
+</script>
+
+<script>
+(function(){
+  // Listings data
+  var listings = [
+    {cat:'Hair', pro:'Salon de Luxe', count:182, pct:95},
+    {cat:'Nose', pro:'Dr. Gabriel',   count:128, pct:70},
+    {cat:'Nails',pro:'Lash Salon',    count:62,  pct:34}
+  ];
+  var wishes = [
+    {cat:'Fillers', pro:'Skin Clinic',    count:88, pct:95},
+    {cat:'Hair',    pro:'Salon de Luxe',  count:54, pct:58},
+    {cat:'Nails',   pro:'Lash Salon',     count:30, pct:32}
+  ];
+  function renderRows(data, color){
+    return data.map(function(r){
+      return '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:11px;margin-bottom:5px;gap:6px">'+
+        '<div style="min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+
+          '<span style="color:#fff;font-weight:700">'+r.cat+'</span>'+
+          '<span style="display:inline-block;width:4px"></span>'+
+          '<span style="font-size:9px;color:#777">'+r.pro+'</span>'+
+        '</div>'+
+        '<span style="color:#fff;font-weight:700;flex-shrink:0">'+r.count+'</span>'+
+      '</div>'+
+      '<div class="pbar" style="margin-bottom:12px"><div class="pbar-fill '+color+'" data-target="'+r.pct+'"></div></div>';
+    }).join('');
+  }
+  document.body.innerHTML = document.body.innerHTML
+    .replace('__LISTINGS_ROWS__', renderRows(listings, 'pink'))
+    .replace('__WISHES_ROWS__', renderRows(wishes, 'mint'));
+
+  // Trigger growth animations after initial paint
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      // Split bar
+      var p = document.getElementById('splitPink');
+      var m = document.getElementById('splitMint');
+      if (p) p.style.width = p.dataset.target + '%';
+      if (m) m.style.width = m.dataset.target + '%';
+      // Horizontal bars
+      document.querySelectorAll('.pbar-fill').forEach(function(bar){
+        bar.style.width = bar.dataset.target + '%';
+      });
+      // Chart line + fill
+      ['anChartLine'].forEach(function(id){
+        var el = document.getElementById(id); if (el) el.classList.add('show');
+      });
+      ['anChartFill'].forEach(function(id){
+        var el = document.getElementById(id); if (el) el.classList.add('show');
+      });
+    });
+  });
+
+  // Mock datasets — in production these come from GET /api/analytics?range={filter}
+  // Full per-range datasets — every dynamic element has a value for every range
+  var DATASETS = {
+    today: {
+      total: '$185', trend: {dir:'up', pct:8},
+      xLabels: ['9am','12pm','3pm','6pm','9pm'],
+      chartLine: 'M0,40 L56,34 L112,28 L168,30 L224,18 L280,12',
+      chartFill: 'M0,40 L56,34 L112,28 L168,30 L224,18 L280,12 L280,48 L0,48 Z',
+      breakdown: {listings:'$120', gifts:'$65', splitPct:[65,35]},
+      payout: {amount:'$185', date:'Wednesday'},
+      funnel: {
+        visits:{count:38, trend:{dir:'up',pct:12}},
+        clicks:{count:14, trend:{dir:'up',pct:22}},
+        gifts: {count:2,  trend:{dir:'flat',pct:0}}
+      },
+      topListings:[
+        {cat:'Hair',pro:'Salon de Luxe',count:22,pct:95},
+        {cat:'Nose',pro:'Dr. Gabriel',count:10,pct:45},
+        {cat:'Nails',pro:'Lash Salon',count:6,pct:27}
+      ],
+      topWishes:[
+        {cat:'Fillers',pro:'Skin Clinic',count:12,pct:95},
+        {cat:'Hair',pro:'Salon de Luxe',count:7,pct:55},
+        {cat:'Nails',pro:'Lash Salon',count:3,pct:24}
+      ],
+      topListing:{name:'Salon de Luxe',meta:'Today',amount:'$120'},
+      topGifter:{name:'Noor H.',meta:'1 gift',amount:'$65'}
+    },
+    week: {
+      total: '$1,384', trend: {dir:'up', pct:24},
+      xLabels: ['Mon','Wed','Fri','Sun'],
+      chartLine: 'M0,36 L40,28 L80,32 L120,20 L160,24 L200,14 L240,18 L280,8',
+      chartFill: 'M0,36 L40,28 L80,32 L120,20 L160,24 L200,14 L240,18 L280,8 L280,48 L0,48 Z',
+      breakdown: {listings:'$704', gifts:'$680', splitPct:[51,49]},
+      payout: {amount:'$340', date:'Wednesday'},
+      funnel: {
+        visits:{count:247, trend:{dir:'up',pct:18}},
+        clicks:{count:104, trend:{dir:'up',pct:32}},
+        gifts: {count:8,   trend:{dir:'down',pct:5}}
+      },
+      topListings:[
+        {cat:'Hair',pro:'Salon de Luxe',count:182,pct:95},
+        {cat:'Nose',pro:'Dr. Gabriel',count:128,pct:70},
+        {cat:'Nails',pro:'Lash Salon',count:62,pct:34}
+      ],
+      topWishes:[
+        {cat:'Fillers',pro:'Skin Clinic',count:88,pct:95},
+        {cat:'Hair',pro:'Salon de Luxe',count:54,pct:58},
+        {cat:'Nails',pro:'Lash Salon',count:30,pct:32}
+      ],
+      topListing:{name:'Salon de Luxe',meta:'7 days',amount:'$704'},
+      topGifter:{name:'Ahmed K.',meta:'1 gift',amount:'$500'}
+    },
+    month: {
+      total: '$5,290', trend: {dir:'up', pct:42},
+      xLabels: ['1','8','15','22','30'],
+      chartLine: 'M0,40 L28,36 L56,30 L84,34 L112,22 L140,28 L168,18 L196,24 L224,14 L252,10 L280,4',
+      chartFill: 'M0,40 L28,36 L56,30 L84,34 L112,22 L140,28 L168,18 L196,24 L224,14 L252,10 L280,4 L280,48 L0,48 Z',
+      breakdown: {listings:'$2,890', gifts:'$2,400', splitPct:[55,45]},
+      payout: {amount:'$1,240', date:'Wednesday'},
+      funnel: {
+        visits:{count:1120, trend:{dir:'up',pct:34}},
+        clicks:{count:412,  trend:{dir:'up',pct:28}},
+        gifts: {count:26,   trend:{dir:'up',pct:14}}
+      },
+      topListings:[
+        {cat:'Hair',pro:'Salon de Luxe',count:742,pct:95},
+        {cat:'Nose',pro:'Dr. Gabriel',count:520,pct:67},
+        {cat:'Nails',pro:'Lash Salon',count:248,pct:32}
+      ],
+      topWishes:[
+        {cat:'Fillers',pro:'Skin Clinic',count:340,pct:95},
+        {cat:'Veneers',pro:'Smile Dental',count:210,pct:59},
+        {cat:'Hair',pro:'Salon de Luxe',count:122,pct:34}
+      ],
+      topListing:{name:'Salon de Luxe',meta:'30 days',amount:'$2,890'},
+      topGifter:{name:'Ahmed K.',meta:'4 gifts',amount:'$1,600'}
+    },
+    all: {
+      total: '$24,860', trend: {dir:'up', pct:312},
+      xLabels: ['Jan','Apr','Jul','Oct','Now'],
+      chartLine: 'M0,44 L40,40 L80,36 L120,28 L160,30 L200,18 L240,12 L280,6',
+      chartFill: 'M0,44 L40,40 L80,36 L120,28 L160,30 L200,18 L240,12 L280,6 L280,48 L0,48 Z',
+      breakdown: {listings:'$13,420', gifts:'$11,440', splitPct:[54,46]},
+      payout: {amount:'$1,240', date:'Wednesday'},
+      funnel: {
+        visits:{count:8940, trend:{dir:'up',pct:212}},
+        clicks:{count:3120, trend:{dir:'up',pct:184}},
+        gifts: {count:142,  trend:{dir:'up',pct:96}}
+      },
+      topListings:[
+        {cat:'Hair',pro:'Salon de Luxe',count:3210,pct:95},
+        {cat:'Nose',pro:'Dr. Gabriel',count:2140,pct:63},
+        {cat:'Veneers',pro:'Smile Dental',count:1120,pct:33}
+      ],
+      topWishes:[
+        {cat:'Fillers',pro:'Skin Clinic',count:1820,pct:95},
+        {cat:'Veneers',pro:'Smile Dental',count:1340,pct:70},
+        {cat:'Hair',pro:'Salon de Luxe',count:680,pct:35}
+      ],
+      topListing:{name:'Salon de Luxe',meta:'All time',amount:'$13,420'},
+      topGifter:{name:'Ahmed K.',meta:'18 gifts',amount:'$7,200'}
+    }
+  };
+
+  function fmtTrend(trend){
+    if(trend.dir==='up')   return {txt:'\u2191 '+trend.pct+'%', color:'#34d399'};
+    if(trend.dir==='down') return {txt:'\u2193 '+trend.pct+'%', color:'#e91e8c'};
+    return {txt:'\u00B7 0%', color:'#777'};
+  }
+
+  function renderRows(data, colorClass){
+    return data.map(function(r){
+      return '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:11px;margin-bottom:5px;gap:6px">'+
+        '<div style="min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+
+          '<span style="color:#fff;font-weight:700">'+r.cat+'</span>'+
+          '<span style="display:inline-block;width:4px"></span>'+
+          '<span style="font-size:9px;color:#777">'+r.pro+'</span>'+
+        '</div>'+
+        '<span style="color:#fff;font-weight:700;flex-shrink:0">'+r.count.toLocaleString('en-US')+'</span>'+
+      '</div>'+
+      '<div class="pbar" style="margin-bottom:12px"><div class="pbar-fill '+colorClass+'" data-target="'+r.pct+'"></div></div>';
+    }).join('');
+  }
+
+  function applyDataset(key){
+    var d = DATASETS[key]; if (!d) return;
+
+    // Total + trend
+    var totalEl = document.getElementById('anTotal');
+    var fromStr = totalEl.textContent;
+    var trendEl = document.getElementById('anTrend');
+    var tt = fmtTrend(d.trend);
+    trendEl.textContent = tt.txt; trendEl.style.color = tt.color;
+
+    // X labels + chart paths
+    document.getElementById('anXLabels').innerHTML = d.xLabels.map(function(l){return '<span>'+l+'</span>';}).join('');
+    var line = document.getElementById('anChartLine');
+    var fill = document.getElementById('anChartFill');
+    line.classList.remove('show'); fill.classList.remove('show');
+    line.setAttribute('d', d.chartLine);
+    fill.setAttribute('d', d.chartFill);
+
+    // Breakdown
+    document.getElementById('anListingsAmount').textContent = d.breakdown.listings;
+    document.getElementById('anGiftsAmount').textContent = d.breakdown.gifts;
+    var sp = document.getElementById('splitPink'); var sm = document.getElementById('splitMint');
+    sp.setAttribute('data-target', d.breakdown.splitPct[0]);
+    sm.setAttribute('data-target', d.breakdown.splitPct[1]);
+    sp.style.width='0'; sm.style.width='0';
+
+    // Payout
+    document.getElementById('anPayoutAmount').textContent = d.payout.amount;
+    document.getElementById('anPayoutDate').textContent = d.payout.date;
+
+    // Funnel tiles
+    document.getElementById('anVisitsCount').textContent = d.funnel.visits.count.toLocaleString('en-US');
+    var vt = fmtTrend(d.funnel.visits.trend);
+    var vtEl = document.getElementById('anVisitsTrend'); vtEl.textContent = vt.txt; vtEl.style.color = vt.color;
+    document.getElementById('anClicksCount').textContent = d.funnel.clicks.count.toLocaleString('en-US');
+    var ct = fmtTrend(d.funnel.clicks.trend);
+    var ctEl = document.getElementById('anClicksTrend'); ctEl.textContent = ct.txt; ctEl.style.color = ct.color;
+    document.getElementById('anGiftsCount').textContent = d.funnel.gifts.count.toLocaleString('en-US');
+    var gt = fmtTrend(d.funnel.gifts.trend);
+    var gtEl = document.getElementById('anGiftsTrend'); gtEl.textContent = gt.txt; gtEl.style.color = gt.color;
+
+    // Clicks-by rows (re-rendered each time so bars can re-animate)
+    document.getElementById('anListingsRows').innerHTML = renderRows(d.topListings, 'pink');
+    document.getElementById('anWishesRows').innerHTML = renderRows(d.topWishes, 'mint');
+
+    // Top listing + Top gifter
+    document.getElementById('anTopListingName').textContent = d.topListing.name;
+    document.getElementById('anTopListingMeta').textContent = d.topListing.meta;
+    document.getElementById('anTopListingAmount').textContent = d.topListing.amount;
+    document.getElementById('anTopGifterName').textContent = d.topGifter.name;
+    document.getElementById('anTopGifterMeta').textContent = d.topGifter.meta;
+    document.getElementById('anTopGifterAmount').textContent = d.topGifter.amount;
+
+    // Trigger all animations on next frame
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        line.classList.add('show'); fill.classList.add('show');
+        sp.style.width = d.breakdown.splitPct[0] + '%';
+        sm.style.width = d.breakdown.splitPct[1] + '%';
+        document.querySelectorAll('#anListingsRows .pbar-fill, #anWishesRows .pbar-fill').forEach(function(el){
+          el.style.width = '0';
+          requestAnimationFrame(function(){
+            el.style.width = el.getAttribute('data-target') + '%';
+          });
+        });
+        animateNumber(totalEl, fromStr, d.total, 700);
+      });
+    });
+  }
+
+  // Filter tab interactivity
+  document.querySelectorAll('.filter-tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      document.querySelectorAll('.filter-tab').forEach(function(t){
+        t.classList.remove('active');
+        t.style.color='#777'; t.style.fontWeight='600'; t.style.borderBottom='none';
+      });
+      tab.classList.add('active');
+      tab.style.color='#fff'; tab.style.fontWeight='700'; tab.style.borderBottom='1.5px solid #e91e8c';
+      applyDataset(tab.dataset.filter);
+    });
+  });
+
+  // ============================================================
+  // ANIMATED NUMBER COUNT-UP
+  // Used on initial load and every filter swap
+  // ============================================================
+  function animateNumber(el, fromStr, toStr, duration){
+    var fromNum = parseFloat(String(fromStr).replace(/[^0-9.-]/g,'')) || 0;
+    var toNum = parseFloat(String(toStr).replace(/[^0-9.-]/g,'')) || 0;
+    var prefix = String(toStr).match(/^[^0-9-]*/)[0];
+    var suffix = String(toStr).match(/[^0-9.,]*$/)[0];
+    var start = performance.now();
+    function tick(now){
+      var t = Math.min(1, (now - start) / duration);
+      var eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      var val = Math.round(fromNum + (toNum - fromNum) * eased);
+      el.textContent = prefix + val.toLocaleString('en-US') + suffix;
+      if (t < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+
+
+  // Initial count-up from 0 to current value on page load
+  requestAnimationFrame(function(){
+    var totalEl = document.getElementById('anTotal');
+    var target = totalEl.textContent;
+    animateNumber(totalEl, '$0', target, 1000);
+  });
+
+  // ============================================================
+  // PULL-TO-REFRESH — reusable across all pages
+  // Touch + mouse drag from the top of the page
+  // ============================================================
+  (function(){
+    var page = document.getElementById('anPage');
+    var ptr = document.getElementById('ptr');
+    var label = document.getElementById('ptrLabel');
+    var startY = 0, currentY = 0, pulling = false, refreshing = false;
+    var THRESHOLD = 60;
+
+    function onStart(y){
+      if (refreshing) return;
+      // Only trigger if scrolled to top
+      if (window.scrollY > 0) return;
+      startY = y;
+      pulling = true;
+    }
+    function onMove(y){
+      if (!pulling || refreshing) return;
+      currentY = y;
+      var dist = Math.max(0, y - startY);
+      if (dist > 0){
+        ptr.style.top = Math.min(dist - 44, 0) + 'px';
+        if (dist > THRESHOLD) label.textContent = 'Release to refresh';
+        else label.textContent = 'Pull to refresh';
+      }
+    }
+    function onEnd(){
+      if (!pulling || refreshing) return;
+      var dist = Math.max(0, currentY - startY);
+      pulling = false;
+      if (dist > THRESHOLD){
+        refreshing = true;
+        ptr.classList.add('refreshing');
+        ptr.style.top = '0';
+        label.textContent = 'Refreshing…';
+        // Simulate a refresh — in production, refetch /api/analytics?range=...
+        setTimeout(function(){
+          // Re-animate the chart and bars to mimic a fresh load
+          var line = document.getElementById('anChartLine');
+          var fill = document.getElementById('anChartFill');
+          line.classList.remove('show'); fill.classList.remove('show');
+          document.querySelectorAll('.pbar-fill, .split-pink, .split-mint').forEach(function(b){
+            b.style.transition = 'none';
+            var w = b.style.width;
+            b.style.width = '0';
+            requestAnimationFrame(function(){
+              b.style.transition = '';
+              b.style.width = w;
+            });
+          });
+          requestAnimationFrame(function(){
+            requestAnimationFrame(function(){
+              line.classList.add('show'); fill.classList.add('show');
+            });
+          });
+          // Animate number count-up from current to current (subtle pulse) — or refetch real data
+          var totalEl = document.getElementById('anTotal');
+          var t = totalEl.textContent;
+          animateNumber(totalEl, '$0', t, 900);
+
+          // Hide PTR
+          ptr.classList.remove('refreshing');
+          ptr.style.top = '-44px';
+          label.textContent = 'Pull to refresh';
+          refreshing = false;
+        }, 1200);
+      } else {
+        ptr.style.top = '-44px';
+      }
+    }
+
+    page.addEventListener('touchstart', function(e){ onStart(e.touches[0].clientY); }, {passive:true});
+    page.addEventListener('touchmove',  function(e){ onMove(e.touches[0].clientY);  }, {passive:true});
+    page.addEventListener('touchend',   function(){ onEnd(); });
+
+    // Mouse fallback for desktop preview
+    page.addEventListener('mousedown', function(e){ onStart(e.clientY); });
+    document.addEventListener('mousemove', function(e){ if (pulling) onMove(e.clientY); });
+    document.addEventListener('mouseup',   function(){ onEnd(); });
+  })();
+})();
+</script>
+</body></html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Payout statement — WeLoveDecode</title>
+<style>
+body{margin:0;padding:24px 0;background:#111;display:flex;justify-content:center;font-family:system-ui,-apple-system,sans-serif}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+
+#pdPage{width:375px;background:#000;border-radius:24px;overflow:hidden;color:#fff;border:2px solid #1a1a1a}
+
+.pd-back{cursor:pointer;transition:transform 0.05s}
+.pd-back:active{transform:scale(0.9)}
+
+.pd-copybtn{
+  display:inline-flex;align-items:center;cursor:pointer;
+  padding:3px 6px;margin:-3px -6px;border-radius:6px;
+  transition:background-color 0.15s ease;
+  position:relative;
+}
+.pd-copybtn:hover{background:#262626}
+
+.pd-copied-label{
+  position:absolute;
+  top:calc(100% + 4px);
+  left:50%;
+  transform:translateX(-50%);
+  font-size:10px;
+  font-weight:600;
+  color:#34d399;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.15s ease;
+  white-space:nowrap;
+}
+.pd-copied-label.visible{opacity:1}
+
+.pd-line{
+  padding:14px 0;
+  border-bottom:1px solid #1f1f1f;
+}
+.pd-line:last-child{border-bottom:none}
+.pd-row{display:flex;justify-content:space-between;align-items:center}
+.pd-row-bottom{margin-top:2px}
+</style></head>
+<body>
+
+<div id="pdPage">
+
+<!-- Header with back arrow -->
+<div style="padding:16px 20px 20px;display:flex;align-items:center;gap:12px">
+<svg id="pdBack" class="pd-back" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+<span style="font-size:20px;font-weight:700">Statement</span>
+</div>
+
+<!-- Summary card -->
+<div style="padding:0 20px 16px">
+<div style="background:#1c1c1c;border-radius:14px;padding:20px">
+
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+<div style="font-size:11px;color:#666">Payout</div>
+<div id="pdStatus" style="background:#34d399;border-radius:20px;padding:4px 10px;font-size:9px;font-weight:700;color:#000;letter-spacing:0.3px">PAID</div>
+</div>
+
+<div style="display:flex;align-items:baseline;gap:8px">
+<div id="pdAmount" style="font-size:28px;font-weight:700;letter-spacing:-0.3px">$420.00</div>
+<div id="pdCurrency" style="font-size:11px;font-weight:600;color:#666;letter-spacing:0.8px">USD</div>
+</div>
+
+<div style="font-size:10px;color:#777;margin-top:4px;display:flex;align-items:center;gap:5px">
+<span id="pdDate">8 April 2026</span>
+<span style="color:#555;font-size:14px;line-height:1">&bull;</span>
+<span id="pdCopyBtn" class="pd-copybtn">
+<span id="pdPid">P8473921</span>
+<span id="pdCopiedLabel" class="pd-copied-label">Copied!</span>
+</span>
+</div>
+
+<div style="display:flex;gap:20px;margin-top:16px;padding-top:14px;border-top:0.5px solid #272727">
+<div>
+<div id="pdListingsCount" style="font-size:15px;font-weight:700">4</div>
+<div style="font-size:9px;color:#666;margin-top:2px;letter-spacing:0.3px">Listings</div>
+</div>
+<div>
+<div id="pdWishesCount" style="font-size:15px;font-weight:700">3</div>
+<div style="font-size:9px;color:#666;margin-top:2px;letter-spacing:0.3px">Wishes</div>
+</div>
+<div style="margin-left:auto;text-align:right">
+<div id="pdBankName" style="font-size:10px;color:#999">Emirates NBD</div>
+<div id="pdBankLast4" style="font-size:10px;color:#666">&bull;&bull;&bull;&bull; 4821</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- Listings section -->
+<div style="padding:4px 40px 0">
+<div style="font-size:10px;color:#666;letter-spacing:0.8px;text-transform:uppercase;margin:8px 0 6px">Listings</div>
+</div>
+
+<div id="pdListingsSection" style="padding:0 40px">
+
+<div class="pd-line">
+<div class="pd-row">
+<div style="font-size:13px;font-weight:700">Salon de Luxe</div>
+<div style="font-size:14px;font-weight:600">$60.00</div>
+</div>
+<div class="pd-row pd-row-bottom">
+<div style="font-size:10px;color:#777">30-day renewal · 3 April 2026</div>
+<div style="font-size:10px;color:#666">$75.00</div>
+</div>
+</div>
+
+<div class="pd-line">
+<div class="pd-row">
+<div style="font-size:13px;font-weight:700">Dr. Gabriel Paez</div>
+<div style="font-size:14px;font-weight:600">$90.00</div>
+</div>
+<div class="pd-row pd-row-bottom">
+<div style="font-size:10px;color:#777">60-day package · 4 April 2026</div>
+<div style="font-size:10px;color:#666">$112.50</div>
+</div>
+</div>
+
+<div class="pd-line">
+<div class="pd-row">
+<div style="font-size:13px;font-weight:700">Lash Salon</div>
+<div style="font-size:14px;font-weight:600">$45.00</div>
+</div>
+<div class="pd-row pd-row-bottom">
+<div style="font-size:10px;color:#777">30-day package · 5 April 2026</div>
+<div style="font-size:10px;color:#666">$56.25</div>
+</div>
+</div>
+
+<div class="pd-line">
+<div class="pd-row">
+<div style="font-size:13px;font-weight:700">Brow Bar</div>
+<div style="font-size:14px;font-weight:600">$45.00</div>
+</div>
+<div class="pd-row pd-row-bottom">
+<div style="font-size:10px;color:#777">30-day package · 6 April 2026</div>
+<div style="font-size:10px;color:#666">$56.25</div>
+</div>
+</div>
+
+</div>
+
+<!-- Wishes section -->
+<div style="padding:4px 40px 0">
+<div style="font-size:10px;color:#666;letter-spacing:0.8px;text-transform:uppercase;margin:18px 0 6px">Wishes</div>
+</div>
+
+<div id="pdWishesSection" style="padding:0 40px 24px">
+
+<div class="pd-line">
+<div class="pd-row">
+<div style="font-size:13px;font-weight:700">Lip filler</div>
+<div style="font-size:14px;font-weight:600">$75.00</div>
+</div>
+<div class="pd-row pd-row-bottom">
+<div style="font-size:10px;color:#777">Sara Johnson · 5 April 2026</div>
+<div style="font-size:10px;color:#666">$93.75</div>
+</div>
+</div>
+
+<div class="pd-line">
+<div class="pd-row">
+<div style="font-size:13px;font-weight:700">Botox</div>
+<div style="font-size:14px;font-weight:600">$60.00</div>
+</div>
+<div class="pd-row pd-row-bottom">
+<div style="font-size:10px;color:#777">Anonymous · 6 April 2026</div>
+<div style="font-size:10px;color:#666">$75.00</div>
+</div>
+</div>
+
+<div class="pd-line">
+<div class="pd-row">
+<div style="font-size:13px;font-weight:700">Lash lift</div>
+<div style="font-size:14px;font-weight:600">$45.00</div>
+</div>
+<div class="pd-row pd-row-bottom">
+<div style="font-size:10px;color:#777">Layla Farouk · 7 April 2026</div>
+<div style="font-size:10px;color:#666">$56.25</div>
+</div>
+</div>
+</div>
+
+<div style="padding:20px"></div>
+</div>
+
+<script>
+(function(){
+  // ===========================================================================
+  // Payout statement — /model/payouts/[id]
+  // ---------------------------------------------------------------------------
+  // Reached from /model/payouts (list) via row tap.
+  // Deep-linkable: user can bookmark or share a specific statement URL.
+  //
+  // DATA (production)
+  //   GET /api/model/payouts/{id}
+  //     → { id, amount, currency, status, date,
+  //         bank: {name, last4},
+  //         listings: [{professional_name, duration_days, paid_on, amount}, ...],
+  //         wishes:   [{treatment, gifter_name, paid_on, amount}, ...] }
+  //
+  // BACK ARROW
+  //   history.back() → returns to /model/payouts (list)
+  //   Falls back to /model/payouts if no history entry
+  //
+  // COPY PAYOUT ID
+  //   Tap the statement ID (e.g. "P8473921") → copies to clipboard
+  //   Icon briefly switches to a checkmark for 1.2s to confirm
+  // ===========================================================================
+
+  // Back arrow
+  var backBtn = document.getElementById('pdBack');
+  if (backBtn) {
+    backBtn.addEventListener('click', function(){
+      if (window.history.length > 1) window.history.back();
+      else window.location.href = '/model/payouts';
+    });
+  }
+
+  // Copy payout ID to clipboard + show "Copied!" feedback below reference
+  var copyBtn = document.getElementById('pdCopyBtn');
+  var pidEl = document.getElementById('pdPid');
+  var copiedLabel = document.getElementById('pdCopiedLabel');
+  var copiedTimer = null;
+
+  if (copyBtn && pidEl && copiedLabel) {
+    copyBtn.addEventListener('click', function(){
+      var pid = (pidEl.textContent || '').trim();
+      if (!pid) return;
+
+      var showCopied = function(){
+        copiedLabel.classList.add('visible');
+        if (copiedTimer) clearTimeout(copiedTimer);
+        copiedTimer = setTimeout(function(){
+          copiedLabel.classList.remove('visible');
+        }, 1500);
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(pid).then(showCopied).catch(function(){
+          // Fallback for older browsers
+          var ta = document.createElement('textarea');
+          ta.value = pid; document.body.appendChild(ta);
+          ta.select(); try { document.execCommand('copy'); } catch(e){}
+          document.body.removeChild(ta);
+          showCopied();
+        });
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = pid; document.body.appendChild(ta);
+        ta.select(); try { document.execCommand('copy'); } catch(e){}
+        document.body.removeChild(ta);
+        showCopied();
+      }
+    });
+  }
+})();
+</script>
+
+</body></html>

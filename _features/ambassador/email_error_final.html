@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Link doesn't work</title>
+<style>
+body{margin:0;padding:24px 0;background:#111;display:flex;justify-content:center;font-family:system-ui,-apple-system,sans-serif}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+
+#eePage{width:375px;background:#000;border-radius:24px;overflow:hidden;color:#fff;border:2px solid #1a1a1a}
+
+.ee-content{padding:160px 22px 40px;text-align:center}
+.ee-title{font-size:22px;font-weight:700;margin-bottom:14px;letter-spacing:-0.2px}
+.ee-sub{font-size:13px;color:#888;line-height:1.6;margin-bottom:40px}
+
+.ee-btn{
+  background:#e91e8c;border-radius:12px;padding:16px;text-align:center;
+  font-size:14px;font-weight:600;color:#fff;cursor:pointer;
+  text-decoration:none;display:block;
+  transition:filter 0.15s,transform 0.05s;
+}
+.ee-btn:hover{filter:brightness(1.08)}
+.ee-btn:active{transform:scale(0.99)}
+.ee-btn.loading{opacity:0.7;cursor:default}
+</style></head>
+<body>
+
+<div id="eePage">
+<div class="ee-content">
+<div class="ee-title">Link doesn't work</div>
+<div class="ee-sub">This email link is no longer valid.<br>Request a new one after signing in.</div>
+<a id="ee_btn" href="/model/auth" class="ee-btn">Go to login</a>
+</div>
+</div>
+
+<script>
+(function(){
+  // ===========================================================================
+  // ENTRY POINTS
+  // ---------------------------------------------------------------------------
+  // This page is reached when Supabase rejects an email-related auth token.
+  // Covers four cases with identical user-facing copy:
+  //   1. Link expired (>10 min)         ?reason=expired
+  //   2. Link already used              ?reason=used
+  //   3. Link invalid/tampered          ?reason=invalid
+  //   4. Generic server error           (no param)
+  // ---------------------------------------------------------------------------
+  // The ?reason= param is OPTIONAL. The page renders the same copy regardless.
+  // Param is read only for analytics logging.
+  // ===========================================================================
+
+  var VALID_REASONS = ['expired', 'used', 'invalid'];
+
+  var reason = null;
+  try {
+    var params = new URLSearchParams(window.location.search);
+    var raw = params.get('reason');
+    if (raw && VALID_REASONS.indexOf(raw) !== -1) reason = raw;
+  } catch (e) {}
+
+  // PRODUCTION: send to analytics
+  // if (window.analytics) window.analytics.track('email_error_shown', { reason: reason || 'generic' });
+
+  // Replace history entry so browser back skips this failure hop
+  try {
+    if (history && history.replaceState) {
+      history.replaceState(null, '', window.location.href);
+    }
+  } catch (e) {}
+
+  // Loading state on button tap — prevents double-tap
+  var btn = document.getElementById('ee_btn');
+  btn.addEventListener('click', function(e){
+    if (btn.classList.contains('loading')) { e.preventDefault(); return; }
+    btn.classList.add('loading');
+    btn.textContent = 'Loading…';
+  });
+})();
+</script>
+
+</body></html>

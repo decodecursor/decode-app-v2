@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Listing already paid</title>
+<style>
+body{margin:0;padding:24px 0;background:#111;display:flex;justify-content:center;font-family:system-ui,-apple-system,sans-serif}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+
+#lpPage{width:375px;background:#000;border-radius:24px;overflow:hidden;color:#fff;border:2px solid #1a1a1a}
+
+.lp-btn{
+  background:#e91e8c;border-radius:12px;padding:16px;
+  font-size:15px;font-weight:600;color:#fff;
+  text-align:center;text-decoration:none;display:block;
+  cursor:pointer;transition:filter 0.15s,transform 0.05s;
+}
+.lp-btn:hover{filter:brightness(1.08)}
+.lp-btn:active{transform:scale(0.99)}
+.lp-btn.loading{opacity:0.7;cursor:default}
+</style></head>
+<body>
+
+<div id="lpPage">
+
+<div style="padding:160px 20px 24px;text-align:center">
+<div style="font-size:22px;font-weight:700;margin-bottom:10px;letter-spacing:-0.2px">Someone was faster!</div>
+<div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:40px">This listing has already been paid<br>by someone else.</div>
+<a id="lp_backBtn" href="/" class="lp-btn">Go to <span id="lp_firstName">page</span></a>
+</div>
+
+</div>
+
+<script>
+(function(){
+  function $(id){return document.getElementById(id);}
+
+  /* =====================================================================
+     ENTRY POINTS
+     ---------------------------------------------------------------------
+     Reached ONLY via server redirect from the listing checkout page
+     when the listing was already paid (race-condition — e.g. a payment
+     link shared with 3 colleagues, person 1 paid, person 3 clicks later).
+
+       Person 3 on /{slug}/listing/{code}
+       → GET /api/payment-link/{code}
+       → server checks listings.status
+       → if status = 'active' (already paid), returns 409 Conflict with:
+            { "error": "listing_already_paid",
+              "ambassador": { "slug": "sarajohnson", "first_name": "Sara" } }
+       → frontend redirects here:
+            /listing/paid?slug=sarajohnson&first=Sara
+
+     PRIVACY RATIONALE
+     ---------------------------------------------------------------------
+     Person 3 must NOT be redirected to the real receipt page
+     (/listing/{L-reference}) — that would leak person 1's private
+     payment details (reference, amount, date). This neutral page
+     shows no financial info.
+
+     DATA VALIDATION
+     ---------------------------------------------------------------------
+     Params are read from the URL and validated against strict regex:
+       slug:  /^[a-z0-9_.-]{1,30}$/i
+              missing OR invalid → redirect to / (homepage)
+       first: /^[\p{L}\s]{1,50}$/u  (any-language letters + spaces)
+              missing OR invalid → fallback to "their" ("Back to their page")
+
+     HISTORY HANDLING
+     ---------------------------------------------------------------------
+     Replace the current history entry on load so the back button
+     skips this redirect hop. Prevents an infinite loop where the
+     browser back button returns to the checkout page → 409 Gone
+     → bounces back here again.
+     ===================================================================== */
+
+  var SLUG_RE  = /^[a-z0-9_.-]{1,30}$/i;
+  var FIRST_RE = /^[\p{L}\s]{1,50}$/u;
+
+  function init(){
+    var slug = null;
+    var firstName = null;
+    try {
+      var params = new URLSearchParams(window.location.search);
+      slug = params.get('slug');
+      firstName = params.get('first');
+    } catch(e) {}
+
+    // MOCKUP-ONLY: when opened via file:// or without params, render demo data
+    // so the page can be previewed. Remove this fallback in production.
+    var isMockup = window.location.protocol === 'file:' || (!slug && !firstName);
+    if (isMockup && !slug) {
+      slug = 'sarajohnson';
+      firstName = firstName || 'Sara';
+    }
+
+    // Validate slug — bad/missing → redirect home (production behavior)
+    if (!slug || !SLUG_RE.test(slug)) {
+      window.location.replace('/');
+      return;
+    }
+
+    // Validate first name — bad/missing → generic fallback "their"
+    if (!firstName || !FIRST_RE.test(firstName)) {
+      firstName = 'their';
+    }
+
+    // textContent is XSS-safe. Button href uses regex-validated slug only.
+    $('lp_firstName').textContent = firstName + (firstName === 'their' ? ' page' : '\u2019s page');
+    $('lp_backBtn').href = '/' + slug;
+
+    // Replace current history entry so browser back doesn't loop
+    try {
+      if (history && history.replaceState) {
+        history.replaceState(null, '', window.location.href);
+      }
+    } catch(e) {}
+
+    // Loading state on button tap
+    var btn = $('lp_backBtn');
+    btn.addEventListener('click', function(e){
+      if (btn.classList.contains('loading')) { e.preventDefault(); return; }
+      btn.classList.add('loading');
+      btn.textContent = 'Loading\u2026';
+    });
+  }
+
+  init();
+})();
+</script>
+
+</body></html>

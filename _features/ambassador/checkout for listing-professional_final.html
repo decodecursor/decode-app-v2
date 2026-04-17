@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html><head><title>Checkout — Final (Professional)</title>
+<style>
+body{margin:0;padding:24px;background:#111;display:flex;justify-content:center;font-family:system-ui,-apple-system,sans-serif}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+
+.frame{width:375px;background:#000;border-radius:24px;overflow:hidden;color:#fff;border:2px solid #1a1a1a;position:relative;height:812px}
+
+
+/* ============================================================ */
+/* CHECKOUT PAGE                                                 */
+/* ============================================================ */
+.checkoutPage{height:100%;overflow-y:auto;transition:filter 0.25s}
+.checkoutPage.dimmed{filter:brightness(0.4);pointer-events:none}
+
+.cover{position:relative;height:180px;margin-top:14px}
+.coverImg{width:100%;height:100%;background:linear-gradient(135deg,#e91e8c,#ff6b9d)}
+.coverFade{position:absolute;bottom:0;left:0;right:0;height:120px;background:linear-gradient(transparent,#000)}
+
+.header{padding:0 20px 16px;text-align:center;margin-top:-62px;position:relative;z-index:1}
+.name{font-size:24px;font-weight:700;letter-spacing:-0.3px;margin-bottom:3px}
+.url{font-size:11px;color:#555;margin-bottom:14px;text-decoration:underline;text-decoration-color:rgba(85,85,85,0.4);text-underline-offset:2px;cursor:pointer;display:inline-block;transition:color 0.15s}
+.url:hover{color:#888}
+.tagline{font-size:15px;font-weight:600;color:#fff}
+
+.divider{height:1px;background:#1a1a1a;margin:0 20px}
+.section{padding:16px 20px 4px}
+.sectionLabel{font-size:11px;color:#888;margin-bottom:10px}
+
+.detailsCard{background:#1c1c1c;border-radius:12px;padding:13px 15px;margin-bottom:6px}
+.detailRow{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.detailRow:last-child{margin-bottom:0}
+.detailLabel{font-size:12px;color:#888}
+.detailValue{font-size:14px;font-weight:500;color:#fff}
+
+.pkgWrap{padding:0 20px 4px}
+.pkg{background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:15px 17px;margin-bottom:10px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color 0.15s}
+.pkg:hover{border-color:#333}
+.pkg.selected{border-color:#e91e8c}
+.pkgLabel{flex:1;font-size:14px;font-weight:600;color:#fff}
+.pkgPrices{display:flex;align-items:baseline;gap:6px}
+.pkgPerDay{font-size:11px;color:#666}
+.pkgTotal{font-size:20px;font-weight:700;color:#e91e8c}
+.pkgRow{position:relative;margin-bottom:10px}
+.badge{position:absolute;top:-8px;left:50%;transform:translateX(-50%);z-index:1;font-size:11px;font-weight:600;background:#e91e8c;color:#fff;padding:2px 12px;border-radius:10px;white-space:nowrap}
+
+.payBlock{padding:14px 20px 22px}
+.payNote{text-align:center;font-size:11px;color:#666;margin-bottom:11px}
+.payBtn{background:#e91e8c;border-radius:12px;padding:16px;text-align:center;font-size:15px;font-weight:700;color:#fff;letter-spacing:0.2px;cursor:pointer;transition:filter 0.15s}
+.payBtn:hover{filter:brightness(1.08)}
+.payBtn:active{transform:scale(0.99)}
+
+/* ============================================================ */
+/* URL OVERLAY — Instagram-style in-app browser                  */
+/* In production: swap .publicPage placeholder for                */
+/*   <iframe src="https://welovedecode.com/{slug}"/>              */
+/* ============================================================ */
+.overlay{
+  position:absolute;inset:0;background:#000;z-index:100;
+  transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.25,1,0.5,1);
+  display:flex;flex-direction:column;border-radius:22px;overflow:hidden;
+}
+.overlay.open{transform:translateY(0)}
+
+.overlayTopBar{
+  background:#000;padding:14px 16px 12px;display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid #1a1a1a;flex-shrink:0;
+}
+.overlayClose{
+  width:30px;height:30px;background:#1c1c1c;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+  transition:background 0.15s;
+}
+.overlayClose:hover{background:#262626}
+.overlayUrl{
+  flex:1;min-width:0;font-size:12px;color:#888;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.overlayUrl .lock{display:inline-block;vertical-align:-1px;margin-right:4px}
+.overlayUrl .domain{color:#fff}
+.overlayContent{flex:1;overflow-y:auto;background:#000;-webkit-overflow-scrolling:touch}
+
+/* Placeholder public page */
+.publicPage{color:#fff;min-height:100%}
+.pp-cover{height:170px;background:linear-gradient(135deg,#e91e8c,#ff6b9d);position:relative}
+.pp-cover-fade{position:absolute;bottom:0;left:0;right:0;height:100px;background:linear-gradient(transparent,#000)}
+.pp-header{text-align:center;padding:0 20px 20px;margin-top:-54px;position:relative;z-index:1}
+.pp-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#e91e8c,#ff6b9d);border:3px solid #000;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff}
+.pp-name{font-size:22px;font-weight:700;margin-bottom:4px}
+.pp-handle{font-size:12px;color:#888;margin-bottom:10px}
+.pp-tagline{font-size:14px;color:#ccc;line-height:1.5;max-width:280px;margin:0 auto 12px}
+.pp-stats{display:flex;justify-content:center;gap:20px;font-size:11px;color:#888;margin-bottom:14px}
+.pp-stats strong{color:#fff;font-size:14px;display:block;margin-bottom:2px;font-weight:700}
+.pp-socials{display:flex;justify-content:center;gap:10px}
+.pp-social{width:36px;height:36px;border-radius:50%;background:#1c1c1c;display:flex;align-items:center;justify-content:center}
+.pp-section{padding:18px 20px 8px}
+.pp-section-title{font-size:16px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.pp-listing{background:#1c1c1c;border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pp-listing-left{flex:1;min-width:0}
+.pp-listing-cat{font-size:10px;color:#e91e8c;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px}
+.pp-listing-name{font-size:14px;font-weight:600;margin-bottom:2px}
+.pp-listing-loc{font-size:11px;color:#888}
+.pp-listing-btn{background:transparent;border:1.5px solid #e91e8c;color:#e91e8c;border-radius:20px;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0}
+.pp-wall{padding:14px 20px 24px}
+.pp-wall-title{font-size:16px;font-weight:700;margin-bottom:12px}
+.pp-wall-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1a1a1a;font-size:12px}
+.pp-wall-item:last-child{border-bottom:none}
+.pp-wall-name{font-weight:600}
+.pp-wall-date{font-size:10px;color:#666;margin-top:2px}
+.pp-wall-right{text-align:right}
+.pp-wall-tag{font-size:10px;color:#e91e8c;font-weight:600;margin-bottom:2px}
+.pp-wall-amt{font-weight:700;font-size:13px}
+
+/* ============================================================ */
+/* PAYMENT MODAL                                                 */
+/* ============================================================ */
+.modalOverlay{
+  position:absolute;inset:0;background:rgba(0,0,0,0.78);z-index:200;
+  display:none;animation:fadeIn 0.2s ease-out;border-radius:22px;overflow:hidden;
+}
+.modalOverlay.show{display:block}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.modalSheet{
+  position:absolute;left:0;right:0;bottom:0;background:#1c1c1c;
+  border-radius:20px 20px 0 0;color:#fff;z-index:210;display:none;max-height:90%;overflow-y:auto;
+}
+.modalSheet.show{display:block;animation:slideUp 0.3s ease-out}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+.handle{width:40px;height:4px;background:#444;border-radius:2px;margin:12px auto 0;cursor:pointer}
+
+/* Apple Pay */
+.applebtn{
+  background:#000;color:#fff;border:1px solid #333;border-radius:10px;padding:0;height:52px;
+  display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;
+  font-size:16px;font-weight:500;width:100%;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;letter-spacing:-0.2px;
+  transition:background 0.15s;
+}
+.applebtn:hover{background:#1a1a1a}
+.applebtn:active{transform:scale(0.99)}
+.apple-logo{width:18px;height:22px;display:inline-block;position:relative;top:-1px}
+.apple-pay-text{font-weight:500;font-size:17px;letter-spacing:-0.3px}
+
+/* Card button */
+.cardbtn{
+  background:transparent;border:1.5px solid #2a2a2a;border-radius:10px;padding:0;height:52px;
+  display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;
+  font-size:14px;font-weight:600;color:#fff;width:100%;transition:border-color 0.15s;
+}
+.cardbtn:hover{border-color:#444}
+.cardbtn:active{transform:scale(0.99)}
+
+/* Reassurance chip */
+.chip{
+  background:#111;border:1px solid #262626;border-radius:14px;padding:5px 10px;
+  font-size:10px;color:#aaa;font-weight:500;display:flex;align-items:center;gap:4px;
+}
+
+.cancel{text-align:center;font-size:13px;color:#888;cursor:pointer;padding:18px 0 4px;transition:color 0.15s}
+.cancel:hover{color:#fff}
+
+/* Card form fields */
+.card-form{padding-top:6px;display:none}
+.card-form.show{display:block;animation:fadeIn 0.25s ease-out}
+.card-input{
+  background:#111;border:1px solid #2a2a2a;border-radius:10px;
+  padding:13px 14px;font-size:14px;color:#fff;width:100%;
+  font-family:inherit;outline:none;transition:border-color 0.15s;
+}
+.card-input:focus{border-color:#e91e8c}
+.card-input::placeholder{color:#555}
+.card-row{display:flex;gap:8px;margin-bottom:10px}
+.card-row .card-input{flex:1;min-width:0}
+
+.payNowBtn{
+  background:#e91e8c;border-radius:12px;padding:16px;text-align:center;
+  font-size:15px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:0.2px;
+  margin-top:14px;transition:filter 0.15s,opacity 0.15s;
+}
+.payNowBtn:hover{filter:brightness(1.08)}
+.payNowBtn:active{transform:scale(0.99)}
+.payNowBtn.disabled{opacity:0.4;cursor:not-allowed;pointer-events:none}
+
+.stripeNote{
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  font-size:10px;color:#444;margin-top:14px;
+}
+
+.errorBanner{
+  background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);
+  border-radius:10px;padding:11px 14px;margin-bottom:14px;
+  font-size:12px;color:#ef4444;text-align:center;display:none;
+}
+.errorBanner.show{display:block;animation:fadeIn 0.2s}
+
+/* Toast */
+.toast{
+  position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
+  background:rgba(28,28,28,0.95);border:1px solid #4ade80;color:#4ade80;
+  padding:10px 18px;border-radius:24px;font-size:12px;z-index:300;
+  opacity:0;pointer-events:none;transition:opacity 0.2s;white-space:nowrap;
+}
+.toast.show{opacity:1}
+</style></head><body>
+
+<div class="frame">
+
+<!-- ============================================================ -->
+<!-- CHECKOUT PAGE                                                 -->
+<!-- ============================================================ -->
+<div class="checkoutPage" id="checkoutPage">
+
+<div class="cover"><div class="coverImg"></div><div class="coverFade"></div></div>
+
+<div class="header">
+<div class="name">Sara Johnson</div>
+<a class="url" onclick="openOverlay(event)">welovedecode.com/sarajohnson</a>
+<div class="tagline">Get listed in Sara's Beauty Squad</div>
+</div>
+
+<div class="divider"></div>
+
+<div class="section">
+<div class="sectionLabel">Your details</div>
+<div class="detailsCard">
+<div class="detailRow"><span class="detailLabel">Name</span><span class="detailValue">Salon de Luxe</span></div>
+<div class="detailRow"><span class="detailLabel">Instagram</span><span class="detailValue">@salonluxe</span></div>
+<div class="detailRow"><span class="detailLabel">Category</span><span class="detailValue">Hair</span></div>
+</div>
+</div>
+
+<div class="section" style="padding-bottom:0">
+<div class="sectionLabel">Choose your package</div>
+</div>
+
+<div class="pkgWrap">
+<div class="pkgRow">
+<div class="pkg" data-days="30" data-total="30" onclick="selectPackage(this)">
+<div class="pkgLabel">30 days</div>
+<div class="pkgPrices"><span class="pkgPerDay">AED 1.00/day</span><span class="pkgTotal">AED 30</span></div>
+</div>
+</div>
+<div class="pkgRow">
+<div class="badge">Save 17%</div>
+<div class="pkg" data-days="60" data-total="50" onclick="selectPackage(this)">
+<div class="pkgLabel">60 days</div>
+<div class="pkgPrices"><span class="pkgPerDay">AED 0.83/day</span><span class="pkgTotal">AED 50</span></div>
+</div>
+</div>
+<div class="pkgRow">
+<div class="badge">Save 22%</div>
+<div class="pkg selected" data-days="90" data-total="70" onclick="selectPackage(this)">
+<div class="pkgLabel">90 days</div>
+<div class="pkgPrices"><span class="pkgPerDay">AED 0.78/day</span><span class="pkgTotal">AED 70</span></div>
+</div>
+</div>
+</div>
+
+<div class="payBlock">
+<div class="payNote" id="payNote">One-time payment · 90 days visibility</div>
+<div class="payBtn" id="payBtn" onclick="openModal()">Pay AED 70</div>
+</div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- URL OVERLAY (Instagram-style)                                 -->
+<!-- ============================================================ -->
+<div class="overlay" id="urlOverlay">
+<div class="overlayTopBar">
+<div class="overlayClose" onclick="closeOverlay()">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</div>
+<div class="overlayUrl">
+<svg class="lock" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+welovedecode.com<span class="domain">/sarajohnson</span>
+</div>
+</div>
+
+<div class="overlayContent">
+<!-- MOCKUP public page — in production replace with <iframe src="https://welovedecode.com/{slug}"/> -->
+<div class="publicPage">
+<div class="pp-cover"><div class="pp-cover-fade"></div></div>
+<div class="pp-header">
+<div class="pp-avatar">SJ</div>
+<div class="pp-name">Sara Johnson</div>
+<div class="pp-handle">@sarajohnson · Dubai, UAE</div>
+<div class="pp-tagline">Beauty lover from Dubai ✨ Sharing my favorite salons, products, and the people who make you feel beautiful.</div>
+<div class="pp-stats">
+<div><strong>1.2k</strong>Followers</div>
+<div><strong>6</strong>Listings</div>
+<div><strong>48</strong>Gifts</div>
+</div>
+<div class="pp-socials">
+<div class="pp-social"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M12 2.2c3.2 0 3.6 0 4.8.1 1.2.1 1.8.2 2.2.4.6.2 1 .5 1.4.9.4.4.7.9.9 1.4.2.4.4 1 .4 2.2.1 1.2.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 1.2-.2 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.9.7-1.4.9-.4.2-1 .4-2.2.4-1.2.1-1.6.1-4.8.1s-3.6 0-4.8-.1c-1.2-.1-1.8-.2-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.9-.9-1.4-.2-.4-.4-1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.8c.1-1.2.2-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.9-.7 1.4-.9.4-.2 1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zm0 1.9c-3.2 0-3.5 0-4.7.1-1.1 0-1.7.2-2.1.3-.5.2-.9.4-1.2.8-.4.3-.6.7-.8 1.2-.1.4-.3 1-.3 2.1-.1 1.2-.1 1.5-.1 4.7s0 3.5.1 4.7c0 1.1.2 1.7.3 2.1.2.5.4.9.8 1.2.3.4.7.6 1.2.8.4.1 1 .3 2.1.3 1.2.1 1.5.1 4.7.1s3.5 0 4.7-.1c1.1 0 1.7-.2 2.1-.3.5-.2.9-.4 1.2-.8.4-.3.6-.7.8-1.2.1-.4.3-1 .3-2.1.1-1.2.1-1.5.1-4.7s0-3.5-.1-4.7c0-1.1-.2-1.7-.3-2.1-.2-.5-.4-.9-.8-1.2-.3-.4-.7-.6-1.2-.8-.4-.1-1-.3-2.1-.3-1.2-.1-1.5-.1-4.7-.1zM12 6.9c2.8 0 5.1 2.3 5.1 5.1S14.8 17.1 12 17.1 6.9 14.8 6.9 12 9.2 6.9 12 6.9zm0 8.4c1.8 0 3.3-1.5 3.3-3.3S13.8 8.7 12 8.7 8.7 10.2 8.7 12s1.5 3.3 3.3 3.3zm6.5-8.6c0 .7-.5 1.2-1.2 1.2s-1.2-.5-1.2-1.2.5-1.2 1.2-1.2 1.2.5 1.2 1.2z"/></svg></div>
+<div class="pp-social"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M17.5 6.5c-.3-1.1-1.2-2-2.3-2.3C13.2 3.5 12 3.5 12 3.5s-1.2 0-3.2.7c-1.1.3-2 1.2-2.3 2.3C5.8 8.5 5.8 12 5.8 12s0 3.5.7 5.5c.3 1.1 1.2 2 2.3 2.3 2 .7 3.2.7 3.2.7s1.2 0 3.2-.7c1.1-.3 2-1.2 2.3-2.3.7-2 .7-5.5.7-5.5s0-3.5-.7-5.5zM10 15.5V8.5l6 3.5-6 3.5z"/></svg></div>
+</div>
+</div>
+<div class="pp-section">
+<div class="pp-section-title">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+My Beauty Wishlist
+</div>
+<div class="pp-listing">
+<div class="pp-listing-left">
+<div class="pp-listing-cat">Hair</div>
+<div class="pp-listing-name">Salon de Luxe</div>
+<div class="pp-listing-loc">Dubai, UAE</div>
+</div>
+<button class="pp-listing-btn">AED 300 · Gift it</button>
+</div>
+<div class="pp-listing">
+<div class="pp-listing-left">
+<div class="pp-listing-cat">Nails</div>
+<div class="pp-listing-name">Lash Salon</div>
+<div class="pp-listing-loc">Abu Dhabi, UAE</div>
+</div>
+<button class="pp-listing-btn">AED 80 · Gift it</button>
+</div>
+</div>
+<div class="pp-wall">
+<div class="pp-wall-title">My Wall of Love 💗</div>
+<div class="pp-wall-item"><div><div class="pp-wall-name">Ahmed Khalil</div><div class="pp-wall-date">12 March 2026</div></div><div class="pp-wall-right"><div class="pp-wall-tag">Fillers</div><div class="pp-wall-amt">AED 500</div></div></div>
+<div class="pp-wall-item"><div><div class="pp-wall-name">Anonymous</div><div class="pp-wall-date">24 February 2026</div></div><div class="pp-wall-right"><div class="pp-wall-tag">Hair</div><div class="pp-wall-amt">AED 300</div></div></div>
+<div class="pp-wall-item"><div><div class="pp-wall-name">Noor Hassan</div><div class="pp-wall-date">8 February 2026</div></div><div class="pp-wall-right"><div class="pp-wall-tag">Nails</div><div class="pp-wall-amt">AED 80</div></div></div>
+<div class="pp-wall-item"><div><div class="pp-wall-name">Layla Mansour</div><div class="pp-wall-date">2 January 2026</div></div><div class="pp-wall-right"><div class="pp-wall-tag">Veneers</div><div class="pp-wall-amt">AED 1200</div></div></div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAYMENT MODAL                                                  -->
+<!-- ============================================================ -->
+<div class="modalOverlay" id="modalOverlay" onclick="closeModal()"></div>
+
+<div class="modalSheet" id="modalSheet">
+<div class="handle" onclick="closeModal()"></div>
+
+<!-- View 1: Apple Pay + Pay by card (default) -->
+<div id="modalDefault">
+<div style="padding:24px 20px 24px">
+
+<div style="text-align:center;font-size:26px;font-weight:700;color:#fff;letter-spacing:-0.5px;line-height:1;margin-bottom:14px" id="modalAmount">AED 70</div>
+
+<div style="display:flex;justify-content:center;gap:6px;margin-bottom:22px;flex-wrap:wrap">
+<div class="chip"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>One-time</div>
+<div class="chip"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>No subscription</div>
+<div class="chip"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span id="modalChipDays">90 days</span> package</div>
+</div>
+
+<div class="errorBanner" id="modalError"></div>
+
+<div class="applebtn" style="margin-bottom:10px" onclick="payApple()">
+<svg class="apple-logo" viewBox="0 0 170 170" fill="#fff"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.197-2.12-9.973-3.17-14.34-3.17-4.58 0-9.492 1.05-14.746 3.17-5.262 2.13-9.501 3.24-12.742 3.35-4.929 0.21-9.842-1.96-14.746-6.52-3.13-2.73-7.045-7.41-11.735-14.04-5.032-7.08-9.169-15.29-12.41-24.65-3.471-10.11-5.211-19.9-5.211-29.378 0-10.857 2.346-20.221 7.045-28.068 3.693-6.303 8.606-11.275 14.755-14.925s12.793-5.51 19.948-5.629c3.915 0 9.049 1.211 15.429 3.591 6.362 2.388 10.447 3.599 12.238 3.599 1.339 0 5.877-1.416 13.57-4.239 7.275-2.618 13.415-3.702 18.445-3.275 13.63 1.1 23.87 6.473 30.68 16.153-12.19 7.386-18.22 17.731-18.1 31.002 0.11 10.337 3.86 18.939 11.23 25.769 3.34 3.17 7.07 5.62 11.22 7.36-0.9 2.61-1.85 5.11-2.86 7.51zM119.11 7.24c0 8.102-2.96 15.667-8.86 22.669-7.12 8.324-15.732 13.134-25.071 12.375a25.222 25.222 0 0 1-0.188-3.07c0-7.778 3.386-16.102 9.399-22.908 3.002-3.446 6.82-6.311 11.45-8.597 4.62-2.252 8.99-3.497 13.1-3.71 0.12 1.083 0.17 2.166 0.17 3.24z"/></svg>
+<span class="apple-pay-text">Pay</span>
+</div>
+
+<div class="cardbtn" onclick="showCardForm()">
+<svg width="18" height="14" viewBox="0 0 24 16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="1" y="1" width="22" height="14" rx="2"/><line x1="1" y1="6" x2="23" y2="6"/></svg>
+Pay by card
+</div>
+
+<div class="cancel" onclick="closeModal()">Cancel</div>
+</div>
+</div>
+
+<!-- View 2: Card form -->
+<div id="modalCardForm" style="display:none">
+<div style="padding:24px 20px 24px">
+
+<div style="text-align:center;font-size:26px;font-weight:700;color:#fff;letter-spacing:-0.5px;line-height:1;margin-bottom:14px" id="modalCardAmount">AED 70</div>
+
+<div style="display:flex;justify-content:center;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+<div class="chip"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>One-time</div>
+<div class="chip"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>No subscription</div>
+<div class="chip"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span id="modalCardDays">90 days</span> package</div>
+</div>
+
+<div class="errorBanner" id="cardError"></div>
+
+<div class="card-form show">
+<input class="card-input" placeholder="Card number" inputmode="numeric" autocomplete="cc-number" oninput="checkCardForm()" id="ccNumber" style="margin-bottom:10px">
+<div class="card-row">
+<input class="card-input" placeholder="MM / YY" inputmode="numeric" autocomplete="cc-exp" oninput="checkCardForm()" id="ccExp">
+<input class="card-input" placeholder="CVC" inputmode="numeric" autocomplete="cc-csc" oninput="checkCardForm()" id="ccCvc">
+</div>
+<input class="card-input" type="email" placeholder="Email for receipt" autocomplete="email" oninput="checkCardForm()" id="ccEmail" style="margin-bottom:10px">
+<input class="card-input" placeholder="Country" autocomplete="country-name" oninput="checkCardForm()" id="ccCountry">
+</div>
+
+<div class="payNowBtn disabled" id="payNowBtn" onclick="payCard()">Pay <span id="payNowAmount">AED 70</span></div>
+
+<div class="stripeNote">
+<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+Secure payment by Stripe
+</div>
+
+<div class="cancel" onclick="closeModal()">Cancel</div>
+</div>
+</div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+</div>
+
+<script>
+/* =====================================================================
+   STATE
+   ===================================================================== */
+let currentPkg = { days:90, total:70 };
+
+/* =====================================================================
+   PACKAGE SELECTION
+   Production: no backend call here — state held locally until "Pay".
+   ===================================================================== */
+function selectPackage(el){
+  document.querySelectorAll('.pkg').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+  currentPkg = {
+    days: parseInt(el.dataset.days,10),
+    total: parseInt(el.dataset.total,10)
+  };
+  document.getElementById('payBtn').textContent = 'Pay AED ' + currentPkg.total;
+  document.getElementById('payNote').textContent = 'One-time payment · ' + currentPkg.days + ' days visibility';
+}
+
+/* =====================================================================
+   URL OVERLAY (Instagram-style in-app browser)
+   Production: iframe loads https://welovedecode.com/{slug}
+   ===================================================================== */
+function openOverlay(e){
+  e.preventDefault();
+  document.getElementById('urlOverlay').classList.add('open');
+}
+function closeOverlay(){
+  document.getElementById('urlOverlay').classList.remove('open');
+  const c = document.querySelector('.overlayContent');
+  if(c) c.scrollTop = 0;
+}
+
+/* =====================================================================
+   PAYMENT MODAL
+   ===================================================================== */
+function openModal(){
+  // Sync modal contents with currently selected package
+  document.getElementById('modalAmount').textContent = 'AED ' + currentPkg.total;
+  document.getElementById('modalChipDays').textContent = currentPkg.days + ' days';
+  document.getElementById('modalCardAmount').textContent = 'AED ' + currentPkg.total;
+  document.getElementById('modalCardDays').textContent = currentPkg.days + ' days';
+  document.getElementById('payNowAmount').textContent = 'AED ' + currentPkg.total;
+
+  // Default to Apple Pay + Card view
+  document.getElementById('modalDefault').style.display = 'block';
+  document.getElementById('modalCardForm').style.display = 'none';
+
+  // Reset card form
+  ['ccNumber','ccExp','ccCvc','ccEmail','ccCountry'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('payNowBtn').classList.add('disabled');
+  document.getElementById('modalError').classList.remove('show');
+  document.getElementById('cardError').classList.remove('show');
+
+  document.getElementById('modalOverlay').classList.add('show');
+  document.getElementById('modalSheet').classList.add('show');
+  document.getElementById('checkoutPage').classList.add('dimmed');
+}
+
+function closeModal(){
+  if(window._paying) return;  // Don't allow close during active payment
+  document.getElementById('modalOverlay').classList.remove('show');
+  document.getElementById('modalSheet').classList.remove('show');
+  document.getElementById('checkoutPage').classList.remove('dimmed');
+}
+
+function showCardForm(){
+  document.getElementById('modalDefault').style.display = 'none';
+  document.getElementById('modalCardForm').style.display = 'block';
+  setTimeout(()=>document.getElementById('ccNumber').focus(),100);
+}
+
+function checkCardForm(){
+  const num = document.getElementById('ccNumber').value.replace(/\s/g,'');
+  const exp = document.getElementById('ccExp').value.trim();
+  const cvc = document.getElementById('ccCvc').value.trim();
+  const email = document.getElementById('ccEmail').value.trim();
+  const country = document.getElementById('ccCountry').value.trim();
+  const btn = document.getElementById('payNowBtn');
+  document.getElementById('cardError').classList.remove('show');
+  // Mockup-level completeness check. Real validation done by Stripe on submit.
+  if(num.length>=12 && exp.length>=4 && cvc.length>=3 && email.includes('@') && country.length>=2){
+    btn.classList.remove('disabled');
+  } else {
+    btn.classList.add('disabled');
+  }
+}
+
+/* =====================================================================
+   PAYMENT EXECUTION (mockup)
+   Production flow:
+     Apple Pay:
+       1. Stripe Express Checkout Element → native Apple Pay sheet
+       2. On confirm → stripe.confirmPayment({ return_url: '/listing/confirmation?tx={ref}' })
+       3. Stripe redirects on success; on failure shows error in modal
+     Card:
+       1. Stripe Payment Element submit → stripe.confirmPayment()
+       2. Same return_url handling
+   ===================================================================== */
+function payApple(){
+  if(window._paying) return;  // Idempotency — prevent double-tap
+  window._paying = true;
+  armBeforeUnload();
+  // Production: Stripe Express Checkout Element handles the native Apple Pay sheet.
+  // On confirm event, stripe.confirmPayment() resolves with either:
+  //   - success   → Stripe auto-redirects to return_url (no UI change needed on our side)
+  //   - failure   → showPaymentError() inline in modal, _paying released
+  //   - cancelled → silent, _paying released (user closed the sheet themselves)
+  // Modal stays visible unchanged until Stripe redirects.
+  setTimeout(()=>{ showPaymentSuccess(); }, 1000);
+}
+
+function payCard(){
+  if(document.getElementById('payNowBtn').classList.contains('disabled')) return;
+  if(window._paying) return;  // Idempotency guard
+  window._paying = true;
+  armBeforeUnload();
+  const btn = document.getElementById('payNowBtn');
+  btn.classList.add('disabled');
+  btn.textContent = 'Processing…';
+  // Production flow:
+  //   stripe.confirmPayment({
+  //     elements,
+  //     confirmParams: { return_url: 'https://welovedecode.com/listing/confirmation?tx={reference}' }
+  //   })
+  //   On success → Stripe redirects automatically
+  //   On failure → resolved error → call showPaymentError(msg)
+  setTimeout(()=>{
+    // MOCKUP: simulate successful confirmation
+    showPaymentSuccess();
+  }, 1500);
+}
+
+// ======= Success/error state for both payment methods =======
+function showPaymentSuccess(){
+  // Option B: keep modal visible with Pay button in "Processing…" state.
+  // Stripe handles the actual redirect to /listing/confirmation/{pi_xxx} on success.
+  // No invented UI — the modal just waits briefly then Stripe navigates away.
+  // In production this function is not needed — Stripe's redirect happens automatically
+  // after confirmPayment() resolves.
+  // MOCKUP ONLY: simulate the redirect with a toast so you can see the flow works.
+  setTimeout(()=>{
+    disarmBeforeUnload();
+    showToast('→ /listing/confirmation/pi_xxx (mockup)');
+  }, 800);
+}
+
+function showPaymentError(msg){
+  window._paying = false;
+  disarmBeforeUnload();
+  // Reset Pay button
+  const btn = document.getElementById('payNowBtn');
+  if(btn){
+    btn.classList.remove('disabled');
+    btn.innerHTML = 'Pay <span id="payNowAmount">AED '+currentPkg.total+'</span>';
+  }
+  // Show error banner inline — user can retry
+  const err = document.getElementById('cardError');
+  err.textContent = msg || 'Payment could not be completed. Try again.';
+  err.classList.add('show');
+}
+
+// ======= Tab-close protection during active payment =======
+function armBeforeUnload(){
+  window.addEventListener('beforeunload', beforeUnloadHandler);
+}
+function disarmBeforeUnload(){
+  window.removeEventListener('beforeunload', beforeUnloadHandler);
+}
+function beforeUnloadHandler(e){
+  e.preventDefault();
+  e.returnValue = '';  // Required for Chrome
+  return '';
+}
+
+/* =====================================================================
+   TOAST
+   ===================================================================== */
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._t);
+  window._t = setTimeout(()=>t.classList.remove('show'), 2000);
+}
+</script>
+
+</body></html>

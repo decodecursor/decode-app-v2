@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html><head><title>Public Media Lightbox — Final</title>
+<style>
+body{margin:0;padding:24px;background:#111;display:flex;flex-direction:column;gap:32px;align-items:center;font-family:system-ui,-apple-system,sans-serif}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+.frame{width:375px;height:680px;background:#000;border-radius:24px;overflow:hidden;color:#fff;border:2px solid #1a1a1a;position:relative}
+.media{position:absolute;inset:0}
+.scrimTop{position:absolute;top:0;left:0;right:0;height:90px;background:linear-gradient(rgba(0,0,0,0.55),transparent);pointer-events:none;z-index:1}
+.scrimBot{position:absolute;bottom:0;left:0;right:0;height:130px;background:linear-gradient(transparent,rgba(0,0,0,0.92));pointer-events:none;z-index:1}
+
+.dots{position:absolute;bottom:86px;left:0;right:0;display:flex;justify-content:center;gap:6px;z-index:2}
+.dot-ind{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.35);transition:background 0.2s;cursor:pointer}
+.dot-ind.active{background:#e91e8c}
+
+.topBtn{position:absolute;top:54px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:4}
+.muteBtn{left:18px}
+.closeBtn{right:18px}
+
+.progressBar{position:absolute;bottom:74px;left:0;right:0;height:1px;background:rgba(255,255,255,0.15);z-index:2}
+.progressFill{height:100%;background:#e91e8c;width:0%;transition:width 0.1s linear}
+
+.infoBar{position:absolute;bottom:0;left:0;right:0;padding:0 18px 22px;z-index:2;display:flex;align-items:center;gap:11px;cursor:pointer;text-decoration:none;color:inherit}
+.photo{width:40px;height:40px;border-radius:50%;border:1.5px solid #e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#000;box-sizing:border-box;overflow:hidden}
+.photo span{font-size:12px;font-weight:600;color:#fff}
+.meta{flex:1;min-width:0}
+.name{font-size:14px;font-weight:600;color:#fff}
+.subline{display:flex;align-items:center;gap:5px;margin-top:2px}
+.cat{font-size:11px;color:#e91e8c;font-weight:600}
+.dot,.loc{font-size:11px;color:#888}
+
+.carousel{position:absolute;inset:0;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch}
+.carousel::-webkit-scrollbar{display:none}
+.slide{min-width:100%;height:100%;scroll-snap-align:start;position:relative;flex-shrink:0}
+
+.toast{position:absolute;bottom:140px;left:50%;transform:translateX(-50%);background:rgba(28,28,28,0.95);border:1px solid #333;color:#fff;padding:10px 18px;border-radius:24px;font-size:12px;z-index:10;opacity:0;transition:opacity 0.2s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+.navArrow{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.35);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;cursor:pointer;z-index:3;opacity:0;transition:opacity 0.2s}
+.navArrow.left{left:14px}
+.navArrow.right{right:14px}
+@media (hover: hover) and (pointer: fine){
+  .navArrow{display:flex}
+  .frame:hover .navArrow{opacity:1}
+}
+</style></head><body>
+
+<!--
+  MOCKUP NOTE
+  ────────────────────────────────────────────────────────────────────────────
+  This file shows TWO frames stacked vertically (video + image carousel) for
+  side-by-side design review. In production, only ONE lightbox instance
+  renders at a time as a full-screen overlay on the public ambassador page.
+  Remove the body flex-column layout and render one .frame as an overlay.
+  ────────────────────────────────────────────────────────────────────────────
+-->
+
+<!-- ============================================ -->
+<!-- FRAME 1: VIDEO                                 -->
+<!-- ============================================ -->
+<div class="frame" id="videoFrame" data-professional-id="prof_salon_luxe" data-media-type="video">
+
+<div class="media" id="videoMedia" onclick="togglePlayPause()" style="background:linear-gradient(180deg,#2a1a2e 0%,#1a2a1e 40%,#1a1e2a 100%);cursor:pointer">
+<div style="position:absolute;inset:0;opacity:0.3;background:radial-gradient(circle at 50% 35%,#e8c4a0 0%,transparent 35%)"></div>
+</div>
+
+<div class="scrimTop"></div>
+
+<div class="topBtn muteBtn" onclick="toggleMute(event)" title="Tap to toggle mute">
+<svg id="mutedIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+<svg id="unmutedIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+</div>
+
+<div class="topBtn closeBtn" onclick="closeLightbox(event)" title="Close">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</div>
+
+<div class="scrimBot"></div>
+<div class="progressBar"><div class="progressFill" id="progressFill"></div></div>
+
+<a class="infoBar" href="https://www.instagram.com/salondeluxe" target="_blank" rel="noopener noreferrer" onclick="trackInstagramClick(event,'prof_salon_luxe','salondeluxe')">
+<div class="photo"><span>SL</span></div>
+<div class="meta">
+<div class="name">Salon de Luxe</div>
+<div class="subline"><span class="cat">Hair</span><span class="dot">·</span><span class="loc">Dubai, UAE</span></div>
+</div>
+</a>
+
+<div class="toast" id="toastVideo"></div>
+</div>
+
+<!-- ============================================ -->
+<!-- FRAME 2: IMAGE CAROUSEL (1–3 images)           -->
+<!-- ============================================ -->
+<div class="frame" id="imageFrame" data-professional-id="prof_gabriel_paez" data-media-type="image">
+
+<div class="carousel" id="carousel" onscroll="updateDots()">
+
+<div class="slide" style="background:linear-gradient(180deg,#2e2218 0%,#3a2a1e 30%,#2a1e16 100%)">
+<div style="position:absolute;inset:0;opacity:0.5;background:radial-gradient(circle at 50% 40%,#c4a070 0%,transparent 45%)"></div>
+</div>
+
+<div class="slide" style="background:linear-gradient(180deg,#1e2218 0%,#2a3a1e 30%,#1e2a16 100%)">
+<div style="position:absolute;inset:0;opacity:0.5;background:radial-gradient(circle at 50% 40%,#d4c090 0%,transparent 45%)"></div>
+</div>
+
+<div class="slide" style="background:linear-gradient(180deg,#1e1e2e 0%,#2e1e2a 30%,#1e162a 100%)">
+<div style="position:absolute;top:0;left:0;width:50%;height:100%;opacity:0.35;background:linear-gradient(135deg,#c4a882,#d4b896)"></div>
+<div style="position:absolute;top:0;right:0;width:50%;height:100%;opacity:0.45;background:linear-gradient(135deg,#e8d4c0,#f0e0d0)"></div>
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1px;height:50%;background:rgba(255,255,255,0.2)"></div>
+</div>
+
+</div>
+
+<div class="scrimTop"></div>
+
+<div class="topBtn closeBtn" onclick="closeLightbox(event)" title="Close">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</div>
+
+<div class="scrimBot"></div>
+
+<div class="dots" id="dots">
+<div class="dot-ind active"></div>
+<div class="dot-ind"></div>
+<div class="dot-ind"></div>
+</div>
+
+<a class="infoBar" href="https://www.instagram.com/drgabrielpaez" target="_blank" rel="noopener noreferrer" onclick="trackInstagramClick(event,'prof_gabriel_paez','drgabrielpaez')">
+<div class="photo"><span>GP</span></div>
+<div class="meta">
+<div class="name">Dr. Gabriel Paez</div>
+<div class="subline"><span class="cat">Nose</span><span class="dot">·</span><span class="loc">Bogota, Colombia</span></div>
+</div>
+</a>
+
+<div class="navArrow left" onclick="navSlide(-1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></div>
+<div class="navArrow right" onclick="navSlide(1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+<div class="toast" id="toastImage"></div>
+</div>
+
+<script>
+/* =====================================================================
+   STATE (video frame)
+   ===================================================================== */
+var isPlaying = true;
+var isMuted = true;
+var progress = 0;
+
+/* =====================================================================
+   VIDEO PROGRESS (mockup — production ties to <video> element timeupdate)
+   ===================================================================== */
+setInterval(function(){
+  if (!isPlaying) return;
+  progress += 0.5;
+  if (progress >= 100) progress = 0;
+  document.getElementById('progressFill').style.width = progress + '%';
+}, 160);
+
+/* =====================================================================
+   INTERACTIONS
+   ===================================================================== */
+function togglePlayPause(){
+  isPlaying = !isPlaying;
+  showToast('videoFrame', isPlaying ? 'Playing' : 'Paused');
+  // Production: videoEl.paused ? videoEl.play() : videoEl.pause();
+}
+
+function toggleMute(e){
+  e.stopPropagation();
+  isMuted = !isMuted;
+  document.getElementById('mutedIcon').style.display = isMuted ? 'block' : 'none';
+  document.getElementById('unmutedIcon').style.display = isMuted ? 'none' : 'block';
+  showToast('videoFrame', isMuted ? 'Muted' : 'Unmuted');
+  // Production: videoEl.muted = isMuted;
+}
+
+function closeLightbox(e){
+  if (e) e.stopPropagation();
+  // MOCKUP: fire a toast on whichever frame owns the event
+  if (e) {
+    var frame = e.target.closest('.frame');
+    showToast(frame.id, 'Lightbox closed');
+  }
+  // Production: dismiss overlay (host page calls its own close handler).
+  // The ambassador's public page stays in the background — this just hides
+  // the overlay. History unchanged. No navigation.
+  // Triggered by: close X button, Esc key, click-outside the frame.
+}
+
+// Click-outside-to-close. Host page attaches this listener on the dark backdrop
+// that wraps the lightbox overlay. If click target is NOT inside the .frame,
+// the overlay dismisses. In this mockup, clicks on the body background.
+document.addEventListener('click', function(e){
+  if (!e.target.closest('.frame') && !e.target.closest('.toast')) {
+    // Production: call host page close handler here.
+    // MOCKUP: subtle toast — clicking the grey page bg = outside the lightbox
+    // (no-op here since this mockup has 2 frames stacked for review)
+  }
+}, true);
+
+/* =====================================================================
+   ANALYTICS — Instagram click
+   Native <a target="_blank"> handles the navigation. We just fire-and-forget
+   a POST for analytics. Tracked per-professional so admin can see conversion
+   per listing separately from "lightbox opened" events.
+   ===================================================================== */
+function trackInstagramClick(e, professionalId, handle){
+  // Do NOT preventDefault — let the browser handle opening Instagram
+  try {
+    if (typeof fetch === 'function') {
+      // Fire-and-forget. `keepalive: true` ensures delivery even as page context changes.
+      fetch('/api/analytics/event', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        keepalive: true,
+        body: JSON.stringify({
+          event: 'instagram_click',
+          professional_id: professionalId,
+          handle: handle,
+          at: new Date().toISOString()
+        })
+      }).catch(function(){}); // Silent fail — analytics must never break UX
+    }
+  } catch(err) {}
+  // MOCKUP ONLY: show a toast so design review can see the hit.
+  // In production, remove this line — the tab opens Instagram immediately.
+  if (window.location.protocol === 'file:') {
+    var frame = e.target.closest('.frame');
+    showToast(frame.id, 'Opening instagram.com/' + handle);
+  }
+}
+
+/* =====================================================================
+   ANALYTICS — Lightbox opened (fired ONCE per open, by the host page)
+   Host calls: trackLightboxOpened(professionalId)
+   Stored separately from instagram_click so admin dashboard can show both
+   counts independently per professional/listing.
+   ===================================================================== */
+function trackLightboxOpened(professionalId){
+  try {
+    if (typeof fetch === 'function') {
+      fetch('/api/analytics/event', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        keepalive: true,
+        body: JSON.stringify({
+          event: 'lightbox_opened',
+          professional_id: professionalId,
+          at: new Date().toISOString()
+        })
+      }).catch(function(){});
+    }
+  } catch(err) {}
+}
+// Mockup only: simulate the two opens firing on load
+// Production: the host page fires this exactly once when openLightbox() is called
+if (window.location.protocol === 'file:') {
+  trackLightboxOpened('prof_salon_luxe');
+  trackLightboxOpened('prof_gabriel_paez');
+}
+
+/* =====================================================================
+   TOAST
+   ===================================================================== */
+function showToast(frameId, msg){
+  var id = frameId === 'videoFrame' ? 'toastVideo' : 'toastImage';
+  var t = document.getElementById(id);
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.classList.remove('show'); }, 1400);
+}
+
+/* =====================================================================
+   CAROUSEL NAVIGATION
+   ===================================================================== */
+function navSlide(dir){
+  var c = document.getElementById('carousel');
+  var w = c.offsetWidth;
+  var total = c.children.length;
+  var cur = Math.round(c.scrollLeft / w);
+  var next = Math.max(0, Math.min(total - 1, cur + dir));
+  c.scrollTo({left: next * w, behavior: 'smooth'});
+}
+
+function jumpSlide(i){
+  var c = document.getElementById('carousel');
+  c.scrollTo({left: i * c.offsetWidth, behavior: 'smooth'});
+}
+
+function updateDots(){
+  var c = document.getElementById('carousel');
+  var idx = Math.round(c.scrollLeft / c.offsetWidth);
+  var dots = document.getElementById('dots').children;
+  for (var i = 0; i < dots.length; i++){
+    dots[i].classList.toggle('active', i === idx);
+  }
+}
+
+/* =====================================================================
+   KEYBOARD (desktop power users)
+   ===================================================================== */
+document.addEventListener('keydown', function(e){
+  if (e.key === 'ArrowLeft') {
+    navSlide(-1);
+  } else if (e.key === 'ArrowRight') {
+    navSlide(1);
+  } else if (e.key === ' ') {
+    e.preventDefault();
+    togglePlayPause();
+  } else if (e.key === 'm' || e.key === 'M') {
+    isMuted = !isMuted;
+    document.getElementById('mutedIcon').style.display = isMuted ? 'block' : 'none';
+    document.getElementById('unmutedIcon').style.display = isMuted ? 'none' : 'block';
+    showToast('videoFrame', isMuted ? 'Muted' : 'Unmuted');
+  } else if (e.key === 'Escape') {
+    // Production: dismiss the active lightbox (host page handles it)
+    showToast('videoFrame', 'Lightbox closed');
+    showToast('imageFrame', 'Lightbox closed');
+  }
+});
+
+/* =====================================================================
+   DYNAMIC DOTS — generated to match actual slide count (1-3)
+   ===================================================================== */
+(function(){
+  var slides = document.querySelectorAll('#carousel .slide').length;
+  var dots = document.getElementById('dots');
+  if (!dots) return;
+  if (slides <= 1) { dots.style.display = 'none'; return; }
+  dots.innerHTML = '';
+  for (var i = 0; i < slides; i++){
+    var d = document.createElement('div');
+    d.className = 'dot-ind' + (i === 0 ? ' active' : '');
+    d.onclick = (function(idx){ return function(){ jumpSlide(idx); }; })(i);
+    dots.appendChild(d);
+  }
+})();
+</script>
+</body></html>

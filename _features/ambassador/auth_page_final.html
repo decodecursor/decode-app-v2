@@ -1,0 +1,659 @@
+<div style="display:flex;justify-content:center;padding:1.5rem 0;background:var(--color-background-secondary);border-radius:var(--border-radius-lg)">
+<style>#authRoot input::placeholder { color: #555; opacity: 1; }</style>
+<div id="authRoot" style="width:375px;background:#000;border-radius:24px;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#fff;border:2px solid #1a1a1a;position:relative;min-height:760px">
+
+<!-- ================================================= -->
+<!-- AUTH SCREEN                                        -->
+<!-- ================================================= -->
+<div id="authScreen">
+
+<div style="padding:12px 20px 0;font-size:12px;color:#888">9:41</div>
+
+<div style="padding:64px 40px 24px;text-align:center">
+
+<div style="font-size:10px;letter-spacing:3px;color:#888;font-weight:700;margin-bottom:10px">SHOW YOUR BEAUTY SQUAD</div>
+<div style="font-size:32px;font-weight:800;letter-spacing:-0.8px;margin-bottom:18px">WeLoveDecode</div>
+<div style="font-size:11px;color:#666;margin-bottom:24px">Enter your number or email</div>
+<div style="width:40px;height:1.5px;background:#e91e8c;margin:0 auto 48px;transform-origin:center;animation:drawLine 1s ease-out forwards"></div><style>@keyframes drawLine{from{transform:scaleX(0)}to{transform:scaleX(1)}}</style>
+
+<!-- Phone row -->
+<div style="display:flex;gap:8px;margin-bottom:12px;height:52px">
+<div id="countryBtn" onclick="openPicker()" style="border:1.5px solid #2a2a2a;border-radius:12px;padding:0 14px;display:flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0;height:52px;box-sizing:border-box;background:transparent">
+<span id="selFlag" style="font-size:18px;line-height:1">🇦🇪</span>
+<span id="selCode" style="font-size:14px;color:#fff;font-weight:600">+971</span>
+<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+</div>
+<input id="phoneInput" type="tel" placeholder="55 846 2387" style="flex:1;background:transparent;border:1.5px solid #2a2a2a;border-radius:12px;padding:0 16px;font-size:15px;color:#fff;outline:none;font-family:inherit;height:52px;box-sizing:border-box;transition:border-color 0.2s" oninput="handlePhoneInput(this)" onfocus="this.style.borderColor='#e91e8c'" onblur="this.style.borderColor='#2a2a2a'" />
+</div>
+
+<div id="waBtn" onclick="continueWhatsApp()" style="border:1.5px solid #2a2a2a;border-radius:12px;padding:16px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:28px;text-align:center;transition:all 0.3s;background:transparent"><span id="waLabel" style="color:#555;transition:color 0.3s">Continue with WhatsApp</span>
+</div>
+
+<div style="font-size:11px;color:#666;margin-bottom:28px;letter-spacing:1px;font-weight:600">OR</div>
+
+<input id="emailInput" type="email" placeholder="Enter your email" style="width:100%;background:transparent;border:1.5px solid #2a2a2a;border-radius:12px;padding:0 16px;font-size:15px;color:#fff;outline:none;font-family:inherit;height:52px;box-sizing:border-box;margin-bottom:12px;transition:border-color 0.2s" oninput="handleEmailInput(this)" onfocus="this.style.borderColor='#e91e8c'" onblur="this.style.borderColor='#2a2a2a'" />
+
+<div id="emBtn" onclick="continueEmail()" style="border:1.5px solid #2a2a2a;border-radius:12px;padding:16px;font-size:14px;font-weight:600;color:#555;cursor:pointer;transition:all 0.3s;background:transparent">Continue with Email</div>
+
+</div>
+<div style="position:absolute;bottom:20px;left:0;right:0;text-align:center;font-size:9px;color:#555;line-height:1.6;padding:0 40px">By continuing, you agree to our <a href="https://welovedecode.com/#terms" target="_blank" style="cursor:pointer;font-weight:700;color:#555;text-decoration:none">Terms</a> and <a href="https://welovedecode.com/#privacy" target="_blank" style="cursor:pointer;font-weight:700;color:#555;text-decoration:none">Privacy Policy</a></div>
+</div>
+
+
+<!-- ================================================= -->
+<!-- COUNTRY PICKER (full-screen overlay)              -->
+<!-- ================================================= -->
+<div id="pickerScreen" style="display:none;position:absolute;inset:0;background:#000;z-index:10;flex-direction:column">
+
+<div style="padding:12px 20px 0;font-size:12px;color:#888;flex-shrink:0">9:41</div>
+
+<div style="padding:16px 20px 20px;display:flex;align-items:center;gap:14px;flex-shrink:0">
+<div onclick="closePicker()" style="cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;margin-left:-8px">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+</div>
+<div style="font-size:18px;font-weight:700">Select country</div>
+</div>
+
+<div style="padding:0 20px 16px;flex-shrink:0">
+<div style="position:relative">
+<div style="position:absolute;left:16px;top:0;bottom:0;display:flex;align-items:center;pointer-events:none">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+</div>
+<input id="searchInput" type="text" placeholder="Search country or code" oninput="handleSearch(this.value)" style="width:100%;background:transparent;border:1.5px solid #2a2a2a;border-radius:12px;padding:0 16px 0 42px;font-size:14px;color:#fff;outline:none;font-family:inherit;height:48px;box-sizing:border-box;transition:border-color 0.2s" onfocus="this.style.borderColor='#e91e8c'" onblur="this.style.borderColor='#2a2a2a'" />
+</div>
+</div>
+
+<div id="countryList" style="flex:1;overflow-y:auto;padding:0 20px 24px;max-height:620px"></div>
+
+</div>
+
+
+<div id="toast" style="position:absolute;left:50%;bottom:60px;transform:translateX(-50%);background:rgba(28,28,28,0.95);border:1px solid #333;color:#fff;padding:10px 18px;border-radius:24px;font-size:12px;opacity:0;transition:opacity 0.2s;pointer-events:none;z-index:20;white-space:nowrap"></div>
+</div>
+</div>
+
+<script>
+(function(){
+
+const countries = [
+  { code:'AE', name:'United Arab Emirates', dial:'+971', flag:'🇦🇪', placeholder:'55 846 2387', popular:true },
+  { code:'US', name:'United States', dial:'+1', flag:'🇺🇸', placeholder:'(555) 123 4567', popular:true },
+  { code:'GB', name:'United Kingdom', dial:'+44', flag:'🇬🇧', placeholder:'07700 900000', popular:true },
+
+  { code:'AF', name:'Afghanistan', dial:'+93', flag:'🇦🇫', placeholder:'70 123 4567' },
+  { code:'AL', name:'Albania', dial:'+355', flag:'🇦🇱', placeholder:'67 123 4567' },
+  { code:'DZ', name:'Algeria', dial:'+213', flag:'🇩🇿', placeholder:'551 23 45 67' },
+  { code:'AD', name:'Andorra', dial:'+376', flag:'🇦🇩', placeholder:'312 345' },
+  { code:'AO', name:'Angola', dial:'+244', flag:'🇦🇴', placeholder:'923 123 456' },
+  { code:'AG', name:'Antigua & Barbuda', dial:'+1268', flag:'🇦🇬', placeholder:'464 1234' },
+  { code:'AR', name:'Argentina', dial:'+54', flag:'🇦🇷', placeholder:'11 1234 5678' },
+  { code:'AM', name:'Armenia', dial:'+374', flag:'🇦🇲', placeholder:'77 123456' },
+  { code:'AU', name:'Australia', dial:'+61', flag:'🇦🇺', placeholder:'412 345 678' },
+  { code:'AT', name:'Austria', dial:'+43', flag:'🇦🇹', placeholder:'664 123456' },
+  { code:'AZ', name:'Azerbaijan', dial:'+994', flag:'🇦🇿', placeholder:'40 123 45 67' },
+  { code:'BS', name:'Bahamas', dial:'+1242', flag:'🇧🇸', placeholder:'359 1234' },
+  { code:'BH', name:'Bahrain', dial:'+973', flag:'🇧🇭', placeholder:'3600 1234' },
+  { code:'BD', name:'Bangladesh', dial:'+880', flag:'🇧🇩', placeholder:'1812 345678' },
+  { code:'BB', name:'Barbados', dial:'+1246', flag:'🇧🇧', placeholder:'250 1234' },
+  { code:'BY', name:'Belarus', dial:'+375', flag:'🇧🇾', placeholder:'29 491 1911' },
+  { code:'BE', name:'Belgium', dial:'+32', flag:'🇧🇪', placeholder:'470 12 34 56' },
+  { code:'BZ', name:'Belize', dial:'+501', flag:'🇧🇿', placeholder:'622 1234' },
+  { code:'BJ', name:'Benin', dial:'+229', flag:'🇧🇯', placeholder:'90 01 12 34' },
+  { code:'BT', name:'Bhutan', dial:'+975', flag:'🇧🇹', placeholder:'17 12 34 56' },
+  { code:'BO', name:'Bolivia', dial:'+591', flag:'🇧🇴', placeholder:'71234567' },
+  { code:'BA', name:'Bosnia & Herzegovina', dial:'+387', flag:'🇧🇦', placeholder:'61 123 456' },
+  { code:'BW', name:'Botswana', dial:'+267', flag:'🇧🇼', placeholder:'71 123 456' },
+  { code:'BR', name:'Brazil', dial:'+55', flag:'🇧🇷', placeholder:'11 91234 5678' },
+  { code:'BN', name:'Brunei', dial:'+673', flag:'🇧🇳', placeholder:'712 3456' },
+  { code:'BG', name:'Bulgaria', dial:'+359', flag:'🇧🇬', placeholder:'48 123 456' },
+  { code:'BF', name:'Burkina Faso', dial:'+226', flag:'🇧🇫', placeholder:'70 12 34 56' },
+  { code:'BI', name:'Burundi', dial:'+257', flag:'🇧🇮', placeholder:'79 56 12 34' },
+  { code:'KH', name:'Cambodia', dial:'+855', flag:'🇰🇭', placeholder:'91 234 567' },
+  { code:'CM', name:'Cameroon', dial:'+237', flag:'🇨🇲', placeholder:'6 71 23 45 67' },
+  { code:'CA', name:'Canada', dial:'+1', flag:'🇨🇦', placeholder:'(506) 234 5678' },
+  { code:'CV', name:'Cape Verde', dial:'+238', flag:'🇨🇻', placeholder:'991 12 34' },
+  { code:'CF', name:'Central African Republic', dial:'+236', flag:'🇨🇫', placeholder:'70 01 23 45' },
+  { code:'TD', name:'Chad', dial:'+235', flag:'🇹🇩', placeholder:'63 01 23 45' },
+  { code:'CL', name:'Chile', dial:'+56', flag:'🇨🇱', placeholder:'2 2123 4567' },
+  { code:'CN', name:'China', dial:'+86', flag:'🇨🇳', placeholder:'131 2345 6789' },
+  { code:'CO', name:'Colombia', dial:'+57', flag:'🇨🇴', placeholder:'321 1234567' },
+  { code:'KM', name:'Comoros', dial:'+269', flag:'🇰🇲', placeholder:'321 23 45' },
+  { code:'CG', name:'Congo', dial:'+242', flag:'🇨🇬', placeholder:'06 123 4567' },
+  { code:'CD', name:'Congo (DRC)', dial:'+243', flag:'🇨🇩', placeholder:'991 234 567' },
+  { code:'CR', name:'Costa Rica', dial:'+506', flag:'🇨🇷', placeholder:'8312 3456' },
+  { code:'CI', name:'Côte d\u2019Ivoire', dial:'+225', flag:'🇨🇮', placeholder:'01 23 45 67 89' },
+  { code:'HR', name:'Croatia', dial:'+385', flag:'🇭🇷', placeholder:'91 234 5678' },
+  { code:'CU', name:'Cuba', dial:'+53', flag:'🇨🇺', placeholder:'5 1234567' },
+  { code:'CY', name:'Cyprus', dial:'+357', flag:'🇨🇾', placeholder:'96 123456' },
+  { code:'CZ', name:'Czech Republic', dial:'+420', flag:'🇨🇿', placeholder:'601 123 456' },
+  { code:'DK', name:'Denmark', dial:'+45', flag:'🇩🇰', placeholder:'32 12 34 56' },
+  { code:'DJ', name:'Djibouti', dial:'+253', flag:'🇩🇯', placeholder:'77 83 10 01' },
+  { code:'DM', name:'Dominica', dial:'+1767', flag:'🇩🇲', placeholder:'225 1234' },
+  { code:'DO', name:'Dominican Republic', dial:'+1', flag:'🇩🇴', placeholder:'(809) 234 5678' },
+  { code:'EC', name:'Ecuador', dial:'+593', flag:'🇪🇨', placeholder:'99 123 4567' },
+  { code:'EG', name:'Egypt', dial:'+20', flag:'🇪🇬', placeholder:'100 123 4567' },
+  { code:'SV', name:'El Salvador', dial:'+503', flag:'🇸🇻', placeholder:'7012 3456' },
+  { code:'GQ', name:'Equatorial Guinea', dial:'+240', flag:'🇬🇶', placeholder:'222 123 456' },
+  { code:'ER', name:'Eritrea', dial:'+291', flag:'🇪🇷', placeholder:'7 123 456' },
+  { code:'EE', name:'Estonia', dial:'+372', flag:'🇪🇪', placeholder:'5123 4567' },
+  { code:'SZ', name:'Eswatini', dial:'+268', flag:'🇸🇿', placeholder:'7612 3456' },
+  { code:'ET', name:'Ethiopia', dial:'+251', flag:'🇪🇹', placeholder:'91 123 4567' },
+  { code:'FJ', name:'Fiji', dial:'+679', flag:'🇫🇯', placeholder:'701 2345' },
+  { code:'FI', name:'Finland', dial:'+358', flag:'🇫🇮', placeholder:'41 2345678' },
+  { code:'FR', name:'France', dial:'+33', flag:'🇫🇷', placeholder:'6 12 34 56 78' },
+  { code:'GA', name:'Gabon', dial:'+241', flag:'🇬🇦', placeholder:'06 03 12 34' },
+  { code:'GM', name:'Gambia', dial:'+220', flag:'🇬🇲', placeholder:'301 2345' },
+  { code:'GE', name:'Georgia', dial:'+995', flag:'🇬🇪', placeholder:'555 12 34 56' },
+  { code:'DE', name:'Germany', dial:'+49', flag:'🇩🇪', placeholder:'151 23456789' },
+  { code:'GH', name:'Ghana', dial:'+233', flag:'🇬🇭', placeholder:'23 123 4567' },
+  { code:'GR', name:'Greece', dial:'+30', flag:'🇬🇷', placeholder:'691 234 5678' },
+  { code:'GD', name:'Grenada', dial:'+1473', flag:'🇬🇩', placeholder:'403 1234' },
+  { code:'GT', name:'Guatemala', dial:'+502', flag:'🇬🇹', placeholder:'5123 4567' },
+  { code:'GN', name:'Guinea', dial:'+224', flag:'🇬🇳', placeholder:'601 12 34 56' },
+  { code:'GW', name:'Guinea-Bissau', dial:'+245', flag:'🇬🇼', placeholder:'955 012 345' },
+  { code:'GY', name:'Guyana', dial:'+592', flag:'🇬🇾', placeholder:'609 1234' },
+  { code:'HT', name:'Haiti', dial:'+509', flag:'🇭🇹', placeholder:'34 10 1234' },
+  { code:'HN', name:'Honduras', dial:'+504', flag:'🇭🇳', placeholder:'9123 4567' },
+  { code:'HK', name:'Hong Kong', dial:'+852', flag:'🇭🇰', placeholder:'5123 4567' },
+  { code:'HU', name:'Hungary', dial:'+36', flag:'🇭🇺', placeholder:'20 123 4567' },
+  { code:'IS', name:'Iceland', dial:'+354', flag:'🇮🇸', placeholder:'611 1234' },
+  { code:'IN', name:'India', dial:'+91', flag:'🇮🇳', placeholder:'81234 56789' },
+  { code:'ID', name:'Indonesia', dial:'+62', flag:'🇮🇩', placeholder:'812 3456 7890' },
+  { code:'IR', name:'Iran', dial:'+98', flag:'🇮🇷', placeholder:'912 345 6789' },
+  { code:'IQ', name:'Iraq', dial:'+964', flag:'🇮🇶', placeholder:'791 234 5678' },
+  { code:'IE', name:'Ireland', dial:'+353', flag:'🇮🇪', placeholder:'85 012 3456' },
+  { code:'IL', name:'Israel', dial:'+972', flag:'🇮🇱', placeholder:'50 123 4567' },
+  { code:'IT', name:'Italy', dial:'+39', flag:'🇮🇹', placeholder:'312 345 6789' },
+  { code:'JM', name:'Jamaica', dial:'+1876', flag:'🇯🇲', placeholder:'210 1234' },
+  { code:'JP', name:'Japan', dial:'+81', flag:'🇯🇵', placeholder:'90 1234 5678' },
+  { code:'JO', name:'Jordan', dial:'+962', flag:'🇯🇴', placeholder:'7 9012 3456' },
+  { code:'KZ', name:'Kazakhstan', dial:'+7', flag:'🇰🇿', placeholder:'771 000 9998' },
+  { code:'KE', name:'Kenya', dial:'+254', flag:'🇰🇪', placeholder:'712 123456' },
+  { code:'KI', name:'Kiribati', dial:'+686', flag:'🇰🇮', placeholder:'72001234' },
+  { code:'KW', name:'Kuwait', dial:'+965', flag:'🇰🇼', placeholder:'500 12345' },
+  { code:'KG', name:'Kyrgyzstan', dial:'+996', flag:'🇰🇬', placeholder:'700 123 456' },
+  { code:'LA', name:'Laos', dial:'+856', flag:'🇱🇦', placeholder:'20 23 123 456' },
+  { code:'LV', name:'Latvia', dial:'+371', flag:'🇱🇻', placeholder:'21 234 567' },
+  { code:'LB', name:'Lebanon', dial:'+961', flag:'🇱🇧', placeholder:'71 123 456' },
+  { code:'LS', name:'Lesotho', dial:'+266', flag:'🇱🇸', placeholder:'5012 3456' },
+  { code:'LR', name:'Liberia', dial:'+231', flag:'🇱🇷', placeholder:'77 012 3456' },
+  { code:'LY', name:'Libya', dial:'+218', flag:'🇱🇾', placeholder:'91 2345678' },
+  { code:'LI', name:'Liechtenstein', dial:'+423', flag:'🇱🇮', placeholder:'660 234 567' },
+  { code:'LT', name:'Lithuania', dial:'+370', flag:'🇱🇹', placeholder:'612 34567' },
+  { code:'LU', name:'Luxembourg', dial:'+352', flag:'🇱🇺', placeholder:'628 123 456' },
+  { code:'MO', name:'Macau', dial:'+853', flag:'🇲🇴', placeholder:'6612 3456' },
+  { code:'MG', name:'Madagascar', dial:'+261', flag:'🇲🇬', placeholder:'32 12 345 67' },
+  { code:'MW', name:'Malawi', dial:'+265', flag:'🇲🇼', placeholder:'991 23 45 67' },
+  { code:'MY', name:'Malaysia', dial:'+60', flag:'🇲🇾', placeholder:'12 345 6789' },
+  { code:'MV', name:'Maldives', dial:'+960', flag:'🇲🇻', placeholder:'771 2345' },
+  { code:'ML', name:'Mali', dial:'+223', flag:'🇲🇱', placeholder:'65 01 23 45' },
+  { code:'MT', name:'Malta', dial:'+356', flag:'🇲🇹', placeholder:'9696 1234' },
+  { code:'MH', name:'Marshall Islands', dial:'+692', flag:'🇲🇭', placeholder:'235 1234' },
+  { code:'MR', name:'Mauritania', dial:'+222', flag:'🇲🇷', placeholder:'22 12 34 56' },
+  { code:'MU', name:'Mauritius', dial:'+230', flag:'🇲🇺', placeholder:'5251 2345' },
+  { code:'MX', name:'Mexico', dial:'+52', flag:'🇲🇽', placeholder:'222 123 4567' },
+  { code:'FM', name:'Micronesia', dial:'+691', flag:'🇫🇲', placeholder:'350 1234' },
+  { code:'MD', name:'Moldova', dial:'+373', flag:'🇲🇩', placeholder:'621 12 345' },
+  { code:'MC', name:'Monaco', dial:'+377', flag:'🇲🇨', placeholder:'6 12 34 56 78' },
+  { code:'MN', name:'Mongolia', dial:'+976', flag:'🇲🇳', placeholder:'8812 3456' },
+  { code:'ME', name:'Montenegro', dial:'+382', flag:'🇲🇪', placeholder:'67 622 901' },
+  { code:'MA', name:'Morocco', dial:'+212', flag:'🇲🇦', placeholder:'650 123456' },
+  { code:'MZ', name:'Mozambique', dial:'+258', flag:'🇲🇿', placeholder:'82 123 4567' },
+  { code:'MM', name:'Myanmar', dial:'+95', flag:'🇲🇲', placeholder:'9 2123 4567' },
+  { code:'NA', name:'Namibia', dial:'+264', flag:'🇳🇦', placeholder:'81 123 4567' },
+  { code:'NR', name:'Nauru', dial:'+674', flag:'🇳🇷', placeholder:'555 1234' },
+  { code:'NP', name:'Nepal', dial:'+977', flag:'🇳🇵', placeholder:'984 1234567' },
+  { code:'NL', name:'Netherlands', dial:'+31', flag:'🇳🇱', placeholder:'6 12345678' },
+  { code:'NZ', name:'New Zealand', dial:'+64', flag:'🇳🇿', placeholder:'21 123 4567' },
+  { code:'NI', name:'Nicaragua', dial:'+505', flag:'🇳🇮', placeholder:'8123 4567' },
+  { code:'NE', name:'Niger', dial:'+227', flag:'🇳🇪', placeholder:'93 12 34 56' },
+  { code:'NG', name:'Nigeria', dial:'+234', flag:'🇳🇬', placeholder:'802 123 4567' },
+  { code:'KP', name:'North Korea', dial:'+850', flag:'🇰🇵', placeholder:'192 123 4567' },
+  { code:'MK', name:'North Macedonia', dial:'+389', flag:'🇲🇰', placeholder:'72 345 678' },
+  { code:'NO', name:'Norway', dial:'+47', flag:'🇳🇴', placeholder:'406 12 345' },
+  { code:'OM', name:'Oman', dial:'+968', flag:'🇴🇲', placeholder:'9212 3456' },
+  { code:'PK', name:'Pakistan', dial:'+92', flag:'🇵🇰', placeholder:'301 2345678' },
+  { code:'PW', name:'Palau', dial:'+680', flag:'🇵🇼', placeholder:'620 1234' },
+  { code:'PS', name:'Palestine', dial:'+970', flag:'🇵🇸', placeholder:'59 123 4567' },
+  { code:'PA', name:'Panama', dial:'+507', flag:'🇵🇦', placeholder:'6123 4567' },
+  { code:'PG', name:'Papua New Guinea', dial:'+675', flag:'🇵🇬', placeholder:'7012 3456' },
+  { code:'PY', name:'Paraguay', dial:'+595', flag:'🇵🇾', placeholder:'961 456789' },
+  { code:'PE', name:'Peru', dial:'+51', flag:'🇵🇪', placeholder:'912 345 678' },
+  { code:'PH', name:'Philippines', dial:'+63', flag:'🇵🇭', placeholder:'905 123 4567' },
+  { code:'PL', name:'Poland', dial:'+48', flag:'🇵🇱', placeholder:'512 345 678' },
+  { code:'PT', name:'Portugal', dial:'+351', flag:'🇵🇹', placeholder:'912 345 678' },
+  { code:'PR', name:'Puerto Rico', dial:'+1', flag:'🇵🇷', placeholder:'(787) 234 5678' },
+  { code:'QA', name:'Qatar', dial:'+974', flag:'🇶🇦', placeholder:'3312 3456' },
+  { code:'RO', name:'Romania', dial:'+40', flag:'🇷🇴', placeholder:'712 034 567' },
+  { code:'RU', name:'Russia', dial:'+7', flag:'🇷🇺', placeholder:'912 345 67 89' },
+  { code:'RW', name:'Rwanda', dial:'+250', flag:'🇷🇼', placeholder:'720 123 456' },
+  { code:'KN', name:'Saint Kitts & Nevis', dial:'+1869', flag:'🇰🇳', placeholder:'765 2917' },
+  { code:'LC', name:'Saint Lucia', dial:'+1758', flag:'🇱🇨', placeholder:'284 5678' },
+  { code:'VC', name:'Saint Vincent', dial:'+1784', flag:'🇻🇨', placeholder:'430 1234' },
+  { code:'WS', name:'Samoa', dial:'+685', flag:'🇼🇸', placeholder:'72 12345' },
+  { code:'SM', name:'San Marino', dial:'+378', flag:'🇸🇲', placeholder:'66 66 12 12' },
+  { code:'ST', name:'São Tomé & Príncipe', dial:'+239', flag:'🇸🇹', placeholder:'981 2345' },
+  { code:'SA', name:'Saudi Arabia', dial:'+966', flag:'🇸🇦', placeholder:'51 234 5678' },
+  { code:'SN', name:'Senegal', dial:'+221', flag:'🇸🇳', placeholder:'70 123 45 67' },
+  { code:'RS', name:'Serbia', dial:'+381', flag:'🇷🇸', placeholder:'60 1234567' },
+  { code:'SC', name:'Seychelles', dial:'+248', flag:'🇸🇨', placeholder:'2 510 123' },
+  { code:'SL', name:'Sierra Leone', dial:'+232', flag:'🇸🇱', placeholder:'25 123456' },
+  { code:'SG', name:'Singapore', dial:'+65', flag:'🇸🇬', placeholder:'8123 4567' },
+  { code:'SK', name:'Slovakia', dial:'+421', flag:'🇸🇰', placeholder:'912 123 456' },
+  { code:'SI', name:'Slovenia', dial:'+386', flag:'🇸🇮', placeholder:'31 234 567' },
+  { code:'SB', name:'Solomon Islands', dial:'+677', flag:'🇸🇧', placeholder:'74 21234' },
+  { code:'SO', name:'Somalia', dial:'+252', flag:'🇸🇴', placeholder:'7 1123456' },
+  { code:'ZA', name:'South Africa', dial:'+27', flag:'🇿🇦', placeholder:'71 123 4567' },
+  { code:'KR', name:'South Korea', dial:'+82', flag:'🇰🇷', placeholder:'10 2345 6789' },
+  { code:'SS', name:'South Sudan', dial:'+211', flag:'🇸🇸', placeholder:'977 123 456' },
+  { code:'ES', name:'Spain', dial:'+34', flag:'🇪🇸', placeholder:'612 34 56 78' },
+  { code:'LK', name:'Sri Lanka', dial:'+94', flag:'🇱🇰', placeholder:'71 234 5678' },
+  { code:'SD', name:'Sudan', dial:'+249', flag:'🇸🇩', placeholder:'91 123 1234' },
+  { code:'SR', name:'Suriname', dial:'+597', flag:'🇸🇷', placeholder:'741 2345' },
+  { code:'SE', name:'Sweden', dial:'+46', flag:'🇸🇪', placeholder:'70 123 45 67' },
+  { code:'CH', name:'Switzerland', dial:'+41', flag:'🇨🇭', placeholder:'78 123 45 67' },
+  { code:'SY', name:'Syria', dial:'+963', flag:'🇸🇾', placeholder:'944 567 890' },
+  { code:'TW', name:'Taiwan', dial:'+886', flag:'🇹🇼', placeholder:'912 345 678' },
+  { code:'TJ', name:'Tajikistan', dial:'+992', flag:'🇹🇯', placeholder:'91 712 3456' },
+  { code:'TZ', name:'Tanzania', dial:'+255', flag:'🇹🇿', placeholder:'621 234 567' },
+  { code:'TH', name:'Thailand', dial:'+66', flag:'🇹🇭', placeholder:'81 234 5678' },
+  { code:'TL', name:'Timor-Leste', dial:'+670', flag:'🇹🇱', placeholder:'7721 2345' },
+  { code:'TG', name:'Togo', dial:'+228', flag:'🇹🇬', placeholder:'90 11 23 45' },
+  { code:'TO', name:'Tonga', dial:'+676', flag:'🇹🇴', placeholder:'771 5123' },
+  { code:'TT', name:'Trinidad & Tobago', dial:'+1868', flag:'🇹🇹', placeholder:'291 1234' },
+  { code:'TN', name:'Tunisia', dial:'+216', flag:'🇹🇳', placeholder:'20 123 456' },
+  { code:'TR', name:'Turkey', dial:'+90', flag:'🇹🇷', placeholder:'501 234 56 78' },
+  { code:'TM', name:'Turkmenistan', dial:'+993', flag:'🇹🇲', placeholder:'66 123 456' },
+  { code:'TV', name:'Tuvalu', dial:'+688', flag:'🇹🇻', placeholder:'901234' },
+  { code:'UG', name:'Uganda', dial:'+256', flag:'🇺🇬', placeholder:'712 345678' },
+  { code:'UA', name:'Ukraine', dial:'+380', flag:'🇺🇦', placeholder:'50 123 4567' },
+  { code:'UY', name:'Uruguay', dial:'+598', flag:'🇺🇾', placeholder:'94 231 234' },
+  { code:'UZ', name:'Uzbekistan', dial:'+998', flag:'🇺🇿', placeholder:'91 234 56 78' },
+  { code:'VU', name:'Vanuatu', dial:'+678', flag:'🇻🇺', placeholder:'591 1234' },
+  { code:'VA', name:'Vatican City', dial:'+379', flag:'🇻🇦', placeholder:'06 6981 1234' },
+  { code:'VE', name:'Venezuela', dial:'+58', flag:'🇻🇪', placeholder:'412 1234567' },
+  { code:'VN', name:'Vietnam', dial:'+84', flag:'🇻🇳', placeholder:'91 234 56 78' },
+  { code:'YE', name:'Yemen', dial:'+967', flag:'🇾🇪', placeholder:'712 345 678' },
+  { code:'ZM', name:'Zambia', dial:'+260', flag:'🇿🇲', placeholder:'95 5123456' },
+  { code:'ZW', name:'Zimbabwe', dial:'+263', flag:'🇿🇼', placeholder:'71 234 5678' }
+];
+
+
+// ============================================================
+// PHONE NUMBER FORMATTER (as-you-type masking)
+// ============================================================
+// Mockup-only manual masks for the top 20 countries.
+// PRODUCTION: replace with libphonenumber-js / react-phone-number-input
+// for full coverage + validation across all 190+ countries.
+// Format patterns use "#" for digit slots, spaces/dashes/parens as literals.
+const phoneFormats = {
+  '+971': '## ### ####',       // UAE: 55 427 5547
+  '+1':   '(###) ###-####',    // US/Canada/PR/DO: (555) 123-4567
+  '+44':  '#### ######',       // UK: 7700 900000
+  '+49':  '### ########',      // Germany: 151 23456789
+  '+33':  '# ## ## ## ##',     // France: 6 12 34 56 78
+  '+39':  '### ### ####',      // Italy: 312 345 6789
+  '+34':  '### ## ## ##',      // Spain: 612 34 56 78
+  '+31':  '# ########',        // Netherlands: 6 12345678
+  '+32':  '### ## ## ##',      // Belgium: 470 12 34 56
+  '+41':  '## ### ## ##',      // Switzerland: 78 123 45 67
+  '+43':  '### ######',        // Austria: 664 123456
+  '+46':  '## ### ## ##',      // Sweden: 70 123 45 67
+  '+47':  '### ## ###',        // Norway: 406 12 345
+  '+45':  '## ## ## ##',       // Denmark: 32 12 34 56
+  '+358': '## #######',        // Finland: 41 2345678
+  '+91':  '##### #####',       // India: 81234 56789
+  '+92':  '### #######',       // Pakistan: 301 2345678
+  '+880': '#### ######',       // Bangladesh: 1812 345678
+  '+966': '## ### ####',       // Saudi: 51 234 5678
+  '+974': '#### ####',         // Qatar: 3312 3456
+  '+973': '#### ####',         // Bahrain: 3600 1234
+  '+965': '### #####',         // Kuwait: 500 12345
+  '+968': '#### ####',         // Oman: 9212 3456
+  '+962': '# #### ####',       // Jordan: 7 9012 3456
+  '+961': '## ### ###',        // Lebanon: 71 123 456
+  '+20':  '### ### ####',      // Egypt: 100 123 4567
+  '+212': '### ######',        // Morocco: 650 123456
+  '+216': '## ### ###',        // Tunisia: 20 123 456
+  '+90':  '### ### ## ##',     // Turkey: 501 234 56 78
+  '+7':   '### ### ## ##',     // Russia/KZ: 912 345 67 89
+  '+380': '## ### ####',       // Ukraine: 50 123 4567
+  '+48':  '### ### ###',       // Poland: 512 345 678
+  '+420': '### ### ###',       // Czech: 601 123 456
+  '+40':  '### ### ###',       // Romania: 712 034 567
+  '+30':  '### ### ####',      // Greece: 691 234 5678
+  '+351': '### ### ###',       // Portugal: 912 345 678
+  '+353': '## ### ####',       // Ireland: 85 012 3456
+  '+81':  '## #### ####',      // Japan: 90 1234 5678
+  '+82':  '## #### ####',      // South Korea: 10 2345 6789
+  '+86':  '### #### ####',     // China: 131 2345 6789
+  '+852': '#### ####',         // Hong Kong: 5123 4567
+  '+65':  '#### ####',         // Singapore: 8123 4567
+  '+60':  '## ### ####',       // Malaysia: 12 345 6789
+  '+63':  '### ### ####',      // Philippines: 905 123 4567
+  '+66':  '## ### ####',       // Thailand: 81 234 5678
+  '+84':  '## ### ## ##',      // Vietnam: 91 234 56 78
+  '+62':  '### #### ####',     // Indonesia: 812 3456 7890
+  '+61':  '### ### ###',       // Australia: 412 345 678
+  '+64':  '## ### ####',       // New Zealand: 21 123 4567
+  '+27':  '## ### ####',       // South Africa: 71 123 4567
+  '+234': '### ### ####',      // Nigeria: 802 123 4567
+  '+254': '### ######',        // Kenya: 712 123456
+  '+20':  '### ### ####',      // Egypt: 100 123 4567
+  '+55':  '## ##### ####',     // Brazil: 11 91234 5678
+  '+52':  '### ### ####',      // Mexico: 222 123 4567
+  '+54':  '## #### ####',      // Argentina: 11 1234 5678
+  '+56':  '# #### ####',       // Chile: 2 2123 4567
+  '+57':  '### #######'        // Colombia: 321 1234567
+};
+
+function formatPhoneNumber(digits, dialCode){
+  const mask = phoneFormats[dialCode];
+  if(!mask) return digits; // no mask for this country, return raw digits
+  let out = '';
+  let di = 0;
+  // Apply the mask for as many digits as fit
+  for(let i = 0; i < mask.length && di < digits.length; i++){
+    if(mask[i] === '#'){
+      out += digits[di];
+      di++;
+    } else {
+      out += mask[i];
+    }
+  }
+  // Append any overflow digits with a leading space (variable-length countries)
+  if(di < digits.length){
+    out += ' ' + digits.slice(di);
+  }
+  return out;
+}
+
+
+function rowHtml(c){
+  const escName = c.name.replace(/'/g, "\\'");
+  const escPh = c.placeholder.replace(/'/g, "\\'");
+  return `<div onclick="selectCountry('${c.code}','${c.flag}','${c.dial}','${escPh}')" style="padding:12px 4px;border-top:1px solid #1a1a1a;display:flex;align-items:center;gap:14px;cursor:pointer">
+    <span style="font-size:22px;line-height:1;flex-shrink:0">${c.flag}</span>
+    <span style="flex:1;font-size:14px;font-weight:600;color:#fff">${c.name}</span>
+    <span style="font-size:13px;color:#888;font-weight:600">${c.dial}</span>
+  </div>`;
+}
+
+function buildList(){
+  const list = document.getElementById('countryList');
+  const popular = countries.filter(c => c.popular);
+  const rest = countries.filter(c => !c.popular).sort((a,b) => a.name.localeCompare(b.name));
+
+  let html = '';
+
+  // POPULAR section
+  html += `<div id="section-popular" style="font-size:10px;letter-spacing:1px;color:#888;font-weight:700;padding:14px 0 6px">POPULAR</div>`;
+  html += popular.map(rowHtml).join('');
+
+  // A-Z sections with anchors
+  let currentLetter = '';
+  rest.forEach(c => {
+    const firstLetter = c.name.charAt(0).toUpperCase();
+    if(firstLetter !== currentLetter){
+      currentLetter = firstLetter;
+      html += `<div id="section-${currentLetter}" style="font-size:10px;letter-spacing:1px;color:#888;font-weight:700;padding:18px 0 6px">${currentLetter}</div>`;
+    }
+    html += rowHtml(c);
+  });
+
+  list.innerHTML = html;
+}
+
+function filterList(q){
+  const list = document.getElementById('countryList');
+  const qLower = q.toLowerCase().trim();
+
+  const match = c => c.name.toLowerCase().includes(qLower) || c.dial.includes(qLower) || c.code.toLowerCase().includes(qLower);
+
+  const matches = countries.filter(match).sort((a,b) => a.name.localeCompare(b.name));
+
+  if(matches.length === 0){
+    list.innerHTML = `<div style="padding:40px 20px;text-align:center;color:#666;font-size:13px">No countries found</div>`;
+    return;
+  }
+
+  let html = '';
+  matches.forEach(c => { html += rowHtml(c); });
+  list.innerHTML = html;
+}
+
+window.handleSearch = function(q){
+  const trimmed = q.trim();
+
+  if(trimmed.length === 0){
+    // Empty: show full list
+    
+function showToast(msg, success){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.color = success ? '#4ade80' : '#fff';
+  t.style.borderColor = success ? '#4ade80' : '#333';
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 1800);
+}
+
+window.continueWhatsApp = function(){
+  const btn = document.getElementById('waBtn');
+  // Only fire when active (pink background means ready)
+  if(btn.style.background !== 'rgb(233, 30, 140)' && btn.style.background !== '#e91e8c') {
+    showToast('Enter a valid phone number');
+    return;
+  }
+  const dial = document.getElementById('selCode').textContent;
+  const num = document.getElementById('phoneInput').value;
+  showToast('Sending WhatsApp code to ' + dial + ' ' + num, true);
+};
+
+window.continueEmail = function(){
+  const btn = document.getElementById('emBtn');
+  if(btn.style.background !== 'rgb(233, 30, 140)' && btn.style.background !== '#e91e8c') {
+    showToast('Enter a valid email');
+    return;
+  }
+  const email = document.getElementById('emailInput').value;
+  showToast('Sending magic link to ' + email, true);
+};
+
+buildList();
+    return;
+  }
+
+  if(trimmed.length === 1 && /[a-zA-Z]/.test(trimmed)){
+    // Single letter: scroll to that section, keep full list intact
+    
+function showToast(msg, success){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.color = success ? '#4ade80' : '#fff';
+  t.style.borderColor = success ? '#4ade80' : '#333';
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 1800);
+}
+
+window.continueWhatsApp = function(){
+  const btn = document.getElementById('waBtn');
+  // Only fire when active (pink background means ready)
+  if(btn.style.background !== 'rgb(233, 30, 140)' && btn.style.background !== '#e91e8c') {
+    showToast('Enter a valid phone number');
+    return;
+  }
+  const dial = document.getElementById('selCode').textContent;
+  const num = document.getElementById('phoneInput').value;
+  showToast('Sending WhatsApp code to ' + dial + ' ' + num, true);
+};
+
+window.continueEmail = function(){
+  const btn = document.getElementById('emBtn');
+  if(btn.style.background !== 'rgb(233, 30, 140)' && btn.style.background !== '#e91e8c') {
+    showToast('Enter a valid email');
+    return;
+  }
+  const email = document.getElementById('emailInput').value;
+  showToast('Sending magic link to ' + email, true);
+};
+
+buildList();
+    setTimeout(() => {
+      const letter = trimmed.toUpperCase();
+      const section = document.getElementById('section-' + letter);
+      const listEl = document.getElementById('countryList');
+      if(section && listEl){
+        listEl.scrollTop = section.offsetTop - listEl.offsetTop - 8;
+      }
+    }, 10);
+    return;
+  }
+
+  // 2+ characters or numbers: filter
+  filterList(trimmed);
+};
+
+window.openPicker = function(){
+  document.getElementById('authScreen').style.display = 'none';
+  const p = document.getElementById('pickerScreen');
+  p.style.display = 'flex';
+  document.getElementById('searchInput').value = '';
+  
+function showToast(msg, success){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.color = success ? '#4ade80' : '#fff';
+  t.style.borderColor = success ? '#4ade80' : '#333';
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 1800);
+}
+
+window.continueWhatsApp = function(){
+  const btn = document.getElementById('waBtn');
+  // Only fire when active (pink background means ready)
+  if(btn.style.background !== 'rgb(233, 30, 140)' && btn.style.background !== '#e91e8c') {
+    showToast('Enter a valid phone number');
+    return;
+  }
+  const dial = document.getElementById('selCode').textContent;
+  const num = document.getElementById('phoneInput').value;
+  showToast('Sending WhatsApp code to ' + dial + ' ' + num, true);
+};
+
+window.continueEmail = function(){
+  const btn = document.getElementById('emBtn');
+  if(btn.style.background !== 'rgb(233, 30, 140)' && btn.style.background !== '#e91e8c') {
+    showToast('Enter a valid email');
+    return;
+  }
+  const email = document.getElementById('emailInput').value;
+  showToast('Sending magic link to ' + email, true);
+};
+
+buildList();
+  document.getElementById('countryList').scrollTop = 0;
+};
+
+window.closePicker = function(){
+  document.getElementById('pickerScreen').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'block';
+};
+
+window.selectCountry = function(code, flag, dial, placeholder){
+  document.getElementById('selFlag').textContent = flag;
+  document.getElementById('selCode').textContent = dial;
+  const phoneInput = document.getElementById('phoneInput');
+  phoneInput.placeholder = placeholder;
+  phoneInput.value = '';
+  // Reset WhatsApp button state since phone is cleared
+  const waBtn = document.getElementById('waBtn');
+  const waLabel = document.getElementById('waLabel');
+  waBtn.style.borderColor = '#2a2a2a';
+  waBtn.style.background = 'transparent';
+  waLabel.style.color = '#555';
+  closePicker();
+};
+
+window.handlePhoneInput = function(el){
+  // Get current dial code from selected country button
+  const dialCode = document.getElementById('selCode').textContent;
+  // Strip non-digits and apply country-specific format mask
+  const digits = el.value.replace(/\D/g,'');
+  const formatted = formatPhoneNumber(digits, dialCode);
+  // Only update if actually different (prevents cursor jump on non-format chars)
+  if(el.value !== formatted){
+    el.value = formatted;
+  }
+  const btn = document.getElementById('waBtn');
+  const label = document.getElementById('waLabel');
+  // Minimum 6 digits required to activate — safe floor, backend validates exact length per country
+  if(digits.length >= 6){
+    btn.style.borderColor = '#e91e8c';
+    btn.style.background = '#e91e8c';
+    label.style.color = '#fff';
+  } else {
+    btn.style.borderColor = '#2a2a2a';
+    btn.style.background = 'transparent';
+    label.style.color = '#555';
+  }
+};
+
+window.handleEmailInput = function(el){
+  const btn = document.getElementById('emBtn');
+  if(el.value.length > 0 && el.value.includes('@')){
+    btn.style.borderColor = '#e91e8c';
+    btn.style.background = '#e91e8c';
+    btn.style.color = '#fff';
+  } else {
+    btn.style.borderColor = '#2a2a2a';
+    btn.style.background = 'transparent';
+    btn.style.color = '#555';
+  }
+};
+
+
+function showToast(msg, success){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.color = success ? '#4ade80' : '#fff';
+  t.style.borderColor = success ? '#4ade80' : '#333';
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 1800);
+}
+
+window.continueWhatsApp = function(){
+  const btn = document.getElementById('waBtn');
+  // Only fire when active (pink background means ready)
+  if(btn.style.background !== 'rgb(233, 30, 140)' && btn.style.background !== '#e91e8c') {
+    showToast('Enter a valid phone number');
+    return;
+  }
+  const dial = document.getElementById('selCode').textContent;
+  const num = document.getElementById('phoneInput').value;
+  showToast('Sending WhatsApp code to ' + dial + ' ' + num, true);
+};
+
+window.continueEmail = function(){
+  const btn = document.getElementById('emBtn');
+  if(btn.style.background !== 'rgb(233, 30, 140)' && btn.style.background !== '#e91e8c') {
+    showToast('Enter a valid email');
+    return;
+  }
+  const email = document.getElementById('emailInput').value;
+  showToast('Sending magic link to ' + email, true);
+};
+
+buildList();
+
+// Animate accent line on page load
+setTimeout(() => {
+  const line = document.getElementById('accentLine');
+  if(line) line.style.width = '40px';
+}, 100);
+
+})();
+</script>

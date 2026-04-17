@@ -1,0 +1,103 @@
+<html><head><title>Magic Link Sent — Final</title>
+<style>
+body{margin:0;padding:24px;background:#111;display:flex;justify-content:center;font-family:system-ui,-apple-system,sans-serif}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+.frame{width:375px;background:#000;border-radius:24px;overflow:hidden;color:#fff;border:2px solid #1a1a1a;position:relative}
+.statusBar{padding:12px 20px 0;font-size:12px;color:#888}
+.content{padding:60px 22px 20px;text-align:center}
+.title{font-size:22px;font-weight:700;margin-bottom:9px;letter-spacing:-0.2px}
+.sent{font-size:11px;color:#888;line-height:1.6;max-width:260px;margin:0 auto 42px}
+.tracker{padding:0 8px;margin-bottom:40px}
+.trackerRow{display:flex;align-items:center}
+.stepDone{width:20px;height:20px;border-radius:50%;background:#e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stepActive{width:20px;height:20px;border-radius:50%;border:1.5px solid #e91e8c;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-sizing:border-box}
+.stepActive > div{width:6px;height:6px;border-radius:50%;background:#e91e8c}
+.stepFuture{width:20px;height:20px;border-radius:50%;border:1.5px solid #3a3a3a;background:transparent;flex-shrink:0;box-sizing:border-box}
+.railSolid{flex:1;height:1.5px;background:#e91e8c;margin:0 2px}
+.railDashed{flex:1;height:1.5px;background-image:repeating-linear-gradient(90deg,#3a3a3a 0 3px,transparent 3px 6px);background-size:100% 100%;margin:0 2px}
+.labels{display:grid;grid-template-columns:20px 1fr 20px 1fr 20px;margin-top:10px}
+.labelCell{position:relative}
+.labelCell span{font-size:9px;font-weight:600;position:absolute;white-space:nowrap}
+.labelDone,.labelFuture{color:#777}
+.labelActive{color:#e91e8c;font-weight:700!important}
+.labelLeft{left:0}
+.labelCenter{left:50%;transform:translateX(-50%)}
+.labelRight{right:0}
+.expires{font-size:11px;color:#888;margin-bottom:8px}
+.resendRow{font-size:11px;color:#888;line-height:18px;height:18px}
+.resend{color:#e91e8c;font-weight:600;cursor:pointer;transition:color 0.2s,opacity 0.2s;display:inline-block;min-width:44px;text-align:center;vertical-align:baseline;line-height:18px;height:18px}
+.resend.sent{color:#4ade80}
+</style></head><body>
+
+<div class="frame">
+<div class="statusBar">9:41</div>
+<div class="content">
+
+<div class="title">Check your email</div>
+<div class="sent">We sent a magic link to <span id="emailLink" style="color:#fff;font-weight:600"></span></div>
+
+<div class="tracker">
+<div class="trackerRow">
+<div class="stepDone">
+<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+</div>
+<div class="railSolid"></div>
+<div class="stepActive"><div></div></div>
+<div class="railDashed"></div>
+<div class="stepFuture"></div>
+</div>
+<div class="labels">
+<div class="labelCell"><span class="labelDone labelLeft">Sent</span></div>
+<div></div>
+<div class="labelCell"><span class="labelActive labelCenter">Open email</span></div>
+<div></div>
+<div class="labelCell"><span class="labelFuture labelRight">Done</span></div>
+</div>
+</div>
+
+<div class="expires">Your magic link expires in 10 minutes</div>
+<div class="resendRow">
+Didn't receive it? <span class="resend" id="resendBtn" onclick="resend()">Resend</span>
+</div>
+
+</div>
+</div>
+
+<script>
+(function(){
+  var params=new URLSearchParams(window.location.search);
+  var email=params.get('email')||'sara@email.com';
+  document.getElementById('emailLink').textContent=email;
+})();
+
+var resendCooldown=0;
+
+function resend(){
+  var r=document.getElementById('resendBtn');
+  if(resendCooldown>0)return;
+  if(r.classList.contains('sent'))return;
+  r.textContent='Sent!';
+  r.classList.add('sent');
+  resendCooldown=60;
+  setTimeout(function(){
+    r.classList.remove('sent');
+    tickCooldown();
+  },2000);
+}
+
+function tickCooldown(){
+  var r=document.getElementById('resendBtn');
+  if(resendCooldown<=0){
+    r.textContent='Resend';
+    r.style.opacity='1';
+    r.style.cursor='pointer';
+    return;
+  }
+  r.textContent='Resend ('+resendCooldown+'s)';
+  r.style.opacity='0.5';
+  r.style.cursor='not-allowed';
+  resendCooldown--;
+  setTimeout(tickCooldown,1000);
+}
+</script>
+</body></html>

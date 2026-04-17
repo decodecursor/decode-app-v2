@@ -1,0 +1,335 @@
+<div id="cwPage" style="width:375px;background:#000;border-radius:24px;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#fff;border:2px solid #1a1a1a;position:relative;margin:24px auto">
+
+<style>
+#cwPage *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+#cwPage input,#cwPage button{font-family:inherit;outline:none}
+#cwPage input::placeholder{color:#666 !important;opacity:1}
+
+/* Pink focus ring — shared vocabulary with Add Listing, onboarding, checkout */
+#cwPage input[type="text"]:focus{border-color:#e91e8c !important;transition:border-color 0.15s}
+#cwPage .cwFw:focus-within{border-color:#e91e8c !important;transition:border-color 0.15s}
+#cwPage #cw_priceBox:focus-within{border-color:#e91e8c !important;transition:border-color 0.15s}
+
+/* CTA — 4 states matching Go live / Pay $70 / Create listing */
+#cw_createBtn{transition:background 0.2s,border-color 0.2s,color 0.2s,transform 0.05s}
+#cw_createBtn.ready{background:#e91e8c !important;border-color:#e91e8c !important;color:#fff !important;cursor:pointer !important}
+#cw_createBtn.ready:hover{filter:brightness(1.08)}
+#cw_createBtn.ready:active{transform:scale(0.99)}
+#cw_createBtn.working{background:#e91e8c !important;border-color:#e91e8c !important;color:#fff !important;cursor:default !important}
+#cw_createBtn.success{background:#e91e8c !important;border-color:#e91e8c !important;color:#fff !important;cursor:default !important}
+</style>
+
+<!-- Back arrow -->
+<div style="padding:14px 20px 0">
+<div onclick="history.back()" style="width:32px;height:32px;border-radius:50%;background:#1c1c1c;border:1px solid #262626;display:flex;align-items:center;justify-content:center;cursor:pointer">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+</div>
+</div>
+
+<!-- Hero -->
+<div style="padding:8px 22px 22px;text-align:center">
+<div style="font-size:22px;font-weight:700;letter-spacing:-0.2px;margin-bottom:6px">Add wish</div>
+<div style="font-size:11px;color:#888">Service you want as a gift</div>
+</div>
+
+<!-- Form -->
+<div style="padding:0 20px 10px">
+
+<!-- Service dropdown -->
+<div style="position:relative;margin-bottom:10px">
+<div onclick="cwToggleDrop()" style="background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:14px 16px;font-size:14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:border-color 0.15s">
+<span id="cw_treatLabel" style="color:#666">Select</span>
+<svg id="cw_chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s ease"><polyline points="6 9 12 15 18 9"/></svg>
+</div>
+<div id="cw_treatDrop" style="display:none;position:absolute;top:54px;left:0;right:0;background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;z-index:10;max-height:220px;overflow-y:auto">
+<!-- Populated dynamically by loadCategories() -->
+</div>
+</div>
+
+<!-- Custom service input (revealed when Customize tapped) -->
+<div id="cw_customWrap" style="display:none;margin-bottom:10px">
+<div class="cwFw" style="background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;display:flex;align-items:center;transition:border-color 0.15s">
+<input id="cw_customTreat" type="text" placeholder="Type your service and press Enter" oninput="cwCapFirst(this);cwCustomCheck();cwValidate()" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}" style="flex:1;min-width:0;background:transparent;border:none;padding:14px 16px;font-size:14px;color:#fff;font-family:inherit">
+<span id="cw_customCheck" style="display:none;padding-right:14px;flex-shrink:0">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+</span>
+</div>
+</div>
+
+<!-- Professional name -->
+<input id="cw_proName" type="text" placeholder="Salon, clinic or professional" oninput="cwCapFirst(this);cwValidate()" style="width:100%;background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:14px 16px;font-size:14px;color:#fff;outline:none;box-sizing:border-box;font-family:inherit;margin-bottom:10px;transition:border-color 0.15s">
+
+<!-- Professional location -->
+<div style="display:flex;gap:8px;margin-bottom:10px">
+<input id="cw_proCity" type="text" placeholder="City" oninput="cwCapFirst(this);cwValidate()" style="flex:1;min-width:0;background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:14px 16px;font-size:14px;color:#fff;outline:none;box-sizing:border-box;font-family:inherit;transition:border-color 0.15s">
+<input id="cw_proCountry" type="text" placeholder="Country" oninput="cwCapFirst(this);cwValidate()" style="flex:1;min-width:0;background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:14px 16px;font-size:14px;color:#fff;outline:none;box-sizing:border-box;font-family:inherit;transition:border-color 0.15s">
+</div>
+
+<!-- Price — matches Add Listing pricing-box vocabulary exactly -->
+<div id="cw_priceBox" onclick="document.getElementById(&quot;cw_price&quot;).focus()" style="background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:12px;text-align:center;transition:border-color 0.15s;cursor:text">
+<div id="cw_priceLabel" style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Price</div>
+<input id="cw_price" type="text" inputmode="numeric" placeholder="$" oninput="cwPriceInput(this)" onfocus="cwPriceFocus()" onblur="cwPriceBlur()" onkeydown="if(event.key==='Enter')this.blur()" style="width:100%;background:transparent;border:none;font-size:18px;font-weight:700;color:#fff;font-family:inherit;text-align:center;padding:0">
+<div id="cw_priceHelper" style="font-size:11px;color:#666;margin-top:4px;min-height:13px">USD ($)</div>
+</div>
+<div id="cw_priceError" style="display:none;font-size:11px;color:#e91e8c;margin-top:12px;text-align:center"></div>
+
+</div>
+
+<!-- CTA -->
+<div style="padding:10px 20px 22px">
+<button id="cw_createBtn" onclick="cwCreate()" style="width:100%;background:#1c1c1c;border:1px solid #262626;border-radius:12px;padding:16px;text-align:center;font-size:15px;font-weight:700;color:#555;letter-spacing:0.2px;cursor:default">Create wish</button>
+</div>
+
+</div>
+
+<script>
+(function(){
+  var cw = {
+    treatment: '',
+    customTreatment: '',
+    showCustom: false,
+    proName: '',
+    proCity: '',
+    proCountry: '',
+    price: '',
+    priceTouched: false
+  };
+
+  function $(id){return document.getElementById(id);}
+
+  // ===========================================================================
+  // CATEGORIES (shared with Add Listing) — single source of truth
+  // Same endpoint, same fallback constant, same window.WLD_CATEGORIES cache.
+  // If Add Listing already loaded categories on a previous page, reuse them.
+  // ===========================================================================
+  var FALLBACK_CATEGORIES = [
+    {slug:'hair',label:'Hair',order:1,active:true},
+    {slug:'nails',label:'Nails',order:2,active:true},
+    {slug:'skin',label:'Skin',order:3,active:true},
+    {slug:'lashes',label:'Lashes',order:4,active:true},
+    {slug:'brows',label:'Brows',order:5,active:true},
+    {slug:'nose',label:'Nose',order:6,active:true},
+    {slug:'veneers',label:'Veneers',order:7,active:true},
+    {slug:'botox',label:'Botox',order:8,active:true},
+    {slug:'fillers',label:'Fillers',order:9,active:true},
+    {slug:'massage',label:'Massage',order:10,active:true}
+  ];
+
+  function renderDropdown(cats){
+    var drop = $('cw_treatDrop');
+    if (!drop) return;
+    var active = cats.filter(function(c){return c.active !== false;})
+                     .sort(function(a,b){return (a.order||0)-(b.order||0);});
+    var html = '';
+    active.forEach(function(c){
+      var safe = String(c.label).replace(/"/g,'&quot;').replace(/</g,'&lt;');
+      html += '<div style="padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:1px solid #262626" ' +
+              'onclick="cwSelectTreat(\'' + String(c.label).replace(/'/g,"\\'") + '\')">' + safe + '</div>';
+    });
+    html += '<div style="padding:12px 16px;font-size:13px;cursor:pointer;color:#e91e8c;border-top:1px solid #262626" ' +
+            'onclick="cwSelectTreat(\'Customize\')">Customize</div>';
+    drop.innerHTML = html;
+  }
+
+  function loadCategories(){
+    // Reuse cache from a sibling page if present
+    if (window.WLD_CATEGORIES && Array.isArray(window.WLD_CATEGORIES)) {
+      renderDropdown(window.WLD_CATEGORIES);
+      return;
+    }
+    if (typeof fetch === 'function') {
+      fetch('/api/categories', {headers:{'Accept':'application/json'}})
+        .then(function(res){if(!res.ok)throw new Error('HTTP '+res.status);return res.json();})
+        .then(function(data){
+          if (!Array.isArray(data) || data.length === 0) throw new Error('empty');
+          window.WLD_CATEGORIES = data;
+          renderDropdown(data);
+        })
+        .catch(function(){
+          window.WLD_CATEGORIES = FALLBACK_CATEGORIES;
+          renderDropdown(FALLBACK_CATEGORIES);
+        });
+    } else {
+      window.WLD_CATEGORIES = FALLBACK_CATEGORIES;
+      renderDropdown(FALLBACK_CATEGORIES);
+    }
+  }
+
+  loadCategories();
+
+  // ===========================================================================
+  // USER CURRENCY (shared with Add Listing)
+  // GET /api/user/me → { currency, symbol }. Fallback: USD.
+  // ===========================================================================
+  var FALLBACK_USER = {currency:'USD', symbol:'$'};
+
+  function renderCurrency(user){
+    var code = (user && user.currency) || 'USD';
+    var symbol = (user && user.symbol) || '$';
+    // Helper line below the price (like Add Listing's "$0.67/day" slot)
+    $('cw_priceHelper').textContent = code + ' (' + symbol + ')';
+    // Placeholder on the input — shows the currency symbol when empty
+    $('cw_price').placeholder = symbol;
+  }
+
+  function loadUserCurrency(){
+    if (window.WLD_USER && window.WLD_USER.currency) {
+      renderCurrency(window.WLD_USER);
+      return;
+    }
+    if (typeof fetch === 'function') {
+      fetch('/api/user/me', {headers:{'Accept':'application/json'}})
+        .then(function(res){if(!res.ok)throw new Error('HTTP '+res.status);return res.json();})
+        .then(function(data){
+          if (!data || !data.currency) throw new Error('no currency');
+          window.WLD_USER = data;
+          renderCurrency(data);
+        })
+        .catch(function(){
+          window.WLD_USER = FALLBACK_USER;
+          renderCurrency(FALLBACK_USER);
+        });
+    } else {
+      window.WLD_USER = FALLBACK_USER;
+      renderCurrency(FALLBACK_USER);
+    }
+  }
+
+  loadUserCurrency();
+
+  // ===========================================================================
+  // Input handlers
+  // ===========================================================================
+  window.cwCapFirst = function(input){
+    var v = input.value;
+    if (v.length > 0) {
+      var nv = v.charAt(0).toUpperCase() + v.slice(1);
+      if (nv !== v) input.value = nv;
+    }
+    if (input.id === 'cw_proName') cw.proName = input.value;
+    if (input.id === 'cw_proCity') cw.proCity = input.value;
+    if (input.id === 'cw_proCountry') cw.proCountry = input.value;
+    if (input.id === 'cw_customTreat') cw.customTreatment = input.value;
+  };
+
+  window.cwToggleDrop = function(){
+    var dd = $('cw_treatDrop');
+    var chev = $('cw_chevron');
+    var isOpen = dd.style.display === 'block';
+    dd.style.display = isOpen ? 'none' : 'block';
+    if (chev) chev.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+  };
+
+  window.cwSelectTreat = function(t){
+    cw.treatment = t;
+    var lbl = $('cw_treatLabel');
+    lbl.textContent = t;
+    if (t === 'Customize') {
+      cw.showCustom = true;
+      lbl.style.color = '#e91e8c';
+      $('cw_customWrap').style.display = 'block';
+      setTimeout(function(){var el=$('cw_customTreat');if(el)el.focus();},50);
+    } else {
+      cw.showCustom = false;
+      cw.customTreatment = '';
+      lbl.style.color = '#fff';
+      $('cw_customWrap').style.display = 'none';
+      $('cw_customTreat').value = '';
+      $('cw_customCheck').style.display = 'none';
+    }
+    $('cw_treatDrop').style.display = 'none';
+    var chev = $('cw_chevron');
+    if (chev) chev.style.transform = 'rotate(0deg)';
+    cwValidate();
+  };
+
+  window.cwCustomCheck = function(){
+    var v = $('cw_customTreat').value.trim();
+    cw.customTreatment = v;
+    var check = $('cw_customCheck');
+    var lbl = $('cw_treatLabel');
+    if (v.length >= 2) {
+      check.style.display = 'flex';
+      lbl.textContent = v;
+      lbl.style.color = '#fff';
+    } else {
+      check.style.display = 'none';
+      lbl.textContent = 'Customize';
+      lbl.style.color = '#e91e8c';
+    }
+  };
+
+  window.cwPriceInput = function(input){
+    // Strip everything except digits
+    var digits = input.value.replace(/[^0-9]/g,'');
+    cw.price = digits;
+    // Render with currency symbol prepended (becomes one typographic unit)
+    var symbol = (window.WLD_USER && window.WLD_USER.symbol) || '$';
+    input.value = digits ? symbol + digits : '';
+    updatePriceUI();
+    cwValidate();
+  };
+  window.cwPriceFocus = function(){cw.priceTouched = false;updatePriceUI();};
+  window.cwPriceBlur = function(){cw.priceTouched = true;updatePriceUI();};
+
+  function updatePriceUI(){
+    var MIN_PRICE = { USD: 10, EUR: 10, GBP: 10, AED: 50 };
+    var userCurr = (window.WLD_USER && window.WLD_USER.currency) || 'USD';
+    var userSym = (window.WLD_USER && window.WLD_USER.symbol) || '$';
+    var minP = MIN_PRICE[userCurr] || 10;
+
+    var p = parseInt(cw.price) || 0;
+    var errZero = cw.priceTouched && cw.price === '0';
+    var errMin = cw.priceTouched && p > 0 && p < minP;
+    var err = errZero || errMin;
+
+    var box = $('cw_priceBox');
+    box.style.borderColor = err ? '#e91e8c' : '#262626';
+    var errEl = $('cw_priceError');
+    if (errZero) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'Price must be greater than 0';
+    } else if (errMin) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'Minimum ' + userSym + minP;
+    } else {
+      errEl.style.display = 'none';
+    }
+  }
+
+  window.cwValidate = function(){
+    var MIN_PRICE = { USD: 10, EUR: 10, GBP: 10, AED: 50 };
+    var userCurr = (window.WLD_USER && window.WLD_USER.currency) || 'USD';
+    var minP = MIN_PRICE[userCurr] || 10;
+
+    var hasTreat = cw.showCustom
+      ? cw.customTreatment.trim().length > 0
+      : (cw.treatment.length > 0 && cw.treatment !== 'Customize');
+    var hasName = cw.proName.trim().length > 0;
+    var hasCity = cw.proCity.trim().length > 0;
+    var hasCountry = cw.proCountry.trim().length > 0;
+    var p = parseInt(cw.price) || 0;
+    var hasPrice = p >= minP;
+    var valid = hasTreat && hasName && hasCity && hasCountry && hasPrice;
+    var btn = $('cw_createBtn');
+    if (btn.classList.contains('working') || btn.classList.contains('success')) return;
+    if (valid) btn.classList.add('ready');
+    else btn.classList.remove('ready');
+  };
+
+  window.cwCreate = function(){
+    var btn = $('cw_createBtn');
+    if (!btn.classList.contains('ready') || btn.classList.contains('working') || btn.classList.contains('success')) return;
+    btn.textContent = 'Creating…';
+    btn.classList.remove('ready');
+    btn.classList.add('working');
+    setTimeout(function(){
+      btn.textContent = 'Wish created!';
+      btn.classList.remove('working');
+      btn.classList.add('success');
+      // In production: redirect to /wishlist
+    }, 900);
+  };
+})();
+</script>
+</div>

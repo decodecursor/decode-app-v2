@@ -1,0 +1,302 @@
+<html><head><title>Ambassador Dashboard — Final</title>
+<style>
+body{margin:0;padding:24px;background:#111;display:flex;flex-direction:column;align-items:center;font-family:system-ui,-apple-system,sans-serif}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+.frame{width:375px;background:#000;border-radius:24px;overflow:hidden;color:#fff;border:2px solid #1a1a1a;position:relative}
+
+/* Cover */
+.cover{margin:14px 20px 0;border-radius:14px;overflow:hidden;position:relative;height:110px;background:linear-gradient(135deg,#333 0%,#222 50%,#111 100%)}
+.coverFade{position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(transparent,#000)}
+.coverBottom{position:absolute;bottom:11px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:flex-end}
+.hello{font-size:19px;font-weight:700;letter-spacing:-0.2px}
+.url{font-size:11px;color:#888;margin-top:2px;cursor:pointer;display:inline-block}
+.coverActions{display:flex;gap:7px}
+.iconBtn{
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.2);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:background 0.15s;
+}
+.iconBtn:hover{background:rgba(0,0,0,0.75)}
+.iconBtn.copied{background:rgba(74,222,128,0.18);border-color:rgba(74,222,128,0.4)}
+.copiedLabel{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:600;color:#4ade80;opacity:0;transition:opacity 0.2s;pointer-events:none;white-space:nowrap}
+.copiedLabel.show{opacity:1}
+
+/* Toast */
+.toast{
+  position:absolute;top:50px;left:50%;transform:translateX(-50%) translateY(-10px);
+  background:rgba(28,28,28,0.95);border:1px solid #333;color:#fff;font-size:12px;
+  padding:10px 18px;border-radius:24px;z-index:10;opacity:0;pointer-events:none;
+  transition:opacity 0.2s,transform 0.2s;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Stats */
+.stats{padding:16px 20px;display:flex;gap:11px}
+.statsLeft{
+  width:108px;flex-shrink:0;background:#1c1c1c;border-radius:12px;padding:13px 14px;
+  display:flex;flex-direction:column;
+}
+.statsLeftLabel{font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.statsLeftNum{font-size:30px;font-weight:700;color:#fff;line-height:1;letter-spacing:-0.5px}
+.statsLeftSub{font-size:9px;color:#666;margin-top:6px}
+.statsRight{flex:1;background:#1c1c1c;border-radius:12px;padding:13px 15px}
+.statsRightLabel{font-size:9px;color:#666;margin-bottom:9px;text-transform:uppercase;letter-spacing:0.5px}
+.barRow{margin-bottom:10px}
+.barRow:last-child{margin-bottom:0}
+.barHeader{display:flex;justify-content:space-between;margin-bottom:4px}
+.barCategory{font-size:12px;color:#fff}
+.barValue{font-size:11px;color:#fff;font-weight:600}
+.pbar{
+  height:2px;
+  background-repeat:no-repeat;
+  background-size:0% 100%, 100% 100%;
+  transition:background-size 1500ms cubic-bezier(.2,.7,.2,1);
+}
+
+/* Actions */
+.actions{padding:0 20px 16px;display:flex;gap:10px}
+.actionBtn{
+  flex:1;border-radius:12px;padding:14px;text-align:center;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  cursor:pointer;transition:filter 0.15s,transform 0.05s;
+}
+.actionBtn:hover{filter:brightness(1.08)}
+.actionBtn:active{transform:scale(0.98)}
+.actionBtn.primary{background:#e91e8c;color:#fff;font-weight:600;font-size:13px}
+.actionBtn.secondary{background:#1c1c1c;color:#e91e8c;font-weight:600;font-size:13px}
+
+/* Nav cards */
+.navCards{padding:0 20px 18px}
+.navCard{
+  background:#1c1c1c;border-radius:12px;margin-bottom:9px;padding:14px;
+  display:flex;justify-content:space-between;align-items:center;
+  cursor:pointer;transition:background 0.15s;
+}
+.navCard:last-child{margin-bottom:0}
+.navCard:hover{background:#222}
+.navCardLeft{display:flex;align-items:center;gap:10px}
+.navLabel{font-size:14px;font-weight:600;color:#fff}
+.navAlertWrap{display:flex;align-items:baseline;gap:6px}
+.navDot{width:3px;height:3px;border-radius:50%;background:#555;display:inline-block;align-self:center;transform:translateY(1px)}
+.navAlert{font-size:11px;color:#e91e8c}
+.navChevron{color:#555}
+
+/* Demo toggle — sits outside the phone frame, for preview only */
+.demoToggle{
+  margin-top:16px;display:flex;gap:8px;align-items:center;
+  font-size:11px;color:#666;font-family:system-ui,-apple-system,sans-serif;
+}
+.demoToggle button{
+  padding:6px 14px;border-radius:8px;border:1px solid #333;
+  background:#1c1c1c;color:#888;font-size:11px;cursor:pointer;
+  font-family:inherit;transition:all 0.15s;
+}
+.demoToggle button.active{background:#e91e8c;border-color:#e91e8c;color:#fff}
+</style></head><body>
+
+<div class="frame">
+
+<div class="toast" id="toast">Link copied</div>
+
+<!-- Cover -->
+<div class="cover">
+<div class="coverFade"></div>
+<div class="coverBottom">
+<div>
+<div class="hello" id="greeting">Sara, you're live! 🎉</div>
+<div class="url" onclick="openPublicPage()">welovedecode.com/sarajohnson</div>
+</div>
+<div class="coverActions">
+<div class="iconBtn" id="copyBtn" onclick="copyLink()" title="Copy link" style="position:relative">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="copyIcon"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+</div>
+<div class="iconBtn" onclick="openPublicPage()" title="View public page">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Stats -->
+<div class="stats">
+<div class="statsLeft">
+<div class="statsLeftLabel">Total views</div>
+<div class="statsLeftNum">247</div>
+<div class="statsLeftSub">+12 this week</div>
+</div>
+<div class="statsRight">
+<div class="statsRightLabel">Top clicks</div>
+<div class="barRow">
+<div class="barHeader"><span class="barCategory">Hair</span><span class="barValue">45</span></div>
+<div class="pbar" data-target="100" style="background-image:linear-gradient(#e91e8c,#e91e8c),linear-gradient(#3a3a3a,#3a3a3a)"></div>
+</div>
+<div class="barRow">
+<div class="barHeader"><span class="barCategory">Nose</span><span class="barValue">32</span></div>
+<div class="pbar" data-target="71" style="background-image:linear-gradient(#e91e8c,#e91e8c),linear-gradient(#3a3a3a,#3a3a3a)"></div>
+</div>
+<div class="barRow">
+<div class="barHeader"><span class="barCategory">Nails</span><span class="barValue">18</span></div>
+<div class="pbar" data-target="40" style="background-image:linear-gradient(#e91e8c,#e91e8c),linear-gradient(#3a3a3a,#3a3a3a)"></div>
+</div>
+</div>
+</div>
+
+<!-- Actions -->
+<div class="actions">
+<div class="actionBtn primary" onclick="navigate('add-listing')">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+Add Listing
+</div>
+<div class="actionBtn secondary" onclick="navigate('add-wish')">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+Add Wish
+</div>
+</div>
+
+<!-- Nav cards -->
+<div class="navCards">
+
+<div class="navCard" onclick="navigate('listings')">
+<div class="navCardLeft">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+<div class="navAlertWrap">
+<span class="navLabel">Listings</span>
+<span class="navDot"></span>
+<span class="navAlert">1 expiring soon</span>
+</div>
+</div>
+<svg class="navChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+</div>
+
+<div class="navCard" onclick="navigate('wishlist')">
+<div class="navCardLeft">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+<span class="navLabel">Wishlist</span>
+</div>
+<svg class="navChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+</div>
+
+<div class="navCard" onclick="navigate('analytics')">
+<div class="navCardLeft">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+<span class="navLabel">Analytics</span>
+</div>
+<svg class="navChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+</div>
+
+<div class="navCard" onclick="navigate('settings')">
+<div class="navCardLeft">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+<span class="navLabel">Settings</span>
+</div>
+<svg class="navChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+</div>
+
+</div>
+
+</div>
+
+<!-- Demo toggle — outside phone frame, for mockup preview only -->
+<div class="demoToggle">
+<span>Preview greeting:</span>
+<button id="btnFirst" class="active" onclick="setGreeting('first')">First visit</button>
+<button id="btnReturn" onclick="setGreeting('return')">Returning</button>
+</div>
+
+<script>
+// === GREETING LOGIC ===
+// Production: server passes `is_first_visit` flag
+// Based on: users.first_dashboard_seen_at IS NULL
+// First visit:  "Sara, you're live! 🎉"
+// After server sets first_dashboard_seen_at = now(), all subsequent visits: "Hello Sara"
+function setGreeting(type){
+  var g=document.getElementById('greeting');
+  var b1=document.getElementById('btnFirst');
+  var b2=document.getElementById('btnReturn');
+  if(type==='first'){
+    g.textContent="Sara, you\u2019re live! \uD83C\uDF89";
+    b1.classList.add('active');
+    b2.classList.remove('active');
+  }else{
+    g.textContent='Hello Sara';
+    b2.classList.add('active');
+    b1.classList.remove('active');
+  }
+}
+
+// === ANIMATED BARS ===
+// Same technique as listings page: two-layer background-image
+// Layer 1: solid pink fill (width animates via background-size from 0% to target%)
+// Layer 2: solid grey track (stays at 100%)
+// Transition: 1500ms cubic-bezier(.2,.7,.2,1) — smooth deceleration
+document.addEventListener('DOMContentLoaded',function(){
+  requestAnimationFrame(function(){
+    var bars=document.querySelectorAll('.pbar');
+    bars.forEach(function(bar){
+      bar.style.backgroundSize=bar.dataset.target+'% 100%, 100% 100%';
+    });
+  });
+});
+
+// === TOAST ===
+function showToast(msg,success){
+  var t=document.getElementById('toast');
+  t.textContent=msg;
+  if(success){
+    t.style.color='#4ade80';
+    t.style.borderColor='#4ade80';
+  }else{
+    t.style.color='#fff';
+    t.style.borderColor='#333';
+  }
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},1800);
+}
+
+// === COPY LINK ===
+
+function showCopiedLabel(){
+  var btn=document.getElementById('copyBtn');
+  var existing=btn.querySelector('.copiedLabel');
+  if(existing)existing.remove();
+  var label=document.createElement('div');
+  label.className='copiedLabel';
+  label.textContent='Copied!';
+  btn.appendChild(label);
+  requestAnimationFrame(function(){label.classList.add('show');});
+  setTimeout(function(){
+    label.classList.remove('show');
+    setTimeout(function(){if(label.parentNode)label.remove();},250);
+  },1500);
+}
+
+function copyLink(){
+  var btn=document.getElementById('copyBtn');
+  var icon=document.getElementById('copyIcon');
+  var url='welovedecode.com/sarajohnson';
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText('https://'+url).catch(function(){});
+  }
+  btn.classList.add('copied');
+  icon.innerHTML='<polyline points="20 6 9 17 4 12"/>';
+  icon.setAttribute('stroke','#4ade80');
+  icon.setAttribute('stroke-width','2.5');
+  showCopiedLabel();
+  setTimeout(function(){
+    btn.classList.remove('copied');
+    icon.innerHTML='<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>';
+    icon.setAttribute('stroke','#fff');
+    icon.setAttribute('stroke-width','2');
+  },1500);
+}
+
+function openPublicPage(){
+  showToast('Open public page');
+}
+
+function navigate(dest){
+  showToast('Navigate: '+dest);
+}
+</script>
+</body></html>

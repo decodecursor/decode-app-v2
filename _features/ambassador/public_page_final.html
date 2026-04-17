@@ -1,0 +1,268 @@
+<div style="display:flex;justify-content:center;padding:1.5rem 0;background:var(--color-background-secondary);border-radius:var(--border-radius-lg)">
+<div style="width:375px;background:#000;border-radius:24px;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#fff;border:2px solid #1a1a1a;overflow-x:hidden">
+
+<!-- ==================================================== -->
+<!-- COVER                                                 -->
+<!-- ==================================================== -->
+<div style="position:relative;height:300px;background:#222">
+<div style="position:absolute;top:12px;left:0;right:0;padding:0 20px;display:flex;justify-content:flex-end;align-items:center;z-index:2">
+<div onclick="sharePage()" style="position:relative;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.35);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;cursor:pointer">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+<div id="shareConfirm" style="position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);font-size:11px;font-weight:600;color:#4ade80;opacity:0;transition:opacity 0.2s;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,0.6);white-space:nowrap">Copied!</div>
+</div>
+</div>
+<div style="width:100%;height:100%;background:linear-gradient(180deg, #777 0%, #333 40%, #222 70%, #000 100%);display:flex;align-items:center;justify-content:center">
+<span style="font-size:15px;color:#777;letter-spacing:2px">COVER PHOTO</span>
+</div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:120px;background:linear-gradient(transparent, #000)"></div>
+<div style="position:absolute;bottom:24px;left:0;right:0;text-align:center;z-index:2">
+<div style="font-size:30px;font-weight:700;color:#fff;margin-bottom:6px;letter-spacing:-0.3px">Sara Johnson</div>
+<div id="tagline" style="font-size:12px;color:#777">write your customized tag line here</div>
+</div>
+</div>
+
+<!-- ==================================================== -->
+<!-- MY BEAUTY SQUAD                                       -->
+<!-- ==================================================== -->
+<div style="padding:20px 20px 8px">
+<div style="font-size:20px;font-weight:700;margin-bottom:14px">My Beauty Squad</div>
+
+<div style="padding:14px 0;border-top:1px solid #1a1a1a;display:flex;gap:14px;align-items:center">
+<a href="https://instagram.com/salondeluxe" target="_blank" rel="noopener" onclick="trackClick('listing_instagram',{listing_slug:'salondeluxe'})" style="width:52px;height:52px;border-radius:50%;background:#333;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#777;cursor:pointer;text-decoration:none">Photo</a>
+<div style="flex:1;min-width:0">
+<div style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700;margin-bottom:3px">Hair</div>
+<div style="font-size:15px;font-weight:600;margin-bottom:2px"><a href="https://instagram.com/salondeluxe" target="_blank" rel="noopener" onclick="trackClick('listing_instagram',{listing_slug:'salondeluxe'})" style="color:#fff;text-decoration:none">Salon de Luxe</a></div>
+<div style="font-size:12px;color:#777">Dubai, UAE</div>
+</div>
+<div onclick="openMedia('salondeluxe')" style="background:#000;width:36px;height:36px;border-radius:50%;border:1.5px solid #e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;box-sizing:border-box">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="7 4 20 12 7 20 7 4"/></svg>
+</div>
+</div>
+
+<div style="padding:14px 0;border-top:1px solid #1a1a1a;display:flex;gap:14px;align-items:center">
+<a href="https://instagram.com/drgabrielpaez" target="_blank" rel="noopener" onclick="trackClick('listing_instagram',{listing_slug:'drgabrielpaez'})" style="width:52px;height:52px;border-radius:50%;background:#333;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#777;cursor:pointer;text-decoration:none">Photo</a>
+<div style="flex:1;min-width:0">
+<div style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700;margin-bottom:3px">Nose</div>
+<div style="font-size:15px;font-weight:600;margin-bottom:2px"><a href="https://instagram.com/drgabrielpaez" target="_blank" rel="noopener" onclick="trackClick('listing_instagram',{listing_slug:'drgabrielpaez'})" style="color:#fff;text-decoration:none">Dr. Gabriel Paez</a></div>
+<div style="font-size:12px;color:#777">Bogota, Colombia</div>
+</div>
+<div onclick="openMedia('drgabrielpaez')" style="background:#000;width:36px;height:36px;border-radius:50%;border:1.5px solid #e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;box-sizing:border-box">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="7 4 20 12 7 20 7 4"/></svg>
+</div>
+</div>
+
+<div style="padding:14px 0;border-top:1px solid #1a1a1a;display:flex;gap:14px;align-items:center">
+<a href="https://instagram.com/lashsalon" target="_blank" rel="noopener" onclick="trackClick('listing_instagram',{listing_slug:'lashsalon'})" style="width:52px;height:52px;border-radius:50%;background:#333;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#777;cursor:pointer;text-decoration:none">Photo</a>
+<div style="flex:1;min-width:0">
+<div style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700;margin-bottom:3px">Nails</div>
+<div style="font-size:15px;font-weight:600;margin-bottom:2px"><a href="https://instagram.com/lashsalon" target="_blank" rel="noopener" onclick="trackClick('listing_instagram',{listing_slug:'lashsalon'})" style="color:#fff;text-decoration:none">Lash Salon</a></div>
+<div style="font-size:12px;color:#777">Abu Dhabi, UAE</div>
+</div>
+<div onclick="openMedia('lashsalon')" style="background:#000;width:36px;height:36px;border-radius:50%;border:1.5px solid #e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;box-sizing:border-box">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="7 4 20 12 7 20 7 4"/></svg>
+</div>
+</div>
+
+<div style="padding:14px 0;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a;display:flex;gap:14px;align-items:center">
+<a href="https://instagram.com/smiledental" target="_blank" rel="noopener" onclick="trackClick('listing_instagram',{listing_slug:'smiledental'})" style="width:52px;height:52px;border-radius:50%;background:#333;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#777;cursor:pointer;text-decoration:none">Photo</a>
+<div style="flex:1;min-width:0">
+<div style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700;margin-bottom:3px">Veneers</div>
+<div style="font-size:15px;font-weight:600;margin-bottom:2px"><a href="https://instagram.com/smiledental" target="_blank" rel="noopener" onclick="trackClick('listing_instagram',{listing_slug:'smiledental'})" style="color:#fff;text-decoration:none">Smile Dental Studio</a></div>
+<div style="font-size:12px;color:#777">Istanbul, Turkey</div>
+</div>
+<div onclick="openMedia('smiledental')" style="background:#000;width:36px;height:36px;border-radius:50%;border:1.5px solid #e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;box-sizing:border-box">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="7 4 20 12 7 20 7 4"/></svg>
+</div>
+</div>
+</div>
+
+<!-- ==================================================== -->
+<!-- MY BEAUTY WISHLIST                                    -->
+<!-- ==================================================== -->
+<div style="padding:24px 20px 8px">
+<div style="font-size:20px;font-weight:700;margin-bottom:14px">My Beauty Wishlist</div>
+
+<div style="padding:14px 0;border-top:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center">
+<div style="flex:1;min-width:0;padding-right:14px">
+<div style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700;margin-bottom:3px">Hair</div>
+<div style="font-size:15px;font-weight:600;margin-bottom:2px"><a href="https://instagram.com/salondeluxe" target="_blank" rel="noopener" onclick="trackClick('wish_instagram',{wish_slug:'salondeluxe'})" style="color:#fff;text-decoration:none">Salon de Luxe</a></div>
+<div style="font-size:12px;color:#777">Dubai, UAE</div>
+</div>
+<div onclick="openCheckout('hair')" style="border:1.5px solid #e91e8c;border-radius:18px;padding:10px 18px;text-align:center;background:transparent;flex-shrink:0;line-height:1.2;cursor:pointer">
+<div style="font-size:15px;color:#e91e8c;font-weight:600">$300</div>
+<div style="font-size:12px;color:#fff;font-weight:600;margin-top:1px">Gift it</div>
+</div>
+</div>
+
+<div style="padding:14px 0;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center">
+<div style="flex:1;min-width:0;padding-right:14px">
+<div style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700;margin-bottom:3px">Nails</div>
+<div style="font-size:15px;font-weight:600;margin-bottom:2px"><a href="https://instagram.com/lashsalon" target="_blank" rel="noopener" onclick="trackClick('wish_instagram',{wish_slug:'lashsalon'})" style="color:#fff;text-decoration:none">Lash Salon</a></div>
+<div style="font-size:12px;color:#777">Abu Dhabi, UAE</div>
+</div>
+<div onclick="openCheckout('nails')" style="border:1.5px solid #e91e8c;border-radius:18px;padding:10px 18px;text-align:center;background:transparent;flex-shrink:0;line-height:1.2;cursor:pointer">
+<div style="font-size:15px;color:#e91e8c;font-weight:600">$80</div>
+<div style="font-size:12px;color:#fff;font-weight:600;margin-top:1px">Gift it</div>
+</div>
+</div>
+
+
+</div>
+
+<!-- ==================================================== -->
+<!-- WALL OF LOVE                                          -->
+<!-- ==================================================== -->
+<div style="padding:24px 20px 24px">
+<div style="font-size:20px;font-weight:700;margin-bottom:14px">My Wall of Love <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-left:2px"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+
+<div id="wallList"></div>
+</div>
+
+<div style="padding:8px 20px 20px;text-align:center">
+<a href="https://welovedecode.com" style="font-size:12px;color:#777;text-decoration:none">Powered by WeLoveDecode</a>
+</div>
+
+
+<script>
+/* ============================================================
+   PUBLIC PAGE — WeLoveDecode ambassador public profile
+   URL: welovedecode.com/{slug}     Access: public, no auth
+
+   CLICK TRACKING
+   ---------------------------------------------------------------------
+   Every interaction routes through trackClick() which fires a
+   POST /api/public/track-click with { slug, click_type, listing_id|wish_id|gifter_id }.
+   Server inserts into click_events. Fire-and-forget, errors ignored.
+
+   click_type enum values used on this page:
+     listing_media           — squad play button → opens lightbox
+     listing_instagram       — squad photo / name → opens IG in new tab
+     wish_checkout           — "Gift it" pill → opens checkout
+     wish_instagram          — wish name → opens IG in new tab
+     walloflove_gifter_instagram — wall of love name → opens IG (not shown
+                              on Sara's analytics yet; stored for later)
+
+   VIEW TRACKING
+   ---------------------------------------------------------------------
+   Server-side on page render:
+     1. Read cookie 'wld_visitor'
+     2. If missing → set with max-age=86400 (24h), value = UUID
+     3. Check view_events for (user_id=slug-owner, visitor_id) in last 24h
+     4. If no row → insert new view_event
+     5. Otherwise → skip (dedupe)
+   This filters out the ambassador's own views (authenticated users where
+   auth.user_id === slug-owner are never tracked).
+============================================================ */
+
+/* PRODUCTION:
+   function trackClick(type, meta){
+     fetch('/api/public/track-click', {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({ slug: PAGE_SLUG, click_type: type, ...meta }),
+       keepalive: true
+     }).catch(function(){});
+   }
+*/
+function trackClick(type, meta){
+  /* MOCKUP: just log. In production, fires fetch (see comment above). */
+  console.log('[track-click]', type, meta || {});
+}
+
+/* ============================================================
+   SQUAD — photo + name tap (listing_instagram via anchor)
+   PLAY button → openMedia() → lightbox + listing_media click
+============================================================ */
+function openMedia(listingId){
+  trackClick('listing_media', { listing_id: listingId });
+  /* PROD: open media lightbox for this listing (separate spec) */
+}
+
+/* ============================================================
+   WISHLIST — "Gift it" pill → checkout
+============================================================ */
+function openCheckout(wishId){
+  trackClick('wish_checkout', { wish_id: wishId });
+  /* PROD: window.location.href = '/gift/' + wishId; */
+}
+
+/* ============================================================
+   SHARE button (top-right) — native share → fallback to clipboard
+============================================================ */
+function sharePage(){
+  var url = 'https://welovedecode.com/sarajohnson';
+  var title = 'Sara Johnson — WeLoveDecode';
+  function flashConfirm(text){
+    var el = document.getElementById('shareConfirm');
+    el.textContent = text;
+    el.style.opacity = '1';
+    clearTimeout(el._timer);
+    el._timer = setTimeout(function(){ el.style.opacity = '0'; }, 1800);
+  }
+  if (navigator.share) {
+    navigator.share({ title: title, url: url })
+      .then(function(){ flashConfirm('Shared!'); })
+      .catch(function(){});
+  } else if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url)
+      .then(function(){ flashConfirm('Copied!'); })
+      .catch(function(){ flashConfirm('Copy failed'); });
+  } else {
+    flashConfirm('Copy failed');
+  }
+}
+
+/* ============================================================
+   WALL OF LOVE — render all gifts, no pagination
+   Gifter IG tap → walloflove_gifter_instagram click event
+============================================================ */
+var gifts = [
+  { name:'Ahmed Khalil',  ig:'ahmedkhalil', date:'12 March 2026',     cat:'Fillers', amount:500  },
+  { name:'Anonymous',     ig:null,          date:'24 February 2026',  cat:'Hair',    amount:300  },
+  { name:'Noor Hassan',   ig:'noorhassan',  date:'8 February 2026',   cat:'Nails',   amount:80   },
+  { name:'Ahmed Khalil',  ig:'ahmedkhalil', date:'15 January 2026',   cat:'Hair',    amount:300  },
+  { name:'Layla Mansour', ig:'laylam',      date:'2 January 2026',    cat:'Veneers', amount:1200 },
+  { name:'Anonymous',     ig:null,          date:'18 December 2025',  cat:'Hair',    amount:300  },
+  { name:'Yasmin Farouk', ig:'yasminf',     date:'10 December 2025',  cat:'Nose',    amount:2500 },
+  { name:'Omar Saleh',    ig:'omarsaleh',   date:'1 December 2025',   cat:'Fillers', amount:500  }
+];
+
+function formatAmount(n){
+  return '$' + n.toLocaleString('en-US');
+}
+
+function renderWall(){
+  var list = document.getElementById('wallList');
+  list.innerHTML = gifts.map(function(g, i){
+    var isLast  = (i === gifts.length - 1);
+    var border  = isLast
+      ? 'border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a'
+      : 'border-top:1px solid #1a1a1a';
+    var stroke  = g.ig ? '#e91e8c' : '#777';
+    var nameEl  = g.ig
+      ? '<a href="https://instagram.com/' + g.ig + '" target="_blank" rel="noopener" onclick="trackClick(\'walloflove_gifter_instagram\',{gifter_ig:\'' + g.ig + '\'})" style="color:#fff;text-decoration:none;font-size:15px;font-weight:600">' + g.name + '</a>'
+      : '<div style="font-size:15px;font-weight:600">' + g.name + '</div>';
+    return (
+      '<div style="padding:12px 0;' + border + ';display:flex;justify-content:space-between;align-items:center">' +
+        '<div style="display:flex;align-items:center;gap:10px">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="' + stroke + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="' + stroke + '"/></svg>' +
+          '<div>' + nameEl + '<div style="font-size:12px;color:#777">' + g.date + '</div></div>' +
+        '</div>' +
+        '<div style="text-align:right">' +
+          '<div style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700">' + g.cat + '</div>' +
+          '<div style="font-size:15px;font-weight:600;color:#fff">' + formatAmount(g.amount) + '</div>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join('');
+}
+
+/* ============================================================
+   FOOTER — "Powered by WeLoveDecode" link
+============================================================ */
+/* Anchor tag handles it natively, no JS needed */
+
+renderWall();
+</script>
+</div>
+</div>

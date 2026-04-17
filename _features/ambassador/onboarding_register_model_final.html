@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Onboarding — Final Interactive</title>
+<style>
+body{margin:0;padding:32px 16px;background:#111;font-family:system-ui,-apple-system,sans-serif;display:flex;justify-content:center}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+input,button{font-family:inherit;outline:none;border:none;background:transparent;color:#fff}
+.frame{width:375px;background:#000;border-radius:24px;overflow:hidden;color:#fff;border:2px solid #1a1a1a;position:relative}
+
+/* Tracker */
+.tracker{padding:20px 22px 0}
+.trackerRow{display:flex;align-items:center}
+.stepDone{width:20px;height:20px;border-radius:50%;background:#e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stepActive{width:20px;height:20px;border-radius:50%;border:1.5px solid #e91e8c;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-sizing:border-box}
+.stepActive > div{width:6px;height:6px;border-radius:50%;background:#e91e8c}
+.stepFuture{width:20px;height:20px;border-radius:50%;border:1.5px solid #3a3a3a;background:transparent;flex-shrink:0;box-sizing:border-box}
+.railSolid{flex:1;height:1.5px;background:#e91e8c;margin:0 2px}
+.railDashed{flex:1;height:1.5px;background-image:repeating-linear-gradient(90deg,#3a3a3a 0 3px,transparent 3px 6px);margin:0 2px}
+.labels{display:grid;grid-template-columns:20px 1fr 20px 1fr 20px;margin-top:10px}
+.labelCell{position:relative}
+.labelCell span{font-size:9px;font-weight:600;position:absolute;white-space:nowrap}
+.labelDone,.labelFuture{color:#777}
+.labelActive{color:#e91e8c;font-weight:700!important}
+.labelLeft{left:0}.labelCenter{left:50%;transform:translateX(-50%)}.labelRight{right:0}
+
+/* Hero */
+.hero{padding:24px 22px 16px;text-align:center}
+.heroTitle{font-size:22px;font-weight:700;letter-spacing:-0.2px;margin-bottom:4px}
+.heroSub{font-size:11px;color:#888}
+
+/* Form */
+.form{padding:0 20px 8px}
+
+/* Cover */
+.cover{position:relative;height:110px;border-radius:14px;overflow:hidden;margin-bottom:16px;background:linear-gradient(135deg,#2a2a2a 0%,#1a1a1a 100%);border:1.5px dashed #333;cursor:pointer;user-select:none}
+.cover.hasImage{border-style:solid;border-color:#262626;cursor:grab}
+.cover.dragging{cursor:grabbing}
+.coverImg{position:absolute;left:0;right:0;width:100%;display:none;pointer-events:none}
+.cover.hasImage .coverImg{display:block}
+.coverHint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#666;pointer-events:none}
+.cover.hasImage .coverHint{display:none}
+.coverDragHint{position:absolute;top:10px;left:10px;font-size:9px;color:#fff;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.2);padding:4px 9px;border-radius:12px;display:none;pointer-events:none;letter-spacing:0.3px;opacity:1;transition:opacity 0.3s}
+.cover.hasImage .coverDragHint{display:block}
+.coverCam{position:absolute;bottom:10px;right:10px;width:28px;height:28px;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:2}
+
+/* Inputs */
+.eyebrow{font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;padding-left:4px;display:flex;justify-content:space-between;align-items:center}
+.eyebrowErr{color:#ef4444;text-transform:none;letter-spacing:0;font-weight:600}
+.inputRow{background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:0;transition:border-color 0.15s;display:flex;align-items:center}
+.inputRow.focus{border-color:#e91e8c}
+.inputRow.error{border-color:#ef4444}
+.inputRow input{width:100%;padding:14px 16px;font-size:14px;color:#fff;background:transparent;border:none}
+.inputRow input::placeholder{color:#666}
+.nameRow{display:flex;gap:10px;margin-bottom:12px}
+.nameRow > div{flex:1;min-width:0}
+.field{margin-bottom:12px}
+
+/* URL field */
+.urlPrefix{padding:14px 0 14px 16px;font-size:13px;color:#666;white-space:nowrap;flex-shrink:0}
+.urlInput{padding:14px 10px 14px 1px!important;font-size:14px;font-weight:500;flex:1;min-width:0}
+.urlStatus{padding-right:14px;flex-shrink:0;display:flex;align-items:center}
+.spinner{width:12px;height:12px;border:1.5px solid #333;border-top-color:#888;border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* IG */
+.igIcon{margin-left:16px;flex-shrink:0}
+.igInput{padding-left:10px!important}
+
+/* Currency */
+.currRow{padding:14px 16px;display:flex;align-items:center;cursor:pointer;width:100%}
+.chev{margin-left:auto;color:#555}
+.helper{font-size:9px;color:#666;margin-top:5px;padding-left:4px}
+
+/* CTA */
+.cta{padding:8px 20px 22px}
+.ctaBtn{background:#1c1c1c;border:1px solid #262626;border-radius:12px;padding:16px;text-align:center;font-size:15px;font-weight:700;color:#555;letter-spacing:0.2px;cursor:not-allowed;transition:all 0.2s;width:100%}
+.ctaBtn.ready{background:#e91e8c;border-color:#e91e8c;color:#fff;cursor:pointer}
+.ctaBtn.ready:hover{filter:brightness(1.08)}
+.ctaBtn.working{background:#e91e8c;border-color:#e91e8c;color:#fff;cursor:default}
+.ctaBtn.success{background:#e91e8c;border-color:#e91e8c;color:#fff}
+
+/* Currency picker sheet */
+.sheet{position:absolute;inset:0;background:rgba(0,0,0,0.75);display:none;z-index:20;align-items:flex-end}
+.sheet.show{display:flex}
+.sheetInner{width:100%;background:#0a0a0a;border-top:1px solid #1a1a1a;border-radius:20px 20px 0 0;max-height:80%;overflow-y:auto}
+.sheetHead{padding:18px 22px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1a1a1a;position:sticky;top:0;background:#0a0a0a}
+.sheetTitle{font-size:15px;font-weight:700}
+.sheetClose{color:#888;cursor:pointer;font-size:20px;line-height:1}
+.currItem{padding:14px 22px;display:flex;align-items:center;gap:12px;cursor:pointer;border-bottom:1px solid #151515;font-size:14px}
+.currSection{padding:14px 22px 6px;font-size:10px;font-weight:700;color:#888;letter-spacing:1px;background:#0a0a0a}
+.currSym{color:#888;font-size:13px;font-weight:500;min-width:24px;text-align:right}
+.currSym svg{vertical-align:middle}
+#currSymInline svg{vertical-align:middle!important;margin-top:3px}
+.currItem:hover{background:#141414}
+.currItem.sel{color:#fff;font-weight:600}
+.currFlag{font-size:18px}
+.currCode{flex:1}
+.currCheck{color:#e91e8c}
+</style></head><body>
+
+<div class="frame">
+
+
+<!-- Tracker -->
+<div class="tracker">
+<div class="trackerRow">
+<div class="stepDone"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+<div class="railSolid"></div>
+<div class="stepActive" id="step2"><div></div></div>
+<div class="railDashed" id="rail2"></div>
+<div class="stepFuture" id="step3"></div>
+</div>
+<div class="labels">
+<div class="labelCell"><span class="labelDone labelLeft">Verify</span></div>
+<div></div>
+<div class="labelCell"><span class="labelActive labelCenter" id="label2">Set up</span></div>
+<div></div>
+<div class="labelCell"><span class="labelFuture labelRight" id="label3">Live</span></div>
+</div>
+</div>
+
+<div class="hero">
+<div class="heroTitle">You're almost live!</div>
+<div class="heroSub">Let's set up your page</div>
+</div>
+
+<div class="form">
+
+<!-- Cover -->
+<div class="cover" id="cover" onclick="pickCover()">
+<img class="coverImg" id="coverImg" alt="">
+<div class="coverHint">Add cover photo</div>
+<div class="coverDragHint">Drag to reposition</div>
+<div class="coverCam">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+</div>
+<input type="file" id="coverFile" accept="image/*" style="display:none" onchange="loadCover(event)">
+</div>
+
+<!-- Names -->
+<div class="nameRow">
+<div>
+<div class="eyebrow">First name</div>
+<div class="inputRow" id="firstWrap"><input id="first" placeholder="Sara" autocomplete="off"></div>
+</div>
+<div>
+<div class="eyebrow">Last name</div>
+<div class="inputRow" id="lastWrap"><input id="last" placeholder="Johnson" autocomplete="off"></div>
+</div>
+</div>
+
+<!-- Page URL -->
+<div class="field">
+<div class="eyebrow"><span>Page URL</span><span class="eyebrowErr" id="urlErr"></span></div>
+<div class="inputRow" id="urlWrap" onclick="document.getElementById('url').focus()">
+<span class="urlPrefix" onclick="document.getElementById('url').focus()" style="cursor:text">welovedecode.com/</span>
+<input class="urlInput" id="url" placeholder="yourname" autocomplete="off" maxlength="30">
+<span class="urlStatus" id="urlStatus"></span>
+</div>
+</div>
+
+<!-- Instagram -->
+<div class="field">
+<div class="eyebrow">Instagram</div>
+<div class="inputRow" id="igWrap">
+<svg class="igIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+<input class="igInput" id="ig" placeholder="your username" autocomplete="off">
+</div>
+</div>
+
+<!-- Currency -->
+<div class="field" style="margin-bottom:6px">
+<div class="eyebrow">Currency</div>
+<div class="inputRow">
+<div class="currRow" onclick="openCurrency()">
+<span class="currFlag" id="currFlag" style="margin-right:10px">🇦🇪</span>
+<span style="font-weight:500" id="currCode">AED</span>
+<span id="currSymInline" style="margin-left:6px;color:#fff;font-weight:500;display:inline-flex;align-items:center;line-height:1"></span>
+<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+</div>
+</div>
+<div class="helper">Set once — can't be changed later</div>
+</div>
+
+</div>
+
+<div class="cta">
+<button class="ctaBtn" id="goBtn" onclick="goLive()">Go live</button>
+</div>
+
+<!-- Currency picker -->
+<div class="sheet" id="sheet" onclick="if(event.target===this)closeCurrency()">
+<div class="sheetInner">
+<div style="position:sticky;top:0;background:#0a0a0a;z-index:2">
+<div class="sheetHead" style="position:static;border-bottom:none">
+<div class="sheetTitle">Choose currency</div>
+<div class="sheetClose" onclick="closeCurrency()">✕</div>
+</div>
+<div style="padding:0 22px 14px;background:#0a0a0a">
+<div class="inputRow"><input id="currSearch" placeholder="Search 135 currencies…" oninput="renderCurrList()" style="padding:12px 14px;font-size:13px"></div>
+</div>
+</div>
+<div id="currList"></div>
+</div>
+</div>
+
+</div>
+
+<script>
+// ===== State =====
+var state={cover:null,coverY:50,first:'',last:'',url:'',urlEdited:false,urlOk:false,ig:'',curr:'AED',flag:'🇦🇪'};
+var TAKEN=['admin','sara','test','welovedecode','model','login','signup','beauty'];
+
+// ===== Cover upload + drag =====
+function pickCover(){if(!state.cover)document.getElementById('coverFile').click();}
+function loadCover(e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(ev){
+    state.cover=ev.target.result;
+    var img=document.getElementById('coverImg');
+    img.src=state.cover;
+    img.onload=function(){
+      document.getElementById('cover').classList.add('hasImage');
+      positionCover();
+    };
+  };
+  r.readAsDataURL(f);
+}
+function positionCover(){
+  var img=document.getElementById('coverImg');
+  var cover=document.getElementById('cover');
+  var cw=cover.offsetWidth,ch=cover.offsetHeight;
+  var iw=img.naturalWidth,ih=img.naturalHeight;
+  var scale=cw/iw;
+  var sh=ih*scale;
+  img.style.width=cw+'px';
+  img.style.height=sh+'px';
+  var maxOffset=sh-ch;
+  if(maxOffset<0)maxOffset=0;
+  img.style.top=(-maxOffset*(state.coverY/100))+'px';
+}
+// drag
+(function(){
+  var cover=document.getElementById('cover');
+  var dragging=false,startY=0,startPct=50;
+  function down(e){
+    if(!state.cover)return;
+    dragging=true;startPct=state.coverY;showPill();
+    startY=e.touches?e.touches[0].clientY:e.clientY;
+    cover.classList.add('dragging');
+    e.preventDefault();
+  showPill();}
+  function move(e){
+    if(!dragging)return;
+    var y=e.touches?e.touches[0].clientY:e.clientY;
+    var img=document.getElementById('coverImg');
+    var sh=img.offsetHeight,ch=cover.offsetHeight;
+    var maxOffset=sh-ch;
+    if(maxOffset<=0)return;
+    var dy=y-startY;
+    var pct=startPct-(dy/maxOffset)*100;
+    if(pct<0)pct=0;if(pct>100)pct=100;
+    state.coverY=pct;
+    positionCover();
+  }
+  function up(){if(!dragging)return;dragging=false;cover.classList.remove('dragging');scheduleHidePill();}
+  var pillFadeTimer=null;
+  function showPill(){
+    var pill=cover.querySelector('.coverDragHint');
+    if(pill){pill.style.opacity='1';}
+    if(pillFadeTimer){clearTimeout(pillFadeTimer);pillFadeTimer=null;}
+  }
+  function scheduleHidePill(){
+    if(pillFadeTimer)clearTimeout(pillFadeTimer);
+    pillFadeTimer=setTimeout(function(){
+      var pill=cover.querySelector('.coverDragHint');
+      if(pill)pill.style.opacity='0';
+    },0);
+  }
+  cover.addEventListener('mousedown',down);
+  cover.addEventListener('touchstart',down,{passive:false});
+  window.addEventListener('mousemove',move);
+  window.addEventListener('touchmove',move,{passive:false});
+  window.addEventListener('mouseup',up);
+  window.addEventListener('touchend',up);
+})();
+
+// ===== Name inputs =====
+function capFirst(s){return s.replace(/[^a-zA-Z\s'-]/g,'').replace(/(^|\s)([a-z])/g,function(m,a,b){return a+b.toUpperCase();});}
+function slugify(s){return s.toLowerCase().replace(/[^a-z0-9]/g,'');}
+document.getElementById('first').addEventListener('input',function(e){
+  e.target.value=capFirst(e.target.value);
+  state.first=e.target.value;
+  if(!state.urlEdited)autoFillUrl();
+  updateCTA();
+});
+document.getElementById('last').addEventListener('input',function(e){
+  e.target.value=capFirst(e.target.value);
+  state.last=e.target.value;
+  if(!state.urlEdited)autoFillUrl();
+  updateCTA();
+});
+function autoFillUrl(){
+  var slug=slugify(state.first+state.last);
+  document.getElementById('url').value=slug;
+  state.url=slug;
+  checkUrl();
+}
+
+// ===== Focus rings =====
+['first','last','url','ig'].forEach(function(id){
+  var el=document.getElementById(id);
+  var wrap=document.getElementById(id+'Wrap');
+  el.addEventListener('focus',function(){if(!wrap.classList.contains('error'))wrap.classList.add('focus');});
+  el.addEventListener('blur',function(){wrap.classList.remove('focus');});
+});
+
+// ===== URL validation =====
+var urlTimer=null;
+document.getElementById('url').addEventListener('input',function(e){
+  var v=e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g,'');
+  e.target.value=v;
+  state.url=v;
+  state.urlEdited=true;
+  checkUrl();
+});
+function checkUrl(){
+  var statusEl=document.getElementById('urlStatus');
+  var errEl=document.getElementById('urlErr');
+  var wrap=document.getElementById('urlWrap');
+  state.urlOk=false;
+  wrap.classList.remove('error');
+  errEl.textContent='';
+  statusEl.innerHTML='';
+  if(!state.url){updateCTA();return;}
+  if(state.url.length<3){
+    wrap.classList.add('error');
+    errEl.textContent='Min 3 characters';
+    updateCTA();return;
+  }
+  // show spinner
+  statusEl.innerHTML='<div class="spinner"></div>';
+  if(urlTimer)clearTimeout(urlTimer);
+  var query=state.url;
+  urlTimer=setTimeout(function(){
+    if(state.url!==query)return;
+    // ============================================================
+    // PRODUCTION: replace TAKEN array check with real Supabase query
+    // const { data } = await supabase
+    //   .from('users')
+    //   .select('slug')
+    //   .eq('slug', query)
+    //   .maybeSingle();
+    // if (data) -> taken; else -> available
+    // ALSO: maintain a server-side RESERVED list (admin, login, api,
+    // settings, signup, dashboard, etc.) to block system routes
+    // ============================================================
+    if(TAKEN.indexOf(query)!==-1){
+      wrap.classList.add('error');
+      errEl.textContent='Not available';
+      statusEl.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    }else{
+      state.urlOk=true;
+      statusEl.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    }
+    updateCTA();
+  },450);
+}
+
+// ===== IG =====
+document.getElementById('ig').addEventListener('input',function(e){
+  var v=e.target.value.replace(/^@+/,'').replace(/[^a-zA-Z0-9._]/g,'');
+  e.target.value=v;
+  state.ig=v;
+  updateCTA();
+});
+
+// ===== Currency picker =====
+// Full list of currencies supported by Stripe (presentment currencies)
+var CURRS=[
+  {c:'AED',f:'🇦🇪',n:'UAE Dirham'},
+  {c:'AFN',f:'🇦🇫',n:'Afghan Afghani'},
+  {c:'ALL',f:'🇦🇱',n:'Albanian Lek'},
+  {c:'AMD',f:'🇦🇲',n:'Armenian Dram'},
+  {c:'ANG',f:'🇳🇱',n:'Netherlands Antillean Guilder'},
+  {c:'AOA',f:'🇦🇴',n:'Angolan Kwanza'},
+  {c:'ARS',f:'🇦🇷',n:'Argentine Peso'},
+  {c:'AUD',f:'🇦🇺',n:'Australian Dollar'},
+  {c:'AWG',f:'🇦🇼',n:'Aruban Florin'},
+  {c:'AZN',f:'🇦🇿',n:'Azerbaijani Manat'},
+  {c:'BAM',f:'🇧🇦',n:'Bosnia-Herzegovina Mark'},
+  {c:'BBD',f:'🇧🇧',n:'Barbadian Dollar'},
+  {c:'BDT',f:'🇧🇩',n:'Bangladeshi Taka'},
+  {c:'BGN',f:'🇧🇬',n:'Bulgarian Lev'},
+  {c:'BIF',f:'🇧🇮',n:'Burundian Franc'},
+  {c:'BMD',f:'🇧🇲',n:'Bermudian Dollar'},
+  {c:'BND',f:'🇧🇳',n:'Brunei Dollar'},
+  {c:'BOB',f:'🇧🇴',n:'Bolivian Boliviano'},
+  {c:'BRL',f:'🇧🇷',n:'Brazilian Real'},
+  {c:'BSD',f:'🇧🇸',n:'Bahamian Dollar'},
+  {c:'BWP',f:'🇧🇼',n:'Botswana Pula'},
+  {c:'BYN',f:'🇧🇾',n:'Belarusian Ruble'},
+  {c:'BZD',f:'🇧🇿',n:'Belize Dollar'},
+  {c:'CAD',f:'🇨🇦',n:'Canadian Dollar'},
+  {c:'CDF',f:'🇨🇩',n:'Congolese Franc'},
+  {c:'CHF',f:'🇨🇭',n:'Swiss Franc'},
+  {c:'CLP',f:'🇨🇱',n:'Chilean Peso'},
+  {c:'CNY',f:'🇨🇳',n:'Chinese Yuan'},
+  {c:'COP',f:'🇨🇴',n:'Colombian Peso'},
+  {c:'CRC',f:'🇨🇷',n:'Costa Rican Colón'},
+  {c:'CVE',f:'🇨🇻',n:'Cape Verdean Escudo'},
+  {c:'CZK',f:'🇨🇿',n:'Czech Koruna'},
+  {c:'DJF',f:'🇩🇯',n:'Djiboutian Franc'},
+  {c:'DKK',f:'🇩🇰',n:'Danish Krone'},
+  {c:'DOP',f:'🇩🇴',n:'Dominican Peso'},
+  {c:'DZD',f:'🇩🇿',n:'Algerian Dinar'},
+  {c:'EGP',f:'🇪🇬',n:'Egyptian Pound'},
+  {c:'ETB',f:'🇪🇹',n:'Ethiopian Birr'},
+  {c:'EUR',f:'🇪🇺',n:'Euro'},
+  {c:'FJD',f:'🇫🇯',n:'Fijian Dollar'},
+  {c:'FKP',f:'🇫🇰',n:'Falkland Islands Pound'},
+  {c:'GBP',f:'🇬🇧',n:'British Pound'},
+  {c:'GEL',f:'🇬🇪',n:'Georgian Lari'},
+  {c:'GIP',f:'🇬🇮',n:'Gibraltar Pound'},
+  {c:'GMD',f:'🇬🇲',n:'Gambian Dalasi'},
+  {c:'GNF',f:'🇬🇳',n:'Guinean Franc'},
+  {c:'GTQ',f:'🇬🇹',n:'Guatemalan Quetzal'},
+  {c:'GYD',f:'🇬🇾',n:'Guyanese Dollar'},
+  {c:'HKD',f:'🇭🇰',n:'Hong Kong Dollar'},
+  {c:'HNL',f:'🇭🇳',n:'Honduran Lempira'},
+  {c:'HTG',f:'🇭🇹',n:'Haitian Gourde'},
+  {c:'HUF',f:'🇭🇺',n:'Hungarian Forint'},
+  {c:'IDR',f:'🇮🇩',n:'Indonesian Rupiah'},
+  {c:'ILS',f:'🇮🇱',n:'Israeli Shekel'},
+  {c:'INR',f:'🇮🇳',n:'Indian Rupee'},
+  {c:'ISK',f:'🇮🇸',n:'Icelandic Króna'},
+  {c:'JMD',f:'🇯🇲',n:'Jamaican Dollar'},
+  {c:'JPY',f:'🇯🇵',n:'Japanese Yen'},
+  {c:'KES',f:'🇰🇪',n:'Kenyan Shilling'},
+  {c:'KGS',f:'🇰🇬',n:'Kyrgyzstani Som'},
+  {c:'KHR',f:'🇰🇭',n:'Cambodian Riel'},
+  {c:'KMF',f:'🇰🇲',n:'Comorian Franc'},
+  {c:'KRW',f:'🇰🇷',n:'South Korean Won'},
+  {c:'KYD',f:'🇰🇾',n:'Cayman Islands Dollar'},
+  {c:'KZT',f:'🇰🇿',n:'Kazakhstani Tenge'},
+  {c:'LAK',f:'🇱🇦',n:'Lao Kip'},
+  {c:'LBP',f:'🇱🇧',n:'Lebanese Pound'},
+  {c:'LKR',f:'🇱🇰',n:'Sri Lankan Rupee'},
+  {c:'LRD',f:'🇱🇷',n:'Liberian Dollar'},
+  {c:'LSL',f:'🇱🇸',n:'Lesotho Loti'},
+  {c:'MAD',f:'🇲🇦',n:'Moroccan Dirham'},
+  {c:'MDL',f:'🇲🇩',n:'Moldovan Leu'},
+  {c:'MGA',f:'🇲🇬',n:'Malagasy Ariary'},
+  {c:'MKD',f:'🇲🇰',n:'Macedonian Denar'},
+  {c:'MMK',f:'🇲🇲',n:'Myanmar Kyat'},
+  {c:'MNT',f:'🇲🇳',n:'Mongolian Tögrög'},
+  {c:'MOP',f:'🇲🇴',n:'Macanese Pataca'},
+  {c:'MUR',f:'🇲🇺',n:'Mauritian Rupee'},
+  {c:'MVR',f:'🇲🇻',n:'Maldivian Rufiyaa'},
+  {c:'MWK',f:'🇲🇼',n:'Malawian Kwacha'},
+  {c:'MXN',f:'🇲🇽',n:'Mexican Peso'},
+  {c:'MYR',f:'🇲🇾',n:'Malaysian Ringgit'},
+  {c:'MZN',f:'🇲🇿',n:'Mozambican Metical'},
+  {c:'NAD',f:'🇳🇦',n:'Namibian Dollar'},
+  {c:'NGN',f:'🇳🇬',n:'Nigerian Naira'},
+  {c:'NIO',f:'🇳🇮',n:'Nicaraguan Córdoba'},
+  {c:'NOK',f:'🇳🇴',n:'Norwegian Krone'},
+  {c:'NPR',f:'🇳🇵',n:'Nepalese Rupee'},
+  {c:'NZD',f:'🇳🇿',n:'New Zealand Dollar'},
+  {c:'PAB',f:'🇵🇦',n:'Panamanian Balboa'},
+  {c:'PEN',f:'🇵🇪',n:'Peruvian Sol'},
+  {c:'PGK',f:'🇵🇬',n:'Papua New Guinean Kina'},
+  {c:'PHP',f:'🇵🇭',n:'Philippine Peso'},
+  {c:'PKR',f:'🇵🇰',n:'Pakistani Rupee'},
+  {c:'PLN',f:'🇵🇱',n:'Polish Złoty'},
+  {c:'PYG',f:'🇵🇾',n:'Paraguayan Guaraní'},
+  {c:'QAR',f:'🇶🇦',n:'Qatari Riyal'},
+  {c:'RON',f:'🇷🇴',n:'Romanian Leu'},
+  {c:'RSD',f:'🇷🇸',n:'Serbian Dinar'},
+  {c:'RUB',f:'🇷🇺',n:'Russian Ruble'},
+  {c:'RWF',f:'🇷🇼',n:'Rwandan Franc'},
+  {c:'SAR',f:'🇸🇦',n:'Saudi Riyal'},
+  {c:'SBD',f:'🇸🇧',n:'Solomon Islands Dollar'},
+  {c:'SCR',f:'🇸🇨',n:'Seychellois Rupee'},
+  {c:'SEK',f:'🇸🇪',n:'Swedish Krona'},
+  {c:'SGD',f:'🇸🇬',n:'Singapore Dollar'},
+  {c:'SHP',f:'🇸🇭',n:'Saint Helena Pound'},
+  {c:'SLE',f:'🇸🇱',n:'Sierra Leonean Leone'},
+  {c:'SOS',f:'🇸🇴',n:'Somali Shilling'},
+  {c:'SRD',f:'🇸🇷',n:'Surinamese Dollar'},
+  {c:'STD',f:'🇸🇹',n:'São Tomé & Príncipe Dobra'},
+  {c:'SZL',f:'🇸🇿',n:'Swazi Lilangeni'},
+  {c:'THB',f:'🇹🇭',n:'Thai Baht'},
+  {c:'TJS',f:'🇹🇯',n:'Tajikistani Somoni'},
+  {c:'TOP',f:'🇹🇴',n:'Tongan Paʻanga'},
+  {c:'TRY',f:'🇹🇷',n:'Turkish Lira'},
+  {c:'TTD',f:'🇹🇹',n:'Trinidad & Tobago Dollar'},
+  {c:'TWD',f:'🇹🇼',n:'New Taiwan Dollar'},
+  {c:'TZS',f:'🇹🇿',n:'Tanzanian Shilling'},
+  {c:'UAH',f:'🇺🇦',n:'Ukrainian Hryvnia'},
+  {c:'UGX',f:'🇺🇬',n:'Ugandan Shilling'},
+  {c:'USD',f:'🇺🇸',n:'US Dollar'},
+  {c:'UYU',f:'🇺🇾',n:'Uruguayan Peso'},
+  {c:'UZS',f:'🇺🇿',n:'Uzbekistani So\'m'},
+  {c:'VND',f:'🇻🇳',n:'Vietnamese Đồng'},
+  {c:'VUV',f:'🇻🇺',n:'Vanuatu Vatu'},
+  {c:'WST',f:'🇼🇸',n:'Samoan Tālā'},
+  {c:'XAF',f:'🌍',n:'Central African CFA Franc'},
+  {c:'XCD',f:'🏝️',n:'East Caribbean Dollar'},
+  {c:'XOF',f:'🌍',n:'West African CFA Franc'},
+  {c:'XPF',f:'🇵🇫',n:'CFP Franc'},
+  {c:'YER',f:'🇾🇪',n:'Yemeni Rial'},
+  {c:'ZAR',f:'🇿🇦',n:'South African Rand'},
+  {c:'ZMW',f:'🇿🇲',n:'Zambian Kwacha'}
+];
+// Official UAE Dirham symbol — inline SVG (renders correctly until Unicode 18.0 / U+20C3 ships in fonts)
+var AED_SVG='<svg width="13" height="11" viewBox="0 0 344.84 299.91" fill="currentColor" style="display:inline-block;vertical-align:-2px"><path d="M342.14,140.96l2.7,2.54v-7.72c0-17-11.92-30.84-26.56-30.84h-23.41C278.49,36.7,222.69,0,139.68,0c-52.86,0-59.65,0-109.71,0,0,0,15.03,12.63,15.03,52.4v52.58h-27.68c-5.38,0-10.43-2.08-14.61-6.01l-2.7-2.54v7.72c0,17.01,11.92,30.84,26.56,30.84h18.44s0,29.99,0,29.99h-27.68c-5.38,0-10.43-2.07-14.61-6.01l-2.7-2.54v7.71c0,17,11.92,30.82,26.56,30.82h18.44s0,54.89,0,54.89c0,38.65-15.03,50.06-15.03,50.06h109.71c85.62,0,139.64-36.96,155.38-104.98h32.46c5.38,0,10.43,2.07,14.61,6l2.7,2.54v-7.71c0-17-11.92-30.83-26.56-30.83h-18.9c.32-4.88.49-9.87.49-15s-.18-10.11-.51-14.99h28.17c5.37,0,10.43,2.07,14.61,6.01ZM89.96,15.01h45.86c61.7,0,97.44,27.33,108.1,89.94l-153.96.02V15.01ZM136.21,284.93h-46.26v-89.98l153.87-.02c-9.97,56.66-42.07,88.38-107.61,90ZM247.34,149.96c0,5.13-.11,10.13-.34,14.99l-157.04.02v-29.99l157.05-.02c.22,4.84.33,9.83.33,15Z" fill="currentColor"/></svg>';
+var SYMBOLS={USD:'$',EUR:'€',GBP:'£',AED:'__AED__'};
+var POPULAR=['USD','EUR','AED'];
+
+function symFor(code){var v=SYMBOLS[code];if(!v)return '';if(v==='__AED__')return AED_SVG;return v;}
+
+function rowHtml(c){
+  var sel=c.c===state.curr?'sel':'';
+  var check=c.c===state.curr?'<svg class="currCheck" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':'';
+  var sym=symFor(c.c);
+  var symEnd=sym?' · <span style="color:#fff;font-weight:500">'+sym+'</span>':'';
+  return '<div class="currItem '+sel+'" onclick="pickCurr(\''+c.c+'\',\''+c.f+'\')"><span class="currFlag">'+c.f+'</span><span class="currCode">'+c.c+' · '+c.n+symEnd+'</span>'+check+'</div>';
+}
+
+function renderCurrList(){
+  var list=document.getElementById('currList');
+  var q='';
+  var s=document.getElementById('currSearch');
+  if(s)q=s.value.toLowerCase().trim();
+
+  if(!q){
+    // Empty search: POPULAR section + A-Z sections
+    var html='<div class="currSection">POPULAR</div>';
+    POPULAR.forEach(function(code){
+      var c=CURRS.find(function(x){return x.c===code;});
+      if(c)html+=rowHtml(c);
+    });
+    var sorted=CURRS.slice().sort(function(a,b){return a.c.localeCompare(b.c);});
+    var lastLetter='';
+    sorted.forEach(function(c){
+      var letter=c.c.charAt(0);
+      if(letter!==lastLetter){
+        html+='<div class="currSection">'+letter+'</div>';
+        lastLetter=letter;
+      }
+      html+=rowHtml(c);
+    });
+    list.innerHTML=html;
+    return;
+  }
+
+  // Search active: filtered list, no sections
+  var filtered=CURRS.filter(function(c){
+    return c.c.toLowerCase().indexOf(q)!==-1||c.n.toLowerCase().indexOf(q)!==-1;
+  });
+  if(filtered.length===0){
+    list.innerHTML='<div style="padding:28px 22px;text-align:center;color:#666;font-size:12px">No match</div>';
+    return;
+  }
+  list.innerHTML=filtered.map(rowHtml).join('');
+}
+function openCurrency(){
+  var s=document.getElementById('currSearch');
+  if(s)s.value='';
+  renderCurrList();
+  document.getElementById('sheet').classList.add('show');
+}
+function closeCurrency(){document.getElementById('sheet').classList.remove('show');}
+function pickCurr(c,f){
+  state.curr=c;state.flag=f;
+  document.getElementById('currCode').textContent=c;
+  document.getElementById('currFlag').textContent=f;
+  var sym=symFor(c);
+  document.getElementById('currSymInline').innerHTML=sym?'<span style="margin-right:6px">·</span>'+sym:'';
+  closeCurrency();
+}
+
+// ===== CTA state =====
+function updateCTA(){
+  var btn=document.getElementById('goBtn');
+  if(btn.classList.contains('working')||btn.classList.contains('success'))return;
+  var ok=state.first.trim()&&state.last.trim()&&state.urlOk&&state.ig.trim();
+  if(ok)btn.classList.add('ready');else btn.classList.remove('ready');
+}
+
+// ===== Go live =====
+function goLive(){
+  var btn=document.getElementById('goBtn');
+  if(!btn.classList.contains('ready'))return;
+  btn.textContent='Going live…';
+  btn.classList.remove('ready');
+  btn.classList.add('working');
+  setTimeout(function(){
+    var step2=document.getElementById('step2');
+    step2.className='stepDone';
+    step2.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    document.getElementById('rail2').className='railSolid';
+    var step3=document.getElementById('step3');
+    step3.className='stepActive';
+    step3.innerHTML='<div></div>';
+    document.getElementById('label2').className='labelDone labelCenter';
+    document.getElementById('label3').className='labelActive labelRight';
+    btn.textContent="You're live!";
+    btn.classList.remove('working');
+    btn.classList.add('success');
+    // 450ms completion dwell so user sees the success state, then redirect
+    setTimeout(function(){
+      // ============================================================
+      // PRODUCTION: redirect to dashboard with first-visit greeting
+      // 1. POST user data (name, slug, instagram, currency, cover) to Supabase
+      // 2. Set users.first_dashboard_seen_at = now() — triggers
+      //    "Sara, you're live! 🎉" greeting on first dashboard load
+      // 3. Redirect: window.location.href = '/dashboard/ambassador'
+      //    (URL TBD — to be specified)
+      // ============================================================
+      console.log('Redirect to dashboard (URL TBD)');
+    },450);
+  },900);
+}
+
+window.addEventListener('resize',function(){if(state.cover)positionCover();});
+
+// Init currency symbol display for default selection
+(function(){var sym=symFor(state.curr);if(sym)document.getElementById('currSymInline').innerHTML='<span style="margin-right:6px">·</span>'+sym;})();
+</script>
+</body></html>

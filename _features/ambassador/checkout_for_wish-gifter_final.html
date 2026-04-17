@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html><head><title>Wish Gifter Checkout — Final</title>
+<style>
+body{margin:0;padding:24px;background:#111;display:flex;justify-content:center;font-family:system-ui,-apple-system,sans-serif}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+
+#wpPage{width:375px;background:#000;border-radius:24px;overflow:hidden;color:#fff;border:2px solid #1a1a1a;position:relative;height:812px}
+#wpPage input,#wpPage button{font-family:inherit;outline:none;border:none;background:transparent;color:#fff}
+#wpPage input::placeholder{color:#666 !important;opacity:1}
+#wpPage input[type="text"]:focus{border-color:#e91e8c !important;transition:border-color 0.15s}
+
+.checkoutPage{height:100%;overflow-y:auto;transition:filter 0.25s}
+.checkoutPage.dimmed{filter:brightness(0.4);pointer-events:none}
+
+#wp_payBtn{transition:filter 0.15s,transform 0.05s,background 0.2s,border-color 0.2s,color 0.2s}
+#wp_payBtn.ready:hover{filter:brightness(1.08)}
+#wp_payBtn.ready:active{transform:scale(0.99)}
+
+#wp_fieldsWrap{
+  overflow:hidden;
+  transition:max-height 0.3s ease, opacity 0.25s ease, margin-bottom 0.3s ease;
+  max-height:500px; opacity:1;
+}
+#wp_anonRow{transition:border-color 0.25s}
+
+/* URL OVERLAY */
+.overlay{
+  position:absolute;inset:0;background:#000;z-index:100;
+  transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.25,1,0.5,1);
+  display:flex;flex-direction:column;border-radius:22px;overflow:hidden;
+}
+.overlay.open{transform:translateY(0)}
+.overlayTopBar{
+  background:#000;padding:14px 16px 12px;display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid #1a1a1a;flex-shrink:0;
+}
+.overlayClose{
+  width:30px;height:30px;background:#1c1c1c;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+  transition:background 0.15s;
+}
+.overlayClose:hover{background:#262626}
+.overlayUrl{
+  flex:1;min-width:0;font-size:12px;color:#888;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.overlayUrl .lock{display:inline-block;vertical-align:-1px;margin-right:4px}
+.overlayUrl .domain{color:#fff}
+.overlayContent{flex:1;overflow-y:auto;background:#000;-webkit-overflow-scrolling:touch}
+
+/* Placeholder public page */
+.publicPage{color:#fff;min-height:100%}
+.pp-cover{height:170px;background:linear-gradient(135deg,#e91e8c,#ff6b9d);position:relative}
+.pp-cover-fade{position:absolute;bottom:0;left:0;right:0;height:100px;background:linear-gradient(transparent,#000)}
+.pp-header{text-align:center;padding:0 20px 20px;margin-top:-54px;position:relative;z-index:1}
+.pp-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#e91e8c,#ff6b9d);border:3px solid #000;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff}
+.pp-name{font-size:22px;font-weight:700;margin-bottom:4px}
+.pp-handle{font-size:12px;color:#888;margin-bottom:10px}
+.pp-tagline{font-size:14px;color:#ccc;line-height:1.5;max-width:280px;margin:0 auto 12px}
+.pp-stats{display:flex;justify-content:center;gap:20px;font-size:11px;color:#888;margin-bottom:14px}
+.pp-stats strong{color:#fff;font-size:14px;display:block;margin-bottom:2px;font-weight:700}
+.pp-section{padding:18px 20px 8px}
+.pp-section-title{font-size:16px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.pp-listing{background:#1c1c1c;border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pp-listing-left{flex:1;min-width:0}
+.pp-listing-cat{font-size:10px;color:#e91e8c;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px}
+.pp-listing-name{font-size:14px;font-weight:600;margin-bottom:2px}
+.pp-listing-loc{font-size:11px;color:#888}
+.pp-listing-btn{background:transparent;border:1.5px solid #e91e8c;color:#e91e8c;border-radius:20px;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0}
+
+/* PAYMENT MODAL */
+.modalOverlay{
+  position:absolute;inset:0;background:rgba(0,0,0,0.78);z-index:200;
+  display:none;animation:fadeIn 0.2s ease-out;border-radius:22px;overflow:hidden;
+}
+.modalOverlay.show{display:block}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modalSheet{
+  position:absolute;left:0;right:0;bottom:0;background:#1c1c1c;
+  border-radius:20px 20px 0 0;color:#fff;z-index:210;display:none;max-height:90%;overflow-y:auto;
+}
+.modalSheet.show{display:block;animation:slideUp 0.3s ease-out}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.handle{width:40px;height:4px;background:#444;border-radius:2px;margin:12px auto 0;cursor:pointer}
+.applebtn{
+  background:#000;color:#fff;border:1px solid #333;border-radius:10px;padding:0;height:52px;
+  display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;
+  font-size:16px;font-weight:500;width:100%;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;letter-spacing:-0.2px;
+  transition:background 0.15s;
+}
+.applebtn:hover{background:#1a1a1a}
+.applebtn:active{transform:scale(0.99)}
+.apple-logo{width:18px;height:22px;display:inline-block;position:relative;top:-1px}
+.apple-pay-text{font-weight:500;font-size:17px;letter-spacing:-0.3px}
+.cardbtn{
+  background:transparent;border:1.5px solid #2a2a2a;border-radius:10px;padding:0;height:52px;
+  display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;
+  font-size:14px;font-weight:600;color:#fff;width:100%;transition:border-color 0.15s;
+}
+.cardbtn:hover{border-color:#444}
+.cardbtn:active{transform:scale(0.99)}
+.chip{
+  background:#111;border:1px solid #262626;border-radius:14px;padding:5px 10px;
+  font-size:10px;color:#aaa;font-weight:500;display:flex;align-items:center;gap:4px;
+}
+.cancel{text-align:center;font-size:13px;color:#888;cursor:pointer;padding:18px 0 4px;transition:color 0.15s}
+.cancel:hover{color:#fff}
+.card-form{padding-top:6px}
+.card-input{
+  background:#111;border:1px solid #2a2a2a;border-radius:10px;
+  padding:13px 14px;font-size:14px;color:#fff;width:100%;
+  font-family:inherit;outline:none;transition:border-color 0.15s;
+}
+.card-input:focus{border-color:#e91e8c}
+.card-input::placeholder{color:#555}
+.card-row{display:flex;gap:8px;margin-bottom:10px}
+.card-row .card-input{flex:1;min-width:0}
+.payNowBtn{
+  background:#e91e8c;border-radius:12px;padding:16px;text-align:center;
+  font-size:15px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:0.2px;
+  margin-top:14px;transition:filter 0.15s,opacity 0.15s;
+}
+.payNowBtn:hover{filter:brightness(1.08)}
+.payNowBtn.disabled{opacity:0.4;cursor:not-allowed;pointer-events:none}
+.stripeNote{
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  font-size:10px;color:#444;margin-top:14px;
+}
+.errorBanner{
+  background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);
+  border-radius:10px;padding:11px 14px;margin-bottom:14px;
+  font-size:12px;color:#ef4444;text-align:center;display:none;
+}
+.errorBanner.show{display:block;animation:fadeIn 0.2s}
+
+.toast{
+  position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
+  background:rgba(28,28,28,0.95);border:1px solid #4ade80;color:#4ade80;
+  padding:10px 18px;border-radius:24px;font-size:12px;z-index:300;
+  opacity:0;pointer-events:none;transition:opacity 0.2s;white-space:nowrap;
+}
+.toast.show{opacity:1}
+
+</style></head><body>
+
+<div id="wpPage">
+
+<div class="checkoutPage" id="checkoutPage">
+
+<!-- In-app WebView banner (Instagram/WhatsApp/Facebook). Hidden by default. Tap = copy URL. -->
+<div id="wvBanner" onclick="wpCopyUrl()" style="display:none;background:#1c1c1c;border-bottom:1px solid #262626;padding:10px 16px;align-items:center;gap:10px;font-size:12px;color:#aaa;cursor:pointer">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+<div style="flex:1">For Apple Pay, <strong style="color:#fff;font-weight:600">open in Safari</strong></div>
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+</div>
+
+<!-- Hero cover -->
+<div style="position:relative;height:180px;margin-top:14px">
+<div id="wp_cover" style="width:100%;height:100%;background:linear-gradient(135deg,#2a2a2a,#1a1a1a)"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:120px;background:linear-gradient(transparent,#000);pointer-events:none"></div>
+</div>
+
+<div style="padding:0 20px 16px;text-align:center;margin-top:-62px;position:relative;z-index:1">
+<div id="wp_name" style="font-size:24px;font-weight:700;letter-spacing:-0.3px;margin-bottom:3px">Sara Johnson</div>
+<a id="wp_url" onclick="openOverlay(event)" style="font-size:11px;color:#555;text-decoration:underline;text-decoration-color:rgba(85,85,85,0.4);text-underline-offset:2px;display:inline-block;cursor:pointer">welovedecode.com/sarajohnson</a>
+<div id="wp_tagline" style="font-size:15px;font-weight:600;color:#fff;margin-top:10px">Make Sara's beauty wish come true</div>
+</div>
+
+<div style="height:1px;background:#1a1a1a;margin:0 20px"></div>
+
+<!-- Beauty wish -->
+<div style="padding:16px 20px 4px">
+<div style="font-size:11px;color:#666;margin-bottom:10px;padding-left:4px">Beauty wish</div>
+<div style="background:#1c1c1c;border-radius:12px;padding:13px 15px;margin-bottom:6px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:12px;color:#888">Service</span><span id="wp_service" style="font-size:14px;font-weight:500">Hair</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:12px;color:#888">At</span><span id="wp_professional" style="font-size:14px;font-weight:500">Salon de Luxe</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:#888">Amount</span><span id="wp_amount" style="font-size:14px;font-weight:500">AED 300</span></div>
+</div>
+</div>
+
+<!-- Your details -->
+<div style="padding:12px 20px 4px">
+<div style="font-size:11px;color:#666;margin-bottom:10px;padding-left:4px">Your details <span style="color:#555">(optional)</span></div>
+<div id="wp_fieldsWrap">
+<input id="wp_name_input" type="text" placeholder="Your name" aria-label="Your name" oninput="wpCapFirst(this);wpValidate()" style="width:100%;background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:14px 16px;font-size:14px;color:#fff;transition:border-color 0.15s;margin-bottom:10px">
+<input id="wp_ig_input" type="text" placeholder="Instagram username" aria-label="Instagram username" oninput="wpSanitizeIG(this)" style="width:100%;background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:14px 16px;font-size:14px;color:#fff;transition:border-color 0.15s;margin-bottom:10px">
+</div>
+<div id="wp_anonRow" style="background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center">
+<div style="flex:1;min-width:0;padding-right:14px">
+<div id="wp_anonLabel" style="font-size:13px;font-weight:500">Gift anonymously</div>
+<div id="wp_anonSub" style="font-size:11px;color:#666;margin-top:2px">Your name and Instagram won't be shown</div>
+</div>
+<div id="wp_anonToggle" onclick="wpToggleAnon()" style="width:40px;height:22px;background:#262626;border-radius:12px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0">
+<div id="wp_anonKnob" style="width:18px;height:18px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s"></div>
+</div>
+</div>
+</div>
+
+<!-- Pay CTA -->
+<div style="padding:16px 20px 22px">
+<div id="wp_payNote" style="text-align:center;font-size:11px;color:#666;margin-bottom:11px">One-time payment &middot; Your name forever on Sara's page</div>
+<button id="wp_payBtn" onclick="wpPay()" style="width:100%;background:#1c1c1c;border:1px solid #262626;border-radius:12px;padding:16px;text-align:center;font-size:15px;font-weight:700;color:#555;letter-spacing:0.2px;cursor:default">Pay AED 300</button>
+</div>
+
+</div><!-- /checkoutPage -->
+
+<!-- URL OVERLAY -->
+<div class="overlay" id="urlOverlay">
+<div class="overlayTopBar">
+<div class="overlayClose" onclick="closeOverlay()">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</div>
+<div class="overlayUrl">
+<svg class="lock" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+welovedecode.com<span class="domain" id="ol_slug">/sarajohnson</span>
+</div>
+</div>
+<div class="overlayContent">
+<div class="publicPage">
+<div class="pp-cover"><div class="pp-cover-fade"></div></div>
+<div class="pp-header">
+<div class="pp-avatar" id="ol_avatar">SJ</div>
+<div class="pp-name" id="ol_name">Sara Johnson</div>
+<div class="pp-handle">@sarajohnson · Dubai, UAE</div>
+<div class="pp-tagline">Beauty lover from Dubai ✨ Sharing my favorite salons, products, and the people who make you feel beautiful.</div>
+<div class="pp-stats">
+<div><strong>1.2k</strong>Followers</div>
+<div><strong>6</strong>Listings</div>
+<div><strong>48</strong>Gifts</div>
+</div>
+</div>
+<div class="pp-section">
+<div class="pp-section-title">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+My Beauty Wishlist
+</div>
+<div class="pp-listing">
+<div class="pp-listing-left"><div class="pp-listing-cat">Hair</div><div class="pp-listing-name">Salon de Luxe</div><div class="pp-listing-loc">Dubai, UAE</div></div>
+<button class="pp-listing-btn">AED 300 · Gift it</button>
+</div>
+<div class="pp-listing">
+<div class="pp-listing-left"><div class="pp-listing-cat">Nails</div><div class="pp-listing-name">Lash Salon</div><div class="pp-listing-loc">Abu Dhabi, UAE</div></div>
+<button class="pp-listing-btn">AED 80 · Gift it</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="modalOverlay" id="modalOverlay" onclick="closeModal()"></div>
+
+<div class="modalSheet" id="modalSheet">
+<div class="handle" onclick="closeModal()"></div>
+
+<div id="modalDefault">
+<div style="padding:24px 20px 24px">
+<div style="text-align:center;font-size:26px;font-weight:700;color:#fff;letter-spacing:-0.5px;line-height:1;margin-bottom:14px" id="modalAmount">AED 300</div>
+<div style="display:flex;justify-content:center;gap:6px;margin-bottom:22px;flex-wrap:wrap">
+<div class="chip"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>One-time</div>
+<div class="chip"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>No subscription</div>
+<div class="chip"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>One gift</div>
+</div>
+<div class="errorBanner" id="modalError"></div>
+<div class="applebtn" style="margin-bottom:10px" onclick="payApple()">
+<svg class="apple-logo" viewBox="0 0 170 170" fill="#fff"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.197-2.12-9.973-3.17-14.34-3.17-4.58 0-9.492 1.05-14.746 3.17-5.262 2.13-9.501 3.24-12.742 3.35-4.929 0.21-9.842-1.96-14.746-6.52-3.13-2.73-7.045-7.41-11.735-14.04-5.032-7.08-9.169-15.29-12.41-24.65-3.471-10.11-5.211-19.9-5.211-29.378 0-10.857 2.346-20.221 7.045-28.068 3.693-6.303 8.606-11.275 14.755-14.925s12.793-5.51 19.948-5.629c3.915 0 9.049 1.211 15.429 3.591 6.362 2.388 10.447 3.599 12.238 3.599 1.339 0 5.877-1.416 13.57-4.239 7.275-2.618 13.415-3.702 18.445-3.275 13.63 1.1 23.87 6.473 30.68 16.153-12.19 7.386-18.22 17.731-18.1 31.002 0.11 10.337 3.86 18.939 11.23 25.769 3.34 3.17 7.07 5.62 11.22 7.36-0.9 2.61-1.85 5.11-2.86 7.51zM119.11 7.24c0 8.102-2.96 15.667-8.86 22.669-7.12 8.324-15.732 13.134-25.071 12.375a25.222 25.222 0 0 1-0.188-3.07c0-7.778 3.386-16.102 9.399-22.908 3.002-3.446 6.82-6.311 11.45-8.597 4.62-2.252 8.99-3.497 13.1-3.71 0.12 1.083 0.17 2.166 0.17 3.24z"/></svg>
+<span class="apple-pay-text">Pay</span>
+</div>
+<div class="cardbtn" onclick="showCardForm()">
+<svg width="18" height="14" viewBox="0 0 24 16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="1" y="1" width="22" height="14" rx="2"/><line x1="1" y1="6" x2="23" y2="6"/></svg>
+Pay by card
+</div>
+<div class="cancel" onclick="closeModal()">Cancel</div>
+</div>
+</div>
+
+<div id="modalCardForm" style="display:none">
+<div style="padding:24px 20px 24px">
+<div style="text-align:center;font-size:26px;font-weight:700;color:#fff;letter-spacing:-0.5px;line-height:1;margin-bottom:14px" id="modalCardAmount">AED 300</div>
+<div style="display:flex;justify-content:center;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+<div class="chip"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>One-time</div>
+<div class="chip"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>No subscription</div>
+<div class="chip"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>One gift</div>
+</div>
+<div class="errorBanner" id="cardError"></div>
+<div class="card-form">
+<input class="card-input" placeholder="Card number" inputmode="numeric" autocomplete="cc-number" oninput="checkCardForm()" id="ccNumber" style="margin-bottom:10px">
+<div class="card-row">
+<input class="card-input" placeholder="MM / YY" inputmode="numeric" autocomplete="cc-exp" oninput="checkCardForm()" id="ccExp">
+<input class="card-input" placeholder="CVC" inputmode="numeric" autocomplete="cc-csc" oninput="checkCardForm()" id="ccCvc">
+</div>
+<input class="card-input" type="email" placeholder="Email for receipt" autocomplete="email" oninput="checkCardForm()" id="ccEmail" style="margin-bottom:10px">
+<input class="card-input" placeholder="Country" autocomplete="country-name" oninput="checkCardForm()" id="ccCountry">
+</div>
+<div class="payNowBtn disabled" id="payNowBtn" onclick="payCard()">Pay <span id="payNowAmount">AED 300</span></div>
+<div class="stripeNote">
+<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+Secure payment by Stripe
+</div>
+<div class="cancel" onclick="closeModal()">Cancel</div>
+</div>
+</div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+</div>
+
+<script>
+(function(){
+  var wp = { anonymous:false, nameValue:'' };
+  function $(id){return document.getElementById(id);}
+
+  /* =====================================================================
+     WISH DATA
+     GET /api/wishes/{wish_id}
+     Response: { id, service, professional, amount, currency,
+                 ambassador: { name, first_name, slug, cover_image_url } }
+     Currency is ALWAYS the ambassador's currency (set at onboarding).
+     ===================================================================== */
+  var FALLBACK_WISH = {
+    id:'demo',
+    service:'Hair',
+    professional:'Salon de Luxe',
+    amount:300,
+    currency:'AED',
+    ambassador:{ name:'Sara Johnson', first_name:'Sara', slug:'sarajohnson', cover_image_url:null }
+  };
+
+  function renderWish(w){
+    var amb = w.ambassador || {};
+    $('wp_name').textContent = amb.name || 'Sara Johnson';
+    $('wp_url').textContent = 'welovedecode.com/' + (amb.slug || 'sarajohnson');
+    window.WLD_AMB_FIRST = amb.first_name || 'Sara';
+    $('wp_tagline').textContent = 'Make ' + window.WLD_AMB_FIRST + '\u2019s beauty wish come true';
+    $('wp_payNote').innerHTML = 'One-time payment &middot; Your name forever on ' + window.WLD_AMB_FIRST + '\u2019s page';
+    $('ol_slug').textContent = '/' + (amb.slug || 'sarajohnson');
+    $('ol_name').textContent = amb.name || 'Sara Johnson';
+    $('ol_avatar').textContent = (amb.name || 'SJ').split(' ').map(function(s){return s[0];}).join('').slice(0,2).toUpperCase();
+    if (amb.cover_image_url) {
+      $('wp_cover').style.background = 'url(' + amb.cover_image_url + ') center/cover no-repeat';
+    }
+    $('wp_service').textContent = w.service || '';
+    $('wp_professional').textContent = w.professional || '';
+    var amt = (w.currency || 'AED') + ' ' + (w.amount || 0);
+    $('wp_amount').textContent = amt;
+    $('wp_payBtn').textContent = 'Pay ' + amt;
+    $('modalAmount').textContent = amt;
+    $('modalCardAmount').textContent = amt;
+    $('payNowAmount').textContent = amt;
+  }
+
+  function loadWish(){
+    var wishId = null;
+    try { var p = new URLSearchParams(window.location.search); wishId = p.get('wish'); } catch(e) {}
+    if (typeof fetch !== 'function' || !wishId) { renderWish(FALLBACK_WISH); return; }
+    fetch('/api/wishes/' + encodeURIComponent(wishId), {headers:{'Accept':'application/json'}})
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(d){ if(!d) throw new Error('empty'); renderWish(d); })
+      .catch(function(){ renderWish(FALLBACK_WISH); });
+  }
+  loadWish();
+
+  // WebView detection — show banner if opened inside Instagram/WhatsApp/Facebook in-app browser.
+  // These WebViews often block Apple Pay. Card form always works as fallback.
+  // WebView detection. Shows the grey banner if UA matches any of the known in-app browsers.
+  // MOCKUP: also honors ?demo=webview URL param so the banner can be previewed in regular browsers.
+  (function detectWebView(){
+    var ua = navigator.userAgent || '';
+    var isWebView = /Instagram|FBAN|FBAV|FB_IAB|WhatsApp|Line\/|MicroMessenger/i.test(ua);
+    var demoOn = false;
+    try {
+      var params = new URLSearchParams(window.location.search);
+      demoOn = params.get('demo') === 'webview';
+    } catch(e) {}
+    if (isWebView || demoOn) {
+      var b = $('wvBanner');
+      if (b) b.style.display = 'flex';
+    }
+  })();
+
+  // Copy current URL to clipboard — used by WebView banner tap.
+  window.wpCopyUrl = function(){
+    var url = window.location.href;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(function(){ showWpToast('Link copied — paste in Safari'); });
+      } else {
+        // Fallback for old browsers
+        var ta = document.createElement('textarea');
+        ta.value = url; document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+        showWpToast('Link copied — paste in Safari');
+      }
+    } catch(e) {
+      showWpToast('Could not copy — tap ••• then Open in Safari');
+    }
+  };
+
+  function showWpToast(msg){
+    var t = $('toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._wpT);
+    window._wpT = setTimeout(function(){ t.classList.remove('show'); }, 2400);
+  }
+
+  /* =====================================================================
+     Input handlers
+     ===================================================================== */
+  // Instagram field: strip @ prefix + strip any instagram.com URL prefix.
+  // Matches Settings page behavior exactly (same sanitizer contract).
+  window.wpSanitizeIG = function(input){
+    var v = input.value;
+    // Strip http(s):// and www. if pasted
+    v = v.replace(/^https?:\/\//i, '').replace(/^www\./i, '');
+    // Strip instagram.com/ prefix if pasted
+    v = v.replace(/^instagram\.com\//i, '');
+    // Strip leading @
+    v = v.replace(/^@+/, '');
+    // Keep only allowed chars
+    v = v.replace(/[^a-zA-Z0-9._]/g, '');
+    // IG usernames are max 30 chars
+    if (v.length > 30) v = v.slice(0, 30);
+    input.value = v;
+  };
+
+  // Name field: allow letters (any language), spaces, hyphens, apostrophes.
+  // Reject emoji, numbers, special chars. Cap at 70 chars. Auto-capitalize first letter.
+  // Same approach used in Settings (profile first/last name).
+  window.wpCapFirst = function(input){
+    var v = input.value;
+    // Strip characters that aren't letters/spaces/hyphens/apostrophes (incl. emoji, digits, symbols)
+    v = v.replace(/[^\p{L}\s\-']/gu, '');
+    // Enforce 70-char max
+    if (v.length > 70) v = v.slice(0, 70);
+    // Auto-capitalize first letter
+    if (v.length > 0) {
+      var nv = v.charAt(0).toUpperCase() + v.slice(1);
+      if (nv !== v) v = nv;
+    }
+    input.value = v;
+    wp.nameValue = v;
+  };
+
+  /* =====================================================================
+     Anonymous toggle
+     ===================================================================== */
+  window.wpToggleAnon = function(){
+    wp.anonymous = !wp.anonymous;
+    var t = $('wp_anonToggle'), k = $('wp_anonKnob'), row = $('wp_anonRow'), fields = $('wp_fieldsWrap');
+    var ambFirst = window.WLD_AMB_FIRST || 'Sara';
+    if (wp.anonymous) {
+      t.style.background = '#e91e8c';
+      k.style.left = '20px';
+      row.style.borderColor = '#e91e8c';
+      fields.style.maxHeight = '0';
+      fields.style.opacity = '0';
+      fields.style.marginBottom = '0';
+      // Clear state when going anonymous — nothing typed should leak to server
+      $('wp_name_input').value = '';
+      $('wp_ig_input').value = '';
+      wp.nameValue = '';
+      $('wp_anonLabel').innerHTML = 'Appear as <span style="font-weight:700">Anonymous</span> on ' + ambFirst + '\u2019s page';
+      $('wp_anonSub').textContent = 'Your name and Instagram won\u2019t be shown';
+      $('wp_payNote').innerHTML = 'One-time payment &middot; No subscription';
+    } else {
+      t.style.background = '#262626';
+      k.style.left = '2px';
+      row.style.borderColor = '#262626';
+      fields.style.maxHeight = '500px';
+      fields.style.opacity = '1';
+      fields.style.marginBottom = '';
+      $('wp_anonLabel').textContent = 'Gift anonymously';
+      $('wp_anonSub').textContent = 'Your name and Instagram won\u2019t be shown';
+      $('wp_payNote').innerHTML = 'One-time payment &middot; Your name forever on ' + ambFirst + '\u2019s page';
+    }
+    wpValidate();
+  };
+
+  /* =====================================================================
+     Validation — valid if anonymous OR name filled
+     ===================================================================== */
+  window.wpValidate = function(){
+    // Valid if: anonymous toggled ON, OR name has at least 2 chars after trim
+    var valid = wp.anonymous || wp.nameValue.trim().length >= 2;
+    var btn = $('wp_payBtn');
+    if (valid) {
+      btn.classList.add('ready');
+      btn.style.background = '#e91e8c';
+      btn.style.color = '#fff';
+      btn.style.cursor = 'pointer';
+    } else {
+      btn.classList.remove('ready');
+      btn.style.background = '#1c1c1c';
+      btn.style.color = '#555';
+      btn.style.cursor = 'default';
+    }
+  };
+  wpValidate();
+
+  /* =====================================================================
+     Pay button → open modal
+     ===================================================================== */
+  window.wpPay = function(){
+    var btn = $('wp_payBtn');
+    if (!btn.classList.contains('ready')) return;
+    openModal();
+  };
+
+  /* =====================================================================
+     URL OVERLAY
+     In production replace .publicPage with <iframe src="https://welovedecode.com/{slug}"/>
+     ===================================================================== */
+  window.openOverlay = function(e){
+    if (e) e.preventDefault();
+    $('urlOverlay').classList.add('open');
+  };
+  window.closeOverlay = function(){
+    $('urlOverlay').classList.remove('open');
+    var c = document.querySelector('.overlayContent');
+    if (c) c.scrollTop = 0;
+  };
+
+  /* =====================================================================
+     PAYMENT MODAL
+     Shared pattern with Professional Checkout (checkout_final.html).
+     Production: Stripe Express Checkout Element handles Apple Pay/Google Pay,
+     Stripe Payment Element handles card. Both use stripe.confirmPayment with
+     return_url = 'https://welovedecode.com/wish/confirmation/' (Stripe appends
+     ?payment_intent=pi_xxx automatically).
+     ===================================================================== */
+  window.openModal = function(){
+    $('modalDefault').style.display = 'block';
+    $('modalCardForm').style.display = 'none';
+    ['ccNumber','ccExp','ccCvc','ccEmail','ccCountry'].forEach(function(id){
+      var el = $(id); if (el) el.value = '';
+    });
+    $('payNowBtn').classList.add('disabled');
+    $('modalError').classList.remove('show');
+    $('cardError').classList.remove('show');
+    $('modalOverlay').classList.add('show');
+    $('modalSheet').classList.add('show');
+    $('checkoutPage').classList.add('dimmed');
+  };
+  window.closeModal = function(){
+    if (window._payingActive) return;
+    $('modalOverlay').classList.remove('show');
+    $('modalSheet').classList.remove('show');
+    $('checkoutPage').classList.remove('dimmed');
+  };
+  window.showCardForm = function(){
+    $('modalDefault').style.display = 'none';
+    $('modalCardForm').style.display = 'block';
+    setTimeout(function(){ $('ccNumber').focus(); }, 100);
+  };
+  window.checkCardForm = function(){
+    var num = $('ccNumber').value.replace(/\s/g,'');
+    var exp = $('ccExp').value.trim();
+    var cvc = $('ccCvc').value.trim();
+    var email = $('ccEmail').value.trim();
+    var country = $('ccCountry').value.trim();
+    var btn = $('payNowBtn');
+    $('cardError').classList.remove('show');
+    if (num.length>=12 && exp.length>=4 && cvc.length>=3 && email.indexOf('@')>=0 && country.length>=2) {
+      btn.classList.remove('disabled');
+    } else {
+      btn.classList.add('disabled');
+    }
+  };
+
+  /* =====================================================================
+     PAYMENT EXECUTION (mockup)
+     Production: POST /api/checkout/wish with metadata
+       { wish_id, anonymous: wp.anonymous, name, instagram }
+     server creates PaymentIntent with Stripe idempotency key, returns
+     client_secret. Frontend confirms. Stripe redirects to
+     /wish/confirmation/pi_xxx on success.
+     ===================================================================== */
+  window.payApple = function(){
+    if (window._payingActive) return;
+    window._payingActive = true;
+    window.addEventListener('beforeunload', blockClose);
+    setTimeout(showPaymentSuccess, 1200);
+  };
+  window.payCard = function(){
+    if ($('payNowBtn').classList.contains('disabled')) return;
+    if (window._payingActive) return;
+    window._payingActive = true;
+    window.addEventListener('beforeunload', blockClose);
+    var btn = $('payNowBtn');
+    btn.classList.add('disabled');
+    btn.textContent = 'Processing…';
+    setTimeout(showPaymentSuccess, 1500);
+  };
+  function showPaymentSuccess(){
+    // Option B: keep modal visible, Pay button in "Processing…" state.
+    // Stripe handles the actual redirect to /wish/confirmation/{pi_xxx}.
+    // No invented UI — modal just waits briefly then Stripe navigates away.
+    // MOCKUP ONLY: toast simulates the redirect for testing.
+    setTimeout(function(){
+      unblockClose();
+      showToast('→ /wish/confirmation/pi_xxx (mockup)');
+    }, 800);
+  }
+  function blockClose(e){ e.preventDefault(); e.returnValue=''; return ''; }
+  function unblockClose(){ window.removeEventListener('beforeunload', blockClose); window._payingActive=false; }
+
+  function showToast(msg){
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._t);
+    window._t = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+  }
+})();
+</script>
+
+</body></html>

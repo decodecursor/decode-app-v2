@@ -1,0 +1,384 @@
+<div style="display:flex;flex-wrap:wrap;gap:32px;justify-content:center;padding:2rem;background:#0a0a0a;font-family:system-ui,-apple-system,sans-serif;color:#fff;min-height:100vh;box-sizing:border-box">
+
+<style>
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0 }
+input[type=number] { -moz-appearance:textfield; outline:none !important }
+.opt-wrap { width:375px }
+.opt-label { font-size:13px;letter-spacing:2px;text-transform:uppercase;font-weight:700;text-align:center;margin-bottom:4px }
+.opt-desc { font-size:11px;color:#666;margin-top:4px;margin-bottom:14px;text-align:center }
+</style>
+
+
+<!-- STATE 1 — AWAITING PAYMENT -->
+<div class="opt-wrap">
+<div class="opt-label" style="color:#e91e8c">State 1 — Awaiting</div>
+<div class="opt-desc">Just-created paid listing, never paid</div>
+
+<div style="width:375px;background:#000;border-radius:24px;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#fff;border:2px solid #1a1a1a">
+
+
+<div style="padding:48px 20px 14px">
+<div style="display:flex;align-items:center">
+<div style="width:20px;height:20px;border-radius:50%;background:#e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+</div>
+<div style="flex:1;height:1.5px;background:#e91e8c;margin:0 2px"></div>
+<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #e91e8c;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-sizing:border-box">
+<div style="width:6px;height:6px;border-radius:50%;background:#e91e8c"></div>
+</div>
+<div style="flex:1;height:1.5px;background-image:repeating-linear-gradient(90deg, #3a3a3a 0 3px, transparent 3px 6px);background-size:100% 100%;margin:0 2px"></div>
+<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #3a3a3a;background:transparent;flex-shrink:0;box-sizing:border-box"></div>
+<div style="flex:1;height:1.5px;background-image:repeating-linear-gradient(90deg, #3a3a3a 0 3px, transparent 3px 6px);background-size:100% 100%;margin:0 2px"></div>
+<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #3a3a3a;background:transparent;flex-shrink:0;box-sizing:border-box"></div>
+</div>
+<div style="display:grid;grid-template-columns:20px 1fr 20px 1fr 20px 1fr 20px;margin-top:10px">
+<div style="position:relative"><span style="font-size:9px;color:#777;font-weight:600;position:absolute;left:0;white-space:nowrap">Link created</span></div><div></div>
+<div style="position:relative"><span style="font-size:9px;color:#e91e8c;font-weight:700;position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap">Send link</span></div><div></div>
+<div style="position:relative"><span style="font-size:9px;color:#777;font-weight:600;position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap">Pay link</span></div><div></div>
+<div style="position:relative"><span style="font-size:9px;color:#777;font-weight:600;position:absolute;right:0;white-space:nowrap">Go live</span></div>
+</div>
+</div>
+
+<div style="padding:40px 20px 6px;text-align:center">
+<div style="font-size:24px;font-weight:700;letter-spacing:-0.3px;margin-bottom:8px">Send payment link</div>
+<div style="font-size:12px;color:#777;line-height:1.5">Listing goes live after payment.</div>
+</div>
+
+<div style="padding:24px 20px 36px;text-align:center">
+<div style="font-size:10px;letter-spacing:1px;color:#e91e8c;font-weight:700;margin-bottom:6px">Hair</div>
+<div style="font-size:18px;font-weight:700;letter-spacing:-0.3px">Salon de Luxe</div>
+</div>
+
+<div style="padding:0 20px 22px;display:flex;gap:8px">
+<div id="s1_t30" style="flex:1;border:1.5px solid #2a2a2a;border-radius:12px;padding:16px 8px;text-align:center;position:relative;transition:border-color 0.2s">
+<div style="font-size:10px;color:#777;margin-bottom:10px">30 days</div>
+<input id="s1_p30" type="number" value="30" oninput="recalc('s1')" onfocus="document.getElementById('s1_t30').style.borderColor='#e91e8c'" onblur="validatePrices('s1')" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();sendWhatsApp('s1');}" style="background:transparent;border:none;outline:none;color:#fff;font-size:22px;font-weight:700;width:60px;text-align:center;caret-color:#e91e8c;display:block;margin:0 auto 6px">
+<div id="s1_pd30" style="font-size:10px;color:#777">$1.00/day</div>
+</div>
+<div id="s1_t60" style="flex:1;border:1.5px solid #2a2a2a;border-radius:12px;padding:16px 8px;text-align:center;position:relative;transition:border-color 0.2s">
+<div id="s1_b60" style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#e91e8c;color:#fff;font-size:9px;font-weight:700;padding:2px 10px;border-radius:10px;white-space:nowrap">17% OFF</div>
+<div style="font-size:10px;color:#777;margin-bottom:10px">60 days</div>
+<input id="s1_p60" type="number" value="50" oninput="recalc('s1')" onfocus="document.getElementById('s1_t60').style.borderColor='#e91e8c'" onblur="validatePrices('s1')" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();sendWhatsApp('s1');}" style="background:transparent;border:none;outline:none;color:#fff;font-size:22px;font-weight:700;width:60px;text-align:center;caret-color:#e91e8c;display:block;margin:0 auto 6px">
+<div id="s1_pd60" style="font-size:10px;color:#777">$0.83/day</div>
+</div>
+<div id="s1_t90" style="flex:1;border:1.5px solid #2a2a2a;border-radius:12px;padding:16px 8px;text-align:center;position:relative;transition:border-color 0.2s">
+<div id="s1_b90" style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#e91e8c;color:#fff;font-size:9px;font-weight:700;padding:2px 10px;border-radius:10px;white-space:nowrap">22% OFF</div>
+<div style="font-size:10px;color:#777;margin-bottom:10px">90 days</div>
+<input id="s1_p90" type="number" value="70" oninput="recalc('s1')" onfocus="document.getElementById('s1_t90').style.borderColor='#e91e8c'" onblur="validatePrices('s1')" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();sendWhatsApp('s1');}" style="background:transparent;border:none;outline:none;color:#fff;font-size:22px;font-weight:700;width:60px;text-align:center;caret-color:#e91e8c;display:block;margin:0 auto 6px">
+<div id="s1_pd90" style="font-size:10px;color:#777">$0.78/day</div>
+</div>
+</div>
+
+<div id="s1_errorMsg" style="display:none;padding:0 20px 14px;font-size:11px;color:#e91e8c;text-align:center;font-weight:600"></div>
+
+<div style="padding:0 20px 12px">
+<div style="border:1.5px solid #2a2a2a;border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between">
+<span id="s1_payLink" style="font-size:13px;color:#777">welovedecode.com/pay/a8Kx3nQp</span>
+<svg id="s1_copyIcon" onclick="copyLink('s1')" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer;flex-shrink:0"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+</div>
+</div>
+
+<div style="padding:0 20px 14px">
+<div id="s1_waBtn" onclick="sendWhatsApp('s1')" style="background:#e91e8c;border-radius:12px;padding:16px;font-size:14px;font-weight:700;color:#fff;text-align:center;cursor:pointer;transition:all 0.2s">Send via WhatsApp</div>
+</div>
+
+<div style="padding:0 20px 28px;text-align:center">
+<span onclick="skipForNow('s1')" style="font-size:12px;color:#555;cursor:pointer">Skip for now ›</span>
+</div>
+
+</div>
+</div>
+
+
+<!-- STATE 2 — TRIAL -->
+<div class="opt-wrap">
+<div class="opt-label" style="color:#e91e8c">State 2 — Trial</div>
+<div class="opt-desc">Free trial active, converting to paid</div>
+
+<div style="width:375px;background:#000;border-radius:24px;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#fff;border:2px solid #1a1a1a">
+
+
+<div style="padding:48px 20px 14px">
+<div style="display:flex;align-items:center">
+<div style="width:20px;height:20px;border-radius:50%;background:#e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+</div>
+<div style="flex:1;height:1.5px;background:#e91e8c;margin:0 2px"></div>
+<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #e91e8c;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-sizing:border-box">
+<div style="width:6px;height:6px;border-radius:50%;background:#e91e8c"></div>
+</div>
+<div style="flex:1;height:1.5px;background-image:repeating-linear-gradient(90deg, #3a3a3a 0 3px, transparent 3px 6px);background-size:100% 100%;margin:0 2px"></div>
+<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #3a3a3a;background:transparent;flex-shrink:0;box-sizing:border-box"></div>
+<div style="flex:1;height:1.5px;background-image:repeating-linear-gradient(90deg, #3a3a3a 0 3px, transparent 3px 6px);background-size:100% 100%;margin:0 2px"></div>
+<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #3a3a3a;background:transparent;flex-shrink:0;box-sizing:border-box"></div>
+</div>
+<div style="display:grid;grid-template-columns:20px 1fr 20px 1fr 20px 1fr 20px;margin-top:10px">
+<div style="position:relative"><span style="font-size:9px;color:#777;font-weight:600;position:absolute;left:0;white-space:nowrap">Link created</span></div><div></div>
+<div style="position:relative"><span style="font-size:9px;color:#e91e8c;font-weight:700;position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap">Send link</span></div><div></div>
+<div style="position:relative"><span style="font-size:9px;color:#777;font-weight:600;position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap">Pay link</span></div><div></div>
+<div style="position:relative"><span style="font-size:9px;color:#777;font-weight:600;position:absolute;right:0;white-space:nowrap">Upgrade</span></div>
+</div>
+</div>
+
+<div style="padding:40px 20px 6px;text-align:center">
+<div style="font-size:24px;font-weight:700;letter-spacing:-0.3px;margin-bottom:8px">Send payment link</div>
+<div style="font-size:12px;color:#777;line-height:1.5">Trial ends on 4 July 2026. Payment will convert to a paid listing.</div>
+</div>
+
+<div style="padding:24px 20px 36px;text-align:center">
+<div style="font-size:10px;letter-spacing:1px;color:#e91e8c;font-weight:700;margin-bottom:6px">Hair</div>
+<div style="font-size:18px;font-weight:700;letter-spacing:-0.3px">Salon de Luxe</div>
+</div>
+
+<div style="padding:0 20px 22px;display:flex;gap:8px">
+<div id="s2_t30" style="flex:1;border:1.5px solid #2a2a2a;border-radius:12px;padding:16px 8px;text-align:center;position:relative;transition:border-color 0.2s">
+<div style="font-size:10px;color:#777;margin-bottom:10px">30 days</div>
+<input id="s2_p30" type="number" value="30" oninput="recalc('s2')" onfocus="document.getElementById('s2_t30').style.borderColor='#e91e8c'" onblur="validatePrices('s2')" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();sendWhatsApp('s2');}" style="background:transparent;border:none;outline:none;color:#fff;font-size:22px;font-weight:700;width:60px;text-align:center;caret-color:#e91e8c;display:block;margin:0 auto 6px">
+<div id="s2_pd30" style="font-size:10px;color:#777">$1.00/day</div>
+</div>
+<div id="s2_t60" style="flex:1;border:1.5px solid #2a2a2a;border-radius:12px;padding:16px 8px;text-align:center;position:relative;transition:border-color 0.2s">
+<div id="s2_b60" style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#e91e8c;color:#fff;font-size:9px;font-weight:700;padding:2px 10px;border-radius:10px;white-space:nowrap">17% OFF</div>
+<div style="font-size:10px;color:#777;margin-bottom:10px">60 days</div>
+<input id="s2_p60" type="number" value="50" oninput="recalc('s2')" onfocus="document.getElementById('s2_t60').style.borderColor='#e91e8c'" onblur="validatePrices('s2')" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();sendWhatsApp('s2');}" style="background:transparent;border:none;outline:none;color:#fff;font-size:22px;font-weight:700;width:60px;text-align:center;caret-color:#e91e8c;display:block;margin:0 auto 6px">
+<div id="s2_pd60" style="font-size:10px;color:#777">$0.83/day</div>
+</div>
+<div id="s2_t90" style="flex:1;border:1.5px solid #2a2a2a;border-radius:12px;padding:16px 8px;text-align:center;position:relative;transition:border-color 0.2s">
+<div id="s2_b90" style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#e91e8c;color:#fff;font-size:9px;font-weight:700;padding:2px 10px;border-radius:10px;white-space:nowrap">22% OFF</div>
+<div style="font-size:10px;color:#777;margin-bottom:10px">90 days</div>
+<input id="s2_p90" type="number" value="70" oninput="recalc('s2')" onfocus="document.getElementById('s2_t90').style.borderColor='#e91e8c'" onblur="validatePrices('s2')" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();sendWhatsApp('s2');}" style="background:transparent;border:none;outline:none;color:#fff;font-size:22px;font-weight:700;width:60px;text-align:center;caret-color:#e91e8c;display:block;margin:0 auto 6px">
+<div id="s2_pd90" style="font-size:10px;color:#777">$0.78/day</div>
+</div>
+</div>
+
+<div id="s2_errorMsg" style="display:none;padding:0 20px 14px;font-size:11px;color:#e91e8c;text-align:center;font-weight:600"></div>
+
+<div style="padding:0 20px 12px">
+<div style="border:1.5px solid #2a2a2a;border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between">
+<span id="s2_payLink" style="font-size:13px;color:#777">welovedecode.com/pay/a8Kx3nQp</span>
+<svg id="s2_copyIcon" onclick="copyLink('s2')" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer;flex-shrink:0"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+</div>
+</div>
+
+<div style="padding:0 20px 14px">
+<div id="s2_waBtn" onclick="sendWhatsApp('s2')" style="background:#e91e8c;border-radius:12px;padding:16px;font-size:14px;font-weight:700;color:#fff;text-align:center;cursor:pointer;transition:all 0.2s">Send via WhatsApp</div>
+</div>
+
+<div style="padding:0 20px 28px;text-align:center">
+<span onclick="skipForNow('s2')" style="font-size:12px;color:#555;cursor:pointer">Skip for now ›</span>
+</div>
+
+</div>
+</div>
+
+
+<!-- STATE 3 — RENEWAL -->
+<div class="opt-wrap">
+<div class="opt-label" style="color:#e91e8c">State 3 — Renewal</div>
+<div class="opt-desc">Active listing, extending the duration</div>
+
+<div style="width:375px;background:#000;border-radius:24px;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#fff;border:2px solid #1a1a1a">
+
+
+<div style="padding:48px 20px 14px">
+<div style="display:flex;align-items:center">
+<div style="width:20px;height:20px;border-radius:50%;background:#e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+</div>
+<div style="flex:1;height:1.5px;background:#e91e8c;margin:0 2px"></div>
+<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #e91e8c;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-sizing:border-box">
+<div style="width:6px;height:6px;border-radius:50%;background:#e91e8c"></div>
+</div>
+<div style="flex:1;height:1.5px;background-image:repeating-linear-gradient(90deg, #3a3a3a 0 3px, transparent 3px 6px);background-size:100% 100%;margin:0 2px"></div>
+<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #3a3a3a;background:transparent;flex-shrink:0;box-sizing:border-box"></div>
+<div style="flex:1;height:1.5px;background-image:repeating-linear-gradient(90deg, #3a3a3a 0 3px, transparent 3px 6px);background-size:100% 100%;margin:0 2px"></div>
+<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #3a3a3a;background:transparent;flex-shrink:0;box-sizing:border-box"></div>
+</div>
+<div style="display:grid;grid-template-columns:20px 1fr 20px 1fr 20px 1fr 20px;margin-top:10px">
+<div style="position:relative"><span style="font-size:9px;color:#777;font-weight:600;position:absolute;left:0;white-space:nowrap">Link created</span></div><div></div>
+<div style="position:relative"><span style="font-size:9px;color:#e91e8c;font-weight:700;position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap">Send link</span></div><div></div>
+<div style="position:relative"><span style="font-size:9px;color:#777;font-weight:600;position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap">Pay link</span></div><div></div>
+<div style="position:relative"><span style="font-size:9px;color:#777;font-weight:600;position:absolute;right:0;white-space:nowrap">Renew</span></div>
+</div>
+</div>
+
+<div style="padding:40px 20px 6px;text-align:center">
+<div style="font-size:24px;font-weight:700;letter-spacing:-0.3px;margin-bottom:8px">Send renewal link</div>
+<div style="font-size:12px;color:#777;line-height:1.5">Listing ends on 4 July 2026. Payment will extend it.</div>
+</div>
+
+<div style="padding:24px 20px 36px;text-align:center">
+<div style="font-size:10px;letter-spacing:1px;color:#e91e8c;font-weight:700;margin-bottom:6px">Hair</div>
+<div style="font-size:18px;font-weight:700;letter-spacing:-0.3px">Salon de Luxe</div>
+</div>
+
+<div style="padding:0 20px 22px;display:flex;gap:8px">
+<div id="s3_t30" style="flex:1;border:1.5px solid #2a2a2a;border-radius:12px;padding:16px 8px;text-align:center;position:relative;transition:border-color 0.2s">
+<div style="font-size:10px;color:#777;margin-bottom:10px">30 days</div>
+<input id="s3_p30" type="number" value="30" oninput="recalc('s3')" onfocus="document.getElementById('s3_t30').style.borderColor='#e91e8c'" onblur="validatePrices('s3')" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();sendWhatsApp('s3');}" style="background:transparent;border:none;outline:none;color:#fff;font-size:22px;font-weight:700;width:60px;text-align:center;caret-color:#e91e8c;display:block;margin:0 auto 6px">
+<div id="s3_pd30" style="font-size:10px;color:#777">$1.00/day</div>
+</div>
+<div id="s3_t60" style="flex:1;border:1.5px solid #2a2a2a;border-radius:12px;padding:16px 8px;text-align:center;position:relative;transition:border-color 0.2s">
+<div id="s3_b60" style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#e91e8c;color:#fff;font-size:9px;font-weight:700;padding:2px 10px;border-radius:10px;white-space:nowrap">17% OFF</div>
+<div style="font-size:10px;color:#777;margin-bottom:10px">60 days</div>
+<input id="s3_p60" type="number" value="50" oninput="recalc('s3')" onfocus="document.getElementById('s3_t60').style.borderColor='#e91e8c'" onblur="validatePrices('s3')" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();sendWhatsApp('s3');}" style="background:transparent;border:none;outline:none;color:#fff;font-size:22px;font-weight:700;width:60px;text-align:center;caret-color:#e91e8c;display:block;margin:0 auto 6px">
+<div id="s3_pd60" style="font-size:10px;color:#777">$0.83/day</div>
+</div>
+<div id="s3_t90" style="flex:1;border:1.5px solid #2a2a2a;border-radius:12px;padding:16px 8px;text-align:center;position:relative;transition:border-color 0.2s">
+<div id="s3_b90" style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#e91e8c;color:#fff;font-size:9px;font-weight:700;padding:2px 10px;border-radius:10px;white-space:nowrap">22% OFF</div>
+<div style="font-size:10px;color:#777;margin-bottom:10px">90 days</div>
+<input id="s3_p90" type="number" value="70" oninput="recalc('s3')" onfocus="document.getElementById('s3_t90').style.borderColor='#e91e8c'" onblur="validatePrices('s3')" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();sendWhatsApp('s3');}" style="background:transparent;border:none;outline:none;color:#fff;font-size:22px;font-weight:700;width:60px;text-align:center;caret-color:#e91e8c;display:block;margin:0 auto 6px">
+<div id="s3_pd90" style="font-size:10px;color:#777">$0.78/day</div>
+</div>
+</div>
+
+<div id="s3_errorMsg" style="display:none;padding:0 20px 14px;font-size:11px;color:#e91e8c;text-align:center;font-weight:600"></div>
+
+<div style="padding:0 20px 12px">
+<div style="border:1.5px solid #2a2a2a;border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between">
+<span id="s3_payLink" style="font-size:13px;color:#777">welovedecode.com/pay/a8Kx3nQp</span>
+<svg id="s3_copyIcon" onclick="copyLink('s3')" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer;flex-shrink:0"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+</div>
+</div>
+
+<div style="padding:0 20px 14px">
+<div id="s3_waBtn" onclick="sendWhatsApp('s3')" style="background:#e91e8c;border-radius:12px;padding:16px;font-size:14px;font-weight:700;color:#fff;text-align:center;cursor:pointer;transition:all 0.2s">Send via WhatsApp</div>
+</div>
+
+<div style="padding:0 20px 28px;text-align:center">
+<span onclick="skipForNow('s3')" style="font-size:12px;color:#555;cursor:pointer">Skip for now ›</span>
+</div>
+
+</div>
+</div>
+
+</div>
+
+<script>
+function recalc(p){
+  var v30 = parseFloat(document.getElementById(p+'_p30').value) || 0;
+  var v60 = parseFloat(document.getElementById(p+'_p60').value) || 0;
+  var v90 = parseFloat(document.getElementById(p+'_p90').value) || 0;
+  document.getElementById(p+'_pd30').textContent = v30 > 0 ? '$' + (v30/30).toFixed(2) + '/day' : '$0.00/day';
+  document.getElementById(p+'_pd60').textContent = v60 > 0 ? '$' + (v60/60).toFixed(2) + '/day' : '$0.00/day';
+  document.getElementById(p+'_pd90').textContent = v90 > 0 ? '$' + (v90/90).toFixed(2) + '/day' : '$0.00/day';
+  var r30 = v30 > 0 ? v30/30 : 0;
+  var r60 = v60 > 0 ? v60/60 : 0;
+  var r90 = v90 > 0 ? v90/90 : 0;
+  var b60 = document.getElementById(p+'_b60');
+  var b90 = document.getElementById(p+'_b90');
+  if(r30 > 0 && r60 < r30 && v60 >= v30 && v60 > 0){
+    b60.textContent = Math.round((1 - r60/r30) * 100) + '% OFF';
+    b60.style.display = 'block';
+  } else { b60.style.display = 'none'; }
+  if(r30 > 0 && r90 < r30 && v90 >= v30 && v90 > 0){
+    b90.textContent = Math.round((1 - r90/r30) * 100) + '% OFF';
+    b90.style.display = 'block';
+  } else { b90.style.display = 'none'; }
+  // Validation runs lazily on blur/Enter only — not while typing
+}
+
+function validatePrices(p){
+  var t30 = document.getElementById(p+'_t30');
+  var t60 = document.getElementById(p+'_t60');
+  var t90 = document.getElementById(p+'_t90');
+  var v30 = parseFloat(document.getElementById(p+'_p30').value) || 0;
+  var v60 = parseFloat(document.getElementById(p+'_p60').value) || 0;
+  var v90 = parseFloat(document.getElementById(p+'_p90').value) || 0;
+  var errMsg = document.getElementById(p+'_errorMsg');
+  var waBtn = document.getElementById(p+'_waBtn');
+  t30.style.borderColor = '#2a2a2a';
+  t60.style.borderColor = '#2a2a2a';
+  t90.style.borderColor = '#2a2a2a';
+  // Min price per currency (matches Add Listing page)
+  var MIN_PRICE = { USD: 10, EUR: 10, GBP: 10, AED: 50 };
+  var userCurr = (window.WLD_USER && window.WLD_USER.currency) || 'USD';
+  var userSym = (window.WLD_USER && window.WLD_USER.symbol) || '$';
+  var minP = MIN_PRICE[userCurr] || 10;
+
+  var error = null;
+  var bad = [];
+  if(v30 <= 0){ error = '30 days price is required'; bad.push(t30); }
+  else if(v60 <= 0){ error = '60 days price is required'; bad.push(t60); }
+  else if(v90 <= 0){ error = '90 days price is required'; bad.push(t90); }
+  else if(v30 < minP){ error = 'Minimum ' + userSym + minP; bad.push(t30); }
+  else if(v60 < minP){ error = 'Minimum ' + userSym + minP; bad.push(t60); }
+  else if(v90 < minP){ error = 'Minimum ' + userSym + minP; bad.push(t90); }
+  else if(v60 < v30){ error = "60 days price can't be less than 30 days"; bad.push(t60); }
+  else if(v90 < v60){ error = "90 days price can't be less than 60 days"; bad.push(t90); }
+  if(error){
+    errMsg.textContent = error;
+    errMsg.style.display = 'block';
+    bad.forEach(function(t){ t.style.borderColor = '#e91e8c'; });
+    waBtn.style.background = '#1f1f1f';
+    waBtn.style.color = '#555';
+    waBtn.style.cursor = 'not-allowed';
+    waBtn.dataset.disabled = 'true';
+  } else {
+    errMsg.style.display = 'none';
+    waBtn.style.background = '#e91e8c';
+    waBtn.style.color = '#fff';
+    waBtn.style.cursor = 'pointer';
+    waBtn.dataset.disabled = 'false';
+  }
+}
+
+function copyLink(p){
+  var link = document.getElementById(p+'_payLink');
+  var icon = document.getElementById(p+'_copyIcon');
+  var row = link.parentNode;
+  if(navigator.clipboard){ navigator.clipboard.writeText(link.textContent).catch(function(){}); }
+  var origText = link.textContent;
+  var origIcon = icon.innerHTML;
+  var origJustify = row.style.justifyContent;
+  // Center Copied! horizontally with green check beside it
+  row.style.justifyContent = 'center';
+  row.style.gap = '8px';
+  link.textContent = 'Copied!';
+  link.style.color = '#4ade80';
+  link.style.fontWeight = '600';
+  link.style.flex = 'none';
+  icon.innerHTML = '<polyline points="20 6 9 17 4 12"/>';
+  icon.setAttribute('stroke', '#4ade80');
+  setTimeout(function(){
+    row.style.justifyContent = origJustify || 'space-between';
+    row.style.gap = '';
+    link.textContent = origText;
+    link.style.color = '#777';
+    link.style.fontWeight = 'normal';
+    link.style.flex = '';
+    icon.innerHTML = origIcon;
+    icon.setAttribute('stroke', '#666');
+  }, 2000);
+}
+
+function showToast(msg, success){
+  var t = document.getElementById('globalToast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'globalToast';
+    t.style.cssText = 'position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:rgba(28,28,28,0.95);border:1px solid #333;color:#fff;padding:10px 18px;border-radius:24px;font-size:12px;opacity:0;transition:opacity 0.2s;pointer-events:none;z-index:1000;font-family:system-ui,-apple-system,sans-serif;white-space:nowrap';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.color = success ? '#4ade80' : '#fff';
+  t.style.borderColor = success ? '#4ade80' : '#333';
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 1900);
+}
+
+function sendWhatsApp(p){
+  var btn = document.getElementById(p+'_waBtn');
+  if(btn.dataset.disabled === 'true'){
+    showToast('Fix the price errors first');
+    return;
+  }
+  var phone = document.getElementById(p+'_payLink').textContent;
+  showToast('Opening WhatsApp · ' + phone, true);
+}
+
+function skipForNow(p){
+  showToast('Returning to listings…', true);
+}
+</script>

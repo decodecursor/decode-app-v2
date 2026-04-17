@@ -1,0 +1,584 @@
+<div style="display:flex;justify-content:center;padding:1.5rem 0;background:var(--color-background-secondary);border-radius:var(--border-radius-lg)">
+<style>
+.pbar {
+  height: 4px;
+  border-radius: 2px;
+  margin-bottom: 6px;
+  background-repeat: no-repeat;
+  background-size: 0% 100%, 100% 100%;
+  transition: background-size 1500ms cubic-bezier(.2,.7,.2,1);
+}
+@keyframes toastIn {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes toastOut {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(20px); }
+}
+.celebration-toast {
+  animation: toastIn 1200ms cubic-bezier(.2,.7,.2,1) 400ms backwards,
+             toastOut 1200ms cubic-bezier(.5,.2,.8,.1) 5000ms forwards;
+}
+/* Delete toast — IDENTICAL chrome & animation to celebration toast.
+   Only difference: fires on demand (trigger-driven), not on page load. */
+.delete-toast {
+  pointer-events: none;
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 65px;
+  z-index: 51;
+  background: #0c0c0c;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+  opacity: 0;
+}
+.delete-toast.show {
+  animation: toastIn 1200ms cubic-bezier(.2,.7,.2,1) forwards,
+             toastOut 1200ms cubic-bezier(.5,.2,.8,.1) 4000ms forwards;
+}
+/* Row fade-out on successful remove */
+.listing-row-removing {
+  transition: opacity 300ms ease, max-height 400ms ease, padding 400ms ease, margin 400ms ease;
+  opacity: 0 !important;
+  max-height: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  overflow: hidden;
+  border-bottom-color: transparent !important;
+}
+/* Modal backdrop + sheet */
+.dl-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 60;
+  pointer-events: none;
+  transition: background-color 200ms ease;
+}
+.dl-backdrop.open {
+  background: rgba(0,0,0,0.7);
+  pointer-events: auto;
+}
+.dl-sheet {
+  background: #1c1c1c;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  padding: 24px 20px 32px;
+  transform: translateY(100%);
+  transition: transform 250ms cubic-bezier(.2,.7,.2,1);
+  touch-action: none;
+}
+.dl-backdrop.open .dl-sheet { transform: translateY(0); }
+.dl-backdrop.dragging .dl-sheet { transition: none; }
+.dl-btn {
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: filter 150ms, transform 50ms;
+  user-select: none;
+}
+.dl-btn:hover { filter: brightness(1.08); }
+.dl-btn:active { transform: scale(0.98); }
+.dl-btn-keep { background: #262626; }
+.dl-btn-primary { background: #e91e8c; }
+</style>
+<div style="width:375px;background:#000;border-radius:24px;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#fff;border:2px solid #1a1a1a;position:relative">
+
+
+<!-- ============================================================
+HEADER: back arrow + title + outline + button
+============================================================ -->
+<div style="padding:16px 20px 20px;display:flex;align-items:center;justify-content:space-between">
+<div style="display:flex;align-items:center;gap:12px">
+<svg onclick="goToDashboard()" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+<span style="font-size:20px;font-weight:700">Listings</span>
+</div>
+<div onclick="addListing()" style="width:36px;height:36px;border-radius:50%;border:1.5px solid #e91e8c;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;box-sizing:border-box">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</div>
+</div>
+
+<!-- ============================================================
+FILTER TABS — text only with pink underline on active
+============================================================ -->
+<div style="padding:0 20px 12px;display:flex;gap:20px">
+<div class="filter-tab active" data-filter="all" onclick="setFilter('all',this)" style="font-size:13px;font-weight:700;color:#fff;padding:6px 0 4px;border-bottom:1.5px solid #e91e8c;cursor:pointer">All</div>
+<div class="filter-tab" data-filter="active" onclick="setFilter('active',this)" style="font-size:13px;font-weight:600;color:#777;padding:6px 0 4px;cursor:pointer">Active</div>
+<div class="filter-tab" data-filter="trial" onclick="setFilter('trial',this)" style="font-size:13px;font-weight:600;color:#777;padding:6px 0 4px;cursor:pointer">Trial</div>
+<div class="filter-tab" data-filter="pending" onclick="setFilter('pending',this)" style="font-size:13px;font-weight:600;color:#777;padding:6px 0 4px;cursor:pointer">Pending</div>
+<div class="filter-tab" data-filter="expired" onclick="setFilter('expired',this)" style="font-size:13px;font-weight:600;color:#777;padding:6px 0 4px;cursor:pointer">Expired</div>
+</div>
+
+<div style="padding:0 20px">
+
+<!-- LISTING — NEW Trial -->
+<div data-state="trial" data-id="bliss" data-name="Bliss Beauty Bar" data-category="Hair" data-location="Dubai, UAE" data-removable="yes" style="padding:18px 0;border-bottom:1px solid #1f1f1f">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+<div style="display:flex;align-items:baseline;gap:8px;flex:1;min-width:0">
+<span style="font-size:14px;font-weight:700">Bliss Beauty Bar</span>
+<span style="font-size:10px;color:#777">0 clicks</span>
+</div>
+<div style="display:flex;gap:10px;flex-shrink:0;align-items:center">
+<svg onclick="shareListing(this)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+<svg onclick="deleteListing(this)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+</div>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+<div style="display:flex;align-items:center;gap:6px">
+<span style="font-size:10px;letter-spacing:1px;color:#e91e8c;font-weight:700">Hair</span>
+<span style="font-size:11px;color:#777">·</span>
+<span style="font-size:11px;color:#777">Dubai, UAE</span>
+</div>
+<span style="font-size:10px;letter-spacing:1px;color:#38bdf8;font-weight:700">Trial</span>
+</div>
+<div class="pbar" data-target="100" style="background-image:linear-gradient(#38bdf8,#38bdf8), repeating-linear-gradient(90deg, #1e5070 0 4px, transparent 4px 8px)"></div>
+<div style="display:flex;justify-content:space-between">
+<span style="font-size:10px;color:#777">30 days left</span>
+<span style="font-size:10px;color:#777">until 9 May 2026</span>
+</div>
+</div>
+
+<!-- LISTING 1 — Active (paid, not expired) → BLOCKED modal -->
+<div data-state="active" data-id="salon" data-name="Salon de Luxe" data-category="Hair" data-location="Dubai, UAE" data-removable="no" data-removable-from="5 July 2026" style="padding:18px 0;border-bottom:1px solid #1f1f1f">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+<div style="display:flex;align-items:baseline;gap:8px;flex:1;min-width:0">
+<span style="font-size:14px;font-weight:700">Salon de Luxe</span>
+<span style="font-size:10px;color:#777">45 clicks</span>
+</div>
+<div style="display:flex;gap:10px;flex-shrink:0;align-items:center">
+<svg onclick="shareListing(this)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+<svg onclick="deleteListing(this)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+<span style="font-size:10px;letter-spacing:1px;color:#e91e8c;font-weight:700">Hair</span>
+<span style="font-size:11px;color:#777">·</span>
+<span style="font-size:11px;color:#777">Dubai, UAE</span>
+</div>
+<div class="pbar" data-target="70" style="background-image:linear-gradient(#e91e8c,#e91e8c), repeating-linear-gradient(90deg, #4a1a30 0 4px, transparent 4px 8px)"></div>
+<div style="display:flex;justify-content:space-between">
+<span style="font-size:10px;color:#777">63 days left</span>
+<span style="font-size:10px;color:#777">until 4 July 2026</span>
+</div>
+</div>
+
+<!-- LISTING 2 — Active urgent (paid, not expired) → BLOCKED modal -->
+<div data-state="active" data-id="gabriel" data-name="Dr. Gabriel Paez" data-category="Nose" data-location="Bogota, Colombia" data-removable="no" data-removable-from="11 April 2026" style="padding:18px 0;border-bottom:1px solid #1f1f1f">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+<div style="display:flex;align-items:baseline;gap:8px;flex:1;min-width:0">
+<span style="font-size:14px;font-weight:700">Dr. Gabriel Paez</span>
+<span style="font-size:10px;color:#777">32 clicks</span>
+</div>
+<div style="display:flex;gap:10px;flex-shrink:0;align-items:center">
+<svg onclick="shareListing(this)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+<svg onclick="deleteListing(this)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+<span style="font-size:10px;letter-spacing:1px;color:#e91e8c;font-weight:700">Nose</span>
+<span style="font-size:11px;color:#777">·</span>
+<span style="font-size:11px;color:#777">Bogota, Colombia</span>
+</div>
+<div class="pbar" data-target="6" style="background-image:linear-gradient(#e91e8c,#e91e8c), repeating-linear-gradient(90deg, #4a1a30 0 4px, transparent 4px 8px)"></div>
+<div style="display:flex;justify-content:space-between">
+<span style="font-size:10px;color:#e91e8c;font-weight:700">5 days left</span>
+<span style="font-size:10px;color:#777">until 10 April 2026</span>
+</div>
+</div>
+
+<!-- LISTING 2.5 — Trial URGENT (≤7 days, blue+pink share) -->
+<div data-state="trial" data-id="brow" data-name="Brow Bar" data-category="Brows" data-location="Sharjah, UAE" data-removable="yes" style="padding:18px 0;border-bottom:1px solid #1f1f1f">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+<div style="display:flex;align-items:baseline;gap:8px;flex:1;min-width:0">
+<span style="font-size:14px;font-weight:700">Brow Bar</span>
+<span style="font-size:10px;color:#777">9 clicks</span>
+</div>
+<div style="display:flex;gap:10px;flex-shrink:0;align-items:center">
+<svg onclick="shareListing(this)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+<svg onclick="deleteListing(this)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+</div>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+<div style="display:flex;align-items:center;gap:6px">
+<span style="font-size:10px;letter-spacing:1px;color:#e91e8c;font-weight:700">Brows</span>
+<span style="font-size:11px;color:#777">·</span>
+<span style="font-size:11px;color:#777">Sharjah, UAE</span>
+</div>
+<span style="font-size:10px;letter-spacing:1px;color:#38bdf8;font-weight:700">Trial</span>
+</div>
+<div class="pbar" data-target="13" style="background-image:linear-gradient(#38bdf8,#38bdf8), repeating-linear-gradient(90deg, #1e5070 0 4px, transparent 4px 8px)"></div>
+<div style="display:flex;justify-content:space-between">
+<span style="font-size:10px;color:#38bdf8;font-weight:700">4 days left</span>
+<span style="font-size:10px;color:#777">until 16 April 2026</span>
+</div>
+</div>
+
+<!-- LISTING 3 — Trial existing -->
+<div data-state="trial" data-id="lash" data-name="Lash Salon" data-category="Nails" data-location="Abu Dhabi, UAE" data-removable="yes" style="padding:18px 0;border-bottom:1px solid #1f1f1f">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+<div style="display:flex;align-items:baseline;gap:8px;flex:1;min-width:0">
+<span style="font-size:14px;font-weight:700">Lash Salon</span>
+<span style="font-size:10px;color:#777">18 clicks</span>
+</div>
+<div style="display:flex;gap:10px;flex-shrink:0;align-items:center">
+<svg onclick="shareListing(this)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+<svg onclick="deleteListing(this)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+</div>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+<div style="display:flex;align-items:center;gap:6px">
+<span style="font-size:10px;letter-spacing:1px;color:#e91e8c;font-weight:700">Nails</span>
+<span style="font-size:11px;color:#777">·</span>
+<span style="font-size:11px;color:#777">Abu Dhabi, UAE</span>
+</div>
+<span style="font-size:10px;letter-spacing:1px;color:#38bdf8;font-weight:700">Trial</span>
+</div>
+<div class="pbar" data-target="40" style="background-image:linear-gradient(#38bdf8,#38bdf8), repeating-linear-gradient(90deg, #1e5070 0 4px, transparent 4px 8px)"></div>
+<div style="display:flex;justify-content:space-between">
+<span style="font-size:10px;color:#777">18 days left</span>
+<span style="font-size:10px;color:#777">until 5 May 2026</span>
+</div>
+</div>
+
+<!-- LISTING 4 — Pending -->
+<div data-state="pending" data-id="smile" data-name="Smile Dental Studio" data-category="Veneers" data-location="Istanbul, Turkey" data-removable="yes" style="padding:18px 0;border-bottom:1px solid #1f1f1f">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+<span style="font-size:14px;font-weight:700">Smile Dental Studio</span>
+<div style="display:flex;gap:10px;flex-shrink:0;align-items:center">
+<svg onclick="shareListing(this)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+<svg onclick="deleteListing(this)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+</div>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+<div style="display:flex;align-items:center;gap:6px">
+<span style="font-size:10px;letter-spacing:1px;color:#e91e8c;font-weight:700">Veneers</span>
+<span style="font-size:11px;color:#777">·</span>
+<span style="font-size:11px;color:#777">Istanbul, Turkey</span>
+</div>
+<span style="font-size:10px;letter-spacing:1px;color:#e91e8c;font-weight:700">Pending Payment</span>
+</div>
+<div class="pbar" data-target="0" style="background-image:linear-gradient(#e91e8c,#e91e8c), repeating-linear-gradient(90deg, #4a1a30 0 4px, transparent 4px 8px)"></div>
+<div style="display:flex;justify-content:space-between">
+<span style="font-size:10px;color:#e91e8c;font-weight:700">0 days left</span>
+<span style="font-size:10px;color:#777">until 5 May 2026</span>
+</div>
+</div>
+
+<!-- LISTING 5 — Expired -->
+<div data-state="expired" data-id="glow" data-name="Glow Aesthetics" data-category="Skin" data-location="London, UK" data-removable="yes" style="padding:18px 0;border-bottom:1px solid #1f1f1f">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+<div style="display:flex;align-items:baseline;gap:8px;flex:1;min-width:0">
+<span style="font-size:14px;font-weight:700;color:#555">Glow Aesthetics</span>
+<span style="font-size:10px;color:#444">12 clicks</span>
+</div>
+<div style="display:flex;gap:10px;flex-shrink:0;align-items:center">
+<svg onclick="shareListing(this)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+<svg onclick="deleteListing(this)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+</div>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+<div style="display:flex;align-items:center;gap:6px">
+<span style="font-size:10px;letter-spacing:1px;color:#555;font-weight:700">Skin</span>
+<span style="font-size:11px;color:#444">·</span>
+<span style="font-size:11px;color:#444">London, UK</span>
+</div>
+<span style="font-size:10px;letter-spacing:1px;color:#555;font-weight:700">Expired</span>
+</div>
+<div class="pbar" data-target="0" style="background-image:linear-gradient(#2a2a2a,#2a2a2a), repeating-linear-gradient(90deg, #2a2a2a 0 4px, transparent 4px 8px)"></div>
+<div style="font-size:10px;color:#555">Expired 28 March 2026</div>
+</div>
+
+</div>
+
+<div style="padding:24px 20px 20px"></div>
+
+<!-- ============================================================
+CELEBRATION TOAST — fixed overlay, fires on page load
+In production: only renders when arriving from /listings/new with ?created=[id]
+============================================================ -->
+<div class="celebration-toast" style="pointer-events:none;position:absolute;left:6px;right:6px;top:65px;z-index:50;background:#0c0c0c;border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 8px rgba(0,0,0,0.6)">
+<span style="font-size:22px;line-height:1">🎉</span>
+<div style="flex:1;min-width:0">
+<div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:2px">Trial is live</div>
+<div style="font-size:11px;color:#999">30 days on your page</div>
+</div>
+</div>
+
+<!-- ============================================================
+DELETE TOAST — reuses celebration toast chrome exactly.
+Only difference: fires on trigger (not on page load), and supports
+three variants: success | error_stale | error_network.
+In production: fired by the DELETE response handler.
+============================================================ -->
+<div id="dlToast" class="delete-toast">
+<span id="dlToastEmoji" style="font-size:22px;line-height:1">🗑️</span>
+<div style="flex:1;min-width:0">
+<div id="dlToastTitle" style="font-size:13px;font-weight:700;color:#fff;margin-bottom:2px">Listing removed</div>
+<div id="dlToastSub" style="font-size:11px;color:#999">Payment link is no longer valid</div>
+</div>
+</div>
+
+<!-- ============================================================
+DELETE MODAL — single reusable bottom sheet for both variants
+(Remove listing? | Can't remove listing)
+============================================================ -->
+<div class="dl-backdrop" id="dlBackdrop">
+<div class="dl-sheet" id="dlSheet">
+<div id="dlHandle" style="width:100%;padding:0 0 18px;cursor:grab;touch-action:none">
+<div style="width:40px;height:4px;background:#444;border-radius:2px;margin:0 auto"></div>
+</div>
+<div style="text-align:center;margin-bottom:8px">
+<div id="dlTitle" style="font-size:18px;font-weight:700">&nbsp;</div>
+</div>
+<div style="text-align:center;margin-bottom:24px">
+<div id="dlBody" style="font-size:13px;color:#888;line-height:1.5">&nbsp;</div>
+</div>
+<div style="background:#111;border-radius:10px;padding:14px;margin-bottom:24px">
+<div id="dlCardName" style="font-size:14px;font-weight:500">&nbsp;</div>
+<div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+<span id="dlCardCategory" style="font-size:11px;color:#e91e8c">&nbsp;</span>
+<span style="font-size:11px;color:#888">·</span>
+<span id="dlCardLocation" style="font-size:11px;color:#888">&nbsp;</span>
+</div>
+</div>
+<div id="dlButtons"></div>
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+window.addEventListener('load', function(){
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      var bars = document.querySelectorAll('.pbar');
+      bars.forEach(function(bar){
+        bar.style.backgroundSize = bar.dataset.target + '% 100%, 100% 100%';
+      });
+    });
+  });
+});
+
+// ============================================================
+// NAVIGATION HANDLERS
+// Production: replace alert() with real router navigation
+// ============================================================
+
+// Back arrow → Dashboard (always, not history.back)
+function goToDashboard(){
+  alert('NAVIGATE → /dashboard');
+}
+
+// + add button → Add Listing
+function addListing(){
+  alert('NAVIGATE → /listings/new (Add Listing page)');
+}
+
+// Share icon → Send Payment Link page (single URL, server renders state-aware view)
+// Server reads listing.status and renders: S1 (pending/expired), S2 (trial), or S3 (active renewal)
+function shareListing(el){
+  var row = el.closest('[data-id]');
+  var id = row.getAttribute('data-id');
+  alert('NAVIGATE → /listings/' + id + '/payment\n\nServer reads listing.status and renders the correct state (S1/S2/S3).');
+}
+
+// ============================================================
+// DELETE FLOW — opens the correct modal based on data-removable.
+// Client-side decision (data already in memory from page load).
+// In production, backend RE-validates on the actual DELETE call.
+// ============================================================
+function deleteListing(el){
+  var row = el.closest('[data-id]');
+  var listing = {
+    id:            row.getAttribute('data-id'),
+    name:          row.getAttribute('data-name'),
+    category:      row.getAttribute('data-category'),
+    location:      row.getAttribute('data-location'),
+    removable:     row.getAttribute('data-removable') === 'yes',
+    removableFrom: row.getAttribute('data-removable-from') || null
+  };
+  openDeleteModal(listing);
+}
+
+// ============================================================
+// DELETE MODAL — open / close / populate
+// ============================================================
+var dlActive = null; // currently-open listing object
+
+function openDeleteModal(listing){
+  dlActive = listing;
+
+  // Populate info card (from in-memory listing object — no re-fetch)
+  document.getElementById('dlCardName').textContent     = listing.name;
+  document.getElementById('dlCardCategory').textContent = listing.category;
+  document.getElementById('dlCardLocation').textContent = listing.location;
+
+  if(listing.removable){
+    document.getElementById('dlTitle').textContent = 'Remove listing?';
+    document.getElementById('dlBody').innerHTML =
+      'This removes the listing from your page.<br>The payment link will no longer be valid.';
+    document.getElementById('dlButtons').innerHTML =
+      '<div style="display:flex;gap:10px">' +
+        '<div class="dl-btn dl-btn-keep"    style="flex:1" id="dlKeepBtn">Keep</div>' +
+        '<div class="dl-btn dl-btn-primary" style="flex:1" id="dlRemoveBtn">Remove</div>' +
+      '</div>';
+    document.getElementById('dlKeepBtn').onclick   = closeDeleteModal;
+    document.getElementById('dlRemoveBtn').onclick = onRemoveConfirm;
+  } else {
+    document.getElementById('dlTitle').textContent = "Can't remove listing";
+    document.getElementById('dlBody').innerHTML =
+      'This listing is active with a paid package.<br>' +
+      'Removable from ' + (listing.removableFrom || '—') + '.';
+    document.getElementById('dlButtons').innerHTML =
+      '<div class="dl-btn dl-btn-primary" id="dlGotItBtn">Got it</div>';
+    document.getElementById('dlGotItBtn').onclick = closeDeleteModal;
+  }
+
+  document.getElementById('dlBackdrop').classList.add('open');
+}
+
+function closeDeleteModal(){
+  var bd = document.getElementById('dlBackdrop');
+  bd.classList.remove('open');
+  document.getElementById('dlSheet').style.transform = '';
+  bd.classList.remove('dragging');
+}
+
+// Backdrop tap → close
+document.getElementById('dlBackdrop').addEventListener('click', function(e){
+  if(e.target === this) closeDeleteModal();
+});
+
+// Drag-to-dismiss on the handle (snap past 40% of sheet height)
+(function(){
+  var handle = document.getElementById('dlHandle');
+  var sheet  = document.getElementById('dlSheet');
+  var bd     = document.getElementById('dlBackdrop');
+  var startY = null, currentY = 0;
+  function onDown(e){
+    if(!bd.classList.contains('open')) return;
+    startY = (e.touches ? e.touches[0].clientY : e.clientY);
+    bd.classList.add('dragging');
+  }
+  function onMove(e){
+    if(startY === null) return;
+    var y = (e.touches ? e.touches[0].clientY : e.clientY);
+    currentY = Math.max(0, y - startY);
+    sheet.style.transform = 'translateY(' + currentY + 'px)';
+  }
+  function onUp(){
+    if(startY === null) return;
+    var h = sheet.offsetHeight;
+    if(currentY > h * 0.4){
+      sheet.style.transform = 'translateY(100%)';
+      setTimeout(closeDeleteModal, 200);
+    } else {
+      sheet.style.transform = '';
+    }
+    bd.classList.remove('dragging');
+    startY = null; currentY = 0;
+  }
+  handle.addEventListener('mousedown',  onDown);
+  handle.addEventListener('touchstart', onDown, {passive:true});
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('touchmove', onMove, {passive:true});
+  document.addEventListener('mouseup',   onUp);
+  document.addEventListener('touchend',  onUp);
+})();
+
+// ============================================================
+// REMOVE CONFIRM → modal closes immediately, toast fires, row fades.
+// Per UI spec: modal is a thin UI layer. It fires a trigger and lets
+// the Listings page own the row animation + toast.
+//
+// PRODUCTION (Claude Code implements):
+//   fetch('/api/ambassador/listings/' + id, { method: 'DELETE' })
+//     .then(r => {
+//       if (r.status === 200) fireTrigger('listing:removed',              { id });
+//       else if (r.status === 409) fireTrigger('listing:remove_failed_stale',  { id });
+//       else fireTrigger('listing:remove_failed_network', { id });
+//     })
+//     .catch(_ => fireTrigger('listing:remove_failed_network', { id }));
+//
+// The three triggers each call showDeleteToast(variant) and handle the row.
+// ============================================================
+function onRemoveConfirm(){
+  var listing = dlActive;
+  closeDeleteModal();
+
+  // MOCKUP: always succeed. Real flow handled by trigger system above.
+  setTimeout(function(){
+    var row = document.querySelector('[data-id="' + listing.id + '"]');
+    if(row){
+      row.style.maxHeight = row.offsetHeight + 'px';
+      requestAnimationFrame(function(){
+        row.classList.add('listing-row-removing');
+      });
+      setTimeout(function(){ row.remove(); }, 450);
+    }
+    showDeleteToast('success');
+  }, 280);
+}
+
+// ============================================================
+// DELETE TOAST — reuses celebration toast chrome exactly.
+// Three variants: success | error_stale | error_network.
+// ============================================================
+var DL_TOAST_VARIANTS = {
+  success:       { emoji:'🗑️', title:'Listing removed',  sub:'Payment link is no longer valid' },
+  error_stale:   { emoji:'🔒', title:"Can't remove",     sub:'This listing is paid and now active' },
+  error_network: { emoji:'📡', title:"Couldn't remove",  sub:'Check your connection and try again' }
+};
+
+function showDeleteToast(variant){
+  var v = DL_TOAST_VARIANTS[variant] || DL_TOAST_VARIANTS.success;
+  var toast = document.getElementById('dlToast');
+  document.getElementById('dlToastEmoji').textContent = v.emoji;
+  document.getElementById('dlToastTitle').textContent = v.title;
+  document.getElementById('dlToastSub').textContent   = v.sub;
+  // Restart animation
+  toast.classList.remove('show');
+  void toast.offsetWidth;
+  toast.classList.add('show');
+}
+
+// Expose for reviewer console demo
+window.demoToast = showDeleteToast;
+// Try in console: demoToast('error_stale') / demoToast('error_network')
+
+// ============================================================
+// FILTER TABS
+// ============================================================
+function setFilter(filter, tabEl){
+  document.querySelectorAll('.filter-tab').forEach(function(t){
+    t.style.color = '#777';
+    t.style.fontWeight = '600';
+    t.style.borderBottom = 'none';
+  });
+  tabEl.style.color = '#fff';
+  tabEl.style.fontWeight = '700';
+  tabEl.style.borderBottom = '1.5px solid #e91e8c';
+
+  document.querySelectorAll('[data-state]').forEach(function(row){
+    if(filter === 'all' || row.getAttribute('data-state') === filter){
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+</script>

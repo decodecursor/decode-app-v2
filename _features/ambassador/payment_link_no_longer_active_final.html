@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Link no longer valid</title>
+<style>
+body{margin:0;padding:24px 0;background:#111;display:flex;justify-content:center;font-family:system-ui,-apple-system,sans-serif}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+#lnPage{width:375px;background:#000;border-radius:24px;overflow:hidden;color:#fff;border:2px solid #1a1a1a}
+
+.ln-content{padding:160px 22px 40px;text-align:center}
+.ln-title{font-size:22px;font-weight:700;margin-bottom:14px;letter-spacing:-0.2px}
+.ln-sub{font-size:13px;color:#888;line-height:1.6;margin-bottom:40px}
+
+.ln-btn{
+  background:#e91e8c;border-radius:12px;padding:16px;text-align:center;
+  font-size:14px;font-weight:600;color:#fff;cursor:pointer;
+  text-decoration:none;display:block;
+  transition:filter 0.15s,transform 0.05s;
+}
+.ln-btn:hover{filter:brightness(1.08)}
+.ln-btn:active{transform:scale(0.99)}
+.ln-btn.loading{opacity:0.7;cursor:default}
+</style></head>
+<body>
+
+<div id="lnPage">
+<div class="ln-content">
+<div class="ln-title">Link no longer active</div>
+<div class="ln-sub">This payment link is no longer valid.</div>
+<a id="ln_btn" href="/" class="ln-btn">Go to WeLoveDecode</a>
+</div>
+</div>
+
+<script>
+(function(){
+  // Loading state on button tap — prevents double-tap
+  var btn = document.getElementById('ln_btn');
+  btn.addEventListener('click', function(e){
+    if (btn.classList.contains('loading')) { e.preventDefault(); return; }
+    btn.classList.add('loading');
+    btn.textContent = 'Loading…';
+  });
+})();
+</script>
+
+</body></html>

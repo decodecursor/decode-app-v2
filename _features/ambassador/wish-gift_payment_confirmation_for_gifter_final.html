@@ -1,0 +1,429 @@
+<style>
+/* Pink+grey spinner */
+.wg-spinner{
+  width:28px;height:28px;
+  border:2.5px solid #262626;border-top-color:#e91e8c;
+  border-radius:50%;animation:wg-spin 0.8s linear infinite;
+  margin:0 auto;
+}
+@keyframes wg-spin{to{transform:rotate(360deg)}}
+
+/* Print styles — accounting-friendly */
+@media print {
+  body{background:#fff!important}
+  #wgPage{
+    width:100%!important;background:#fff!important;color:#000!important;
+    border:none!important;border-radius:0!important;margin:0!important;box-shadow:none!important;
+  }
+  #wgPage *{color:#000!important;background:#fff!important;border-color:#ccc!important}
+  #wg_loading,#wg_supportLink,#wg_shareBlock{display:none!important}
+  a{color:#000!important;text-decoration:none!important}
+  .wg-spinner{display:none!important}
+  #wg_refundBanner{color:#c00!important;background:#fff!important;border:1px solid #c00!important}
+  #wg_refundBanner *{color:#c00!important}
+  #wg_refundRow *{color:#c00!important}
+}
+
+/* Toast — feedback for clipboard copy on share buttons */
+.wg-toast{
+  position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
+  background:rgba(28,28,28,0.95);border:1px solid #4ade80;color:#4ade80;
+  padding:10px 18px;border-radius:24px;font-size:12px;z-index:300;
+  opacity:0;pointer-events:none;transition:opacity 0.2s;white-space:nowrap;
+}
+.wg-toast.show{opacity:1}
+@media print { .wg-toast{display:none!important} }
+</style>
+
+<div id="wgPage" style="width:375px;background:#000;border-radius:24px;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#fff;border:2px solid #1a1a1a;margin:24px auto;position:relative">
+
+<!-- Loading state -->
+<div id="wg_loading" style="padding:160px 0;text-align:center">
+<div class="wg-spinner"></div>
+<div style="font-size:11px;color:#888;margin-top:16px">Loading your receipt…</div>
+</div>
+
+<!-- Not Found error state -->
+<div id="wg_notFound" style="display:none;padding:120px 24px;text-align:center">
+<div style="font-size:22px;font-weight:700;margin-bottom:10px;letter-spacing:-0.2px">Receipt not found</div>
+<div style="font-size:12px;color:#888;line-height:1.6;margin-bottom:32px">We couldn't find this receipt.<br>Check your email for your payment confirmation.</div>
+<a id="wg_supportLink" href="#" style="font-size:11px;color:#666;text-decoration:none">Need help? Contact support</a>
+</div>
+
+<!-- Refund banner (shown only when is_refunded) -->
+<div id="wg_refundBanner" style="display:none;margin:14px 20px 0;padding:12px 14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;text-align:center;font-size:12px;color:#ef4444;font-weight:500">
+This payment was refunded on <span id="wg_refundDate">—</span>
+</div>
+
+<!-- Main content wrapper (hidden until loaded) -->
+<div id="wg_content" style="display:none">
+
+<!-- Hero -->
+<div style="padding:48px 0 32px;text-align:center">
+<div id="wg_emoji" style="font-size:48px;line-height:1;margin-bottom:12px">❤️</div>
+<div id="wg_title" style="font-size:22px;font-weight:700;margin-bottom:8px;letter-spacing:-0.2px">Wish granted!</div>
+<div id="wg_subtitle" style="font-size:11px;color:#888">Your gift is on its way to Sara</div>
+</div>
+
+<!-- Receipt -->
+<div style="padding:0 20px 20px">
+<div style="background:#1c1c1c;border-radius:14px;padding:20px">
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+<span style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px">Gifted to</span>
+<span id="wg_recipient" style="font-size:14px;font-weight:500">Sara Johnson</span>
+</div>
+<div style="height:1px;background:#262626;margin-bottom:14px"></div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+<span style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px">Service</span>
+<span id="wg_service" style="font-size:14px;font-weight:500">Hair</span>
+</div>
+<div style="height:1px;background:#262626;margin-bottom:14px"></div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+<span style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px">At</span>
+<span id="wg_professional" style="font-size:14px;font-weight:500">Salon de Luxe</span>
+</div>
+<div style="height:1px;background:#262626;margin-bottom:14px"></div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+<span style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px">Date</span>
+<span id="wg_date" style="font-size:14px;font-weight:500">7 April 2026, 9:41 AM</span>
+</div>
+<div style="height:1px;background:#262626;margin-bottom:14px"></div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+<span style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px">Reference</span>
+<span id="wg_reference" style="font-size:14px;font-weight:500">W8473921</span>
+</div>
+<div style="height:1px;background:#262626;margin-bottom:14px"></div>
+
+<div style="display:flex;justify-content:space-between;align-items:start">
+<span style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px;padding-top:2px">Amount</span>
+<div style="text-align:right">
+<div id="wg_amount" style="font-size:14px;font-weight:500">AED 300</div>
+<div id="wg_presentment" style="font-size:10px;color:#666;margin-top:3px;display:none"></div>
+</div>
+</div>
+
+<!-- Refund row (shown only when is_refunded) -->
+<div id="wg_refundDivider" style="display:none;height:1px;background:#262626;margin-top:14px;margin-bottom:14px"></div>
+<div id="wg_refundRow" style="display:none;justify-content:space-between;align-items:start">
+<span style="font-size:9px;color:#ef4444;text-transform:uppercase;letter-spacing:0.5px;padding-top:2px">Refunded</span>
+<div style="text-align:right">
+<div id="wg_refundRowAmount" style="font-size:14px;font-weight:500;color:#ef4444">—</div>
+<div id="wg_refundRowDate" style="font-size:10px;color:#ef4444;margin-top:3px;opacity:0.7">—</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- Primary action (hidden when refunded) -->
+<div id="wg_primaryAction" style="padding:0 20px 16px;text-align:center">
+<a id="wg_seeLink" href="#" style="font-size:14px;color:#e91e8c;font-weight:500;text-decoration:none">See your name on Sara's page &rarr;</a>
+</div>
+
+<!-- Email confirmation note -->
+<div style="padding:0 20px 32px;text-align:center">
+<div style="font-size:11px;color:#888">We've sent a confirmation to your email</div>
+</div>
+
+<!-- Share prompt (hidden when refunded) -->
+<div id="wg_shareBlock" style="padding:0 20px 20px;text-align:center">
+<div style="font-size:11px;color:#fff;margin-bottom:10px">Inspire your friends</div>
+<div style="display:flex;justify-content:center;gap:12px">
+<div style="width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="wgShareWhatsapp()">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+</div>
+<div style="width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="wgShareInstagram()">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0z"/><path d="M12 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8z"/><circle cx="18.406" cy="5.594" r="1.44"/></svg>
+</div>
+<div style="width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="wgShareGeneric()">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+</div>
+</div>
+</div>
+
+<!-- Support link -->
+<div style="padding:0 20px 24px;text-align:center">
+<a id="wg_supportLink" href="#" style="font-size:11px;color:#666;text-decoration:none">Need help? Contact support</a>
+</div>
+
+</div><!-- /wg_content -->
+
+<!-- Toast (positioned absolutely, hidden by default) -->
+<div id="wgToast" class="wg-toast"></div>
+
+</div><!-- /wgPage -->
+
+<script>
+(function(){
+  function $(id){return document.getElementById(id);}
+
+  /* =====================================================================
+     URL FORMAT: /wish/confirmation/{payment_intent_id}
+       payment_intent_id = Stripe's pi_xxx token (27+ chars, unguessable).
+       Stripe's confirmPayment return_url appends ?payment_intent=pi_xxx.
+       No HMAC/key needed — pi is the token.
+
+     ENDPOINT: GET /api/gifts/by-payment-intent/{pi_xxx}
+       Separate from listings. Visual receipt template shared.
+
+     LOADING: pink+grey spinner while fetching. On pending_payment, retry
+     every 1s up to 5×.
+     ===================================================================== */
+
+  var RETRY_INTERVAL_MS = 1000;
+  var RETRY_MAX = 5;
+  var retryCount = 0;
+
+  // Mockup fallback — in production never used (real server returns data).
+  var FALLBACK_TX = {
+    reference:    'W8473921',
+    recipient:    { name: 'Sara Johnson', first_name: 'Sara', slug: 'sarajohnson' },
+    gifter:       { name: 'Ahmed Khalil', instagram: null, anonymous: false },
+    service:      'Hair',
+    professional: 'Salon de Luxe',
+    amount:       300,
+    currency:     'AED',
+    // Presentment: what the gifter's card was actually charged (from Stripe)
+    presentment_amount:   null,     // e.g. 68 for $68 USD
+    presentment_currency: null,     // e.g. 'USD'
+    // State flags — computed server-side
+    status:       'active',         // 'active' | 'refunded' | 'pending_payment'
+    is_refunded:  false,
+    refunded_at:  null,
+    refund_amount: null,
+    paid_at:      '2026-04-07T09:41:00Z'
+  };
+
+  function fmtAmount(n){ try { return Number(n).toLocaleString(); } catch(e) { return String(n); } }
+
+  function formatDate(iso, includeTime){
+    try {
+      var d = new Date(iso);
+      var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      var day = d.getDate();
+      var month = months[d.getMonth()];
+      var year = d.getFullYear();
+      if (!includeTime) return day + ' ' + month + ' ' + year;
+      var hours = d.getHours();
+      var mins = String(d.getMinutes()).padStart(2, '0');
+      var ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      return day + ' ' + month + ' ' + year + ', ' + hours + ':' + mins + ' ' + ampm;
+    } catch(e) { return iso; }
+  }
+
+  function renderTransaction(tx){
+    var recipFull = (tx.recipient && tx.recipient.name) || 'Sara Johnson';
+    var recipFirst = (tx.recipient && tx.recipient.first_name) || recipFull.split(' ')[0];
+    var recipSlug = (tx.recipient && tx.recipient.slug) || '';
+
+    $('wg_subtitle').textContent = 'Your gift is on its way to ' + recipFirst;
+    $('wg_recipient').textContent = recipFull;
+    $('wg_service').textContent = tx.service || '';
+    $('wg_professional').textContent = tx.professional || '';
+    $('wg_date').textContent = formatDate(tx.paid_at, true);
+    $('wg_reference').textContent = tx.reference || '';
+    $('wg_amount').textContent = (tx.currency || 'AED') + ' ' + (tx.amount || 0);
+
+    // PRESENTMENT: show gifter's actual card-charged amount if different currency
+    if (tx.presentment_amount && tx.presentment_currency && tx.presentment_currency !== tx.currency) {
+      var p = $('wg_presentment');
+      p.textContent = 'Charged as ' + tx.presentment_currency + ' ' + fmtAmount(tx.presentment_amount) + ' on your card';
+      p.style.display = 'block';
+    }
+
+    // REFUNDED STATE (highest priority)
+    if (tx.is_refunded) {
+      $('wg_refundBanner').style.display = 'block';
+      $('wg_refundDate').textContent = formatDate(tx.refunded_at, false);
+      $('wg_emoji').style.display = 'none';
+      $('wg_title').textContent = 'Refunded';
+      $('wg_subtitle').textContent = 'This payment was refunded on ' + formatDate(tx.refunded_at, false);
+      $('wg_refundRow').style.display = 'flex';
+      $('wg_refundDivider').style.display = 'block';
+      $('wg_refundRowAmount').textContent = (tx.currency || 'AED') + ' ' + (tx.refund_amount || tx.amount || 0);
+      $('wg_refundRowDate').textContent = formatDate(tx.refunded_at, false);
+      // Hide "See your name" CTA and share block
+      $('wg_primaryAction').style.display = 'none';
+      $('wg_shareBlock').style.display = 'none';
+    } else {
+      // ACTIVE STATE (default) — "See your name" CTA
+      $('wg_seeLink').innerHTML = 'See your name on ' + recipFirst + '\u2019s page \u2192';
+      if (recipSlug) $('wg_seeLink').href = '/' + recipSlug;  // Same tab
+    }
+
+    // Support mailto — locked subject format
+    $('wg_supportLink').href = 'mailto:support@welovedecode.com?subject=' +
+      encodeURIComponent('Support request — ' + (tx.reference || ''));
+
+    // Set up share destinations (production: deep links to share dialogs)
+    window._wg_shareData = {
+      url: recipSlug ? 'https://welovedecode.com/' + recipSlug : '',
+      recipFirst: recipFirst
+    };
+  }
+
+  function hideLoading(){
+    var l = $('wg_loading'); if (l) l.style.display = 'none';
+    var c = $('wg_content'); if (c) c.style.display = 'block';
+  }
+  function showNotFound(){
+    var l = $('wg_loading'); if (l) l.style.display = 'none';
+    var c = $('wg_content'); if (c) c.style.display = 'none';
+    var nf = $('wg_notFound'); if (nf) nf.style.display = 'block';
+  }
+
+  // MOCKUP-ONLY: demo mode trigger for design preview. Remove in production.
+  function applyDemoMode(tx){
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var demo = params.get('demo');
+      if (demo === 'refunded') {
+        tx.is_refunded = true;
+        tx.status = 'refunded';
+        tx.refunded_at = '2026-04-12T14:20:00Z';
+        tx.refund_amount = tx.amount;
+      } else if (demo === 'presentment') {
+        tx.presentment_amount = 68;
+        tx.presentment_currency = 'USD';
+      } else if (demo === 'notfound') {
+        return 'notfound';
+      } else if (demo === 'anonymous') {
+        tx.gifter = { name: 'Anonymous', anonymous: true };
+      }
+    } catch(e) {}
+    return null;
+  }
+
+  // Validate that pi_xxx looks like a real Stripe PaymentIntent ID before any network call.
+  // Saves a wasted round-trip on malformed URLs (e.g. /wish/confirmation/pi_<script>).
+  var PI_RE = /^pi_[A-Za-z0-9]{20,40}$/;
+
+  function loadTransaction(){
+    var pi = null;
+    try {
+      var m = window.location.pathname.match(/\/wish\/confirmation\/(pi_[^/?#]+)/);
+      if (m) pi = m[1];
+      if (!pi) {
+        var params = new URLSearchParams(window.location.search);
+        pi = params.get('payment_intent');
+      }
+    } catch(e) {}
+
+    // Production guard: if pi exists but is malformed → show not-found, skip fetch
+    if (pi && !PI_RE.test(pi) && typeof fetch === 'function') {
+      showNotFound();
+      return;
+    }
+
+    // MOCKUP PATH
+    if (typeof fetch !== 'function' || !pi) {
+      var tx = Object.assign({}, FALLBACK_TX);
+      var demoResult = applyDemoMode(tx);
+      setTimeout(function(){
+        if (demoResult === 'notfound') { showNotFound(); return; }
+        hideLoading();
+        renderTransaction(tx);
+      }, 800);
+      return;
+    }
+
+    // PRODUCTION PATH
+    fetch('/api/gifts/by-payment-intent/' + encodeURIComponent(pi), {
+      headers:{'Accept':'application/json'}
+    })
+      .then(function(res){
+        if (res.status === 404) throw new Error('not_found');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function(data){
+        if (!data || !data.reference) throw new Error('invalid payload');
+        if (data.status === 'pending_payment' && retryCount < RETRY_MAX) {
+          retryCount++;
+          setTimeout(loadTransaction, RETRY_INTERVAL_MS);
+          return;
+        }
+        hideLoading();
+        renderTransaction(data);
+      })
+      .catch(function(){
+        // Conservative: any error resolves to not-found
+        showNotFound();
+      });
+  }
+
+  // Share handlers — production: open share intents / Web Share API
+  window.wgShareWhatsapp = function(){
+    var d = window._wg_shareData || {};
+    if (!d.url) return;
+    var text = 'I just gifted ' + d.recipFirst + ' a beauty wish ❤️ ' + d.url;
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  };
+  window.wgShareInstagram = function(){
+    // Instagram has no direct share URL — copy link to clipboard instead
+    var d = window._wg_shareData || {};
+    if (!d.url) return;
+    if (navigator.clipboard) navigator.clipboard.writeText(d.url);
+  };
+  // Share handlers — open share intents / Web Share API
+  // URL shared = ambassador's public page (so friends discover Sara → can browse remaining wishes)
+  window.wgShareWhatsapp = function(){
+    var d = window._wg_shareData || {};
+    if (!d.url) return;
+    var text = 'I just gifted ' + d.recipFirst + ' a beauty wish \u2764\ufe0f ' + d.url;
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  };
+  window.wgShareInstagram = function(){
+    // Instagram has no direct share URL — copy link to clipboard
+    var d = window._wg_shareData || {};
+    if (!d.url) return;
+    copyToClipboard(d.url, 'Link copied — paste in Instagram');
+  };
+  window.wgShareGeneric = function(){
+    var d = window._wg_shareData || {};
+    if (!d.url) return;
+    if (navigator.share) {
+      // Native iOS/Android share sheet
+      navigator.share({
+        url: d.url,
+        text: 'I just gifted ' + d.recipFirst + ' a beauty wish \u2764\ufe0f'
+      }).catch(function(){ /* User cancelled — silent */ });
+    } else {
+      // Desktop fallback — copy link
+      copyToClipboard(d.url, 'Link copied');
+    }
+  };
+
+  function copyToClipboard(text, toastMsg){
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function(){ showToast(toastMsg); });
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+        showToast(toastMsg);
+      }
+    } catch(e) {
+      showToast('Could not copy link');
+    }
+  }
+
+  function showToast(msg){
+    var t = document.getElementById('wgToast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._wgT);
+    window._wgT = setTimeout(function(){ t.classList.remove('show'); }, 2400);
+  }
+
+  loadTransaction();
+})();
+</script>

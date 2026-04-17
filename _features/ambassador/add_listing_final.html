@@ -1,0 +1,871 @@
+<div style="display:flex;justify-content:center;padding:1.5rem 0;background:var(--color-background-secondary);border-radius:var(--border-radius-lg)">
+<div id="alPage" style="width:375px;background:#000;border-radius:24px;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#fff;border:2px solid #1a1a1a;position:relative">
+
+<style>
+#alPage input::placeholder { color: #666 !important; opacity: 1; }
+#alPage input[type="range"] { accent-color: #e91e8c; }
+
+/* Pink focus ring — matches onboarding / settings / checkout vocabulary */
+#alPage input[type="text"]:focus,
+#alPage input[type="email"]:focus,
+#alPage input[type="tel"]:focus {
+  border-color: #e91e8c !important;
+  transition: border-color 0.15s;
+}
+/* Wrappers that contain an input (Instagram row, custom category, price boxes) */
+#alPage .al-fw:focus-within {
+  border-color: #e91e8c !important;
+  transition: border-color 0.15s;
+}
+/* Price box focus-within override — same pink ring */
+#alPage #al_box30:focus-within,
+#alPage #al_box60:focus-within,
+#alPage #al_box90:focus-within {
+  border-color: #e91e8c !important;
+  transition: border-color 0.15s;
+}
+</style>
+
+<div style="padding:14px 20px 0">
+<div onclick="history.back()" style="width:32px;height:32px;border-radius:50%;background:#1c1c1c;border:1px solid #262626;display:flex;align-items:center;justify-content:center;cursor:pointer">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+</div>
+</div>
+
+<div style="padding:8px 22px 22px;text-align:center">
+<div style="font-size:22px;font-weight:700;letter-spacing:-0.2px;margin-bottom:6px">Add listing</div>
+<div style="font-size:11px;color:#888">Professional you want to display on your page</div>
+</div>
+
+<div style="padding:0 20px 24px">
+
+<!-- PROFESSIONAL -->
+<div style="padding:0;margin-bottom:22px">
+<div style="font-size:9px;color:#666;font-weight:400;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;padding-left:4px">Professional</div>
+
+<input id="al_name" type="text" placeholder="Salon, clinic or doctor name" oninput="alCapFirst(this);alValidate()" style="width:100%;background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:14px 16px;font-size:14px;color:#fff;outline:none;box-sizing:border-box;font-family:inherit;margin-bottom:10px">
+
+<div style="display:flex;gap:12px;align-items:center;margin-bottom:10px">
+<label style="flex-shrink:0;cursor:pointer;position:relative">
+<div id="al_photoCircle" style="width:52px;height:52px;border-radius:50%;background:#1c1c1c;border:1.5px dashed #333;display:flex;align-items:center;justify-content:center;overflow:hidden;text-align:center">
+<div style="font-size:8px;color:#666;line-height:1.2;font-weight:500">Profile<br/>Image</div>
+</div>
+<div id="al_photoIgBadge" style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:#1c1c1c;border:2px solid #1c1c1c;display:flex;align-items:center;justify-content:center">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0z" fill="#e91e8c"/><path d="M12 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8z" fill="#e91e8c"/><circle cx="18.406" cy="5.594" r="1.44" fill="#e91e8c"/></svg>
+</div>
+<input id="al_photoInput" type="file" accept="image/*" onchange="alOpenCropper(this,'profile')" style="display:none">
+</label>
+
+<div style="flex:1;position:relative">
+<div onclick="alToggleCatDrop()" style="background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:14px 16px;font-size:14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer">
+<span id="al_catLabel" style="color:#666">Category</span>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+</div>
+<div id="al_catDrop" style="display:none;position:absolute;top:52px;left:0;right:0;background:#1c1c1c;border:1.5px solid #333;border-radius:12px;z-index:10;max-height:200px;overflow-y:auto">
+<!-- Populated dynamically by loadCategories() — see script. Customize is always appended as the sticky last row. -->
+</div>
+</div>
+</div>
+
+<div id="al_customCatWrap" style="display:none;margin-bottom:10px">
+<div class="al-fw" style="background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;display:flex;align-items:center;transition:border-color 0.15s">
+<input id="al_customCat" type="text" placeholder="Type your category and press Enter" oninput="alCapFirst(this);alCustomCatCheck();alValidate()" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}" style="flex:1;min-width:0;background:transparent;border:none;border-radius:12px;padding:14px 16px;font-size:14px;color:#fff;outline:none;box-sizing:border-box;font-family:inherit">
+<span id="al_customCatCheck" style="display:none;padding-right:14px;flex-shrink:0">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+</span>
+</div>
+</div>
+
+<div style="display:flex;gap:8px;margin-bottom:10px">
+<input id="al_city" type="text" placeholder="City" oninput="alCapFirst(this);alValidate()" style="flex:1;min-width:0;background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:14px 16px;font-size:14px;color:#fff;outline:none;box-sizing:border-box;font-family:inherit">
+<input id="al_country" type="text" placeholder="Country" oninput="alCapFirst(this);alValidate()" style="flex:1;min-width:0;background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:14px 16px;font-size:14px;color:#fff;outline:none;box-sizing:border-box;font-family:inherit">
+</div>
+
+<div class="al-fw" style="background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:0 16px;font-size:14px;display:flex;align-items:center;gap:10px;height:48px">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0z" fill="#e91e8c"/><path d="M12 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8z" fill="#e91e8c"/><circle cx="18.406" cy="5.594" r="1.44" fill="#e91e8c"/></svg>
+<input id="al_instagram" type="text" placeholder="Professional's username" oninput="this.value=this.value.replace(/[^a-zA-Z0-9._]/g,'');alValidate()" style="flex:1;background:transparent;border:none;outline:none;font-size:14px;color:#fff;font-family:inherit;padding:0">
+</div>
+</div>
+
+<!-- MEDIA -->
+<div style="padding:0;margin-bottom:22px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<div style="font-size:9px;color:#666;font-weight:400;text-transform:uppercase;letter-spacing:0.5px;padding-left:4px">Media</div>
+<div id="al_mediaCounter" style="font-size:11px;color:#666;display:none"></div>
+</div>
+
+<div id="al_mediaEmpty">
+<label style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1c1c1c;border:1.5px dashed #333;border-radius:12px;padding:24px;cursor:pointer">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+<div style="font-size:11px;color:#666">Upload 1 video OR up to 3 photos</div>
+<div style="font-size:11px;color:#666;margin-top:4px">Vertical works best</div>
+<input type="file" accept="image/*,video/*" onchange="alHandleMediaUpload(this)" style="display:none">
+</label>
+</div>
+
+<div id="al_mediaVideo" style="display:none;position:relative;border-radius:10px;overflow:hidden;background:#1c1c1c;border:1.5px solid #262626">
+<video id="al_videoEl" controls style="width:100%;height:220px;object-fit:cover;display:block"></video>
+<div onclick="alRemoveVideo()" style="position:absolute;top:8px;right:8px;width:26px;height:26px;background:rgba(0,0,0,0.7);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(255,255,255,0.2)">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</div>
+</div>
+
+<div id="al_mediaImages" style="display:none;gap:8px"></div>
+</div>
+
+<!-- PRICING -->
+<div id="al_pricingSection" style="padding:0;margin-bottom:22px;overflow:hidden;transition:max-height 0.3s ease, opacity 0.25s ease, margin-bottom 0.3s ease;max-height:500px;opacity:1">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<div style="font-size:9px;color:#666;font-weight:400;text-transform:uppercase;letter-spacing:0.5px;padding-left:4px">Pricing</div>
+<div id="al_priceCurrency" style="font-size:11px;color:#666">USD ($)</div>
+</div>
+<div style="display:flex;gap:8px">
+<div style="flex:1;position:relative">
+<div id="al_box30" style="background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:10px;text-align:center">
+<div style="font-size:11px;color:#666;margin-bottom:6px">30 days</div>
+<input id="al_p30" type="text" inputmode="numeric" placeholder="$" oninput="alPriceInput(this,30)" onfocus="alPriceFocus(30)" onblur="alPriceBlur(30)" onkeydown="if(event.key==='Enter')this.blur()" style="width:100%;background:transparent;border:none;outline:none;font-size:18px;font-weight:600;color:#fff;text-align:center;font-family:inherit;padding:0">
+<div id="al_d30" style="font-size:11px;color:#666;margin-top:4px;height:13px"></div>
+</div>
+</div>
+<div style="flex:1;position:relative">
+<div id="al_off60" style="display:none;position:absolute;top:-10px;left:50%;transform:translateX(-50%);z-index:2;font-size:9px;font-weight:600;background:#e91e8c;color:#fff;padding:2px 8px;border-radius:8px;white-space:nowrap"></div>
+<div id="al_box60" style="background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:10px;text-align:center">
+<div style="font-size:11px;color:#666;margin-bottom:6px">60 days</div>
+<input id="al_p60" type="text" inputmode="numeric" placeholder="$" oninput="alPriceInput(this,60)" onfocus="alPriceFocus(60)" onblur="alPriceBlur(60)" onkeydown="if(event.key==='Enter')this.blur()" style="width:100%;background:transparent;border:none;outline:none;font-size:18px;font-weight:600;color:#fff;text-align:center;font-family:inherit;padding:0">
+<div id="al_d60" style="font-size:11px;color:#666;margin-top:4px;height:13px"></div>
+</div>
+</div>
+<div style="flex:1;position:relative">
+<div id="al_off90" style="display:none;position:absolute;top:-10px;left:50%;transform:translateX(-50%);z-index:2;font-size:9px;font-weight:600;background:#e91e8c;color:#fff;padding:2px 8px;border-radius:8px;white-space:nowrap"></div>
+<div id="al_box90" style="background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:10px;text-align:center">
+<div style="font-size:11px;color:#666;margin-bottom:6px">90 days</div>
+<input id="al_p90" type="text" inputmode="numeric" placeholder="$" oninput="alPriceInput(this,90)" onfocus="alPriceFocus(90)" onblur="alPriceBlur(90)" onkeydown="if(event.key==='Enter')this.blur()" style="width:100%;background:transparent;border:none;outline:none;font-size:18px;font-weight:600;color:#fff;text-align:center;font-family:inherit;padding:0">
+<div id="al_d90" style="font-size:11px;color:#666;margin-top:4px;height:13px"></div>
+</div>
+</div>
+</div>
+<div id="al_priceError" style="display:none;font-size:11px;color:#e91e8c;margin-top:12px;text-align:center"></div>
+</div>
+
+<!-- FREE TRIAL -->
+<div id="al_trialRow" style="background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:14px 16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;transition:border-color 0.25s">
+<div>
+<div style="font-size:14px;font-weight:500">Free 30-day trial</div>
+<div id="al_trialDesc" style="font-size:11px;color:#666;margin-top:2px">Listing goes live immediately</div>
+</div>
+<div id="al_trialToggle" onclick="alToggleTrial()" style="width:44px;height:24px;background:#262626;border-radius:12px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0">
+<div id="al_trialKnob" style="width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s"></div>
+</div>
+</div>
+
+<!-- CREATE BUTTON -->
+<div id="al_createBtn" onclick="alCreate()" style="background:#1c1c1c;border:1.5px solid #262626;border-radius:12px;padding:16px;text-align:center;font-size:16px;font-weight:600;color:#555;cursor:default;transition:all 0.3s">Create listing</div>
+
+</div>
+
+
+
+<!-- CROPPER MODAL -->
+<div id="al_cropperModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:100;flex-direction:column;border-radius:22px">
+<div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1a1a1a">
+<div onclick="alCropCancel()" style="font-size:14px;color:#888;cursor:pointer;padding:4px">Cancel</div>
+<div style="font-size:15px;font-weight:600">Crop photo</div>
+<div onclick="alCropConfirm()" style="font-size:14px;color:#e91e8c;font-weight:600;cursor:pointer;padding:4px">Use</div>
+</div>
+
+<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px 0">
+<div id="al_cropContainer" style="position:relative;overflow:hidden;cursor:grab;user-select:none;touch-action:none;background:#0a0a0a">
+<img id="al_cropImage" alt="" draggable="false" style="position:absolute;top:50%;left:50%;pointer-events:none;max-width:none">
+<div id="al_cropFrame" style="position:absolute;inset:0;border:2px solid #fff;pointer-events:none"></div>
+</div>
+</div>
+
+<div style="padding:0 24px 16px">
+<div style="display:flex;align-items:center;gap:12px">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+<input id="al_zoomSlider" type="range" min="1" max="4" step="0.01" value="1" oninput="alZoomChange(this.value)" style="flex:1">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+</div>
+<div style="text-align:center;font-size:11px;color:#666;margin-top:6px">Drag to position · Slider to zoom</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+(function(){
+  var st = {
+    photo: null,
+    rawProfile: null,
+    rawMedia: null,
+    category: '',
+    customCategory: '',
+    showCustom: false,
+    video: null,
+    images: [],
+    p30: '', p60: '', p90: '',
+    touched: { p30: false, p60: false, p90: false },
+    freeTrial: false,
+    cropperMode: null,
+    naturalW: 0, naturalH: 0,
+    zoom: 1, posX: 0, posY: 0,
+    drag: { dragging: false, startX: 0, startY: 0, startPosX: 0, startPosY: 0 }
+  };
+
+  var PROFILE = 280;
+  var MEDIA_W = 315, MEDIA_H = 560;
+
+  function $(id) { return document.getElementById(id); }
+
+  // ===== Utilities =====
+  window.alCapFirst = function(input) {
+    var v = input.value;
+    if (v.length > 0) {
+      var newV = v.charAt(0).toUpperCase() + v.slice(1);
+      if (newV !== v) input.value = newV;
+    }
+  };
+
+  // ===== Category dropdown =====
+  window.alToggleCatDrop = function() {
+    var dd = $('al_catDrop');
+    dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
+  };
+
+  // ===========================================================================
+  // CATEGORIES — single source of truth
+  // ---------------------------------------------------------------------------
+  // Fetches the active category list from /api/categories. Any client surface
+  // that needs categories (this form, public page filters, dashboard analytics)
+  // should call this same endpoint so the list stays in sync across the app.
+  //
+  // Endpoint contract (server returns JSON array):
+  //   [
+  //     { "slug": "hair",    "label": "Hair",    "order": 1, "active": true },
+  //     { "slug": "nails",   "label": "Nails",   "order": 2, "active": true },
+  //     ...
+  //   ]
+  //
+  // - slug:   stable identifier stored in listings.category (never renamed)
+  // - label:  user-facing text (localizable later)
+  // - order:  display sequence (admin-controlled)
+  // - active: soft-disable without deleting (hidden from new listings only)
+  //
+  // Only active === true entries are shown. Sorted by `order` ascending.
+  //
+  // If the fetch fails (offline, CORS, 500), we fall back to FALLBACK_CATEGORIES
+  // so the page still works. The fallback is the current seed list — replace
+  // with whatever the server returns once /api/categories ships.
+  //
+  // Result is cached on window.WLD_CATEGORIES for any other component on the
+  // same page to read without re-fetching.
+  //
+  // "Customize" is NOT part of the data — it's a UI concept (user escape hatch)
+  // appended as a sticky last row in the dropdown.
+  // ===========================================================================
+
+  var FALLBACK_CATEGORIES = [
+    { slug: 'hair',    label: 'Hair',    order: 1, active: true },
+    { slug: 'nails',   label: 'Nails',   order: 2, active: true },
+    { slug: 'skin',    label: 'Skin',    order: 3, active: true },
+    { slug: 'lashes',  label: 'Lashes',  order: 4, active: true },
+    { slug: 'brows',   label: 'Brows',   order: 5, active: true },
+    { slug: 'nose',    label: 'Nose',    order: 6, active: true },
+    { slug: 'veneers', label: 'Veneers', order: 7, active: true },
+    { slug: 'botox',   label: 'Botox',   order: 8, active: true },
+    { slug: 'fillers', label: 'Fillers', order: 9, active: true },
+    { slug: 'massage', label: 'Massage', order: 10, active: true }
+  ];
+
+  function renderCategoryDropdown(categories) {
+    var drop = $('al_catDrop');
+    if (!drop) return;
+    var active = categories
+      .filter(function(c){ return c.active !== false; })
+      .sort(function(a, b){ return (a.order || 0) - (b.order || 0); });
+
+    var html = '';
+    active.forEach(function(c){
+      // Escape the label — simple guard against malformed server data
+      var safe = String(c.label).replace(/"/g, '&quot;').replace(/</g, '&lt;');
+      html += '<div style="padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:1px solid #262626" ' +
+              'onclick="alSelectCat(\'' + String(c.label).replace(/'/g, "\\'") + '\')">' + safe + '</div>';
+    });
+    // Customize — sticky last row, pink text, top border divider
+    html += '<div style="padding:12px 16px;font-size:13px;cursor:pointer;color:#e91e8c;border-top:1px solid #333" ' +
+            'onclick="alSelectCat(\'Customize\')">Customize</div>';
+    drop.innerHTML = html;
+  }
+
+  function loadCategories() {
+    // Try the live endpoint first
+    if (typeof fetch === 'function') {
+      fetch('/api/categories', { headers: { 'Accept': 'application/json' } })
+        .then(function(res){
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then(function(data){
+          if (!Array.isArray(data) || data.length === 0) throw new Error('empty');
+          window.WLD_CATEGORIES = data;
+          renderCategoryDropdown(data);
+        })
+        .catch(function(){
+          // Silent fallback — mockup + offline + server down all keep working
+          window.WLD_CATEGORIES = FALLBACK_CATEGORIES;
+          renderCategoryDropdown(FALLBACK_CATEGORIES);
+        });
+    } else {
+      window.WLD_CATEGORIES = FALLBACK_CATEGORIES;
+      renderCategoryDropdown(FALLBACK_CATEGORIES);
+    }
+  }
+
+  // Populate on page load
+  loadCategories();
+
+  // ===========================================================================
+  // USER CURRENCY — reference data for the current authenticated user
+  // ---------------------------------------------------------------------------
+  // Fetches the logged-in user's preferred currency (set during onboarding)
+  // from /api/user/me and updates the Pricing header label accordingly. Same
+  // pattern as categories: live endpoint with a local fallback so the page
+  // always works offline or during server outages.
+  //
+  // Endpoint contract (server returns JSON object):
+  //   {
+  //     "id":       "uuid",
+  //     "currency": "AED",
+  //     "symbol":   "د.إ",
+  //     ...
+  //   }
+  //
+  // - currency: ISO 4217 code set during onboarding (Supabase: users.currency)
+  // - symbol:   display symbol for the currency
+  //
+  // Only currency and symbol are read here; the rest of the user object is
+  // ignored by this loader but may be consumed by other components on the
+  // same page (e.g., greeting, slug display).
+  //
+  // Result is cached on window.WLD_USER so any other component on the same
+  // page can read the same user without re-fetching.
+  //
+  // MOCKUP FALLBACK: the default below ships as USD. In production the fetch
+  // hits /api/user/me and the real currency replaces it before the user sees
+  // the Pricing header.
+  // ===========================================================================
+
+  var FALLBACK_USER = {
+    currency: 'USD',
+    symbol:   '$'
+  };
+
+  function renderPriceCurrency(user) {
+    var el = $('al_priceCurrency');
+    if (!el || !user) return;
+    var code = user.currency || 'USD';
+    var symbol = user.symbol || '$';
+    el.textContent = code + ' (' + symbol + ')';
+  }
+
+  function loadUserCurrency() {
+    if (typeof fetch === 'function') {
+      fetch('/api/user/me', { headers: { 'Accept': 'application/json' } })
+        .then(function(res){
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then(function(data){
+          if (!data || !data.currency) throw new Error('no currency');
+          window.WLD_USER = data;
+          renderPriceCurrency(data);
+        })
+        .catch(function(){
+          window.WLD_USER = FALLBACK_USER;
+          renderPriceCurrency(FALLBACK_USER);
+        });
+    } else {
+      window.WLD_USER = FALLBACK_USER;
+      renderPriceCurrency(FALLBACK_USER);
+    }
+  }
+
+  loadUserCurrency();
+
+  window.alSelectCat = function(cat) {
+    st.category = cat;
+    var lbl = $('al_catLabel');
+    lbl.textContent = cat;
+    if (cat === 'Customize') {
+      st.showCustom = true;
+      lbl.style.color = '#e91e8c';
+      $('al_customCatWrap').style.display = 'block';
+      setTimeout(function(){var el=$('al_customCat');if(el)el.focus();},50);
+    } else {
+      st.showCustom = false;
+      st.customCategory = '';
+      lbl.style.color = '#fff';
+      $('al_customCatWrap').style.display = 'none';
+      $('al_customCat').value = '';
+      $('al_customCatCheck').style.display = 'none';
+    }
+    $('al_catDrop').style.display = 'none';
+    alValidate();
+  };
+
+  window.alCustomCatCheck = function() {
+    var v = $('al_customCat').value.trim();
+    st.customCategory = v;
+    var check = $('al_customCatCheck');
+    var lbl = $('al_catLabel');
+    if (v.length >= 2) {
+      check.style.display = 'flex';
+      lbl.textContent = v;
+      lbl.style.color = '#fff';
+    } else {
+      check.style.display = 'none';
+      lbl.textContent = 'Customize';
+      lbl.style.color = '#e91e8c';
+    }
+  };
+
+  // ===== Profile photo upload → cropper =====
+  window.alOpenCropper = function(input, mode) {
+    var file = input.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      if (mode === 'profile') {
+        st.rawProfile = ev.target.result;
+      } else {
+        st.rawMedia = ev.target.result;
+      }
+      st.cropperMode = mode;
+      st.zoom = 1; st.posX = 0; st.posY = 0;
+      $('al_zoomSlider').value = 1;
+      openCropperModal();
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  };
+
+  function openCropperModal() {
+    var modal = $('al_cropperModal');
+    var container = $('al_cropContainer');
+    var frame = $('al_cropFrame');
+    var img = $('al_cropImage');
+    var w, h;
+    if (st.cropperMode === 'profile') {
+      w = PROFILE; h = PROFILE;
+      container.style.borderRadius = '50%';
+      frame.style.borderRadius = '50%';
+    } else {
+      w = MEDIA_W; h = MEDIA_H;
+      container.style.borderRadius = '8px';
+      frame.style.borderRadius = '8px';
+    }
+    container.style.width = w + 'px';
+    container.style.height = h + 'px';
+    img.src = st.cropperMode === 'profile' ? st.rawProfile : st.rawMedia;
+    img.onload = function() {
+      st.naturalW = img.naturalWidth;
+      st.naturalH = img.naturalHeight;
+      st.zoom = 1; st.posX = 0; st.posY = 0;
+      $('al_zoomSlider').value = 1;
+      updateImageTransform();
+    };
+    modal.style.display = 'flex';
+  }
+
+  function getCropDims() {
+    return st.cropperMode === 'profile' ? { w: PROFILE, h: PROFILE } : { w: MEDIA_W, h: MEDIA_H };
+  }
+
+  function getRendered() {
+    var d = getCropDims();
+    var bs = Math.max(d.w / st.naturalW, d.h / st.naturalH);
+    return {
+      w: st.naturalW * bs * st.zoom,
+      h: st.naturalH * bs * st.zoom
+    };
+  }
+
+  function getBounds(z) {
+    var d = getCropDims();
+    var bs = Math.max(d.w / st.naturalW, d.h / st.naturalH);
+    var rW = st.naturalW * bs * z;
+    var rH = st.naturalH * bs * z;
+    return {
+      maxX: Math.max(0, (rW - d.w) / 2),
+      maxY: Math.max(0, (rH - d.h) / 2)
+    };
+  }
+
+  function clampPos(x, y, z) {
+    var b = getBounds(z);
+    return {
+      x: Math.max(-b.maxX, Math.min(b.maxX, x)),
+      y: Math.max(-b.maxY, Math.min(b.maxY, y))
+    };
+  }
+
+  function updateImageTransform() {
+    var img = $('al_cropImage');
+    var r = getRendered();
+    img.style.width = r.w + 'px';
+    img.style.height = r.h + 'px';
+    img.style.transform = 'translate(calc(-50% + ' + st.posX + 'px), calc(-50% + ' + st.posY + 'px))';
+  }
+
+  window.alZoomChange = function(val) {
+    st.zoom = parseFloat(val);
+    var clamped = clampPos(st.posX, st.posY, st.zoom);
+    st.posX = clamped.x; st.posY = clamped.y;
+    updateImageTransform();
+  };
+
+  // Drag handlers
+  var container = null;
+  function setupDrag() {
+    container = $('al_cropContainer');
+    container.addEventListener('mousedown', function(e) {
+      st.drag.dragging = true;
+      st.drag.startX = e.clientX; st.drag.startY = e.clientY;
+      st.drag.startPosX = st.posX; st.drag.startPosY = st.posY;
+      container.style.cursor = 'grabbing';
+    });
+    container.addEventListener('touchstart', function(e) {
+      st.drag.dragging = true;
+      st.drag.startX = e.touches[0].clientX; st.drag.startY = e.touches[0].clientY;
+      st.drag.startPosX = st.posX; st.drag.startPosY = st.posY;
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (!st.drag.dragging) return;
+      var dx = e.clientX - st.drag.startX;
+      var dy = e.clientY - st.drag.startY;
+      var c = clampPos(st.drag.startPosX + dx, st.drag.startPosY + dy, st.zoom);
+      st.posX = c.x; st.posY = c.y;
+      updateImageTransform();
+    });
+    document.addEventListener('touchmove', function(e) {
+      if (!st.drag.dragging) return;
+      e.preventDefault();
+      var dx = e.touches[0].clientX - st.drag.startX;
+      var dy = e.touches[0].clientY - st.drag.startY;
+      var c = clampPos(st.drag.startPosX + dx, st.drag.startPosY + dy, st.zoom);
+      st.posX = c.x; st.posY = c.y;
+      updateImageTransform();
+    }, { passive: false });
+    document.addEventListener('mouseup', function() {
+      st.drag.dragging = false;
+      if (container) container.style.cursor = 'grab';
+    });
+    document.addEventListener('touchend', function() { st.drag.dragging = false; });
+  }
+  setTimeout(setupDrag, 0);
+
+  window.alCropCancel = function() {
+    $('al_cropperModal').style.display = 'none';
+    st.rawProfile = null; st.rawMedia = null; st.cropperMode = null;
+  };
+
+  window.alCropConfirm = function() {
+    var img = new Image();
+    img.onload = function() {
+      var d = getCropDims();
+      var canvas = document.createElement('canvas');
+      var outputW = st.cropperMode === 'profile' ? 400 : 720;
+      var outputH = st.cropperMode === 'profile' ? 400 : 1280;
+      canvas.width = outputW; canvas.height = outputH;
+      var ctx = canvas.getContext('2d');
+      var r = getRendered();
+      var imgLeft = (d.w / 2 + st.posX) - r.w / 2;
+      var imgTop = (d.h / 2 + st.posY) - r.h / 2;
+      var sx = (-imgLeft / r.w) * st.naturalW;
+      var sy = (-imgTop / r.h) * st.naturalH;
+      var sw = (d.w / r.w) * st.naturalW;
+      var sh = (d.h / r.h) * st.naturalH;
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, outputW, outputH);
+      var dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      if (st.cropperMode === 'profile') {
+        st.photo = dataUrl;
+        renderProfilePhoto();
+      } else {
+        if (st.images.length < 3) st.images.push(dataUrl);
+        renderMediaImages();
+      }
+      $('al_cropperModal').style.display = 'none';
+      st.rawProfile = null; st.rawMedia = null; st.cropperMode = null;
+      alValidate();
+    };
+    img.src = st.cropperMode === 'profile' ? st.rawProfile : st.rawMedia;
+  };
+
+  function renderProfilePhoto() {
+    var circle = $('al_photoCircle');
+    var badge = $('al_photoIgBadge');
+    if (st.photo) {
+      // Instagram gradient ring: 4px colored ring, 4px dark separator, image inside
+      // Matches the treatment from instagram_profile_ring_final.html
+      circle.innerHTML = '<div style="width:100%;height:100%;border-radius:50%;background:#000;border:2px solid #1c1c1c;box-sizing:border-box;overflow:hidden;display:flex;align-items:center;justify-content:center"><img src="' + st.photo + '" style="width:100%;height:100%;object-fit:cover;display:block"></div>';
+      circle.style.border = 'none';
+      circle.style.padding = '2px';
+      circle.style.background = 'linear-gradient(45deg,#FEDA75 0%,#FA7E1E 25%,#D62976 50%,#962FBF 100%)';
+      // Photo uploaded — hide the IG badge, the ring itself signals Instagram
+      badge.style.display = 'none';
+    } else {
+      circle.innerHTML = '<div style="font-size:8px;color:#666;line-height:1.2;font-weight:500">Profile<br/>Image</div>';
+      circle.style.border = '1.5px dashed #333';
+      circle.style.padding = '0';
+      circle.style.background = '#1c1c1c';
+      badge.style.display = 'flex';
+    }
+  }
+
+  // ===== Media =====
+  window.alHandleMediaUpload = function(input) {
+    var file = input.files[0];
+    if (!file) { input.value = ''; return; }
+    if (file.type.indexOf('video/') === 0) {
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        st.video = ev.target.result;
+        st.images = [];
+        renderMediaVideo();
+        renderMediaImages();
+        alValidate();
+      };
+      reader.readAsDataURL(file);
+    } else if (file.type.indexOf('image/') === 0) {
+      var reader2 = new FileReader();
+      reader2.onload = function(ev) {
+        st.rawMedia = ev.target.result;
+        st.video = null;
+        renderMediaVideo();
+        st.cropperMode = 'media';
+        st.zoom = 1; st.posX = 0; st.posY = 0;
+        $('al_zoomSlider').value = 1;
+        openCropperModal();
+      };
+      reader2.readAsDataURL(file);
+    }
+    input.value = '';
+  };
+
+  window.alRemoveVideo = function() {
+    st.video = null;
+    renderMediaVideo();
+    alValidate();
+  };
+
+  window.alRemoveImage = function(idx) {
+    st.images.splice(idx, 1);
+    renderMediaImages();
+    alValidate();
+  };
+
+  function renderMediaVideo() {
+    var box = $('al_mediaVideo');
+    var emp = $('al_mediaEmpty');
+    if (st.video) {
+      box.style.display = 'block';
+      emp.style.display = 'none';
+      $('al_videoEl').src = st.video;
+    } else {
+      box.style.display = 'none';
+      if (st.images.length === 0) emp.style.display = 'block';
+    }
+  }
+
+  function renderMediaImages() {
+    var box = $('al_mediaImages');
+    var emp = $('al_mediaEmpty');
+    var counter = $('al_mediaCounter');
+    if (st.images.length === 0) {
+      box.style.display = 'none';
+      counter.style.display = 'none';
+      if (!st.video) emp.style.display = 'block';
+      return;
+    }
+    box.style.display = 'flex';
+    emp.style.display = 'none';
+    counter.style.display = 'block';
+    counter.textContent = st.images.length + '/3 images';
+    var html = '';
+    for (var i = 0; i < st.images.length; i++) {
+      html += '<div style="flex:1;aspect-ratio:9/16;position:relative;border-radius:10px;overflow:hidden;background:#1c1c1c;border:1.5px solid #262626">';
+      html += '<img src="' + st.images[i] + '" style="width:100%;height:100%;object-fit:cover;display:block">';
+      html += '<div onclick="alRemoveImage(' + i + ')" style="position:absolute;top:4px;right:4px;width:22px;height:22px;background:rgba(0,0,0,0.75);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer">';
+      html += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      html += '</div></div>';
+    }
+    if (st.images.length < 3) {
+      for (var j = st.images.length; j < 3; j++) {
+        html += '<label style="flex:1;aspect-ratio:9/16;display:flex;align-items:center;justify-content:center;background:#1c1c1c;border:1.5px dashed #333;border-radius:12px;cursor:pointer">';
+        html += '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+        html += '<input type="file" accept="image/*" onchange="alHandleMediaUpload(this)" style="display:none">';
+        html += '</label>';
+      }
+    }
+    box.innerHTML = html;
+  }
+
+  // ===== Pricing =====
+  window.alPriceInput = function(input, days) {
+    var v = input.value.replace(/[^0-9]/g, '');
+    input.value = v;
+    if (days === 30) st.p30 = v;
+    if (days === 60) st.p60 = v;
+    if (days === 90) st.p90 = v;
+    updatePricingUI();
+    alValidate();
+  };
+
+  window.alPriceFocus = function(days) {
+    st.touched['p' + days] = false;
+    updatePricingUI();
+  };
+
+  window.alPriceBlur = function(days) {
+    st.touched['p' + days] = true;
+    updatePricingUI();
+  };
+
+  function updatePricingUI() {
+    var p30 = parseInt(st.p30) || 0;
+    var p60 = parseInt(st.p60) || 0;
+    var p90 = parseInt(st.p90) || 0;
+
+    // Per-day rates
+    $('al_d30').textContent = p30 > 0 ? '$' + (p30 / 30).toFixed(2) + '/day' : '';
+    $('al_d60').textContent = p60 > 0 ? '$' + (p60 / 60).toFixed(2) + '/day' : '';
+    $('al_d90').textContent = p90 > 0 ? '$' + (p90 / 90).toFixed(2) + '/day' : '';
+
+    // OFF badges
+    var perDay30 = p30 > 0 ? p30 / 30 : 0;
+    var perDay60 = p60 > 0 ? p60 / 60 : 0;
+    var perDay90 = p90 > 0 ? p90 / 90 : 0;
+
+    var off60 = (p30 > 0 && p60 > p30 && perDay60 < perDay30) ? Math.round((perDay30 - perDay60) / perDay30 * 100) : null;
+    var off90 = (p30 > 0 && p90 > p60 && perDay90 < perDay30) ? Math.round((perDay30 - perDay90) / perDay30 * 100) : null;
+
+    var off60El = $('al_off60');
+    if (off60) { off60El.style.display = 'block'; off60El.textContent = off60 + '% OFF'; }
+    else off60El.style.display = 'none';
+
+    var off90El = $('al_off90');
+    if (off90) { off90El.style.display = 'block'; off90El.textContent = off90 + '% OFF'; }
+    else off90El.style.display = 'none';
+
+    // Errors — minimum price + ordering
+    var MIN_PRICE = { USD: 10, EUR: 10, GBP: 10, AED: 50 };
+    var userCurr = (window.WLD_USER && window.WLD_USER.currency) || 'USD';
+    var userSym = (window.WLD_USER && window.WLD_USER.symbol) || '$';
+    var minP = MIN_PRICE[userCurr] || 10;
+
+    var min30 = st.touched.p30 && p30 > 0 && p30 < minP;
+    var min60 = st.touched.p60 && p60 > 0 && p60 < minP;
+    var min90 = st.touched.p90 && p90 > 0 && p90 < minP;
+    var err30 = st.touched.p30 && st.p30 === '0';
+    var err60 = st.touched.p60 && (st.p60 === '0' || (p60 > 0 && p30 > 0 && p60 <= p30));
+    var err90 = st.touched.p90 && (st.p90 === '0' || (p90 > 0 && p60 > 0 && p90 <= p60));
+
+    var box30Bad = err30 || min30;
+    var box60Bad = err60 || min60;
+    var box90Bad = err90 || min90;
+
+    $('al_box30').style.border = box30Bad ? '1.5px solid #e91e8c' : '1.5px solid #262626';
+    $('al_box60').style.border = box60Bad ? '1.5px solid #e91e8c' : '1.5px solid #262626';
+    $('al_box90').style.border = box90Bad ? '1.5px solid #e91e8c' : '1.5px solid #262626';
+
+    var msg = '';
+    if (min30 || min60 || min90) msg = 'Minimum ' + userSym + minP;
+    else if (err30) msg = 'Price must be greater than 0';
+    else if (err60 && st.p60 === '0') msg = 'Price must be greater than 0';
+    else if (err90 && st.p90 === '0') msg = 'Price must be greater than 0';
+    else if (err60) msg = '60-day price must be higher than 30-day';
+    else if (err90) msg = '90-day price must be higher than 60-day';
+
+    var errEl = $('al_priceError');
+    if (msg) { errEl.style.display = 'block'; errEl.textContent = msg; }
+    else errEl.style.display = 'none';
+  }
+
+  // ===== Free trial =====
+  window.alToggleTrial = function() {
+    st.freeTrial = !st.freeTrial;
+    var t = $('al_trialToggle');
+    var k = $('al_trialKnob');
+    var ps = $('al_pricingSection');
+    var row = $('al_trialRow');
+    if (st.freeTrial) {
+      // Toggle knob + color
+      t.style.background = '#e91e8c';
+      k.style.left = '22px';
+      // Pink border on the trial row itself
+      row.style.borderColor = '#e91e8c';
+      // Collapse pricing section smoothly
+      ps.style.maxHeight = '0';
+      ps.style.opacity = '0';
+      ps.style.marginBottom = '0';
+    } else {
+      t.style.background = '#262626';
+      k.style.left = '2px';
+      row.style.borderColor = '#262626';
+      // Expand pricing section smoothly
+      ps.style.maxHeight = '500px';
+      ps.style.opacity = '1';
+      ps.style.marginBottom = '22px';
+    }
+    alValidate();
+  };
+
+  // ===== Validation & Submit =====
+  window.alValidate = function() {
+    var name = $('al_name').value.trim();
+    var city = $('al_city').value.trim();
+    var country = $('al_country').value.trim();
+    var ig = $('al_instagram').value.trim();
+    var hasCat = st.showCustom ? $('al_customCat').value.trim().length > 0 : st.category.length > 0 && st.category !== 'Customize';
+    var hasMedia = st.video || st.images.length > 0;
+    var hasPhoto = !!st.photo;
+
+    var p30 = parseInt(st.p30) || 0;
+    var p60 = parseInt(st.p60) || 0;
+    var p90 = parseInt(st.p90) || 0;
+    var pricingValid = st.freeTrial || (p30 > 0 && p60 > p30 && p90 > p60);
+
+    var valid = name && city && country && ig && hasCat && hasMedia && hasPhoto && pricingValid;
+    var btn = $('al_createBtn');
+    if (valid) {
+      btn.style.background = '#e91e8c';
+      btn.style.border = 'none';
+      btn.style.color = '#fff';
+      btn.style.cursor = 'pointer';
+    } else {
+      btn.style.background = '#1c1c1c';
+      btn.style.border = '1.5px solid #262626';
+      btn.style.color = '#555';
+      btn.style.cursor = 'default';
+    }
+  };
+
+  window.alCreate = function() {
+    var btn = $('al_createBtn');
+    if (btn.style.cursor !== 'pointer') return;
+    var msg = st.freeTrial ? 'Trial listing created → redirecting to Listings page' : 'Listing created → redirecting to Share Payment Link';
+    btn.textContent = '✓ ' + msg;
+    btn.style.background = '#4ade80';
+    btn.style.color = '#000';
+    setTimeout(function() {
+      btn.textContent = 'Create listing';
+      btn.style.background = '#e91e8c';
+      btn.style.color = '#fff';
+    }, 2500);
+  };
+
+})();
+</script>
+
+</div>

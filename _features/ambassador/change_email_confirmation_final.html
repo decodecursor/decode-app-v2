@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html><head><title>Email Changed — Confirmation</title>
+<style>
+body{margin:0;padding:24px;background:#111;display:flex;justify-content:center;min-height:100vh;font-family:system-ui,-apple-system,sans-serif}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+.frame{width:375px;background:#000;border-radius:24px;overflow:hidden;color:#fff;border:2px solid #1a1a1a;position:relative}
+.content{padding:72px 22px 36px;text-align:center;opacity:0;animation:fadeIn 0.5s ease-out forwards}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.title{font-size:22px;font-weight:700;margin-bottom:42px;letter-spacing:-0.2px}
+
+.tracker{padding:0 8px;margin-bottom:38px}
+.trackerRow{display:flex;align-items:center}
+.stepDone{width:20px;height:20px;border-radius:50%;background:#e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:popIn 0.3s ease-out backwards}
+.stepDone:nth-child(1){animation-delay:0.15s}
+.stepDone:nth-child(3){animation-delay:0.3s}
+.stepDone:nth-child(5){animation-delay:0.45s}
+@keyframes popIn{from{transform:scale(0)}to{transform:scale(1)}}
+.railSolid{flex:1;height:1.5px;background:#e91e8c;margin:0 2px;transform-origin:left;animation:growRail 0.15s ease-out backwards}
+.railSolid:nth-child(2){animation-delay:0.22s}
+.railSolid:nth-child(4){animation-delay:0.37s}
+@keyframes growRail{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.labels{display:grid;grid-template-columns:20px 1fr 20px 1fr 20px;margin-top:10px}
+.labelCell{position:relative}
+.labelCell span{font-size:9px;font-weight:600;position:absolute;white-space:nowrap;color:#777}
+.labelActive{color:#e91e8c!important;font-weight:700!important}
+.labelLeft{left:0}
+.labelCenter{left:50%;transform:translateX(-50%)}
+.labelRight{right:0}
+
+.row{display:flex;align-items:center;gap:10px;margin-bottom:36px;animation:fadeIn 0.4s ease-out 0.55s backwards}
+.card{flex:1;background:#1c1c1c;border:1px solid #262626;border-radius:12px;padding:12px 10px;min-width:0}
+.cardLabel{font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;font-weight:600}
+.cardEmail{font-size:11px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cardNew{border-color:#e91e8c}
+.cardLabelNew{color:#e91e8c}
+.cardEmailNew{font-size:11px;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arrow{flex-shrink:0}
+
+.primaryBtn{background:#e91e8c;border-radius:12px;padding:16px;text-align:center;font-size:14px;font-weight:600;color:#fff;cursor:pointer;transition:transform 0.15s,opacity 0.15s;animation:fadeIn 0.4s ease-out 0.7s backwards}
+.primaryBtn:active{transform:scale(0.98)}
+.primaryBtn.loading{opacity:0.7;cursor:default}
+
+.toast{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);background:#1c1c1c;border:1px solid #333;color:#fff;padding:10px 18px;border-radius:24px;font-size:12px;z-index:20;opacity:0;pointer-events:none;transition:opacity 0.2s}
+.toast.show{opacity:1}
+</style></head><body>
+
+<div class="frame">
+<div class="content">
+
+<div class="title">Email changed!</div>
+
+<div class="tracker">
+<div class="trackerRow">
+<div class="stepDone"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+<div class="railSolid"></div>
+<div class="stepDone"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+<div class="railSolid"></div>
+<div class="stepDone"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+</div>
+<div class="labels">
+<div class="labelCell"><span class="labelLeft">Sent</span></div>
+<div></div>
+<div class="labelCell"><span class="labelCenter">Opened</span></div>
+<div></div>
+<div class="labelCell"><span class="labelRight labelActive">Done</span></div>
+</div>
+</div>
+
+<div class="row">
+<div class="card">
+<div class="cardLabel">Old</div>
+<div class="cardEmail" id="oldEmail">sara@email.com</div>
+</div>
+<div class="arrow">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+</div>
+<div class="card cardNew">
+<div class="cardLabel cardLabelNew">New</div>
+<div class="cardEmailNew" id="newEmail">sara.new@email.com</div>
+</div>
+</div>
+
+<div class="primaryBtn" id="goBtn" onclick="goToSettings()">Go to Settings</div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+(function(){
+  const p=new URLSearchParams(window.location.search);
+  const oldE=p.get('old');
+  const newE=p.get('new');
+  if(oldE)document.getElementById('oldEmail').textContent=oldE;
+  if(newE)document.getElementById('newEmail').textContent=newE;
+})();
+
+function goToSettings(){
+  const btn=document.getElementById('goBtn');
+  if(btn.classList.contains('loading'))return;
+  btn.classList.add('loading');
+  btn.textContent='Loading…';
+  showToast('→ /settings (mockup)');
+  // Production: window.location.href='/settings';
+  setTimeout(()=>{
+    btn.classList.remove('loading');
+    btn.textContent='Go to Settings';
+  },1500);
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(window._t);
+  window._t=setTimeout(()=>t.classList.remove('show'),1600);
+}
+</script>
+</body></html>

@@ -1,0 +1,363 @@
+<div id="wlPage" style="width:375px;background:#000;border-radius:24px;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#fff;border:2px solid #1a1a1a;margin:24px auto;position:relative;min-height:680px">
+
+<style>
+#wlPage *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+#wlPage .filter-tab{transition:color 0.15s,border-color 0.15s}
+#wlPage .pbar{height:4px;border-radius:2px;margin-bottom:6px;background-repeat:no-repeat;background-size:0% 100%,100% 100%;transition:background-size 1500ms cubic-bezier(.2,.7,.2,1)}
+#wlPage .wl-modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:none;align-items:flex-end;justify-content:center;border-radius:22px;overflow:hidden}
+#wlPage .wl-modal-backdrop.open{display:flex;animation:wlFadeIn 0.2s ease}
+#wlPage .wl-modal-sheet{background:#1c1c1c;border-radius:20px 20px 0 0;width:100%;padding:20px 20px 24px;transform:translateY(100%);animation:wlSheetUp 0.3s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes wlFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes wlSheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+#wlPage .wl-toast{position:absolute;left:20px;right:20px;bottom:28px;background:#0c0c0c;border:1px solid #262626;border-radius:12px;padding:12px 16px;font-size:12px;color:#fff;text-align:center;z-index:90;opacity:0;transform:translateY(10px);transition:opacity 0.2s,transform 0.2s;pointer-events:none}
+#wlPage .wl-toast.show{opacity:1;transform:translateY(0)}
+@keyframes wlCelebIn {0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes wlCelebOut {0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(20px)}}
+#wlPage .wl-celebration{pointer-events:none;position:absolute;left:6px;right:6px;top:65px;z-index:50;background:#0c0c0c;border-radius:12px;padding:14px;display:none;align-items:center;gap:12px;box-shadow:0 4px 8px rgba(0,0,0,0.6)}
+#wlPage .wl-celebration.show{display:flex;animation:wlCelebIn 1200ms cubic-bezier(.2,.7,.2,1) 400ms backwards,wlCelebOut 1200ms cubic-bezier(.5,.2,.8,.1) 5000ms forwards}
+</style>
+
+<!-- Header: back arrow + title + outline + button -->
+<div style="padding:16px 20px 20px;display:flex;align-items:center;justify-content:space-between">
+<div style="display:flex;align-items:center;gap:12px">
+<svg onclick="wlBack()" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+<span style="font-size:20px;font-weight:700">Wishlist</span>
+</div>
+<div onclick="wlAddWish()" style="width:36px;height:36px;border-radius:50%;border:1.5px solid #e91e8c;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</div>
+</div>
+
+<!-- Filter tabs — text only with pink underline on active -->
+<div id="wl_tabs" style="padding:0 20px 12px;display:flex;gap:20px"></div>
+
+<!-- Rows -->
+<div id="wl_rows" style="padding:0 20px;min-height:400px"></div>
+
+<div style="padding:24px 20px 20px"></div>
+
+<!-- Celebration toast — fires when arriving from /wishlist/new with ?created={wishId} -->
+<div id="wl_celebration" class="wl-celebration">
+<span style="font-size:22px;line-height:1">🎉</span>
+<div style="flex:1;min-width:0">
+<div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:2px">Wish is live</div>
+<div style="font-size:11px;color:#999">Ready to be gifted</div>
+</div>
+</div>
+
+<!-- Delete confirm modal -->
+<div id="wl_modal" class="wl-modal-backdrop">
+<div class="wl-modal-sheet">
+<div style="width:40px;height:4px;background:#262626;border-radius:2px;margin:0 auto 18px"></div>
+<div style="text-align:center;font-size:22px;font-weight:700;letter-spacing:-0.2px;margin-bottom:6px">Remove beauty wish?</div>
+<div style="text-align:center;font-size:11px;color:#888;margin-bottom:18px">This will remove the beauty wish from your page</div>
+<div id="wl_modalPreview" style="margin-bottom:20px"></div>
+<div style="display:flex;gap:10px">
+<div onclick="wlCancelDelete()" style="flex:1;background:#1c1c1c;border:1px solid #262626;border-radius:12px;padding:14px;text-align:center;font-size:15px;font-weight:700;letter-spacing:0.2px;cursor:pointer;color:#fff">Keep</div>
+<div onclick="wlConfirmDelete()" style="flex:1;background:#e91e8c;border-radius:12px;padding:14px;text-align:center;font-size:15px;font-weight:700;letter-spacing:0.2px;cursor:pointer;color:#fff">Remove</div>
+</div>
+</div>
+</div>
+
+<!-- Toast -->
+<div id="wl_toast" class="wl-toast"></div>
+
+</div>
+
+<script>
+(function(){
+  function $(id){return document.getElementById(id);}
+
+  // ===========================================================================
+  // WISHLIST DATA — pulled from server
+  // ---------------------------------------------------------------------------
+  // Endpoint: GET /api/wishes?user_id=me
+  //
+  // Returns the ambassador's own wishes (both open and gifted), most recent first.
+  //
+  // Contract:
+  //   [
+  //     {
+  //       "id": "uuid",
+  //       "status": "open" | "gifted",
+  //       "service": "Hair",
+  //       "professional": "Salon de Luxe",
+  //       "location": "Dubai, UAE",
+  //       "amount": 300,
+  //       "currency": "USD",
+  //       "symbol": "$",
+  //       "days_live": 5,
+  //       "age_bar_pct": 8,   // 0-100, for open wishes only
+  //       "clicks": 3,
+  //       // Gifted-only fields:
+  //       "gifter": { "first_name": "Ahmed", "instagram": "ahmedk", "anonymous": false } | null,
+  //       "gifted_at": "2026-04-05T14:00:00Z" | null,
+  //       "reference": "W8473921" | null
+  //     },
+  //     ...
+  //   ]
+  //
+  // Fallback renders mockup defaults if fetch fails.
+  // ===========================================================================
+
+  var FALLBACK_WISHES = [
+    {id:1,status:'open',   service:'Hair',   professional:'Salon de Luxe',    location:'Dubai, UAE',    amount:300,symbol:'$',currency:'USD',days_live:5, age_bar_pct:8,  clicks:3},
+    {id:2,status:'open',   service:'Nails',  professional:'Lash Salon',       location:'Abu Dhabi, UAE',amount:80, symbol:'$',currency:'USD',days_live:62,age_bar_pct:62, clicks:12},
+    {id:3,status:'gifted', service:'Fillers',professional:'Skin Clinic Dubai',location:'Dubai, UAE',    amount:500,symbol:'$',currency:'USD',clicks:8, gifter:{first_name:'Ahmed',instagram:'ahmedk',anonymous:false},gifted_at:'2026-04-05',reference:'W8473921'},
+    {id:4,status:'gifted', service:'Hair',   professional:'Salon de Luxe',    location:'Dubai, UAE',    amount:300,symbol:'$',currency:'USD',clicks:15,gifter:{first_name:'Anonymous',instagram:null,anonymous:true},gifted_at:'2026-04-02',reference:'W2918473'},
+    {id:5,status:'gifted', service:'Nails',  professional:'Lash Salon',       location:'Abu Dhabi, UAE',amount:80, symbol:'$',currency:'USD',clicks:22,gifter:{first_name:'Noor',instagram:'noorh',anonymous:false},gifted_at:'2026-03-28',reference:'W5639204'}
+  ];
+
+  var state = {wishes:[], filter:'all', pendingDeleteId:null};
+
+  // ===========================================================================
+  // Icons (inline SVG strings)
+  // ===========================================================================
+  var shareSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>';
+  var trashSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+  function igSvg(color){return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="'+color+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;flex-shrink:0"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>';}
+
+  // ===========================================================================
+  // Helpers
+  // ===========================================================================
+  function formatDate(iso){
+    try {
+      var d = new Date(iso);
+      var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+    } catch(e) { return iso; }
+  }
+  function money(w){return (w.symbol||'$') + (w.amount||0);}
+
+  // ===========================================================================
+  // Render
+  // ===========================================================================
+  function renderTabs(){
+    var counts = {
+      all:    state.wishes.length,
+      open:   state.wishes.filter(function(w){return w.status==='open';}).length,
+      gifted: state.wishes.filter(function(w){return w.status==='gifted';}).length
+    };
+    var tabs = [{key:'all',label:'All'},{key:'open',label:'Open'},{key:'gifted',label:'Gifted'}];
+    $('wl_tabs').innerHTML = tabs.map(function(t){
+      var active = state.filter===t.key;
+      var style = active
+        ? 'font-size:13px;font-weight:700;color:#fff;padding:6px 0 4px;border-bottom:1.5px solid #e91e8c;cursor:pointer'
+        : 'font-size:13px;font-weight:600;color:#777;padding:6px 0 4px;cursor:pointer';
+      return '<div class="filter-tab" onclick="wlSetFilter(\''+t.key+'\')" style="'+style+'">'+t.label+'</div>';
+    }).join('');
+  }
+
+  function renderOpenRow(w){
+    return '<div class="wl-row" data-state="open" data-id="'+w.id+'" style="padding:18px 0;border-bottom:1px solid #1f1f1f">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'+
+        '<div style="display:flex;align-items:baseline;gap:8px;flex:1;min-width:0">'+
+          '<span style="font-size:14px;font-weight:700">'+w.professional+'</span>'+
+          '<span style="font-size:10px;color:#777">'+w.clicks+' clicks</span>'+
+        '</div>'+
+        '<div style="display:flex;gap:10px;flex-shrink:0;align-items:center">'+
+          '<span onclick="event.stopPropagation();wlShare('+w.id+',this)">'+shareSvg+'</span>'+
+          '<span onclick="event.stopPropagation();wlAskDelete('+w.id+')">'+trashSvg+'</span>'+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+        '<div style="display:flex;align-items:center;gap:6px">'+
+          '<span style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700">'+w.service+'</span>'+
+          '<span style="font-size:11px;color:#777">·</span>'+
+          '<span style="font-size:10px;color:#777">'+w.location+'</span>'+
+        '</div>'+
+        '<span style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700">Open</span>'+
+      '</div>'+
+      '<div class="pbar" data-target="'+w.age_bar_pct+'" style="background-image:linear-gradient(#e91e8c,#e91e8c),repeating-linear-gradient(90deg,#4a1a30 0 4px,transparent 4px 8px)"></div>'+
+      '<div style="display:flex;justify-content:space-between">'+
+        '<span style="font-size:11px;color:#777">'+w.days_live+' days live</span>'+
+        '<span style="font-size:11px;color:#fff;font-weight:700">'+money(w)+'</span>'+
+      '</div>'+
+    '</div>';
+  }
+
+  function renderGiftedRow(w){
+    var g = w.gifter || {};
+    var iconColor = g.anonymous ? '#666' : '#e91e8c';
+    var nameClick = (!g.anonymous && g.instagram) ? 'onclick="wlOpenIg(\''+g.instagram+'\')"' : '';
+    var nameCursor = (!g.anonymous && g.instagram) ? 'cursor:pointer;' : '';
+    return '<div class="wl-row" data-state="gifted" data-id="'+w.id+'" style="padding:18px 0;border-bottom:1px solid #1f1f1f">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'+
+        '<div style="display:flex;align-items:baseline;gap:8px;flex:1;min-width:0">'+
+          '<span style="font-size:14px;font-weight:700">'+w.professional+'</span>'+
+          '<span style="font-size:10px;color:#777">'+w.clicks+' clicks</span>'+
+        '</div>'+
+        '<span style="font-size:10px;color:#777">'+formatDate(w.gifted_at)+'</span>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'+
+        '<div style="display:flex;align-items:center;gap:6px">'+
+          '<span style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700">'+w.service+'</span>'+
+          '<span style="font-size:11px;color:#777">·</span>'+
+          '<span style="font-size:10px;color:#777">'+w.location+'</span>'+
+        '</div>'+
+        '<span style="font-size:11px;letter-spacing:1px;color:#34d399;font-weight:700">Gifted</span>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center">'+
+        '<span '+nameClick+' style="'+nameCursor+'display:inline-flex;align-items:center;gap:5px;white-space:nowrap">'+igSvg(iconColor)+'<span style="font-size:11px;font-weight:500;color:#fff">'+g.first_name+'</span></span>'+
+        '<span style="font-size:11px;color:#fff;font-weight:700">'+money(w)+'</span>'+
+      '</div>'+
+    '</div>';
+  }
+
+  function renderEmptyState(){
+    return '<div style="padding:80px 20px;text-align:center">'+
+      '<div style="font-size:16px;font-weight:600;margin-bottom:6px">No beauty wishes yet</div>'+
+      '<div style="font-size:13px;color:#888;margin-bottom:24px">Add your first beauty wish to show data here.</div>'+
+      '<div onclick="wlAddWish()" style="background:#e91e8c;border-radius:12px;padding:14px 28px;font-size:14px;font-weight:700;letter-spacing:0.2px;cursor:pointer;display:inline-block;color:#fff">Add beauty wish</div>'+
+    '</div>';
+  }
+
+  function renderRows(){
+    var open   = state.wishes.filter(function(w){return w.status==='open';});
+    var gifted = state.wishes.filter(function(w){return w.status==='gifted';});
+    var visible;
+    if (state.filter==='all')    visible = open.concat(gifted);
+    else if (state.filter==='open') visible = open;
+    else visible = gifted;
+
+    if (visible.length === 0) {
+      $('wl_rows').innerHTML = renderEmptyState();
+      return;
+    }
+    $('wl_rows').innerHTML = visible.map(function(w){
+      return w.status==='open' ? renderOpenRow(w) : renderGiftedRow(w);
+    }).join('');
+
+    // Animate progress bars on next frame
+    requestAnimationFrame(function(){
+      document.querySelectorAll('#wlPage .pbar').forEach(function(bar){
+        var t = bar.getAttribute('data-target') || '0';
+        bar.style.backgroundSize = t+'% 100%, 100% 100%';
+      });
+    });
+  }
+
+  function render(){renderTabs();renderRows();}
+
+  // ===========================================================================
+  // Actions
+  // ===========================================================================
+  window.wlBack = function(){ /* production: history.back() or route to dashboard */ };
+  window.wlAddWish = function(){ window.location.href = '/wishlist/new'; };
+  window.wlSetFilter = function(f){state.filter=f;render();};
+
+  window.wlShare = function(id, iconEl){
+    var w = state.wishes.find(function(x){return x.id===id;});
+    if (!w) return;
+    // Build checkout URL + pre-filled WhatsApp message
+    var url = "https://welovedecode.com/wish/" + id + "/checkout";
+    var amb = (window.WLD_AMB_FIRST || "me");
+    var message = "Looking for a gift idea for me? I\u2019ve got a beauty wish ready \ud83c\udf81 " + url;
+    // Open WhatsApp (mobile: app; desktop: web) with contact picker + message pre-filled
+    var waUrl = "https://wa.me/?text=" + encodeURIComponent(message);
+    window.open(waUrl, "_blank");
+  };
+
+  window.wlAskDelete = function(id){
+    state.pendingDeleteId = id;
+    var w = state.wishes.find(function(x){return x.id===id;});
+    if (!w) return;
+    // Render a faithful row replica inside the modal, minus the action icons
+    $('wl_modalPreview').innerHTML =
+      '<div style="background:rgba(233,30,140,0.08);border-radius:12px;padding:14px 14px">'+
+        '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px">'+
+          '<span style="font-size:14px;font-weight:700">'+w.professional+'</span>'+
+          '<span style="font-size:10px;color:#777">'+w.clicks+' clicks</span>'+
+        '</div>'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+          '<div style="display:flex;align-items:center;gap:6px">'+
+            '<span style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700">'+w.service+'</span>'+
+            '<span style="font-size:11px;color:#777">·</span>'+
+            '<span style="font-size:10px;color:#777">'+w.location+'</span>'+
+          '</div>'+
+          '<span style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700">Open</span>'+
+        '</div>'+
+        '<div class="pbar" data-target="'+w.age_bar_pct+'" style="background-image:linear-gradient(#e91e8c,#e91e8c),repeating-linear-gradient(90deg,#4a1a30 0 4px,transparent 4px 8px)"></div>'+
+        '<div style="display:flex;justify-content:space-between">'+
+          '<span style="font-size:11px;color:#777">'+w.days_live+' days live</span>'+
+          '<span style="font-size:11px;color:#fff;font-weight:700">'+money(w)+'</span>'+
+        '</div>'+
+      '</div>';
+    // Trigger progress bar animation on next frame for the preview bar
+    requestAnimationFrame(function(){
+      var bar = $('wl_modalPreview').querySelector('.pbar');
+      if (bar) {
+        var t = bar.getAttribute('data-target') || '0';
+        bar.style.backgroundSize = t+'% 100%, 100% 100%';
+      }
+    });
+    $('wl_modal').classList.add('open');
+  };
+
+  window.wlCancelDelete = function(){
+    state.pendingDeleteId = null;
+    $('wl_modal').classList.remove('open');
+  };
+
+  window.wlConfirmDelete = function(){
+    if (state.pendingDeleteId !== null) {
+      // In production: DELETE /api/wishes/{id} (soft delete)
+      state.wishes = state.wishes.filter(function(w){return w.id !== state.pendingDeleteId;});
+      state.pendingDeleteId = null;
+      render();
+      wlToast('Wish removed');
+    }
+    $('wl_modal').classList.remove('open');
+  };
+
+  window.wlOpenIg = function(handle){
+    window.open('https://instagram.com/'+handle, '_blank');
+  };
+
+  var toastTimer = null;
+  function wlToast(msg){
+    var t = $('wl_toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){t.classList.remove('show');}, 1800);
+  }
+
+  // ===========================================================================
+  // Data loader
+  // ===========================================================================
+  function loadWishes(){
+    if (typeof fetch !== 'function') {state.wishes = FALLBACK_WISHES; render(); return;}
+    fetch('/api/wishes?user_id=me', {headers:{'Accept':'application/json'}})
+      .then(function(res){if(!res.ok) throw new Error('HTTP '+res.status); return res.json();})
+      .then(function(data){
+        if (!Array.isArray(data)) throw new Error('invalid payload');
+        state.wishes = data;
+        render();
+      })
+      .catch(function(){state.wishes = FALLBACK_WISHES; render();});
+  }
+  loadWishes();
+
+  // Celebration toast — fires on page load only if URL has ?created={wishId},
+  // typically set by the Add Wish form after a successful submission redirect.
+  //
+  // MOCKUP MODE: force the toast to fire on every page load so the reviewer
+  // can see it without needing to append ?created=... to the URL. In production,
+  // remove `|| true` so the toast only fires when arriving from Add Wish.
+  (function(){
+    try {
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('created') || true /* MOCKUP: always show */) {
+        var celeb = $('wl_celebration');
+        if (celeb) celeb.classList.add('show');
+        // Clean the URL so a refresh doesn't re-fire the toast (production only)
+        if (params.get('created') && window.history && window.history.replaceState) {
+          var cleanUrl = window.location.pathname + window.location.hash;
+          window.history.replaceState({}, '', cleanUrl);
+        }
+      }
+    } catch(e) {}
+  })();
+})();
+</script>

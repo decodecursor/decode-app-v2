@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html><head><title>Settings - Interactive Mockup</title>
+<style>
+::selection{background:#e91e8c;color:#fff}
+body{margin:0;padding:24px;background:#111;display:flex;justify-content:center;min-height:100vh}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+*:focus{outline:none!important}
+input,input:focus,input:active,input:focus-visible{outline:none!important;outline-width:0!important;box-shadow:none!important;-webkit-appearance:none!important}
+input{border:none!important}
+#um_confirmInput::placeholder,#um_input::placeholder{color:#555;opacity:1}
+.row-saved-flash{animation:flash 1.2s ease-out}
+@keyframes flash{0%{background:#1c1c1c}30%{background:#14532d}100%{background:#1c1c1c}}
+.otp-cell{width:40px;height:48px;background:#111;border-radius:10px;border:1px solid #333;text-align:center;font-size:18px;color:#fff;font-weight:600;caret-color:#e91e8c}
+.otp-cell:focus{border-color:#e91e8c}
+.field-error{font-size:11px;color:#ef4444;margin-top:6px;display:none}
+</style></head><body>
+<div style="width:375px;background:#000;border-radius:24px;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#fff;border:2px solid #222;position:relative">
+
+<!-- Header -->
+<div style="padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between">
+<div style="display:flex;align-items:center;gap:12px">
+<svg onclick="goDashboard()" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+<span style="font-size:20px;font-weight:700">Settings</span>
+</div>
+</div>
+
+<div style="padding:0 20px 24px;max-height:680px;overflow-y:auto">
+
+<!-- Cover -->
+<input type="file" id="coverFile" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handleCoverUpload(event)">
+<div id="coverBox" style="position:relative;height:120px;border-radius:14px;overflow:hidden;margin-bottom:16px;background-image:linear-gradient(135deg,#2a2a2a 0%,#0a0a0a 100%);background-size:cover;background-position:center 50%;background-repeat:no-repeat;user-select:none;touch-action:none;cursor:grab" onmousedown="startCoverDrag(event)" ontouchstart="startCoverDrag(event)">
+<div style="position:absolute;bottom:0;left:0;right:0;height:50px;background:linear-gradient(transparent,rgba(0,0,0,0.6));pointer-events:none"></div>
+<div style="position:absolute;bottom:10px;right:16px;width:34px;height:34px;background:rgba(0,0,0,0.7);border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid #333;cursor:pointer;z-index:2" onclick="event.stopPropagation();document.getElementById('coverFile').click()"><svg width="15" height="15" viewBox="0 -1 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+</div>
+
+<!-- URL -->
+<div style="background:#1c1c1c;border-radius:14px;padding:13px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;border:1px solid #262626">
+<div style="flex:1;min-width:0">
+<div style="font-size:14px;color:#888;margin-bottom:3px">Your page</div>
+<div style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="color:#666">welovedecode.com/</span><span id="urlSlug" style="color:#fff;font-weight:500">sarajohnson</span></div>
+</div>
+<div style="display:flex;gap:6px;flex-shrink:0">
+<div id="copyBtn" style="width:28px;height:28px;border-radius:50%;background:#111;border:1px solid #333;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative" onclick="copyUrl()" title="Copy URL">
+<svg id="copyIcon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+</div>
+<div style="width:28px;height:28px;border-radius:50%;background:#111;border:1px solid #333;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="openPublicPage()" title="View page"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div>
+<div style="width:28px;height:28px;border-radius:50%;background:#111;border:1px solid #333;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="openUrlModal()" title="Edit URL"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+</div>
+</div>
+
+<!-- Profile -->
+<div style="background:#1c1c1c;border-radius:14px;overflow:hidden;margin-bottom:12px">
+<div class="profile-row" style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #262626;cursor:pointer" onclick="ef(this)"><span style="font-size:14px;color:#888">First name</span><div style="display:flex;align-items:center;gap:6px"><span class="v" style="font-size:14px">Sara</span><svg class="c" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="profile-row" style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #262626;cursor:pointer" onclick="ef(this)"><span style="font-size:14px;color:#888">Last name</span><div style="display:flex;align-items:center;gap:6px"><span class="v" style="font-size:14px">Johnson</span><svg class="c" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="profile-row" style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #262626;cursor:pointer" onclick="ef(this)"><span style="font-size:14px;color:#888">Tagline</span><div style="display:flex;align-items:center;gap:6px"><span class="v" style="font-size:14px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Beauty lover from Dubai ✨</span><svg class="c" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="profile-row" style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="ef(this)"><span style="font-size:14px;color:#888">Instagram</span><div style="display:flex;align-items:center;gap:6px"><span class="v" style="font-size:14px">sarajohnson</span><svg class="c" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+</div>
+
+<!-- Contact -->
+<div style="background:#1c1c1c;border-radius:14px;overflow:hidden;margin-bottom:12px">
+<div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #262626;cursor:pointer" onclick="openEmailModal()"><span style="font-size:14px;color:#888">Email</span><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;color:#fff">sara@email.com</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="openPhoneModal()"><span style="font-size:14px;color:#888">WhatsApp</span><div style="display:flex;align-items:center;gap:6px"><span id="phoneVal" style="font-size:14px">+971 50 123 4567</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+</div>
+
+<!-- Preferences -->
+<div style="background:#1c1c1c;border-radius:14px;overflow:hidden;margin-bottom:12px">
+<div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #262626"><div><span style="font-size:14px;color:#888">Currency</span><div style="font-size:10px;color:#888;margin-top:3px">Can't be changed after setup</div></div><div style="display:flex;align-items:center;gap:6px;margin-top:8px"><span style="font-size:14px;color:#fff;line-height:1;white-space:nowrap">AED (<svg width="11" height="10" viewBox="0 0 344.84 299.91" fill="#fff" style="vertical-align:-1px;margin:0 1px"><path d="M342.14,140.96l2.7,2.54v-7.72c0-17-11.92-30.84-26.56-30.84h-23.41C278.49,36.7,222.69,0,139.68,0c-52.86,0-59.65,0-109.71,0,0,0,15.03,12.63,15.03,52.4v52.58h-27.68c-5.38,0-10.43-2.08-14.61-6.01l-2.7-2.54v7.72c0,17.01,11.92,30.84,26.56,30.84h18.44s0,29.99,0,29.99h-27.68c-5.38,0-10.43-2.07-14.61-6.01l-2.7-2.54v7.71c0,17,11.92,30.82,26.56,30.82h18.44s0,54.89,0,54.89c0,38.65-15.03,50.06-15.03,50.06h109.71c85.62,0,139.64-36.96,155.38-104.98h32.46c5.38,0,10.43,2.07,14.61,6l2.7,2.54v-7.71c0-17-11.92-30.83-26.56-30.83h-18.9c.32-4.88.49-9.87.49-15s-.18-10.11-.51-14.99h28.17c5.37,0,10.43,2.07,14.61,6.01ZM89.96,15.01h45.86c61.7,0,97.44,27.33,108.1,89.94l-153.96.02V15.01ZM136.21,284.93h-46.26v-89.98l153.87-.02c-9.97,56.66-42.07,88.38-107.61,90ZM247.34,149.96c0,5.13-.11,10.13-.34,14.99l-157.04.02v-29.99l157.05-.02c.22,4.84.33,9.83.33,15Z"/></svg>)</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" style="display:block;flex-shrink:0"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div></div>
+<div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #262626"><div><span style="font-size:14px;color:#888">Beauty Wishlist</span><div id="ws" style="font-size:10px;color:#e91e8c;margin-top:3px">Hidden from your page</div></div><div id="wishlistToggle" data-on="false" style="width:44px;height:24px;background:#333;border-radius:12px;position:relative;cursor:pointer" onclick="toggleWishlist()"><div style="width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s"></div></div></div>
+<div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center"><div><span style="font-size:14px;color:#888">Page live</span><div id="ps" style="font-size:10px;color:#e91e8c;margin-top:3px">Your page is visible</div></div><div id="pageLiveToggle" data-live="true" style="width:44px;height:24px;background:#e91e8c;border-radius:12px;position:relative;cursor:pointer" onclick="togglePageLive()"><div style="width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;left:22px;transition:left 0.2s"></div></div></div>
+</div>
+
+<!-- Account -->
+<div style="background:#1c1c1c;border-radius:14px;overflow:hidden;margin-bottom:12px">
+<div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #262626;cursor:pointer" onclick="doLogout()"><span style="font-size:14px;color:#888">Log out</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+<div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="openDeleteModal()"><span style="font-size:14px;color:#888">Delete profile</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+</div>
+</div>
+
+<!-- Toast -->
+<div id="toast" style="display:none;position:absolute;bottom:80px;left:50%;transform:translateX(-50%);background:#1c1c1c;border:1px solid #333;color:#fff;padding:10px 18px;border-radius:24px;font-size:12px;z-index:30;box-shadow:0 4px 20px rgba(0,0,0,0.5)"></div>
+
+<!-- URL Edit Modal (3-step) -->
+<div id="um" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);align-items:flex-end;justify-content:center;z-index:10">
+<div style="background:#1c1c1c;border-radius:20px 20px 0 0;width:100%;padding:24px 20px 32px">
+<div style="width:40px;height:4px;background:#444;border-radius:2px;margin:0 auto 20px"></div>
+<div id="um_step1">
+<div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:8px">Change your URL</div>
+<div style="font-size:12px;color:#888;text-align:center;margin-bottom:20px;line-height:1.5">Changing this will break your current URL</div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding:0 4px">
+<div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:0.5px">Page URL</div>
+<div id="um_status" style="font-size:10px;color:#4ade80">Available</div>
+</div>
+<div id="um_box" style="background:#111;border-radius:10px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;gap:2px;border:1px solid #333;transition:border-color 0.2s">
+<span style="font-size:14px;color:#555">welovedecode.com/</span>
+<input id="um_input" type="text" value="sarajohnson" oninput="umCheck()" autocomplete="off" style="flex:1;min-width:0;background:transparent;font-size:15px;color:#fff;font-weight:500;caret-color:#e91e8c;padding:0">
+<svg id="um_icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>
+</div>
+<div style="display:flex;gap:10px">
+<div onclick="umCancel()" style="flex:1;background:#262626;border-radius:12px;padding:16px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:#fff">Cancel</div>
+<div id="um_save" onclick="umGoToStep2()" style="flex:1;background:#ef4444;border-radius:12px;padding:16px;text-align:center;font-size:14px;font-weight:600;color:#fff;cursor:pointer;transition:background 0.2s,color 0.2s">Change</div>
+</div>
+</div>
+<div id="um_step2" style="display:none">
+<div style="text-align:center;margin-bottom:8px"><div style="font-size:18px;font-weight:700">Change your URL?</div></div>
+<div style="text-align:center;margin-bottom:20px"><div style="font-size:11px;color:#888;line-height:1.5">Your new URL will be <span id="um_newSlugPreview" style="color:#fff;font-weight:600">welovedecode.com/...</span></div></div>
+<div style="background:#111;border-radius:10px;padding:16px;margin-bottom:24px">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:12px;color:#ef4444">&#10006;</span><span style="font-size:13px;color:#888">Your current URL will stop working</span></div>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:12px;color:#ef4444">&#10006;</span><span style="font-size:13px;color:#888">Payment links already shared will break</span></div>
+<div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:#ef4444">&#10006;</span><span style="font-size:13px;color:#888">Your old URL will be released</span></div>
+</div>
+<div style="display:flex;gap:10px">
+<div onclick="umCancel()" style="flex:1;background:#262626;border-radius:12px;padding:16px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:#fff">Keep</div>
+<div onclick="umGoToStep3()" style="flex:1;background:#ef4444;border-radius:12px;padding:16px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:#fff">Change</div>
+</div>
+</div>
+<div id="um_step3" style="display:none">
+<div style="text-align:center;margin-bottom:8px"><div style="font-size:18px;font-weight:700">Final step</div></div>
+<div style="text-align:center;margin-bottom:20px"><div style="font-size:11px;color:#888;line-height:1.5">Type <span style="color:#fff;font-weight:700">CHANGE</span> below to amend your URL.</div></div>
+<div style="background:#111;border-radius:10px;padding:0 16px;margin-bottom:24px">
+<input id="um_confirmInput" type="text" placeholder="CHANGE" oninput="umCheckConfirm()" autocomplete="off" autocapitalize="characters" style="width:100%;background:transparent;font-size:14px;color:#fff;padding:16px 0;font-family:inherit;text-align:center;letter-spacing:1px;caret-color:#ef4444;font-weight:700;text-transform:uppercase">
+</div>
+<div style="display:flex;gap:10px">
+<div onclick="umCancel()" style="flex:1;background:#262626;border-radius:12px;padding:16px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:#fff">Keep</div>
+<div id="um_confirmBtn" onclick="umConfirmChange()" style="flex:1;background:#333;border-radius:12px;padding:16px;text-align:center;font-size:14px;font-weight:600;color:#666;cursor:not-allowed;transition:background 0.2s,color 0.2s">Change</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Email Modal (2-step: enter → sent confirmation) -->
+<div id="em" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);align-items:flex-end;justify-content:center;z-index:10">
+<div style="background:#1c1c1c;border-radius:20px 20px 0 0;width:100%;padding:24px 20px 32px">
+<div style="width:40px;height:4px;background:#444;border-radius:2px;margin:0 auto 24px"></div>
+
+<!-- Step 1: Enter new email -->
+<div id="em_step1">
+<div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:8px">Change email</div>
+<div style="font-size:13px;color:#888;text-align:center;margin-bottom:20px">A verification link will be sent to your new email.</div>
+<div id="eb" style="background:#111;border-radius:10px;padding:14px 16px;margin-bottom:6px;border:1px solid #333;transition:border-color 0.2s">
+<input id="em_input" type="email" placeholder="New email address" style="width:100%;background:transparent;font-size:14px;color:#fff;caret-color:#e91e8c" onfocus="document.getElementById('eb').style.borderColor='#e91e8c'" onblur="emBlur()" oninput="emClearError()">
+</div>
+<div id="em_error" class="field-error" style="margin-bottom:14px;padding:0 4px"></div>
+<div id="em_submit" style="background:#e91e8c;border-radius:12px;padding:14px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px;color:#fff" onclick="emSubmit()">Send verification</div>
+<div style="text-align:center;font-size:14px;color:#888;cursor:pointer;padding:8px" onclick="closeEmailModal()">Cancel</div>
+</div>
+
+<!-- Step 2: Sent — check inbox -->
+<div id="em_step2" style="display:none">
+<div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:8px">Check your email</div>
+<div style="font-size:12px;color:#888;text-align:center;margin-bottom:20px;line-height:1.6">We sent a verification link to<br><span id="em_sentTo" style="color:#fff;font-weight:600">new@email.com</span></div>
+
+<!-- Tracker -->
+<div style="padding:0 8px;margin-bottom:22px">
+<div style="display:flex;align-items:center">
+<div style="width:20px;height:20px;border-radius:50%;background:#e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+<div style="flex:1;height:1.5px;background:#e91e8c;margin:0 2px"></div>
+<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #e91e8c;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0"><div style="width:6px;height:6px;border-radius:50%;background:#e91e8c"></div></div>
+<div style="flex:1;height:1.5px;background-image:repeating-linear-gradient(90deg,#3a3a3a 0 3px,transparent 3px 6px);margin:0 2px"></div>
+<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #3a3a3a;background:transparent;flex-shrink:0"></div>
+</div>
+<div style="display:grid;grid-template-columns:20px 1fr 20px 1fr 20px;margin-top:10px">
+<div style="position:relative"><span style="font-size:9px;font-weight:600;position:absolute;white-space:nowrap;left:0;color:#777">Sent</span></div>
+<div></div>
+<div style="position:relative"><span style="font-size:9px;font-weight:700;position:absolute;white-space:nowrap;left:50%;transform:translateX(-50%);color:#e91e8c">Open email</span></div>
+<div></div>
+<div style="position:relative"><span style="font-size:9px;font-weight:600;position:absolute;white-space:nowrap;right:0;color:#777">Done</span></div>
+</div>
+</div>
+
+<div style="background:#111;border-radius:10px;padding:12px 14px;margin-bottom:16px;border:1px solid #262626">
+<div style="font-size:11px;color:#fff;line-height:1.6">Your current email <b style="color:#fff">stays active</b> until you click the verification link. The link expires in 10 minutes.</div>
+</div>
+
+<div style="font-size:11px;color:#888;text-align:center;height:18px;line-height:18px;margin-bottom:16px">Didn't receive it? <span id="em_resend" onclick="emResend()" style="color:#e91e8c;font-weight:600;cursor:pointer;display:inline-block;min-width:44px;vertical-align:baseline">Resend</span></div>
+
+<div style="background:#e91e8c;border-radius:12px;padding:14px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:#fff" onclick="closeEmailModal()">Got it</div>
+</div>
+
+</div>
+</div>
+
+<!-- Phone Modal (2-step) -->
+<div id="pm" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);align-items:flex-end;justify-content:center;z-index:10">
+<div style="background:#1c1c1c;border-radius:20px 20px 0 0;width:100%;padding:24px 20px 32px">
+<div style="width:40px;height:4px;background:#444;border-radius:2px;margin:0 auto 24px"></div>
+
+<!-- Step 1: number -->
+<div id="pm_step1">
+<div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:8px">Change WhatsApp</div>
+<div style="font-size:13px;color:#888;text-align:center;margin-bottom:20px">A verification code will be sent to your new number.</div>
+<div style="display:flex;gap:8px;margin-bottom:6px">
+<div style="width:108px;background:#111;border-radius:10px;padding:14px 12px;flex-shrink:0;border:1px solid #333;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px" onclick="openCountryPicker()">
+<span id="ccFlag" style="font-size:16px">🇦🇪</span>
+<span id="ccCode" style="font-size:14px;color:#fff;flex:1;text-align:center">+971</span>
+<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+</div>
+<div id="nb" style="flex:1;background:#111;border-radius:10px;padding:14px 16px;border:1px solid #333;transition:border-color 0.2s">
+<input id="pm_num" type="tel" placeholder="50 123 4567" style="width:100%;background:transparent;font-size:14px;color:#fff;caret-color:#e91e8c" onfocus="document.getElementById('nb').style.borderColor='#e91e8c'" onblur="document.getElementById('nb').style.borderColor='#333'" oninput="pmFormat(this)">
+</div>
+</div>
+<div id="pm_err" class="field-error" style="margin-bottom:14px;padding:0 4px"></div>
+<div id="pm_send" style="background:#333;color:#666;border-radius:12px;padding:14px;text-align:center;font-size:14px;font-weight:600;cursor:not-allowed;margin-bottom:10px" onclick="pmSendCode()">Send code via WhatsApp</div>
+<div style="text-align:center;font-size:14px;color:#888;cursor:pointer;padding:8px" onclick="closePhoneModal()">Cancel</div>
+</div>
+
+<!-- Step 2: OTP -->
+<div id="pm_step2" style="display:none">
+<div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:8px">Enter code</div>
+<div style="font-size:13px;color:#888;text-align:center;margin-bottom:20px">We sent a 6-digit code to <span id="pm_sentTo" style="color:#fff;font-weight:500">+971 50 123 4567</span></div>
+
+<!-- Tracker: Send done, Enter code active -->
+<div style="padding:0 8px;margin-bottom:22px">
+<div style="display:flex;align-items:center">
+<div style="width:20px;height:20px;border-radius:50%;background:#e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+<div style="flex:1;height:1.5px;background:#e91e8c;margin:0 2px"></div>
+<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #e91e8c;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0"><div style="width:6px;height:6px;border-radius:50%;background:#e91e8c"></div></div>
+<div style="flex:1;height:1.5px;background-image:repeating-linear-gradient(90deg,#3a3a3a 0 3px,transparent 3px 6px);margin:0 2px"></div>
+<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #3a3a3a;background:transparent;flex-shrink:0"></div>
+</div>
+<div style="display:grid;grid-template-columns:20px 1fr 20px 1fr 20px;margin-top:10px">
+<div style="position:relative"><span style="font-size:9px;font-weight:600;position:absolute;white-space:nowrap;left:0;color:#777">Send</span></div>
+<div></div>
+<div style="position:relative"><span style="font-size:9px;font-weight:700;position:absolute;white-space:nowrap;left:50%;transform:translateX(-50%);color:#e91e8c">Enter code</span></div>
+<div></div>
+<div style="position:relative"><span style="font-size:9px;font-weight:600;position:absolute;white-space:nowrap;right:0;color:#777">Done</span></div>
+</div>
+</div>
+<div style="display:flex;gap:8px;justify-content:center;margin-bottom:8px">
+<input class="otp-cell" maxlength="1" inputmode="numeric" oninput="otpInput(this,0)" onkeydown="otpKey(event,0)">
+<input class="otp-cell" maxlength="1" inputmode="numeric" oninput="otpInput(this,1)" onkeydown="otpKey(event,1)">
+<input class="otp-cell" maxlength="1" inputmode="numeric" oninput="otpInput(this,2)" onkeydown="otpKey(event,2)">
+<input class="otp-cell" maxlength="1" inputmode="numeric" oninput="otpInput(this,3)" onkeydown="otpKey(event,3)">
+<input class="otp-cell" maxlength="1" inputmode="numeric" oninput="otpInput(this,4)" onkeydown="otpKey(event,4)">
+<input class="otp-cell" maxlength="1" inputmode="numeric" oninput="otpInput(this,5)" onkeydown="otpKey(event,5)">
+</div>
+<div id="otp_err" class="field-error" style="text-align:center;margin-bottom:12px"></div>
+<div style="text-align:center;margin-bottom:20px">
+<span id="resendLink" style="font-size:13px;color:#e91e8c;cursor:pointer" onclick="resendOtp()">Resend code</span>
+<span id="resendTimer" style="font-size:13px;color:#666;display:none">Resend in <span id="rsec">60</span>s</span>
+</div>
+<div style="display:flex;gap:10px">
+<div onclick="pmBackToStep1()" style="flex:1;background:#262626;border-radius:12px;padding:14px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:#fff">Back</div>
+<div style="flex:1;background:#262626;border-radius:12px;padding:14px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:#fff" onclick="closePhoneModal()">Cancel</div>
+</div>
+</div>
+
+<!-- Step 3: Confirmation — WhatsApp changed! -->
+<div id="pm_step3" style="display:none">
+<div style="font-size:22px;font-weight:700;text-align:center;margin-bottom:32px;letter-spacing:-0.2px">WhatsApp changed!</div>
+
+<!-- Tracker: all done, all pink -->
+<div style="padding:0 8px;margin-bottom:32px">
+<div style="display:flex;align-items:center">
+<div style="width:20px;height:20px;border-radius:50%;background:#e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+<div style="flex:1;height:1.5px;background:#e91e8c;margin:0 2px"></div>
+<div style="width:20px;height:20px;border-radius:50%;background:#e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+<div style="flex:1;height:1.5px;background:#e91e8c;margin:0 2px"></div>
+<div style="width:20px;height:20px;border-radius:50%;background:#e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+</div>
+<div style="display:grid;grid-template-columns:20px 1fr 20px 1fr 20px;margin-top:10px">
+<div style="position:relative"><span style="font-size:9px;font-weight:600;position:absolute;white-space:nowrap;left:0;color:#777">Send</span></div>
+<div></div>
+<div style="position:relative"><span style="font-size:9px;font-weight:600;position:absolute;white-space:nowrap;left:50%;transform:translateX(-50%);color:#777">Enter code</span></div>
+<div></div>
+<div style="position:relative"><span style="font-size:9px;font-weight:700;position:absolute;white-space:nowrap;right:0;color:#e91e8c">Done</span></div>
+</div>
+</div>
+
+<!-- Old → New phone cards -->
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:32px">
+<div style="flex:1;background:#1c1c1c;border:1px solid #262626;border-radius:12px;padding:12px 10px;min-width:0;text-align:center">
+<div style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;font-weight:600">Old</div>
+<div id="pm_oldNum" style="font-size:11px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">+971 50 123 4567</div>
+</div>
+<div style="flex-shrink:0">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+</div>
+<div style="flex:1;background:#1c1c1c;border:1px solid #e91e8c;border-radius:12px;padding:12px 10px;min-width:0;text-align:center">
+<div style="font-size:9px;color:#e91e8c;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;font-weight:600">New</div>
+<div id="pm_newNum" style="font-size:11px;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">+971 78 542 2448</div>
+</div>
+</div>
+
+<div style="background:#e91e8c;border-radius:12px;padding:14px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:#fff" onclick="closePhoneModal()">Done</div>
+</div>
+
+</div>
+</div>
+
+<!-- Country Picker -->
+<!-- Country Picker — full-screen overlay matching auth_page_final.html -->
+<div id="ccPicker" style="display:none;position:absolute;inset:0;background:#000;z-index:30;flex-direction:column">
+<div style="padding:16px 20px 20px;display:flex;align-items:center;gap:14px;flex-shrink:0">
+<div onclick="document.getElementById('ccPicker').style.display='none'" style="cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;margin-left:-8px">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+</div>
+<div style="font-size:18px;font-weight:700">Select country</div>
+</div>
+<div style="padding:0 20px 16px;flex-shrink:0">
+<div style="position:relative">
+<div style="position:absolute;left:16px;top:0;bottom:0;display:flex;align-items:center;pointer-events:none">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+</div>
+<input id="ccSearch" type="text" placeholder="Search country or code" oninput="ccFilter()" style="width:100%;background:transparent;border:1.5px solid #2a2a2a;border-radius:12px;padding:0 16px 0 42px;font-size:14px;color:#fff;outline:none;font-family:inherit;height:48px;box-sizing:border-box;transition:border-color 0.2s" onfocus="this.style.borderColor='#e91e8c'" onblur="this.style.borderColor='#2a2a2a'">
+</div>
+</div>
+<div id="ccList" style="flex:1;overflow-y:auto;padding:0 20px 24px"></div>
+</div>
+
+<!-- Can't Hide Modal (final spec: modal_settings__toggle_hide_page) -->
+<div id="hm" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);align-items:flex-end;justify-content:center;z-index:10">
+<div style="background:#1c1c1c;border-radius:20px 20px 0 0;width:100%;padding:24px 20px 32px">
+<div style="width:40px;height:4px;background:#444;border-radius:2px;margin:0 auto 24px"></div>
+<div style="text-align:center;margin-bottom:8px"><div style="font-size:18px;font-weight:700">Can't hide page</div></div>
+<div style="text-align:center;margin-bottom:24px"><div style="font-size:13px;color:#888;line-height:1.5">You have active paid listings.<br>Your page stays visible until they expire.</div></div>
+<div style="background:#111;border-radius:10px;padding:14px;margin-bottom:24px">
+<div style="font-size:13px;font-weight:500">3 active listings</div>
+<div style="font-size:11px;color:#888;margin-top:2px">Hideable from 11 April 2026</div>
+</div>
+<div style="background:#e91e8c;border-radius:12px;padding:16px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:#fff" onclick="hmGotIt()">Got it</div>
+</div>
+</div>
+
+<!-- Delete Modal (2-step) -->
+<div id="dm" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);align-items:flex-end;justify-content:center;z-index:10">
+<div style="background:#1c1c1c;border-radius:20px 20px 0 0;width:100%;padding:24px 20px 32px">
+<div style="width:40px;height:4px;background:#444;border-radius:2px;margin:0 auto 24px"></div>
+<div id="dp_step1">
+<div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:8px">Delete profile?</div>
+<div style="font-size:11px;color:#888;text-align:center;margin-bottom:20px;line-height:1.5">This will permanently remove your page and all its content.</div>
+<div style="background:#111;border-radius:10px;padding:16px;margin-bottom:24px">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:12px;color:#ef4444">&#10006;</span><span style="font-size:13px;color:#888">Your public page will be deleted</span></div>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:12px;color:#ef4444">&#10006;</span><span style="font-size:13px;color:#888">All listings will be removed</span></div>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:12px;color:#ef4444">&#10006;</span><span style="font-size:13px;color:#888">Your URL will be released</span></div>
+<div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:#ef4444">&#10006;</span><span style="font-size:13px;color:#888">This action cannot be undone</span></div>
+</div>
+<div style="display:flex;gap:10px">
+<div onclick="dpClose()" style="flex:1;background:#262626;border-radius:12px;padding:16px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:#fff">Keep</div>
+<div onclick="dpGoToStep2()" style="flex:1;background:#ef4444;border-radius:12px;padding:16px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:#fff">Delete</div>
+</div>
+</div>
+<div id="dp_step2" style="display:none">
+<div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:8px">Final step</div>
+<div style="font-size:11px;color:#888;text-align:center;margin-bottom:20px;line-height:1.5">Type <span style="color:#fff;font-weight:700">DELETE</span> below to confirm.</div>
+<div style="background:#111;border-radius:10px;padding:0 16px;margin-bottom:24px">
+<input id="dp_confirmInput" type="text" placeholder="DELETE" oninput="dpCheckConfirm()" autocomplete="off" autocapitalize="characters" style="width:100%;background:transparent;font-size:14px;color:#fff;padding:16px 0;text-align:center;letter-spacing:1px;caret-color:#ef4444;text-transform:uppercase">
+</div>
+<div style="display:flex;gap:10px">
+<div onclick="dpClose()" style="flex:1;background:#262626;border-radius:12px;padding:16px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:#fff">Keep</div>
+<div id="dp_confirmBtn" onclick="dpConfirmDelete()" style="flex:1;background:#333;border-radius:12px;padding:16px;text-align:center;font-size:14px;font-weight:600;color:#666;cursor:not-allowed">Delete</div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+
+<script>
+// Mock state
+const mockUser = {
+  slug: 'sarajohnson',
+  first_name: 'Sara',
+  last_name: 'Johnson',
+  tagline: 'Beauty lover from Dubai ✨',
+  instagram: 'sarajohnson',
+  email: 'sara@email.com',
+  phone: '+971501234567',
+  is_public: true,
+  wishlist_public: false,
+  has_active_paid_listings: true // toggle to false to allow hiding page
+};
+
+// Nav
+function goDashboard(){ showToast('→ /dashboard (mockup)'); }
+
+// Toast
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.display='block';
+  clearTimeout(window._t); window._t=setTimeout(()=>t.style.display='none',1800);
+}
+
+// Saved flash on row
+function flashRow(row){
+  row.classList.add('row-saved-flash');
+  setTimeout(()=>row.classList.remove('row-saved-flash'),1200);
+}
+
+// Copy URL — visible "Copied!" text label
+function copyUrl(){
+  const slug=document.getElementById('urlSlug').textContent;
+  const url='https://welovedecode.com/'+slug;
+  try{
+    if(navigator.clipboard) navigator.clipboard.writeText(url).catch(()=>{});
+  }catch(e){}
+  const btn=document.getElementById('copyBtn');
+  const icon=document.getElementById('copyIcon');
+  const orig=icon.innerHTML;
+  // Big visible label below the URL card
+  let label=document.getElementById('copiedLabel');
+  if(!label){
+    label=document.createElement('div');
+    label.id='copiedLabel';
+    label.textContent='Copied!';
+    label.style.cssText='position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:500;color:#4ade80;letter-spacing:0.3px;white-space:nowrap;pointer-events:none';
+    btn.appendChild(label);
+  }
+  icon.setAttribute('stroke','#4ade80');
+  icon.innerHTML='<polyline points="20 6 9 17 4 12"/>';
+  setTimeout(()=>{
+    icon.setAttribute('stroke','#888');
+    icon.innerHTML=orig;
+    if(label && label.parentNode) label.parentNode.removeChild(label);
+  },1500);
+}
+
+// View page
+function openPublicPage(){
+  const slug=document.getElementById('urlSlug').textContent;
+  showToast('→ welovedecode.com/'+slug);
+  // Production: window.location.href = 'https://welovedecode.com/'+slug;
+}
+
+// URL Edit Modal — 3 step
+const reserved=['admin','settings','api','auth','dashboard','test'];
+const taken=['sarah','beauty','hello'];
+let umCurrent='sarajohnson';
+
+function openUrlModal(){
+  document.getElementById('um').style.display='flex';
+  document.getElementById('um_step1').style.display='block';
+  document.getElementById('um_step2').style.display='none';
+  document.getElementById('um_step3').style.display='none';
+  document.getElementById('um_input').value=umCurrent;
+  document.getElementById('um_confirmInput').value='';
+  umCheck();
+  setTimeout(()=>document.getElementById('um_input').focus(),100);
+}
+function umCheck(){
+  const v=document.getElementById('um_input').value.trim().toLowerCase();
+  const status=document.getElementById('um_status');
+  const icon=document.getElementById('um_icon');
+  const box=document.getElementById('um_box');
+  const save=document.getElementById('um_save');
+  const valid=/^[a-z0-9._-]+$/.test(v);
+  const bad = v.length<3 ? 'Min 3 characters'
+          : !valid ? 'Letters, numbers, . _ - only'
+          : reserved.includes(v) ? 'Reserved'
+          : taken.includes(v) ? 'Not available'
+          : v===umCurrent ? 'This is your current URL'
+          : null;
+  if(bad){
+    status.textContent=bad; status.style.color='#ff4444';
+    icon.style.display='none'; box.style.borderColor='#ff4444';
+    save.style.background='#333'; save.style.color='#666'; save.style.cursor='not-allowed';
+  }else{
+    status.textContent='Available'; status.style.color='#4ade80';
+    icon.style.display='block'; box.style.borderColor='#333';
+    save.style.background='#ef4444'; save.style.color='#fff'; save.style.cursor='pointer';
+  }
+}
+function umGoToStep2(){
+  const v=document.getElementById('um_input').value.trim().toLowerCase();
+  const save=document.getElementById('um_save');
+  if(save.style.cursor==='not-allowed')return;
+  document.getElementById('um_newSlugPreview').textContent='welovedecode.com/'+v;
+  document.getElementById('um_step1').style.display='none';
+  document.getElementById('um_step2').style.display='block';
+}
+function umGoToStep3(){
+  document.getElementById('um_step2').style.display='none';
+  document.getElementById('um_step3').style.display='block';
+  setTimeout(()=>document.getElementById('um_confirmInput').focus(),100);
+}
+function umCheckConfirm(){
+  const v=document.getElementById('um_confirmInput').value.trim().toUpperCase();
+  const btn=document.getElementById('um_confirmBtn');
+  if(v==='CHANGE'){
+    btn.style.background='#ef4444'; btn.style.color='#fff'; btn.style.cursor='pointer';
+    btn.dataset.enabled='true';
+  }else{
+    btn.style.background='#333'; btn.style.color='#666'; btn.style.cursor='not-allowed';
+    btn.dataset.enabled='false';
+  }
+}
+function umConfirmChange(){
+  const btn=document.getElementById('um_confirmBtn');
+  if(btn.dataset.enabled!=='true')return;
+  const v=document.getElementById('um_input').value.trim().toLowerCase();
+  btn.textContent='Saving…';
+  setTimeout(()=>{
+    umCurrent=v;
+    document.getElementById('urlSlug').textContent=v;
+    umCancel();
+    showToast('URL updated');
+    btn.textContent='Change';
+  },600);
+}
+function umCancel(){
+  document.getElementById('um').style.display='none';
+}
+
+// Inline profile edits
+function ef(row){
+  if(row.querySelector('input'))return;
+  const v=row.querySelector('.v');
+  const c=row.querySelector('.c');
+  const ov=v.textContent;
+  const parent=v.parentElement;
+  const isInstagram=(row.firstElementChild && row.firstElementChild.textContent==='Instagram');
+  const input=document.createElement('input');
+  input.type='text';
+  input.maxLength=70;
+  // For Instagram: show handle without @ (strip it on edit)
+  input.value=isInstagram?ov.replace(/^@/,''):ov;
+  input.style.cssText='background:transparent;border:none;outline:none;padding:0;font-size:14px;color:#fff;font-family:inherit;flex:1;min-width:0;text-align:right;caret-color:#e91e8c;margin-left:12px';
+  v.style.display='none'; c.style.display='none';
+  parent.style.flex='1';
+  parent.style.minWidth='0';
+  parent.appendChild(input);
+  input.focus(); input.setSelectionRange(input.value.length,input.value.length);
+  const save=()=>{
+    let nv=input.value.trim();
+    if(isInstagram){
+      // Normalize Instagram: strip @ and any instagram.com URL
+      nv=nv.replace(/^@/,'').replace(/^https?:\/\/(www\.)?instagram\.com\//i,'').replace(/\/$/,'').trim();
+    }
+    if(!nv) nv=ov;
+    v.textContent=nv; v.style.display=''; c.style.display='';
+    input.remove();
+    parent.style.flex='';
+    parent.style.minWidth='';
+    // Optimistic write → PATCH /api/user/me {field: nv}
+    flashRow(row);
+  };
+  input.addEventListener('blur',save);
+  input.addEventListener('keydown',(e)=>{
+    if(e.key==='Enter')input.blur();
+    if(e.key==='Escape'){ input.value=ov; input.blur(); }
+  });
+}
+
+// Email modal
+function openEmailModal(){
+  document.getElementById('em').style.display='flex';
+  document.getElementById('em_step1').style.display='block';
+  document.getElementById('em_step2').style.display='none';
+  document.getElementById('em_input').value='';
+  emClearError();
+  const btn=document.getElementById('em_submit');
+  btn.textContent='Send verification';
+  btn.style.background='#e91e8c';
+  setTimeout(()=>document.getElementById('em_input').focus(),100);
+}
+function closeEmailModal(){
+  document.getElementById('em').style.display='none';
+  clearInterval(window._emrt);
+}
+function emClearError(){
+  document.getElementById('em_error').style.display='none';
+  document.getElementById('eb').style.borderColor='#333';
+}
+function emBlur(){
+  document.getElementById('eb').style.borderColor='#333';
+  const v=document.getElementById('em_input').value.trim();
+  if(!v)return;
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) emShowError('Enter a valid email');
+}
+function emShowError(msg){
+  const e=document.getElementById('em_error');
+  e.textContent=msg; e.style.display='block';
+  document.getElementById('eb').style.borderColor='#ef4444';
+}
+function emSubmit(){
+  const v=document.getElementById('em_input').value.trim();
+  if(!v || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){ emShowError('Enter a valid email'); return; }
+  if(v==='taken@email.com'){ emShowError('This email is already in use'); return; }
+  const btn=document.getElementById('em_submit');
+  btn.textContent='Sending…';
+  btn.style.opacity='0.7';
+  btn.style.cursor='default';
+  setTimeout(()=>{
+    // Swap to Step 2 (Check your email)
+    document.getElementById('em_sentTo').textContent=v;
+    document.getElementById('em_step1').style.display='none';
+    document.getElementById('em_step2').style.display='block';
+    btn.textContent='Send verification';
+    btn.style.opacity='1';
+    btn.style.cursor='pointer';
+  },700);
+}
+
+// Email resend — 60s cooldown, same pattern as auth page
+let emCooldown=0;
+function emResend(){
+  if(emCooldown>0)return;
+  const r=document.getElementById('em_resend');
+  r.textContent='Code sent';
+  emCooldown=60;
+  setTimeout(()=>{ emTick(); },2000);
+  // Production: Supabase.auth.updateUser({email}) again — Supabase invalidates old link, sends new one
+}
+function emTick(){
+  const r=document.getElementById('em_resend');
+  if(emCooldown<=0){
+    r.textContent='Resend';
+    r.style.opacity='1';
+    r.style.cursor='pointer';
+    return;
+  }
+  r.textContent='Resend ('+emCooldown+'s)';
+  r.style.opacity='0.5';
+  r.style.cursor='not-allowed';
+  emCooldown--;
+  window._emrt=setTimeout(emTick,1000);
+}
+
+// Phone modal
+const countries = [
+  { code:'AE', name:'United Arab Emirates', dial:'+971', flag:'🇦🇪', placeholder:'55 846 2387', popular:true },
+  { code:'US', name:'United States', dial:'+1', flag:'🇺🇸', placeholder:'(555) 123 4567', popular:true },
+  { code:'GB', name:'United Kingdom', dial:'+44', flag:'🇬🇧', placeholder:'07700 900000', popular:true },
+
+  { code:'AF', name:'Afghanistan', dial:'+93', flag:'🇦🇫', placeholder:'70 123 4567' },
+  { code:'AL', name:'Albania', dial:'+355', flag:'🇦🇱', placeholder:'67 123 4567' },
+  { code:'DZ', name:'Algeria', dial:'+213', flag:'🇩🇿', placeholder:'551 23 45 67' },
+  { code:'AD', name:'Andorra', dial:'+376', flag:'🇦🇩', placeholder:'312 345' },
+  { code:'AO', name:'Angola', dial:'+244', flag:'🇦🇴', placeholder:'923 123 456' },
+  { code:'AG', name:'Antigua & Barbuda', dial:'+1268', flag:'🇦🇬', placeholder:'464 1234' },
+  { code:'AR', name:'Argentina', dial:'+54', flag:'🇦🇷', placeholder:'11 1234 5678' },
+  { code:'AM', name:'Armenia', dial:'+374', flag:'🇦🇲', placeholder:'77 123456' },
+  { code:'AU', name:'Australia', dial:'+61', flag:'🇦🇺', placeholder:'412 345 678' },
+  { code:'AT', name:'Austria', dial:'+43', flag:'🇦🇹', placeholder:'664 123456' },
+  { code:'AZ', name:'Azerbaijan', dial:'+994', flag:'🇦🇿', placeholder:'40 123 45 67' },
+  { code:'BS', name:'Bahamas', dial:'+1242', flag:'🇧🇸', placeholder:'359 1234' },
+  { code:'BH', name:'Bahrain', dial:'+973', flag:'🇧🇭', placeholder:'3600 1234' },
+  { code:'BD', name:'Bangladesh', dial:'+880', flag:'🇧🇩', placeholder:'1812 345678' },
+  { code:'BB', name:'Barbados', dial:'+1246', flag:'🇧🇧', placeholder:'250 1234' },
+  { code:'BY', name:'Belarus', dial:'+375', flag:'🇧🇾', placeholder:'29 491 1911' },
+  { code:'BE', name:'Belgium', dial:'+32', flag:'🇧🇪', placeholder:'470 12 34 56' },
+  { code:'BZ', name:'Belize', dial:'+501', flag:'🇧🇿', placeholder:'622 1234' },
+  { code:'BJ', name:'Benin', dial:'+229', flag:'🇧🇯', placeholder:'90 01 12 34' },
+  { code:'BT', name:'Bhutan', dial:'+975', flag:'🇧🇹', placeholder:'17 12 34 56' },
+  { code:'BO', name:'Bolivia', dial:'+591', flag:'🇧🇴', placeholder:'71234567' },
+  { code:'BA', name:'Bosnia & Herzegovina', dial:'+387', flag:'🇧🇦', placeholder:'61 123 456' },
+  { code:'BW', name:'Botswana', dial:'+267', flag:'🇧🇼', placeholder:'71 123 456' },
+  { code:'BR', name:'Brazil', dial:'+55', flag:'🇧🇷', placeholder:'11 91234 5678' },
+  { code:'BN', name:'Brunei', dial:'+673', flag:'🇧🇳', placeholder:'712 3456' },
+  { code:'BG', name:'Bulgaria', dial:'+359', flag:'🇧🇬', placeholder:'48 123 456' },
+  { code:'BF', name:'Burkina Faso', dial:'+226', flag:'🇧🇫', placeholder:'70 12 34 56' },
+  { code:'BI', name:'Burundi', dial:'+257', flag:'🇧🇮', placeholder:'79 56 12 34' },
+  { code:'KH', name:'Cambodia', dial:'+855', flag:'🇰🇭', placeholder:'91 234 567' },
+  { code:'CM', name:'Cameroon', dial:'+237', flag:'🇨🇲', placeholder:'6 71 23 45 67' },
+  { code:'CA', name:'Canada', dial:'+1', flag:'🇨🇦', placeholder:'(506) 234 5678' },
+  { code:'CV', name:'Cape Verde', dial:'+238', flag:'🇨🇻', placeholder:'991 12 34' },
+  { code:'CF', name:'Central African Republic', dial:'+236', flag:'🇨🇫', placeholder:'70 01 23 45' },
+  { code:'TD', name:'Chad', dial:'+235', flag:'🇹🇩', placeholder:'63 01 23 45' },
+  { code:'CL', name:'Chile', dial:'+56', flag:'🇨🇱', placeholder:'2 2123 4567' },
+  { code:'CN', name:'China', dial:'+86', flag:'🇨🇳', placeholder:'131 2345 6789' },
+  { code:'CO', name:'Colombia', dial:'+57', flag:'🇨🇴', placeholder:'321 1234567' },
+  { code:'KM', name:'Comoros', dial:'+269', flag:'🇰🇲', placeholder:'321 23 45' },
+  { code:'CG', name:'Congo', dial:'+242', flag:'🇨🇬', placeholder:'06 123 4567' },
+  { code:'CD', name:'Congo (DRC)', dial:'+243', flag:'🇨🇩', placeholder:'991 234 567' },
+  { code:'CR', name:'Costa Rica', dial:'+506', flag:'🇨🇷', placeholder:'8312 3456' },
+  { code:'CI', name:'Côte d\u2019Ivoire', dial:'+225', flag:'🇨🇮', placeholder:'01 23 45 67 89' },
+  { code:'HR', name:'Croatia', dial:'+385', flag:'🇭🇷', placeholder:'91 234 5678' },
+  { code:'CU', name:'Cuba', dial:'+53', flag:'🇨🇺', placeholder:'5 1234567' },
+  { code:'CY', name:'Cyprus', dial:'+357', flag:'🇨🇾', placeholder:'96 123456' },
+  { code:'CZ', name:'Czech Republic', dial:'+420', flag:'🇨🇿', placeholder:'601 123 456' },
+  { code:'DK', name:'Denmark', dial:'+45', flag:'🇩🇰', placeholder:'32 12 34 56' },
+  { code:'DJ', name:'Djibouti', dial:'+253', flag:'🇩🇯', placeholder:'77 83 10 01' },
+  { code:'DM', name:'Dominica', dial:'+1767', flag:'🇩🇲', placeholder:'225 1234' },
+  { code:'DO', name:'Dominican Republic', dial:'+1', flag:'🇩🇴', placeholder:'(809) 234 5678' },
+  { code:'EC', name:'Ecuador', dial:'+593', flag:'🇪🇨', placeholder:'99 123 4567' },
+  { code:'EG', name:'Egypt', dial:'+20', flag:'🇪🇬', placeholder:'100 123 4567' },
+  { code:'SV', name:'El Salvador', dial:'+503', flag:'🇸🇻', placeholder:'7012 3456' },
+  { code:'GQ', name:'Equatorial Guinea', dial:'+240', flag:'🇬🇶', placeholder:'222 123 456' },
+  { code:'ER', name:'Eritrea', dial:'+291', flag:'🇪🇷', placeholder:'7 123 456' },
+  { code:'EE', name:'Estonia', dial:'+372', flag:'🇪🇪', placeholder:'5123 4567' },
+  { code:'SZ', name:'Eswatini', dial:'+268', flag:'🇸🇿', placeholder:'7612 3456' },
+  { code:'ET', name:'Ethiopia', dial:'+251', flag:'🇪🇹', placeholder:'91 123 4567' },
+  { code:'FJ', name:'Fiji', dial:'+679', flag:'🇫🇯', placeholder:'701 2345' },
+  { code:'FI', name:'Finland', dial:'+358', flag:'🇫🇮', placeholder:'41 2345678' },
+  { code:'FR', name:'France', dial:'+33', flag:'🇫🇷', placeholder:'6 12 34 56 78' },
+  { code:'GA', name:'Gabon', dial:'+241', flag:'🇬🇦', placeholder:'06 03 12 34' },
+  { code:'GM', name:'Gambia', dial:'+220', flag:'🇬🇲', placeholder:'301 2345' },
+  { code:'GE', name:'Georgia', dial:'+995', flag:'🇬🇪', placeholder:'555 12 34 56' },
+  { code:'DE', name:'Germany', dial:'+49', flag:'🇩🇪', placeholder:'151 23456789' },
+  { code:'GH', name:'Ghana', dial:'+233', flag:'🇬🇭', placeholder:'23 123 4567' },
+  { code:'GR', name:'Greece', dial:'+30', flag:'🇬🇷', placeholder:'691 234 5678' },
+  { code:'GD', name:'Grenada', dial:'+1473', flag:'🇬🇩', placeholder:'403 1234' },
+  { code:'GT', name:'Guatemala', dial:'+502', flag:'🇬🇹', placeholder:'5123 4567' },
+  { code:'GN', name:'Guinea', dial:'+224', flag:'🇬🇳', placeholder:'601 12 34 56' },
+  { code:'GW', name:'Guinea-Bissau', dial:'+245', flag:'🇬🇼', placeholder:'955 012 345' },
+  { code:'GY', name:'Guyana', dial:'+592', flag:'🇬🇾', placeholder:'609 1234' },
+  { code:'HT', name:'Haiti', dial:'+509', flag:'🇭🇹', placeholder:'34 10 1234' },
+  { code:'HN', name:'Honduras', dial:'+504', flag:'🇭🇳', placeholder:'9123 4567' },
+  { code:'HK', name:'Hong Kong', dial:'+852', flag:'🇭🇰', placeholder:'5123 4567' },
+  { code:'HU', name:'Hungary', dial:'+36', flag:'🇭🇺', placeholder:'20 123 4567' },
+  { code:'IS', name:'Iceland', dial:'+354', flag:'🇮🇸', placeholder:'611 1234' },
+  { code:'IN', name:'India', dial:'+91', flag:'🇮🇳', placeholder:'81234 56789' },
+  { code:'ID', name:'Indonesia', dial:'+62', flag:'🇮🇩', placeholder:'812 3456 7890' },
+  { code:'IR', name:'Iran', dial:'+98', flag:'🇮🇷', placeholder:'912 345 6789' },
+  { code:'IQ', name:'Iraq', dial:'+964', flag:'🇮🇶', placeholder:'791 234 5678' },
+  { code:'IE', name:'Ireland', dial:'+353', flag:'🇮🇪', placeholder:'85 012 3456' },
+  { code:'IL', name:'Israel', dial:'+972', flag:'🇮🇱', placeholder:'50 123 4567' },
+  { code:'IT', name:'Italy', dial:'+39', flag:'🇮🇹', placeholder:'312 345 6789' },
+  { code:'JM', name:'Jamaica', dial:'+1876', flag:'🇯🇲', placeholder:'210 1234' },
+  { code:'JP', name:'Japan', dial:'+81', flag:'🇯🇵', placeholder:'90 1234 5678' },
+  { code:'JO', name:'Jordan', dial:'+962', flag:'🇯🇴', placeholder:'7 9012 3456' },
+  { code:'KZ', name:'Kazakhstan', dial:'+7', flag:'🇰🇿', placeholder:'771 000 9998' },
+  { code:'KE', name:'Kenya', dial:'+254', flag:'🇰🇪', placeholder:'712 123456' },
+  { code:'KI', name:'Kiribati', dial:'+686', flag:'🇰🇮', placeholder:'72001234' },
+  { code:'KW', name:'Kuwait', dial:'+965', flag:'🇰🇼', placeholder:'500 12345' },
+  { code:'KG', name:'Kyrgyzstan', dial:'+996', flag:'🇰🇬', placeholder:'700 123 456' },
+  { code:'LA', name:'Laos', dial:'+856', flag:'🇱🇦', placeholder:'20 23 123 456' },
+  { code:'LV', name:'Latvia', dial:'+371', flag:'🇱🇻', placeholder:'21 234 567' },
+  { code:'LB', name:'Lebanon', dial:'+961', flag:'🇱🇧', placeholder:'71 123 456' },
+  { code:'LS', name:'Lesotho', dial:'+266', flag:'🇱🇸', placeholder:'5012 3456' },
+  { code:'LR', name:'Liberia', dial:'+231', flag:'🇱🇷', placeholder:'77 012 3456' },
+  { code:'LY', name:'Libya', dial:'+218', flag:'🇱🇾', placeholder:'91 2345678' },
+  { code:'LI', name:'Liechtenstein', dial:'+423', flag:'🇱🇮', placeholder:'660 234 567' },
+  { code:'LT', name:'Lithuania', dial:'+370', flag:'🇱🇹', placeholder:'612 34567' },
+  { code:'LU', name:'Luxembourg', dial:'+352', flag:'🇱🇺', placeholder:'628 123 456' },
+  { code:'MO', name:'Macau', dial:'+853', flag:'🇲🇴', placeholder:'6612 3456' },
+  { code:'MG', name:'Madagascar', dial:'+261', flag:'🇲🇬', placeholder:'32 12 345 67' },
+  { code:'MW', name:'Malawi', dial:'+265', flag:'🇲🇼', placeholder:'991 23 45 67' },
+  { code:'MY', name:'Malaysia', dial:'+60', flag:'🇲🇾', placeholder:'12 345 6789' },
+  { code:'MV', name:'Maldives', dial:'+960', flag:'🇲🇻', placeholder:'771 2345' },
+  { code:'ML', name:'Mali', dial:'+223', flag:'🇲🇱', placeholder:'65 01 23 45' },
+  { code:'MT', name:'Malta', dial:'+356', flag:'🇲🇹', placeholder:'9696 1234' },
+  { code:'MH', name:'Marshall Islands', dial:'+692', flag:'🇲🇭', placeholder:'235 1234' },
+  { code:'MR', name:'Mauritania', dial:'+222', flag:'🇲🇷', placeholder:'22 12 34 56' },
+  { code:'MU', name:'Mauritius', dial:'+230', flag:'🇲🇺', placeholder:'5251 2345' },
+  { code:'MX', name:'Mexico', dial:'+52', flag:'🇲🇽', placeholder:'222 123 4567' },
+  { code:'FM', name:'Micronesia', dial:'+691', flag:'🇫🇲', placeholder:'350 1234' },
+  { code:'MD', name:'Moldova', dial:'+373', flag:'🇲🇩', placeholder:'621 12 345' },
+  { code:'MC', name:'Monaco', dial:'+377', flag:'🇲🇨', placeholder:'6 12 34 56 78' },
+  { code:'MN', name:'Mongolia', dial:'+976', flag:'🇲🇳', placeholder:'8812 3456' },
+  { code:'ME', name:'Montenegro', dial:'+382', flag:'🇲🇪', placeholder:'67 622 901' },
+  { code:'MA', name:'Morocco', dial:'+212', flag:'🇲🇦', placeholder:'650 123456' },
+  { code:'MZ', name:'Mozambique', dial:'+258', flag:'🇲🇿', placeholder:'82 123 4567' },
+  { code:'MM', name:'Myanmar', dial:'+95', flag:'🇲🇲', placeholder:'9 2123 4567' },
+  { code:'NA', name:'Namibia', dial:'+264', flag:'🇳🇦', placeholder:'81 123 4567' },
+  { code:'NR', name:'Nauru', dial:'+674', flag:'🇳🇷', placeholder:'555 1234' },
+  { code:'NP', name:'Nepal', dial:'+977', flag:'🇳🇵', placeholder:'984 1234567' },
+  { code:'NL', name:'Netherlands', dial:'+31', flag:'🇳🇱', placeholder:'6 12345678' },
+  { code:'NZ', name:'New Zealand', dial:'+64', flag:'🇳🇿', placeholder:'21 123 4567' },
+  { code:'NI', name:'Nicaragua', dial:'+505', flag:'🇳🇮', placeholder:'8123 4567' },
+  { code:'NE', name:'Niger', dial:'+227', flag:'🇳🇪', placeholder:'93 12 34 56' },
+  { code:'NG', name:'Nigeria', dial:'+234', flag:'🇳🇬', placeholder:'802 123 4567' },
+  { code:'KP', name:'North Korea', dial:'+850', flag:'🇰🇵', placeholder:'192 123 4567' },
+  { code:'MK', name:'North Macedonia', dial:'+389', flag:'🇲🇰', placeholder:'72 345 678' },
+  { code:'NO', name:'Norway', dial:'+47', flag:'🇳🇴', placeholder:'406 12 345' },
+  { code:'OM', name:'Oman', dial:'+968', flag:'🇴🇲', placeholder:'9212 3456' },
+  { code:'PK', name:'Pakistan', dial:'+92', flag:'🇵🇰', placeholder:'301 2345678' },
+  { code:'PW', name:'Palau', dial:'+680', flag:'🇵🇼', placeholder:'620 1234' },
+  { code:'PS', name:'Palestine', dial:'+970', flag:'🇵🇸', placeholder:'59 123 4567' },
+  { code:'PA', name:'Panama', dial:'+507', flag:'🇵🇦', placeholder:'6123 4567' },
+  { code:'PG', name:'Papua New Guinea', dial:'+675', flag:'🇵🇬', placeholder:'7012 3456' },
+  { code:'PY', name:'Paraguay', dial:'+595', flag:'🇵🇾', placeholder:'961 456789' },
+  { code:'PE', name:'Peru', dial:'+51', flag:'🇵🇪', placeholder:'912 345 678' },
+  { code:'PH', name:'Philippines', dial:'+63', flag:'🇵🇭', placeholder:'905 123 4567' },
+  { code:'PL', name:'Poland', dial:'+48', flag:'🇵🇱', placeholder:'512 345 678' },
+  { code:'PT', name:'Portugal', dial:'+351', flag:'🇵🇹', placeholder:'912 345 678' },
+  { code:'PR', name:'Puerto Rico', dial:'+1', flag:'🇵🇷', placeholder:'(787) 234 5678' },
+  { code:'QA', name:'Qatar', dial:'+974', flag:'🇶🇦', placeholder:'3312 3456' },
+  { code:'RO', name:'Romania', dial:'+40', flag:'🇷🇴', placeholder:'712 034 567' },
+  { code:'RU', name:'Russia', dial:'+7', flag:'🇷🇺', placeholder:'912 345 67 89' },
+  { code:'RW', name:'Rwanda', dial:'+250', flag:'🇷🇼', placeholder:'720 123 456' },
+  { code:'KN', name:'Saint Kitts & Nevis', dial:'+1869', flag:'🇰🇳', placeholder:'765 2917' },
+  { code:'LC', name:'Saint Lucia', dial:'+1758', flag:'🇱🇨', placeholder:'284 5678' },
+  { code:'VC', name:'Saint Vincent', dial:'+1784', flag:'🇻🇨', placeholder:'430 1234' },
+  { code:'WS', name:'Samoa', dial:'+685', flag:'🇼🇸', placeholder:'72 12345' },
+  { code:'SM', name:'San Marino', dial:'+378', flag:'🇸🇲', placeholder:'66 66 12 12' },
+  { code:'ST', name:'São Tomé & Príncipe', dial:'+239', flag:'🇸🇹', placeholder:'981 2345' },
+  { code:'SA', name:'Saudi Arabia', dial:'+966', flag:'🇸🇦', placeholder:'51 234 5678' },
+  { code:'SN', name:'Senegal', dial:'+221', flag:'🇸🇳', placeholder:'70 123 45 67' },
+  { code:'RS', name:'Serbia', dial:'+381', flag:'🇷🇸', placeholder:'60 1234567' },
+  { code:'SC', name:'Seychelles', dial:'+248', flag:'🇸🇨', placeholder:'2 510 123' },
+  { code:'SL', name:'Sierra Leone', dial:'+232', flag:'🇸🇱', placeholder:'25 123456' },
+  { code:'SG', name:'Singapore', dial:'+65', flag:'🇸🇬', placeholder:'8123 4567' },
+  { code:'SK', name:'Slovakia', dial:'+421', flag:'🇸🇰', placeholder:'912 123 456' },
+  { code:'SI', name:'Slovenia', dial:'+386', flag:'🇸🇮', placeholder:'31 234 567' },
+  { code:'SB', name:'Solomon Islands', dial:'+677', flag:'🇸🇧', placeholder:'74 21234' },
+  { code:'SO', name:'Somalia', dial:'+252', flag:'🇸🇴', placeholder:'7 1123456' },
+  { code:'ZA', name:'South Africa', dial:'+27', flag:'🇿🇦', placeholder:'71 123 4567' },
+  { code:'KR', name:'South Korea', dial:'+82', flag:'🇰🇷', placeholder:'10 2345 6789' },
+  { code:'SS', name:'South Sudan', dial:'+211', flag:'🇸🇸', placeholder:'977 123 456' },
+  { code:'ES', name:'Spain', dial:'+34', flag:'🇪🇸', placeholder:'612 34 56 78' },
+  { code:'LK', name:'Sri Lanka', dial:'+94', flag:'🇱🇰', placeholder:'71 234 5678' },
+  { code:'SD', name:'Sudan', dial:'+249', flag:'🇸🇩', placeholder:'91 123 1234' },
+  { code:'SR', name:'Suriname', dial:'+597', flag:'🇸🇷', placeholder:'741 2345' },
+  { code:'SE', name:'Sweden', dial:'+46', flag:'🇸🇪', placeholder:'70 123 45 67' },
+  { code:'CH', name:'Switzerland', dial:'+41', flag:'🇨🇭', placeholder:'78 123 45 67' },
+  { code:'SY', name:'Syria', dial:'+963', flag:'🇸🇾', placeholder:'944 567 890' },
+  { code:'TW', name:'Taiwan', dial:'+886', flag:'🇹🇼', placeholder:'912 345 678' },
+  { code:'TJ', name:'Tajikistan', dial:'+992', flag:'🇹🇯', placeholder:'91 712 3456' },
+  { code:'TZ', name:'Tanzania', dial:'+255', flag:'🇹🇿', placeholder:'621 234 567' },
+  { code:'TH', name:'Thailand', dial:'+66', flag:'🇹🇭', placeholder:'81 234 5678' },
+  { code:'TL', name:'Timor-Leste', dial:'+670', flag:'🇹🇱', placeholder:'7721 2345' },
+  { code:'TG', name:'Togo', dial:'+228', flag:'🇹🇬', placeholder:'90 11 23 45' },
+  { code:'TO', name:'Tonga', dial:'+676', flag:'🇹🇴', placeholder:'771 5123' },
+  { code:'TT', name:'Trinidad & Tobago', dial:'+1868', flag:'🇹🇹', placeholder:'291 1234' },
+  { code:'TN', name:'Tunisia', dial:'+216', flag:'🇹🇳', placeholder:'20 123 456' },
+  { code:'TR', name:'Turkey', dial:'+90', flag:'🇹🇷', placeholder:'501 234 56 78' },
+  { code:'TM', name:'Turkmenistan', dial:'+993', flag:'🇹🇲', placeholder:'66 123 456' },
+  { code:'TV', name:'Tuvalu', dial:'+688', flag:'🇹🇻', placeholder:'901234' },
+  { code:'UG', name:'Uganda', dial:'+256', flag:'🇺🇬', placeholder:'712 345678' },
+  { code:'UA', name:'Ukraine', dial:'+380', flag:'🇺🇦', placeholder:'50 123 4567' },
+  { code:'UY', name:'Uruguay', dial:'+598', flag:'🇺🇾', placeholder:'94 231 234' },
+  { code:'UZ', name:'Uzbekistan', dial:'+998', flag:'🇺🇿', placeholder:'91 234 56 78' },
+  { code:'VU', name:'Vanuatu', dial:'+678', flag:'🇻🇺', placeholder:'591 1234' },
+  { code:'VA', name:'Vatican City', dial:'+379', flag:'🇻🇦', placeholder:'06 6981 1234' },
+  { code:'VE', name:'Venezuela', dial:'+58', flag:'🇻🇪', placeholder:'412 1234567' },
+  { code:'VN', name:'Vietnam', dial:'+84', flag:'🇻🇳', placeholder:'91 234 56 78' },
+  { code:'YE', name:'Yemen', dial:'+967', flag:'🇾🇪', placeholder:'712 345 678' },
+  { code:'ZM', name:'Zambia', dial:'+260', flag:'🇿🇲', placeholder:'95 5123456' },
+  { code:'ZW', name:'Zimbabwe', dial:'+263', flag:'🇿🇼', placeholder:'71 234 5678' }
+];
+
+const phoneFormats = {
+  '+971': '## ### ####',       // UAE: 55 427 5547
+  '+1':   '(###) ###-####',    // US/Canada/PR/DO: (555) 123-4567
+  '+44':  '#### ######',       // UK: 7700 900000
+  '+49':  '### ########',      // Germany: 151 23456789
+  '+33':  '# ## ## ## ##',     // France: 6 12 34 56 78
+  '+39':  '### ### ####',      // Italy: 312 345 6789
+  '+34':  '### ## ## ##',      // Spain: 612 34 56 78
+  '+31':  '# ########',        // Netherlands: 6 12345678
+  '+32':  '### ## ## ##',      // Belgium: 470 12 34 56
+  '+41':  '## ### ## ##',      // Switzerland: 78 123 45 67
+  '+43':  '### ######',        // Austria: 664 123456
+  '+46':  '## ### ## ##',      // Sweden: 70 123 45 67
+  '+47':  '### ## ###',        // Norway: 406 12 345
+  '+45':  '## ## ## ##',       // Denmark: 32 12 34 56
+  '+358': '## #######',        // Finland: 41 2345678
+  '+91':  '##### #####',       // India: 81234 56789
+  '+92':  '### #######',       // Pakistan: 301 2345678
+  '+880': '#### ######',       // Bangladesh: 1812 345678
+  '+966': '## ### ####',       // Saudi: 51 234 5678
+  '+974': '#### ####',         // Qatar: 3312 3456
+  '+973': '#### ####',         // Bahrain: 3600 1234
+  '+965': '### #####',         // Kuwait: 500 12345
+  '+968': '#### ####',         // Oman: 9212 3456
+  '+962': '# #### ####',       // Jordan: 7 9012 3456
+  '+961': '## ### ###',        // Lebanon: 71 123 456
+  '+20':  '### ### ####',      // Egypt: 100 123 4567
+  '+212': '### ######',        // Morocco: 650 123456
+  '+216': '## ### ###',        // Tunisia: 20 123 456
+  '+90':  '### ### ## ##',     // Turkey: 501 234 56 78
+  '+7':   '### ### ## ##',     // Russia/KZ: 912 345 67 89
+  '+380': '## ### ####',       // Ukraine: 50 123 4567
+  '+48':  '### ### ###',       // Poland: 512 345 678
+  '+420': '### ### ###',       // Czech: 601 123 456
+  '+40':  '### ### ###',       // Romania: 712 034 567
+  '+30':  '### ### ####',      // Greece: 691 234 5678
+  '+351': '### ### ###',       // Portugal: 912 345 678
+  '+353': '## ### ####',       // Ireland: 85 012 3456
+  '+81':  '## #### ####',      // Japan: 90 1234 5678
+  '+82':  '## #### ####',      // South Korea: 10 2345 6789
+  '+86':  '### #### ####',     // China: 131 2345 6789
+  '+852': '#### ####',         // Hong Kong: 5123 4567
+  '+65':  '#### ####',         // Singapore: 8123 4567
+  '+60':  '## ### ####',       // Malaysia: 12 345 6789
+  '+63':  '### ### ####',      // Philippines: 905 123 4567
+  '+66':  '## ### ####',       // Thailand: 81 234 5678
+  '+84':  '## ### ## ##',      // Vietnam: 91 234 56 78
+  '+62':  '### #### ####',     // Indonesia: 812 3456 7890
+  '+61':  '### ### ###',       // Australia: 412 345 678
+  '+64':  '## ### ####',       // New Zealand: 21 123 4567
+  '+27':  '## ### ####',       // South Africa: 71 123 4567
+  '+234': '### ### ####',      // Nigeria: 802 123 4567
+  '+254': '### ######',        // Kenya: 712 123456
+  '+20':  '### ### ####',      // Egypt: 100 123 4567
+  '+55':  '## ##### ####',     // Brazil: 11 91234 5678
+  '+52':  '### ### ####',      // Mexico: 222 123 4567
+  '+54':  '## #### ####',      // Argentina: 11 1234 5678
+  '+56':  '# #### ####',       // Chile: 2 2123 4567
+  '+57':  '### #######'        // Colombia: 321 1234567
+};
+
+function formatPhoneNumber(digits, dialCode){
+  const mask = phoneFormats[dialCode];
+  if(!mask) return digits;
+  let out = '';
+  let di = 0;
+  for(let i = 0; i < mask.length && di < digits.length; i++){
+    if(mask[i] === '#'){ out += digits[di]; di++; } else { out += mask[i]; }
+  }
+  if(di < digits.length){ out += ' ' + digits.slice(di); }
+  return out;
+}
+function openPhoneModal(){
+  document.getElementById('pm').style.display='flex';
+  document.getElementById('pm_step1').style.display='block';
+  document.getElementById('pm_step2').style.display='none';
+  document.getElementById('pm_step3').style.display='none';
+  document.getElementById('pm_num').value='';
+  document.getElementById('pm_err').style.display='none';
+  // Pre-select country matching current users.phone (longest dial-code match wins)
+  const current=document.getElementById('phoneVal').textContent.replace(/\s/g,'');
+  const match=countries
+    .filter(c=>current.startsWith(c.dial))
+    .sort((a,b)=>b.dial.length-a.dial.length)[0];
+  if(match){
+    document.getElementById('ccFlag').textContent=match.flag;
+    document.getElementById('ccCode').textContent=match.dial;
+    document.getElementById('pm_num').placeholder=match.placeholder||'Phone number';
+  }
+  pmValidate();
+}
+function closePhoneModal(){
+  document.getElementById('pm').style.display='none';
+  clearInterval(window._rt);
+}
+function pmFormat(el){
+  const dial=document.getElementById('ccCode').textContent;
+  const digits=el.value.replace(/\D/g,'');
+  const formatted=formatPhoneNumber(digits,dial);
+  if(el.value!==formatted) el.value=formatted;
+  document.getElementById('pm_err').style.display='none';
+  pmValidate();
+}
+function pmValidate(){
+  const v=document.getElementById('pm_num').value.replace(/\D/g,'');
+  const btn=document.getElementById('pm_send');
+  if(v.length>=7){
+    btn.style.background='#e91e8c';
+    btn.style.color='#fff';
+    btn.style.cursor='pointer';
+    btn.dataset.enabled='true';
+  }else{
+    btn.style.background='#333';
+    btn.style.color='#666';
+    btn.style.cursor='not-allowed';
+    btn.dataset.enabled='false';
+  }
+}
+function pmSendCode(){
+  if(document.getElementById('pm_send').dataset.enabled!=='true')return;
+  const cc=document.getElementById('ccCode').textContent;
+  const num=document.getElementById('pm_num').value;
+  // Block if user entered their current number
+  const newFull=(cc+num).replace(/\s/g,'');
+  const currentFull=document.getElementById('phoneVal').textContent.replace(/\s/g,'');
+  if(newFull===currentFull){
+    const err=document.getElementById('pm_err');
+    err.textContent='This is already your number';
+    err.style.display='block';
+    return;
+  }
+  document.getElementById('pm_err').style.display='none';
+  document.getElementById('pm_sentTo').textContent=cc+' '+num;
+  document.getElementById('pm_step1').style.display='none';
+  document.getElementById('pm_step2').style.display='block';
+  document.querySelectorAll('.otp-cell').forEach(c=>c.value='');
+  setTimeout(()=>document.querySelectorAll('.otp-cell')[0].focus(),100);
+  startResendTimer();
+}
+function pmBackToStep1(){
+  document.getElementById('pm_step2').style.display='none';
+  document.getElementById('pm_step1').style.display='block';
+  clearInterval(window._rt);
+}
+function otpInput(el,i){
+  el.value=el.value.replace(/\D/g,'').slice(0,1);
+  const cells=document.querySelectorAll('.otp-cell');
+  if(el.value && i<5) cells[i+1].focus();
+  const all=Array.from(cells).map(c=>c.value).join('');
+  if(all.length===6) verifyOtp(all);
+}
+function otpKey(e,i){
+  if(e.key==='Backspace' && !e.target.value && i>0){
+    document.querySelectorAll('.otp-cell')[i-1].focus();
+  }
+}
+function verifyOtp(code){
+  const err=document.getElementById('otp_err');
+  err.style.display='none';
+  if(code==='000000'){
+    err.textContent='Wrong code, try again'; err.style.display='block';
+    document.querySelectorAll('.otp-cell').forEach(c=>c.value='');
+    document.querySelectorAll('.otp-cell')[0].focus();
+    return;
+  }
+  // Success — swap to Step 3 confirmation
+  const oldPhone=document.getElementById('phoneVal').textContent;
+  const cc=document.getElementById('ccCode').textContent;
+  const num=document.getElementById('pm_num').value;
+  const newPhone=cc+' '+num;
+  document.getElementById('pm_oldNum').textContent=oldPhone;
+  document.getElementById('pm_newNum').textContent=newPhone;
+  // Update settings row in background (persists when modal closes)
+  document.getElementById('phoneVal').textContent=newPhone;
+  // Switch to step 3
+  document.getElementById('pm_step2').style.display='none';
+  document.getElementById('pm_step3').style.display='block';
+  clearInterval(window._rt);
+}
+function startResendTimer(){
+  let s=60;
+  document.getElementById('resendLink').style.display='none';
+  document.getElementById('resendTimer').style.display='inline';
+  document.getElementById('rsec').textContent=s;
+  clearInterval(window._rt);
+  window._rt=setInterval(()=>{
+    s--; document.getElementById('rsec').textContent=s;
+    if(s<=0){
+      clearInterval(window._rt);
+      document.getElementById('resendLink').style.display='inline';
+      document.getElementById('resendTimer').style.display='none';
+    }
+  },1000);
+}
+function resendOtp(){
+  const r=document.getElementById('resendLink');
+  r.textContent='Code sent';
+  setTimeout(()=>{ r.textContent='Resend code'; },2000);
+  startResendTimer();
+  // Production: AUTHKey send endpoint called again; previous code invalidated
+}
+
+// Country picker — matches auth_page_final.html
+function ccRowHtml(c){
+  const escPh = c.placeholder ? c.placeholder.replace(/'/g,"\\'") : '';
+  return `<div class="cc-row" onclick="selectCountry('${c.flag}','${c.dial}','${escPh}')" style="padding:12px 4px;border-top:1px solid #1a1a1a;display:flex;align-items:center;gap:14px;cursor:pointer"><span style="font-size:22px;line-height:1;flex-shrink:0">${c.flag}</span><span style="flex:1;font-size:14px;font-weight:600;color:#fff">${c.name}</span><span style="font-size:13px;color:#888;font-weight:600">${c.dial}</span></div>`;
+}
+function ccBuildList(){
+  const list=document.getElementById('ccList');
+  const popular=countries.filter(c=>c.popular);
+  const rest=countries.filter(c=>!c.popular).sort((a,b)=>a.name.localeCompare(b.name));
+  let html='<div id="cc-section-popular" style="font-size:10px;letter-spacing:1px;color:#888;font-weight:700;padding:14px 0 6px">POPULAR</div>';
+  html+=popular.map(ccRowHtml).join('');
+  let cur='';
+  rest.forEach(c=>{
+    const l=c.name.charAt(0).toUpperCase();
+    if(l!==cur){ cur=l; html+=`<div id="cc-section-${l}" style="font-size:10px;letter-spacing:1px;color:#888;font-weight:700;padding:18px 0 6px">${l}</div>`; }
+    html+=ccRowHtml(c);
+  });
+  list.innerHTML=html;
+}
+function ccFilterList(q){
+  const list=document.getElementById('ccList');
+  const ql=q.toLowerCase().trim();
+  const m=countries.filter(c=>c.name.toLowerCase().includes(ql)||c.dial.includes(ql)||c.code.toLowerCase().includes(ql)).sort((a,b)=>a.name.localeCompare(b.name));
+  if(m.length===0){ list.innerHTML='<div style="padding:40px 20px;text-align:center;color:#666;font-size:13px">No countries found</div>'; return; }
+  list.innerHTML=m.map(ccRowHtml).join('');
+}
+function ccFilter(){
+  const q=document.getElementById('ccSearch').value.trim();
+  if(q.length===0){ ccBuildList(); return; }
+  if(q.length===1 && /[a-zA-Z]/.test(q)){
+    ccBuildList();
+    setTimeout(()=>{
+      const sec=document.getElementById('cc-section-'+q.toUpperCase());
+      const listEl=document.getElementById('ccList');
+      if(sec && listEl) listEl.scrollTop = sec.offsetTop - listEl.offsetTop - 8;
+    },10);
+    return;
+  }
+  ccFilterList(q);
+}
+function openCountryPicker(){
+  document.getElementById('ccPicker').style.display='flex';
+  document.getElementById('ccSearch').value='';
+  ccBuildList();
+  document.getElementById('ccList').scrollTop=0;
+  setTimeout(()=>document.getElementById('ccSearch').focus(),100);
+}
+function selectCountry(flag,dial,placeholder){
+  document.getElementById('ccFlag').textContent=flag;
+  document.getElementById('ccCode').textContent=dial;
+  const inp=document.getElementById('pm_num');
+  inp.placeholder=placeholder||'Phone number';
+  inp.value='';
+  pmValidate();
+  document.getElementById('ccPicker').style.display='none';
+}
+
+// Wishlist toggle
+function toggleWishlist(){
+  const t=document.getElementById('wishlistToggle');
+  const k=t.querySelector('div');
+  const s=document.getElementById('ws');
+  const on=t.dataset.on==='true';
+  if(on){
+    t.dataset.on='false'; t.style.background='#333'; k.style.left='2px';
+    s.textContent='Hidden from your page'; s.style.color='#e91e8c';
+  }else{
+    t.dataset.on='true'; t.style.background='#e91e8c'; k.style.left='22px';
+    s.textContent='Visible on your page'; s.style.color='#e91e8c';
+  }
+  // PATCH /api/user/me {wishlist_public: bool}
+}
+
+function hmGotIt(){
+  document.getElementById('hm').style.display='none';
+  showToast('Got it — page stays visible');
+}
+
+// Page live toggle
+function togglePageLive(){
+  const t=document.getElementById('pageLiveToggle');
+  const k=t.querySelector('div');
+  const ps=document.getElementById('ps');
+  const live=t.dataset.live==='true';
+  if(live){
+    // Trying to turn OFF — check for active paid listings
+    if(mockUser.has_active_paid_listings){
+      document.getElementById('hm').style.display='flex';
+      return; // block toggle
+    }
+    t.dataset.live='false'; t.style.background='#262626'; k.style.left='2px';
+    ps.textContent='Your page is hidden'; ps.style.color='#888';
+  }else{
+    t.dataset.live='true'; t.style.background='#e91e8c'; k.style.left='22px';
+    ps.textContent='Your page is visible'; ps.style.color='#e91e8c';
+  }
+  // PATCH /api/user/me {is_public: bool}
+}
+
+// Logout
+function doLogout(){
+  showToast('Signing out…');
+  setTimeout(()=>showToast('→ /auth (mockup)'),900);
+  // Production: await supabase.auth.signOut(); window.location.href='/auth';
+}
+
+// Delete modal
+function openDeleteModal(){
+  document.getElementById('dm').style.display='flex';
+  document.getElementById('dp_step1').style.display='block';
+  document.getElementById('dp_step2').style.display='none';
+  document.getElementById('dp_confirmInput').value='';
+  dpCheckConfirm();
+}
+function dpGoToStep2(){
+  document.getElementById('dp_step1').style.display='none';
+  document.getElementById('dp_step2').style.display='block';
+  setTimeout(()=>document.getElementById('dp_confirmInput').focus(),100);
+}
+function dpClose(){ document.getElementById('dm').style.display='none'; }
+function dpCheckConfirm(){
+  const v=document.getElementById('dp_confirmInput').value.trim().toUpperCase();
+  const btn=document.getElementById('dp_confirmBtn');
+  if(v==='DELETE'){
+    btn.style.background='#ef4444'; btn.style.color='#fff'; btn.style.cursor='pointer';
+    btn.dataset.enabled='true';
+  }else{
+    btn.style.background='#333'; btn.style.color='#666'; btn.style.cursor='not-allowed';
+    btn.dataset.enabled='false';
+  }
+}
+function dpConfirmDelete(){
+  const btn=document.getElementById('dp_confirmBtn');
+  if(btn.dataset.enabled!=='true')return;
+  btn.textContent='Deleting…';
+  setTimeout(()=>showToast('→ /auth (profile deleted, mockup)'),900);
+  setTimeout(()=>{
+    dpClose();
+    btn.textContent='Delete';
+  },1800);
+}
+
+// Cover drag — enabled from load (existing cover)
+let cDrag=false, cStart=0, cPos=50;
+function handleCoverUpload(e){
+  const f=e.target.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const box=document.getElementById('coverBox');
+    box.style.backgroundImage="url('"+ev.target.result+"')";
+    box.style.backgroundSize='cover';
+    box.style.backgroundPosition='center 50%';
+    cPos=50;
+    showToast('Cover saved ✓');
+  };
+  r.readAsDataURL(f);
+}
+function startCoverDrag(e){
+  cDrag=true;
+  cStart=e.touches?e.touches[0].clientY:e.clientY;
+  document.getElementById('coverBox').style.cursor='grabbing';
+  document.addEventListener('mousemove',coverDrag);
+  document.addEventListener('touchmove',coverDrag,{passive:false});
+  document.addEventListener('mouseup',stopCoverDrag);
+  document.addEventListener('touchend',stopCoverDrag);
+}
+function coverDrag(e){
+  if(!cDrag)return;
+  if(e.preventDefault)e.preventDefault();
+  const y=e.touches?e.touches[0].clientY:e.clientY;
+  const dy=y-cStart;
+  const np=Math.max(0,Math.min(100,cPos-dy*0.5));
+  document.getElementById('coverBox').style.backgroundPosition='center '+np+'%';
+}
+function stopCoverDrag(e){
+  if(!cDrag)return;
+  cDrag=false;
+  const y=e.changedTouches?e.changedTouches[0].clientY:(e.clientY||cStart);
+  const dy=y-cStart;
+  cPos=Math.max(0,Math.min(100,cPos-dy*0.5));
+  document.getElementById('coverBox').style.cursor='grab';
+  // Debounced save — prevents flooding server if user drags multiple times in quick succession
+  clearTimeout(window._coverSaveTimer);
+  window._coverSaveTimer=setTimeout(()=>{
+    // Production: PATCH /api/user/me { cover_photo_position: cPos }
+  },2000);
+  document.removeEventListener('mousemove',coverDrag);
+  document.removeEventListener('touchmove',coverDrag);
+  document.removeEventListener('mouseup',stopCoverDrag);
+  document.removeEventListener('touchend',stopCoverDrag);
+}
+</script>
+</body></html>
