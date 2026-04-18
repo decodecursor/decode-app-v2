@@ -31,10 +31,12 @@ Home screen after login. Three jobs:
 
 | Condition | Greeting |
 |---|---|
-| `users.first_dashboard_seen_at IS NULL` | **"Sara, you're live! 🎉"** |
-| `users.first_dashboard_seen_at IS NOT NULL` | **"Hello Sara"** |
+| `model_profiles.dashboard_first_seen_at IS NULL` | **"Sara, you're live! 🎉"** |
+| `model_profiles.dashboard_first_seen_at IS NOT NULL` | **"Hello Sara"** |
 
-**Flag write timing:** set `first_dashboard_seen_at = NOW()` **on page load** (immediately), so the celebration only ever shows once.
+**Flag write timing:** set `dashboard_first_seen_at = NOW()` **on page load** (immediately, server-side), so the celebration only ever shows once. Compute the greeting decision *before* the write so the first-visit copy still renders on that initial load.
+
+> Schema note: ambassador profile fields live on `model_profiles`, not `users`. The flag column is `dashboard_first_seen_at` (not `first_dashboard_seen_at`).
 
 ---
 
@@ -61,14 +63,14 @@ Home screen after login. Three jobs:
 
 ## 6. Two Distinct Event Types
 
-The system tracks two separate events:
+The system tracks two distinct interactions, both stored in the **single polymorphic `model_analytics_events` table**, distinguished by `event_type`:
 
-| Event | Definition | Where |
+| Event | Definition | event_type filter |
 |---|---|---|
-| **View** | Someone visits the public page `welovedecode.com/{slug}` | `view_events` table |
-| **Click** | Someone taps a specific listing/link on the public page | `click_events` table |
+| **View** | Someone visits the public page `welovedecode.com/{slug}` | `event_type = 'public_page_view'` |
+| **Click** | Someone taps a specific listing/link on the public page | `event_type IN ('listing_instagram_click','listing_media_click')` |
 
-Left card = **Total views** (page traffic). Right card = **Top clicks** (engagement per category).
+Left card = **Total views** (page traffic). Right card = **Top clicks** (engagement per category — categorisation flows through `target_id → model_listings.category_id → model_categories.label`, with `model_listings.category_custom` as the fallback bucket name when `category_id IS NULL`).
 
 ---
 
@@ -77,23 +79,36 @@ Left card = **Total views** (page traffic). Right card = **Top clicks** (engagem
 ### 7.1 Total views (left card)
 ```sql
 -- Total
-SELECT COUNT(*) FROM view_events WHERE user_id = current_user;
+SELECT COUNT(*) FROM model_analytics_events
+  WHERE model_id = $profile_id
+  AND event_type = 'public_page_view';
 
--- This week (Mon–Sun, user's timezone)
-SELECT COUNT(*) FROM view_events
-  WHERE user_id = current_user
-  AND created_at >= date_trunc('week', NOW() AT TIME ZONE user_tz);
+-- This week (ISO Mon-start, UTC — see timezone note below)
+SELECT COUNT(*) FROM model_analytics_events
+  WHERE model_id = $profile_id
+  AND event_type = 'public_page_view'
+  AND created_at >= date_trunc('week', NOW() AT TIME ZONE 'UTC');
 ```
-Subtitle: "+N this week"
+Subtitle: "+N this week" (when total > 0). When total = 0, replace with "Share your page to get started" (see §15).
+
+> Timezone note: there is no `users.timezone` column, so the week boundary is computed in UTC. Acceptable for v1; revisit if ambassadors in extreme timezones report wrong "this week" counts.
 
 ### 7.2 Top clicks (right card)
 
-**Dynamic per user — no hardcoded categories.**
+**Dynamic per user — no hardcoded categories.** Aggregated via the `get_top_click_categories(p_model_id, p_limit)` RPC, which JOINs through listings:
 
 ```sql
-SELECT category, COUNT(*) as clicks FROM click_events
-  WHERE user_id = current_user
-  GROUP BY category ORDER BY clicks DESC LIMIT 3;
+SELECT COALESCE(c.label, l.category_custom, 'Other') AS category,
+       COUNT(*)::bigint AS clicks
+FROM model_analytics_events e
+JOIN model_listings l ON l.id = e.target_id
+LEFT JOIN model_categories c ON c.id = l.category_id
+WHERE e.model_id = $profile_id
+  AND e.event_type IN ('listing_instagram_click','listing_media_click')
+  AND e.target_id IS NOT NULL
+GROUP BY 1
+ORDER BY clicks DESC
+LIMIT 3;
 ```
 
 Bar fill %: `(category_clicks / max_category_clicks) * 100` — top category always 100%, others relative.
@@ -144,7 +159,7 @@ All open as new pages (not modals).
 
 | Card | Destination | Notes |
 |---|---|---|
-| Listings | `/listings` | Shows "1 expiring soon" alert when any listing's `expires_at < now() + 7 days` |
+| Listings | `/listings` | Shows "N expiring soon" alert when any active/free-trial listing's `COALESCE(paid_until, free_trial_ends_at) < now() + 7 days` |
 | Wishlist | `/wishlist` | — |
 | Analytics | `/analytics` | Existing page |
 | Settings | `/settings` | Existing page (contains logout) |
@@ -198,24 +213,34 @@ All open as new pages (not modals).
 ### Supabase queries
 
 ```sql
-SELECT first_name, first_dashboard_seen_at, cover_photo_url, slug, timezone
-FROM users WHERE id = current_user_id;
+-- Profile fields all live on model_profiles (NOT users)
+SELECT id, slug, first_name, last_name, cover_photo_url,
+       cover_photo_position_y, gifts_enabled, is_published, is_suspended,
+       dashboard_first_seen_at
+FROM model_profiles WHERE user_id = $auth_user_id;
 
-UPDATE users SET first_dashboard_seen_at = NOW()
-  WHERE id = current_user_id AND first_dashboard_seen_at IS NULL;
+-- First-visit flag (server-side, on page load)
+UPDATE model_profiles SET dashboard_first_seen_at = NOW()
+  WHERE id = $profile_id AND dashboard_first_seen_at IS NULL;
 
-SELECT COUNT(*) FROM view_events WHERE user_id = current_user_id;
-SELECT COUNT(*) FROM view_events
-  WHERE user_id = current_user_id
-  AND created_at >= date_trunc('week', NOW() AT TIME ZONE user_tz);
+-- Total views
+SELECT COUNT(*) FROM model_analytics_events
+  WHERE model_id = $profile_id AND event_type = 'public_page_view';
 
-SELECT category, COUNT(*) as clicks FROM click_events
-  WHERE user_id = current_user_id
-  GROUP BY category ORDER BY clicks DESC LIMIT 3;
+-- This week (UTC)
+SELECT COUNT(*) FROM model_analytics_events
+  WHERE model_id = $profile_id
+  AND event_type = 'public_page_view'
+  AND created_at >= date_trunc('week', NOW() AT TIME ZONE 'UTC');
 
-SELECT COUNT(*) FROM listings
-  WHERE user_id = current_user_id
-  AND expires_at < NOW() + INTERVAL '7 days';
+-- Top 3 click categories (via RPC — see §7.2)
+SELECT * FROM get_top_click_categories($profile_id, 3);
+
+-- Expiring-soon count (active/free-trial listings expiring within 7d)
+SELECT COUNT(*) FROM model_listings
+  WHERE model_id = $profile_id
+  AND status IN ('active','free_trial')
+  AND COALESCE(paid_until, free_trial_ends_at) < NOW() + INTERVAL '7 days';
 ```
 
 ### Removed / changed

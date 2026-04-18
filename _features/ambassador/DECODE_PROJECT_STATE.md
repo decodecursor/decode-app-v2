@@ -1096,6 +1096,7 @@ updates it as entries are added or resolved.
 |---|------|---------------|------------------------|----------------|
 | 1 | `authPhoneLimiter` rate limit | 20/hr (loose for testing) | Reset to 3/hr | Slice 1 |
 | 2 | Cloudflare Turnstile | Non-blocking mode (token-loading bug, deferred) | Fix token loading, re-enable blocking verification | Slice 1 |
+| 3 | Dashboard week-boundary timezone | UTC (no `users.timezone` column) | Acceptable for v1. Revisit if ambassadors in UTC±8 or beyond report wrong "this week" counts | Slice 1 |
 
 **Format for new entries:** Item name, current state with reason, what
 "resolved" looks like, and which slice added the item. Append only;

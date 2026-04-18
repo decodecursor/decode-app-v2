@@ -52,10 +52,50 @@ export default async function DashboardPage() {
       .eq('id', profile.id)
   }
 
+  // ISO Mon-start in UTC (acceptable for v1 — see DECODE_PROJECT_STATE.md pre-launch checklist)
+  const now = new Date()
+  const day = now.getUTCDay() || 7
+  const weekStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - day + 1))
+
+  const [
+    viewsTotalRes,
+    viewsThisWeekRes,
+    topClicksRes,
+    activeListingsRes,
+  ] = await Promise.all([
+    adminClient
+      .from('model_analytics_events')
+      .select('*', { count: 'exact', head: true })
+      .eq('model_id', profile.id)
+      .eq('event_type', 'public_page_view'),
+    adminClient
+      .from('model_analytics_events')
+      .select('*', { count: 'exact', head: true })
+      .eq('model_id', profile.id)
+      .eq('event_type', 'public_page_view')
+      .gte('created_at', weekStart.toISOString()),
+    adminClient.rpc('get_top_click_categories', { p_model_id: profile.id, p_limit: 3 }),
+    adminClient
+      .from('model_listings')
+      .select('id, paid_until, free_trial_ends_at')
+      .eq('model_id', profile.id)
+      .in('status', ['active', 'free_trial']),
+  ])
+
+  const sevenDaysFromNow = Date.now() + 7 * 24 * 3600 * 1000
+  const expiringCount = (activeListingsRes.data ?? []).filter((l) => {
+    const exp = l.paid_until ?? l.free_trial_ends_at
+    return exp && new Date(exp).getTime() < sevenDaysFromNow
+  }).length
+
   return (
     <DashboardClient
       profile={profile}
       isFirstVisit={isFirstVisit}
+      viewsTotal={viewsTotalRes.count ?? 0}
+      viewsThisWeek={viewsThisWeekRes.count ?? 0}
+      topClicks={(topClicksRes.data as Array<{ category: string; clicks: number }> | null) ?? []}
+      expiringCount={expiringCount}
     />
   )
 }
