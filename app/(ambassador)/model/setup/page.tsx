@@ -252,7 +252,7 @@ export default function SetupPage() {
         style={{
           height: '110px',
           borderRadius: '14px',
-          border: coverPreview ? '1.5px solid #333' : '1.5px dashed #333',
+          border: coverPreview ? '1.5px solid #262626' : '1.5px dashed #262626',
           background: coverPreview
             ? `url(${coverPreview}) center ${coverPhotoPositionY}% / cover no-repeat`
             : 'linear-gradient(135deg, #2a2a2a, #1a1a1a)',
@@ -334,7 +334,7 @@ export default function SetupPage() {
           overflow: 'hidden',
         }}>
           <span style={{
-            padding: '0 0 0 14px',
+            padding: '14px 0 14px 16px',
             color: '#666',
             fontSize: '13px',
             whiteSpace: 'nowrap',
@@ -426,11 +426,15 @@ export default function SetupPage() {
         }}>
           <span style={{
             padding: '0 0 0 14px',
-            color: '#e91e8c',
-            fontSize: '16px',
+            display: 'flex',
+            alignItems: 'center',
             flexShrink: 0,
           }}>
-            @
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5" />
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+            </svg>
           </span>
           <input
             type="text"
@@ -440,7 +444,7 @@ export default function SetupPage() {
             style={{
               flex: 1,
               height: '100%',
-              padding: '0 14px 0 4px',
+              padding: '0 14px 0 10px',
               background: 'transparent',
               border: 'none',
               color: '#fff',
@@ -475,9 +479,10 @@ export default function SetupPage() {
           <span style={{ fontSize: '18px' }}>{activeCurrency?.flag || '🌍'}</span>
           <span style={{ flex: 1, color: '#fff', fontSize: '14px' }}>
             {currency.toUpperCase()}
-            {activeCurrency ? ` — ${activeCurrency.label}` : ''}
           </span>
-          <span style={{ color: '#555', fontSize: '10px' }}>&#9662;</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
         </button>
       </div>
 
@@ -572,7 +577,6 @@ export default function SetupPage() {
                 <CurrencyRow
                   key={c.code}
                   code={c.code}
-                  label={c.label}
                   flag={c.flag}
                   selected={currency === c.code}
                   onSelect={() => {
@@ -597,7 +601,6 @@ export default function SetupPage() {
                   <CurrencyRow
                     key={c.code}
                     code={c.code}
-                    label={c.label}
                     flag={c.flag}
                     selected={currency === c.code}
                     onSelect={() => {
@@ -619,7 +622,6 @@ export default function SetupPage() {
                   <CurrencyRow
                     key={c.code}
                     code={c.code}
-                    label={c.label}
                     flag={c.flag}
                     selected={currency === c.code}
                     onSelect={() => {
@@ -670,13 +672,11 @@ const inputStyle: React.CSSProperties = {
 
 function CurrencyRow({
   code,
-  label,
   flag,
   selected,
   onSelect,
 }: {
   code: string
-  label: string
   flag: string
   selected: boolean
   onSelect: () => void
@@ -698,8 +698,7 @@ function CurrencyRow({
       }}
     >
       <span style={{ fontSize: '20px' }}>{flag}</span>
-      <span style={{ flex: 1, color: '#fff', fontSize: '14px' }}>{label}</span>
-      <span style={{ color: '#666', fontSize: '12px' }}>{code.toUpperCase()}</span>
+      <span style={{ flex: 1, color: '#fff', fontSize: '14px' }}>{code.toUpperCase()}</span>
       {selected && <span style={{ color: '#e91e8c', fontSize: '14px' }}>&#10003;</span>}
     </button>
   )

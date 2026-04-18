@@ -377,7 +377,7 @@ export default function DashboardClient({
       {toast && (
         <div style={{
           position: 'fixed',
-          top: '50px',
+          bottom: '60px',
           left: '50%',
           transform: 'translateX(-50%)',
           background: 'rgba(28,28,28,0.95)',

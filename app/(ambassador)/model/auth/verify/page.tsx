@@ -286,7 +286,7 @@ export default function VerifyOTPPage() {
           fontSize: '14px',
           fontWeight: 600,
           cursor: code.join('').length === 6 && !loading ? 'pointer' : 'not-allowed',
-          background: success ? '#34d399' : code.join('').length === 6 ? '#e91e8c' : '#1c1c1c',
+          background: success ? '#e91e8c' : code.join('').length === 6 ? '#e91e8c' : '#1c1c1c',
           color: code.join('').length === 6 || success ? '#fff' : '#555',
           transition: 'all 0.2s',
           fontFamily: 'system-ui, -apple-system, sans-serif',
@@ -311,7 +311,7 @@ export default function VerifyOTPPage() {
       <div style={{ textAlign: 'center', marginTop: '24px' }}>
         {resendCooldown > 0 ? (
           <p style={{ color: '#555', fontSize: '13px' }}>
-            Resend in {resendCooldown}s
+            Resend ({resendCooldown}s)
           </p>
         ) : (
           <button

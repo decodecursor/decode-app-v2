@@ -96,7 +96,7 @@ export default function MagicLinkSentPage() {
 
         {resendCooldown > 0 ? (
           <p style={{ color: '#555', fontSize: '13px' }}>
-            Resend in {resendCooldown}s
+            Resend ({resendCooldown}s)
           </p>
         ) : (
           <button

@@ -18,8 +18,8 @@ export function ProgressTracker({
           <div key={label} style={{ display: 'flex', alignItems: 'flex-start' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 56 }}>
               <div style={{
-                width: 24,
-                height: 24,
+                width: 20,
+                height: 20,
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
@@ -31,7 +31,7 @@ export function ProgressTracker({
                 color: done ? '#fff' : active ? '#e91e8c' : '#3a3a3a',
               }}>
                 {done ? '✓' : active ? (
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#e91e8c' }} />
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#e91e8c' }} />
                 ) : ''}
               </div>
               <span style={{
@@ -47,9 +47,9 @@ export function ProgressTracker({
             {i < steps.length - 1 && (
               <div style={{
                 width: 40,
-                height: 2,
+                height: 1.5,
                 background: done ? '#e91e8c' : '#3a3a3a',
-                marginTop: 11,
+                marginTop: 9,
                 borderRadius: 1,
               }} />
             )}

@@ -2,7 +2,7 @@
 
 export function CoverCameraButton({
   onClick,
-  size = 34,
+  size = 28,
 }: {
   onClick: (e: React.MouseEvent) => void
   size?: number

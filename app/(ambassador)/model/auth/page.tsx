@@ -246,7 +246,9 @@ export default function AmbassadorAuthPage() {
           >
             <span>{selectedCountry.flag}</span>
             <span style={{ color: '#888' }}>{selectedCountry.code}</span>
-            <span style={{ color: '#555', fontSize: '10px' }}>&#9662;</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
           </button>
 
           {/* Phone input */}
@@ -421,12 +423,17 @@ export default function AmbassadorAuthPage() {
                 background: 'none',
                 border: 'none',
                 color: '#fff',
-                fontSize: '18px',
                 cursor: 'pointer',
                 padding: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
-              &#x2715;
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12" />
+                <polyline points="12 19 5 12 12 5" />
+              </svg>
             </button>
             <input
               ref={countrySearchRef}
