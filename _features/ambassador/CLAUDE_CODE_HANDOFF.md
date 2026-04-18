@@ -19,6 +19,102 @@ If anything in this brief contradicts the master doc → **the master doc wins.*
 
 ---
 
+## 🛡️ Process guardrails (mandatory, every slice)
+
+These guardrails were added after Slice 1. They exist because Slice 1 saw
+real problems — column-name drift, auth rewrites, design drift, mobile
+overflow — that all trace back to Claude Code working from interpretation
+rather than from ground truth. These five rules prevent that.
+
+**Read this section before every slice. It overrides anything elsewhere
+in this document that contradicts it.**
+
+### Guardrail 1 — MCP Supabase connection is step 0
+
+Every slice begins with Claude Code connecting to the Supabase project via
+MCP. This is not optional. The handoff doc's schema references are
+supplementary; **the live Supabase schema is the source of truth**.
+
+If MCP is not available in the session, Claude Code must stop and flag
+this before writing any code that touches the database.
+
+### Guardrail 2 — Verify schema before referencing columns
+
+Before writing any code that references a table (SELECT, INSERT, UPDATE,
+DELETE, or FK relationships), Claude Code queries the live schema via MCP
+to confirm real column names, types, and nullability.
+
+If the handoff doc and the live schema disagree:
+- **Schema wins.**
+- Claude Code updates this handoff doc in the same commit, so the doc
+  reflects reality going forward.
+
+Slice 1 saw 6+ column-name mismatches (`professional_id`, `model_profile_id`,
+`user.id` instead of real names `model_id`, `profile.id`). That was all
+preventable by running one schema query first.
+
+### Guardrail 3 — Read mockups in full before building mockup-driven pages
+
+For any page that has a `*_final.html` mockup and/or `*_UI_Spec.md` file,
+Claude Code reads BOTH files in full before writing code. No skimming,
+no summarizing.
+
+Before writing the first line of code for the page, Claude Code writes a
+short confirmation in chat listing:
+- What the page does
+- Key behaviors from the UI spec (modals, validation, optimistic vs.
+  pessimistic writes, error states)
+- Any decisions the mockup defers to the spec
+
+User approves the confirmation, then code is written.
+
+Auth pages are NOT from-scratch builds. Per Project State decision #21,
+they are thin integration layers that wire existing Supabase auth +
+AUTHKey to the new UI.
+
+### Guardrail 4 — Design review checkpoint mid-slice
+
+Each slice has a design review checkpoint after UI pages render correctly
+against live data, but BEFORE advanced flows (payments, webhooks,
+notifications) are wired.
+
+At the checkpoint:
+1. Claude Code lists the pages built so far and deploys them
+2. User reviews each page on live URL against the mockup
+3. Design drift is fixed before continuing
+
+This catches drift when it's cheap to fix. Slice 1 shipped the design
+polish as a post-hoc pass, which worked but cost time. Slice 2+ bakes
+the checkpoint in.
+
+### Guardrail 5 — Global layout is set once, at route group start
+
+Global layout constraints for a route group (max-width, overflow,
+theme-color, viewport, safe-center alignment) are set in the route
+group's top-level layout (`app/(ambassador)/layout.tsx`) at the start
+of the first slice that touches that group. Not as a polish pass.
+
+For the ambassador route group, these are now set:
+- `max-width: 420px` (phone-frame pattern)
+- `align-items: safe center` (prevents top-clipping on long forms)
+- `overflow-x: hidden` (scoped to ambassador wrapper, not globals.css)
+- `theme-color: #000000` (black mobile browser chrome)
+- Viewport meta hardening (no user scaling)
+
+Any future route group Claude Code creates (e.g., `app/(admin)/`) must
+set its own global layout on day one.
+
+### Pre-launch checklist
+
+Temporary dev/testing values that must be reset before launch are
+tracked in **DECODE_PROJECT_STATE.md** (the single source of truth for
+locked decisions and commitments). Do not duplicate the list here.
+
+Before any slice's "launch readiness" verification, open Project State's
+Pre-launch checklist and confirm every entry is resolved.
+
+---
+
 ## 🎯 Implementation order — vertical slices (build in this sequence)
 
 **Principle:** Build ONE complete feature end-to-end, verify it works, then build the next. Each slice is independently testable and shippable. Do NOT move to the next slice until the current one passes all verification steps.

@@ -1086,6 +1086,26 @@ Plus reference docs:
 
 ---
 
+## Pre-launch checklist
+
+Values intentionally set to dev/testing defaults during slice work that
+MUST be reset before launch. This is the canonical list — Claude Code
+updates it as entries are added or resolved.
+
+| # | Item | Current state | Required before launch | Added in slice |
+|---|------|---------------|------------------------|----------------|
+| 1 | `authPhoneLimiter` rate limit | 20/hr (loose for testing) | Reset to 3/hr | Slice 1 |
+| 2 | Cloudflare Turnstile | Non-blocking mode (token-loading bug, deferred) | Fix token loading, re-enable blocking verification | Slice 1 |
+
+**Format for new entries:** Item name, current state with reason, what
+"resolved" looks like, and which slice added the item. Append only;
+don't renumber existing rows when adding new ones.
+
+**When an item is resolved:** Strike through the row (or move to a
+"Resolved" subsection below) with the commit hash and date.
+
+---
+
 # RESUME INSTRUCTIONS (if chat dies)
 
 If you're a fresh chat reading this, the user wants to continue with:
