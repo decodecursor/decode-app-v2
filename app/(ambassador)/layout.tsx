@@ -23,8 +23,11 @@ export default function AmbassadorLayout({
       style={{
         minHeight: '100vh',
         background: '#000',
-        padding: '24px 16px',
-        overflowX: 'hidden',
+        paddingLeft: '16px',
+        paddingRight: '16px',
+        paddingTop: '24px',
+        paddingBottom: '24px',
+        boxSizing: 'border-box',
       }}
     >
       <div

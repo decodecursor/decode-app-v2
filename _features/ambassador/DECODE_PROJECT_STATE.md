@@ -1097,6 +1097,7 @@ updates it as entries are added or resolved.
 | 1 | `authPhoneLimiter` rate limit | 20/hr (loose for testing) | Reset to 3/hr | Slice 1 |
 | 2 | Cloudflare Turnstile protection | (a) `/model/auth` (OTP + magic link): non-blocking mode — `verifyTurnstile` is called but fail-open on empty token (token-loading bug, deferred). (b) `/api/ambassador/model/setup`: NOT IMPLEMENTED — any logged-in user can automate profile creation. | (a) Flip auth routes to blocking verification. (b) Add client widget + server-side `verifyTurnstile` to the setup route. | Slice 1 |
 | 3 | Dashboard week-boundary timezone | UTC (no `users.timezone` column) | Acceptable for v1. Revisit if ambassadors in UTC±8 or beyond report wrong "this week" counts | Slice 1 |
+| 4 | iOS 26 Safari browser chrome color | Shows default blue instead of #000001 (themeColor in ambassador layout). Platform-level WebKit bug in iOS 26.0/26.1 affecting all websites using theme-color meta. Code is correct. | Monitor iOS 26.2 release (expected to ship WebKit fix). If not fixed there, accept as platform limitation. | Slice 1 |
 
 **Format for new entries:** Item name, current state with reason, what
 "resolved" looks like, and which slice added the item. Append only;
