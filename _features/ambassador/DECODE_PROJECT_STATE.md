@@ -1095,7 +1095,7 @@ updates it as entries are added or resolved.
 | # | Item | Current state | Required before launch | Added in slice |
 |---|------|---------------|------------------------|----------------|
 | 1 | `authPhoneLimiter` rate limit | 20/hr (loose for testing) | Reset to 3/hr | Slice 1 |
-| 2 | Cloudflare Turnstile | Non-blocking mode (token-loading bug, deferred) | Fix token loading, re-enable blocking verification | Slice 1 |
+| 2 | Cloudflare Turnstile protection | (a) `/model/auth` (OTP + magic link): non-blocking mode — `verifyTurnstile` is called but fail-open on empty token (token-loading bug, deferred). (b) `/api/ambassador/model/setup`: NOT IMPLEMENTED — any logged-in user can automate profile creation. | (a) Flip auth routes to blocking verification. (b) Add client widget + server-side `verifyTurnstile` to the setup route. | Slice 1 |
 | 3 | Dashboard week-boundary timezone | UTC (no `users.timezone` column) | Acceptable for v1. Revisit if ambassadors in UTC±8 or beyond report wrong "this week" counts | Slice 1 |
 
 **Format for new entries:** Item name, current state with reason, what

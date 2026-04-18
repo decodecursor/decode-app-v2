@@ -207,6 +207,13 @@ export default function SetupPage() {
           router.replace(data.redirect)
           return
         }
+        // Defense in depth: if the server returns 409 "already exists" without
+        // a redirect hint (edge case: race or older API response shape), still
+        // send the user to the dashboard instead of stranding them on the form.
+        if (res.status === 409 && /already exists|profile exists/i.test(data.error ?? '')) {
+          router.replace('/model')
+          return
+        }
         setSubmitError(data.error || 'Failed to create profile')
         setSubmitting(false)
         return

@@ -1,14 +1,12 @@
 /**
  * Model layout — passthrough wrapper.
  *
- * Auth guards are handled per-page, NOT here:
- *   - model/page.tsx (dashboard): server-side getUser() + redirect
- *   - model/settings/page.tsx: client-side getUser() + redirect
- *   - model/auth/* and model/setup: public, no guard needed
- *
- * Previous implementation used headers().get('x-pathname') to detect
- * public paths, but Next.js App Router doesn't set that header,
- * causing an infinite redirect loop on /model/auth and /model/setup.
+ * Auth and profile guards are handled per-route:
+ *   - model/page.tsx (dashboard): server-side session + profile check
+ *   - model/settings/page.tsx: client-side session check
+ *   - model/setup/layout.tsx: server-side session + "no existing
+ *     profile" check (added after Slice 1 retro)
+ *   - model/auth/*: public
  */
 export default function ModelLayout({
   children,
