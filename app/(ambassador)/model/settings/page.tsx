@@ -173,7 +173,7 @@ export default function SettingsPage() {
     if (!dragging) return
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
     const delta = clientY - dragStartY.current
-    const newPos = Math.max(0, Math.min(100, dragStartPos.current + delta * 0.5))
+    const newPos = Math.max(0, Math.min(100, dragStartPos.current - delta * 0.5))
     setProfile(prev => prev ? { ...prev, cover_photo_position_y: Math.round(newPos) } : prev)
   }, [dragging])
 

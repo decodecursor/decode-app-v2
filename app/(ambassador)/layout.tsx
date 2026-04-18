@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from 'next'
 
 export const metadata: Metadata = {
-  title: 'DECODE',
+  title: 'WeLoveDecode',
   description: 'Beauty ambassador platform',
 }
 
 export const viewport: Viewport = {
-  themeColor: '#000000',
+  themeColor: '#000001',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -23,14 +23,20 @@ export default function AmbassadorLayout({
       style={{
         minHeight: '100vh',
         background: '#000',
-        display: 'flex',
-        alignItems: 'safe center',
-        justifyContent: 'safe center',
         padding: '24px 16px',
         overflowX: 'hidden',
       }}
     >
-      <div style={{ width: '100%', maxWidth: '420px' }}>{children}</div>
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '420px',
+          margin: '0 auto',
+          minHeight: 'calc(100vh - 48px)',
+        }}
+      >
+        {children}
+      </div>
     </div>
   )
 }

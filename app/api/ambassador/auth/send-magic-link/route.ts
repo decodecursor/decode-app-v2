@@ -132,11 +132,11 @@ export async function POST(request: NextRequest) {
     const callbackUrl = `${origin}/model/auth/callback?token_hash=${encodeURIComponent(hashedToken)}&type=magiclink`
 
     const { error: sendError } = await resend.emails.send({
-      from: 'DECODE <noreply@welovedecode.com>',
+      from: 'WeLoveDecode <noreply@welovedecode.com>',
       to: normalizedEmail,
-      subject: 'Your Magic Link',
-      html: `<p><a href="${callbackUrl}">Login to Decode</a></p>`,
-      text: `Login to Decode: ${callbackUrl}`,
+      subject: 'Your Secure Login Link',
+      html: `<p><a href="${callbackUrl}">Login to WeLoveDecode</a></p>`,
+      text: `Login to WeLoveDecode: ${callbackUrl}`,
     })
 
     if (sendError) {

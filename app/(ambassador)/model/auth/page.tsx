@@ -188,7 +188,6 @@ export default function AmbassadorAuthPage() {
       showToast('Enter a valid phone number', false)
       return
     }
-    showToast(`Sending WhatsApp code to ${selectedCountry.code} ${phone}`, true)
     const fullPhone = `${selectedCountry.code}${rawDigits}`
     try {
       const res = await fetch('/api/ambassador/auth/send-otp', {
@@ -218,7 +217,6 @@ export default function AmbassadorAuthPage() {
       return
     }
     const normalized = email.toLowerCase().trim()
-    showToast(`Sending magic link to ${normalized}`, true)
     try {
       const res = await fetch('/api/ambassador/auth/send-magic-link', {
         method: 'POST',
@@ -615,7 +613,11 @@ export default function AmbassadorAuthPage() {
 
       <div id="turnstile-container" style={{ display: 'none' }} />
 
-      <style>{`@keyframes drawLine { from { transform: scaleX(0); } to { transform: scaleX(1); } }`}</style>
+      <style>{`
+        @keyframes drawLine { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+        input::placeholder { color: #666; opacity: 1; }
+        input::-webkit-input-placeholder { color: #666; }
+      `}</style>
     </div>
   )
 }
