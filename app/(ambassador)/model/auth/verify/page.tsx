@@ -5,21 +5,26 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { ProgressTracker } from '@/components/ambassador/ProgressTracker'
 
+type VerifyPhase = 'idle' | 'ready' | 'verifying' | 'success'
+type ResendPhase = 'idle' | 'sent' | 'cooldown'
+
 export default function VerifyOTPPage() {
   const router = useRouter()
   const supabase = createClient()
 
+  const [phone, setPhone] = useState('')
   const [code, setCode] = useState<string[]>(['', '', '', '', '', ''])
-  const [loading, setLoading] = useState(false)
+  const [phase, setPhase] = useState<VerifyPhase>('idle')
   const [error, setError] = useState('')
   const [shake, setShake] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [resendCooldown, setResendCooldown] = useState(60)
-  const [phone, setPhone] = useState('')
+  const [trackerStep, setTrackerStep] = useState<1 | 2 | 3>(2)
+  const [toast, setToast] = useState('')
+
+  const [resendPhase, setResendPhase] = useState<ResendPhase>('idle')
+  const [resendCooldown, setResendCooldown] = useState(0)
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
-  // Load phone from sessionStorage
   useEffect(() => {
     const stored = sessionStorage.getItem('ambassador_auth_phone')
     if (!stored) {
@@ -27,79 +32,83 @@ export default function VerifyOTPPage() {
       return
     }
     setPhone(stored)
-    // Focus first input
     setTimeout(() => inputRefs.current[0]?.focus(), 100)
   }, [router])
 
-  // Resend cooldown timer
   useEffect(() => {
-    if (resendCooldown > 0) {
-      const t = setTimeout(() => setResendCooldown(c => c - 1), 1000)
-      return () => clearTimeout(t)
+    if (resendPhase !== 'cooldown') return
+    if (resendCooldown <= 0) {
+      setResendPhase('idle')
+      return
     }
-  }, [resendCooldown])
+    const t = setTimeout(() => setResendCooldown((c) => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [resendPhase, resendCooldown])
 
-  // Auto-clear error
   useEffect(() => {
-    if (error) {
-      const t = setTimeout(() => setError(''), 5000)
-      return () => clearTimeout(t)
-    }
+    if (!error) return
+    const t = setTimeout(() => setError(''), 5000)
+    return () => clearTimeout(t)
   }, [error])
 
-  // Clear shake
   useEffect(() => {
-    if (shake) {
-      const t = setTimeout(() => setShake(false), 450)
-      return () => clearTimeout(t)
-    }
+    if (!shake) return
+    const t = setTimeout(() => setShake(false), 450)
+    return () => clearTimeout(t)
   }, [shake])
 
-  const handleInput = useCallback((index: number, value: string) => {
-    // Only accept digits
-    const digit = value.replace(/\D/g, '').slice(-1)
+  const allFilled = code.every((d) => d.length === 1)
 
-    setCode(prev => {
+  useEffect(() => {
+    if (phase === 'verifying' || phase === 'success') return
+    setPhase(allFilled ? 'ready' : 'idle')
+  }, [allFilled, phase])
+
+  const handleInput = useCallback((index: number, value: string) => {
+    const digit = value.replace(/\D/g, '').slice(-1)
+    setCode((prev) => {
       const next = [...prev]
       next[index] = digit
       return next
     })
     setError('')
-
-    if (digit && index < 5) {
-      inputRefs.current[index + 1]?.focus()
-    }
+    if (digit && index < 5) inputRefs.current[index + 1]?.focus()
   }, [])
 
-  const handleKeyDown = useCallback((index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus()
-      setCode(prev => {
-        const next = [...prev]
-        next[index - 1] = ''
-        return next
-      })
-    }
-  }, [code])
+  const handleKeyDown = useCallback(
+    (index: number, e: React.KeyboardEvent) => {
+      if (e.key === 'Backspace' && !code[index] && index > 0) {
+        inputRefs.current[index - 1]?.focus()
+        setCode((prev) => {
+          const next = [...prev]
+          next[index - 1] = ''
+          return next
+        })
+      }
+    },
+    [code],
+  )
 
   const handlePaste = useCallback((e: React.ClipboardEvent) => {
     e.preventDefault()
     const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
     if (!text) return
     const digits = text.split('')
-    setCode(prev => {
+    setCode((prev) => {
       const next = [...prev]
-      digits.forEach((d, i) => { if (i < 6) next[i] = d })
+      digits.forEach((d, i) => {
+        if (i < 6) next[i] = d
+      })
       return next
     })
     const focusIdx = Math.min(digits.length, 5)
     inputRefs.current[focusIdx]?.focus()
   }, [])
 
-  // Submit verification
-  const verify = useCallback(async (otpCode: string) => {
-    if (loading || !phone) return
-    setLoading(true)
+  const verify = useCallback(async () => {
+    if (phase !== 'ready' || !phone) return
+    const otpCode = code.join('')
+    setPhase('verifying')
     setError('')
 
     try {
@@ -113,62 +122,54 @@ export default function VerifyOTPPage() {
       if (!res.ok) {
         setError(data.error || 'Verification failed')
         setShake(true)
-        setLoading(false)
         if (res.status === 410 || res.status === 429) {
-          // Expired/locked — clear all digits
           setCode(['', '', '', '', '', ''])
           setTimeout(() => inputRefs.current[0]?.focus(), 100)
+        } else {
+          setTimeout(() => {
+            setCode(['', '', '', '', '', ''])
+            inputRefs.current[0]?.focus()
+          }, 500)
         }
+        setPhase('idle')
         return
       }
 
-      // Exchange hashed_token for session
       if (data.hashed_token) {
         const { error: verifyError } = await supabase.auth.verifyOtp({
           token_hash: data.hashed_token,
           type: 'email',
         })
-
         if (verifyError) {
           setError('Session error. Please try again.')
-          setLoading(false)
+          setPhase('idle')
           return
         }
-
         await supabase.auth.refreshSession()
       }
 
-      setSuccess(true)
+      setPhase('success')
+      setTrackerStep(3)
 
-      // Redirect based on profile existence
       setTimeout(() => {
-        if (data.hasProfile) {
-          router.replace('/model')
-        } else {
-          router.replace('/model/setup')
-        }
-      }, 500)
+        setToast('Signed in · redirecting…')
+        setTimeout(() => {
+          if (data.hasProfile) router.replace('/model')
+          else router.replace('/model/setup')
+        }, 500)
+      }, 450)
     } catch {
       setError('Network error. Please try again.')
-      setLoading(false)
+      setPhase('idle')
     }
-  }, [loading, phone, supabase, router])
+  }, [phase, phone, code, supabase, router])
 
-  // Auto-submit when all 6 digits entered
   useEffect(() => {
-    const full = code.join('')
-    if (full.length === 6 && /^\d{6}$/.test(full) && !loading && !success) {
-      verify(full)
-    }
-  }, [code, loading, success, verify])
+    if (phase === 'ready' && allFilled) verify()
+  }, [phase, allFilled, verify])
 
-  // Resend OTP
-  const handleResend = async () => {
-    if (resendCooldown > 0 || !phone) return
-    setResendCooldown(60)
-    setError('')
-    setCode(['', '', '', '', '', ''])
-
+  const handleResend = useCallback(async () => {
+    if (resendPhase !== 'idle' || !phone) return
     try {
       const res = await fetch('/api/ambassador/auth/send-otp', {
         method: 'POST',
@@ -176,163 +177,216 @@ export default function VerifyOTPPage() {
         body: JSON.stringify({ phoneNumber: phone, turnstileToken: '' }),
       })
       if (!res.ok) {
-        const data = await res.json()
+        const data = await res.json().catch(() => ({}))
         setError(data.error || 'Failed to resend')
+        return
       }
+      setResendPhase('sent')
+      setCode(['', '', '', '', '', ''])
+      setTimeout(() => {
+        setResendPhase('cooldown')
+        setResendCooldown(60)
+        inputRefs.current[0]?.focus()
+      }, 2000)
     } catch {
-      setError('Failed to resend')
+      setError('Network error')
     }
+  }, [resendPhase, phone])
 
-    setTimeout(() => inputRefs.current[0]?.focus(), 100)
-  }
+  const verifyLabel =
+    phase === 'success'
+      ? 'Verified!'
+      : phase === 'verifying'
+      ? 'Verifying…'
+      : 'Verify'
 
-  // Mask phone: +971501234567 → +971 50 ****67
-  const maskedPhone = phone
-    ? `${phone.slice(0, 4)} ** ****${phone.slice(-2)}`
-    : ''
+  const verifyActive =
+    phase === 'ready' || phase === 'verifying' || phase === 'success'
+
+  const resendLabel =
+    resendPhase === 'sent'
+      ? 'Sent!'
+      : resendPhase === 'cooldown'
+      ? `Resend (${resendCooldown}s)`
+      : 'Resend'
+
+  const resendColor = resendPhase === 'sent' ? '#4ade80' : '#e91e8c'
+  const resendOpacity = resendPhase === 'cooldown' ? 0.5 : 1
+  const resendCursor = resendPhase === 'idle' ? 'pointer' : 'not-allowed'
 
   return (
-    <div style={{ padding: '0 24px', paddingTop: '60px', paddingBottom: '40px' }}>
-      {/* Back button */}
-      <button
-        onClick={() => router.back()}
+    <div style={{ padding: '60px 22px 20px', textAlign: 'center', position: 'relative' }}>
+      <div
         style={{
-          position: 'absolute',
-          top: '16px',
-          left: '16px',
-          background: 'none',
-          border: 'none',
-          color: '#888',
-          fontSize: '24px',
-          cursor: 'pointer',
-          padding: '8px',
+          fontSize: 22,
+          fontWeight: 700,
+          marginBottom: 9,
+          letterSpacing: '-0.2px',
+          color: '#fff',
         }}
       >
-        &#8592;
-      </button>
-
-      {/* Progress tracker */}
-      <ProgressTracker steps={['Sent', 'Enter code', 'Done']} step={2} />
-
-      {/* Title */}
-      <div style={{ textAlign: 'center', marginBottom: '40px', marginTop: '32px' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', marginBottom: '8px' }}>
-          Enter your code
-        </h1>
-        <p style={{ fontSize: '13px', color: '#888', lineHeight: 1.65, whiteSpace: 'nowrap' }}>
-          We sent a code to {maskedPhone} on WhatsApp
-        </p>
+        Enter your code
+      </div>
+      <div
+        style={{
+          fontSize: 11,
+          color: '#888',
+          lineHeight: 1.6,
+          maxWidth: 280,
+          margin: '0 auto 36px',
+        }}
+      >
+        We sent a code to{' '}
+        <span style={{ color: '#fff', fontWeight: 600 }}>{phone}</span> on WhatsApp
       </div>
 
-      {/* Code inputs */}
       <div
         style={{
           display: 'flex',
+          gap: 8,
           justifyContent: 'center',
-          gap: '8px',
-          marginBottom: '32px',
-          animation: shake ? 'shake 0.45s cubic-bezier(0.36,0.07,0.19,0.97)' : undefined,
+          marginBottom: 24,
+          animation: shake
+            ? 'ambassador-shake 0.45s cubic-bezier(0.36,0.07,0.19,0.97)'
+            : undefined,
         }}
         onPaste={handlePaste}
       >
-        {code.map((digit, i) => (
-          <input
-            key={i}
-            ref={el => { inputRefs.current[i] = el }}
-            type="text"
-            inputMode="numeric"
-            autoComplete={i === 0 ? 'one-time-code' : 'off'}
-            maxLength={1}
-            value={digit}
-            onChange={e => handleInput(i, e.target.value)}
-            onKeyDown={e => handleKeyDown(i, e)}
-            style={{
-              width: '42px',
-              height: '54px',
-              textAlign: 'center',
-              fontSize: '20px',
-              fontWeight: 600,
-              color: '#fff',
-              background: 'transparent',
-              border: `1.5px solid ${error ? '#ef4444' : digit ? '#e91e8c' : '#262626'}`,
-              borderRadius: '12px',
-              outline: 'none',
-              caretColor: '#e91e8c',
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-              transition: 'border-color 0.15s',
-            }}
-            onFocus={e => {
-              if (!error) e.target.style.borderColor = '#e91e8c'
-            }}
-            onBlur={e => {
-              if (!error && !digit) e.target.style.borderColor = '#262626'
-            }}
-          />
-        ))}
+        {code.map((digit, i) => {
+          const isError = !!error && shake
+          const borderColor = isError
+            ? '#ef4444'
+            : digit
+            ? '#e91e8c'
+            : '#262626'
+          return (
+            <input
+              key={i}
+              ref={(el) => {
+                inputRefs.current[i] = el
+              }}
+              type="text"
+              inputMode="numeric"
+              autoComplete={i === 0 ? 'one-time-code' : 'off'}
+              maxLength={1}
+              value={digit}
+              onChange={(e) => handleInput(i, e.target.value)}
+              onKeyDown={(e) => handleKeyDown(i, e)}
+              onFocus={(e) => {
+                if (!isError) e.target.style.borderColor = '#e91e8c'
+              }}
+              onBlur={(e) => {
+                if (!isError && !digit) e.target.style.borderColor = '#262626'
+              }}
+              style={{
+                width: 42,
+                height: 54,
+                background: 'transparent',
+                border: `1.5px solid ${borderColor}`,
+                borderRadius: 10,
+                fontSize: 22,
+                fontWeight: 700,
+                color: '#fff',
+                textAlign: 'center',
+                caretColor: '#e91e8c',
+                transition: 'border-color 0.15s',
+                outline: 'none',
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+              }}
+            />
+          )
+        })}
       </div>
 
-      {/* Verify button */}
-      <button
-        onClick={() => {
-          const full = code.join('')
-          if (full.length === 6) verify(full)
-        }}
-        disabled={code.join('').length < 6 || loading}
+      <div
+        onClick={verify}
         style={{
-          width: '100%',
-          height: '52px',
-          borderRadius: '12px',
-          border: 'none',
-          fontSize: '14px',
-          fontWeight: 600,
-          cursor: code.join('').length === 6 && !loading ? 'pointer' : 'not-allowed',
-          background: success ? '#e91e8c' : code.join('').length === 6 ? '#e91e8c' : '#1c1c1c',
-          color: code.join('').length === 6 || success ? '#fff' : '#555',
+          background: verifyActive ? '#e91e8c' : '#1c1c1c',
+          border: `1px solid ${verifyActive ? '#e91e8c' : '#262626'}`,
+          borderRadius: 12,
+          padding: 15,
+          fontSize: 15,
+          fontWeight: 700,
+          color: verifyActive ? '#fff' : '#555',
+          cursor: phase === 'ready' ? 'pointer' : 'not-allowed',
+          marginBottom: 28,
+          letterSpacing: '0.2px',
           transition: 'all 0.2s',
-          fontFamily: 'system-ui, -apple-system, sans-serif',
+          userSelect: 'none',
         }}
       >
-        {success ? 'Verified!' : loading ? 'Verifying...' : 'Verify'}
-      </button>
-
-      {/* Error */}
-      {error && (
-        <p style={{
-          textAlign: 'center',
-          color: '#ef4444',
-          fontSize: '13px',
-          marginTop: '16px',
-        }}>
-          {error}
-        </p>
-      )}
-
-      {/* Resend */}
-      <div style={{ textAlign: 'center', marginTop: '24px' }}>
-        {resendCooldown > 0 ? (
-          <p style={{ color: '#555', fontSize: '13px' }}>
-            Resend ({resendCooldown}s)
-          </p>
-        ) : (
-          <button
-            onClick={handleResend}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#e91e8c',
-              fontSize: '13px',
-              cursor: 'pointer',
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-            }}
-          >
-            Resend code
-          </button>
-        )}
+        {verifyLabel}
       </div>
 
-      {/* Shake keyframe */}
+      <ProgressTracker
+        steps={['Sent', 'Enter code', 'Done']}
+        step={trackerStep}
+        marginBottom={36}
+      />
+
+      <div style={{ fontSize: 11, color: '#888', marginBottom: 8 }}>
+        Your code expires in 10 minutes
+      </div>
+      <div
+        style={{
+          fontSize: 11,
+          color: '#888',
+          lineHeight: '18px',
+          height: 18,
+        }}
+      >
+        Didn't receive it?{' '}
+        <span
+          onClick={handleResend}
+          style={{
+            color: resendColor,
+            fontWeight: 600,
+            cursor: resendCursor,
+            opacity: resendOpacity,
+            transition: 'color 0.2s, opacity 0.2s',
+            display: 'inline-block',
+            minWidth: 44,
+            textAlign: 'center',
+            verticalAlign: 'baseline',
+            lineHeight: '18px',
+            height: 18,
+          }}
+        >
+          {resendLabel}
+        </span>
+      </div>
+
+      {error && !shake && (
+        <div style={{ color: '#ef4444', fontSize: 11, marginTop: 12 }}>
+          {error}
+        </div>
+      )}
+
+      {toast && (
+        <div
+          style={{
+            position: 'fixed',
+            left: '50%',
+            bottom: 40,
+            transform: 'translateX(-50%)',
+            background: 'rgba(28,28,28,0.95)',
+            border: '1px solid #333',
+            color: '#fff',
+            padding: '10px 18px',
+            borderRadius: 24,
+            fontSize: 12,
+            pointerEvents: 'none',
+            zIndex: 1000,
+            whiteSpace: 'nowrap',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+          }}
+        >
+          {toast}
+        </div>
+      )}
+
       <style>{`
-        @keyframes shake {
+        @keyframes ambassador-shake {
           10%, 90% { transform: translateX(-1px); }
           20%, 80% { transform: translateX(2px); }
           30%, 50%, 70% { transform: translateX(-4px); }
@@ -342,4 +396,3 @@ export default function VerifyOTPPage() {
     </div>
   )
 }
-

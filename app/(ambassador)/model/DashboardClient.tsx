@@ -72,7 +72,7 @@ export default function DashboardClient({
   }
 
   const openPublic = () => {
-    window.location.href = fullUrl
+    window.open(fullUrl, '_blank', 'noopener,noreferrer')
   }
 
   const navigatePlaceholder = (label: string) => {
@@ -377,7 +377,7 @@ export default function DashboardClient({
       {toast && (
         <div style={{
           position: 'fixed',
-          bottom: '60px',
+          top: '50px',
           left: '50%',
           transform: 'translateX(-50%)',
           background: 'rgba(28,28,28,0.95)',
