@@ -131,25 +131,12 @@ export async function POST(request: NextRequest) {
     const hashedToken = linkData.properties.hashed_token
     const callbackUrl = `${origin}/model/auth/callback?token_hash=${encodeURIComponent(hashedToken)}&type=magiclink`
 
-    // Send branded email via Resend
     const { error: sendError } = await resend.emails.send({
       from: 'DECODE <noreply@welovedecode.com>',
       to: normalizedEmail,
-      subject: 'Sign in to DECODE',
-      html: `
-        <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 400px; margin: 0 auto; padding: 40px 24px; background: #000; color: #fff;">
-          <h1 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">Sign in to DECODE</h1>
-          <p style="color: #888; font-size: 13px; line-height: 1.65; margin-bottom: 32px;">
-            Click the button below to sign in to your ambassador account. This link expires in 10 minutes.
-          </p>
-          <a href="${callbackUrl}" style="display: inline-block; background: #e91e8c; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-size: 14px; font-weight: 600;">
-            Sign in
-          </a>
-          <p style="color: #555; font-size: 11px; margin-top: 32px; line-height: 1.5;">
-            If you didn't request this, you can safely ignore this email.
-          </p>
-        </div>
-      `,
+      subject: 'Your Magic Link',
+      html: `<p><a href="${callbackUrl}">Login to Decode</a></p>`,
+      text: `Login to Decode: ${callbackUrl}`,
     })
 
     if (sendError) {
