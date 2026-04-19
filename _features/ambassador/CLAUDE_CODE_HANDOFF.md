@@ -192,6 +192,294 @@ Schema and infrastructure must exist before anything else because FKs interlock 
 
 ---
 
+### 🔧 Slice 1.5 — Auth architecture fix (WhatsApp-primary)
+
+**Context:** Slice 1 shipped with a synthetic-email pattern (`wa_{sha256(phone).slice(0,12)}@auth.internal`) that mis-used `supabase.auth.admin.generateLink({type:'magiclink'})`. `generateLink` auto-creates a new `auth.users` row when none matches the email — producing TWO auth users per human (one keyed to real email, one keyed to synthetic). This slice replaces that pattern with Supabase's native multi-identity model and adds UX for users to manage both login methods from Settings.
+
+**Reference:** See `DECODE_PROJECT_STATE.md` decisions #19 (WhatsApp-primary), #20 (one auth.users row per human), #21 (signup method row order). Decision #11 is SUPERSEDED.
+
+**Goal:** Existing user who signs in via WhatsApp lands on `/model`, not `/model/setup`. New WhatsApp users still land on `/model/setup`. Users without WhatsApp can use email fallback. Users in Settings can add the method they don't have. Dashboard shows "Email missing" hint until email is added.
+
+---
+
+#### 🎯 Scope
+
+**Auth backend (Phase A):**
+- Replace `wa_{hash}@auth.internal` pattern entirely with Supabase native `signInWithOtp({ phone })`
+- Implement Supabase **Send SMS Hook** that webhooks to a DECODE endpoint which calls AUTHKey (so Supabase generates the OTP, AUTHKey delivers it via WhatsApp)
+- Delete `app/api/ambassador/auth/verify-otp/route.ts` synthetic-email logic; verify flow becomes native `verifyOtp({ phone, token, type: 'sms' })`
+
+**UI — new screens (Phase B):**
+- `/model/auth` — redesigned WhatsApp-primary (existing route, new design)
+- `/model/auth/email` — NEW email fallback page (Supabase magic link)
+
+**UI — Settings (Phase C):**
+- Rename existing "Contact" card to **Login methods** card (HTML comment only — no visible header)
+- Empty-state row design ("Add email" / "Add WhatsApp" in pink when method not linked)
+- Add email modal (2 steps) — uses `supabase.auth.updateUser({ email })`
+- Add WhatsApp modal (3 steps) — uses AUTHKey + `supabase.auth.updateUser({ phone })`
+- Dynamic row order based on `public.users.signup_method`
+- "Log out" → "Logout" copy change on Account card row label only
+
+**UI — Dashboard (Phase D):**
+- Settings nav card shows `Settings · Email missing` pink hint when `auth.users.email IS NULL`
+- Reuses existing `navAlertWrap` / `navDot` / `navAlert` pattern from Listings card — zero new CSS
+
+**Schema (Phase E):**
+- Add `public.users.signup_method TEXT CHECK (signup_method IN ('whatsapp', 'email'))`, nullable
+- Backfill existing rows: WhatsApp-pattern → 'whatsapp', rest → 'email'
+- Delete phantom auth.users rows with synthetic emails that have no corresponding `model_profiles`
+- Ship `cleanup_phantom_auth_users()` SECURITY DEFINER function as ongoing guard (see PHASE 5A in state doc)
+
+**Out of scope (explicitly):**
+- Passkeys / Face ID — deferred to future sprint (Supabase doesn't natively support passkeys as of 2026-04; needs SimpleWebAuthn or external provider)
+- Setup page email field — NOT ADDED. Signup stays WhatsApp-only (maximum low-friction conversion per product decision)
+- Changing any existing Change email / Change WhatsApp modals — those stay exactly as they are
+- Any `model_*` table modifications
+
+---
+
+#### 🛡️ Re-assert process guardrails
+
+All 5 process guardrails from the top of this file apply to Slice 1.5 in full. Specifically:
+
+- **Guardrail 1 (MCP Supabase step 0):** Before writing any SQL migration, verify current schema via MCP. Confirm `auth.users.phone` exists as a column and is populated for test users. Confirm `public.users.signup_method` does NOT exist before adding it.
+- **Guardrail 2 (verify schema before referencing):** The `auth.users.phone_confirmed_at` column is Supabase-managed — do not write migrations that add or alter columns in the `auth` schema. Any column named in this slice must first be verified in MCP.
+- **Guardrail 3 (read mockups in full):** All 5 Slice 1.5 HTML mockups MUST be read top-to-bottom BEFORE writing any code for their corresponding pages. Implementation is line-by-line translation of the mockup into production code — no interpretation, no "improvements."
+- **Guardrail 4 (mid-slice design review):** After Phase B (auth pages) is built and before proceeding to Phase C (Settings), run a design review session with the user comparing live site to the mockups. Catch drift early.
+- **Guardrail 5 (global layout set once):** The `(ambassador)` route group layout is already in place from Slice 1. Do not add layout logic to individual pages. Auth pages already use the correct layout — don't re-wire.
+
+---
+
+#### 📦 Design files (READ THESE FIRST)
+
+All 10 files live alongside other Slice mockups (same folder as `auth_page_final.html` from Slice 1).
+
+| # | Mockup | UI Spec |
+|---|---|---|
+| 1 | `auth_page_final.html` | `auth_page_final_UI_Spec.md` |
+| 2 | `auth_email_page_final.html` | `auth_email_page_final_UI_Spec.md` |
+| 3 | `settings_login_methods_final.html` | `settings_login_methods_final_UI_Spec.md` |
+| 4 | `settings_add_modals.html` | `settings_add_modals_UI_Spec.md` |
+| 5 | `dashboard_settings_hint_final.html` | `dashboard_settings_hint_final_UI_Spec.md` |
+
+For each page Claude Code builds, open the mockup + spec together, follow spec instructions verbatim, confirm visual match against mockup.
+
+---
+
+#### 🚀 Execution phases
+
+Execute phases in order. Do not skip ahead. Mid-slice design review happens at the boundary between Phase B and Phase C per Guardrail 4.
+
+##### Phase A — Auth backend (Send SMS Hook + AUTHKey wiring)
+
+**Goal:** Replace synthetic-email OTP path with Supabase-native `signInWithOtp({ phone })`.
+
+**Prerequisites (configured by user pre-handoff):** Auth → SMS Settings → Send SMS Hook URL set to `https://app.welovedecode.com/api/ambassador/auth/sms-hook`; shared secret in `SUPABASE_SEND_SMS_HOOK_SECRET` env var.
+
+1. **Implement `/api/ambassador/auth/sms-hook` route**
+   - Verify HMAC signature from `webhook-signature` header against `SUPABASE_SEND_SMS_HOOK_SECRET`
+   - Parse payload: `phone` (E.164), `otp` (6-digit code)
+   - Call AUTHKey template send endpoint with `otp` as template variable (`&otp={code}`)
+   - AUTHKey delivers via WhatsApp UTILITY template (existing from Slice 0)
+   - Return 200 OK on success; Supabase retries on non-200
+
+2. **Update `/model/auth` submit handler**
+   - Replace current synthetic-email flow entirely
+   - Call `supabase.auth.signInWithOtp({ phone: e164FormatFromDialAndNumber(), channel: 'whatsapp' })`
+   - On success, route to `/model/auth/verify` (existing page — no changes)
+
+3. **Update `/model/auth/verify` callback**
+   - Replace synthetic-email verify with `supabase.auth.verifyOtp({ phone, token, type: 'sms' })`
+   - On success, branch:
+     - `model_profiles` row exists for this `user.id` → redirect to `/model`
+     - No `model_profiles` row → redirect to `/model/setup`
+   - **This branch fixes the original bug** — previously existing users were always routed to setup because the synthetic email created a new auth user with no profile.
+
+4. **Delete dead code**
+   - Remove entire synthetic-email generation from `lib/ambassador/auth.ts` (the `wa_{hash}@auth.internal` function)
+   - Remove magic-link OTP delivery path from `app/api/ambassador/auth/verify-otp/route.ts`
+   - Keep magic-link logic only for the email fallback path (separate from OTP)
+
+**✅ Verify before Phase B:**
+- [ ] Existing WhatsApp user signs in via phone → lands on `/model` (NOT `/model/setup`)
+- [ ] New WhatsApp user signs in via phone → lands on `/model/setup`
+- [ ] `auth.users` shows ONE row per test user, not two
+- [ ] No rows in `auth.users` have emails matching `wa_%@auth.internal` pattern
+- [ ] AUTHKey receives the exact OTP that Supabase generated (log verification)
+
+##### Phase B — Auth pages UI
+
+**Goal:** Build `/model/auth` (redesigned) and `/model/auth/email` (new) per mockups.
+
+1. **Implement `/model/auth`**
+   - Use `auth_page_final.html` as source of truth
+   - Follow `auth_page_final_UI_Spec.md` for behavior
+   - Reuse existing country picker / phone formatter / toast components — the mockup's inline code is a reference, production uses the extracted shared modules
+   - Legal footer links go to marketing site (see spec)
+   - "No WhatsApp?" link uses `<Link href="/model/auth/email">`
+
+2. **Implement `/model/auth/email`** (new route)
+   - Use `auth_email_page_final.html` as source of truth
+   - Follow `auth_email_page_final_UI_Spec.md` for behavior
+   - Magic-link send via `supabase.auth.signInWithOtp({ email })` — Supabase handles delivery
+   - Post-send route to existing `/model/auth/sent` page (Page 18, no changes needed)
+   - "Use WhatsApp instead" link uses `<Link href="/model/auth">`
+
+3. **Design review checkpoint** (Guardrail 4)
+   - Deploy Phases A + B to dev
+   - User walks through: WhatsApp signup, WhatsApp sign-in (existing user), email fallback signup, email fallback sign-in
+   - Fix any drift before Phase C
+
+**✅ Verify before Phase C:**
+- [ ] `/model/auth` matches mockup pixel-close (spacing, colors, animations)
+- [ ] Country picker opens and scrolls correctly
+- [ ] Phone formatter applies masks live
+- [ ] "No WhatsApp?" link navigates to email page
+- [ ] `/model/auth/email` matches mockup
+- [ ] Email submit sends magic link, routes to `/model/auth/sent`
+- [ ] "Use WhatsApp instead" returns to `/model/auth`
+- [ ] Both pages work on iOS Safari, Chrome Android, desktop Chrome
+
+##### Phase C — Settings Login methods card + Add modals
+
+**Goal:** Wire up the redesigned Settings card + two new Add modals.
+
+1. **Update existing Settings page**
+   - Find the "Contact" card section in `/model/settings` component
+   - Rename HTML comment from `<!-- Contact -->` to `<!-- Login methods -->`
+   - No visible UI text says "Login methods" anywhere
+
+2. **Implement row rendering logic**
+   - Read `auth.users.email`, `auth.users.phone`, `public.users.signup_method` in server component
+   - Determine row order: if `signup_method === 'whatsapp'` → `[whatsapp, email]`; else → `[email, whatsapp]`
+   - For each row: if column populated, render filled state (current design); if null, render empty state (pink "Add email" / "Add WhatsApp")
+
+3. **Wire tap handlers**
+   - Filled row tap → opens existing Change modal (unchanged)
+   - Empty row tap → opens new Add modal
+
+4. **Implement Add email modal**
+   - Use `settings_add_modals.html` for visual spec (Add email section, 2 steps)
+   - Follow `settings_add_modals_UI_Spec.md` §4
+   - Submit calls `supabase.auth.updateUser({ email })`
+   - Step 2 tracker, reassurance block, resend link match existing Change email modal patterns
+   - Confirmation happens out-of-band when user clicks link in email → `/model/auth/email-confirmed`
+
+5. **Implement Add WhatsApp modal**
+   - Use `settings_add_modals.html` for visual spec (Add WhatsApp section, 3 steps)
+   - Follow `settings_add_modals_UI_Spec.md` §5
+   - Step 1: country picker (reuse shared component), AUTHKey send on submit
+   - Step 2: OTP cells (reuse shared component), AUTHKey verify on 6th digit
+   - On successful verify (BEFORE Step 3): call `supabase.auth.updateUser({ phone })`
+   - Step 3: single centered "ADDED" card (NOT Old→New like Change flow — this is a first-time add)
+
+6. **Logout copy change**
+   - In the Account card, change row label from "Log out" to "Logout" (one-word)
+   - Do NOT change toast messages, button labels, or code comments
+
+**✅ Verify before Phase D:**
+- [ ] WhatsApp-primary user sees: WhatsApp row (filled) + Email row (pink "Add email")
+- [ ] Email-primary user sees: Email row (filled) + WhatsApp row (pink "Add WhatsApp")
+- [ ] Dual-linked user sees: both rows filled, order matches signup_method
+- [ ] Add email modal: enter email → send → shows Step 2 with tracker + resend
+- [ ] Clicking magic link in email populates `auth.users.email` and next settings render shows filled row
+- [ ] Add WhatsApp modal: enter number → send → OTP cells → verify → Step 3 with single "ADDED" card
+- [ ] After Add WhatsApp, next settings render shows filled row
+- [ ] Logout row label shows "Logout" (no space)
+- [ ] Existing Change modals still work (don't regress)
+
+##### Phase D — Dashboard Settings hint
+
+**Goal:** Show "Email missing" hint on Settings nav card when user has no email.
+
+1. **Update `/model` dashboard component**
+   - Server component already reads user via `supabase.auth.getUser()`
+   - Compute `const showEmailHint = !user?.email`
+   - Pass to nav card render
+
+2. **Conditional render in Settings nav card**
+   - If `showEmailHint === true`:
+     - Render `<div class="navAlertWrap"><span class="navLabel">Settings</span><span class="navDot"></span><span class="navAlert">Email missing</span></div>`
+   - Else:
+     - Render `<span class="navLabel">Settings</span>` (current behavior)
+   - Reuse existing CSS classes — do NOT create new ones
+
+**✅ Verify before Phase E:**
+- [ ] User with email → Settings nav card shows plain "Settings" (no hint)
+- [ ] User without email → Settings nav card shows "Settings · Email missing" with pink text
+- [ ] Tap on card (either state) navigates to `/model/settings`
+- [ ] After Add email flow completes, next dashboard visit shows no hint (hint self-dismisses)
+- [ ] Pink hint color matches Listings "1 expiring soon" hint exactly (same `#e91e8c`)
+
+##### Phase E — Schema migration + phantom cleanup
+
+**Goal:** Add `signup_method` column, backfill, clean up phantom auth users, ship ongoing guard.
+
+1. **Add column migration**
+   ```sql
+   -- {timestamp}_add_signup_method.sql
+   ALTER TABLE public.users
+   ADD COLUMN signup_method TEXT CHECK (signup_method IN ('whatsapp', 'email'));
+   ```
+
+2. **Backfill migration**
+   ```sql
+   -- {timestamp}_backfill_signup_method.sql
+   UPDATE public.users SET signup_method = 'whatsapp'
+   WHERE email LIKE 'wa\_%@auth.internal' ESCAPE '\';
+
+   UPDATE public.users SET signup_method = 'email'
+   WHERE signup_method IS NULL;
+   ```
+
+3. **Phantom cleanup migration** (RUN ONLY AFTER Phase A deployed successfully)
+   ```sql
+   -- {timestamp}_delete_phantom_auth_users.sql
+   DELETE FROM auth.users
+   WHERE email LIKE 'wa\_%@auth.internal' ESCAPE '\'
+     AND id NOT IN (SELECT user_id FROM model_profiles);
+   ```
+
+4. **Ongoing-guard function migration** (ships with the cleanup above so it's always available)
+   - Create `cleanup_phantom_auth_users()` SECURITY DEFINER function (full SQL in PHASE 5A of state doc)
+   - `REVOKE ALL ... FROM PUBLIC; GRANT EXECUTE ... TO service_role`
+   - Wire invocation: choose ONE of (a) `pg_cron` nightly job, or (b) service-role admin endpoint that an operator can hit on demand. Document choice in commit message.
+
+5. **Set signup_method for new accounts**
+   - In the sign-up completion code (wherever `model_profiles` is first created), write `signup_method` based on which of `auth.users.phone` / `auth.users.email` was populated first
+   - Simplest: if `auth.users.phone IS NOT NULL` at profile-create time → `'whatsapp'`; else → `'email'`
+
+**✅ Verify before closing Slice 1.5:**
+- [ ] `public.users.signup_method` column exists with CHECK constraint
+- [ ] All existing users have a non-null `signup_method` value
+- [ ] No `auth.users` row has email matching `wa_%@auth.internal` pattern
+- [ ] `cleanup_phantom_auth_users()` function exists, EXECUTE granted to `service_role` only
+- [ ] Invocation mechanism (pg_cron or admin endpoint) is wired and documented
+- [ ] New WhatsApp signup → `public.users.signup_method = 'whatsapp'` on profile create
+- [ ] New email signup → `public.users.signup_method = 'email'` on profile create
+- [ ] Pre-launch checklist updated with Slice 1.5 items #6 and #7
+
+---
+
+#### ✅ Final Slice 1.5 VERIFY checklist (all phases)
+
+Full end-to-end user-journey tests:
+
+- [ ] **Fresh WhatsApp signup:** new user → phone OTP → lands on `/model/setup` → completes → sees dashboard with "Email missing" hint
+- [ ] **Fresh email signup:** new user via fallback link → magic link → clicks → lands on `/model/setup` → completes → sees dashboard without hint
+- [ ] **Returning WhatsApp user:** existing user → phone OTP → lands on `/model` (NOT setup) — **the original bug is fixed**
+- [ ] **Cross-method sign-in:** WhatsApp user clicks email fallback, signs in via email → lands on `/model` (same auth.users row, no duplicate created)
+- [ ] **Add email from Settings:** WhatsApp-primary user → Settings → Login methods card → Email row "Add email" → modal → submit → clicks link in inbox → next Settings render shows filled email row → dashboard hint disappears
+- [ ] **Add WhatsApp from Settings:** email-primary user → Settings → Login methods card → WhatsApp row "Add WhatsApp" → modal → OTP → Step 3 "ADDED" card → Done → next Settings render shows filled WhatsApp row
+- [ ] **Row order honors signup method:** WhatsApp-primary user sees WhatsApp row first; email-primary user sees Email row first
+- [ ] **No phantom users:** after all testing, `auth.users` contains ONE row per test user
+- [ ] **No regressions:** existing Change email, Change WhatsApp, Change slug, delete profile flows still work
+
+Close Slice 1.5 only when all items pass.
+
+---
+
 ### 💰 Slice 2 — Listings flow (end-to-end payment)
 
 **Goal:** Ambassador creates a listing, shares payment link, professional pays via Stripe, both see receipts.

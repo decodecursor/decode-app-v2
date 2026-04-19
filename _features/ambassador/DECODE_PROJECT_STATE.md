@@ -1,9 +1,9 @@
 # DECODE — Ambassador Feature Project State
 
-**Last updated:** 2026-04-15 (after all 21 page audits complete)
+**Last updated:** 2026-04-19 (Slice 1.5 auth architecture — WhatsApp-primary)
 **Project:** DECODE (welovedecode.com) — Ambassador feature
 **Current subdomain:** `app.welovedecode.com` (apex still on Carrd, migration later)
-**Status:** ✅ Phase B COMPLETE — all 21 pages audited, schema finalized, ready for Claude Code handoff (Phase C)
+**Status:** Slice 1 shipped. Slice 1.5 (auth architecture fix + Login methods in Settings + dashboard email hint) designed and ready for Claude Code. Slice 2 pending.
 
 ---
 
@@ -41,7 +41,7 @@ If a new chat (or Claude Code) needs to pick up:
 | 8 | URL prefix | `/model/` (matches existing `Model` role) |
 | 9 | Table prefix | `model_` |
 | 10 | Auth | Reuse existing Supabase auth + AUTHKey patterns. Don't rebuild. |
-| 11 | Email | Allow `users.email = NULL` for new ambassador auth flow (no fake @whatsapp.decode.local emails) |
+| 11 | Email | ~~Allow `users.email = NULL` for new ambassador auth flow (no fake @whatsapp.decode.local emails)~~ **SUPERSEDED by decisions #19–21 in Slice 1.5.** Initial implementation used synthetic `wa_{hash}@auth.internal` emails via `generateLink({type:'magiclink'})` — this auto-created duplicate auth.users rows per human. Slice 1.5 fixes this with Supabase-native phone column + Send SMS Hook. |
 | 12 | Stripe integration | Stripe Payment Intents + Stripe Elements (custom modal, NOT hosted Checkout) |
 | 13 | Video storage | **Supabase Storage only** (bucket `model-media`). NO transcoding service for V1. Accept that iPhone HEVC videos may not play on Firefox / older Android (95%+ of beauty industry users on iPhone Safari + Chrome where HEVC plays fine). Revisit if visitor complaints arise — can add Cloudflare Stream later. |
 | 14 | Image processing | **2-stage compression:** (1) Client-side resize via `<canvas>` BEFORE upload using `browser-image-compression` library — max 1500x750 (cover), 1080x1080 (listing photos), 400x400 (professional avatar). (2) Server-side delivery via Next.js `<Image>` — Vercel automatically serves WebP/AVIF based on visitor's browser. Net result: phone 5MB photo → ~300KB stored → ~150KB delivered. |
@@ -49,6 +49,9 @@ If a new chat (or Claude Code) needs to pick up:
 | 16 | Storage bucket security | Bucket `model-media` RLS policies: **SELECT** = public (anyone can view). **INSERT** = authenticated users only, path must contain `auth.uid()` (e.g. `{uid}/cover.jpg`). **UPDATE** = owner only (path contains `auth.uid()`). **DELETE** = owner only. Prevents public upload of arbitrary files. |
 | 17 | Bot protection | **Cloudflare Turnstile** (free invisible CAPTCHA) on (1) both checkout pages (`/{slug}/listing/{token}` and `/{slug}/wish/{token}`) and (2) auth pages that trigger sending costs — WhatsApp OTP (`/model/auth`) and email magic link (`/model/auth`). Verifies visitor is human BEFORE sensitive actions. Prevents wish-locking griefing AND prevents OTP spam that would drain AUTHKey credits. Combined with rate limiting: max 3 lock attempts per IP per 10 min on checkout; max 3 OTP per phone per hour + 10 per IP per hour on auth. |
 | 18 | Notifications architecture | **Email via Resend + WhatsApp via AUTHKey.** Stripe Dashboard admin emails for payment/refund alerts (to admin only — no code). 3 custom Resend emails: (1) professional payment receipt, (2) gifter wish receipt, (3) professional listing-expiring-7-days reminder. 4 WhatsApp UTILITY templates (configured in AUTHKey dashboard, category=UTILITY not AUTHENTICATION): listing paid (to ambassador), wish gifted (to ambassador), listing expiring (to ambassador + to professional). All templates submitted for Meta pre-approval via AUTHKey. Code calls AUTHKey API with template ID (`wid`) + variables — same pattern as existing OTP flow. |
+| 19 | Auth primacy | **WhatsApp is the primary sign-in method. Email is a secondary fallback only.** The `/model/auth` page leads with WhatsApp; email access is via "No WhatsApp?" link. Never equal-weight the two methods in UI. Email's role is account recovery and cross-device sign-in, not primary identity. (Locked 2026-04-19) |
+| 20 | One human = one `auth.users` row | **Never create synthetic emails to satisfy `auth.users.email NOT NULL`.** Supabase's `auth.users` supports a populated `phone` column with NULL `email` natively. WhatsApp signups populate `phone`; email signups populate `email`; adding the other method later populates the empty column on the SAME row via `supabase.auth.updateUser()`. No `generateLink({type:'magiclink', email: synthetic})` anywhere. (Locked 2026-04-19) |
+| 21 | Signup method determines Settings row order | In Settings Login methods card, the user's signup method always appears first; the added method appears second. Persisted as `public.users.signup_method TEXT` (`'whatsapp' | 'email'`) set at account creation and never flipped. Respects the user's mental model of "my account." (Locked 2026-04-19) |
 
 ---
 
@@ -425,9 +428,99 @@ Day 40:  Salon renews early, pays $50 for 60 more days
 
 ---
 
+# PHASE 5A — SLICE 1.5 SCHEMA ADDITIONS (LOCKED)
+
+## Overview
+
+Slice 1.5 adds one optional column to `public.users` and cleans up phantom rows created by the Slice 1 synthetic-email bug. No new tables. No changes to `model_*` tables.
+
+## Column addition
+
+```sql
+ALTER TABLE public.users
+ADD COLUMN signup_method TEXT CHECK (signup_method IN ('whatsapp', 'email'));
+```
+
+- **Nullable** — backfilled from existing rows at migration time
+- Set at account creation based on which Supabase auth method was used first
+- Never updated after creation (even when the second method is added)
+- Consumed by Settings Login methods card for dynamic row ordering (decision #21)
+
+## Backfill strategy
+
+For existing ambassadors at migration time:
+
+```sql
+UPDATE public.users SET signup_method = 'whatsapp'
+WHERE email LIKE 'wa\_%@auth.internal' ESCAPE '\';
+
+UPDATE public.users SET signup_method = 'email'
+WHERE email NOT LIKE 'wa\_%@auth.internal' ESCAPE '\'
+  AND signup_method IS NULL;
+```
+
+Order matters — WhatsApp-pattern rows get classified first; remaining rows with real emails get classified as email-primary.
+
+## Phantom user cleanup (one-off migration)
+
+The Slice 1 auth bug created duplicate `auth.users` rows for users who tried both WhatsApp and email sign-in. One-off cleanup migration:
+
+```sql
+-- Delete auth users that were created by the synthetic-email pattern
+-- but have no corresponding model_profiles (orphans only — preserve real accounts).
+DELETE FROM auth.users
+WHERE email LIKE 'wa\_%@auth.internal' ESCAPE '\'
+  AND id NOT IN (SELECT user_id FROM model_profiles);
+```
+
+Expected count in current dev DB: 1-5 rows. In production: 0 (launching clean).
+
+## Ongoing phantom guard (`cleanup_phantom_auth_users()`)
+
+Even after Slice 1.5 ships the auth-architecture fix, defensive cleanup is wired in case future regressions or manual data anomalies re-introduce phantom synthetic-email rows. The one-off DELETE above is supplemented by a SECURITY DEFINER function callable by `service_role`:
+
+```sql
+CREATE OR REPLACE FUNCTION cleanup_phantom_auth_users()
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  deleted_count integer;
+BEGIN
+  WITH deleted AS (
+    DELETE FROM auth.users
+    WHERE email LIKE 'wa\_%@auth.internal' ESCAPE '\'
+      AND id NOT IN (SELECT user_id FROM public.model_profiles)
+    RETURNING id
+  )
+  SELECT count(*) INTO deleted_count FROM deleted;
+  RETURN deleted_count;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION cleanup_phantom_auth_users() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION cleanup_phantom_auth_users() TO service_role;
+```
+
+Invocation: scheduled via `pg_cron` (e.g. nightly) OR exposed through a service-role admin endpoint that an operator can hit on demand. Exact wiring TBD during Slice 1.5 implementation; the function itself ships with the schema migration so it's always available.
+
+## No changes to auth.users
+
+The `auth.users` table is Supabase-managed. We do not alter its schema. We use:
+- `auth.users.phone` (already exists, TEXT, nullable) — populated on WhatsApp signup
+- `auth.users.email` (already exists, TEXT, nullable) — populated on email signup
+- `auth.users.phone_confirmed_at` — set by Supabase after OTP verify
+- `auth.users.email_confirmed_at` — set by Supabase after magic-link click
+
+Both columns may be NULL at the same time momentarily during signup; exactly one will be populated after first confirmation.
+
+---
+
 # PHASE 6 — URL ARCHITECTURE (LOCKED)
 
-## Final URL list (28 routes)
+## Final URL list (30 routes)
 
 ### Public (11)
 - `/{slug}` — Public ambassador page
@@ -454,11 +547,13 @@ Day 40:  Salon renews early, pays $50 for 60 more days
 - `/model/payouts/[id]` — Payout statement
 - `/model/settings` — Settings
 
-### Auth (6)
-- `/model/auth` — Main auth page
+### Auth (8)
+- `/model/auth` — Main auth page (WhatsApp-primary per Slice 1.5)
+- `/model/auth/email` — Email fallback entry (Slice 1.5 — secondary entry, "No WhatsApp?" link)
 - `/model/auth/verify` — WhatsApp OTP verify
 - `/model/auth/sent` — Magic link email sent
 - `/model/auth/email-changed` — Email change confirmation
+- `/model/auth/email-confirmed` — Post-confirm redirect after Add email flow (Slice 1.5)
 - `/model/auth/email-error` — Email error page
 - `/model/setup` — Onboarding
 
@@ -565,6 +660,13 @@ Day 40:  Salon renews early, pays $50 for 60 more days
 - Only Listings nav row shows alerts (Wishlist/Analytics/Settings = no alerts in V1)
 - "Top clicks" = combine `listing_instagram_click` + `listing_media_click` per category
 
+**Slice 1.5 additions:**
+- Settings nav card shows `Settings · Email missing` pink hint when `auth.users.email IS NULL` (simple `!user.email` server-side check — no dismissal, no throttling, no login-count logic)
+- Hint disappears automatically when email is added (next render has `auth.users.email` populated)
+- Reuses existing `navAlertWrap`/`navDot`/`navAlert` CSS from Listings `1 expiring soon` pattern — zero new CSS
+- UI spec: `dashboard_settings_hint_final_UI_Spec.md`
+- Mockup: `dashboard_settings_hint_final.html`
+
 ## Page 8 — Listings (`/model/listings`)
 **File:** `listings_final.html`
 
@@ -592,13 +694,23 @@ Day 40:  Salon renews early, pays $50 for 60 more days
 - Trend comparison = vs previous equivalent period
 
 ## Page 11 — Settings (`/model/settings`)
-**File:** `settings.html`
+**File:** `settings.html` (existing) + `settings_login_methods_final.html` + `settings_add_modals.html` (Slice 1.5)
 
 - Added `is_published` (bool default true) to `model_profiles`. Toggle OFF → public page returns 404 (reuses 404 template)
 - Ambassador can self-delete (REVISES earlier "admin only" decision); 3-step modal already designed
 - No profile photo (correctly omitted)
 - Copy URL — clipboard
 - **Currency LOCKED at signup, displayed with 🔒 icon, no change in Settings**
+
+**Slice 1.5 additions:**
+- Contact card renamed to **Login methods** card (HTML comment only; no visible section header — matches the no-header style of all other Settings cards)
+- Two rows: WhatsApp + Email. Row order dynamic: signup method first, added method second (per decision #21)
+- Empty-state row (method not linked): pink `Add email` / `Add WhatsApp` label with pink chevron → opens new Add modal
+- Filled-state row: white value with grey chevron → opens existing Change modal (unchanged behavior)
+- **Add email modal:** 2 steps (Enter email → Check your email), calls `supabase.auth.updateUser({ email })`. Subtitle: *"Add an email to recover your account."*
+- **Add WhatsApp modal:** 3 steps (Enter number → Enter OTP → WhatsApp added!), calls AUTHKey send/verify then `supabase.auth.updateUser({ phone })`. Subtitle: *"Add WhatsApp for faster access."* Step 3 shows single centered "ADDED" card (not Old→New comparison like Change flow)
+- Account card: "Log out" row label → **"Logout"** (single word, one-word-change)
+- UI specs: `settings_login_methods_final_UI_Spec.md` + `settings_add_modals_UI_Spec.md`
 
 ## Page 12 — Add listing form (`/model/listings/new`)
 **File:** `add_listing_final.html`
@@ -637,13 +749,33 @@ Day 40:  Salon renews early, pays $50 for 60 more days
 - Cover photo OPTIONAL (public page shows placeholder if missing)
 
 ## Page 16 — Auth Main Page (`/model/auth`)
-**File:** `auth_page_final.html`
+**File:** `auth_page_final.html` (redesigned in Slice 1.5)
 
-- WhatsApp OTP via **AUTHKey** (existing app integration; Claude Code reads AUTHKey docs)
-- Unified flow: server detects new vs existing user
-- Reuse existing Supabase patterns
+- WhatsApp OTP via **AUTHKey** delivered through **Supabase Send SMS Hook** (see Slice 1.5 handoff for wiring)
+- **WhatsApp-primary** per decision #19. Page leads with country picker + phone input + "Continue with WhatsApp" button.
+- "No WhatsApp? **Continue with email →**" fallback link at bottom, routes to `/model/auth/email` (see Page 16b)
+- Calls `supabase.auth.signInWithOtp({ phone })` natively — Supabase routes to Send SMS Hook → AUTHKey
+- **No synthetic emails** anywhere (per decision #20)
+- Single pink accent line below wordmark (animates scaleX 0→1 on mount)
+- No status bar chrome (OS renders it), no "Enter your number" pretext
 - Emoji flags (renders correctly across all platforms incl. Windows)
 - Rate limiting: 3/phone/hour, 10/IP/hour
+- Legal footer: Terms → `welovedecode.com/#terms`, Privacy → `welovedecode.com/#privacy`, both open in new tab
+- UI spec: `auth_page_final_UI_Spec.md`
+
+## Page 16b — Auth Email Fallback (`/model/auth/email`)
+**File:** `auth_email_page_final.html` (Slice 1.5)
+
+- Secondary entry for users without WhatsApp (lost phone, different device, no WhatsApp account)
+- Only entry point: "No WhatsApp?" link from `/model/auth`
+- Single email input + "Continue with Email" button
+- Calls `supabase.auth.signInWithOtp({ email })` for magic-link delivery
+- Magic link routes to `/model/auth/sent` (existing Page 18) for "check your email" confirmation
+- Fallback link at bottom: `← Use WhatsApp instead` returns to `/model/auth`
+- Same wordmark, accent line, legal footer as `/model/auth` — brand consistency
+- No password field anywhere (passwordless flow)
+- `autocomplete="email"` on input for mobile keyboard suggestions
+- UI spec: `auth_email_page_final_UI_Spec.md`
 
 ## Page 17 — Auth WhatsApp Verify (`/model/auth/verify`)
 **File:** `auth_whatsapp_code_verify_final.html`
@@ -1099,6 +1231,8 @@ updates it as entries are added or resolved.
 | 3 | Dashboard week-boundary timezone | UTC (no `users.timezone` column) | Acceptable for v1. Revisit if ambassadors in UTC±8 or beyond report wrong "this week" counts | Slice 1 |
 | 4 | iOS 26 Safari browser chrome color | Shows default blue instead of #000001 (themeColor in ambassador layout). Platform-level WebKit bug in iOS 26.0/26.1 affecting all websites using theme-color meta. Code is correct. | Monitor iOS 26.2 release (expected to ship WebKit fix). If not fixed there, accept as platform limitation. | Slice 1 |
 | 5 | Orphan `model_professionals` cleanup | Cascade-delete when an ambassador deletes their account intentionally skips `model_professionals` because rows are shared across ambassadors (one row can be referenced by multiple ambassadors' listings/wishes). Orphaned rows with zero remaining references stay in the table indefinitely. | Build a periodic cleanup job that deletes `model_professionals` rows with no remaining references in `model_listings` or `model_wishes` — OR accept as inert garbage and skip. | Slice 1 |
+| 6 | Send SMS Hook secret | Shared secret between Supabase and webhook is set in dev; rotate for production | Rotate secret during launch checklist; verify HMAC matches | Slice 1.5 |
+| 7 | AUTHKey WhatsApp UTILITY template for OTP | Dev environment uses UTILITY template (shared with Slice 0 OTP send) | Confirm Meta-approved template still in good standing at launch; fallback plan documented | Slice 1.5 |
 
 **Format for new entries:** Item name, current state with reason, what
 "resolved" looks like, and which slice added the item. Append only;
@@ -1106,6 +1240,12 @@ don't renumber existing rows when adding new ones.
 
 **When an item is resolved:** Strike through the row (or move to a
 "Resolved" subsection below) with the commit hash and date.
+
+---
+
+## Slice 1 polish footnote
+
+Slice 1 polish landed in commits `0bbd3e6`, `4fdb374`, `3c12096`, `4207d3b` — see commit messages for cover-photo upload fixes (unique-path Storage keys + delete-old-cover) and Phase 2 hardening details (dropped dead `Model insert own profile` RLS policy, `crypto.randomInt` for OTP, magic-link route cleanup, shared `maskEmail` + `isValidInstagramHandle` helpers, narrowed file-input `accept` attribute, ProgressTracker `step=4` extraction).
 
 ---
 
