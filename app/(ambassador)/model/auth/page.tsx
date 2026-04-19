@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { COUNTRY_CODES, type CountryCode } from '@/lib/country-codes'
 
 const PHONE_FORMATS: Record<string, string> = {
@@ -92,7 +93,6 @@ export default function AmbassadorAuthPage() {
     () => COUNTRY_CODES.find(c => c.id === 'AE')!
   )
   const [phone, setPhone] = useState('')
-  const [email, setEmail] = useState('')
   const [showPicker, setShowPicker] = useState(false)
   const [pickerSearch, setPickerSearch] = useState('')
   const [toast, setToast] = useState<ToastState | null>(null)
@@ -139,7 +139,6 @@ export default function AmbassadorAuthPage() {
 
   const rawDigits = phone.replace(/\D/g, '')
   const isPhoneValid = rawDigits.length >= 6
-  const isEmailValid = email.length > 0 && email.includes('@')
 
   const showToast = useCallback((msg: string, success = false) => {
     const id = Date.now()
@@ -212,34 +211,6 @@ export default function AmbassadorAuthPage() {
     }
   }
 
-  const handleSendMagicLink = async () => {
-    if (!isEmailValid) {
-      showToast('Enter a valid email', false)
-      return
-    }
-    const normalized = email.toLowerCase().trim()
-    try {
-      const res = await fetch('/api/ambassador/auth/send-magic-link', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: normalized, turnstileToken }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        showToast(data.error || 'Failed to send link', false)
-        resetTurnstile()
-        return
-      }
-      sessionStorage.setItem('ambassador_auth_email', normalized)
-      resetTurnstile()
-      router.push(`/model/auth/sent?email=${encodeURIComponent(normalized)}`)
-    } catch (err) {
-      console.error('[auth] magic link send failed:', err)
-      showToast('Network error. Please try again.', false)
-      resetTurnstile()
-    }
-  }
-
   const popular = COUNTRY_CODES.filter(c => POPULAR_IDS.includes(c.id))
   const rest = COUNTRY_CODES
     .filter(c => !POPULAR_IDS.includes(c.id))
@@ -293,7 +264,7 @@ export default function AmbassadorAuthPage() {
     <div style={{ position: 'relative', minHeight: '760px' }}>
       {!showPicker ? (
         <div style={{ position: 'relative', minHeight: '760px' }}>
-          <div style={{ padding: '64px 40px 24px', textAlign: 'center' }}>
+          <div style={{ padding: '80px 40px 24px', textAlign: 'center' }}>
             <div style={{
               fontSize: '10px',
               letterSpacing: '3px',
@@ -307,12 +278,9 @@ export default function AmbassadorAuthPage() {
               fontSize: '32px',
               fontWeight: 800,
               letterSpacing: '-0.8px',
-              marginBottom: '18px',
+              marginBottom: '48px',
             }}>
               WeLoveDecode
-            </div>
-            <div style={{ fontSize: '11px', color: '#666', marginBottom: '24px' }}>
-              Enter your number or email
             </div>
             <div style={{
               width: '40px',
@@ -388,7 +356,6 @@ export default function AmbassadorAuthPage() {
                 fontSize: '14px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                marginBottom: '28px',
                 textAlign: 'center',
                 transition: 'all 0.3s',
                 background: isPhoneValid ? '#e91e8c' : 'transparent',
@@ -398,55 +365,25 @@ export default function AmbassadorAuthPage() {
                 Continue with WhatsApp
               </span>
             </div>
-
-            <div style={{
-              fontSize: '11px',
-              color: '#666',
-              marginBottom: '28px',
-              letterSpacing: '1px',
-              fontWeight: 600,
-            }}>OR</div>
-
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              onFocus={e => (e.currentTarget.style.borderColor = '#e91e8c')}
-              onBlur={e => (e.currentTarget.style.borderColor = '#2a2a2a')}
-              style={{
-                width: '100%',
-                background: 'transparent',
-                border: '1.5px solid #2a2a2a',
-                borderRadius: '12px',
-                padding: '0 16px',
-                fontSize: '15px',
-                color: '#fff',
-                outline: 'none',
-                fontFamily: 'inherit',
-                height: '52px',
-                boxSizing: 'border-box',
-                marginBottom: '12px',
-                transition: 'border-color 0.2s',
-              }}
-            />
-
-            <div
-              onClick={handleSendMagicLink}
-              style={{
-                border: `1.5px solid ${isEmailValid ? '#e91e8c' : '#2a2a2a'}`,
-                borderRadius: '12px',
-                padding: '16px',
-                fontSize: '14px',
-                fontWeight: 600,
-                color: isEmailValid ? '#fff' : '#555',
-                cursor: 'pointer',
-                transition: 'all 0.3s',
-                background: isEmailValid ? '#e91e8c' : 'transparent',
-              }}
-            >Continue with Email</div>
           </div>
 
+          {/* Email fallback link */}
+          <div style={{
+            position: 'absolute',
+            bottom: '54px',
+            left: 0,
+            right: 0,
+            textAlign: 'center',
+            fontSize: '12px',
+            color: '#888',
+          }}>
+            <Link href="/model/auth/email" style={{ textDecoration: 'none', color: '#888' }}>
+              No WhatsApp?{' '}
+              <span style={{ color: '#e91e8c', fontWeight: 600 }}>Continue with email →</span>
+            </Link>
+          </div>
+
+          {/* Legal footer */}
           <div style={{
             position: 'absolute',
             bottom: '20px',
@@ -601,8 +538,8 @@ export default function AmbassadorAuthPage() {
           bottom: '60px',
           transform: 'translateX(-50%)',
           background: 'rgba(28,28,28,0.95)',
-          border: `1px solid ${toast.success ? '#4ade80' : '#333'}`,
-          color: toast.success ? '#4ade80' : '#fff',
+          border: `1px solid ${toast.success ? '#e91e8c' : '#333'}`,
+          color: '#fff',
           padding: '10px 18px',
           borderRadius: '24px',
           fontSize: '12px',
@@ -618,8 +555,8 @@ export default function AmbassadorAuthPage() {
 
       <style>{`
         @keyframes drawLine { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-        input::placeholder { color: #666; opacity: 1; }
-        input::-webkit-input-placeholder { color: #666; }
+        input::placeholder { color: #555; opacity: 1; }
+        input::-webkit-input-placeholder { color: #555; }
       `}</style>
     </div>
   )
