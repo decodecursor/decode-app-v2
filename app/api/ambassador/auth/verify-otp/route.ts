@@ -16,7 +16,11 @@ import { phoneToInternalEmail } from '@/lib/ambassador/auth'
  *      the row provably exists; no auto-create can occur. Never use
  *      generateLink as a dedupe probe — it auto-creates email-only rows
  *      when no match is found, which would skip phone population entirely.
- *   5. Client calls supabase.auth.verifyOtp({ token_hash, type: 'email' })
+ *   5. Client navigates to /model/auth/callback?token_hash=...&type=magiclink,
+ *      which runs verifyOtp server-side so session cookies are written to the
+ *      response with the SSR adapter's flags (sameSite:'lax', secure, path:'/').
+ *      Client-side verifyOtp via the browser client does not persist cookies
+ *      reliably for SSR consumers — do not revert to it.
  *
  * The synthetic wa_*@auth.internal email is a session-mint fixture only —
  * it is never surfaced in UI (see isInternalEmail filter on settings page).
@@ -175,7 +179,6 @@ export async function POST(request: NextRequest) {
     hashedToken = linkData.properties.hashed_token
     userId = userId ?? linkData.user.id
 
-    // Check if model_profiles exists for this user
     const { data: profile } = await supabase
       .from('model_profiles')
       .select('id')
@@ -184,7 +187,7 @@ export async function POST(request: NextRequest) {
 
     const hasProfile = !!profile
 
-    console.log('[Ambassador OTP-Verify] Session created. hasProfile:', hasProfile)
+    console.log('[Ambassador OTP-Verify] Token minted for user:', userId, 'hasProfile:', hasProfile, '— client will hand off to /model/auth/callback')
 
     return NextResponse.json({
       success: true,

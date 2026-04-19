@@ -18,35 +18,42 @@ export async function GET(request: NextRequest) {
   const type = (searchParams.get('type') || 'magiclink') as 'magiclink' | 'email'
   const origin = request.nextUrl.origin
 
+  console.log('[Ambassador Callback] Request received. token_hash present:', !!tokenHash, 'type:', type)
+
   if (!tokenHash) {
+    console.error('[Ambassador Callback] Missing token_hash — redirecting to error')
     return NextResponse.redirect(`${origin}/model/auth/email-error`)
   }
 
   try {
     const supabase = await createClient()
+
+    console.log('[Ambassador Callback] Calling verifyOtp (server-side, cookies will be set on response)')
     const { data, error } = await supabase.auth.verifyOtp({
       token_hash: tokenHash,
       type,
     })
 
     if (error || !data.user) {
-      console.error('[Ambassador Callback] Token verification failed:', error)
+      console.error('[Ambassador Callback] verifyOtp failed:', error?.message || 'no user returned')
       return NextResponse.redirect(`${origin}/model/auth/email-error`)
     }
 
-    // Check if user has a model profile
+    console.log('[Ambassador Callback] Session established for user:', data.user.id)
+
     const { data: profile } = await supabase
       .from('model_profiles')
       .select('id')
       .eq('user_id', data.user.id)
       .maybeSingle()
 
-    if (profile) {
-      return NextResponse.redirect(`${origin}/model`)
-    }
-    return NextResponse.redirect(`${origin}/model/setup`)
+    const hasProfile = !!profile
+    const destination = hasProfile ? '/model' : '/model/setup'
+    console.log('[Ambassador Callback] hasProfile:', hasProfile, '→ redirecting to', destination)
+
+    return NextResponse.redirect(`${origin}${destination}`)
   } catch (err) {
-    console.error('[Ambassador Callback] Error:', err)
+    console.error('[Ambassador Callback] Unexpected error:', err)
     return NextResponse.redirect(`${origin}/model/auth/email-error`)
   }
 }

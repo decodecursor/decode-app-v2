@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
 import { ProgressTracker } from '@/components/ambassador/ProgressTracker'
 
 type VerifyPhase = 'idle' | 'ready' | 'verifying' | 'success'
@@ -10,7 +9,6 @@ type ResendPhase = 'idle' | 'sent' | 'cooldown'
 
 export default function VerifyOTPPage() {
   const router = useRouter()
-  const supabase = createClient()
 
   const [phone, setPhone] = useState('')
   const [code, setCode] = useState<string[]>(['', '', '', '', '', ''])
@@ -135,34 +133,40 @@ export default function VerifyOTPPage() {
         return
       }
 
-      if (data.hashed_token) {
-        const { error: verifyError } = await supabase.auth.verifyOtp({
-          token_hash: data.hashed_token,
-          type: 'email',
-        })
-        if (verifyError) {
-          setError('Session error. Please try again.')
-          setPhase('idle')
-          return
-        }
-        await supabase.auth.refreshSession()
+      if (!data.hashed_token) {
+        console.error('[Ambassador Verify] No token_hash in response')
+        setError('Session error. Please try again.')
+        setPhase('idle')
+        return
       }
+
+      console.log('[Ambassador Verify] Token received, handing off to server callback for session mint')
 
       setPhase('success')
       setTrackerStep(3)
 
+      // Server-side callback performs verifyOtp with the SSR cookie adapter,
+      // which writes session cookies to the response with the correct flags
+      // (sameSite:'lax', secure, path:'/'). Client-side verifyOtp via the
+      // browser client writes via document.cookie and doesn't persist
+      // reliably across the next request. Full-page navigation (not
+      // router.replace) ensures the callback GET runs and its Set-Cookie
+      // headers are applied before /model/setup or /model render.
+      const callbackUrl = `/model/auth/callback?token_hash=${encodeURIComponent(
+        data.hashed_token,
+      )}&type=magiclink`
+
       setTimeout(() => {
         setToast('Signed in · redirecting…')
         setTimeout(() => {
-          if (data.hasProfile) router.replace('/model')
-          else router.replace('/model/setup')
+          window.location.href = callbackUrl
         }, 500)
       }, 450)
     } catch {
       setError('Network error. Please try again.')
       setPhase('idle')
     }
-  }, [phase, phone, code, supabase, router])
+  }, [phase, phone, code])
 
   useEffect(() => {
     if (phase === 'ready' && allFilled) verify()
