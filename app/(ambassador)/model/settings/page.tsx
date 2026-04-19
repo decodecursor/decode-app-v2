@@ -262,6 +262,8 @@ export default function SettingsPage() {
       showToast('Network error. Try again.')
     } finally {
       URL.revokeObjectURL(blobUrl)
+      // Reset so re-selecting the same file fires onChange again.
+      if (coverInputRef.current) coverInputRef.current.value = ''
     }
   }
 

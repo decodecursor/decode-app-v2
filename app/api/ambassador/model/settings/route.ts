@@ -7,6 +7,11 @@ import {
   mimeForType,
   MAX_COVER_PHOTO_BYTES,
 } from '@/lib/ambassador/image-validation'
+import {
+  COVER_BUCKET,
+  buildCoverObjectPath,
+  extractCoverObjectPath,
+} from '@/lib/ambassador/storage'
 
 /**
  * PATCH /api/ambassador/model/settings
@@ -25,10 +30,10 @@ export async function PATCH(request: NextRequest) {
 
     const adminClient = createServiceRoleClient()
 
-    // Fetch existing profile
+    // Fetch existing profile (need cover_photo_url so we can delete the old object after replacement)
     const { data: profile } = await adminClient
       .from('model_profiles')
-      .select('id')
+      .select('id, cover_photo_url')
       .eq('user_id', user.id)
       .maybeSingle()
 
@@ -100,7 +105,10 @@ export async function PATCH(request: NextRequest) {
       profileUpdate.cover_photo_position_y = Math.max(0, Math.min(100, parseInt(String(updates.coverPhotoPositionY)) || 50))
     }
 
-    // Handle cover photo upload — magic-byte sniff + size cap, hard-fail on errors
+    // Handle cover photo upload — magic-byte sniff + size cap, hard-fail on errors.
+    // Uploads to a unique path so the public URL changes, defeating browser cache.
+    // The previous object is deleted after the DB update succeeds (best-effort).
+    let oldCoverPathToDelete: string | null = null
     if (coverFile && coverFile.size > 0) {
       if (coverFile.size > MAX_COVER_PHOTO_BYTES) {
         return NextResponse.json({ error: 'Cover photo too large (max 5 MB)' }, { status: 400 })
@@ -110,20 +118,21 @@ export async function PATCH(request: NextRequest) {
       if (!sniffed) {
         return NextResponse.json({ error: 'Cover photo must be JPEG, PNG, or WebP' }, { status: 400 })
       }
-      const path = `${user.id}/cover.${extForType(sniffed)}`
+      const path = buildCoverObjectPath(user.id, extForType(sniffed))
 
       const { error: uploadError } = await adminClient.storage
-        .from('model-media')
-        .upload(path, buffer, { contentType: mimeForType(sniffed), upsert: true })
+        .from(COVER_BUCKET)
+        .upload(path, buffer, { contentType: mimeForType(sniffed) })
 
       if (uploadError) {
         console.error('[Ambassador Settings] Cover upload failed:', uploadError)
         return NextResponse.json({ error: 'Cover photo upload failed' }, { status: 400 })
       }
       const { data: urlData } = adminClient.storage
-        .from('model-media')
+        .from(COVER_BUCKET)
         .getPublicUrl(path)
       profileUpdate.cover_photo_url = urlData.publicUrl
+      oldCoverPathToDelete = extractCoverObjectPath(profile.cover_photo_url)
     }
 
     // Apply profile update first
@@ -136,6 +145,20 @@ export async function PATCH(request: NextRequest) {
       if (updateError) {
         console.error('[Ambassador Settings] Update failed:', updateError)
         return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 })
+      }
+    }
+
+    // Best-effort cleanup of the previous cover object — new cover is already live in the DB.
+    if (oldCoverPathToDelete) {
+      try {
+        const { error: removeError } = await adminClient.storage
+          .from(COVER_BUCKET)
+          .remove([oldCoverPathToDelete])
+        if (removeError) {
+          console.warn('[Ambassador Settings] Old cover delete failed (non-fatal):', removeError)
+        }
+      } catch (err) {
+        console.warn('[Ambassador Settings] Old cover delete threw (non-fatal):', err)
       }
     }
 

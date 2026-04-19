@@ -10,6 +10,7 @@ import {
   mimeForType,
   MAX_COVER_PHOTO_BYTES,
 } from '@/lib/ambassador/image-validation'
+import { COVER_BUCKET, buildCoverObjectPath } from '@/lib/ambassador/storage'
 
 /**
  * POST /api/ambassador/model/setup
@@ -90,13 +91,12 @@ export async function POST(request: NextRequest) {
       if (!sniffed) {
         return NextResponse.json({ error: 'Cover photo must be JPEG, PNG, or WebP' }, { status: 400 })
       }
-      const path = `${user.id}/cover.${extForType(sniffed)}`
+      const path = buildCoverObjectPath(user.id, extForType(sniffed))
 
       const { error: uploadError } = await adminClient.storage
-        .from('model-media')
+        .from(COVER_BUCKET)
         .upload(path, buffer, {
           contentType: mimeForType(sniffed),
-          upsert: true,
         })
 
       if (uploadError) {
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Cover photo upload failed' }, { status: 400 })
       }
       const { data: urlData } = adminClient.storage
-        .from('model-media')
+        .from(COVER_BUCKET)
         .getPublicUrl(path)
       coverPhotoUrl = urlData.publicUrl
     }
