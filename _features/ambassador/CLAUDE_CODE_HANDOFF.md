@@ -275,11 +275,9 @@ Execute phases in order. Do not skip ahead. Mid-slice design review happens at t
 
 **Goal:** Replace synthetic-email OTP path with Supabase-native `signInWithOtp({ phone })`.
 
-**Prerequisites (configured by user pre-handoff):** Auth → SMS Settings → Send SMS Hook URL set to `https://app.welovedecode.com/api/model/auth/sms-hook`; shared secret in `SUPABASE_SEND_SMS_HOOK_SECRET` env var.
+**Prerequisites (configured by user pre-handoff):** Auth → SMS Settings → Send SMS Hook URL set to `https://app.welovedecode.com/api/ambassador/auth/sms-hook`; shared secret in `SUPABASE_SEND_SMS_HOOK_SECRET` env var.
 
-0. **Identity migration (Step A0)** — apply the PHASE 5A migration (`supabase/migrations/20260419_slice15_signup_method_and_phantom_cleanup.sql`) BEFORE shipping the code flip. Adds `public.users.signup_method` (NOT NULL), backfills it, deletes any phantom `wa_*@auth.internal` `auth.users` row, and installs the `cleanup_phantom_auth_users()` ongoing guard. Without this, the new flow can't read `signup_method` and stale phantom rows could collide with native phone-auth signups.
-
-1. **Implement `/api/model/auth/sms-hook` route**
+1. **Implement `/api/ambassador/auth/sms-hook` route**
    - Verify HMAC signature from `webhook-signature` header against `SUPABASE_SEND_SMS_HOOK_SECRET`
    - Parse payload: `phone` (E.164), `otp` (6-digit code)
    - Call AUTHKey template send endpoint with `otp` as template variable (`&otp={code}`)
@@ -304,7 +302,6 @@ Execute phases in order. Do not skip ahead. Mid-slice design review happens at t
    - Keep magic-link logic only for the email fallback path (separate from OTP)
 
 **✅ Verify before Phase B:**
-- [ ] PHASE 5A migration applied: `signup_method` column NOT NULL on `public.users`, 0 `wa_%@auth.internal` rows in `auth.users`, `cleanup_phantom_auth_users()` function installed
 - [ ] Existing WhatsApp user signs in via phone → lands on `/model` (NOT `/model/setup`)
 - [ ] New WhatsApp user signs in via phone → lands on `/model/setup`
 - [ ] `auth.users` shows ONE row per test user, not two

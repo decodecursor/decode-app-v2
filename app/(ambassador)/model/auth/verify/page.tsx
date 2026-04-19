@@ -112,28 +112,41 @@ export default function VerifyOTPPage() {
     setError('')
 
     try {
-      const { data, error: verifyError } = await supabase.auth.verifyOtp({
-        phone,
-        token: otpCode,
-        type: 'sms',
+      const res = await fetch('/api/ambassador/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber: phone, otpCode }),
       })
+      const data = await res.json()
 
-      if (verifyError || !data.user) {
-        setError(verifyError?.message || 'Verification failed')
+      if (!res.ok) {
+        setError(data.error || 'Verification failed')
         setShake(true)
-        setTimeout(() => {
+        if (res.status === 410 || res.status === 429) {
           setCode(['', '', '', '', '', ''])
-          inputRefs.current[0]?.focus()
-        }, 500)
+          setTimeout(() => inputRefs.current[0]?.focus(), 100)
+        } else {
+          setTimeout(() => {
+            setCode(['', '', '', '', '', ''])
+            inputRefs.current[0]?.focus()
+          }, 500)
+        }
         setPhase('idle')
         return
       }
 
-      const { data: profile } = await supabase
-        .from('model_profiles')
-        .select('id')
-        .eq('user_id', data.user.id)
-        .maybeSingle()
+      if (data.hashed_token) {
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          token_hash: data.hashed_token,
+          type: 'email',
+        })
+        if (verifyError) {
+          setError('Session error. Please try again.')
+          setPhase('idle')
+          return
+        }
+        await supabase.auth.refreshSession()
+      }
 
       setPhase('success')
       setTrackerStep(3)
@@ -141,7 +154,7 @@ export default function VerifyOTPPage() {
       setTimeout(() => {
         setToast('Signed in · redirecting…')
         setTimeout(() => {
-          if (profile) router.replace('/model')
+          if (data.hasProfile) router.replace('/model')
           else router.replace('/model/setup')
         }, 500)
       }, 450)
