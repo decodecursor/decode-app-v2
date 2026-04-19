@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import { isInternalEmail } from '@/lib/ambassador/auth'
 import { CoverCameraButton } from '@/components/ambassador/CoverCameraButton'
 
 interface Profile {
@@ -103,10 +102,8 @@ export default function SettingsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.replace('/model/auth'); return }
 
-      const email = user.email
-      const phone = user.user_metadata?.phone_number
-      if (email && !isInternalEmail(email)) setUserEmail(email)
-      if (phone) setUserPhone(phone)
+      if (user.email) setUserEmail(user.email)
+      if (user.phone) setUserPhone(user.phone.startsWith('+') ? user.phone : `+${user.phone}`)
 
       const { data } = await supabase
         .from('model_profiles')

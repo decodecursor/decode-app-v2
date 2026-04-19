@@ -37,20 +37,17 @@ RETURNS integer
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
-AS $$
+AS $func$
 DECLARE
-  deleted_count integer;
+  v_count integer;
 BEGIN
-  WITH deleted AS (
-    DELETE FROM auth.users
-    WHERE email LIKE 'wa\_%@auth.internal' ESCAPE '\'
-      AND id NOT IN (SELECT user_id FROM public.model_profiles)
-    RETURNING id
-  )
-  SELECT count(*) INTO deleted_count FROM deleted;
-  RETURN deleted_count;
+  DELETE FROM auth.users
+  WHERE email LIKE 'wa\_%@auth.internal' ESCAPE '\'
+    AND id NOT IN (SELECT user_id FROM public.model_profiles);
+  GET DIAGNOSTICS v_count = ROW_COUNT;
+  RETURN v_count;
 END;
-$$;
+$func$;
 
 REVOKE ALL ON FUNCTION public.cleanup_phantom_auth_users() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.cleanup_phantom_auth_users() TO service_role;
