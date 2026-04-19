@@ -360,6 +360,7 @@ export default function AmbassadorAuthPage() {
                 onBlur={e => (e.currentTarget.style.borderColor = '#2a2a2a')}
                 style={{
                   flex: 1,
+                  minWidth: 0,
                   background: 'transparent',
                   border: '1.5px solid #2a2a2a',
                   borderRadius: '12px',
