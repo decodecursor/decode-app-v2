@@ -158,8 +158,36 @@ export async function POST(request: NextRequest) {
     if (!createError && newUser?.user) {
       userId = newUser.user.id
       console.log('[Ambassador OTP-Verify] Created new auth user with phone populated:', userId)
+
+      // Shadow row in public.users — required because model_profiles.user_id
+      // FKs to public.users(id), which has no auto-populate trigger from
+      // auth.users in this schema (app code owns it; see create-profile route).
+      // signup_method must be 'whatsapp' (CHECK constraint, not 'whatsapp_otp').
+      // Wrapped in try/catch: a missing shadow row will surface at /model/setup,
+      // but a successful OTP verify shouldn't 500 here.
+      try {
+        const { error: shadowError } = await supabase
+          .from('users')
+          .insert({
+            id: userId,
+            email: internalEmail,
+            phone_number: phoneNumber,
+            user_name: `model_${userId.slice(0, 8)}`,
+            role: 'Model',
+            signup_method: 'whatsapp',
+            email_verified: false,
+            approval_status: 'approved',
+          })
+        if (shadowError) {
+          console.error('[Ambassador OTP-Verify] public.users shadow insert failed:', shadowError)
+        } else {
+          console.log('[Ambassador OTP-Verify] public.users shadow row created for:', userId)
+        }
+      } catch (shadowErr) {
+        console.error('[Ambassador OTP-Verify] public.users shadow insert threw:', shadowErr)
+      }
     } else {
-      console.log('[Ambassador OTP-Verify] Existing auth user (createUser 422)')
+      console.log('[Ambassador OTP-Verify] Existing auth user (createUser 422) — skipping shadow insert')
     }
 
     // Mint the magic link (session fixture). Safe now: row provably exists.

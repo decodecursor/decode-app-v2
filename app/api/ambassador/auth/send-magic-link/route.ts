@@ -65,6 +65,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to send magic link. Please try again.' }, { status: 500 })
     }
 
+    // Shadow row in public.users — model_profiles.user_id and ~15 other
+    // domain tables FK to public.users(id). No DB trigger populates it
+    // from auth.users (app code owns it; see /api/auth/create-profile).
+    // Upsert with ignoreDuplicates so returning users are untouched.
+    // signup_method must be 'email' (CHECK constraint).
+    try {
+      const { error: shadowError } = await supabase
+        .from('users')
+        .upsert(
+          {
+            id: linkData.user.id,
+            email: normalizedEmail,
+            user_name: `model_${linkData.user.id.slice(0, 8)}`,
+            role: 'Model',
+            signup_method: 'email',
+            email_verified: true,
+            approval_status: 'approved',
+          },
+          { onConflict: 'id', ignoreDuplicates: true }
+        )
+      if (shadowError) {
+        console.error('[Ambassador Magic Link] public.users shadow upsert failed:', shadowError)
+      } else {
+        console.log('[Ambassador Magic Link] public.users shadow row ensured for:', linkData.user.id)
+      }
+    } catch (shadowErr) {
+      console.error('[Ambassador Magic Link] public.users shadow upsert threw:', shadowErr)
+    }
+
     const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'https://app.welovedecode.com'
     const hashedToken = linkData.properties.hashed_token
     const callbackUrl = `${origin}/model/auth/callback?token_hash=${encodeURIComponent(hashedToken)}&type=magiclink`
