@@ -63,3 +63,13 @@ export const listingCreateLimiter = new Ratelimit({
   limiter: Ratelimit.slidingWindow(20, '1 h'),
   prefix: 'rl:listing:create',
 })
+
+/**
+ * Slug availability check: 60 per IP per minute.
+ * Mitigates slug enumeration on the open onboarding endpoint.
+ */
+export const slugCheckLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(60, '1 m'),
+  prefix: 'rl:slug:check',
+})

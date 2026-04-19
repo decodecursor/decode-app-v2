@@ -15,7 +15,7 @@ export default async function DashboardPage() {
     .from('model_profiles')
     .select('id, slug, first_name, last_name, cover_photo_url, cover_photo_position_y, is_published, gifts_enabled, is_suspended, dashboard_first_seen_at')
     .eq('user_id', user.id)
-    .single()
+    .maybeSingle()
 
   if (!profile) redirect('/model/setup')
 

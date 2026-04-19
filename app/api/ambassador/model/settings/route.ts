@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
+import {
+  detectImageType,
+  extForType,
+  mimeForType,
+  MAX_COVER_PHOTO_BYTES,
+} from '@/lib/ambassador/image-validation'
 
 /**
  * PATCH /api/ambassador/model/settings
@@ -20,13 +26,13 @@ export async function PATCH(request: NextRequest) {
     const adminClient = createServiceRoleClient()
 
     // Fetch existing profile
-    const { data: profile, error: profileError } = await adminClient
+    const { data: profile } = await adminClient
       .from('model_profiles')
       .select('id')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (profileError || !profile) {
+    if (!profile) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }
 
@@ -53,6 +59,7 @@ export async function PATCH(request: NextRequest) {
 
     // Build profile update
     const profileUpdate: Record<string, unknown> = {}
+    let pendingInstagram: string | null = null
 
     if (updates.firstName !== undefined) {
       const v = String(updates.firstName).trim()
@@ -75,20 +82,13 @@ export async function PATCH(request: NextRequest) {
       }
       profileUpdate.tagline = v || null
     }
-    // Instagram lives on users, not model_profiles — update separately
+    // Instagram lives on users, not model_profiles — validate now, write AFTER profile update
     if (updates.instagram !== undefined) {
       const v = String(updates.instagram).replace(/^@/, '').toLowerCase().trim()
       if (!v || v.length > 30 || !/^[a-z0-9_.]+$/.test(v)) {
         return NextResponse.json({ error: 'Invalid Instagram handle' }, { status: 400 })
       }
-      const { error: igError } = await adminClient
-        .from('users')
-        .update({ instagram_handle: v })
-        .eq('id', user.id)
-      if (igError) {
-        console.error('[Ambassador Settings] Instagram update failed:', igError)
-        return NextResponse.json({ error: 'Failed to update Instagram' }, { status: 500 })
-      }
+      pendingInstagram = v
     }
     if (updates.isPublished !== undefined) {
       profileUpdate.is_published = updates.isPublished === true || updates.isPublished === 'true'
@@ -100,25 +100,33 @@ export async function PATCH(request: NextRequest) {
       profileUpdate.cover_photo_position_y = Math.max(0, Math.min(100, parseInt(String(updates.coverPhotoPositionY)) || 50))
     }
 
-    // Handle cover photo upload
+    // Handle cover photo upload — magic-byte sniff + size cap, hard-fail on errors
     if (coverFile && coverFile.size > 0) {
-      const ext = coverFile.type === 'image/png' ? 'png' : coverFile.type === 'image/webp' ? 'webp' : 'jpg'
-      const path = `${user.id}/cover.${ext}`
+      if (coverFile.size > MAX_COVER_PHOTO_BYTES) {
+        return NextResponse.json({ error: 'Cover photo too large (max 5 MB)' }, { status: 400 })
+      }
       const buffer = Buffer.from(await coverFile.arrayBuffer())
+      const sniffed = detectImageType(buffer)
+      if (!sniffed) {
+        return NextResponse.json({ error: 'Cover photo must be JPEG, PNG, or WebP' }, { status: 400 })
+      }
+      const path = `${user.id}/cover.${extForType(sniffed)}`
 
       const { error: uploadError } = await adminClient.storage
         .from('model-media')
-        .upload(path, buffer, { contentType: coverFile.type, upsert: true })
+        .upload(path, buffer, { contentType: mimeForType(sniffed), upsert: true })
 
-      if (!uploadError) {
-        const { data: urlData } = adminClient.storage
-          .from('model-media')
-          .getPublicUrl(path)
-        profileUpdate.cover_photo_url = urlData.publicUrl
+      if (uploadError) {
+        console.error('[Ambassador Settings] Cover upload failed:', uploadError)
+        return NextResponse.json({ error: 'Cover photo upload failed' }, { status: 400 })
       }
+      const { data: urlData } = adminClient.storage
+        .from('model-media')
+        .getPublicUrl(path)
+      profileUpdate.cover_photo_url = urlData.publicUrl
     }
 
-    // Apply update if anything changed
+    // Apply profile update first
     if (Object.keys(profileUpdate).length > 0) {
       const { error: updateError } = await adminClient
         .from('model_profiles')
@@ -131,18 +139,30 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
+    // Instagram update fires AFTER profile update — if profile failed above, IG is untouched
+    if (pendingInstagram !== null) {
+      const { error: igError } = await adminClient
+        .from('users')
+        .update({ instagram_handle: pendingInstagram })
+        .eq('id', user.id)
+      if (igError) {
+        console.error('[Ambassador Settings] Instagram update failed:', igError)
+        return NextResponse.json({ error: 'Failed to update Instagram' }, { status: 500 })
+      }
+    }
+
     // Fetch updated profile + merge users.instagram_handle for client display
     const { data: updated } = await adminClient
       .from('model_profiles')
       .select('*')
       .eq('id', profile.id)
-      .single()
+      .maybeSingle()
 
     const { data: userRow } = await adminClient
       .from('users')
       .select('instagram_handle')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     return NextResponse.json({
       success: true,
@@ -176,7 +196,7 @@ export async function DELETE(request: NextRequest) {
       .from('model_profiles')
       .select('id')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
     if (!profile) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
@@ -199,32 +219,15 @@ export async function DELETE(request: NextRequest) {
       }, { status: 409 })
     }
 
-    // Delete in order: analytics → wishes → listings → payouts → profile
-    await adminClient
-      .from('model_analytics_events')
-      .delete()
-      .eq('model_id', profile.id)
+    // Atomic cascade-delete via SECURITY DEFINER function
+    const { error: cascadeError } = await adminClient.rpc('delete_model_profile_cascade', {
+      p_user_id: user.id,
+    })
 
-    await adminClient
-      .from('model_wishes')
-      .delete()
-      .eq('model_id', profile.id)
-
-    await adminClient
-      .from('model_listings')
-      .delete()
-      .eq('model_id', profile.id)
-
-    await adminClient
-      .from('model_payouts')
-      .delete()
-      .eq('model_id', profile.id)
-
-    // Delete profile
-    await adminClient
-      .from('model_profiles')
-      .delete()
-      .eq('id', profile.id)
+    if (cascadeError) {
+      console.error('[Ambassador Settings] Cascade delete failed:', cascadeError)
+      return NextResponse.json({ error: 'Failed to delete profile' }, { status: 500 })
+    }
 
     // Delete storage files
     const { data: files } = await adminClient.storage

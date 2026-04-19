@@ -3,6 +3,13 @@ import { createClient } from '@/utils/supabase/server'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { isValidSlug } from '@/lib/ambassador/utils'
 import { RESERVED_SLUGS } from '@/lib/ambassador/constants'
+import { isSupportedCurrency } from '@/lib/ambassador/currencies'
+import {
+  detectImageType,
+  extForType,
+  mimeForType,
+  MAX_COVER_PHOTO_BYTES,
+} from '@/lib/ambassador/image-validation'
 
 /**
  * POST /api/ambassador/model/setup
@@ -44,6 +51,9 @@ export async function POST(request: NextRequest) {
     if (RESERVED_SLUGS.includes(slug as any)) {
       return NextResponse.json({ error: 'This URL is reserved' }, { status: 400 })
     }
+    if (!isSupportedCurrency(currency)) {
+      return NextResponse.json({ error: 'Unsupported currency' }, { status: 400 })
+    }
 
     const adminClient = createServiceRoleClient()
 
@@ -72,26 +82,31 @@ export async function POST(request: NextRequest) {
     // Handle cover photo upload
     let coverPhotoUrl: string | null = null
     if (coverPhoto && coverPhoto.size > 0) {
-      const ext = coverPhoto.type === 'image/png' ? 'png' : coverPhoto.type === 'image/webp' ? 'webp' : 'jpg'
-      const path = `${user.id}/cover.${ext}`
+      if (coverPhoto.size > MAX_COVER_PHOTO_BYTES) {
+        return NextResponse.json({ error: 'Cover photo too large (max 5 MB)' }, { status: 400 })
+      }
       const buffer = Buffer.from(await coverPhoto.arrayBuffer())
+      const sniffed = detectImageType(buffer)
+      if (!sniffed) {
+        return NextResponse.json({ error: 'Cover photo must be JPEG, PNG, or WebP' }, { status: 400 })
+      }
+      const path = `${user.id}/cover.${extForType(sniffed)}`
 
       const { error: uploadError } = await adminClient.storage
         .from('model-media')
         .upload(path, buffer, {
-          contentType: coverPhoto.type,
+          contentType: mimeForType(sniffed),
           upsert: true,
         })
 
       if (uploadError) {
         console.error('[Ambassador Setup] Cover upload failed:', uploadError)
-        // Non-blocking: continue without cover photo
-      } else {
-        const { data: urlData } = adminClient.storage
-          .from('model-media')
-          .getPublicUrl(path)
-        coverPhotoUrl = urlData.publicUrl
+        return NextResponse.json({ error: 'Cover photo upload failed' }, { status: 400 })
       }
+      const { data: urlData } = adminClient.storage
+        .from('model-media')
+        .getPublicUrl(path)
+      coverPhotoUrl = urlData.publicUrl
     }
 
     // Create model_profiles row

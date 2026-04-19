@@ -31,17 +31,17 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient()
 
-    // Fetch OTP record
-    const { data: otpRecord, error: fetchError } = await supabase
+    // Fetch OTP record (maybeSingle — missing is the not-yet-sent state)
+    const { data: otpRecord } = await supabase
       .from('otp_verifications')
       .select('*')
       .eq('user_identifier', phoneNumber)
       .eq('type', 'whatsapp')
       .order('created_at', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
-    if (fetchError || !otpRecord) {
+    if (!otpRecord) {
       return NextResponse.json({ error: 'No code found. Please request a new one.' }, { status: 404 })
     }
 

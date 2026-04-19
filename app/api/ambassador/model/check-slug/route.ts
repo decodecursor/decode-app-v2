@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { isValidSlug } from '@/lib/ambassador/utils'
 import { RESERVED_SLUGS } from '@/lib/ambassador/constants'
+import { slugCheckLimiter } from '@/lib/ambassador/rate-limit'
 
 /**
  * GET /api/ambassador/model/check-slug?slug=sara_beauty
@@ -10,6 +11,15 @@ import { RESERVED_SLUGS } from '@/lib/ambassador/constants'
  * Returns { available, suggestion? }
  */
 export async function GET(request: NextRequest) {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  const { success } = await slugCheckLimiter.limit(ip)
+  if (!success) {
+    return NextResponse.json(
+      { available: false, error: 'Too many requests. Please slow down.' },
+      { status: 429 }
+    )
+  }
+
   const slug = request.nextUrl.searchParams.get('slug')?.toLowerCase().trim()
 
   if (!slug) {

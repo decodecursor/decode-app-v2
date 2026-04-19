@@ -153,11 +153,28 @@ export default function SettingsPage() {
     }
   }
 
-  const handleToggle = (field: 'is_published' | 'gifts_enabled') => {
+  const handleToggle = async (field: 'is_published' | 'gifts_enabled') => {
     if (!profile) return
-    const newValue = !profile[field]
+    const previousValue = profile[field]
+    const newValue = !previousValue
     setProfile({ ...profile, [field]: newValue })
-    saveField({ [field === 'is_published' ? 'isPublished' : 'giftsEnabled']: newValue })
+    try {
+      const res = await fetch('/api/ambassador/model/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field === 'is_published' ? 'isPublished' : 'giftsEnabled']: newValue }),
+      })
+      const data = await res.json()
+      if (res.ok && data.profile) {
+        setProfile(data.profile)
+      } else {
+        setProfile(prev => prev ? { ...prev, [field]: previousValue } : prev)
+        showToast(data.error || 'Failed to save')
+      }
+    } catch {
+      setProfile(prev => prev ? { ...prev, [field]: previousValue } : prev)
+      showToast('Network error')
+    }
   }
 
   // Cover drag
@@ -177,10 +194,27 @@ export default function SettingsPage() {
     setProfile(prev => prev ? { ...prev, cover_photo_position_y: Math.round(newPos) } : prev)
   }, [dragging])
 
-  const handleDragEnd = useCallback(() => {
-    if (dragging && profile) {
-      setDragging(false)
-      saveField({ coverPhotoPositionY: profile.cover_photo_position_y })
+  const handleDragEnd = useCallback(async () => {
+    if (!dragging || !profile) return
+    setDragging(false)
+    const previousPos = dragStartPos.current
+    const newPos = profile.cover_photo_position_y
+    try {
+      const res = await fetch('/api/ambassador/model/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coverPhotoPositionY: newPos }),
+      })
+      const data = await res.json()
+      if (res.ok && data.profile) {
+        setProfile(data.profile)
+      } else {
+        setProfile(prev => prev ? { ...prev, cover_photo_position_y: previousPos } : prev)
+        showToast(data.error || 'Failed to save')
+      }
+    } catch {
+      setProfile(prev => prev ? { ...prev, cover_photo_position_y: previousPos } : prev)
+      showToast('Network error')
     }
   }, [dragging, profile])
 
