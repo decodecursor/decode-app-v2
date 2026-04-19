@@ -12,6 +12,7 @@ import {
   buildCoverObjectPath,
   extractCoverObjectPath,
 } from '@/lib/ambassador/storage'
+import { isValidInstagramHandle } from '@/lib/ambassador/validators'
 
 /**
  * PATCH /api/ambassador/model/settings
@@ -90,7 +91,7 @@ export async function PATCH(request: NextRequest) {
     // Instagram lives on users, not model_profiles — validate now, write AFTER profile update
     if (updates.instagram !== undefined) {
       const v = String(updates.instagram).replace(/^@/, '').toLowerCase().trim()
-      if (!v || v.length > 30 || !/^[a-z0-9_.]+$/.test(v)) {
+      if (!isValidInstagramHandle(v)) {
         return NextResponse.json({ error: 'Invalid Instagram handle' }, { status: 400 })
       }
       pendingInstagram = v

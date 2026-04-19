@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import { ProgressTracker } from '@/components/ambassador/ProgressTracker'
 
 function EmailChangedContent() {
   const searchParams = useSearchParams()
@@ -15,45 +16,11 @@ function EmailChangedContent() {
       paddingBottom: '40px',
       textAlign: 'center',
     }}>
-      {/* Progress tracker — all done */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: '32px',
-      }}>
-        {['Sent', 'Opened', 'Done'].map((label, i) => (
-          <div key={label} style={{ display: 'flex', alignItems: 'center' }}>
-            <div style={{
-              width: '24px',
-              height: '24px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: '#e91e8c',
-              border: '2px solid #e91e8c',
-              fontSize: '10px',
-              color: '#fff',
-              fontWeight: 600,
-            }}>
-              &#10003;
-            </div>
-            <span style={{ fontSize: '9px', color: '#e91e8c', marginLeft: '4px', whiteSpace: 'nowrap' }}>
-              {label}
-            </span>
-            {i < 2 && (
-              <div style={{
-                width: '40px',
-                height: '2px',
-                margin: '0 6px',
-                background: '#e91e8c',
-                borderRadius: '1px',
-              }} />
-            )}
-          </div>
-        ))}
-      </div>
+      <ProgressTracker
+        steps={['Sent', 'Opened', 'Done']}
+        step={4}
+        marginBottom={32}
+      />
 
       <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', marginBottom: '32px' }}>
         Email changed!

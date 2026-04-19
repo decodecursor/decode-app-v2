@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomInt } from 'crypto'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { authkeyWhatsAppService } from '@/lib/services/AuthkeyWhatsAppService'
 import { verifyTurnstile } from '@/lib/ambassador/turnstile'
@@ -82,8 +83,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Generate 6-digit OTP
-    const otpCode = String(Math.floor(100000 + Math.random() * 900000))
+    // Generate 6-digit OTP (cryptographically secure; range 100000-999999)
+    const otpCode = randomInt(100000, 1000000).toString()
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString()
     console.log('[Ambassador OTP] Step 4: OTP generated:', otpCode.substring(0, 2) + '****')
 

@@ -205,7 +205,8 @@ export default function AmbassadorAuthPage() {
       sessionStorage.setItem('ambassador_auth_country', selectedCountry.code)
       resetTurnstile()
       router.push('/model/auth/verify')
-    } catch {
+    } catch (err) {
+      console.error('[auth] WhatsApp send failed:', err)
       showToast('Network error. Please try again.', false)
       resetTurnstile()
     }
@@ -232,7 +233,8 @@ export default function AmbassadorAuthPage() {
       sessionStorage.setItem('ambassador_auth_email', normalized)
       resetTurnstile()
       router.push(`/model/auth/sent?email=${encodeURIComponent(normalized)}`)
-    } catch {
+    } catch (err) {
+      console.error('[auth] magic link send failed:', err)
       showToast('Network error. Please try again.', false)
       resetTurnstile()
     }

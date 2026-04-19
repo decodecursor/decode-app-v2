@@ -4,6 +4,7 @@ import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { isValidSlug } from '@/lib/ambassador/utils'
 import { RESERVED_SLUGS } from '@/lib/ambassador/constants'
 import { isSupportedCurrency } from '@/lib/ambassador/currencies'
+import { isValidInstagramHandle } from '@/lib/ambassador/validators'
 import {
   detectImageType,
   extForType,
@@ -51,6 +52,9 @@ export async function POST(request: NextRequest) {
     }
     if (RESERVED_SLUGS.includes(slug as any)) {
       return NextResponse.json({ error: 'This URL is reserved' }, { status: 400 })
+    }
+    if (!isValidInstagramHandle(instagram)) {
+      return NextResponse.json({ error: 'Invalid Instagram handle' }, { status: 400 })
     }
     if (!isSupportedCurrency(currency)) {
       return NextResponse.json({ error: 'Unsupported currency' }, { status: 400 })

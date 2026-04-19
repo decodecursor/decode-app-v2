@@ -39,7 +39,8 @@ export function ProgressTracker({
   marginBottom,
 }: {
   steps: readonly [string, string, string]
-  step: 1 | 2 | 3
+  // 4 = all-done state (e.g. email-changed confirmation)
+  step: 1 | 2 | 3 | 4
   padding?: string
   marginBottom?: number | string
 }) {

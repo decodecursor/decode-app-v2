@@ -63,8 +63,10 @@ export default function DashboardClient({
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(fullUrl)
-    } catch {
-      // ignore — clipboard may be unavailable
+    } catch (err) {
+      console.error('[dashboard] clipboard failed:', err)
+      showToast("Couldn't copy. Select the URL and copy manually.")
+      return
     }
     setCopied(true)
     if (copyResetRef.current) clearTimeout(copyResetRef.current)
