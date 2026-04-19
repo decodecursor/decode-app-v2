@@ -10,9 +10,12 @@ import { phoneToInternalEmail } from '@/lib/ambassador/auth'
  * Session establishment flow (Slice 1.5 Path B — admin-API hybrid):
  *   1. Validate OTP from otp_verifications table
  *   2. Compute deterministic internal email from phone (session fixture)
- *   3. Find or create auth.users row — dedupe is the deterministic email;
- *      new rows also populate auth.users.phone natively via phone_confirm.
- *   4. Generate magic link → return hashed_token
+ *   3. createUser FIRST — populates auth.users.phone natively via
+ *      phone_confirm. On 422 "already registered" error, the row exists.
+ *   4. generateLink SECOND — session mint only. Safe at this point because
+ *      the row provably exists; no auto-create can occur. Never use
+ *      generateLink as a dedupe probe — it auto-creates email-only rows
+ *      when no match is found, which would skip phone population entirely.
  *   5. Client calls supabase.auth.verifyOtp({ token_hash, type: 'email' })
  *
  * The synthetic wa_*@auth.internal email is a session-mint fixture only —
@@ -116,58 +119,61 @@ export async function POST(request: NextRequest) {
     // Compute deterministic internal email for this phone
     const internalEmail = phoneToInternalEmail(phoneNumber)
 
-    // Try to generate a magic link (works if user already exists)
+    // createUser FIRST — populates auth.users.phone natively. If the row
+    // already exists, Supabase returns a 422 "already registered" error,
+    // which is the existing-user signal. Never probe with generateLink:
+    // it auto-creates email-only rows when no match is found.
     let hashedToken: string | null = null
     let userId: string | null = null
 
+    const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+      phone: phoneNumber,
+      phone_confirm: true,
+      email: internalEmail,
+      email_confirm: true,
+      user_metadata: {
+        phone_number: phoneNumber,
+        auth_method: 'whatsapp_otp',
+        phone_verified: true,
+      },
+    })
+
+    const isAlreadyRegistered =
+      !!createError &&
+      (createError.status === 422 ||
+        /already been registered|already registered|already exists/i.test(createError.message))
+
+    if (createError && !isAlreadyRegistered) {
+      console.error('[Ambassador OTP-Verify] createUser failed:', createError)
+      return NextResponse.json(
+        { error: 'Failed to create account. Please try again.' },
+        { status: 500 }
+      )
+    }
+
+    if (!createError && newUser?.user) {
+      userId = newUser.user.id
+      console.log('[Ambassador OTP-Verify] Created new auth user with phone populated:', userId)
+    } else {
+      console.log('[Ambassador OTP-Verify] Existing auth user (createUser 422)')
+    }
+
+    // Mint the magic link (session fixture). Safe now: row provably exists.
     const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
       type: 'magiclink',
       email: internalEmail,
     })
 
-    if (linkData && !linkError) {
-      // Existing user
-      hashedToken = linkData.properties.hashed_token
-      userId = linkData.user.id
-      console.log('[Ambassador OTP-Verify] Existing auth user found:', userId)
-    } else {
-      // New user — create with deterministic internal email AND native
-      // phone-column population so auth.users.phone is the authoritative
-      // identity going forward. phone_confirm:true bypasses provider send
-      // (we've already verified the code via AUTHKey + otp_verifications).
-      console.log('[Ambassador OTP-Verify] Creating new auth user')
-      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-        phone: phoneNumber,
-        phone_confirm: true,
-        email: internalEmail,
-        email_confirm: true,
-        user_metadata: {
-          phone_number: phoneNumber,
-          auth_method: 'whatsapp_otp',
-          phone_verified: true,
-        },
-      })
-
-      if (createError || !newUser.user) {
-        console.error('[Ambassador OTP-Verify] Failed to create auth user:', createError)
-        return NextResponse.json({ error: 'Failed to create account. Please try again.' }, { status: 500 })
-      }
-
-      userId = newUser.user.id
-
-      // Generate session token for new user
-      const { data: newLinkData, error: newLinkError } = await supabase.auth.admin.generateLink({
-        type: 'magiclink',
-        email: internalEmail,
-      })
-
-      if (newLinkError || !newLinkData) {
-        console.error('[Ambassador OTP-Verify] Link generation failed:', newLinkError)
-        return NextResponse.json({ error: 'Failed to create session. Please try again.' }, { status: 500 })
-      }
-
-      hashedToken = newLinkData.properties.hashed_token
+    if (linkError || !linkData) {
+      console.error('[Ambassador OTP-Verify] generateLink failed:', linkError)
+      return NextResponse.json(
+        { error: 'Failed to create session. Please try again.' },
+        { status: 500 }
+      )
     }
+
+    hashedToken = linkData.properties.hashed_token
+    userId = userId ?? linkData.user.id
 
     // Check if model_profiles exists for this user
     const { data: profile } = await supabase
