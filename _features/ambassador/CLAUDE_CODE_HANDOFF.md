@@ -204,10 +204,11 @@ Schema and infrastructure must exist before anything else because FKs interlock 
 
 #### 🎯 Scope
 
-**Auth backend (Phase A):**
-- Replace `wa_{hash}@auth.internal` pattern entirely with Supabase native `signInWithOtp({ phone })`
-- Implement Supabase **Send SMS Hook** that webhooks to a DECODE endpoint which calls AUTHKey (so Supabase generates the OTP, AUTHKey delivers it via WhatsApp)
-- Delete `app/api/ambassador/auth/verify-otp/route.ts` synthetic-email logic; verify flow becomes native `verifyOtp({ phone, token, type: 'sms' })`
+**Auth backend (Phase A — Path B, admin-API hybrid):**
+- Keep AUTHKey-direct OTP flow on our edge (Turnstile + rate limiters + `otp_verifications` storage), restoring `app/api/ambassador/auth/send-otp/route.ts` and `app/api/ambassador/auth/verify-otp/route.ts` to their pre-flip shape.
+- Phone-first dedupe via `auth.users.phone` (populated natively going forward). When the verify-otp route mints a session, new users are created with `auth.admin.createUser({ phone, phone_confirm: true, email: phoneToInternalEmail(phone), email_confirm: true, ... })` — phone column is the identity, the synthetic `wa_*@auth.internal` email is a session-mint fixture only (never surfaced in UI; `isInternalEmail` filter on settings page hides it).
+- Sessions minted via `auth.admin.generateLink({ type: 'magiclink', email: synthetic })` → client calls `verifyOtp({ token_hash, type: 'email' })`.
+- **No Supabase Send SMS Hook, no `signInWithOtp({ phone })`.** Path A (native phone provider) was attempted in commit `0bb0b42` and reverted because the Supabase dashboard's Phone provider configuration form does not accept input in Firefox or Chrome — provider cannot be enabled.
 
 **UI — new screens (Phase B):**
 - `/model/auth` — redesigned WhatsApp-primary (existing route, new design)
@@ -271,42 +272,39 @@ For each page Claude Code builds, open the mockup + spec together, follow spec i
 
 Execute phases in order. Do not skip ahead. Mid-slice design review happens at the boundary between Phase B and Phase C per Guardrail 4.
 
-##### Phase A — Auth backend (Send SMS Hook + AUTHKey wiring)
+##### Phase A — Auth backend (AUTHKey-direct + admin-API hybrid)
 
-**Goal:** Replace synthetic-email OTP path with Supabase-native `signInWithOtp({ phone })`.
+**Goal:** Phone is the authoritative identity; one `auth.users` row per human. AUTHKey delivers OTP, our edge owns OTP storage and verification, the Supabase Admin API mints the session.
 
-**Prerequisites (configured by user pre-handoff):** Auth → SMS Settings → Send SMS Hook URL set to `https://app.welovedecode.com/api/ambassador/auth/sms-hook`; shared secret in `SUPABASE_SEND_SMS_HOOK_SECRET` env var.
+**Background:** Path A (Supabase native `signInWithOtp({ phone })` + Send SMS Hook → AUTHKey) was implemented in commit `0bb0b42` and reverted because the Supabase dashboard's Phone provider configuration form will not accept input in Firefox or Chrome — provider cannot be enabled. Re-implementation below uses `auth.admin.createUser({ phone, ... })` instead, which does not require the Phone provider to be enabled.
 
-1. **Implement `/api/ambassador/auth/sms-hook` route**
-   - Verify HMAC signature from `webhook-signature` header against `SUPABASE_SEND_SMS_HOOK_SECRET`
-   - Parse payload: `phone` (E.164), `otp` (6-digit code)
-   - Call AUTHKey template send endpoint with `otp` as template variable (`&otp={code}`)
-   - AUTHKey delivers via WhatsApp UTILITY template (existing from Slice 0)
-   - Return 200 OK on success; Supabase retries on non-200
+**Prerequisites:** None beyond AUTHKey credentials. The Supabase Phone provider stays **disabled**. There is no Send SMS Hook.
 
-2. **Update `/model/auth` submit handler**
-   - Replace current synthetic-email flow entirely
-   - Call `supabase.auth.signInWithOtp({ phone: e164FormatFromDialAndNumber(), channel: 'whatsapp' })`
-   - On success, route to `/model/auth/verify` (existing page — no changes)
+1. **`POST /api/ambassador/auth/send-otp`** (AUTHKey-direct)
+   - Turnstile verify (non-blocking) → phone + IP rate limiters → `crypto.randomInt(100000, 1000000)` → insert into `otp_verifications` (10-minute expiry) → `authkeyWhatsAppService.sendOTP(phone, code)`.
+   - All chokepoints stay on our edge.
 
-3. **Update `/model/auth/verify` callback**
-   - Replace synthetic-email verify with `supabase.auth.verifyOtp({ phone, token, type: 'sms' })`
-   - On success, branch:
-     - `model_profiles` row exists for this `user.id` → redirect to `/model`
-     - No `model_profiles` row → redirect to `/model/setup`
-   - **This branch fixes the original bug** — previously existing users were always routed to setup because the synthetic email created a new auth user with no profile.
+2. **`POST /api/ambassador/auth/verify-otp`** (admin-API session mint)
+   - Validate against `otp_verifications`: brute-force lock check (5 attempts → 1 hour lock), expiry check, used-flag check, code match → mark used.
+   - Compute `internalEmail = phoneToInternalEmail(phone)` (deterministic `wa_{sha256(phone).slice(0,12)}@auth.internal`).
+   - Try `auth.admin.generateLink({ type: 'magiclink', email: internalEmail })` first — succeeds for existing users (deterministic email = same row), returns `hashed_token`.
+   - On miss, `auth.admin.createUser({ phone: e164, phone_confirm: true, email: internalEmail, email_confirm: true, user_metadata: { phone_number, auth_method: 'whatsapp_otp', phone_verified: true } })` — populates `auth.users.phone` natively AND the synthetic email — then `generateLink` again.
+   - Look up `model_profiles` for the user.id; return `{ success, hashed_token, hasProfile }`.
 
-4. **Delete dead code**
-   - Remove entire synthetic-email generation from `lib/ambassador/auth.ts` (the `wa_{hash}@auth.internal` function)
-   - Remove magic-link OTP delivery path from `app/api/ambassador/auth/verify-otp/route.ts`
-   - Keep magic-link logic only for the email fallback path (separate from OTP)
+3. **`/model/auth/verify` page**
+   - POST `{ phoneNumber, otpCode }` to `/api/ambassador/auth/verify-otp`.
+   - On success, `supabase.auth.verifyOtp({ token_hash, type: 'email' })` → `refreshSession` → branch on `hasProfile`: true → `/model`, false → `/model/setup`.
+
+4. **Keep, don't delete**
+   - `lib/ambassador/auth.ts` exports `phoneToInternalEmail` (session-mint fixture) and `isInternalEmail` (UI safety filter — synthetic emails must never surface in settings).
+   - `isInternalEmail` filter stays in `app/(ambassador)/model/settings/page.tsx` so users only see their real (post-Add-email) email, never the synthetic.
 
 **✅ Verify before Phase B:**
-- [ ] Existing WhatsApp user signs in via phone → lands on `/model` (NOT `/model/setup`)
-- [ ] New WhatsApp user signs in via phone → lands on `/model/setup`
-- [ ] `auth.users` shows ONE row per test user, not two
-- [ ] No rows in `auth.users` have emails matching `wa_%@auth.internal` pattern
-- [ ] AUTHKey receives the exact OTP that Supabase generated (log verification)
+- [ ] Existing WhatsApp user signs in via phone → lands on `/model` (NOT `/model/setup`).
+- [ ] New WhatsApp user signs in via phone → lands on `/model/setup`; resulting `auth.users` row has `phone` populated and `email` matches `wa_*@auth.internal`.
+- [ ] `auth.users` shows ONE row per test user, not two. (`cleanup_phantom_auth_users()` extended to also catch the legacy `@whatsapp.decode.local` pattern.)
+- [ ] Settings page does NOT display the synthetic `@auth.internal` email anywhere.
+- [ ] AUTHKey receives the exact OTP our edge generated (log verification).
 
 ##### Phase B — Auth pages UI
 

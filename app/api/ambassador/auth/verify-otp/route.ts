@@ -7,12 +7,17 @@ import { phoneToInternalEmail } from '@/lib/ambassador/auth'
  *
  * Verifies a WhatsApp OTP code and establishes a Supabase session.
  *
- * Session establishment flow:
+ * Session establishment flow (Slice 1.5 Path B — admin-API hybrid):
  *   1. Validate OTP from otp_verifications table
- *   2. Compute deterministic internal email from phone
- *   3. Find or create auth.users row
+ *   2. Compute deterministic internal email from phone (session fixture)
+ *   3. Find or create auth.users row — dedupe is the deterministic email;
+ *      new rows also populate auth.users.phone natively via phone_confirm.
  *   4. Generate magic link → return hashed_token
  *   5. Client calls supabase.auth.verifyOtp({ token_hash, type: 'email' })
+ *
+ * The synthetic wa_*@auth.internal email is a session-mint fixture only —
+ * it is never surfaced in UI (see isInternalEmail filter on settings page).
+ * Identity is the phone; email is infrastructure.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -126,9 +131,14 @@ export async function POST(request: NextRequest) {
       userId = linkData.user.id
       console.log('[Ambassador OTP-Verify] Existing auth user found:', userId)
     } else {
-      // New user — create with deterministic internal email
+      // New user — create with deterministic internal email AND native
+      // phone-column population so auth.users.phone is the authoritative
+      // identity going forward. phone_confirm:true bypasses provider send
+      // (we've already verified the code via AUTHKey + otp_verifications).
       console.log('[Ambassador OTP-Verify] Creating new auth user')
       const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+        phone: phoneNumber,
+        phone_confirm: true,
         email: internalEmail,
         email_confirm: true,
         user_metadata: {
