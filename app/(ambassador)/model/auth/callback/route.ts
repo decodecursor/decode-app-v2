@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
 
 /**
  * GET /model/auth/callback
@@ -39,7 +40,44 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${origin}/model/auth/email-error`)
     }
 
-    console.log('[Ambassador Callback] Session established for user:', data.user.id)
+    const isWhatsAppUser = data.user.email?.endsWith('@auth.internal') ?? false
+
+    console.log(
+      `[Ambassador Callback] user: ${data.user.id}, email: ${data.user.email ?? 'null'}, phone: ${data.user.phone ?? 'null'}, isWhatsAppUser: ${isWhatsAppUser}`,
+    )
+
+    // Defense-in-depth shadow row ensure. verify-otp + send-magic-link
+    // each create the row at signup time, but any orphan from an earlier
+    // bug, deploy race, or future auth path is self-healed here on first
+    // login. Idempotent via ignoreDuplicates — no-op when row exists.
+    // Phone from Supabase auth is digit-only; re-add '+' for E.164.
+    // Service-role client bypasses RLS — matches verify-otp's pattern
+    // and avoids any session-state edge cases within this request.
+    try {
+      const adminClient = createServiceRoleClient()
+      const { error: shadowError } = await adminClient
+        .from('users')
+        .upsert(
+          {
+            id: data.user.id,
+            email: data.user.email ?? null,
+            phone_number: data.user.phone ? `+${data.user.phone}` : null,
+            user_name: `model_${data.user.id.slice(0, 8)}`,
+            role: 'Model',
+            signup_method: isWhatsAppUser ? 'whatsapp' : 'email',
+            email_verified: !isWhatsAppUser,
+            approval_status: 'approved',
+          },
+          { onConflict: 'id', ignoreDuplicates: true },
+        )
+      if (shadowError) {
+        console.error('[Ambassador Callback] public.users shadow upsert failed:', shadowError)
+      } else {
+        console.log('[Ambassador Callback] public.users shadow row ensured for:', data.user.id)
+      }
+    } catch (shadowErr) {
+      console.error('[Ambassador Callback] public.users shadow upsert threw:', shadowErr)
+    }
 
     const { data: profile } = await supabase
       .from('model_profiles')
