@@ -235,7 +235,10 @@ export default function SettingsPage() {
   const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    setCoverPreview(URL.createObjectURL(file))
+
+    const previousPreview = profile?.cover_photo_url ?? null
+    const blobUrl = URL.createObjectURL(file)
+    setCoverPreview(blobUrl)
 
     const formData = new FormData()
     formData.append('coverPhoto', file)
@@ -249,10 +252,16 @@ export default function SettingsPage() {
       const data = await res.json()
       if (res.ok && data.profile) {
         setProfile(data.profile)
-        setCoverPreview(data.profile.cover_photo_url)
+        setCoverPreview(data.profile.cover_photo_url ?? null)
+      } else {
+        setCoverPreview(previousPreview)
+        showToast(data.error || "Couldn't upload. Try again.")
       }
     } catch {
-      showToast('Upload failed')
+      setCoverPreview(previousPreview)
+      showToast('Network error. Try again.')
+    } finally {
+      URL.revokeObjectURL(blobUrl)
     }
   }
 
