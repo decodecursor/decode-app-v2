@@ -300,11 +300,11 @@ Execute phases in order. Do not skip ahead. Mid-slice design review happens at t
    - `isInternalEmail` filter stays in `app/(ambassador)/model/settings/page.tsx` so users only see their real (post-Add-email) email, never the synthetic.
 
 **✅ Verify before Phase B:**
-- [ ] Existing WhatsApp user signs in via phone → lands on `/model` (NOT `/model/setup`).
-- [ ] New WhatsApp user signs in via phone → lands on `/model/setup`; resulting `auth.users` row has `phone` populated and `email` matches `wa_*@auth.internal`.
-- [ ] `auth.users` shows ONE row per test user, not two. (`cleanup_phantom_auth_users()` extended to also catch the legacy `@whatsapp.decode.local` pattern.)
-- [ ] Settings page does NOT display the synthetic `@auth.internal` email anywhere.
-- [ ] AUTHKey receives the exact OTP our edge generated (log verification).
+- [x] Existing WhatsApp user signs in via phone → lands on `/model` (NOT `/model/setup`).
+- [x] New WhatsApp user signs in via phone → lands on `/model/setup`; resulting `auth.users` row has `phone` populated and `email` matches `wa_*@auth.internal`.
+- [x] `auth.users` shows ONE row per test user, not two. (`cleanup_phantom_auth_users()` extended to also catch the legacy `@whatsapp.decode.local` pattern.)
+- [x] Settings page does NOT display the synthetic `@auth.internal` email anywhere.
+- [x] AUTHKey receives the exact OTP our edge generated (log verification).
 
 ##### Phase B — Auth pages UI
 
@@ -330,14 +330,14 @@ Execute phases in order. Do not skip ahead. Mid-slice design review happens at t
    - Fix any drift before Phase C
 
 **✅ Verify before Phase C:**
-- [ ] `/model/auth` matches mockup pixel-close (spacing, colors, animations)
-- [ ] Country picker opens and scrolls correctly
-- [ ] Phone formatter applies masks live
-- [ ] "No WhatsApp?" link navigates to email page
-- [ ] `/model/auth/email` matches mockup
-- [ ] Email submit sends magic link, routes to `/model/auth/sent`
-- [ ] "Use WhatsApp instead" returns to `/model/auth`
-- [ ] Both pages work on iOS Safari, Chrome Android, desktop Chrome
+- [x] `/model/auth` matches mockup pixel-close (spacing, colors, animations)
+- [x] Country picker opens and scrolls correctly
+- [x] Phone formatter applies masks live
+- [x] "No WhatsApp?" link navigates to email page
+- [x] `/model/auth/email` matches mockup
+- [x] Email submit sends magic link, routes to `/model/auth/sent`
+- [x] "Use WhatsApp instead" returns to `/model/auth`
+- [x] Both pages work on iOS Safari, Chrome Android, desktop Chrome
 
 ##### Phase C — Settings Login methods card + Add modals
 
@@ -377,15 +377,15 @@ Execute phases in order. Do not skip ahead. Mid-slice design review happens at t
    - Do NOT change toast messages, button labels, or code comments
 
 **✅ Verify before Phase D:**
-- [ ] WhatsApp-primary user sees: WhatsApp row (filled) + Email row (pink "Add email")
-- [ ] Email-primary user sees: Email row (filled) + WhatsApp row (pink "Add WhatsApp")
-- [ ] Dual-linked user sees: both rows filled, order matches signup_method
-- [ ] Add email modal: enter email → send → shows Step 2 with tracker + resend
-- [ ] Clicking magic link in email populates `auth.users.email` and next settings render shows filled row
-- [ ] Add WhatsApp modal: enter number → send → OTP cells → verify → Step 3 with single "ADDED" card
-- [ ] After Add WhatsApp, next settings render shows filled row
-- [ ] Logout row label shows "Logout" (no space)
-- [ ] Existing Change modals still work (don't regress)
+- [x] WhatsApp-primary user sees: WhatsApp row (filled) + Email row (pink "Add email")
+- [x] Email-primary user sees: Email row (filled) + WhatsApp row (pink "Add WhatsApp")
+- [x] Dual-linked user sees: both rows filled, order matches signup_method
+- [x] Add email modal: enter email → send → shows Step 2 with tracker + resend
+- [x] Clicking magic link in email populates `auth.users.email` and next settings render shows filled row
+- [x] Add WhatsApp modal: enter number → send → OTP cells → verify → Step 3 with single "ADDED" card
+- [x] After Add WhatsApp, next settings render shows filled row
+- [x] Logout row label shows "Logout" (no space)
+- [x] Existing Change modals still work (don't regress)
 
 ##### Phase D — Dashboard Settings hint
 
@@ -404,11 +404,11 @@ Execute phases in order. Do not skip ahead. Mid-slice design review happens at t
    - Reuse existing CSS classes — do NOT create new ones
 
 **✅ Verify before Phase E:**
-- [ ] User with email → Settings nav card shows plain "Settings" (no hint)
-- [ ] User without email → Settings nav card shows "Settings · Email missing" with pink text
-- [ ] Tap on card (either state) navigates to `/model/settings`
-- [ ] After Add email flow completes, next dashboard visit shows no hint (hint self-dismisses)
-- [ ] Pink hint color matches Listings "1 expiring soon" hint exactly (same `#e91e8c`)
+- [x] User with email → Settings nav card shows plain "Settings" (no hint)
+- [x] User without email → Settings nav card shows "Settings · Email missing" with pink text
+- [x] Tap on card (either state) navigates to `/model/settings`
+- [x] After Add email flow completes, next dashboard visit shows no hint (hint self-dismisses)
+- [x] Pink hint color matches Listings "1 expiring soon" hint exactly (same `#e91e8c`)
 
 ##### Phase E — Schema migration + phantom cleanup
 
@@ -449,32 +449,32 @@ Execute phases in order. Do not skip ahead. Mid-slice design review happens at t
    - Simplest: if `auth.users.phone IS NOT NULL` at profile-create time → `'whatsapp'`; else → `'email'`
 
 **✅ Verify before closing Slice 1.5:**
-- [ ] `public.users.signup_method` column exists with CHECK constraint
-- [ ] All existing users have a non-null `signup_method` value
-- [ ] No `auth.users` row has email matching `wa_%@auth.internal` pattern
-- [ ] `cleanup_phantom_auth_users()` function exists, EXECUTE granted to `service_role` only
-- [ ] Invocation mechanism (pg_cron or admin endpoint) is wired and documented
-- [ ] New WhatsApp signup → `public.users.signup_method = 'whatsapp'` on profile create
-- [ ] New email signup → `public.users.signup_method = 'email'` on profile create
-- [ ] Pre-launch checklist updated with Slice 1.5 items #6 and #7
+- [x] `public.users.signup_method` column exists with CHECK constraint
+- [x] All existing users have a non-null `signup_method` value
+- [x] No `auth.users` row has email matching `wa_%@auth.internal` pattern
+- [x] `cleanup_phantom_auth_users()` function exists, EXECUTE granted to `service_role` only
+- [x] Invocation mechanism (pg_cron or admin endpoint) is wired and documented
+- [x] New WhatsApp signup → `public.users.signup_method = 'whatsapp'` on profile create
+- [x] New email signup → `public.users.signup_method = 'email'` on profile create
+- [x] Pre-launch checklist updated with Slice 1.5 items #6 and #7
 
 ---
 
-#### ✅ Final Slice 1.5 VERIFY checklist (all phases)
+#### ✅ Final Slice 1.5 VERIFY checklist (all phases) — SHIPPED ✓ (2026-04-20)
 
 Full end-to-end user-journey tests:
 
-- [ ] **Fresh WhatsApp signup:** new user → phone OTP → lands on `/model/setup` → completes → sees dashboard with "Email missing" hint
-- [ ] **Fresh email signup:** new user via fallback link → magic link → clicks → lands on `/model/setup` → completes → sees dashboard without hint
-- [ ] **Returning WhatsApp user:** existing user → phone OTP → lands on `/model` (NOT setup) — **the original bug is fixed**
-- [ ] **Cross-method sign-in:** WhatsApp user clicks email fallback, signs in via email → lands on `/model` (same auth.users row, no duplicate created)
-- [ ] **Add email from Settings:** WhatsApp-primary user → Settings → Login methods card → Email row "Add email" → modal → submit → clicks link in inbox → next Settings render shows filled email row → dashboard hint disappears
-- [ ] **Add WhatsApp from Settings:** email-primary user → Settings → Login methods card → WhatsApp row "Add WhatsApp" → modal → OTP → Step 3 "ADDED" card → Done → next Settings render shows filled WhatsApp row
-- [ ] **Row order honors signup method:** WhatsApp-primary user sees WhatsApp row first; email-primary user sees Email row first
-- [ ] **No phantom users:** after all testing, `auth.users` contains ONE row per test user
-- [ ] **No regressions:** existing Change email, Change WhatsApp, Change slug, delete profile flows still work
+- [x] **Fresh WhatsApp signup:** new user → phone OTP → lands on `/model/setup` → completes → sees dashboard with "Email missing" hint
+- [x] **Fresh email signup:** new user via fallback link → magic link → clicks → lands on `/model/setup` → completes → sees dashboard without hint
+- [x] **Returning WhatsApp user:** existing user → phone OTP → lands on `/model` (NOT setup) — **the original bug is fixed**
+- [x] **Cross-method sign-in:** WhatsApp user clicks email fallback, signs in via email → lands on `/model` (same auth.users row, no duplicate created)
+- [x] **Add email from Settings:** WhatsApp-primary user → Settings → Login methods card → Email row "Add email" → modal → submit → clicks link in inbox → next Settings render shows filled email row → dashboard hint disappears
+- [x] **Add WhatsApp from Settings:** email-primary user → Settings → Login methods card → WhatsApp row "Add WhatsApp" → modal → OTP → Step 3 "ADDED" card → Done → next Settings render shows filled WhatsApp row
+- [x] **Row order honors signup method:** WhatsApp-primary user sees WhatsApp row first; email-primary user sees Email row first
+- [x] **No phantom users:** after all testing, `auth.users` contains ONE row per test user
+- [x] **No regressions:** existing Change email, Change WhatsApp, Change slug, delete profile flows still work
 
-Close Slice 1.5 only when all items pass.
+Slice 1.5 closed on 2026-04-20 — all items pass.
 
 ---
 

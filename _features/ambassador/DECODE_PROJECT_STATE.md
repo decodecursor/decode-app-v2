@@ -1,9 +1,9 @@
 # DECODE — Ambassador Feature Project State
 
-**Last updated:** 2026-04-19 (Slice 1.5 auth architecture — WhatsApp-primary)
+**Last updated:** 2026-04-20 (Slice 1.5 SHIPPED ✓)
 **Project:** DECODE (welovedecode.com) — Ambassador feature
 **Current subdomain:** `app.welovedecode.com` (apex still on Carrd, migration later)
-**Status:** Slice 1 shipped. Slice 1.5 (auth architecture fix + Login methods in Settings + dashboard email hint) designed and ready for Claude Code. Slice 2 pending.
+**Status:** Slice 1 shipped. Slice 1.5 (auth architecture fix + Login methods in Settings + dashboard email hint) **SHIPPED ✓ (2026-04-20)** — WhatsApp signin deduped by phone, no phantom rows, email-add via Resend verified cross-browser. Slice 2 pending.
 
 ---
 

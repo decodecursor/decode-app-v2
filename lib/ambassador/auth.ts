@@ -10,7 +10,9 @@ import { createHash } from 'crypto'
 //   wa_{sha256(phone).slice(0,12)}@auth.internal
 //
 // Rules:
-//   1. auth.users.email = this internal email (session management only)
+//   1. auth.users.email = user's real email if added via Settings, else
+//      synthetic wa_<hash>@auth.internal. auth.users.phone is the
+//      authoritative identity; email is optional.
 //   2. public.users.email  = NULL for WhatsApp-only users
 //   3. User NEVER sees this email anywhere in the UI
 //   4. Same phone always produces same hash (no timestamps, no randomness)
