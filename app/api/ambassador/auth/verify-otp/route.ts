@@ -130,20 +130,18 @@ export async function POST(request: NextRequest) {
     // authoritative identity for WhatsApp users; look up by that.
     // Stored without the leading '+', so normalize.
     const normalizedPhone = phoneNumber.replace(/^\+/, '')
-    // NOTE: keep as single variable (not destructured) so TS can correlate
-    // the error-nullness discriminant with data.users typing.
-    const listResult = await supabase.auth.admin.listUsers({
+    const { data: listData, error: listError } = await supabase.auth.admin.listUsers({
       page: 1,
       perPage: 1000,
     })
-    if (listResult.error) {
-      console.error('[Ambassador OTP-Verify] listUsers failed:', listResult.error)
+    if (listError) {
+      console.error('[Ambassador OTP-Verify] listUsers failed:', listError)
       return NextResponse.json(
         { error: 'Failed to locate account. Please try again.' },
         { status: 500 }
       )
     }
-    const existing = listResult.data.users.find((u) => u.phone === normalizedPhone)
+    const existing = listData?.users?.find((u: any) => u.phone === normalizedPhone)
 
     let hashedToken: string | null = null
     let userId: string | null = null
