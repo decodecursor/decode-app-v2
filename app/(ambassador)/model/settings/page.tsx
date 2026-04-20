@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { isInternalEmail } from '@/lib/ambassador/auth'
 import { CoverCameraButton } from '@/components/ambassador/CoverCameraButton'
+import { AddEmailModal } from '@/components/ambassador/AddEmailModal'
+import { AddWhatsAppModal } from '@/components/ambassador/AddWhatsAppModal'
 
 interface Profile {
   id: string
@@ -74,9 +76,14 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [userPhone, setUserPhone] = useState<string | null>(null)
+  const [signupMethod, setSignupMethod] = useState<'whatsapp' | 'email'>('whatsapp')
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState('')
   const [copied, setCopied] = useState(false)
+
+  // Login methods modals
+  const [showAddEmail, setShowAddEmail] = useState(false)
+  const [showAddWhatsApp, setShowAddWhatsApp] = useState(false)
 
   // Delete modal
   const [showDelete, setShowDelete] = useState(false)
@@ -103,11 +110,6 @@ export default function SettingsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.replace('/model/auth'); return }
 
-      const email = user.email
-      const phone = user.user_metadata?.phone_number
-      if (email && !isInternalEmail(email)) setUserEmail(email)
-      if (phone) setUserPhone(phone)
-
       const { data } = await supabase
         .from('model_profiles')
         .select('*')
@@ -118,9 +120,15 @@ export default function SettingsPage() {
 
       const { data: userRow } = await supabase
         .from('users')
-        .select('instagram_handle')
+        .select('instagram_handle, signup_method, phone_number')
         .eq('id', user.id)
         .single()
+
+      const email = user.email
+      const phone = userRow?.phone_number || user.user_metadata?.phone_number || null
+      if (email && !isInternalEmail(email)) setUserEmail(email)
+      if (phone) setUserPhone(phone)
+      setSignupMethod((userRow?.signup_method as 'whatsapp' | 'email' | undefined) ?? 'whatsapp')
 
       setProfile({ ...data, instagram_handle: userRow?.instagram_handle ?? '' } as Profile)
       setCoverPreview(data.cover_photo_url)
@@ -449,30 +457,64 @@ export default function SettingsPage() {
         <EditableRow label="Instagram" value={profile.instagram_handle} onSave={(v) => saveField({ instagram: v })} isLast={true} instagram />
       </div>
 
-      {/* Contact */}
+      {/* Login methods */}
       <div style={cardStyle}>
-        {/* TODO(slice-5): email modal — supabase.auth.updateUser({ email }) */}
-        <div
-          onClick={() => showToast('Email editing coming soon')}
-          style={{ ...rowStyle, borderBottom: '1px solid #262626', cursor: 'pointer' }}
-        >
-          <span style={{ fontSize: 14, color: '#888' }}>Email</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 14, color: '#fff' }}>{userEmail || 'Not set'}</span>
-            <Chevron />
-          </div>
-        </div>
-        {/* TODO(slice-5): phone modal — AUTHKey send + verify + UPDATE users.phone */}
-        <div
-          onClick={() => showToast('WhatsApp editing coming soon')}
-          style={{ ...rowStyle, cursor: 'pointer' }}
-        >
-          <span style={{ fontSize: 14, color: '#888' }}>WhatsApp</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 14, color: '#fff' }}>{userPhone || 'Not set'}</span>
-            <Chevron />
-          </div>
-        </div>
+        {(signupMethod === 'email' ? ['email', 'whatsapp'] : ['whatsapp', 'email']).map((kind, i, arr) => {
+          const isLast = i === arr.length - 1
+          const rowBorder = isLast ? {} : { borderBottom: '1px solid #262626' }
+          if (kind === 'email') {
+            return userEmail ? (
+              <div
+                key="email"
+                onClick={() => showToast('Email editing coming soon')}
+                style={{ ...rowStyle, ...rowBorder, cursor: 'pointer' }}
+              >
+                <span style={{ fontSize: 14, color: '#888' }}>Email</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 14, color: '#fff' }}>{userEmail}</span>
+                  <Chevron />
+                </div>
+              </div>
+            ) : (
+              <div
+                key="email"
+                onClick={() => setShowAddEmail(true)}
+                style={{ ...rowStyle, ...rowBorder, cursor: 'pointer' }}
+              >
+                <span style={{ fontSize: 14, color: '#888' }}>Email</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 14, color: '#e91e8c', fontWeight: 600 }}>Add email</span>
+                  <PinkChevron />
+                </div>
+              </div>
+            )
+          }
+          return userPhone ? (
+            <div
+              key="whatsapp"
+              onClick={() => showToast('WhatsApp editing coming soon')}
+              style={{ ...rowStyle, ...rowBorder, cursor: 'pointer' }}
+            >
+              <span style={{ fontSize: 14, color: '#888' }}>WhatsApp</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 14, color: '#fff' }}>{userPhone}</span>
+                <Chevron />
+              </div>
+            </div>
+          ) : (
+            <div
+              key="whatsapp"
+              onClick={() => setShowAddWhatsApp(true)}
+              style={{ ...rowStyle, ...rowBorder, cursor: 'pointer' }}
+            >
+              <span style={{ fontSize: 14, color: '#888' }}>WhatsApp</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 14, color: '#e91e8c', fontWeight: 600 }}>Add WhatsApp</span>
+                <PinkChevron />
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       {/* Preferences */}
@@ -515,7 +557,7 @@ export default function SettingsPage() {
           onClick={handleLogout}
           style={{ ...rowStyle, borderBottom: '1px solid #262626', cursor: 'pointer' }}
         >
-          <span style={{ fontSize: 14, color: '#888' }}>Log out</span>
+          <span style={{ fontSize: 14, color: '#888' }}>Logout</span>
           <Chevron />
         </div>
         <div
@@ -675,6 +717,13 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
+
+      <AddEmailModal open={showAddEmail} onClose={() => setShowAddEmail(false)} />
+      <AddWhatsAppModal
+        open={showAddWhatsApp}
+        onClose={() => setShowAddWhatsApp(false)}
+        onAdded={(phone) => setUserPhone(phone)}
+      />
     </div>
   )
 }
@@ -682,6 +731,14 @@ export default function SettingsPage() {
 function Chevron() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2">
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
+  )
+}
+
+function PinkChevron() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" strokeWidth="2">
       <polyline points="9 18 15 12 9 6" />
     </svg>
   )
