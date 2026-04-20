@@ -3,15 +3,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ProgressTracker } from '@/components/ambassador/ProgressTracker'
+import { OtpInput, type OtpInputHandle } from '@/components/ambassador/OtpInput'
 
 type VerifyPhase = 'idle' | 'ready' | 'verifying' | 'success'
 type ResendPhase = 'idle' | 'sent' | 'cooldown'
+
+const EMPTY_CODE: string[] = ['', '', '', '', '', '']
 
 export default function VerifyOTPPage() {
   const router = useRouter()
 
   const [phone, setPhone] = useState('')
-  const [code, setCode] = useState<string[]>(['', '', '', '', '', ''])
+  const [code, setCode] = useState<string[]>(EMPTY_CODE)
   const [phase, setPhase] = useState<VerifyPhase>('idle')
   const [error, setError] = useState('')
   const [shake, setShake] = useState(false)
@@ -21,7 +24,7 @@ export default function VerifyOTPPage() {
   const [resendPhase, setResendPhase] = useState<ResendPhase>('idle')
   const [resendCooldown, setResendCooldown] = useState(0)
 
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const otpRef = useRef<OtpInputHandle | null>(null)
 
   useEffect(() => {
     const stored = sessionStorage.getItem('ambassador_auth_phone')
@@ -30,7 +33,6 @@ export default function VerifyOTPPage() {
       return
     }
     setPhone(stored)
-    setTimeout(() => inputRefs.current[0]?.focus(), 100)
   }, [router])
 
   useEffect(() => {
@@ -62,45 +64,9 @@ export default function VerifyOTPPage() {
     setPhase(allFilled ? 'ready' : 'idle')
   }, [allFilled, phase])
 
-  const handleInput = useCallback((index: number, value: string) => {
-    const digit = value.replace(/\D/g, '').slice(-1)
-    setCode((prev) => {
-      const next = [...prev]
-      next[index] = digit
-      return next
-    })
+  const handleCodeChange = useCallback((next: string[]) => {
+    setCode(next)
     setError('')
-    if (digit && index < 5) inputRefs.current[index + 1]?.focus()
-  }, [])
-
-  const handleKeyDown = useCallback(
-    (index: number, e: React.KeyboardEvent) => {
-      if (e.key === 'Backspace' && !code[index] && index > 0) {
-        inputRefs.current[index - 1]?.focus()
-        setCode((prev) => {
-          const next = [...prev]
-          next[index - 1] = ''
-          return next
-        })
-      }
-    },
-    [code],
-  )
-
-  const handlePaste = useCallback((e: React.ClipboardEvent) => {
-    e.preventDefault()
-    const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
-    if (!text) return
-    const digits = text.split('')
-    setCode((prev) => {
-      const next = [...prev]
-      digits.forEach((d, i) => {
-        if (i < 6) next[i] = d
-      })
-      return next
-    })
-    const focusIdx = Math.min(digits.length, 5)
-    inputRefs.current[focusIdx]?.focus()
   }, [])
 
   const verify = useCallback(async () => {
@@ -121,12 +87,12 @@ export default function VerifyOTPPage() {
         setError(data.error || 'Verification failed')
         setShake(true)
         if (res.status === 410 || res.status === 429) {
-          setCode(['', '', '', '', '', ''])
-          setTimeout(() => inputRefs.current[0]?.focus(), 100)
+          setCode(EMPTY_CODE)
+          setTimeout(() => otpRef.current?.focusFirst(), 100)
         } else {
           setTimeout(() => {
-            setCode(['', '', '', '', '', ''])
-            inputRefs.current[0]?.focus()
+            setCode(EMPTY_CODE)
+            otpRef.current?.focusFirst()
           }, 500)
         }
         setPhase('idle')
@@ -186,11 +152,11 @@ export default function VerifyOTPPage() {
         return
       }
       setResendPhase('sent')
-      setCode(['', '', '', '', '', ''])
+      setCode(EMPTY_CODE)
       setTimeout(() => {
         setResendPhase('cooldown')
         setResendCooldown(60)
-        inputRefs.current[0]?.focus()
+        otpRef.current?.focusFirst()
       }, 2000)
     } catch {
       setError('Network error')
@@ -244,63 +210,13 @@ export default function VerifyOTPPage() {
         <span style={{ color: '#fff', fontWeight: 600 }}>{phone}</span> on WhatsApp
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          gap: 8,
-          justifyContent: 'center',
-          marginBottom: 24,
-          animation: shake
-            ? 'ambassador-shake 0.45s cubic-bezier(0.36,0.07,0.19,0.97)'
-            : undefined,
-        }}
-        onPaste={handlePaste}
-      >
-        {code.map((digit, i) => {
-          const isError = !!error && shake
-          const borderColor = isError
-            ? '#ef4444'
-            : digit
-            ? '#e91e8c'
-            : '#262626'
-          return (
-            <input
-              key={i}
-              ref={(el) => {
-                inputRefs.current[i] = el
-              }}
-              type="text"
-              inputMode="numeric"
-              autoComplete={i === 0 ? 'one-time-code' : 'off'}
-              maxLength={1}
-              value={digit}
-              onChange={(e) => handleInput(i, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(i, e)}
-              onFocus={(e) => {
-                if (!isError) e.target.style.borderColor = '#e91e8c'
-              }}
-              onBlur={(e) => {
-                if (!isError && !digit) e.target.style.borderColor = '#262626'
-              }}
-              style={{
-                width: 42,
-                height: 54,
-                background: 'transparent',
-                border: `1.5px solid ${borderColor}`,
-                borderRadius: 10,
-                fontSize: 22,
-                fontWeight: 700,
-                color: '#fff',
-                textAlign: 'center',
-                caretColor: '#e91e8c',
-                transition: 'border-color 0.15s',
-                outline: 'none',
-                fontFamily: 'system-ui, -apple-system, sans-serif',
-              }}
-            />
-          )
-        })}
-      </div>
+      <OtpInput
+        ref={otpRef}
+        value={code}
+        onChange={handleCodeChange}
+        error={!!error}
+        shake={shake}
+      />
 
       <div
         onClick={verify}
