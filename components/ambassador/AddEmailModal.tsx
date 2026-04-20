@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
 import { ProgressTracker } from '@/components/ambassador/ProgressTracker'
 
 type Step = 1 | 2
@@ -24,8 +23,6 @@ export function AddEmailModal({
   open: boolean
   onClose: () => void
 }) {
-  const supabase = createClient()
-
   const [step, setStep] = useState<Step>(1)
   const [email, setEmail] = useState('')
   const [sending, setSending] = useState(false)
@@ -61,19 +58,29 @@ export function AddEmailModal({
   }
 
   const sendVerification = async (normalizedEmail: string) => {
-    const { error } = await supabase.auth.updateUser({ email: normalizedEmail })
-    if (error) {
-      const msg = (error.message || '').toLowerCase()
-      if (msg.includes('already') || msg.includes('exists') || msg.includes('registered')) {
-        setInlineError('This email is already in use')
-      } else if (msg.includes('invalid') || msg.includes('format')) {
-        setInlineError('Enter a valid email')
-      } else {
-        showToast('Network error. Please try again.')
+    try {
+      const res = await fetch('/api/ambassador/auth/add-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: normalizedEmail }),
+      })
+      if (!res.ok) {
+        if (res.status === 409) {
+          setInlineError('This email is already in use')
+        } else if (res.status === 400) {
+          setInlineError('Enter a valid email')
+        } else if (res.status === 401) {
+          showToast('Please sign in again')
+        } else {
+          showToast('Network error. Please try again.')
+        }
+        return false
       }
+      return true
+    } catch {
+      showToast('Network error. Please try again.')
       return false
     }
-    return true
   }
 
   const handleSend = async () => {
