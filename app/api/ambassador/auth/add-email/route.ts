@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomBytes } from 'crypto'
 import { createClient } from '@/utils/supabase/server'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { maskEmail } from '@/lib/ambassador/log-utils'
@@ -7,14 +8,17 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+const TOKEN_TTL_MINUTES = 15
+
 /**
  * POST /api/ambassador/auth/add-email
  *
- * Sends a branded email-change confirmation link for an already-signed-in
- * ambassador (typically WhatsApp-primary users adding their first email).
- * Uses admin.generateLink({ type: 'email_change_new' }) to mint the token,
- * then delivers via Resend — matching the send-magic-link pattern so all
- * outbound email flows through one sender/template pipeline.
+ * Issues an opaque random token stored in public.email_change_requests,
+ * emails a link to the new address. Consumption happens at
+ * GET /model/auth/confirm-email. Replaces the previous
+ * admin.generateLink('email_change_new') flow, whose GoTrue token was
+ * PKCE-bound to the requesting client and broke when the user clicked
+ * from a different browser (phone → laptop).
  */
 export async function POST(request: NextRequest) {
   try {
@@ -23,9 +27,6 @@ export async function POST(request: NextRequest) {
 
     if (!sessionUser) {
       return NextResponse.json({ error: 'Not signed in' }, { status: 401 })
-    }
-    if (!sessionUser.email) {
-      return NextResponse.json({ error: 'Account has no current email' }, { status: 400 })
     }
 
     const body = await request.json()
@@ -44,24 +45,46 @@ export async function POST(request: NextRequest) {
 
     const admin = createServiceRoleClient()
 
-    const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
-      type: 'email_change_new',
-      email: sessionUser.email,
-      newEmail: normalizedEmail,
-    })
+    // Conflict pre-check against public.users (the email-mirrored shadow).
+    // Not bulletproof vs. shadow drift; residual conflicts are caught at
+    // confirm time by updateUserById and routed to ?reason=conflict.
+    const { data: existing } = await admin
+      .from('users')
+      .select('id')
+      .eq('email', normalizedEmail)
+      .maybeSingle()
 
-    if (linkError || !linkData) {
-      const msg = (linkError?.message || '').toLowerCase()
-      if (/already|exists|registered|taken/.test(msg)) {
-        return NextResponse.json({ error: 'This email is already in use.' }, { status: 409 })
-      }
-      console.error('[Ambassador Add Email] Link generation failed:', linkError)
+    if (existing && existing.id !== sessionUser.id) {
+      return NextResponse.json({ error: 'This email is already in use.' }, { status: 409 })
+    }
+
+    // Invalidate prior unused requests for this user so stale links stop
+    // working as soon as a new one is issued.
+    await admin
+      .from('email_change_requests')
+      .update({ consumed_at: new Date().toISOString() })
+      .eq('user_id', sessionUser.id)
+      .is('consumed_at', null)
+
+    const token = randomBytes(32).toString('hex')
+    const expiresAt = new Date(Date.now() + TOKEN_TTL_MINUTES * 60 * 1000).toISOString()
+
+    const { error: insertError } = await admin
+      .from('email_change_requests')
+      .insert({
+        token,
+        user_id: sessionUser.id,
+        new_email: normalizedEmail,
+        expires_at: expiresAt,
+      })
+
+    if (insertError) {
+      console.error('[Ambassador Add Email] Token insert failed:', insertError)
       return NextResponse.json({ error: 'Failed to send verification email. Please try again.' }, { status: 500 })
     }
 
     const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'https://app.welovedecode.com'
-    const hashedToken = linkData.properties.hashed_token
-    const callbackUrl = `${origin}/model/auth/callback?token_hash=${encodeURIComponent(hashedToken)}&type=email_change`
+    const callbackUrl = `${origin}/model/auth/confirm-email?token=${token}`
 
     const html = renderButtonEmail({ heading: 'WeLoveDecode', buttonLabel: 'Confirm your email', callbackUrl })
 
@@ -78,7 +101,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to send email. Please try again.' }, { status: 500 })
     }
 
-    console.log('[Ambassador Add Email] Sent to:', maskEmail(normalizedEmail))
+    console.log('[Ambassador Add Email] Sent to:', maskEmail(normalizedEmail), 'token prefix:', token.slice(0, 8))
 
     return NextResponse.json({ success: true })
   } catch (error) {

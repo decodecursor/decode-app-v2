@@ -16,7 +16,7 @@ import { createServiceRoleClient } from '@/utils/supabase/service-role'
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const tokenHash = searchParams.get('token_hash')
-  const type = (searchParams.get('type') || 'magiclink') as 'magiclink' | 'email' | 'email_change'
+  const type = (searchParams.get('type') || 'magiclink') as 'magiclink' | 'email'
   const origin = request.nextUrl.origin
   const userAgent = request.headers.get('user-agent') || 'unknown'
 
@@ -60,25 +60,6 @@ export async function GET(request: NextRequest) {
     console.log(
       `[Ambassador Callback] user: ${data.user.id}, email: ${data.user.email ?? 'null'}, phone: ${data.user.phone ?? 'null'}, isWhatsAppUser: ${isWhatsAppUser}`,
     )
-
-    // Email-change flow (Add Email from Settings): auth.users.email is now
-    // the confirmed new address. Mirror onto public.users so Settings and
-    // the dashboard hint reflect it immediately, then return to Settings.
-    if (type === 'email_change') {
-      try {
-        const adminClient = createServiceRoleClient()
-        const { error: updErr } = await adminClient
-          .from('users')
-          .update({ email: data.user.email ?? null })
-          .eq('id', data.user.id)
-        if (updErr) {
-          console.error('[Ambassador Callback] email_change shadow update failed:', updErr)
-        }
-      } catch (updErr) {
-        console.error('[Ambassador Callback] email_change shadow update threw:', updErr)
-      }
-      return NextResponse.redirect(`${origin}/model/settings`)
-    }
 
     // Defense-in-depth shadow row ensure. verify-otp + send-magic-link
     // each create the row at signup time, but any orphan from an earlier
