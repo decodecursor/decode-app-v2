@@ -64,13 +64,21 @@ export async function POST(request: NextRequest) {
 
     const html = `<!DOCTYPE html>
 <html>
-  <body style="margin:0;padding:24px;background:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#fff;">
-    <div style="max-width:480px;margin:0 auto;background:#1c1c1c;border:1px solid #262626;border-radius:16px;padding:32px 24px;">
-      <div style="font-size:18px;font-weight:700;margin-bottom:12px;">Add this email to your WeLoveDecode account</div>
-      <div style="font-size:14px;color:#aaa;line-height:1.6;margin-bottom:24px;">Click the button below to confirm this email address. The link expires in 10 minutes.</div>
-      <a href="${callbackUrl}" style="display:inline-block;background:#e91e8c;color:#fff;text-decoration:none;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;">Confirm your email</a>
-      <div style="font-size:11px;color:#666;margin-top:24px;line-height:1.6;">If you didn't request this, you can safely ignore this email.</div>
-    </div>
+  <body style="margin:0;padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td align="center">
+          <h1 style="font-size:20px;font-weight:700;margin:0 0 24px;color:#111;">WeLoveDecode</h1>
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td bgcolor="#e91e8c" style="border-radius:8px;">
+                <a href="${callbackUrl}" style="display:inline-block;padding:14px 32px;color:#ffffff !important;text-decoration:none;font-weight:600;font-size:14px;border-radius:8px;background:#e91e8c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Confirm your email</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>`
 
