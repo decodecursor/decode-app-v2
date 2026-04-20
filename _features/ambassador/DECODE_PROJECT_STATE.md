@@ -518,6 +518,42 @@ Both columns may be NULL at the same time momentarily during signup; exactly one
 
 ---
 
+# PHASE 5B — SLICE 1.5 LESSONS LEARNED
+
+Post-ship retrospective from Slice 1.5 delivery (2026-04-20). Each principle captures a specific failure mode encountered, with the rule future work should follow.
+
+### Principle A — Dedupe by the authoritative identity field, never by a derived one
+
+Phase A first used synthetic email (`wa_<hash>@auth.internal`) as the dedupe key for `admin.createUser`. When Phase C's Add Email feature overwrote `auth.users.email` with the real email, dedupe broke silently — phantom rows on every returning WhatsApp sign-in. Fixed by switching to phone-based lookup via `listUsers({ perPage: 1000 })`.
+
+**Rule:** if a field can be mutated by a user action, it's not a dedupe key.
+
+### Principle B — All auth-flow emails go through Resend with templates in-repo
+
+Phase C initially used `supabase.auth.updateUser({ email })` which triggers Supabase's built-in email with dashboard-managed templates. That exposed synthetic email addresses to users ("Confirm Change of Email from wa_xxx@auth.internal to…"). Refactored to use `admin.generateLink` server-side + direct Resend call with a repo-owned template (matching the sign-in magic-link pattern).
+
+**Rule:** no Supabase dashboard dependency for user-facing emails. One sender identity, one template source, one pipeline.
+
+### Principle C — Opaque DB-owned tokens for any action that may be clicked from a different browser
+
+Supabase's `admin.generateLink({ type: 'email_change_new' })` produces a token that's PKCE-session-bound. Clicking from a different browser (real-user scenario: request on phone, click on laptop) returns `otp_expired` even within TTL. Replaced with a custom `email_change_requests` table: opaque 32-byte token, server-side atomic consume, admin API applies the change with no session dependency.
+
+**Rule:** any flow where the confirmation click happens in a different context than the request needs a server-owned token, not a PKCE-bound one.
+
+### Principle D — TypeScript pipeline differences can silently break builds
+
+Local `npx tsc --noEmit` passed but Vercel's `next build` typecheck failed on a discriminated-union narrowing. Vercel's Next.js pipeline collapsed `User[] | []` to `never[]` while local tsc preserved the union. Fix: destructure early + use `(u: any)` in callbacks for Supabase list-type returns, matching the pattern in `check-email/route.ts`, `proxy-user-lookup/route.ts`, `users/invite/route.ts`.
+
+**Rule:** don't rely on cross-property discriminant narrowing surviving the Next.js type pipeline.
+
+### Principle E — End-to-end cross-browser smoke tests catch what same-browser tests miss
+
+Phase C passed all same-browser tests. Cross-browser failures (phone-to-laptop click) only surfaced during final smoke testing.
+
+**Rule:** for any flow involving email links or cross-device interactions, always run a cross-browser smoke test before declaring done.
+
+---
+
 # PHASE 6 — URL ARCHITECTURE (LOCKED)
 
 ## Final URL list (30 routes)
