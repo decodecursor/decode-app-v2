@@ -13,9 +13,9 @@ export interface CountryCode {
 
 export const COUNTRY_CODES: CountryCode[] = [
   // Popular countries (top of list)
-  { id: 'AE', code: '+971', country: 'UAE', flag: '🇦🇪', placeholder: '50 123 4567' },
-  { id: 'US', code: '+1', country: 'USA', flag: '🇺🇸', placeholder: '555 123 4567' },
-  { id: 'GB', code: '+44', country: 'UK', flag: '🇬🇧', placeholder: '7400 123 456' },
+  { id: 'AE', code: '+971', country: 'United Arab Emirates', flag: '🇦🇪', placeholder: '50 123 4567' },
+  { id: 'US', code: '+1', country: 'United States', flag: '🇺🇸', placeholder: '555 123 4567' },
+  { id: 'GB', code: '+44', country: 'United Kingdom', flag: '🇬🇧', placeholder: '7400 123 456' },
   { id: 'IN', code: '+91', country: 'India', flag: '🇮🇳', placeholder: '98765 43210' },
   { id: 'SA', code: '+966', country: 'Saudi Arabia', flag: '🇸🇦', placeholder: '50 123 4567' },
   { id: 'EG', code: '+20', country: 'Egypt', flag: '🇪🇬', placeholder: '100 123 4567' },
