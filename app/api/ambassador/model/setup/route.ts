@@ -35,7 +35,12 @@ export async function POST(request: NextRequest) {
     const firstName = (formData.get('firstName') as string)?.trim()
     const lastName = (formData.get('lastName') as string)?.trim()
     const slug = (formData.get('slug') as string)?.toLowerCase().trim()
-    const instagram = (formData.get('instagram') as string)?.replace(/^@/, '').toLowerCase().trim()
+    const instagram = (formData.get('instagram') as string)
+      ?.replace(/^@/, '')
+      .replace(/^https?:\/\/(www\.)?instagram\.com\//i, '')
+      .replace(/\/$/, '')
+      .toLowerCase()
+      .trim()
     const currency = (formData.get('currency') as string)?.toLowerCase().trim()
     const coverPhotoPositionY = parseInt(formData.get('coverPhotoPositionY') as string) || 50
     const coverPhoto = formData.get('coverPhoto') as File | null
@@ -134,6 +139,18 @@ export async function POST(request: NextRequest) {
     if (profileError) {
       console.error('[Ambassador Setup] Profile create failed:', profileError)
       return NextResponse.json({ error: 'Failed to create profile' }, { status: 500 })
+    }
+
+    try {
+      const { error: shadowError } = await adminClient
+        .from('users')
+        .update({ instagram_handle: instagram })
+        .eq('id', user.id)
+      if (shadowError) {
+        console.error('[Ambassador Setup] public.users instagram shadow update failed:', shadowError)
+      }
+    } catch (shadowError) {
+      console.error('[Ambassador Setup] public.users instagram shadow update threw:', shadowError)
     }
 
     console.log('[Ambassador Setup] Profile created:', profile.slug)
