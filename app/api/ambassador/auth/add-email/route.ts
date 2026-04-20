@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { maskEmail } from '@/lib/ambassador/log-utils'
+import { renderButtonEmail } from '@/lib/ambassador/email-templates'
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -62,25 +63,7 @@ export async function POST(request: NextRequest) {
     const hashedToken = linkData.properties.hashed_token
     const callbackUrl = `${origin}/model/auth/callback?token_hash=${encodeURIComponent(hashedToken)}&type=email_change`
 
-    const html = `<!DOCTYPE html>
-<html>
-  <body style="margin:0;padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-      <tr>
-        <td align="center">
-          <h1 style="font-size:20px;font-weight:700;margin:0 0 24px;color:#111;">WeLoveDecode</h1>
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-            <tr>
-              <td bgcolor="#e91e8c" style="border-radius:8px;">
-                <a href="${callbackUrl}" style="display:inline-block;padding:14px 32px;color:#ffffff !important;text-decoration:none;font-weight:600;font-size:14px;border-radius:8px;background:#e91e8c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Confirm your email</a>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`
+    const html = renderButtonEmail({ heading: 'WeLoveDecode', buttonLabel: 'Confirm your email', callbackUrl })
 
     const { error: sendError } = await resend.emails.send({
       from: 'WeLoveDecode <noreply@welovedecode.com>',
