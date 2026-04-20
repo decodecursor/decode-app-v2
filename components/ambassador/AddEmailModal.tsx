@@ -227,20 +227,6 @@ export function AddEmailModal({
 
             <div
               style={{
-                background: '#111',
-                borderRadius: 10,
-                padding: '12px 14px',
-                marginBottom: 16,
-                border: '1px solid #262626',
-              }}
-            >
-              <div style={{ fontSize: 11, color: '#fff', lineHeight: 1.6 }}>
-                Click the link we just sent to finish adding your email. The link expires in 10 minutes.
-              </div>
-            </div>
-
-            <div
-              style={{
                 fontSize: 11,
                 color: '#888',
                 textAlign: 'center',
