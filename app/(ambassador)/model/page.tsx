@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
+import { isInternalEmail } from '@/lib/ambassador/auth'
 import DashboardClient from './DashboardClient'
 
 export default async function DashboardPage() {
@@ -88,6 +89,8 @@ export default async function DashboardPage() {
     return exp && new Date(exp).getTime() < sevenDaysFromNow
   }).length
 
+  const showEmailHint = !user.email || isInternalEmail(user.email)
+
   return (
     <DashboardClient
       profile={profile}
@@ -96,6 +99,7 @@ export default async function DashboardPage() {
       viewsThisWeek={viewsThisWeekRes.count ?? 0}
       topClicks={(topClicksRes.data as Array<{ category: string; clicks: number }> | null) ?? []}
       expiringCount={expiringCount}
+      showEmailHint={showEmailHint}
     />
   )
 }

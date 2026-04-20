@@ -26,6 +26,7 @@ export default function DashboardClient({
   viewsThisWeek,
   topClicks,
   expiringCount,
+  showEmailHint,
 }: {
   profile: Profile
   isFirstVisit: boolean
@@ -33,6 +34,7 @@ export default function DashboardClient({
   viewsThisWeek: number
   topClicks: TopClick[]
   expiringCount: number
+  showEmailHint: boolean
 }) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
@@ -373,6 +375,7 @@ export default function DashboardClient({
             </svg>
           )}
           label="Settings"
+          alert={showEmailHint ? 'Email missing' : null}
         />
       </div>
 
