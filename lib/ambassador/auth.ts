@@ -12,7 +12,8 @@ import { createHash } from 'crypto'
 // Rules:
 //   1. auth.users.email = user's real email if added via Settings, else
 //      synthetic wa_<hash>@auth.internal. auth.users.phone is the
-//      authoritative identity; email is optional.
+//      authoritative identity; email is optional. Phone-first dedupe
+//      is enforced in verify-otp via admin.listUsers (Principle A).
 //   2. public.users.email  = NULL for WhatsApp-only users
 //   3. User NEVER sees this email anywhere in the UI
 //   4. Same phone always produces same hash (no timestamps, no randomness)

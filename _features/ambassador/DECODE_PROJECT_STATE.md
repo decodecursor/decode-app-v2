@@ -55,6 +55,93 @@ If a new chat (or Claude Code) needs to pick up:
 
 ---
 
+# PHASE 1.5 — ARCHITECTURE PRINCIPLES (LOCKED)
+
+Forward-looking engineering principles that all future slices must follow. Each principle captures a specific failure mode encountered in a prior slice, with the rule derived from it. Violations require explicit justification in the plan before implementation.
+
+### Principle A — Identity field must be unmutable
+
+Phone is the authoritative dedupe key for WhatsApp users. Never dedupe by email, synthetic email, or any field a user can mutate later.
+
+**Origin:** Slice 1.5 phantom-row bug (commit `f3e886e`). Email-based dedupe broke as soon as Add Email overwrote the synthetic email.
+
+### Principle B — One email pipeline: direct Resend with repo templates
+
+ALL user-facing transactional and auth-flow emails go through direct Resend API with HTML templates in the repo (`lib/ambassador/email-templates.ts` or `components/emails/*.tsx`). Supabase dashboard-managed email templates are FORBIDDEN. One sender identity, one template source, one code-owned pipeline, no dashboard drift, no vendor lock.
+
+**Origin:** Slice 1.5 Add Email flow initially used `supabase.auth.updateUser({ email })` which triggered Supabase's default email exposing synthetic `wa_*@auth.internal` addresses to users.
+
+### Principle C — Opaque DB-owned tokens for confirmation links
+
+Any confirmation link that may be clicked from a different browser/device than the one that requested it MUST use opaque DB-owned tokens, NOT Supabase's `admin.generateLink` output. Supabase's PKCE-bound tokens invalidate when clicked cross-browser. Pattern: app-owned table with `token`, `user_id`, `expires_at`, `consumed_at`, atomic-consume-and-apply via admin API.
+
+**Origin:** Slice 1.5 Add Email flow returned `otp_expired` when user sent from phone and clicked from laptop.
+
+### Principle D — auth.users writes must pair with public.users shadow writes in the same code path
+
+Any code path that creates, modifies, or replaces `auth.users` rows MUST also write the shadow row in `public.users` atomically (same request). Shadow-ensure in callback is a self-heal net, not a replacement for write-time pairing.
+
+**Origin:** Slice 1.5 Phase A shipped an FK violation on setup submit because the `public.users` row was never created on WhatsApp signup.
+
+### Principle E — Match existing patterns before inventing new ones
+
+Before building a feature, grep the codebase for existing patterns that solve similar problems. Match the pattern or explicitly justify why a new pattern is required in the plan.
+
+**Origin:** Slice 1.5 Phase C built a new email architecture (Supabase `updateUser` path) while `send-magic-link/route.ts` already demonstrated the correct pattern (direct Resend). Architecture drift resulted.
+
+### Principle F — TypeScript narrowing must survive the Next.js build pipeline
+
+Local `npx tsc --noEmit` and Vercel's `next build` typecheck can produce different results for the same code, especially for discriminated-union narrowing. For Supabase SDK returns that use `{ data, error }` discriminated unions, destructure `{ data: X, error: Y }` up-front rather than keeping a combined variable; use `(param: any) =>` in `.find()` / `.filter()` callbacks for `listUsers`-style returns. Matches existing patterns in `check-email/route.ts`, `proxy-user-lookup/route.ts`, `users/invite/route.ts`.
+
+**Origin:** Slice 1.5 commit `b9fbc79` — Vercel collapsed `User[] | []` to `never[]` while local tsc preserved the union.
+
+### Principle G — End-to-end cross-browser smoke tests catch what same-browser tests miss
+
+Paired with Guardrail 6 in CLAUDE_CODE_HANDOFF.md. Any flow that involves email confirmation links must be smoke-tested with request and click happening in DIFFERENT browser sessions (or incognito + regular) before that flow is declared verified.
+
+**Origin:** Slice 1.5 Phase C Add Email worked in single-browser testing but failed cross-browser.
+
+---
+
+# PHASE 1.6 — FEATURE COMPLETENESS GAP (acknowledged, deferred)
+
+Every editable profile/account field and whether Add/Change/Delete flows are specced.
+
+| Field | Add | Change | Delete | Status |
+|---|---|---|---|---|
+| Email | Slice 1.5 ✓ | Legacy (not redesigned) | Via delete profile | Change modal needs redesign per new Login methods UX |
+| WhatsApp phone | Slice 1.5 ✓ | Not specced | Via delete profile | Change modal needed |
+| First/last name | Slice 1 ✓ | Slice 1 ✓ | Via delete profile | Complete |
+| Slug | Slice 1 ✓ | Slice 1 ✓ | Via delete profile | Complete |
+| Tagline | Slice 1 ✓ | Slice 1 ✓ | Not specced | Minor |
+| Instagram handle | Slice 1 ✓ | Slice 1 ✓ (assumed) | — | VERIFY |
+| Currency | Slice 1 ✓ | LOCKED (intentional) | — | Complete |
+| Profile photo / avatar | Slice 1 ✓ | MISSING | MISSING | BLOCKER — flagged by user 2026-04-20 |
+| Cover photo | Slice 1 ✓ (upload) | Partial (reposition exists) | Not specced | Minor |
+| Beauty Wishlist toggle | Slice 3 | n/a | n/a | Deferred |
+
+Change modals for Email and WhatsApp intentionally deferred from Slice 1.5 Phase C (scope discipline). Profile photo Change/Delete is a user-flagged gap that must be specced before Slice 2 or shipped as Slice 1.6 patch.
+
+---
+
+# PHASE 1.7 — EMAIL TEMPLATE CATALOG (single source of truth)
+
+Every email the app sends. Reviewed per Principle B.
+
+| # | Trigger | Subject | From | Pipeline | Repo location | Template shape |
+|---|---|---|---|---|---|---|
+| 1 | Email magic-link sign-in | Your Secure Login Link | WeLoveDecode `<noreply@welovedecode.com>` | Resend direct | `send-magic-link/route.ts` inline HTML | WeLoveDecode wordmark + pink button |
+| 2 | Add email confirmation | Add this email to your WeLoveDecode account | WeLoveDecode `<noreply@welovedecode.com>` | Resend direct | `add-email/route.ts` via `renderButtonEmail` helper | WeLoveDecode wordmark + pink button |
+| 3 | Payment receipt (professional) | — | — | Resend via `lib/email-service.ts` | `components/emails/PaymentReceipt.tsx` (React template) | Existing transactional |
+| 4 | Payment confirmation (gifter) | — | — | Resend via `lib/email-service.ts` | `components/emails/PaymentConfirmation.tsx` | Existing |
+| 5 | Payment failed | — | — | Resend via `lib/email-service.ts` | `components/emails/PaymentFailed.tsx` | Existing |
+| 6 | Listing expiring reminder (7d) | TBD | — | Resend | TBD Slice 2/5 | Not yet built |
+| 7 | Stripe Dashboard admin alerts | Stripe default | Stripe | Stripe-native | n/a | Admin only |
+
+**Rule:** ALL new email triggers added in future slices MUST be added to this table BEFORE implementation. Any email sent without a matching row here is a violation of Principle B.
+
+---
+
 # PHASE 2 — FEE DISPLAY STRATEGY (LOCKED)
 
 The 20% platform fee is displayed selectively across DECODE pages:
@@ -515,42 +602,6 @@ The `auth.users` table is Supabase-managed. We do not alter its schema. We use:
 - `auth.users.email_confirmed_at` — set by Supabase after magic-link click
 
 Both columns may be NULL at the same time momentarily during signup; exactly one will be populated after first confirmation.
-
----
-
-# PHASE 5B — SLICE 1.5 LESSONS LEARNED
-
-Post-ship retrospective from Slice 1.5 delivery (2026-04-20). Each principle captures a specific failure mode encountered, with the rule future work should follow.
-
-### Principle A — Dedupe by the authoritative identity field, never by a derived one
-
-Phase A first used synthetic email (`wa_<hash>@auth.internal`) as the dedupe key for `admin.createUser`. When Phase C's Add Email feature overwrote `auth.users.email` with the real email, dedupe broke silently — phantom rows on every returning WhatsApp sign-in. Fixed by switching to phone-based lookup via `listUsers({ perPage: 1000 })`.
-
-**Rule:** if a field can be mutated by a user action, it's not a dedupe key.
-
-### Principle B — All auth-flow emails go through Resend with templates in-repo
-
-Phase C initially used `supabase.auth.updateUser({ email })` which triggers Supabase's built-in email with dashboard-managed templates. That exposed synthetic email addresses to users ("Confirm Change of Email from wa_xxx@auth.internal to…"). Refactored to use `admin.generateLink` server-side + direct Resend call with a repo-owned template (matching the sign-in magic-link pattern).
-
-**Rule:** no Supabase dashboard dependency for user-facing emails. One sender identity, one template source, one pipeline.
-
-### Principle C — Opaque DB-owned tokens for any action that may be clicked from a different browser
-
-Supabase's `admin.generateLink({ type: 'email_change_new' })` produces a token that's PKCE-session-bound. Clicking from a different browser (real-user scenario: request on phone, click on laptop) returns `otp_expired` even within TTL. Replaced with a custom `email_change_requests` table: opaque 32-byte token, server-side atomic consume, admin API applies the change with no session dependency.
-
-**Rule:** any flow where the confirmation click happens in a different context than the request needs a server-owned token, not a PKCE-bound one.
-
-### Principle D — TypeScript pipeline differences can silently break builds
-
-Local `npx tsc --noEmit` passed but Vercel's `next build` typecheck failed on a discriminated-union narrowing. Vercel's Next.js pipeline collapsed `User[] | []` to `never[]` while local tsc preserved the union. Fix: destructure early + use `(u: any)` in callbacks for Supabase list-type returns, matching the pattern in `check-email/route.ts`, `proxy-user-lookup/route.ts`, `users/invite/route.ts`.
-
-**Rule:** don't rely on cross-property discriminant narrowing surviving the Next.js type pipeline.
-
-### Principle E — End-to-end cross-browser smoke tests catch what same-browser tests miss
-
-Phase C passed all same-browser tests. Cross-browser failures (phone-to-laptop click) only surfaced during final smoke testing.
-
-**Rule:** for any flow involving email links or cross-device interactions, always run a cross-browser smoke test before declaring done.
 
 ---
 

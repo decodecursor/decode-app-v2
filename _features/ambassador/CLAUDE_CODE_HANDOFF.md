@@ -104,6 +104,24 @@ For the ambassador route group, these are now set:
 Any future route group Claude Code creates (e.g., `app/(admin)/`) must
 set its own global layout on day one.
 
+### Guardrail 6 — Cross-browser/cross-device smoke test required for all link-based flows
+
+For any feature involving email links or magic-link-style confirmations, the verify checklist MUST include a test where the request is made in Browser A (incognito or mobile) and the link is clicked in Browser B (desktop or different session). Same-browser tests alone are insufficient.
+
+Added after Slice 1.5 Add Email cross-browser bug. Paired with Principle G in DECODE_PROJECT_STATE.md.
+
+### Guardrail 7 — Audit existing code pattern before building similar feature
+
+Before Claude Code writes a new feature that involves email delivery, auth flows, or any pattern that likely has prior art in the codebase, Claude Code MUST grep for the 2-3 closest existing implementations and report them in the plan. The plan must either (a) match the pattern, or (b) explicitly justify the architectural divergence. No silent new architectures.
+
+Added after Slice 1.5 Phase C built a second email pipeline instead of reusing the one already in `send-magic-link/route.ts`. Paired with Principle E.
+
+### Guardrail 8 — Stop on bug recurrence within the same slice
+
+If a bug surfaces whose root cause matches a root cause fixed earlier in the SAME slice, stop. Do not patch the symptom. Revisit the architectural decision that caused both bugs.
+
+Added after Slice 1.5 Phase C phantom-row regression was a repeat of the Phase A phantom-row bug.
+
 ### Pre-launch checklist
 
 Temporary dev/testing values that must be reset before launch are
@@ -505,6 +523,8 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 - Wall of Love on public page
 - Analytics page itself (data is being collected, but no viewer yet)
 - Payouts
+
+**Architecture preconditions for Slice 2:** All email triggers in Slice 2 (payment receipt, refund notification, any new transactional) MUST follow Principles B–C (see PHASE 1.5 in DECODE_PROJECT_STATE.md). Specifically: (1) delivery via direct Resend, never Supabase Auth; (2) templates in repo (`components/emails/*.tsx` for structured React templates or `lib/ambassador/email-templates.ts` for simple button-only); (3) any confirmation URL uses opaque tokens if cross-browser click is possible. Any new email trigger must be added to PHASE 1.7 Email Template Catalog in DECODE_PROJECT_STATE.md BEFORE implementation.
 
 **✅ VERIFY before next slice:**
 - [ ] Ambassador creates a listing with photos (1-3) successfully uploaded
@@ -2338,6 +2358,10 @@ All HTML mockups + UI specs from earlier chat work. Key files referenced through
 17. **Don't trust frontend validation** — always re-validate required fields server-side. Frontend can be bypassed.
 18. **Don't spam analytics** — IP hash dedup: max 1 event per IP per event_type per 30 seconds. Prevents bloat.
 19. **Don't read from raw tables for wishes/listings in the UI** — use `model_wishes_live` and `model_listings_live` views so `effective_status` is always correct.
+20. **Don't dedupe `auth.users` by email** — phone is the authoritative identity for WhatsApp users. Dedupe by phone via `admin.listUsers` or (post-scale) via RPC. Never rely on synthetic email collision. Slice 1.5 bug.
+21. **Don't use `supabase.auth.updateUser({ email })` for user-facing email changes** — that triggers Supabase's built-in email with dashboard template. Use `admin.updateUserById` server-side + opaque DB token + direct Resend. Matches `send-magic-link/route.ts` pattern. Slice 1.5 rearchitecture.
+22. **Don't use `admin.generateLink` for cross-browser confirmations** — PKCE-bound, fails when user clicks from a different browser than they requested from. Use opaque DB-owned tokens in `email_change_requests` style table. Slice 1.5 bug.
+23. **Don't write to `auth.users` without also writing to `public.users` in the same code path** — FK violations appear downstream. Shadow-ensure in callback is a net, not a primary pairing. Slice 1.5 bug.
 
 ---
 
