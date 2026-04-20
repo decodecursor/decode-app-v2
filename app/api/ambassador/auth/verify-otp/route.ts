@@ -120,42 +120,68 @@ export async function POST(request: NextRequest) {
 
     console.log('[Ambassador OTP-Verify] Code verified for:', phoneNumber.substring(0, 7) + '****')
 
-    // Compute deterministic internal email for this phone
+    // Compute deterministic internal email for this phone (new-user fallback only).
     const internalEmail = phoneToInternalEmail(phoneNumber)
 
-    // createUser FIRST — populates auth.users.phone natively. If the row
-    // already exists, Supabase returns a 422 "already registered" error,
-    // which is the existing-user signal. Never probe with generateLink:
-    // it auto-creates email-only rows when no match is found.
-    let hashedToken: string | null = null
-    let userId: string | null = null
-
-    const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-      phone: phoneNumber,
-      phone_confirm: true,
-      email: internalEmail,
-      email_confirm: true,
-      user_metadata: {
-        phone_number: phoneNumber,
-        auth_method: 'whatsapp_otp',
-        phone_verified: true,
-      },
+    // Phone-first dedupe. Prior logic used internalEmail as the collision
+    // key (createUser 422 = existing), but the Add Email flow overwrites
+    // auth.users.email with the user's real address — so synthetic-email
+    // dedupe silently creates phantom rows. auth.users.phone is the
+    // authoritative identity for WhatsApp users; look up by that.
+    // Stored without the leading '+', so normalize.
+    const normalizedPhone = phoneNumber.replace(/^\+/, '')
+    // NOTE: keep as single variable (not destructured) so TS can correlate
+    // the error-nullness discriminant with data.users typing.
+    const listResult = await supabase.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
     })
-
-    const isAlreadyRegistered =
-      !!createError &&
-      (createError.status === 422 ||
-        /already been registered|already registered|already exists/i.test(createError.message))
-
-    if (createError && !isAlreadyRegistered) {
-      console.error('[Ambassador OTP-Verify] createUser failed:', createError)
+    if (listResult.error) {
+      console.error('[Ambassador OTP-Verify] listUsers failed:', listResult.error)
       return NextResponse.json(
-        { error: 'Failed to create account. Please try again.' },
+        { error: 'Failed to locate account. Please try again.' },
         { status: 500 }
       )
     }
+    const existing = listResult.data.users.find((u) => u.phone === normalizedPhone)
 
-    if (!createError && newUser?.user) {
+    let hashedToken: string | null = null
+    let userId: string | null = null
+    let emailForLink = internalEmail
+
+    if (existing) {
+      userId = existing.id
+      emailForLink = existing.email ?? internalEmail
+      const emailMode = existing.email?.endsWith('@auth.internal') ? 'synthetic' : 'real'
+      console.log(
+        '[Ambassador OTP-Verify] Existing auth user found by phone:',
+        userId,
+        'email mode:',
+        emailMode,
+      )
+      // Skip createUser and shadow insert — row already exists; callback
+      // route's self-heal upsert covers any shadow-drift edge cases.
+    } else {
+      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+        phone: phoneNumber,
+        phone_confirm: true,
+        email: internalEmail,
+        email_confirm: true,
+        user_metadata: {
+          phone_number: phoneNumber,
+          auth_method: 'whatsapp_otp',
+          phone_verified: true,
+        },
+      })
+
+      if (createError || !newUser?.user) {
+        console.error('[Ambassador OTP-Verify] createUser failed:', createError)
+        return NextResponse.json(
+          { error: 'Failed to create account. Please try again.' },
+          { status: 500 }
+        )
+      }
+
       userId = newUser.user.id
       console.log('[Ambassador OTP-Verify] Created new auth user with phone populated:', userId)
 
@@ -163,8 +189,6 @@ export async function POST(request: NextRequest) {
       // FKs to public.users(id), which has no auto-populate trigger from
       // auth.users in this schema (app code owns it; see create-profile route).
       // signup_method must be 'whatsapp' (CHECK constraint, not 'whatsapp_otp').
-      // Wrapped in try/catch: a missing shadow row will surface at /model/setup,
-      // but a successful OTP verify shouldn't 500 here.
       try {
         const { error: shadowError } = await supabase
           .from('users')
@@ -186,14 +210,14 @@ export async function POST(request: NextRequest) {
       } catch (shadowErr) {
         console.error('[Ambassador OTP-Verify] public.users shadow insert threw:', shadowErr)
       }
-    } else {
-      console.log('[Ambassador OTP-Verify] Existing auth user (createUser 422) — skipping shadow insert')
     }
 
-    // Mint the magic link (session fixture). Safe now: row provably exists.
+    // Mint the magic link (session fixture). Uses the row's current email
+    // (real for email-added users, synthetic for WhatsApp-only), not a
+    // derived value — otherwise generateLink misses the updated row.
     const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
       type: 'magiclink',
-      email: internalEmail,
+      email: emailForLink,
     })
 
     if (linkError || !linkData) {
