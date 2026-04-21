@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { COUNTRY_CODES, type CountryCode } from '@/lib/country-codes'
 import { formatPhoneNumber } from '@/lib/ambassador/phone-format'
 import { CountryPicker } from '@/components/ambassador/CountryPicker'
+import { AmbSubmitButton } from '@/components/ambassador/AmbSubmitButton'
 
 type ToastState = { msg: string; success: boolean; id: number }
 
@@ -79,30 +80,31 @@ export default function AmbassadorAuthPage() {
   const handleSendOTP = async () => {
     if (!isPhoneValid) {
       showToast('Enter a valid phone number', false)
-      return
+      throw new Error('invalid phone')
     }
     const fullPhone = `${selectedCountry.code}${rawDigits}`
+    let res: Response
     try {
-      const res = await fetch('/api/ambassador/auth/send-otp', {
+      res = await fetch('/api/ambassador/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber: fullPhone, turnstileToken }),
       })
-      const data = await res.json()
-      if (!res.ok) {
-        showToast(data.error || 'Failed to send code', false)
-        resetTurnstile()
-        return
-      }
-      sessionStorage.setItem('ambassador_auth_phone', fullPhone)
-      sessionStorage.setItem('ambassador_auth_country', selectedCountry.code)
-      resetTurnstile()
-      router.push('/model/auth/verify')
     } catch (err) {
       console.error('[auth] WhatsApp send failed:', err)
       showToast('Network error. Please try again.', false)
       resetTurnstile()
+      throw err
     }
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      showToast(data.error || 'Failed to send code', false)
+      resetTurnstile()
+      throw new Error(data.error || 'send failed')
+    }
+    sessionStorage.setItem('ambassador_auth_phone', fullPhone)
+    sessionStorage.setItem('ambassador_auth_country', selectedCountry.code)
+    resetTurnstile()
   }
 
   return (
@@ -191,24 +193,14 @@ export default function AmbassadorAuthPage() {
           </div>
 
           {/* WhatsApp button */}
-          <div
-            onClick={handleSendOTP}
-            style={{
-              border: `1.5px solid ${isPhoneValid ? '#e91e8c' : '#2a2a2a'}`,
-              borderRadius: '12px',
-              padding: '16px',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              textAlign: 'center',
-              transition: 'all 0.3s',
-              background: isPhoneValid ? '#e91e8c' : 'transparent',
-            }}
-          >
-            <span style={{ color: isPhoneValid ? '#fff' : '#555', transition: 'color 0.3s' }}>
-              Continue with WhatsApp
-            </span>
-          </div>
+          <AmbSubmitButton
+            verb="send"
+            variant="outline"
+            idleLabel="Continue with WhatsApp"
+            disabled={!isPhoneValid}
+            onSubmit={handleSendOTP}
+            onDone={() => router.push('/model/auth/verify')}
+          />
         </div>
 
         {/* Email fallback link */}

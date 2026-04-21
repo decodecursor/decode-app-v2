@@ -4,8 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ProgressTracker } from '@/components/ambassador/ProgressTracker'
 import { OtpInput, type OtpInputHandle } from '@/components/ambassador/OtpInput'
+import { AmbSubmitButton } from '@/components/ambassador/AmbSubmitButton'
 
-type VerifyPhase = 'idle' | 'ready' | 'verifying' | 'success'
 type ResendPhase = 'idle' | 'sent' | 'cooldown'
 
 const EMPTY_CODE: string[] = ['', '', '', '', '', '']
@@ -15,11 +15,11 @@ export default function VerifyOTPPage() {
 
   const [phone, setPhone] = useState('')
   const [code, setCode] = useState<string[]>(EMPTY_CODE)
-  const [phase, setPhase] = useState<VerifyPhase>('idle')
   const [error, setError] = useState('')
   const [shake, setShake] = useState(false)
   const [trackerStep, setTrackerStep] = useState<1 | 2 | 3>(2)
   const [toast, setToast] = useState('')
+  const [triggerKey, setTriggerKey] = useState(0)
 
   const [resendPhase, setResendPhase] = useState<ResendPhase>('idle')
   const [resendCooldown, setResendCooldown] = useState(0)
@@ -59,84 +59,77 @@ export default function VerifyOTPPage() {
 
   const allFilled = code.every((d) => d.length === 1)
 
-  useEffect(() => {
-    if (phase === 'verifying' || phase === 'success') return
-    setPhase(allFilled ? 'ready' : 'idle')
-  }, [allFilled, phase])
-
   const handleCodeChange = useCallback((next: string[]) => {
     setCode(next)
     setError('')
   }, [])
 
+  const callbackUrlRef = useRef<string | null>(null)
+
   const verify = useCallback(async () => {
-    if (phase !== 'ready' || !phone) return
+    if (!phone) throw new Error('no phone')
     const otpCode = code.join('')
-    setPhase('verifying')
     setError('')
 
+    let res: Response
     try {
-      const res = await fetch('/api/ambassador/auth/verify-otp', {
+      res = await fetch('/api/ambassador/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber: phone, otpCode }),
       })
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error || 'Verification failed')
-        setShake(true)
-        if (res.status === 410 || res.status === 429) {
-          setCode(EMPTY_CODE)
-          setTimeout(() => otpRef.current?.focusFirst(), 100)
-        } else {
-          setTimeout(() => {
-            setCode(EMPTY_CODE)
-            otpRef.current?.focusFirst()
-          }, 500)
-        }
-        setPhase('idle')
-        return
-      }
-
-      if (!data.hashed_token) {
-        console.error('[Ambassador Verify] No token_hash in response')
-        setError('Session error. Please try again.')
-        setPhase('idle')
-        return
-      }
-
-      console.log('[Ambassador Verify] Token received, handing off to server callback for session mint')
-
-      setPhase('success')
-      setTrackerStep(3)
-
-      // Server-side callback performs verifyOtp with the SSR cookie adapter,
-      // which writes session cookies to the response with the correct flags
-      // (sameSite:'lax', secure, path:'/'). Client-side verifyOtp via the
-      // browser client writes via document.cookie and doesn't persist
-      // reliably across the next request. Full-page navigation (not
-      // router.replace) ensures the callback GET runs and its Set-Cookie
-      // headers are applied before /model/setup or /model render.
-      const callbackUrl = `/model/auth/callback?token_hash=${encodeURIComponent(
-        data.hashed_token,
-      )}&type=magiclink`
-
-      setTimeout(() => {
-        setToast('Signed in · redirecting…')
-        setTimeout(() => {
-          window.location.href = callbackUrl
-        }, 500)
-      }, 450)
     } catch {
       setError('Network error. Please try again.')
-      setPhase('idle')
+      throw new Error('network')
     }
-  }, [phase, phone, code])
+    const data = await res.json().catch(() => ({}))
+
+    if (!res.ok) {
+      setError(data.error || 'Verification failed')
+      setShake(true)
+      if (res.status === 410 || res.status === 429) {
+        setCode(EMPTY_CODE)
+        setTimeout(() => otpRef.current?.focusFirst(), 100)
+      } else {
+        setTimeout(() => {
+          setCode(EMPTY_CODE)
+          otpRef.current?.focusFirst()
+        }, 500)
+      }
+      throw new Error(data.error || 'verify failed')
+    }
+
+    if (!data.hashed_token) {
+      console.error('[Ambassador Verify] No token_hash in response')
+      setError('Session error. Please try again.')
+      throw new Error('no token')
+    }
+
+    console.log('[Ambassador Verify] Token received, handing off to server callback for session mint')
+
+    setTrackerStep(3)
+    // Server-side callback performs verifyOtp with the SSR cookie adapter,
+    // which writes session cookies to the response with the correct flags
+    // (sameSite:'lax', secure, path:'/'). Full-page navigation (not
+    // router.replace) ensures the callback GET runs and its Set-Cookie
+    // headers are applied before /model/setup or /model render.
+    callbackUrlRef.current = `/model/auth/callback?token_hash=${encodeURIComponent(
+      data.hashed_token,
+    )}&type=magiclink`
+  }, [phone, code])
+
+  const handleVerifyDone = useCallback(() => {
+    const url = callbackUrlRef.current
+    if (!url) return
+    setToast('Signed in · redirecting…')
+    setTimeout(() => {
+      window.location.href = url
+    }, 500)
+  }, [])
 
   useEffect(() => {
-    if (phase === 'ready' && allFilled) verify()
-  }, [phase, allFilled, verify])
+    if (allFilled) setTriggerKey((k) => k + 1)
+  }, [allFilled])
 
   const handleResend = useCallback(async () => {
     if (resendPhase !== 'idle' || !phone) return
@@ -162,16 +155,6 @@ export default function VerifyOTPPage() {
       setError('Network error')
     }
   }, [resendPhase, phone])
-
-  const verifyLabel =
-    phase === 'success'
-      ? 'Verified!'
-      : phase === 'verifying'
-      ? 'Verifying…'
-      : 'Verify'
-
-  const verifyActive =
-    phase === 'ready' || phase === 'verifying' || phase === 'success'
 
   const resendLabel =
     resendPhase === 'sent'
@@ -218,24 +201,22 @@ export default function VerifyOTPPage() {
         shake={shake}
       />
 
-      <div
-        onClick={verify}
-        style={{
-          background: verifyActive ? '#e91e8c' : '#1c1c1c',
-          border: `1px solid ${verifyActive ? '#e91e8c' : '#262626'}`,
-          borderRadius: 12,
-          padding: 15,
-          fontSize: 15,
-          fontWeight: 700,
-          color: verifyActive ? '#fff' : '#555',
-          cursor: phase === 'ready' ? 'pointer' : 'not-allowed',
-          marginBottom: 28,
-          letterSpacing: '0.2px',
-          transition: 'all 0.2s',
-          userSelect: 'none',
-        }}
-      >
-        {verifyLabel}
+      <div style={{ marginBottom: 28 }}>
+        <AmbSubmitButton
+          verb="verify"
+          variant="solid"
+          idleLabel="Verify"
+          disabled={!allFilled}
+          onSubmit={verify}
+          onDone={handleVerifyDone}
+          triggerKey={triggerKey}
+          style={{
+            padding: 15,
+            fontSize: 15,
+            fontWeight: 700,
+            letterSpacing: '0.2px',
+          }}
+        />
       </div>
 
       <ProgressTracker

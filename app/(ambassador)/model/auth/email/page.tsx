@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { AmbSubmitButton } from '@/components/ambassador/AmbSubmitButton'
 
 type ToastState = { msg: string; success: boolean; id: number }
 
@@ -74,30 +75,30 @@ export default function AmbassadorAuthEmailPage() {
   const handleSendMagicLink = async () => {
     if (!isButtonActive || !isValidEmail(email)) {
       showToast('Enter a valid email', false)
-      return
+      throw new Error('invalid email')
     }
     const normalized = email.toLowerCase().trim()
-    showToast(`Sending magic link to ${normalized}`, true)
+    let res: Response
     try {
-      const res = await fetch('/api/ambassador/auth/send-magic-link', {
+      res = await fetch('/api/ambassador/auth/send-magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: normalized, turnstileToken }),
       })
-      const data = await res.json()
-      if (!res.ok) {
-        showToast(data.error || 'Failed to send link', false)
-        resetTurnstile()
-        return
-      }
-      sessionStorage.setItem('ambassador_auth_email', normalized)
-      resetTurnstile()
-      router.push(`/model/auth/sent?email=${encodeURIComponent(normalized)}`)
     } catch (err) {
       console.error('[auth-email] magic link send failed:', err)
       showToast('Network error. Please try again.', false)
       resetTurnstile()
+      throw err
     }
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      showToast(data.error || 'Failed to send link', false)
+      resetTurnstile()
+      throw new Error(data.error || 'send failed')
+    }
+    sessionStorage.setItem('ambassador_auth_email', normalized)
+    resetTurnstile()
   }
 
   return (
@@ -154,24 +155,17 @@ export default function AmbassadorAuthEmailPage() {
           }}
         />
 
-        <div
-          onClick={handleSendMagicLink}
-          style={{
-            border: `1.5px solid ${isButtonActive ? '#e91e8c' : '#2a2a2a'}`,
-            borderRadius: '12px',
-            padding: '16px',
-            fontSize: '14px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            textAlign: 'center',
-            transition: 'all 0.3s',
-            background: isButtonActive ? '#e91e8c' : 'transparent',
+        <AmbSubmitButton
+          verb="send"
+          variant="outline"
+          idleLabel="Continue with Email"
+          disabled={!isButtonActive}
+          onSubmit={handleSendMagicLink}
+          onDone={() => {
+            const normalized = email.toLowerCase().trim()
+            router.push(`/model/auth/sent?email=${encodeURIComponent(normalized)}`)
           }}
-        >
-          <span style={{ color: isButtonActive ? '#fff' : '#555', transition: 'color 0.3s' }}>
-            Continue with Email
-          </span>
-        </div>
+        />
       </div>
 
       {/* WhatsApp fallback link */}

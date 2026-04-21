@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ProgressTracker } from '@/components/ambassador/ProgressTracker'
+import { AmbSubmitButton } from '@/components/ambassador/AmbSubmitButton'
 
 type Step = 1 | 2
 
@@ -25,7 +26,6 @@ export function AddEmailModal({
 }) {
   const [step, setStep] = useState<Step>(1)
   const [email, setEmail] = useState('')
-  const [sending, setSending] = useState(false)
   const [inlineError, setInlineError] = useState('')
   const [toast, setToast] = useState('')
   const [resendCooldown, setResendCooldown] = useState(0)
@@ -36,7 +36,6 @@ export function AddEmailModal({
     if (!open) return
     setStep(1)
     setEmail('')
-    setSending(false)
     setInlineError('')
     setResendCooldown(0)
   }, [open])
@@ -58,58 +57,56 @@ export function AddEmailModal({
   }
 
   const sendVerification = async (normalizedEmail: string) => {
+    let res: Response
     try {
-      const res = await fetch('/api/ambassador/auth/add-email', {
+      res = await fetch('/api/ambassador/auth/add-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: normalizedEmail }),
       })
-      if (!res.ok) {
-        if (res.status === 409) {
-          setInlineError('This email is already in use')
-        } else if (res.status === 400) {
-          setInlineError('Enter a valid email')
-        } else if (res.status === 401) {
-          showToast('Please sign in again')
-        } else {
-          showToast('Network error. Please try again.')
-        }
-        return false
-      }
-      return true
     } catch {
       showToast('Network error. Please try again.')
-      return false
+      throw new Error('network')
+    }
+    if (!res.ok) {
+      if (res.status === 409) {
+        setInlineError('This email is already in use')
+      } else if (res.status === 400) {
+        setInlineError('Enter a valid email')
+      } else if (res.status === 401) {
+        showToast('Please sign in again')
+      } else {
+        showToast('Network error. Please try again.')
+      }
+      throw new Error(`status ${res.status}`)
     }
   }
 
   const handleSend = async () => {
-    if (sending) return
     const normalized = email.toLowerCase().trim()
     if (!isValidEmail(normalized)) {
       setInlineError('Enter a valid email')
-      return
+      throw new Error('invalid email')
     }
-    setSending(true)
     setInlineError('')
-    const ok = await sendVerification(normalized)
-    setSending(false)
-    if (ok) setStep(2)
+    await sendVerification(normalized)
   }
 
   const handleResend = async () => {
     if (resendCooldown > 0) return
     const normalized = email.toLowerCase().trim()
-    const ok = await sendVerification(normalized)
-    if (ok) {
+    try {
+      await sendVerification(normalized)
       showToast('Sent!')
       setResendCooldown(60)
+    } catch {
+      // already toasted/inline-errored inside sendVerification
     }
   }
 
   if (!open) return null
 
-  const isButtonActive = email.includes('@') && !sending
+  const isButtonActive = email.includes('@')
 
   return (
     <div
@@ -165,7 +162,11 @@ export function AddEmailModal({
                   setEmail(e.target.value)
                   if (inlineError) setInlineError('')
                 }}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleSend() }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSend().then(() => setStep(2)).catch(() => {})
+                  }
+                }}
                 style={{
                   width: '100%',
                   background: 'transparent',
@@ -185,23 +186,15 @@ export function AddEmailModal({
               </div>
             )}
 
-            <div
-              onClick={isButtonActive ? handleSend : undefined}
-              style={{
-                background: isButtonActive ? '#e91e8c' : '#333',
-                color: isButtonActive ? '#fff' : '#666',
-                borderRadius: 12,
-                padding: 14,
-                textAlign: 'center',
-                fontSize: 14,
-                fontWeight: 600,
-                cursor: isButtonActive ? 'pointer' : 'not-allowed',
-                marginBottom: 10,
-                transition: 'all 0.2s',
-                userSelect: 'none',
-              }}
-            >
-              {sending ? 'Sending…' : 'Send verification'}
+            <div style={{ marginBottom: 10 }}>
+              <AmbSubmitButton
+                verb="send"
+                variant="solid"
+                idleLabel="Send verification"
+                disabled={!isButtonActive}
+                onSubmit={handleSend}
+                onDone={() => setStep(2)}
+              />
             </div>
             <div
               onClick={onClose}
