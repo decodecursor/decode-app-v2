@@ -6,6 +6,7 @@ import { createClient } from '@/utils/supabase/client'
 import { isInternalEmail } from '@/lib/ambassador/auth'
 import { CoverCameraButton } from '@/components/ambassador/CoverCameraButton'
 import { AddEmailModal } from '@/components/ambassador/AddEmailModal'
+import { ChangeEmailModal } from '@/components/ambassador/ChangeEmailModal'
 import { AddWhatsAppModal } from '@/components/ambassador/AddWhatsAppModal'
 
 interface Profile {
@@ -83,6 +84,7 @@ export default function SettingsPage() {
 
   // Login methods modals
   const [showAddEmail, setShowAddEmail] = useState(false)
+  const [showChangeEmail, setShowChangeEmail] = useState(false)
   const [showAddWhatsApp, setShowAddWhatsApp] = useState(false)
 
   // Delete modal
@@ -466,7 +468,7 @@ export default function SettingsPage() {
             return userEmail ? (
               <div
                 key="email"
-                onClick={() => showToast('Email editing coming soon')}
+                onClick={() => setShowChangeEmail(true)}
                 style={{ ...rowStyle, ...rowBorder, cursor: 'pointer' }}
               >
                 <span style={{ fontSize: 14, color: '#888' }}>Email</span>
@@ -719,6 +721,7 @@ export default function SettingsPage() {
       )}
 
       <AddEmailModal open={showAddEmail} onClose={() => setShowAddEmail(false)} />
+      <ChangeEmailModal open={showChangeEmail} onClose={() => setShowChangeEmail(false)} />
       <AddWhatsAppModal
         open={showAddWhatsApp}
         onClose={() => setShowAddWhatsApp(false)}

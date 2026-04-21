@@ -2,23 +2,27 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomBytes } from 'crypto'
 import { createClient } from '@/utils/supabase/server'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
+import { isInternalEmail } from '@/lib/ambassador/auth'
 import { maskEmail } from '@/lib/ambassador/log-utils'
 import { renderButtonEmail } from '@/lib/ambassador/email-templates'
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const TOKEN_TTL_MINUTES = 15
+const TOKEN_TTL_MINUTES = 10
 
 /**
  * POST /api/ambassador/auth/add-email
  *
  * Issues an opaque random token stored in public.email_change_requests,
  * emails a link to the new address. Consumption happens at
- * GET /model/auth/confirm-email. Replaces the previous
- * admin.generateLink('email_change_new') flow, whose GoTrue token was
- * PKCE-bound to the requesting client and broke when the user clicked
- * from a different browser (phone → laptop).
+ * GET /model/auth/confirm-email. Serves both flows:
+ * - 'add' — current email is the synthetic wa_...@auth.internal fixture
+ * - 'change' — user has a real email and is replacing it
+ * The flow is detected from sessionUser.email and persisted on the row so
+ * the callback can route 'change' to /model/auth/email-changed (Old→New
+ * server-rendered) while 'add' goes to /model/settings. Session-independent
+ * by construction (cross-browser click works — phone → laptop).
  */
 export async function POST(request: NextRequest) {
   try {
@@ -41,7 +45,11 @@ export async function POST(request: NextRequest) {
     }
     const normalizedEmail = email.toLowerCase().trim()
 
-    console.log('[Ambassador Add Email] Request for user:', sessionUser.id, '→', maskEmail(normalizedEmail))
+    const currentEmail = (sessionUser.email ?? '').toLowerCase().trim()
+    const flow: 'add' | 'change' = isInternalEmail(currentEmail) ? 'add' : 'change'
+    const oldEmail = flow === 'change' ? currentEmail : null
+
+    console.log('[Ambassador Add Email] Request for user:', sessionUser.id, '→', maskEmail(normalizedEmail), 'flow:', flow)
 
     const admin = createServiceRoleClient()
 
@@ -76,6 +84,8 @@ export async function POST(request: NextRequest) {
         user_id: sessionUser.id,
         new_email: normalizedEmail,
         expires_at: expiresAt,
+        old_email: oldEmail,
+        flow,
       })
 
     if (insertError) {
@@ -86,12 +96,16 @@ export async function POST(request: NextRequest) {
     const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'https://app.welovedecode.com'
     const callbackUrl = `${origin}/model/auth/confirm-email?token=${token}`
 
+    const subject = flow === 'change'
+      ? 'Confirm your new email for WeLoveDecode'
+      : 'Add this email to your WeLoveDecode account'
+
     const html = renderButtonEmail({ heading: 'WeLoveDecode', buttonLabel: 'Confirm your email', callbackUrl })
 
     const { error: sendError } = await resend.emails.send({
       from: 'WeLoveDecode <noreply@welovedecode.com>',
       to: normalizedEmail,
-      subject: 'Add this email to your WeLoveDecode account',
+      subject,
       html,
       text: `Confirm your email for WeLoveDecode: ${callbackUrl}`,
     })

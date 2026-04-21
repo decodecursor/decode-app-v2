@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     .eq('token', token)
     .is('consumed_at', null)
     .gt('expires_at', new Date().toISOString())
-    .select('user_id, new_email')
+    .select('user_id, new_email, flow')
     .maybeSingle()
 
   if (consumeError) {
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/model/auth/email-error?reason=expired`)
   }
 
-  const { user_id: userId, new_email: newEmail } = consumed
+  const { user_id: userId, new_email: newEmail, flow } = consumed
 
   const { error: updateError } = await admin.auth.admin.updateUserById(userId, {
     email: newEmail,
@@ -83,7 +83,11 @@ export async function GET(request: NextRequest) {
     // Non-fatal: auth.users is the source of truth. Settings will refetch.
   }
 
-  console.log('[Ambassador Confirm Email] Email updated for user:', userId)
+  console.log('[Ambassador Confirm Email] Email updated for user:', userId, 'flow:', flow)
+
+  if (flow === 'change') {
+    return NextResponse.redirect(`${origin}/model/auth/email-changed?ref=${token}`)
+  }
 
   const sessionSupabase = await createClient()
   const { data: { user: sessionUser } } = await sessionSupabase.auth.getUser()
