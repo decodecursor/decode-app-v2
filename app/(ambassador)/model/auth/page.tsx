@@ -212,15 +212,7 @@ export default function AmbassadorAuthPage() {
         </div>
 
         {/* Email fallback link */}
-        <div style={{
-          position: 'absolute',
-          bottom: '54px',
-          left: 0,
-          right: 0,
-          textAlign: 'center',
-          fontSize: '12px',
-          color: '#888',
-        }}>
+        <div className="amb-auth-fallback-link">
           <Link href="/model/auth/email" style={{ textDecoration: 'none', color: '#888' }}>
             No WhatsApp?{' '}
             <span style={{ color: '#e91e8c', fontWeight: 600 }}>Continue with email →</span>
@@ -228,17 +220,7 @@ export default function AmbassadorAuthPage() {
         </div>
 
         {/* Legal footer */}
-        <div style={{
-          position: 'absolute',
-          bottom: '20px',
-          left: 0,
-          right: 0,
-          textAlign: 'center',
-          fontSize: '9px',
-          color: '#555',
-          lineHeight: 1.6,
-          padding: '0 40px',
-        }}>
+        <div className="amb-auth-legal-footer">
           By continuing, you agree to our{' '}
           <a
             href="https://welovedecode.com/#terms"

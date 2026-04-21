@@ -2422,6 +2422,7 @@ All HTML mockups + UI specs from earlier chat work. Key files referenced through
 21. **Don't use `supabase.auth.updateUser({ email })` for user-facing email changes** — that triggers Supabase's built-in email with dashboard template. Use `admin.updateUserById` server-side + opaque DB token + direct Resend. Matches `send-magic-link/route.ts` pattern. Slice 1.5 rearchitecture.
 22. **Don't use `admin.generateLink` for cross-browser confirmations** — PKCE-bound, fails when user clicks from a different browser than they requested from. Use opaque DB-owned tokens in `email_change_requests` style table. Slice 1.5 bug.
 23. **Don't write to `auth.users` without also writing to `public.users` in the same code path** — FK violations appear downstream. Shadow-ensure in callback is a net, not a primary pairing. Slice 1.5 bug.
+24. **Don't position content at `bottom:<60px` inside full-height mobile pages** — iOS Safari's bottom toolbar overlays the lower ~55px. Use `env(safe-area-inset-bottom)` + 56px clearance on mobile, set `viewport-fit=cover` in the route group layout. Auth pages bug.
 
 ---
 

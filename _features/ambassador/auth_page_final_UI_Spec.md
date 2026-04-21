@@ -178,8 +178,14 @@ The 6-digit floor is a safe activation minimum; AUTHKey / backend validates exac
 | Wordmark → accent line | 48px |
 | Accent line → phone row | 48px |
 | Phone row → WhatsApp button | 12px |
-| WhatsApp button → fallback link | absolute position (bottom:54px) |
-| Fallback link → legal footer | absolute position (bottom:20px) |
+| WhatsApp button → fallback link | absolute position (bottom:54px desktop) |
+| Fallback link → legal footer | absolute position (bottom:20px desktop) |
+
+**Mobile (≤450px) safe-area offsets:**
+- Fallback link: `bottom: calc(54px + env(safe-area-inset-bottom) + 56px)` — clears iOS Safari toolbar and home indicator. Desktop unchanged at `bottom:54px`.
+- Legal footer: `bottom: calc(20px + env(safe-area-inset-bottom) + 56px)`. Desktop unchanged at `bottom:20px`.
+
+Implemented via shared classes `.amb-auth-fallback-link` / `.amb-auth-legal-footer` defined in `app/(ambassador)/layout.tsx`. Requires `viewportFit: 'cover'` in the route-group viewport meta to activate `env(safe-area-inset-bottom)`.
 
 ---
 

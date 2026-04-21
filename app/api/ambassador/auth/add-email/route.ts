@@ -7,6 +7,8 @@ import { maskEmail } from '@/lib/ambassador/log-utils'
 import { renderButtonEmail } from '@/lib/ambassador/email-templates'
 import { Resend } from 'resend'
 
+// TODO: move `new Resend(...)` inside POST(). Top-level construction breaks
+// `next build` whenever RESEND_API_KEY is unset (e.g. local shells).
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 const TOKEN_TTL_MINUTES = 10
