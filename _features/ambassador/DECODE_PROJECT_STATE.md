@@ -1,6 +1,6 @@
 # DECODE — Ambassador Feature Project State
 
-**Last updated:** 2026-04-21 (Slice 2/3/4 split)
+**Last updated:** 2026-04-21 (Slice 2 kickoff — Change modals + cover remove)
 **Project:** DECODE (welovedecode.com) — Ambassador feature
 **Current subdomain:** `app.welovedecode.com` (apex still on Carrd, migration later)
 **Status:** Slice 1.5 shipped. Slices 2/3/4 replace the old mega-Slice-2 (completeness / listings CRUD / payment).
@@ -115,15 +115,15 @@ Every editable profile/account field and whether Add/Change/Delete flows are spe
 
 | Field | Add | Change | Delete | Status |
 |---|---|---|---|---|
-| Email | Slice 1.5 ✓ | Legacy (not redesigned) | Via delete profile | Change modal needs redesign per new Login methods UX |
-| WhatsApp phone | Slice 1.5 ✓ | Not specced | Via delete profile | Change modal needed |
+| Email | Slice 1.5 ✓ | Slice 2 in progress (2026-04-21) | Via delete profile | Change modal + server-rendered confirmation page |
+| WhatsApp phone | Slice 1.5 ✓ | Slice 2 in progress (2026-04-21) | Via delete profile | Change modal with Old→New step-3 cards |
 | First/last name | Slice 1 ✓ | Slice 1 ✓ | Via delete profile | Complete |
 | Slug | Slice 1 ✓ | Slice 1 ✓ | Via delete profile | Complete |
 | Tagline | Slice 1 ✓ | Slice 1 ✓ | Not specced | Minor |
 | Instagram handle | Slice 1 ✓ | Slice 1 ✓ (assumed) | — | VERIFY |
 | Currency | Slice 1 ✓ | LOCKED (intentional) | — | Complete |
 | Profile photo / avatar | Slice 1 ✓ | MISSING | MISSING | Slice 2 scope (2026-04-21) |
-| Cover photo | Slice 1 ✓ (upload) | Partial (reposition exists) | Not specced | Slice 2 scope (2026-04-21) |
+| Cover photo | Slice 1 ✓ (upload) | Partial (reposition exists) | Slice 2 in progress (2026-04-21) | Action sheet with Upload new + Remove photo |
 | Beauty Wishlist toggle | Slice 5 | n/a | n/a | Deferred |
 
 Change modals for Email and WhatsApp were intentionally deferred from Slice 1.5 Phase C (scope discipline). Profile photo Change/Delete and Cover photo Delete, along with the Email/WhatsApp Change modals, are now folded into Slice 2 (completeness gap + Settings Change modals). See CLAUDE_CODE_HANDOFF.md Slice 2 section for scope and verify list.
@@ -137,7 +137,8 @@ Every email the app sends. Reviewed per Principle B.
 | # | Trigger | Subject | From | Pipeline | Repo location | Template shape |
 |---|---|---|---|---|---|---|
 | 1 | Email magic-link sign-in | Your Secure Login Link | WeLoveDecode `<noreply@welovedecode.com>` | Resend direct | `send-magic-link/route.ts` inline HTML | WeLoveDecode wordmark + pink button |
-| 2 | Add email confirmation | Add this email to your WeLoveDecode account | WeLoveDecode `<noreply@welovedecode.com>` | Resend direct | `add-email/route.ts` via `renderButtonEmail` helper | WeLoveDecode wordmark + pink button |
+| 2 | Add email confirmation | Add this email to your WeLoveDecode account (flow='add' branch) | WeLoveDecode `<noreply@welovedecode.com>` | Resend direct | `add-email/route.ts` via `renderButtonEmail` helper | WeLoveDecode wordmark + pink button |
+| 2b | Change email confirmation | Confirm your new email for WeLoveDecode | WeLoveDecode `<noreply@welovedecode.com>` | Resend direct | `add-email/route.ts` via `renderButtonEmail` (flow='change' branch) | WeLoveDecode wordmark + pink button |
 | 3 | Payment receipt (professional) | — | — | Resend via `lib/email-service.ts` | `components/emails/PaymentReceipt.tsx` (React template) | Existing transactional |
 | 4 | Payment confirmation (gifter) | — | — | Resend via `lib/email-service.ts` | `components/emails/PaymentConfirmation.tsx` | Existing |
 | 5 | Payment failed | — | — | Resend via `lib/email-service.ts` | `components/emails/PaymentFailed.tsx` | Existing |
@@ -145,6 +146,51 @@ Every email the app sends. Reviewed per Principle B.
 | 7 | Stripe Dashboard admin alerts | Stripe default | Stripe | Stripe-native | n/a | Admin only |
 
 **Rule:** ALL new email triggers added in future slices MUST be added to this table BEFORE implementation. Any email sent without a matching row here is a violation of Principle B.
+
+---
+
+# PHASE 1.8 — SLICE 2 ARCHITECTURE DECISIONS (Change modals + Cover remove)
+
+Slice 2 closes three gaps deferred from Slice 1.5 Phase C (Principle H — scope discipline): Change Email modal, Change WhatsApp modal, Cover photo Remove action. All wiring mirrors Slice 1.5 patterns (Principle E).
+
+### Q1 — Reuse `email_change_requests` table: **REUSE**
+Add Email and Change Email are the same semantic operation ("apply a new email to `auth.users` after user-confirmed link"). Two additive columns:
+- `old_email text NULL` — snapshotted at request-creation time so the confirmation page can render Old → New without URL params (per `change_email_confirmation_final_UI_Spec.md` §3). NULL for legacy Add Email rows, populated from Slice 2 onward.
+- `flow text NOT NULL DEFAULT 'add' CHECK (flow IN ('add','change'))` — discriminator so the callback can branch its redirect, and so the email subject/body can differ per flow.
+
+### Q2 — Reuse `/model/auth/confirm-email` callback route: **REUSE**
+One new branch: after successful `updateUserById` + shadow update, select redirect URL by `flow`:
+- `flow='add'` → `/model/settings` (unchanged).
+- `flow='change'` → `/model/auth/email-changed?ref={token}` (new).
+The `ref={token}` is the already-consumed token, reused as a DB lookup key. The page is a **server component** that requires `consumed_at IS NOT NULL` AND `consumed_at > now() - interval '15 minutes'`. Satisfies UI Spec §3 "server-render, no URL params for emails".
+
+### Q3 — Cross-browser behavior (Principle G): no new work
+The opaque-token callback is session-independent by construction. Verified via smoke test (Browser A request, Browser B click).
+
+### Q4 — Routing after email confirmation: **split by flow**
+- Add Email "old" is the synthetic `wa_…@auth.internal` (meaningless / would leak internal fixture) → stay at `/model/settings`.
+- Change Email has a real "old" that matters → show Old→New cards at `/model/auth/email-changed`.
+
+### Q5 — Change WhatsApp confirmation UI: **self-contained in the modal**
+Step 3 of the Change WhatsApp modal shows "WhatsApp changed!" with Old→New cards per `settings.html:247–285`. No separate page needed — modal closes on Done and Settings re-reads from refreshed session/profile.
+
+### Reuse summary (Principle E evidence)
+- `/api/ambassador/auth/add-email` — extended, not forked (flow detection via `isInternalEmail(sessionUser.email)`).
+- `/model/auth/confirm-email` — extended with one flow-branch redirect.
+- `/api/ambassador/auth/send-otp` + `/api/ambassador/auth/add-phone` — reused unchanged (idempotent).
+- `email_change_requests` table — extended with two additive columns.
+- `renderButtonEmail`, `ProgressTracker`, `CountryPicker`, `OtpInput` — reused unchanged.
+- `extractCoverObjectPath` + `storage.from(COVER_BUCKET).remove([…])` pattern — reused for cover remove.
+
+### Migration (Phase B1)
+```sql
+ALTER TABLE public.email_change_requests
+  ADD COLUMN old_email text NULL,
+  ADD COLUMN flow text NOT NULL DEFAULT 'add' CHECK (flow IN ('add','change'));
+```
+
+### Scope (Principle H)
+5 deliverables, ≤1.5 days, 1 Phase A doc commit + 3 Phase B code commits (B1 Email, B2 WhatsApp, B3 Cover).
 
 ---
 
