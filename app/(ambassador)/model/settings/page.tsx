@@ -8,6 +8,7 @@ import { CoverCameraButton } from '@/components/ambassador/CoverCameraButton'
 import { AddEmailModal } from '@/components/ambassador/AddEmailModal'
 import { ChangeEmailModal } from '@/components/ambassador/ChangeEmailModal'
 import { AddWhatsAppModal } from '@/components/ambassador/AddWhatsAppModal'
+import { ChangeWhatsAppModal } from '@/components/ambassador/ChangeWhatsAppModal'
 
 interface Profile {
   id: string
@@ -86,6 +87,7 @@ export default function SettingsPage() {
   const [showAddEmail, setShowAddEmail] = useState(false)
   const [showChangeEmail, setShowChangeEmail] = useState(false)
   const [showAddWhatsApp, setShowAddWhatsApp] = useState(false)
+  const [showChangeWhatsApp, setShowChangeWhatsApp] = useState(false)
 
   // Delete modal
   const [showDelete, setShowDelete] = useState(false)
@@ -494,7 +496,7 @@ export default function SettingsPage() {
           return userPhone ? (
             <div
               key="whatsapp"
-              onClick={() => showToast('WhatsApp editing coming soon')}
+              onClick={() => setShowChangeWhatsApp(true)}
               style={{ ...rowStyle, ...rowBorder, cursor: 'pointer' }}
             >
               <span style={{ fontSize: 14, color: '#888' }}>WhatsApp</span>
@@ -726,6 +728,12 @@ export default function SettingsPage() {
         open={showAddWhatsApp}
         onClose={() => setShowAddWhatsApp(false)}
         onAdded={(phone) => setUserPhone(phone)}
+      />
+      <ChangeWhatsAppModal
+        open={showChangeWhatsApp}
+        onClose={() => setShowChangeWhatsApp(false)}
+        currentPhone={userPhone ?? ''}
+        onChanged={(phone) => setUserPhone(phone)}
       />
     </div>
   )
