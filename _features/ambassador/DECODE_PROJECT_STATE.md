@@ -1,9 +1,9 @@
 # DECODE — Ambassador Feature Project State
 
-**Last updated:** 2026-04-20 (Slice 1.5 SHIPPED ✓)
+**Last updated:** 2026-04-21 (Slice 2/3/4 split)
 **Project:** DECODE (welovedecode.com) — Ambassador feature
 **Current subdomain:** `app.welovedecode.com` (apex still on Carrd, migration later)
-**Status:** Slice 1 shipped. Slice 1.5 (auth architecture fix + Login methods in Settings + dashboard email hint) **SHIPPED ✓ (2026-04-20)** — WhatsApp signin deduped by phone, no phantom rows, email-add via Resend verified cross-browser. Slice 2 pending.
+**Status:** Slice 1.5 shipped. Slices 2/3/4 replace the old mega-Slice-2 (completeness / listings CRUD / payment).
 
 ---
 
@@ -116,11 +116,11 @@ Every editable profile/account field and whether Add/Change/Delete flows are spe
 | Tagline | Slice 1 ✓ | Slice 1 ✓ | Not specced | Minor |
 | Instagram handle | Slice 1 ✓ | Slice 1 ✓ (assumed) | — | VERIFY |
 | Currency | Slice 1 ✓ | LOCKED (intentional) | — | Complete |
-| Profile photo / avatar | Slice 1 ✓ | MISSING | MISSING | BLOCKER — flagged by user 2026-04-20 |
-| Cover photo | Slice 1 ✓ (upload) | Partial (reposition exists) | Not specced | Minor |
-| Beauty Wishlist toggle | Slice 3 | n/a | n/a | Deferred |
+| Profile photo / avatar | Slice 1 ✓ | MISSING | MISSING | Slice 2 scope (2026-04-21) |
+| Cover photo | Slice 1 ✓ (upload) | Partial (reposition exists) | Not specced | Slice 2 scope (2026-04-21) |
+| Beauty Wishlist toggle | Slice 5 | n/a | n/a | Deferred |
 
-Change modals for Email and WhatsApp intentionally deferred from Slice 1.5 Phase C (scope discipline). Profile photo Change/Delete is a user-flagged gap that must be specced before Slice 2 or shipped as Slice 1.6 patch.
+Change modals for Email and WhatsApp were intentionally deferred from Slice 1.5 Phase C (scope discipline). Profile photo Change/Delete and Cover photo Delete, along with the Email/WhatsApp Change modals, are now folded into Slice 2 (completeness gap + Settings Change modals). See CLAUDE_CODE_HANDOFF.md Slice 2 section for scope and verify list.
 
 ---
 

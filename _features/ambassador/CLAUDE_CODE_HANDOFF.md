@@ -196,7 +196,7 @@ Schema and infrastructure must exist before anything else because FKs interlock 
 **Out of scope (will be added in later slices):**
 - Listing/wish sections on dashboard (placeholder empty state only)
 - Analytics alerts on dashboard
-- "Beauty Wishlist" toggle in settings (comes with Slice 3)
+- "Beauty Wishlist" toggle in settings (comes with Slice 5)
 
 **✅ VERIFY before next slice:**
 - [ ] Sign up with WhatsApp OTP → receives code → verifies → enters setup
@@ -496,56 +496,116 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 
 ---
 
-### 💰 Slice 2 — Listings flow (end-to-end payment)
+### 🧩 Slice 2 — Completeness gap + Settings Change modals
 
-**Goal:** Ambassador creates a listing, shares payment link, professional pays via Stripe, both see receipts.
+**Goal:** Close the feature gap surfaced in Slice 1.5 Phase C. User can change profile photo, delete profile photo, delete cover photo, change email, and change WhatsApp — all via Settings. Filled rows in the Login methods card open Change modals instead of the "coming soon" toast.
 
-**Scope (pages to build):**
-- `/model/listings` — Listings page (with real data now)
-- `/model/listings/new` — Add listing form (uploads + professional creation)
-- `/model/listings/[id]/send-link` — Send payment link page
-- `/{slug}` — Public ambassador page (LISTINGS SECTION ONLY — no wishes yet)
-- `/{slug}/listing/{token}` — Listing payment checkout (with Stripe + Turnstile)
-- `/listing/confirmation/{pi_xxx}` — Listing receipt
-
-**API routes:**
-- `/api/model/listings` — GET/POST/DELETE
-- `/api/model/professionals` — POST (dedup by Instagram)
-- `/api/checkout/listing` — POST to create PaymentIntent
-- `/api/webhooks/ambassador-stripe` — handle `payment_intent.succeeded` for listings
-- `/api/analytics/track` — basic event logging for listing interactions
-
-**Dashboard update:**
-- Show listing alerts + count (remove "empty state" for listings section)
+**Scope:**
+- Profile photo Change modal + Delete action (unblocks PHASE 1.6 item)
+- Cover photo Delete action (Change / reposition already exists from Slice 1)
+- Change Email modal (2-step, reuses Add Email opaque-token pattern from Slice 1.5 — `email_change_requests` table, direct Resend, cross-browser safe per Principle C)
+- Change WhatsApp modal (3-step, reuses Add WhatsApp AUTHKey OTP pattern from Slice 1.5)
+- Wire filled rows in Settings Login methods card to these Change modals (replaces "coming soon" toast)
 
 **Out of scope:**
-- Wishes (entire flow deferred to Slice 3)
-- Wall of Love on public page
-- Analytics page itself (data is being collected, but no viewer yet)
-- Payouts
+- Anything listings or payments related (deferred to Slice 3/4)
+- Change modals for name/slug/tagline/Instagram (already complete per PHASE 1.6)
+- Currency change (LOCKED)
 
-**Architecture preconditions for Slice 2:** All email triggers in Slice 2 (payment receipt, refund notification, any new transactional) MUST follow Principles B–C (see PHASE 1.5 in DECODE_PROJECT_STATE.md). Specifically: (1) delivery via direct Resend, never Supabase Auth; (2) templates in repo (`components/emails/*.tsx` for structured React templates or `lib/ambassador/email-templates.ts` for simple button-only); (3) any confirmation URL uses opaque tokens if cross-browser click is possible. Any new email trigger must be added to PHASE 1.7 Email Template Catalog in DECODE_PROJECT_STATE.md BEFORE implementation.
+**Architecture preconditions:** All new email triggers in Slice 2 MUST follow Principles B–C (see PHASE 1.5 in DECODE_PROJECT_STATE.md). Specifically: (1) delivery via direct Resend, never Supabase Auth; (2) templates in repo; (3) any confirmation URL uses opaque tokens if cross-browser click is possible. Any new email trigger must be added to PHASE 1.7 Email Template Catalog BEFORE implementation.
+
+**✅ VERIFY before next slice:**
+- [ ] Profile photo Change modal opens from Settings → upload new photo → replaces existing avatar (storage + DB)
+- [ ] Profile photo Delete action removes avatar → empty state fallback renders
+- [ ] Cover photo Delete action removes cover → empty state fallback renders
+- [ ] Change Email (same-browser): filled Email row opens modal → confirmation email lands → click in same browser → email updated in `auth.users` + `public.users`; old email no longer grants login
+- [ ] Change Email (cross-browser, Guardrail 6): request in Browser A, click confirmation link in Browser B → email still updated (opaque-token pattern holds across browsers)
+- [ ] Change WhatsApp: filled WhatsApp row opens modal → new number → OTP arrives → code verified → `auth.users.phone` updated; old phone no longer signs in
+- [ ] Settings Login methods card: filled rows open Change modals (no more "coming soon" toast)
+- [ ] PHASE 1.6 updated: Profile photo row moves from BLOCKER to complete
+
+---
+
+### 🏗️ Slice 3 — Listings CRUD + uploads
+
+**Goal:** Ambassador can create, edit, delete listings end-to-end inside their own dashboard. Professional creation via Instagram dedup. No public page or payment yet.
+
+**Scope (pages to build):**
+- `/model/listings` — Listings page (with real data)
+- `/model/listings/new` — Add listing form (uploads + professional creation)
+- `/model/listings/[id]/edit` — Edit listing
+- `/model/listings/[id]/send-link` — Share payment link page
+
+**API routes:**
+- `/api/model/listings` — GET / POST / PATCH / DELETE
+- `/api/model/professionals` — POST (dedup by Instagram)
+
+**Uploads:**
+- Supabase Storage with client-side compression
+- Photos (1-3) + optional video (HEVC from iPhone must play on Safari)
+
+**Dashboard update:**
+- Show listing count + expiring alerts (remove listings empty state)
+
+**Out of scope:**
+- Public page, payments, webhooks, checkout (deferred to Slice 4)
+- Wishes (deferred to Slice 5)
 
 **✅ VERIFY before next slice:**
 - [ ] Ambassador creates a listing with photos (1-3) successfully uploaded
 - [ ] Ambassador creates a listing with a video (HEVC from iPhone) — plays on Safari
+- [ ] Ambassador edits an existing listing (title, photos, professional)
 - [ ] Professional dedup works — second listing linked to same IG finds existing professional
 - [ ] Free trial listing: status=`free_trial`, `free_trial_ends_at` = 30 days out
-- [ ] Paid listing: send-link page shows payment link with token
-- [ ] Public page `/{slug}` loads, shows listing cards
-- [ ] Lightbox opens on photo/video click
-- [ ] Instagram link fires analytics event (check DB)
-- [ ] Professional clicks payment link → sees checkout page
-- [ ] Turnstile verifies silently (no visible CAPTCHA)
-- [ ] Professional pays 30/60/90 pkg → Stripe modal works → receipt shows
-- [ ] Webhook updates listing `paid_until` with trial-stacking math
+- [ ] Paid listing (mocked paid_until): send-link page shows payment link with token
 - [ ] Listings page shows listing status correctly (effective_status)
 - [ ] Delete listing works for Trial/Pending/Expired, blocked for Active
-- [ ] Refund via Stripe Dashboard → receipt updates within 1 minute
+- [ ] Dashboard shows correct listing count + expiring alerts
 
 ---
 
-### 🎁 Slice 3 — Wishlist flow (end-to-end gifting)
+### 💰 Slice 4 — Public page + Stripe payment end-to-end
+
+**Goal:** Professional clicks link in WhatsApp → lands on public ambassador page → completes Stripe payment → receives receipt email → webhook updates paid_until.
+
+**Scope (pages to build):**
+- `/{slug}` — Public ambassador page (LISTINGS SECTION ONLY — no wishes yet)
+- `/{slug}/listing/{token}` — Stripe checkout (Payment Intents + Elements, NOT Checkout Session)
+- `/listing/confirmation/{pi_xxx}` — Listing receipt page
+
+**API routes:**
+- `/api/checkout/listing` — POST to create PaymentIntent
+- `/api/webhooks/ambassador-stripe` — handle `payment_intent.succeeded` + `charge.refunded` for listings
+- `/api/analytics/track` — basic event logging for listing interactions
+
+**Email:**
+- Payment receipt (professional) — subject + body from HANDOFF §1895-1934, direct Resend (Principles B+C). Must be added to PHASE 1.7 Email Template Catalog before implementation.
+
+**Bot protection:**
+- Cloudflare Turnstile on checkout (invisible)
+- Upstash Redis rate limit on `/api/checkout/listing`
+
+**Out of scope:**
+- Wishes flow (deferred to Slice 5)
+- Wall of Love on public page (deferred to Slice 5)
+- Analytics viewer page (data is collected, viewer deferred to Slice 6)
+- Payouts (deferred to Slice 6)
+
+**✅ VERIFY before next slice:**
+- [ ] Public page `/{slug}` loads, shows listing cards
+- [ ] Lightbox opens on photo/video click
+- [ ] Instagram link fires analytics event (check DB)
+- [ ] Professional clicks payment link from WhatsApp → mobile Safari loads checkout
+- [ ] Turnstile verifies silently (no visible CAPTCHA)
+- [ ] Professional pays 30/60/90 pkg → Stripe modal works → receipt page shows
+- [ ] Payment receipt email arrives, body matches HANDOFF §1895-1934 spec
+- [ ] Webhook updates listing `paid_until` with trial-stacking math
+- [ ] Refund via Stripe Dashboard → receipt updates within 1 minute
+- [ ] End-to-end (Guardrail 6): WhatsApp link click → mobile Safari checkout → Stripe → payment success → receipt email arrives → webhook fires
+
+---
+
+### 🎁 Slice 5 — Wishlist flow (end-to-end gifting)
 
 **Goal:** Ambassador creates wishes, gifters pay for them, they appear on Wall of Love. Race condition handled.
 
@@ -592,7 +652,7 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 
 ---
 
-### 📊 Slice 4 — Analytics + Payouts
+### 📊 Slice 6 — Analytics + Payouts
 
 **Goal:** Ambassador sees real analytics data. Admin can create and mark payouts as paid.
 
@@ -610,7 +670,7 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 - Show real analytics summary (top clicks, expiring soon)
 
 **✅ VERIFY before next slice:**
-- [ ] Analytics page shows page views, listing clicks, wish clicks (real data from Slices 2 + 3)
+- [ ] Analytics page shows page views, listing clicks, wish clicks (real data from Slices 4 + 5)
 - [ ] Top gifter ranking: anonymous gifts excluded from named list
 - [ ] Trend comparison (vs previous 7/30 days) displays correctly
 - [ ] Chart.js lazy-loads only on this page (check Network tab)
@@ -623,7 +683,7 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 
 ---
 
-### 🎨 Slice 5 — Polish + edge cases
+### 🎨 Slice 7 — Polish + edge cases
 
 **Goal:** All terminal pages, static content, error states, and launch-readiness polish.
 
@@ -660,8 +720,8 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 
 ## 🏁 Slice-based workflow rules
 
-1. **Never move to the next slice with bugs in the current one.** If Slice 2's listing payment has a bug, DO NOT start Slice 3 until it's fixed.
-2. **Each slice should be shippable.** After Slice 2, you could launch to a few beta users (no wishes yet, but real listings work).
+1. **Never move to the next slice with bugs in the current one.** If Slice 4's listing payment has a bug, DO NOT start Slice 5 until it's fixed.
+2. **Each slice should be shippable.** After Slice 4, you could launch to a few beta users (no wishes yet, but real listings with payment work).
 3. **Claude Code should PAUSE after each slice** and report: "Slice N complete. These are the test steps. Ready for Slice N+1?" — let the user verify manually before proceeding.
 4. **Small commits within slices.** Each page, each API route = separate commit. Easier to review, revert, debug.
 5. **Test in production-like environment.** Deploy to Vercel preview after each slice. Don't rely on `npm run dev` — real Stripe webhooks, real Supabase, real domains.
@@ -2236,7 +2296,7 @@ These are already configured for the legacy app. Ambassador feature reuses them:
 
 ### 🆕 NEW variables to add for Ambassador feature
 
-Add these to Vercel before deploying Slice 2 (first slice that uses them):
+Add these to Vercel before deploying Slice 4 (first slice that uses them):
 
 | Variable | Purpose | How to get it |
 |---|---|---|
@@ -2253,7 +2313,7 @@ Add these to Vercel before deploying Slice 2 (first slice that uses them):
 
 **Total new env vars: 10.** Everything else reuses legacy.
 
-**Deployment order:** Set up Turnstile + Upstash + Resend + Stripe webhook BEFORE Slice 2. AUTHKey template IDs can be added later (Slice 2 for listing paid; Slice 3 for wish gifted; Slice 5 for expiring reminders).
+**Deployment order:** Set up Turnstile + Upstash + Stripe webhook BEFORE Slice 4 (Resend is already deployed from Slice 1.5). AUTHKey template IDs can be added later (Slice 4 for listing paid; Slice 5 for wish gifted; Slice 7 for expiring reminders).
 
 ### Where to reference them in code
 
