@@ -3,17 +3,14 @@
 <div id="authRoot" style="width:375px;background:#000;border-radius:24px;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#fff;border:2px solid #1a1a1a;position:relative;min-height:760px">
 
 <!-- ================================================= -->
-<!-- AUTH SCREEN                                        -->
+<!-- AUTH SCREEN (WhatsApp-primary)                     -->
 <!-- ================================================= -->
 <div id="authScreen">
 
-<div style="padding:12px 20px 0;font-size:12px;color:#888">9:41</div>
-
-<div style="padding:64px 40px 24px;text-align:center">
+<div style="padding:80px 40px 24px;text-align:center">
 
 <div style="font-size:10px;letter-spacing:3px;color:#888;font-weight:700;margin-bottom:10px">SHOW YOUR BEAUTY SQUAD</div>
-<div style="font-size:32px;font-weight:800;letter-spacing:-0.8px;margin-bottom:18px">WeLoveDecode</div>
-<div style="font-size:11px;color:#666;margin-bottom:24px">Enter your number or email</div>
+<div style="font-size:32px;font-weight:800;letter-spacing:-0.8px;margin-bottom:48px">WeLoveDecode</div>
 <div style="width:40px;height:1.5px;background:#e91e8c;margin:0 auto 48px;transform-origin:center;animation:drawLine 1s ease-out forwards"></div><style>@keyframes drawLine{from{transform:scaleX(0)}to{transform:scaleX(1)}}</style>
 
 <!-- Phone row -->
@@ -23,31 +20,25 @@
 <span id="selCode" style="font-size:14px;color:#fff;font-weight:600">+971</span>
 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
 </div>
-<input id="phoneInput" type="tel" placeholder="55 846 2387" style="flex:1;background:transparent;border:1.5px solid #2a2a2a;border-radius:12px;padding:0 16px;font-size:15px;color:#fff;outline:none;font-family:inherit;height:52px;box-sizing:border-box;transition:border-color 0.2s" oninput="handlePhoneInput(this)" onfocus="this.style.borderColor='#e91e8c'" onblur="this.style.borderColor='#2a2a2a'" />
+<input id="phoneInput" type="tel" placeholder="55 846 2387" style="flex:1;min-width:0;background:transparent;border:1.5px solid #2a2a2a;border-radius:12px;padding:0 16px;font-size:15px;color:#fff;outline:none;font-family:inherit;height:52px;box-sizing:border-box;transition:border-color 0.2s" oninput="handlePhoneInput(this)" onfocus="this.style.borderColor='#e91e8c'" onblur="this.style.borderColor='#2a2a2a'" />
 </div>
 
-<div id="waBtn" onclick="continueWhatsApp()" style="border:1.5px solid #2a2a2a;border-radius:12px;padding:16px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:28px;text-align:center;transition:all 0.3s;background:transparent"><span id="waLabel" style="color:#555;transition:color 0.3s">Continue with WhatsApp</span>
+<div id="waBtn" onclick="continueWhatsApp()" style="border:1.5px solid #2a2a2a;border-radius:12px;padding:16px;font-size:14px;font-weight:600;cursor:pointer;text-align:center;transition:all 0.3s;background:transparent"><span id="waLabel" style="color:#555;transition:color 0.3s">Continue with WhatsApp</span></div>
+
 </div>
 
-<div style="font-size:11px;color:#666;margin-bottom:28px;letter-spacing:1px;font-weight:600">OR</div>
-
-<input id="emailInput" type="email" placeholder="Enter your email" style="width:100%;background:transparent;border:1.5px solid #2a2a2a;border-radius:12px;padding:0 16px;font-size:15px;color:#fff;outline:none;font-family:inherit;height:52px;box-sizing:border-box;margin-bottom:12px;transition:border-color 0.2s" oninput="handleEmailInput(this)" onfocus="this.style.borderColor='#e91e8c'" onblur="this.style.borderColor='#2a2a2a'" />
-
-<div id="emBtn" onclick="continueEmail()" style="border:1.5px solid #2a2a2a;border-radius:12px;padding:16px;font-size:14px;font-weight:600;color:#555;cursor:pointer;transition:all 0.3s;background:transparent">Continue with Email</div>
-
+<div style="position:absolute;bottom:54px;left:0;right:0;text-align:center;font-size:12px;color:#888">
+<a href="#email-fallback" onclick="continueEmailFallback(event)" style="text-decoration:none;color:#888">No WhatsApp? <span style="color:#e91e8c;font-weight:600">Continue with email →</span></a>
 </div>
 <div style="position:absolute;bottom:20px;left:0;right:0;text-align:center;font-size:9px;color:#555;line-height:1.6;padding:0 40px">By continuing, you agree to our <a href="https://welovedecode.com/#terms" target="_blank" style="cursor:pointer;font-weight:700;color:#555;text-decoration:none">Terms</a> and <a href="https://welovedecode.com/#privacy" target="_blank" style="cursor:pointer;font-weight:700;color:#555;text-decoration:none">Privacy Policy</a></div>
 </div>
-
 
 <!-- ================================================= -->
 <!-- COUNTRY PICKER (full-screen overlay)              -->
 <!-- ================================================= -->
 <div id="pickerScreen" style="display:none;position:absolute;inset:0;background:#000;z-index:10;flex-direction:column">
 
-<div style="padding:12px 20px 0;font-size:12px;color:#888;flex-shrink:0">9:41</div>
-
-<div style="padding:16px 20px 20px;display:flex;align-items:center;gap:14px;flex-shrink:0">
+<div style="padding:32px 20px 20px;display:flex;align-items:center;gap:14px;flex-shrink:0">
 <div onclick="closePicker()" style="cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;margin-left:-8px">
 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
 </div>
@@ -67,8 +58,8 @@
 
 </div>
 
-
 <div id="toast" style="position:absolute;left:50%;bottom:60px;transform:translateX(-50%);background:rgba(28,28,28,0.95);border:1px solid #333;color:#fff;padding:10px 18px;border-radius:24px;font-size:12px;opacity:0;transition:opacity 0.2s;pointer-events:none;z-index:20;white-space:nowrap"></div>
+
 </div>
 </div>
 
@@ -76,7 +67,7 @@
 (function(){
 
 const countries = [
-  { code:'AE', name:'United Arab Emirates', dial:'+971', flag:'🇦🇪', placeholder:'55 846 2387', popular:true },
+{ code:'AE', name:'United Arab Emirates', dial:'+971', flag:'🇦🇪', placeholder:'55 846 2387', popular:true },
   { code:'US', name:'United States', dial:'+1', flag:'🇺🇸', placeholder:'(555) 123 4567', popular:true },
   { code:'GB', name:'United Kingdom', dial:'+44', flag:'🇬🇧', placeholder:'07700 900000', popular:true },
 
@@ -278,7 +269,6 @@ const countries = [
   { code:'ZW', name:'Zimbabwe', dial:'+263', flag:'🇿🇼', placeholder:'71 234 5678' }
 ];
 
-
 // ============================================================
 // PHONE NUMBER FORMATTER (as-you-type masking)
 // ============================================================
@@ -287,7 +277,7 @@ const countries = [
 // for full coverage + validation across all 190+ countries.
 // Format patterns use "#" for digit slots, spaces/dashes/parens as literals.
 const phoneFormats = {
-  '+971': '## ### ####',       // UAE: 55 427 5547
+'+971': '## ### ####',       // UAE: 55 427 5547
   '+1':   '(###) ###-####',    // US/Canada/PR/DO: (555) 123-4567
   '+44':  '#### ######',       // UK: 7700 900000
   '+49':  '### ########',      // Germany: 151 23456789
@@ -349,25 +339,16 @@ const phoneFormats = {
 
 function formatPhoneNumber(digits, dialCode){
   const mask = phoneFormats[dialCode];
-  if(!mask) return digits; // no mask for this country, return raw digits
+  if(!mask) return digits;
   let out = '';
   let di = 0;
-  // Apply the mask for as many digits as fit
   for(let i = 0; i < mask.length && di < digits.length; i++){
-    if(mask[i] === '#'){
-      out += digits[di];
-      di++;
-    } else {
-      out += mask[i];
-    }
+    if(mask[i] === '#'){ out += digits[di]; di++; }
+    else { out += mask[i]; }
   }
-  // Append any overflow digits with a leading space (variable-length countries)
-  if(di < digits.length){
-    out += ' ' + digits.slice(di);
-  }
+  if(di < digits.length){ out += ' ' + digits.slice(di); }
   return out;
 }
-
 
 function rowHtml(c){
   const escName = c.name.replace(/'/g, "\\'");
@@ -385,12 +366,9 @@ function buildList(){
   const rest = countries.filter(c => !c.popular).sort((a,b) => a.name.localeCompare(b.name));
 
   let html = '';
-
-  // POPULAR section
   html += `<div id="section-popular" style="font-size:10px;letter-spacing:1px;color:#888;font-weight:700;padding:14px 0 6px">POPULAR</div>`;
   html += popular.map(rowHtml).join('');
 
-  // A-Z sections with anchors
   let currentLetter = '';
   rest.forEach(c => {
     const firstLetter = c.name.charAt(0).toUpperCase();
@@ -407,9 +385,7 @@ function buildList(){
 function filterList(q){
   const list = document.getElementById('countryList');
   const qLower = q.toLowerCase().trim();
-
   const match = c => c.name.toLowerCase().includes(qLower) || c.dial.includes(qLower) || c.code.toLowerCase().includes(qLower);
-
   const matches = countries.filter(match).sort((a,b) => a.name.localeCompare(b.name));
 
   if(matches.length === 0){
@@ -422,138 +398,22 @@ function filterList(q){
   list.innerHTML = html;
 }
 
-window.handleSearch = function(q){
-  const trimmed = q.trim();
-
-  if(trimmed.length === 0){
-    // Empty: show full list
-    
 function showToast(msg, success){
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.style.color = success ? '#4ade80' : '#fff';
-  t.style.borderColor = success ? '#4ade80' : '#333';
+  t.style.color = '#fff';
+  t.style.borderColor = success ? '#e91e8c' : '#333';
   t.style.opacity = '1';
   clearTimeout(t._timer);
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 1800);
 }
-
-window.continueWhatsApp = function(){
-  const btn = document.getElementById('waBtn');
-  // Only fire when active (pink background means ready)
-  if(btn.style.background !== 'rgb(233, 30, 140)' && btn.style.background !== '#e91e8c') {
-    showToast('Enter a valid phone number');
-    return;
-  }
-  const dial = document.getElementById('selCode').textContent;
-  const num = document.getElementById('phoneInput').value;
-  showToast('Sending WhatsApp code to ' + dial + ' ' + num, true);
-};
-
-window.continueEmail = function(){
-  const btn = document.getElementById('emBtn');
-  if(btn.style.background !== 'rgb(233, 30, 140)' && btn.style.background !== '#e91e8c') {
-    showToast('Enter a valid email');
-    return;
-  }
-  const email = document.getElementById('emailInput').value;
-  showToast('Sending magic link to ' + email, true);
-};
-
-buildList();
-    return;
-  }
-
-  if(trimmed.length === 1 && /[a-zA-Z]/.test(trimmed)){
-    // Single letter: scroll to that section, keep full list intact
-    
-function showToast(msg, success){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.color = success ? '#4ade80' : '#fff';
-  t.style.borderColor = success ? '#4ade80' : '#333';
-  t.style.opacity = '1';
-  clearTimeout(t._timer);
-  t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 1800);
-}
-
-window.continueWhatsApp = function(){
-  const btn = document.getElementById('waBtn');
-  // Only fire when active (pink background means ready)
-  if(btn.style.background !== 'rgb(233, 30, 140)' && btn.style.background !== '#e91e8c') {
-    showToast('Enter a valid phone number');
-    return;
-  }
-  const dial = document.getElementById('selCode').textContent;
-  const num = document.getElementById('phoneInput').value;
-  showToast('Sending WhatsApp code to ' + dial + ' ' + num, true);
-};
-
-window.continueEmail = function(){
-  const btn = document.getElementById('emBtn');
-  if(btn.style.background !== 'rgb(233, 30, 140)' && btn.style.background !== '#e91e8c') {
-    showToast('Enter a valid email');
-    return;
-  }
-  const email = document.getElementById('emailInput').value;
-  showToast('Sending magic link to ' + email, true);
-};
-
-buildList();
-    setTimeout(() => {
-      const letter = trimmed.toUpperCase();
-      const section = document.getElementById('section-' + letter);
-      const listEl = document.getElementById('countryList');
-      if(section && listEl){
-        listEl.scrollTop = section.offsetTop - listEl.offsetTop - 8;
-      }
-    }, 10);
-    return;
-  }
-
-  // 2+ characters or numbers: filter
-  filterList(trimmed);
-};
 
 window.openPicker = function(){
   document.getElementById('authScreen').style.display = 'none';
   const p = document.getElementById('pickerScreen');
   p.style.display = 'flex';
   document.getElementById('searchInput').value = '';
-  
-function showToast(msg, success){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.color = success ? '#4ade80' : '#fff';
-  t.style.borderColor = success ? '#4ade80' : '#333';
-  t.style.opacity = '1';
-  clearTimeout(t._timer);
-  t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 1800);
-}
-
-window.continueWhatsApp = function(){
-  const btn = document.getElementById('waBtn');
-  // Only fire when active (pink background means ready)
-  if(btn.style.background !== 'rgb(233, 30, 140)' && btn.style.background !== '#e91e8c') {
-    showToast('Enter a valid phone number');
-    return;
-  }
-  const dial = document.getElementById('selCode').textContent;
-  const num = document.getElementById('phoneInput').value;
-  showToast('Sending WhatsApp code to ' + dial + ' ' + num, true);
-};
-
-window.continueEmail = function(){
-  const btn = document.getElementById('emBtn');
-  if(btn.style.background !== 'rgb(233, 30, 140)' && btn.style.background !== '#e91e8c') {
-    showToast('Enter a valid email');
-    return;
-  }
-  const email = document.getElementById('emailInput').value;
-  showToast('Sending magic link to ' + email, true);
-};
-
-buildList();
+  buildList();
   document.getElementById('countryList').scrollTop = 0;
 };
 
@@ -568,7 +428,6 @@ window.selectCountry = function(code, flag, dial, placeholder){
   const phoneInput = document.getElementById('phoneInput');
   phoneInput.placeholder = placeholder;
   phoneInput.value = '';
-  // Reset WhatsApp button state since phone is cleared
   const waBtn = document.getElementById('waBtn');
   const waLabel = document.getElementById('waLabel');
   waBtn.style.borderColor = '#2a2a2a';
@@ -578,18 +437,12 @@ window.selectCountry = function(code, flag, dial, placeholder){
 };
 
 window.handlePhoneInput = function(el){
-  // Get current dial code from selected country button
   const dialCode = document.getElementById('selCode').textContent;
-  // Strip non-digits and apply country-specific format mask
   const digits = el.value.replace(/\D/g,'');
   const formatted = formatPhoneNumber(digits, dialCode);
-  // Only update if actually different (prevents cursor jump on non-format chars)
-  if(el.value !== formatted){
-    el.value = formatted;
-  }
+  if(el.value !== formatted){ el.value = formatted; }
   const btn = document.getElementById('waBtn');
   const label = document.getElementById('waLabel');
-  // Minimum 6 digits required to activate — safe floor, backend validates exact length per country
   if(digits.length >= 6){
     btn.style.borderColor = '#e91e8c';
     btn.style.background = '#e91e8c';
@@ -601,59 +454,47 @@ window.handlePhoneInput = function(el){
   }
 };
 
-window.handleEmailInput = function(el){
-  const btn = document.getElementById('emBtn');
-  if(el.value.length > 0 && el.value.includes('@')){
-    btn.style.borderColor = '#e91e8c';
-    btn.style.background = '#e91e8c';
-    btn.style.color = '#fff';
-  } else {
-    btn.style.borderColor = '#2a2a2a';
-    btn.style.background = 'transparent';
-    btn.style.color = '#555';
+window.handleSearch = function(q){
+  const trimmed = q.trim();
+  if(trimmed.length === 0){
+    buildList();
+    return;
   }
+  if(trimmed.length === 1 && /[a-zA-Z]/.test(trimmed)){
+    buildList();
+    setTimeout(() => {
+      const letter = trimmed.toUpperCase();
+      const section = document.getElementById('section-' + letter);
+      const listEl = document.getElementById('countryList');
+      if(section && listEl){
+        listEl.scrollTop = section.offsetTop - listEl.offsetTop - 8;
+      }
+    }, 10);
+    return;
+  }
+  filterList(trimmed);
 };
-
-
-function showToast(msg, success){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.color = success ? '#4ade80' : '#fff';
-  t.style.borderColor = success ? '#4ade80' : '#333';
-  t.style.opacity = '1';
-  clearTimeout(t._timer);
-  t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 1800);
-}
 
 window.continueWhatsApp = function(){
   const btn = document.getElementById('waBtn');
-  // Only fire when active (pink background means ready)
-  if(btn.style.background !== 'rgb(233, 30, 140)' && btn.style.background !== '#e91e8c') {
+  if(btn.style.background !== 'rgb(233, 30, 140)' && btn.style.background !== '#e91e8c'){
     showToast('Enter a valid phone number');
     return;
   }
   const dial = document.getElementById('selCode').textContent;
   const num = document.getElementById('phoneInput').value;
   showToast('Sending WhatsApp code to ' + dial + ' ' + num, true);
+  // Production: route to /model/auth/verify after AUTHKey send.
 };
 
-window.continueEmail = function(){
-  const btn = document.getElementById('emBtn');
-  if(btn.style.background !== 'rgb(233, 30, 140)' && btn.style.background !== '#e91e8c') {
-    showToast('Enter a valid email');
-    return;
-  }
-  const email = document.getElementById('emailInput').value;
-  showToast('Sending magic link to ' + email, true);
+window.continueEmailFallback = function(ev){
+  if(ev) ev.preventDefault();
+  showToast('Opening email sign-in page', true);
+  // Production: router.push('/model/auth/email').
 };
 
+// Initial build
 buildList();
-
-// Animate accent line on page load
-setTimeout(() => {
-  const line = document.getElementById('accentLine');
-  if(line) line.style.width = '40px';
-}, 100);
 
 })();
 </script>
