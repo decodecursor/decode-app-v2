@@ -101,6 +101,12 @@ Paired with Guardrail 6 in CLAUDE_CODE_HANDOFF.md. Any flow that involves email 
 
 **Origin:** Slice 1.5 Phase C Add Email worked in single-browser testing but failed cross-browser.
 
+### Principle H — Slice scope discipline
+
+Each slice targets ~1 to 1.5 days of focused work with a single, testable end-to-end outcome. If the scope breakdown shows >2 days or >3 phases, split into smaller slices before starting. Shorter slices = earlier drift detection = less rework.
+
+**Origin:** Slice 1.5 at 3 days produced architectural drift (duplicate email pipeline, dedupe-by-email bug) because multiple concerns compounded. Added 2026-04-21 after proposing a 5-phase mega-Slice-2 that violated this rule — the split into Slices 2/3/4 was the corrective action.
+
 ---
 
 # PHASE 1.6 — FEATURE COMPLETENESS GAP (acknowledged, deferred)
