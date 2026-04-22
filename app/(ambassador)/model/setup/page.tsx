@@ -198,6 +198,7 @@ export default function SetupPage() {
   const [cover, setCover] = useState<string | null>(null)
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [coverY, setCoverY] = useState(50)
+  const [coverMode, setCoverMode] = useState<'fixed' | 'editing'>('fixed')
 
   const [showSheet, setShowSheet] = useState(false)
   const [search, setSearch] = useState('')
@@ -299,6 +300,15 @@ export default function SetupPage() {
     setCoverFile(f)
     setCover(URL.createObjectURL(f))
     setCoverY(50)
+    setCoverMode('editing')
+  }
+
+  const handleRemove = () => {
+    if (cover && cover.startsWith('blob:')) URL.revokeObjectURL(cover)
+    setCover(null)
+    setCoverFile(null)
+    setCoverY(50)
+    setCoverMode('fixed')
   }
 
   useEffect(() => {
@@ -469,9 +479,12 @@ export default function SetupPage() {
         <CoverPhoto
           url={cover}
           positionY={coverY}
-          mode="onboarding"
+          mode={coverMode}
           onPositionChange={setCoverY}
           onUploadClick={() => fileRef.current?.click()}
+          onEnterEditMode={() => setCoverMode('editing')}
+          onExitEditMode={() => setCoverMode('fixed')}
+          onRemoveClick={handleRemove}
           emptyStateText="Add cover photo"
         />
 

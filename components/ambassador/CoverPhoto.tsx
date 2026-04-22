@@ -3,12 +3,9 @@
 /**
  * Cover photo with drag-to-reposition.
  *
- * Three modes:
- * - 'fixed'      — Settings default: camera button bottom-right, drag disabled.
- * - 'editing'    — Settings edit mode: Drag pill + Upload/Remove/Done chrome, drag enabled.
- * - 'onboarding' — /model/setup: always-draggable, fade-on-drag "Drag to reposition"
- *                  pill (fades out 1s after drag end per onboarding UI Spec §5),
- *                  decorative camera icon, no edit chrome.
+ * Two modes:
+ * - 'fixed'   — camera button bottom-right, drag disabled.
+ * - 'editing' — Drag pill + Upload/Remove/Done chrome, drag enabled.
  *
  * Component is pure UI + drag callbacks. Parents decide persistence: Settings
  * PATCHes live on each callback; /model/setup stages and submits via its own
@@ -21,7 +18,7 @@ import { CoverCameraButton } from '@/components/ambassador/CoverCameraButton'
 type CoverPhotoProps = {
   url: string | null
   positionY: number
-  mode: 'fixed' | 'editing' | 'onboarding'
+  mode: 'fixed' | 'editing'
   onPositionChange: (y: number) => void
   onUploadClick: () => void
   onEnterEditMode?: () => void
@@ -57,10 +54,8 @@ export function CoverPhoto({
   const [dragging, setDragging] = useState(false)
   const [livePos, setLivePos] = useState(positionY)
   const [editVisible, setEditVisible] = useState(false)
-  const [pillLingerVisible, setPillLingerVisible] = useState(false)
   const dragStartY = useRef(0)
   const dragStartPos = useRef(50)
-  const pillTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!dragging) setLivePos(positionY)
@@ -84,18 +79,11 @@ export function CoverPhoto({
     return () => document.removeEventListener('keydown', onKey)
   }, [mode, onExitEditMode])
 
-  const dragEnabled = (mode === 'editing' || mode === 'onboarding') && !!url
+  const dragEnabled = mode === 'editing' && !!url
 
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
     if (!dragEnabled) return
     setDragging(true)
-    if (mode === 'onboarding') {
-      if (pillTimer.current) {
-        clearTimeout(pillTimer.current)
-        pillTimer.current = null
-      }
-      setPillLingerVisible(true)
-    }
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
     dragStartY.current = clientY
     dragStartPos.current = livePos || 50
@@ -111,14 +99,7 @@ export function CoverPhoto({
   const handleDragEnd = useCallback(() => {
     setDragging(false)
     onPositionChange(livePos)
-    if (mode === 'onboarding') {
-      if (pillTimer.current) clearTimeout(pillTimer.current)
-      pillTimer.current = setTimeout(() => {
-        setPillLingerVisible(false)
-        pillTimer.current = null
-      }, 1000)
-    }
-  }, [livePos, onPositionChange, mode])
+  }, [livePos, onPositionChange])
 
   useEffect(() => {
     if (!dragging) return
@@ -134,17 +115,9 @@ export function CoverPhoto({
     }
   }, [dragging, handleDragMove, handleDragEnd])
 
-  useEffect(() => {
-    return () => {
-      if (pillTimer.current) clearTimeout(pillTimer.current)
-    }
-  }, [])
-
   const handleBoxClick = () => {
     if (!url) onUploadClick()
   }
-
-  const onboardingPillVisible = mode === 'onboarding' && (dragging || pillLingerVisible)
 
   return (
     <div
@@ -163,11 +136,7 @@ export function CoverPhoto({
         backgroundRepeat: 'no-repeat',
         userSelect: 'none',
         touchAction: dragEnabled ? 'none' : 'auto',
-        cursor: url
-          ? (mode === 'editing' || mode === 'onboarding')
-            ? (dragging ? 'grabbing' : 'grab')
-            : 'default'
-          : 'pointer',
+        cursor: url ? (mode === 'editing' ? (dragging ? 'grabbing' : 'grab') : 'default') : 'pointer',
       }}
     >
       <div style={{
@@ -284,51 +253,6 @@ export function CoverPhoto({
               Done
             </button>
           </div>
-        </div>
-      )}
-
-      {mode === 'onboarding' && url && (
-        <div style={{
-          position: 'absolute',
-          top: 10,
-          left: 10,
-          fontSize: 9,
-          color: '#fff',
-          background: 'rgba(0,0,0,0.55)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          padding: '4px 9px',
-          borderRadius: 12,
-          pointerEvents: 'none',
-          letterSpacing: '0.3px',
-          opacity: onboardingPillVisible ? 1 : 0,
-          transition: 'opacity 0.3s',
-        }}>
-          Drag to reposition
-        </div>
-      )}
-
-      {mode === 'onboarding' && (
-        <div
-          aria-hidden
-          style={{
-            position: 'absolute',
-            bottom: 10,
-            right: 16,
-            width: 28,
-            height: 28,
-            background: 'rgba(0,0,0,0.55)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            pointerEvents: 'none',
-          }}
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-            <circle cx="12" cy="13" r="4" />
-          </svg>
         </div>
       )}
 
