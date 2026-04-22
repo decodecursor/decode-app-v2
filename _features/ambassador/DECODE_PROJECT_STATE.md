@@ -1,6 +1,6 @@
 # DECODE — Ambassador Feature Project State
 
-**Last updated:** 2026-04-22 (Slice 2 closed — shipped d8468d8 + f6c3201 + 81d5f1a; Slice 2.5 cover-UX shipped 3ae5ffe)
+**Last updated:** 2026-04-22 (Slice 2 closed — shipped d8468d8 + f6c3201 + 81d5f1a; Slice 2.5 cover-UX shipped 3ae5ffe; Slice 2.7 onboarding unified 545e485)
 **Project:** DECODE (welovedecode.com) — Ambassador feature
 **Current subdomain:** `app.welovedecode.com` (apex still on Carrd, migration later)
 **Status:** Slice 1.5 shipped. Slices 2/3/4 replace the old mega-Slice-2 (completeness / listings CRUD / payment).
@@ -123,7 +123,7 @@ Every editable profile/account field and whether Add/Change/Delete flows are spe
 | Instagram handle | Slice 1 ✓ | Slice 1 ✓ (assumed) | — | VERIFY |
 | Currency | Slice 1 ✓ | LOCKED (intentional) | — | Complete |
 | Profile photo / avatar | Slice 1 ✓ | MISSING | MISSING | Deferred — not shipped in Slice 2; candidate for post-Slice 2 slice |
-| Cover photo | Slice 1 ✓ (upload + reposition) | Slice 1 ✓ (reposition) | Slice 2 ✓ shipped (81d5f1a); Slice 2.5 ✓ reposition UX + shared `<CoverPhoto>` (3ae5ffe) | Complete |
+| Cover photo | Slice 1 ✓ (upload + reposition) | Slice 1 ✓ (reposition) | Slice 2 ✓ shipped (81d5f1a); Slice 2.5 ✓ reposition UX + shared `<CoverPhoto>` (3ae5ffe); Slice 2.7 ✓ onboarding unified with Settings edit UX (545e485) | Complete |
 | Beauty Wishlist toggle | Slice 5 | n/a | n/a | Deferred |
 
 Slice 2 shipped the Change modals for Email + WhatsApp and the Cover photo Remove action (B1 `d8468d8`, B2 `f6c3201`, B3 `81d5f1a`). Profile photo Change/Delete was in the original Slice 2 scope but deferred — see CLAUDE_CODE_HANDOFF.md Slice 2 close-out for the post-Slice 2 hardening backlog.
@@ -196,6 +196,8 @@ ALTER TABLE public.email_change_requests
 Slice 2 shipped d8468d8 + f6c3201 + 81d5f1a, verified on Vercel, all Q1–Q5 decisions honored in code.
 
 Slice 2.5 (cover reposition UX + shared `<CoverPhoto>` component) shipped 3ae5ffe: scroll-hijack eliminated via direct-edit pattern (tap camera → edit mode → Drag pill + Upload/Remove/Done), `CoverPhotoActionSheet` (B3) superseded and deleted, `CoverCameraButton` viewBox centering fixed. `/model/setup/page.tsx` cover drag intentionally not migrated — distinct absolute-positioned `<img>` implementation, logged in CLAUDE_CODE_HANDOFF.md hardening backlog.
+
+Slice 2.7 (545e485) removed `mode='onboarding'` from `<CoverPhoto>`; both Settings and `/model/setup` now use the identical `'fixed'`/`'editing'` tap-to-edit pattern. Supersedes `onboarding_register_model_final_UI_Spec.md §5` (fade-on-drag pill). Slice 2.6 (cdab6c1) completed the underlying `/model/setup` migration to the shared component, closing the hardening-backlog item logged after 2.5.
 
 ---
 
