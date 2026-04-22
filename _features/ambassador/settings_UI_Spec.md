@@ -311,6 +311,10 @@ No pink border. Pink is reserved for meaningful semantic states (Live / Visible 
 
 ## 8. Account Card
 
+### 8.0 Row value truncation (Email + WhatsApp rows)
+
+The Email and WhatsApp row values must truncate with `…` instead of overflowing into the label or clipping at the row edge. Apply the ellipsis safety trio (`flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap`) to the value `<span>` in the baseline styles — never inside a `@media` query — and let the label keep its content width with `flex-shrink: 0`. Same convention as the desktop baseline on `change_email_confirmation_final` (commit `156fca1`). Truncation is a content-safety net that fires whenever content exceeds the container, regardless of viewport width.
+
 ### 8.1 Change Email (2-step modal)
 
 **Step 1 — Enter new email**

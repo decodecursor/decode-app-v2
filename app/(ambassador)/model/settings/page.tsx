@@ -508,9 +508,18 @@ export default function SettingsPage() {
                 onClick={() => setShowChangeEmail(true)}
                 style={{ ...rowStyle, ...rowBorder, cursor: 'pointer' }}
               >
-                <span style={{ fontSize: 14, color: '#888' }}>Email</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 14, color: '#fff' }}>{userEmail}</span>
+                <span style={{ fontSize: 14, color: '#888', flexShrink: 0 }}>Email</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0, justifyContent: 'flex-end', marginLeft: 12 }}>
+                  <span style={{
+                    fontSize: 14,
+                    color: '#fff',
+                    flex: 1,
+                    minWidth: 0,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    textAlign: 'right',
+                  }}>{userEmail}</span>
                   <Chevron />
                 </div>
               </div>
@@ -520,9 +529,19 @@ export default function SettingsPage() {
                 onClick={() => setShowAddEmail(true)}
                 style={{ ...rowStyle, ...rowBorder, cursor: 'pointer' }}
               >
-                <span style={{ fontSize: 14, color: '#888' }}>Email</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 14, color: '#e91e8c', fontWeight: 600 }}>Add email</span>
+                <span style={{ fontSize: 14, color: '#888', flexShrink: 0 }}>Email</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0, justifyContent: 'flex-end', marginLeft: 12 }}>
+                  <span style={{
+                    fontSize: 14,
+                    color: '#e91e8c',
+                    fontWeight: 600,
+                    flex: 1,
+                    minWidth: 0,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    textAlign: 'right',
+                  }}>Add email</span>
                   <PinkChevron />
                 </div>
               </div>
@@ -534,9 +553,18 @@ export default function SettingsPage() {
               onClick={() => setShowChangeWhatsApp(true)}
               style={{ ...rowStyle, ...rowBorder, cursor: 'pointer' }}
             >
-              <span style={{ fontSize: 14, color: '#888' }}>WhatsApp</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 14, color: '#fff' }}>{userPhone}</span>
+              <span style={{ fontSize: 14, color: '#888', flexShrink: 0 }}>WhatsApp</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0, justifyContent: 'flex-end', marginLeft: 12 }}>
+                <span style={{
+                  fontSize: 14,
+                  color: '#fff',
+                  flex: 1,
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  textAlign: 'right',
+                }}>{userPhone}</span>
                 <Chevron />
               </div>
             </div>
@@ -546,9 +574,19 @@ export default function SettingsPage() {
               onClick={() => setShowAddWhatsApp(true)}
               style={{ ...rowStyle, ...rowBorder, cursor: 'pointer' }}
             >
-              <span style={{ fontSize: 14, color: '#888' }}>WhatsApp</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 14, color: '#e91e8c', fontWeight: 600 }}>Add WhatsApp</span>
+              <span style={{ fontSize: 14, color: '#888', flexShrink: 0 }}>WhatsApp</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0, justifyContent: 'flex-end', marginLeft: 12 }}>
+                <span style={{
+                  fontSize: 14,
+                  color: '#e91e8c',
+                  fontWeight: 600,
+                  flex: 1,
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  textAlign: 'right',
+                }}>Add WhatsApp</span>
                 <PinkChevron />
               </div>
             </div>
