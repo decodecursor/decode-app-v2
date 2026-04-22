@@ -221,7 +221,7 @@ export async function getAnalyticsData(filter: AnalyticsFilter): Promise<Analyti
 export async function getAnalyticsForPeriod(period: 'today' | 'week' | 'month' | 'quarter' | 'year', creatorId?: string): Promise<AnalyticsData> {
   const now = new Date()
   let startDate: Date
-  let endDate: Date = now
+  const endDate: Date = now
   
   switch (period) {
     case 'today':

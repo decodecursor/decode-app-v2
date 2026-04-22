@@ -618,7 +618,7 @@ export class AuctionStrategy implements IPaymentStrategy {
 
     // Update bid status in database for auto-confirmed payments
     const supabase = createServiceRoleClient();
-    let bidToUpdate = null;
+    const bidToUpdate = null;
 
     if (paymentIntent.metadata.bid_id) {
       // Standard path: bid_id is available in metadata

@@ -26,8 +26,8 @@ function VerifyContent() {
         setRoleParam(role ? `&role=${role}` : '')
 
         // Check for query parameters first (custom token_hash flow)
-        let token = searchParams?.get('token')
-        let type = searchParams?.get('type')
+        const token = searchParams?.get('token')
+        const type = searchParams?.get('type')
 
         // If no query params, check URL hash fragment (default Supabase flow)
         if (!token && typeof window !== 'undefined') {

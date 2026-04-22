@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify user is a MODEL and fetch user name
+    // eslint-disable-next-line prefer-const -- userData is reassigned below when user is auto-created
     let { data: userData, error: userError } = await supabase
       .from('users')
       .select('role, user_name')

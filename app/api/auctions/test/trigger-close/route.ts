@@ -47,8 +47,8 @@ export async function POST(request: NextRequest) {
     }
 
     let closedCount = 0;
-    let errors = [];
-    let details = [];
+    const errors = [];
+    const details = [];
 
     for (const auction of endedAuctions) {
       try {

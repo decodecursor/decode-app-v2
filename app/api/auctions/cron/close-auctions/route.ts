@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     const endedAuctions = await auctionService.getActiveAuctions();
 
     let closedCount = 0;
-    let errors = [];
+    const errors = [];
 
     for (const auction of endedAuctions) {
       try {

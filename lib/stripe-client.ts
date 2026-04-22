@@ -23,6 +23,7 @@ export const stripePromise: Promise<Stripe | null> = loadStripe(
 export function preloadStripe(): void {
   // Accessing the promise triggers Stripe.js download
   // No need to await - we just want to start the download
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions -- intentional Stripe CDN preload
   stripePromise;
 }
 

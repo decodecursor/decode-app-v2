@@ -8,7 +8,7 @@
     "start": "next start",
     "preflight": "node scripts/production-preflight-check.js",
     "typecheck": "tsc --noEmit",
-    "lint": "next lint",
+    "lint": "eslint .",
     "test:env": "node scripts/test-env.js",
     "test:build": "npm run typecheck && npm run build",
     "validate": "npm run typecheck && npm run lint && npm run test:env"

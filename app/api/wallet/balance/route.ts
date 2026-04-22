@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     console.log(`🔄 Checking wallet balance for user: ${user.email}`);
 
     // Get on-chain wallet balance (if Crossmint provides this API)
-    let onChainBalance = null;
+    const onChainBalance = null;
     try {
       // Note: This would use Crossmint's wallet balance API when available
       // const walletBalance = await crossmintService.getWalletBalance(user.crossmint_wallet_id);
