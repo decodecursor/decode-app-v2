@@ -137,6 +137,10 @@ Subtle, 0.5–0.7s total. Reinforces the "just completed" feeling.
 
 The pink border + pink label + white bold value unmistakably mark the current email.
 
+### 7.4 Mobile-stacked variant (≤ 450px)
+
+At viewport widths ≤ 450px the side-by-side layout is replaced by a vertical stack: OLD card on top, a centered pink `↓` arrow (14px, `margin: 8px 0`) below it, and the NEW card under the arrow. Cards switch to a slightly tighter visual: `border-radius: 10px`, `padding: 10px 12px`, OLD uses `background: #111` with `border: 1px solid #2a2a2a` and a brighter `#fff` email value (label `OLD` shifts to `#888` with `letter-spacing: 1.2px`, weight 500), NEW uses a tinted `background: rgba(233,30,140,0.06)` with the existing pink border. Desktop baseline keeps `flex:1; min-width:0` on the cards plus `overflow:hidden; text-overflow:ellipsis; white-space:nowrap` on the value, so long emails truncate with ellipsis on every viewport instead of overflowing the wrapper.
+
 ---
 
 ## 8. Primary Button
