@@ -332,8 +332,7 @@ export default function DashboardClient({
       {/* Nav cards */}
       <div style={{ padding: '0 20px 18px' }}>
         <NavCard
-          /* TODO(slice-2-or-3): swap onClick to router.push('/model/listings') */
-          onClick={() => navigatePlaceholder('Listings')}
+          onClick={() => router.push('/model/listings')}
           icon={(
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" />
