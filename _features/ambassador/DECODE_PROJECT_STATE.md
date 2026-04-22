@@ -124,11 +124,10 @@ Every editable profile/account field and whether Add/Change/Delete flows are spe
 | Tagline | Slice 1 ✓ | Slice 1 ✓ | Not specced | Minor |
 | Instagram handle | Slice 1 ✓ | Slice 1 ✓ (assumed) | — | VERIFY |
 | Currency | Slice 1 ✓ | LOCKED (intentional) | — | Complete |
-| Profile photo / avatar | Slice 1 ✓ | MISSING | MISSING | Deferred — not shipped in Slice 2; candidate for post-Slice 2 slice |
 | Cover photo | Slice 1 ✓ (upload + reposition) | Slice 1 ✓ (reposition) | Slice 2 ✓ shipped (81d5f1a); Slice 2.5 ✓ reposition UX + shared `<CoverPhoto>` (3ae5ffe); Slice 2.7 ✓ onboarding unified with Settings edit UX (545e485) | Complete |
 | Beauty Wishlist toggle | Slice 5 | n/a | n/a | Deferred |
 
-Slice 2 shipped the Change modals for Email + WhatsApp and the Cover photo Remove action (B1 `d8468d8`, B2 `f6c3201`, B3 `81d5f1a`). Profile photo Change/Delete was in the original Slice 2 scope but deferred — see CLAUDE_CODE_HANDOFF.md Slice 2 close-out for the post-Slice 2 hardening backlog.
+Slice 2 shipped the Change modals for Email + WhatsApp and the Cover photo Remove action (B1 `d8468d8`, B2 `f6c3201`, B3 `81d5f1a`). The previously-listed "Profile photo / avatar" row was a phantom gap from an outdated read of the schema — the ambassador has no round avatar; the round avatar field (`avatar_photo_url`) belongs to `model_professionals` and is built in Slice 3's Add Listing form.
 
 ---
 

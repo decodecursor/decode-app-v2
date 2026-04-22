@@ -521,14 +521,14 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 **Architecture preconditions:** All new email triggers in Slice 2 MUST follow Principles B–C (see PHASE 1.5 in DECODE_PROJECT_STATE.md). Specifically: (1) delivery via direct Resend, never Supabase Auth; (2) templates in repo; (3) any confirmation URL uses opaque tokens if cross-browser click is possible. Any new email trigger must be added to PHASE 1.7 Email Template Catalog BEFORE implementation.
 
 **✅ VERIFY before next slice:**
-- [ ] Profile photo Change modal opens from Settings → upload new photo → replaces existing avatar (storage + DB) — **DEFERRED (not shipped in Slice 2)**
-- [ ] Profile photo Delete action removes avatar → empty state fallback renders — **DEFERRED (not shipped in Slice 2)**
+- [ ] Profile photo Change modal opens from Settings → upload new photo → replaces existing avatar (storage + DB) — **N/A — ambassador has no round avatar; the `avatar_photo_url` field belongs to `model_professionals` and is built in Slice 3's Add Listing form.**
+- [ ] Profile photo Delete action removes avatar → empty state fallback renders — **N/A — same reason as above.**
 - [x] Cover photo Delete action removes cover → empty state fallback renders — **shipped B3 (81d5f1a)**
 - [x] Change Email (same-browser): filled Email row opens modal → confirmation email lands → click in same browser → email updated in `auth.users` + `public.users`; old email no longer grants login — **shipped B1 (d8468d8)**
 - [x] Change Email (cross-browser, Guardrail 6): request in Browser A, click confirmation link in Browser B → email still updated (opaque-token pattern holds across browsers) — **shipped B1 (d8468d8)**
 - [x] Change WhatsApp: filled WhatsApp row opens modal → new number → OTP arrives → code verified → `auth.users.phone` updated; old phone no longer signs in — **shipped B2 (f6c3201)**
 - [x] Settings Login methods card: filled rows open Change modals (no more "coming soon" toast) — **shipped B1 + B2**
-- [ ] PHASE 1.6 updated: Profile photo row moves from BLOCKER to complete — **DEFERRED (row marked "Deferred — candidate for post-Slice 2 slice")**
+- [ ] PHASE 1.6 updated: Profile photo row moves from BLOCKER to complete — **N/A — row removed in Slice 2 closeout. It was a phantom gap; ambassador has no round avatar.**
 
 **Slice 2 shipped:**
 - `d8468d8` — B1 Change Email end-to-end
