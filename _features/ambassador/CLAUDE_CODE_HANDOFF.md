@@ -559,8 +559,9 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
    - Blocks user deletion when user has real marketplace data (18 offers + 2 purchases in production as of H2).
    - `SET NULL` (preferred policy to preserve marketplace history) requires: (a) `DROP NOT NULL` on both columns, (b) grep audit of all code paths reading these columns to ensure NULL-safe handling.
    - Dedicated slice needed. Product decision: `SET NULL` preserves history; `CASCADE` destroys it. Decision deferred until user-deletion flow is actually built.
+   - **Same structural pattern: `model_professionals.created_by` is NOT NULL + FK to `users(id)` with NO ACTION.** Surfaced during Slice 3 pre-flight. Bundle into same fix pass when item 4 unblocks.
 4. **BLOCKED: Account-deletion flow — `admin.deleteUser()` not called** — blocked by: product decision on soft-delete vs hard-delete semantics (same upstream as item 3). The app's DELETE endpoint (`app/api/ambassador/model/settings/route.ts:254`) wipes model-side tables via `delete_model_profile_cascade` RPC, then `auth.signOut()`, but never calls `admin.deleteUser()`. Result: `auth.users` rows persist forever, `public.users` row persists forever. Either intentional soft-delete or a bug. Product decision needed.
-5. **Re-upgrade `react-hooks/rules-of-hooks` from `warn` to `error`** in `eslint.config.mjs:46`. Gated on: next hook-violation cleanup pass (no known violations remain post-H3, so this is safe to do once any new ones are cleared). Rule was downgraded in H1 (b1284eb) to unblock `npm run lint` with two known auction-side violations; those were fixed in H3 (8fc50c4). Re-upgrading now would make the repo exit-0 today but catch any future regression at CI rather than review.
+5. ~~**Re-upgrade `react-hooks/rules-of-hooks` from `warn` to `error`** in `eslint.config.mjs:46`. Gated on: next hook-violation cleanup pass (no known violations remain post-H3, so this is safe to do once any new ones are cleared). Rule was downgraded in H1 (b1284eb) to unblock `npm run lint` with two known auction-side violations; those were fixed in H3 (8fc50c4). Re-upgrading now would make the repo exit-0 today but catch any future regression at CI rather than review.~~ **CLOSED by `1ceaa28` (Slice 3A opening).** Pre-flight verified zero violations; rule flipped to `error`; `npm run lint` still exit 0.
 
 ### Slice 3 feature candidates (to be scoped separately, NOT to be conflated with hardening backlog)
 
@@ -578,8 +579,10 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 - `/model/listings/[id]/send-link` — Share payment link page
 
 **API routes:**
-- `/api/model/listings` — GET / POST / PATCH / DELETE
-- `/api/model/professionals` — POST (dedup by Instagram)
+- `/api/ambassador/model/listings` — GET / POST / PATCH / DELETE
+- `/api/ambassador/model/professionals` — POST (dedup by Instagram)
+
+> Normalized during Slice 3A pre-flight to match the `/api/ambassador/*` convention established in Slices 1 and 1.5 (Principle E). The pre-existing `/api/model/...` form in this doc was pre-Slice-1 planning drift.
 
 **Uploads:**
 - Supabase Storage with client-side compression
@@ -602,6 +605,14 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 - [ ] Listings page shows listing status correctly (effective_status)
 - [ ] Delete listing works for Trial/Pending/Expired, blocked for Active
 - [ ] Dashboard shows correct listing count + expiring alerts
+
+#### Slice 3 split (decided during 3A pre-flight, Principle H grounds)
+
+- **Slice 3A** — `/model/listings` read surface + `GET` / `DELETE` API + dashboard nav wire-up. ~0.5–1 day.
+- **Slice 3B** — `/model/listings/new` (Add form + photo/video uploads + professional dedup) + `POST` API. ~1 day.
+- **Slice 3C** — `/model/listings/[id]/edit` (reuses Add form in edit mode) + `/model/listings/[id]/send-link` + `PATCH` API. ~0.5–1 day.
+
+**Scope-split rationale:** original Slice 3 scope combined ~2.5 days of work into one slice, violating Principle H. Natural cut points at read-vs-write and create-vs-edit. The original scope text above is preserved as historical record; the VERIFY checklist covers the whole of Slice 3 end-to-end and will be ticked through across 3A/3B/3C.
 
 ---
 

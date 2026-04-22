@@ -353,7 +353,7 @@ Day 40:  Salon renews early, pays $50 for 60 more days
 
 ---
 
-## Table 3 — `model_listings` (21 columns)
+## Table 3 — `model_listings` (22 columns)
 
 | # | Column | Type | Default | Notes |
 |---|---|---|---|---|
@@ -376,8 +376,9 @@ Day 40:  Salon renews early, pays $50 for 60 more days
 | 17 | is_free_trial | bool NOT NULL | false | |
 | 18 | free_trial_ends_at | timestamptz nullable | — | 30 days from creation if trial; KEEP set even after trial→paid conversion (audit trail) |
 | 19 | paid_until | timestamptz nullable | — | latest period_end (updates on each renewal) |
-| 20 | created_at | timestamptz NOT NULL | now() | |
-| 21 | updated_at | timestamptz NOT NULL | now() | auto-trigger via `set_updated_at()` |
+| 20 | expiry_notification_sent_at | timestamptz nullable | — | tracking field for Slice 7 expiring-soon reminder; consumed by `model_listings_live` view |
+| 21 | created_at | timestamptz NOT NULL | now() | |
+| 22 | updated_at | timestamptz NOT NULL | now() | auto-trigger via `set_updated_at()` |
 
 **Removals:** Hard DELETE for manual removals (no `removed` status). Active listings = blocked modal "Cannot delete until expires".
 **Stacking:** Each renewal = NEW row in `model_listing_payments`, this table just updates `paid_until` to latest `period_end`.
