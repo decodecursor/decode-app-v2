@@ -515,14 +515,34 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 **Architecture preconditions:** All new email triggers in Slice 2 MUST follow Principles B–C (see PHASE 1.5 in DECODE_PROJECT_STATE.md). Specifically: (1) delivery via direct Resend, never Supabase Auth; (2) templates in repo; (3) any confirmation URL uses opaque tokens if cross-browser click is possible. Any new email trigger must be added to PHASE 1.7 Email Template Catalog BEFORE implementation.
 
 **✅ VERIFY before next slice:**
-- [ ] Profile photo Change modal opens from Settings → upload new photo → replaces existing avatar (storage + DB)
-- [ ] Profile photo Delete action removes avatar → empty state fallback renders
-- [ ] Cover photo Delete action removes cover → empty state fallback renders
-- [ ] Change Email (same-browser): filled Email row opens modal → confirmation email lands → click in same browser → email updated in `auth.users` + `public.users`; old email no longer grants login
-- [ ] Change Email (cross-browser, Guardrail 6): request in Browser A, click confirmation link in Browser B → email still updated (opaque-token pattern holds across browsers)
-- [ ] Change WhatsApp: filled WhatsApp row opens modal → new number → OTP arrives → code verified → `auth.users.phone` updated; old phone no longer signs in
-- [ ] Settings Login methods card: filled rows open Change modals (no more "coming soon" toast)
-- [ ] PHASE 1.6 updated: Profile photo row moves from BLOCKER to complete
+- [ ] Profile photo Change modal opens from Settings → upload new photo → replaces existing avatar (storage + DB) — **DEFERRED (not shipped in Slice 2)**
+- [ ] Profile photo Delete action removes avatar → empty state fallback renders — **DEFERRED (not shipped in Slice 2)**
+- [x] Cover photo Delete action removes cover → empty state fallback renders — **shipped B3 (81d5f1a)**
+- [x] Change Email (same-browser): filled Email row opens modal → confirmation email lands → click in same browser → email updated in `auth.users` + `public.users`; old email no longer grants login — **shipped B1 (d8468d8)**
+- [x] Change Email (cross-browser, Guardrail 6): request in Browser A, click confirmation link in Browser B → email still updated (opaque-token pattern holds across browsers) — **shipped B1 (d8468d8)**
+- [x] Change WhatsApp: filled WhatsApp row opens modal → new number → OTP arrives → code verified → `auth.users.phone` updated; old phone no longer signs in — **shipped B2 (f6c3201)**
+- [x] Settings Login methods card: filled rows open Change modals (no more "coming soon" toast) — **shipped B1 + B2**
+- [ ] PHASE 1.6 updated: Profile photo row moves from BLOCKER to complete — **DEFERRED (row marked "Deferred — candidate for post-Slice 2 slice")**
+
+**Slice 2 shipped:**
+- `d8468d8` — B1 Change Email end-to-end
+- `f6c3201` — B2 Change WhatsApp end-to-end
+- `81d5f1a` — B3 Cover photo action sheet + remove
+
+**Out-of-band commits landed between slice phases (not part of Slice 2 scope but in the working branch):**
+- `a3660c3` — iOS Safari safe-area insets on route-group wrapper (partial safe-area fix).
+- `2cd9145` — AmbSubmitButton extraction with send/verify/save/delete families; auth + settings rewiring.
+- `156fca1` — Change Email confirmation: stack old/new cards on mobile to prevent overflow (follow-up to B1).
+
+### Post-Slice 2 hardening candidates (consolidate into one focused slice, separate from Slice 3 feature work)
+
+1. **FK cascade gaps** — `public.users`, `public.model_profiles`, `public.beauty_offers`, `public.beauty_purchases` missing `ON DELETE CASCADE` to `auth.users.id`. Confirmed during B1 test cleanup — required manual delete chain across 4 tables. Real data-integrity + developer-friction cost. Fix with migration adding cascades (or explicit soft-delete semantics if business requires retention).
+2. **ESLint v9 flat config migration** — `next lint` deprecated in Next.js 15/16; passes legacy options (`useEslintrc`, `extensions`, etc.) that ESLint v9 rejects. Blocks `npm run validate` from passing cleanly. Confirmed environmental during B3 (reproduces on clean HEAD with B3 stashed out). Recommended fix: `npx @next/codemod@canary next-lint-to-eslint-cli .`
+3. **WhatsApp OTP delivery to +49 (German) numbers fails** — confirmed during B2 testing. OTP row writes to DB, AUTHKey returns success, but WhatsApp message never arrives. Root cause likely AUTHKey template not approved for DE or Meta business config issue. Not code — check AUTHKey dashboard: template approvals, country whitelist, delivery logs. Add note to any new country onboarding: verify AUTHKey template + delivery before enabling signups from that country.
+
+### Slice 3 feature candidates (to be scoped separately, NOT to be conflated with hardening backlog)
+
+- **Cover photo reposition UX fix** — cover is currently drag-responsive at all times, causing mobile scroll hijack. Redesign: cover fixed by default, reposition only available via explicit edit mode entered from camera icon / bottom sheet.
 
 ---
 

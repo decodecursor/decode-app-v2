@@ -1,6 +1,6 @@
 # DECODE — Ambassador Feature Project State
 
-**Last updated:** 2026-04-21 (Slice 2 kickoff — Change modals + cover remove)
+**Last updated:** 2026-04-22 (Slice 2 closed — shipped d8468d8 + f6c3201 + 81d5f1a)
 **Project:** DECODE (welovedecode.com) — Ambassador feature
 **Current subdomain:** `app.welovedecode.com` (apex still on Carrd, migration later)
 **Status:** Slice 1.5 shipped. Slices 2/3/4 replace the old mega-Slice-2 (completeness / listings CRUD / payment).
@@ -115,18 +115,18 @@ Every editable profile/account field and whether Add/Change/Delete flows are spe
 
 | Field | Add | Change | Delete | Status |
 |---|---|---|---|---|
-| Email | Slice 1.5 ✓ | Slice 2 in progress (2026-04-21) | Via delete profile | Change modal + server-rendered confirmation page |
-| WhatsApp phone | Slice 1.5 ✓ | Slice 2 in progress (2026-04-21) | Via delete profile | Change modal with Old→New step-3 cards |
+| Email | Slice 1.5 ✓ | Slice 2 ✓ shipped (d8468d8) | Via delete profile | Complete |
+| WhatsApp phone | Slice 1.5 ✓ | Slice 2 ✓ shipped (f6c3201) | Via delete profile | Complete |
 | First/last name | Slice 1 ✓ | Slice 1 ✓ | Via delete profile | Complete |
 | Slug | Slice 1 ✓ | Slice 1 ✓ | Via delete profile | Complete |
 | Tagline | Slice 1 ✓ | Slice 1 ✓ | Not specced | Minor |
 | Instagram handle | Slice 1 ✓ | Slice 1 ✓ (assumed) | — | VERIFY |
 | Currency | Slice 1 ✓ | LOCKED (intentional) | — | Complete |
-| Profile photo / avatar | Slice 1 ✓ | MISSING | MISSING | Slice 2 scope (2026-04-21) |
-| Cover photo | Slice 1 ✓ (upload) | Partial (reposition exists) | Slice 2 in progress (2026-04-21) | Action sheet with Upload new + Remove photo |
+| Profile photo / avatar | Slice 1 ✓ | MISSING | MISSING | Deferred — not shipped in Slice 2; candidate for post-Slice 2 slice |
+| Cover photo | Slice 1 ✓ (upload + reposition) | Slice 1 ✓ (reposition) | Slice 2 ✓ shipped (81d5f1a) | Complete |
 | Beauty Wishlist toggle | Slice 5 | n/a | n/a | Deferred |
 
-Change modals for Email and WhatsApp were intentionally deferred from Slice 1.5 Phase C (scope discipline). Profile photo Change/Delete and Cover photo Delete, along with the Email/WhatsApp Change modals, are now folded into Slice 2 (completeness gap + Settings Change modals). See CLAUDE_CODE_HANDOFF.md Slice 2 section for scope and verify list.
+Slice 2 shipped the Change modals for Email + WhatsApp and the Cover photo Remove action (B1 `d8468d8`, B2 `f6c3201`, B3 `81d5f1a`). Profile photo Change/Delete was in the original Slice 2 scope but deferred — see CLAUDE_CODE_HANDOFF.md Slice 2 close-out for the post-Slice 2 hardening backlog.
 
 ---
 
@@ -191,6 +191,9 @@ ALTER TABLE public.email_change_requests
 
 ### Scope (Principle H)
 5 deliverables, ≤1.5 days, 1 Phase A doc commit + 3 Phase B code commits (B1 Email, B2 WhatsApp, B3 Cover).
+
+### Close-out
+Slice 2 shipped d8468d8 + f6c3201 + 81d5f1a, verified on Vercel, all Q1–Q5 decisions honored in code.
 
 ---
 
