@@ -6,6 +6,7 @@ import { formatPhoneNumber } from '@/lib/ambassador/phone-format'
 import { CountryPicker } from '@/components/ambassador/CountryPicker'
 import { OtpInput, type OtpInputHandle } from '@/components/ambassador/OtpInput'
 import { ProgressTracker } from '@/components/ambassador/ProgressTracker'
+import { AmbSubmitButton } from '@/components/ambassador/AmbSubmitButton'
 
 type Step = 1 | 2 | 3
 
@@ -29,7 +30,6 @@ export function ChangeWhatsAppModal({
   )
   const [phone, setPhone] = useState('')
   const [showPicker, setShowPicker] = useState(false)
-  const [sending, setSending] = useState(false)
 
   const [code, setCode] = useState<string[]>(EMPTY_CODE)
   const [verifying, setVerifying] = useState(false)
@@ -50,7 +50,6 @@ export function ChangeWhatsAppModal({
     setSelectedCountry(COUNTRY_CODES.find(c => c.id === 'AE')!)
     setPhone('')
     setShowPicker(false)
-    setSending(false)
     setCode(EMPTY_CODE)
     setVerifying(false)
     setError('')
@@ -83,7 +82,7 @@ export function ChangeWhatsAppModal({
 
   const rawDigits = phone.replace(/\D/g, '')
   const e164 = `${selectedCountry.code}${rawDigits}`
-  const canSend = rawDigits.length >= 7 && !sending
+  const canSend = rawDigits.length >= 7
 
   const selectCountry = (c: CountryCode) => {
     setSelectedCountry(c)
@@ -103,15 +102,12 @@ export function ChangeWhatsAppModal({
   }
 
   const handleSendCode = async () => {
-    if (!canSend) return
-    setSending(true)
+    if (!canSend) throw new Error('invalid phone')
     const { ok, error: err } = await sendOtp(e164)
-    setSending(false)
     if (!ok) {
       showToast(err || 'Failed to send code')
-      return
+      throw new Error(err || 'send failed')
     }
-    setStep(2)
   }
 
   const verifyCode = useCallback(
@@ -253,7 +249,11 @@ export function ChangeWhatsAppModal({
                     const digits = e.target.value.replace(/\D/g, '')
                     setPhone(formatPhoneNumber(digits, selectedCountry.code))
                   }}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleSendCode() }}
+                  onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSendCode().then(() => setStep(2)).catch(() => {})
+                  }
+                }}
                   style={{
                     width: '100%',
                     background: 'transparent',
@@ -268,23 +268,15 @@ export function ChangeWhatsAppModal({
               </div>
             </div>
 
-            <div
-              onClick={canSend ? handleSendCode : undefined}
-              style={{
-                background: canSend ? '#e91e8c' : '#333',
-                color: canSend ? '#fff' : '#666',
-                borderRadius: 12,
-                padding: 14,
-                textAlign: 'center',
-                fontSize: 14,
-                fontWeight: 600,
-                cursor: canSend ? 'pointer' : 'not-allowed',
-                marginBottom: 10,
-                transition: 'all 0.2s',
-                userSelect: 'none',
-              }}
-            >
-              {sending ? 'Sending…' : 'Send code via WhatsApp'}
+            <div style={{ marginBottom: 10 }}>
+              <AmbSubmitButton
+                verb="send"
+                variant="solid"
+                idleLabel="Send code via WhatsApp"
+                disabled={!canSend}
+                onSubmit={handleSendCode}
+                onDone={() => setStep(2)}
+              />
             </div>
             <div
               onClick={onClose}
