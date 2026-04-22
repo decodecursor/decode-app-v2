@@ -1,6 +1,6 @@
 # DECODE — Ambassador Feature Project State
 
-**Last updated:** 2026-04-22 (Slice 2 closed — shipped d8468d8 + f6c3201 + 81d5f1a; Slice 2.5 cover-UX shipped 3ae5ffe; Slice 2.7 onboarding unified 545e485; Slice H1 ESLint migration b1284eb; Slice H2 model_payouts CASCADE 1dfa086)
+**Last updated:** 2026-04-22 (Slice 2 closed — shipped d8468d8 + f6c3201 + 81d5f1a; Slice 2.5 cover-UX shipped 3ae5ffe; Slice 2.7 onboarding unified 545e485; Slice H1 ESLint migration b1284eb; Slice H2 model_payouts CASCADE 1dfa086; H3 8fc50c4+925c815)
 **Project:** DECODE (welovedecode.com) — Ambassador feature
 **Current subdomain:** `app.welovedecode.com` (apex still on Carrd, migration later)
 **Status:** Slice 1.5 shipped. Slices 2/3/4 replace the old mega-Slice-2 (completeness / listings CRUD / payment).
@@ -202,6 +202,8 @@ Slice 2.7 (545e485) removed `mode='onboarding'` from `<CoverPhoto>`; both Settin
 Slice H1 (b1284eb) completed the partial ESLint flat-config migration that was blocking `npm run lint`. Restored `next lint`'s implicit ignores (`.next/`, `tests/e2e/`, `aws-lambda/`, `scripts/`, `node_modules/`), scoped `@typescript-eslint/*` rules to `**/*.{ts,tsx}` so the plugin loads via the `next/typescript` compat block, and downgraded 4 noisy rules to `warn` (`no-explicit-any`, `no-require-imports`, `no-html-link-for-pages`, `react-hooks/rules-of-hooks`) to unblock without hiding genuine issues. Auto-fixed 8 `prefer-const` occurrences across 7 files; inline-disabled two legitimate exceptions (`lib/stripe-client.ts:26` intentional Stripe CDN preload; `app/api/beauty-businesses/create/route.ts:36` mixed-destructure pattern). Logged 2 deferred React Rules-of-Hooks bugs in auction components for a dedicated bug-fix slice. Result: `npm run lint` exit 0 with 2,357 warnings (down from 22,727 problems).
 
 Slice H2 (1dfa086) flipped `model_payouts.model_id` FK from NO ACTION to CASCADE — latent bug fix on an empty table; matches `auction_payouts.model_id` semantics; prevents a broken pointer when `model_profiles` cascade-deletes from a `users` deletion. Full audit via `pg_constraint` revealed 42 FKs in the public schema (1 to `auth.users.id` on `email_change_requests`, 16 to `public.users.id`, 25 intra-schema). `beauty_offers.created_by` + `beauty_purchases.buyer_id` intentionally deferred — both are NOT NULL, so SET NULL requires dropping NOT NULL + a grep audit of downstream code for NULL handling. Logged as a hardening-backlog item.
+
+Slice H3 (8fc50c4 + 925c815) bundled two small hardening fixes. Part 1 (`8fc50c4`) fixed React Rules-of-Hooks violations in `components/auctions/BiddingInterface.tsx` (debug-only `useEffect` + `activeClientSecret` const lifted above the "Bidding is closed" early return) and `components/auctions/VideoUploadCountdown.tsx` (`useVideoUploadTimer` lifted above the null-return early exit); lint warnings 2,357 → 2,355. Part 2 (`925c815`) dropped the duplicate singular `user_bank_account` table — 0 rows, 0 code references, 10-col stub, no inbound FKs, no triggers, no view refs (4 RLS policies cascade-dropped with the table). Canonical `user_bank_accounts` (plural, 18-col, referenced by `model_payouts.bank_account_id`, 17+ code consumers) untouched.
 
 ---
 
