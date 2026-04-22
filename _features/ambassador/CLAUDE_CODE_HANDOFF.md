@@ -531,6 +531,8 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 - `3ae5ffe` — Slice 2.5 Cover photo reposition UX + shared `<CoverPhoto>` component (supersedes B3 action sheet)
   - Note: Case 5 (upload from edit mode stays in edit mode) initially reported failed during first test pass; passed on re-test without code changes. Possible transient issue, no code fix needed. If regression recurs, reproduce with console logs before attempting fix.
 - `545e485` — Slice 2.7 Onboarding cover UX unified with Settings (`mode='onboarding'` removed, both consumers now use fixed/editing)
+- `b1284eb` — Slice H1 ESLint v9 flat-config migration (unblocks `npm run lint`; deferred bugs logged below)
+- `1dfa086` — Slice H2 `model_payouts` FK CASCADE fix (latent bug; `beauty_*` deferred)
 
 **Superseded specs:** `onboarding_register_model_final_UI_Spec.md §5` (fade-on-drag pill) superseded by Slice 2.7 decision — both cover consumers now use identical tap-to-edit chrome.
 
@@ -541,9 +543,19 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 
 ### Post-Slice 2 hardening candidates (consolidate into one focused slice, separate from Slice 3 feature work)
 
-1. **FK cascade gaps** — `public.users`, `public.model_profiles`, `public.beauty_offers`, `public.beauty_purchases` missing `ON DELETE CASCADE` to `auth.users.id`. Confirmed during B1 test cleanup — required manual delete chain across 4 tables. Real data-integrity + developer-friction cost. Fix with migration adding cascades (or explicit soft-delete semantics if business requires retention).
-2. **ESLint v9 flat config migration** — `next lint` deprecated in Next.js 15/16; passes legacy options (`useEslintrc`, `extensions`, etc.) that ESLint v9 rejects. Blocks `npm run validate` from passing cleanly. Confirmed environmental during B3 (reproduces on clean HEAD with B3 stashed out). Recommended fix: `npx @next/codemod@canary next-lint-to-eslint-cli .`
-3. **WhatsApp OTP delivery to +49 (German) numbers fails** — confirmed during B2 testing. OTP row writes to DB, AUTHKey returns success, but WhatsApp message never arrives. Root cause likely AUTHKey template not approved for DE or Meta business config issue. Not code — check AUTHKey dashboard: template approvals, country whitelist, delivery logs. Add note to any new country onboarding: verify AUTHKey template + delivery before enabling signups from that country.
+1. **WhatsApp OTP delivery to +49 (German) numbers** — investigate AUTHKey dashboard: check template approvals for DE, check delivery logs for failed messages. Not code; 15-min dashboard task. User to handle directly, no Claude Code involvement.
+2. **Local dev setup — `.env.local`** — developer needs to create `.env.local` at repo root with 9 required env vars (Supabase URL + anon + service role keys, Stripe secret + publishable + webhook keys, app URL). Copy values from Vercel → Settings → Environment Variables. Without this, `npm run dev` won't work locally and `npm run test:env` (part of `npm run validate`) fails. One-time setup per developer machine. Not a code issue. File is gitignored (`.gitignore:34` — `.env*` pattern).
+3. **Auction components — Rules-of-Hooks bugs** (deferred from Slice H1 lint audit):
+   - `components/auctions/BiddingInterface.tsx:571` — `useEffect` called after conditional early return (line 558-561). May cause stale state or effect ordering issues under React 18+ reconciliation.
+   - `components/auctions/VideoUploadCountdown.tsx:36` — custom hook `useVideoUploadTimer` called after conditional early return (line 32-34). Same pattern.
+   - Fix in dedicated auction-components bug-fix slice. Do NOT touch during other feature work.
+4. **FK cascade — `beauty_*` tables** (deferred from Slice H2):
+   - `beauty_offers.created_by` and `beauty_purchases.buyer_id` both NOT NULL with FK to `public.users(id)`, currently NO ACTION.
+   - Blocks user deletion when user has real marketplace data (18 offers + 2 purchases in production as of H2).
+   - `SET NULL` (preferred policy to preserve marketplace history) requires: (a) `DROP NOT NULL` on both columns, (b) grep audit of all code paths reading these columns to ensure NULL-safe handling.
+   - Dedicated slice needed. Product decision: `SET NULL` preserves history; `CASCADE` destroys it. Decision deferred until user-deletion flow is actually built.
+5. **Duplicate schema — `user_bank_account` vs `user_bank_accounts`** — both tables exist, both have CASCADE FKs to `users(id)`, both zero-row. Unclear which is canonical. One is dead code. Investigate + drop one.
+6. **Account-deletion flow — `admin.deleteUser()` not called** — the app's DELETE endpoint (`app/api/ambassador/model/settings/route.ts:254`) wipes model-side tables via `delete_model_profile_cascade` RPC, then `auth.signOut()`, but never calls `admin.deleteUser()`. Result: `auth.users` rows persist forever, `public.users` row persists forever. Either intentional soft-delete or a bug. Product decision needed.
 
 ### Slice 3 feature candidates (to be scoped separately, NOT to be conflated with hardening backlog)
 
