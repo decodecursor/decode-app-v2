@@ -1,15 +1,14 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { isInternalEmail } from '@/lib/ambassador/auth'
-import { CoverCameraButton } from '@/components/ambassador/CoverCameraButton'
+import { CoverPhoto } from '@/components/ambassador/CoverPhoto'
 import { AddEmailModal } from '@/components/ambassador/AddEmailModal'
 import { ChangeEmailModal } from '@/components/ambassador/ChangeEmailModal'
 import { AddWhatsAppModal } from '@/components/ambassador/AddWhatsAppModal'
 import { ChangeWhatsAppModal } from '@/components/ambassador/ChangeWhatsAppModal'
-import { CoverPhotoActionSheet } from '@/components/ambassador/CoverPhotoActionSheet'
 
 interface Profile {
   id: string
@@ -89,7 +88,7 @@ export default function SettingsPage() {
   const [showChangeEmail, setShowChangeEmail] = useState(false)
   const [showAddWhatsApp, setShowAddWhatsApp] = useState(false)
   const [showChangeWhatsApp, setShowChangeWhatsApp] = useState(false)
-  const [showCoverSheet, setShowCoverSheet] = useState(false)
+  const [coverMode, setCoverMode] = useState<'fixed' | 'editing'>('fixed')
 
   // Delete modal
   const [showDelete, setShowDelete] = useState(false)
@@ -97,11 +96,8 @@ export default function SettingsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleting, setDeleting] = useState(false)
 
-  // Cover photo drag
-  const [dragging, setDragging] = useState(false)
+  // Cover photo
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
-  const dragStartY = useRef(0)
-  const dragStartPos = useRef(50)
   const coverInputRef = useRef<HTMLInputElement>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -191,33 +187,15 @@ export default function SettingsPage() {
     }
   }
 
-  // Cover drag
-  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!coverPreview || !profile) return
-    setDragging(true)
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-    dragStartY.current = clientY
-    dragStartPos.current = profile.cover_photo_position_y || 50
-  }
-
-  const handleDragMove = useCallback((e: MouseEvent | TouchEvent) => {
-    if (!dragging) return
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-    const delta = clientY - dragStartY.current
-    const newPos = Math.max(0, Math.min(100, dragStartPos.current - delta * 0.5))
-    setProfile(prev => prev ? { ...prev, cover_photo_position_y: Math.round(newPos) } : prev)
-  }, [dragging])
-
-  const handleDragEnd = useCallback(async () => {
-    if (!dragging || !profile) return
-    setDragging(false)
-    const previousPos = dragStartPos.current
-    const newPos = profile.cover_photo_position_y
+  const handlePositionSave = async (y: number) => {
+    if (!profile) return
+    const previousPos = profile.cover_photo_position_y
+    setProfile(prev => prev ? { ...prev, cover_photo_position_y: y } : prev)
     try {
       const res = await fetch('/api/ambassador/model/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ coverPhotoPositionY: newPos }),
+        body: JSON.stringify({ coverPhotoPositionY: y }),
       })
       const data = await res.json()
       if (res.ok && data.profile) {
@@ -230,21 +208,7 @@ export default function SettingsPage() {
       setProfile(prev => prev ? { ...prev, cover_photo_position_y: previousPos } : prev)
       showToast('Network error')
     }
-  }, [dragging, profile])
-
-  useEffect(() => {
-    if (!dragging) return
-    window.addEventListener('mousemove', handleDragMove)
-    window.addEventListener('mouseup', handleDragEnd)
-    window.addEventListener('touchmove', handleDragMove)
-    window.addEventListener('touchend', handleDragEnd)
-    return () => {
-      window.removeEventListener('mousemove', handleDragMove)
-      window.removeEventListener('mouseup', handleDragEnd)
-      window.removeEventListener('touchmove', handleDragMove)
-      window.removeEventListener('touchend', handleDragEnd)
-    }
-  }, [dragging, handleDragMove, handleDragEnd])
+  }
 
   const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -267,6 +231,7 @@ export default function SettingsPage() {
       if (res.ok && data.profile) {
         setProfile(data.profile)
         setCoverPreview(data.profile.cover_photo_url ?? null)
+        setCoverMode('editing')
       } else {
         setCoverPreview(previousPreview)
         showToast(data.error || "Couldn't upload. Try again.")
@@ -283,12 +248,11 @@ export default function SettingsPage() {
 
   const handleCoverRemove = async () => {
     if (!profile?.cover_photo_url) {
-      setShowCoverSheet(false)
+      setCoverMode('fixed')
       return
     }
     const previousPreview = profile.cover_photo_url
     setCoverPreview(null)
-    setShowCoverSheet(false)
 
     try {
       const res = await fetch('/api/ambassador/model/settings', {
@@ -300,6 +264,7 @@ export default function SettingsPage() {
       if (res.ok && data.profile) {
         setProfile(data.profile)
         setCoverPreview(data.profile.cover_photo_url ?? null)
+        setCoverMode('fixed')
       } else {
         setCoverPreview(previousPreview)
         showToast(data.error || "Couldn't remove. Try again.")
@@ -379,43 +344,16 @@ export default function SettingsPage() {
         onChange={handleCoverChange}
         style={{ display: 'none' }}
       />
-      <div
-        onMouseDown={coverPreview ? handleDragStart : undefined}
-        onTouchStart={coverPreview ? handleDragStart : undefined}
-        onClick={() => { if (!coverPreview) coverInputRef.current?.click() }}
-        style={{
-          position: 'relative',
-          height: 120,
-          borderRadius: 14,
-          overflow: 'hidden',
-          marginBottom: 16,
-          backgroundImage: coverPreview
-            ? `url(${coverPreview})`
-            : 'linear-gradient(135deg,#2a2a2a 0%,#0a0a0a 100%)',
-          backgroundSize: 'cover',
-          backgroundPosition: `center ${profile.cover_photo_position_y}%`,
-          backgroundRepeat: 'no-repeat',
-          userSelect: 'none',
-          touchAction: 'none',
-          cursor: coverPreview ? (dragging ? 'grabbing' : 'grab') : 'pointer',
-        }}
-      >
-        <div style={{
-          position: 'absolute',
-          bottom: 0, left: 0, right: 0,
-          height: 50,
-          background: 'linear-gradient(transparent,rgba(0,0,0,0.6))',
-          pointerEvents: 'none',
-        }} />
-        <CoverCameraButton
-          size={34}
-          onClick={(e) => {
-            e.stopPropagation()
-            if (coverPreview) setShowCoverSheet(true)
-            else coverInputRef.current?.click()
-          }}
-        />
-      </div>
+      <CoverPhoto
+        url={coverPreview}
+        positionY={profile.cover_photo_position_y}
+        mode={coverMode}
+        onPositionChange={handlePositionSave}
+        onEnterEditMode={() => setCoverMode('editing')}
+        onExitEditMode={() => setCoverMode('fixed')}
+        onUploadClick={() => coverInputRef.current?.click()}
+        onRemoveClick={handleCoverRemove}
+      />
 
       {/* URL card */}
       <div style={{
@@ -807,15 +745,6 @@ export default function SettingsPage() {
         onClose={() => setShowChangeWhatsApp(false)}
         currentPhone={userPhone ?? ''}
         onChanged={(phone) => setUserPhone(phone)}
-      />
-      <CoverPhotoActionSheet
-        open={showCoverSheet}
-        onClose={() => setShowCoverSheet(false)}
-        onUploadNew={() => {
-          setShowCoverSheet(false)
-          coverInputRef.current?.click()
-        }}
-        onRemove={handleCoverRemove}
       />
     </div>
   )
