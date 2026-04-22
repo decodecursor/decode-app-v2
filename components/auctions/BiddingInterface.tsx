@@ -539,27 +539,6 @@ export function BiddingInterface({
     }
   };
 
-  if (!isAuctionActive) {
-    return (
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-        <svg
-          className="mx-auto w-12 h-12 text-gray-300 mb-3"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-          />
-        </svg>
-        <p className="text-gray-600 font-medium">Bidding is closed</p>
-      </div>
-    );
-  }
-
   // Determine if we have a clientSecret for Stripe Elements
   // Prioritize anonymous preload (from page mount) for instant Google Pay rendering
   const activeClientSecret =
@@ -580,6 +559,27 @@ export function BiddingInterface({
       });
     }
   }, [activeClientSecret, preloadedClientSecret, clientSecret, preloadedPaymentIntent?.clientSecret]);
+
+  if (!isAuctionActive) {
+    return (
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+        <svg
+          className="mx-auto w-12 h-12 text-gray-300 mb-3"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+          />
+        </svg>
+        <p className="text-gray-600 font-medium">Bidding is closed</p>
+      </div>
+    );
+  }
 
   // Stripe Elements options - only created when we have a clientSecret
   const elementsOptions = activeClientSecret ? {

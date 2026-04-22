@@ -27,13 +27,13 @@ const COLOR_CLASS_MAP = {
 } as const;
 
 export function VideoUploadCountdown({ tokenExpiresAt, hasVideo, showAsFullStatus = false, asButton = false, auctionEnded = false, compactMobile = false }: VideoUploadCountdownProps) {
+  const { formatted, colorState, shouldShow, isExpired } = useVideoUploadTimer(tokenExpiresAt, hasVideo);
+
   // If showing full status and no token exists (no video record yet)
   // Hide "No Video" status for cleaner UI
   if (showAsFullStatus && !tokenExpiresAt && !hasVideo) {
     return null;
   }
-
-  const { formatted, colorState, shouldShow, isExpired } = useVideoUploadTimer(tokenExpiresAt, hasVideo);
 
   const colorClass = 'text-amber-400'; // Always amber for video upload countdown
 
