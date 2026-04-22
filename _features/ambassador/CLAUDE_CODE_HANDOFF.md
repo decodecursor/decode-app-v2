@@ -528,6 +528,8 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 - `d8468d8` — B1 Change Email end-to-end
 - `f6c3201` — B2 Change WhatsApp end-to-end
 - `81d5f1a` — B3 Cover photo action sheet + remove
+- `3ae5ffe` — Slice 2.5 Cover photo reposition UX + shared `<CoverPhoto>` component (supersedes B3 action sheet)
+  - Note: Case 5 (upload from edit mode stays in edit mode) initially reported failed during first test pass; passed on re-test without code changes. Possible transient issue, no code fix needed. If regression recurs, reproduce with console logs before attempting fix.
 
 **Out-of-band commits landed between slice phases (not part of Slice 2 scope but in the working branch):**
 - `a3660c3` — iOS Safari safe-area insets on route-group wrapper (partial safe-area fix).
@@ -539,10 +541,10 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 1. **FK cascade gaps** — `public.users`, `public.model_profiles`, `public.beauty_offers`, `public.beauty_purchases` missing `ON DELETE CASCADE` to `auth.users.id`. Confirmed during B1 test cleanup — required manual delete chain across 4 tables. Real data-integrity + developer-friction cost. Fix with migration adding cascades (or explicit soft-delete semantics if business requires retention).
 2. **ESLint v9 flat config migration** — `next lint` deprecated in Next.js 15/16; passes legacy options (`useEslintrc`, `extensions`, etc.) that ESLint v9 rejects. Blocks `npm run validate` from passing cleanly. Confirmed environmental during B3 (reproduces on clean HEAD with B3 stashed out). Recommended fix: `npx @next/codemod@canary next-lint-to-eslint-cli .`
 3. **WhatsApp OTP delivery to +49 (German) numbers fails** — confirmed during B2 testing. OTP row writes to DB, AUTHKey returns success, but WhatsApp message never arrives. Root cause likely AUTHKey template not approved for DE or Meta business config issue. Not code — check AUTHKey dashboard: template approvals, country whitelist, delivery logs. Add note to any new country onboarding: verify AUTHKey template + delivery before enabling signups from that country.
+4. **`/model/setup/page.tsx` cover drag migration** — onboarding flow has its own absolute-positioned `<img>` cover drag implementation, not using the shared `<CoverPhoto>` component (introduced Slice 2.5, commit `3ae5ffe`). Migrate so both consumers use the same code. Prop surface of `<CoverPhoto>` was designed with migration-readiness in mind.
 
 ### Slice 3 feature candidates (to be scoped separately, NOT to be conflated with hardening backlog)
 
-- **Cover photo reposition UX fix** — cover is currently drag-responsive at all times, causing mobile scroll hijack. Redesign: cover fixed by default, reposition only available via explicit edit mode entered from camera icon / bottom sheet.
 
 ---
 
