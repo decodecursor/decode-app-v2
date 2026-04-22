@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { ProgressTracker } from '@/components/ambassador/ProgressTracker'
+import { CoverPhoto } from '@/components/ambassador/CoverPhoto'
 
 type Currency = { c: string; f: string; n: string }
 
@@ -197,8 +198,6 @@ export default function SetupPage() {
   const [cover, setCover] = useState<string | null>(null)
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [coverY, setCoverY] = useState(50)
-  const [dragging, setDragging] = useState(false)
-  const [pillVisible, setPillVisible] = useState(false)
 
   const [showSheet, setShowSheet] = useState(false)
   const [search, setSearch] = useState('')
@@ -210,11 +209,7 @@ export default function SetupPage() {
   const [focusId, setFocusId] = useState<string | null>(null)
 
   const fileRef = useRef<HTMLInputElement>(null)
-  const imgRef = useRef<HTMLImageElement>(null)
-  const coverRef = useRef<HTMLDivElement>(null)
   const urlTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const pillTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const dragState = useRef({ startY: 0, startPct: 50 })
 
   const isReady =
     first.trim() !== '' &&
@@ -263,7 +258,6 @@ export default function SetupPage() {
   useEffect(() => {
     return () => {
       if (urlTimer.current) clearTimeout(urlTimer.current)
-      if (pillTimer.current) clearTimeout(pillTimer.current)
     }
   }, [])
 
@@ -299,99 +293,19 @@ export default function SetupPage() {
     setIg(clean)
   }
 
-  const pickCover = () => {
-    if (!cover) fileRef.current?.click()
-  }
-
   const loadCover = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
     if (!f) return
     setCoverFile(f)
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      setCover(ev.target?.result as string)
-      setCoverY(50)
-    }
-    reader.readAsDataURL(f)
-  }
-
-  const positionImg = useCallback(() => {
-    const img = imgRef.current
-    const box = coverRef.current
-    if (!img || !box || !img.naturalWidth) return
-    const cw = box.offsetWidth
-    const ch = box.offsetHeight
-    const scale = cw / img.naturalWidth
-    const sh = img.naturalHeight * scale
-    img.style.width = cw + 'px'
-    img.style.height = sh + 'px'
-    const maxOffset = Math.max(0, sh - ch)
-    img.style.top = `${-maxOffset * (coverY / 100)}px`
-  }, [coverY])
-
-  useEffect(() => {
-    positionImg()
-  }, [cover, coverY, positionImg])
-
-  useEffect(() => {
-    const onResize = () => positionImg()
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [positionImg])
-
-  const showPill = () => {
-    setPillVisible(true)
-    if (pillTimer.current) {
-      clearTimeout(pillTimer.current)
-      pillTimer.current = null
-    }
-  }
-  const hidePillLater = () => {
-    if (pillTimer.current) clearTimeout(pillTimer.current)
-    pillTimer.current = setTimeout(() => setPillVisible(false), 1000)
-  }
-
-  const onDragStart = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!cover) return
-    setDragging(true)
-    showPill()
-    const y = 'touches' in e ? e.touches[0].clientY : e.clientY
-    dragState.current = { startY: y, startPct: coverY }
-    if ('preventDefault' in e) e.preventDefault()
+    setCover(URL.createObjectURL(f))
+    setCoverY(50)
   }
 
   useEffect(() => {
-    if (!dragging) return
-    const move = (e: MouseEvent | TouchEvent) => {
-      const y = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY
-      const img = imgRef.current
-      const box = coverRef.current
-      if (!img || !box) return
-      const sh = img.offsetHeight
-      const ch = box.offsetHeight
-      const maxOffset = sh - ch
-      if (maxOffset <= 0) return
-      const dy = y - dragState.current.startY
-      let pct = dragState.current.startPct - (dy / maxOffset) * 100
-      if (pct < 0) pct = 0
-      if (pct > 100) pct = 100
-      setCoverY(pct)
-    }
-    const up = () => {
-      setDragging(false)
-      hidePillLater()
-    }
-    window.addEventListener('mousemove', move)
-    window.addEventListener('mouseup', up)
-    window.addEventListener('touchmove', move, { passive: false })
-    window.addEventListener('touchend', up)
     return () => {
-      window.removeEventListener('mousemove', move)
-      window.removeEventListener('mouseup', up)
-      window.removeEventListener('touchmove', move)
-      window.removeEventListener('touchend', up)
+      if (cover && cover.startsWith('blob:')) URL.revokeObjectURL(cover)
     }
-  }, [dragging])
+  }, [cover])
 
   const openSheet = () => {
     setSearch('')
@@ -545,113 +459,21 @@ export default function SetupPage() {
       </div>
 
       <div style={{ padding: '0 20px 8px' }}>
-        <div
-          ref={coverRef}
-          onClick={pickCover}
-          onMouseDown={cover ? onDragStart : undefined}
-          onTouchStart={cover ? onDragStart : undefined}
-          style={{
-            position: 'relative',
-            height: 110,
-            borderRadius: 14,
-            overflow: 'hidden',
-            marginBottom: 16,
-            background: 'linear-gradient(135deg,#2a2a2a 0%,#1a1a1a 100%)',
-            border: `1.5px ${cover ? 'solid #262626' : 'dashed #333'}`,
-            cursor: cover ? (dragging ? 'grabbing' : 'grab') : 'pointer',
-            userSelect: 'none',
-          }}
-        >
-          {cover && (
-            <img
-              ref={imgRef}
-              src={cover}
-              alt=""
-              onLoad={positionImg}
-              style={{
-                position: 'absolute',
-                left: 0,
-                right: 0,
-                width: '100%',
-                pointerEvents: 'none',
-              }}
-            />
-          )}
-          {!cover && (
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 11,
-                color: '#666',
-                pointerEvents: 'none',
-              }}
-            >
-              Add cover photo
-            </div>
-          )}
-          {cover && (
-            <div
-              style={{
-                position: 'absolute',
-                top: 10,
-                left: 10,
-                fontSize: 9,
-                color: '#fff',
-                background: 'rgba(0,0,0,0.55)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                padding: '4px 9px',
-                borderRadius: 12,
-                pointerEvents: 'none',
-                letterSpacing: '0.3px',
-                opacity: pillVisible ? 1 : 0,
-                transition: 'opacity 0.3s',
-              }}
-            >
-              Drag to reposition
-            </div>
-          )}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 10,
-              right: 10,
-              width: 28,
-              height: 28,
-              background: 'rgba(0,0,0,0.55)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 2,
-            }}
-          >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#fff"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-              <circle cx="12" cy="13" r="4" />
-            </svg>
-          </div>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={loadCover}
-            style={{ display: 'none' }}
-          />
-        </div>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={loadCover}
+          style={{ display: 'none' }}
+        />
+        <CoverPhoto
+          url={cover}
+          positionY={coverY}
+          mode="onboarding"
+          onPositionChange={setCoverY}
+          onUploadClick={() => fileRef.current?.click()}
+          emptyStateText="Add cover photo"
+        />
 
         <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>

@@ -1,11 +1,18 @@
 'use client'
 
 /**
- * Cover photo with drag-to-reposition + direct-edit chrome.
+ * Cover photo with drag-to-reposition.
  *
- * Currently renders via background-position. /model/setup/page.tsx uses a
- * different absolute-positioned <img> approach and is not yet migrated —
- * planned for a dedicated slice in the post-Slice 2 hardening backlog.
+ * Three modes:
+ * - 'fixed'      — Settings default: camera button bottom-right, drag disabled.
+ * - 'editing'    — Settings edit mode: Drag pill + Upload/Remove/Done chrome, drag enabled.
+ * - 'onboarding' — /model/setup: always-draggable, fade-on-drag "Drag to reposition"
+ *                  pill (fades out 1s after drag end per onboarding UI Spec §5),
+ *                  decorative camera icon, no edit chrome.
+ *
+ * Component is pure UI + drag callbacks. Parents decide persistence: Settings
+ * PATCHes live on each callback; /model/setup stages and submits via its own
+ * form FormData. No internal fetch.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -14,12 +21,13 @@ import { CoverCameraButton } from '@/components/ambassador/CoverCameraButton'
 type CoverPhotoProps = {
   url: string | null
   positionY: number
-  mode: 'fixed' | 'editing'
+  mode: 'fixed' | 'editing' | 'onboarding'
   onPositionChange: (y: number) => void
-  onEnterEditMode: () => void
-  onExitEditMode: () => void
   onUploadClick: () => void
-  onRemoveClick: () => void
+  onEnterEditMode?: () => void
+  onExitEditMode?: () => void
+  onRemoveClick?: () => void
+  emptyStateText?: string
 }
 
 const iconBtn: React.CSSProperties = {
@@ -40,16 +48,19 @@ export function CoverPhoto({
   positionY,
   mode,
   onPositionChange,
+  onUploadClick,
   onEnterEditMode,
   onExitEditMode,
-  onUploadClick,
   onRemoveClick,
+  emptyStateText,
 }: CoverPhotoProps) {
   const [dragging, setDragging] = useState(false)
   const [livePos, setLivePos] = useState(positionY)
   const [editVisible, setEditVisible] = useState(false)
+  const [pillLingerVisible, setPillLingerVisible] = useState(false)
   const dragStartY = useRef(0)
   const dragStartPos = useRef(50)
+  const pillTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!dragging) setLivePos(positionY)
@@ -65,7 +76,7 @@ export function CoverPhoto({
   }, [mode])
 
   useEffect(() => {
-    if (mode !== 'editing') return
+    if (mode !== 'editing' || !onExitEditMode) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onExitEditMode()
     }
@@ -73,9 +84,18 @@ export function CoverPhoto({
     return () => document.removeEventListener('keydown', onKey)
   }, [mode, onExitEditMode])
 
+  const dragEnabled = (mode === 'editing' || mode === 'onboarding') && !!url
+
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!url || mode !== 'editing') return
+    if (!dragEnabled) return
     setDragging(true)
+    if (mode === 'onboarding') {
+      if (pillTimer.current) {
+        clearTimeout(pillTimer.current)
+        pillTimer.current = null
+      }
+      setPillLingerVisible(true)
+    }
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
     dragStartY.current = clientY
     dragStartPos.current = livePos || 50
@@ -91,7 +111,14 @@ export function CoverPhoto({
   const handleDragEnd = useCallback(() => {
     setDragging(false)
     onPositionChange(livePos)
-  }, [livePos, onPositionChange])
+    if (mode === 'onboarding') {
+      if (pillTimer.current) clearTimeout(pillTimer.current)
+      pillTimer.current = setTimeout(() => {
+        setPillLingerVisible(false)
+        pillTimer.current = null
+      }, 1000)
+    }
+  }, [livePos, onPositionChange, mode])
 
   useEffect(() => {
     if (!dragging) return
@@ -107,11 +134,17 @@ export function CoverPhoto({
     }
   }, [dragging, handleDragMove, handleDragEnd])
 
-  const dragEnabled = mode === 'editing' && !!url
+  useEffect(() => {
+    return () => {
+      if (pillTimer.current) clearTimeout(pillTimer.current)
+    }
+  }, [])
 
   const handleBoxClick = () => {
     if (!url) onUploadClick()
   }
+
+  const onboardingPillVisible = mode === 'onboarding' && (dragging || pillLingerVisible)
 
   return (
     <div
@@ -130,7 +163,11 @@ export function CoverPhoto({
         backgroundRepeat: 'no-repeat',
         userSelect: 'none',
         touchAction: dragEnabled ? 'none' : 'auto',
-        cursor: url ? (mode === 'editing' ? (dragging ? 'grabbing' : 'grab') : 'default') : 'pointer',
+        cursor: url
+          ? (mode === 'editing' || mode === 'onboarding')
+            ? (dragging ? 'grabbing' : 'grab')
+            : 'default'
+          : 'pointer',
       }}
     >
       <div style={{
@@ -143,6 +180,21 @@ export function CoverPhoto({
         pointerEvents: 'none',
       }} />
 
+      {!url && emptyStateText && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 11,
+          color: '#666',
+          pointerEvents: 'none',
+        }}>
+          {emptyStateText}
+        </div>
+      )}
+
       {mode === 'editing' && (
         <div style={{
           position: 'absolute',
@@ -151,7 +203,6 @@ export function CoverPhoto({
           transition: 'opacity 200ms',
           pointerEvents: 'none',
         }}>
-          {/* Drag pill — top-left */}
           <div style={{
             position: 'absolute',
             top: 10,
@@ -176,16 +227,19 @@ export function CoverPhoto({
             Drag
           </div>
 
-          {/* Top-right cluster: Upload + Remove + Done */}
-          <div style={{
-            position: 'absolute',
-            top: 10,
-            right: 10,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            pointerEvents: 'auto',
-          }}>
+          <div
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            style={{
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              pointerEvents: 'auto',
+            }}
+          >
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onUploadClick() }}
@@ -200,7 +254,7 @@ export function CoverPhoto({
             </button>
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); onRemoveClick() }}
+              onClick={(e) => { e.stopPropagation(); onRemoveClick?.() }}
               style={iconBtn}
               aria-label="Remove photo"
             >
@@ -214,7 +268,7 @@ export function CoverPhoto({
             </button>
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); onExitEditMode() }}
+              onClick={(e) => { e.stopPropagation(); onExitEditMode?.() }}
               style={{
                 height: 34,
                 padding: '0 16px',
@@ -233,12 +287,57 @@ export function CoverPhoto({
         </div>
       )}
 
+      {mode === 'onboarding' && url && (
+        <div style={{
+          position: 'absolute',
+          top: 10,
+          left: 10,
+          fontSize: 9,
+          color: '#fff',
+          background: 'rgba(0,0,0,0.55)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          padding: '4px 9px',
+          borderRadius: 12,
+          pointerEvents: 'none',
+          letterSpacing: '0.3px',
+          opacity: onboardingPillVisible ? 1 : 0,
+          transition: 'opacity 0.3s',
+        }}>
+          Drag to reposition
+        </div>
+      )}
+
+      {mode === 'onboarding' && (
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            bottom: 10,
+            right: 16,
+            width: 28,
+            height: 28,
+            background: 'rgba(0,0,0,0.55)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+            <circle cx="12" cy="13" r="4" />
+          </svg>
+        </div>
+      )}
+
       {mode === 'fixed' && (
         <CoverCameraButton
           size={34}
           onClick={(e) => {
             e.stopPropagation()
-            if (url) onEnterEditMode()
+            if (url) onEnterEditMode?.()
             else onUploadClick()
           }}
         />
