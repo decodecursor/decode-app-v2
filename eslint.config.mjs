@@ -43,7 +43,7 @@ const eslintConfig = [
   {
     files: ["**/*.tsx"],
     rules: {
-      "react-hooks/rules-of-hooks": "warn",
+      "react-hooks/rules-of-hooks": "error",
     },
   },
   {
