@@ -122,6 +122,12 @@ If a bug surfaces whose root cause matches a root cause fixed earlier in the SAM
 
 Added after Slice 1.5 Phase C phantom-row regression was a repeat of the Phase A phantom-row bug.
 
+### Guardrail 9 — RLS policy must ship with every `ENABLE ROW LEVEL SECURITY`
+
+If a migration sets `ENABLE ROW LEVEL SECURITY` on a new table, at least one explicit policy must land in the same migration — even if the posture is service-role-only. "RLS enabled + zero policies" is functionally default-deny but reads as incomplete to any future `pg_policies` auditor, and makes cross-table posture comparisons ambiguous. For service-role-only tables, ship the explicit `Service role full access` policy mirroring the `otp_verifications` shape. Do not add a self-read policy until a self-read caller exists (Principle E applied to RLS).
+
+Added after Slice 2 code review surfaced that `email_change_requests` (created in Slice 1.5) had `ENABLE ROW LEVEL SECURITY` with zero policies. Functionally safe throughout — all callsites used service-role — but caught during review and backfilled in Slice 2 closeout.
+
 ### Pre-launch checklist
 
 Temporary dev/testing values that must be reset before launch are
@@ -547,12 +553,14 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 
 1. **WhatsApp OTP delivery to +49 (German) numbers** — investigate AUTHKey dashboard: check template approvals for DE, check delivery logs for failed messages. Not code; 15-min dashboard task. User to handle directly, no Claude Code involvement.
 2. **Local dev setup — `.env.local`** — developer needs to create `.env.local` at repo root with 9 required env vars (Supabase URL + anon + service role keys, Stripe secret + publishable + webhook keys, app URL). Copy values from Vercel → Settings → Environment Variables. Without this, `npm run dev` won't work locally and `npm run test:env` (part of `npm run validate`) fails. One-time setup per developer machine. Not a code issue. File is gitignored (`.gitignore:34` — `.env*` pattern).
-3. **FK cascade — `beauty_*` tables** (deferred from Slice H2):
+3. **BLOCKED: FK cascade — `beauty_*` tables** (deferred from Slice H2):
+   - Blocked by: account-deletion flow not yet resolved (see item 4). Both items turn on the same product question — is account deletion hard-delete, soft-delete, or partial-preserve? — and that answer determines whether `SET NULL` vs `CASCADE` is the right policy here.
    - `beauty_offers.created_by` and `beauty_purchases.buyer_id` both NOT NULL with FK to `public.users(id)`, currently NO ACTION.
    - Blocks user deletion when user has real marketplace data (18 offers + 2 purchases in production as of H2).
    - `SET NULL` (preferred policy to preserve marketplace history) requires: (a) `DROP NOT NULL` on both columns, (b) grep audit of all code paths reading these columns to ensure NULL-safe handling.
    - Dedicated slice needed. Product decision: `SET NULL` preserves history; `CASCADE` destroys it. Decision deferred until user-deletion flow is actually built.
-4. **Account-deletion flow — `admin.deleteUser()` not called** — the app's DELETE endpoint (`app/api/ambassador/model/settings/route.ts:254`) wipes model-side tables via `delete_model_profile_cascade` RPC, then `auth.signOut()`, but never calls `admin.deleteUser()`. Result: `auth.users` rows persist forever, `public.users` row persists forever. Either intentional soft-delete or a bug. Product decision needed.
+4. **BLOCKED: Account-deletion flow — `admin.deleteUser()` not called** — blocked by: product decision on soft-delete vs hard-delete semantics (same upstream as item 3). The app's DELETE endpoint (`app/api/ambassador/model/settings/route.ts:254`) wipes model-side tables via `delete_model_profile_cascade` RPC, then `auth.signOut()`, but never calls `admin.deleteUser()`. Result: `auth.users` rows persist forever, `public.users` row persists forever. Either intentional soft-delete or a bug. Product decision needed.
+5. **Re-upgrade `react-hooks/rules-of-hooks` from `warn` to `error`** in `eslint.config.mjs:46`. Gated on: next hook-violation cleanup pass (no known violations remain post-H3, so this is safe to do once any new ones are cleared). Rule was downgraded in H1 (b1284eb) to unblock `npm run lint` with two known auction-side violations; those were fixed in H3 (8fc50c4). Re-upgrading now would make the repo exit-0 today but catch any future regression at CI rather than review.
 
 ### Slice 3 feature candidates (to be scoped separately, NOT to be conflated with hardening backlog)
 
