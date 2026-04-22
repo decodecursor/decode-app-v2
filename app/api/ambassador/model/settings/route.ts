@@ -136,6 +136,13 @@ export async function PATCH(request: NextRequest) {
       oldCoverPathToDelete = extractCoverObjectPath(profile.cover_photo_url)
     }
 
+    // Handle cover photo remove (JSON-path only — multipart uploads can't also signal remove)
+    if (updates.removeCoverPhoto === true && profile.cover_photo_url) {
+      profileUpdate.cover_photo_url = null
+      profileUpdate.cover_photo_position_y = 50
+      oldCoverPathToDelete = extractCoverObjectPath(profile.cover_photo_url)
+    }
+
     // Apply profile update first
     if (Object.keys(profileUpdate).length > 0) {
       const { error: updateError } = await adminClient

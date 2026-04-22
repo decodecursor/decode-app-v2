@@ -9,6 +9,7 @@ import { AddEmailModal } from '@/components/ambassador/AddEmailModal'
 import { ChangeEmailModal } from '@/components/ambassador/ChangeEmailModal'
 import { AddWhatsAppModal } from '@/components/ambassador/AddWhatsAppModal'
 import { ChangeWhatsAppModal } from '@/components/ambassador/ChangeWhatsAppModal'
+import { CoverPhotoActionSheet } from '@/components/ambassador/CoverPhotoActionSheet'
 
 interface Profile {
   id: string
@@ -88,6 +89,7 @@ export default function SettingsPage() {
   const [showChangeEmail, setShowChangeEmail] = useState(false)
   const [showAddWhatsApp, setShowAddWhatsApp] = useState(false)
   const [showChangeWhatsApp, setShowChangeWhatsApp] = useState(false)
+  const [showCoverSheet, setShowCoverSheet] = useState(false)
 
   // Delete modal
   const [showDelete, setShowDelete] = useState(false)
@@ -279,6 +281,35 @@ export default function SettingsPage() {
     }
   }
 
+  const handleCoverRemove = async () => {
+    if (!profile?.cover_photo_url) {
+      setShowCoverSheet(false)
+      return
+    }
+    const previousPreview = profile.cover_photo_url
+    setCoverPreview(null)
+    setShowCoverSheet(false)
+
+    try {
+      const res = await fetch('/api/ambassador/model/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ removeCoverPhoto: true }),
+      })
+      const data = await res.json()
+      if (res.ok && data.profile) {
+        setProfile(data.profile)
+        setCoverPreview(data.profile.cover_photo_url ?? null)
+      } else {
+        setCoverPreview(previousPreview)
+        showToast(data.error || "Couldn't remove. Try again.")
+      }
+    } catch {
+      setCoverPreview(previousPreview)
+      showToast('Network error. Try again.')
+    }
+  }
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.replace('/model/auth')
@@ -378,7 +409,11 @@ export default function SettingsPage() {
         }} />
         <CoverCameraButton
           size={34}
-          onClick={(e) => { e.stopPropagation(); coverInputRef.current?.click() }}
+          onClick={(e) => {
+            e.stopPropagation()
+            if (coverPreview) setShowCoverSheet(true)
+            else coverInputRef.current?.click()
+          }}
         />
       </div>
 
@@ -734,6 +769,15 @@ export default function SettingsPage() {
         onClose={() => setShowChangeWhatsApp(false)}
         currentPhone={userPhone ?? ''}
         onChanged={(phone) => setUserPhone(phone)}
+      />
+      <CoverPhotoActionSheet
+        open={showCoverSheet}
+        onClose={() => setShowCoverSheet(false)}
+        onUploadNew={() => {
+          setShowCoverSheet(false)
+          coverInputRef.current?.click()
+        }}
+        onRemove={handleCoverRemove}
       />
     </div>
   )
