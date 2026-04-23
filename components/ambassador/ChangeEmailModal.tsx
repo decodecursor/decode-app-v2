@@ -28,6 +28,7 @@ export function ChangeEmailModal({
   const [email, setEmail] = useState('')
   const [inlineError, setInlineError] = useState('')
   const [toast, setToast] = useState('')
+  const [toastKey, setToastKey] = useState(0)
   const [resendCooldown, setResendCooldown] = useState(0)
 
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -52,8 +53,9 @@ export function ChangeEmailModal({
 
   const showToast = (msg: string) => {
     setToast(msg)
+    setToastKey((k) => k + 1)
     if (toastTimer.current) clearTimeout(toastTimer.current)
-    toastTimer.current = setTimeout(() => setToast(''), 2000)
+    toastTimer.current = setTimeout(() => setToast(''), 5200)
   }
 
   const sendVerification = async (normalizedEmail: string) => {
@@ -286,6 +288,7 @@ export function ChangeEmailModal({
 
         {toast && (
           <div
+            key={toastKey}
             style={{
               position: 'fixed',
               left: '50%',
@@ -300,6 +303,9 @@ export function ChangeEmailModal({
               pointerEvents: 'none',
               zIndex: 1000,
               whiteSpace: 'nowrap',
+              animation:
+                'amb-toast-in 1200ms cubic-bezier(.2,.7,.2,1) forwards, ' +
+                'amb-toast-out 1200ms cubic-bezier(.5,.2,.8,.1) 4000ms forwards',
             }}
           >
             {toast}

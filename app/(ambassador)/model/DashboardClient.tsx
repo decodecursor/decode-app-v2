@@ -39,6 +39,7 @@ export default function DashboardClient({
   const router = useRouter()
   const [copied, setCopied] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [toastKey, setToastKey] = useState(0)
   const [barsLoaded, setBarsLoaded] = useState(false)
   const copyResetRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -58,8 +59,9 @@ export default function DashboardClient({
 
   const showToast = (msg: string) => {
     setToast(msg)
+    setToastKey((k) => k + 1)
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
-    toastTimerRef.current = setTimeout(() => setToast(null), 1800)
+    toastTimerRef.current = setTimeout(() => setToast(null), 5200)
   }
 
   const handleCopy = async () => {
@@ -379,20 +381,27 @@ export default function DashboardClient({
       </div>
 
       {toast && (
-        <div style={{
-          position: 'fixed',
-          top: '50px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'rgba(28,28,28,0.95)',
-          border: '1px solid #333',
-          color: '#fff',
-          fontSize: '12px',
-          padding: '10px 18px',
-          borderRadius: '24px',
-          zIndex: 50,
-          whiteSpace: 'nowrap',
-        }}>
+        <div
+          key={toastKey}
+          style={{
+            position: 'fixed',
+            top: '50px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(28,28,28,0.95)',
+            border: '1px solid #333',
+            color: '#fff',
+            fontSize: '12px',
+            padding: '10px 18px',
+            borderRadius: '24px',
+            zIndex: 50,
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            animation:
+              'amb-toast-in 1200ms cubic-bezier(.2,.7,.2,1) forwards, ' +
+              'amb-toast-out 1200ms cubic-bezier(.5,.2,.8,.1) 4000ms forwards',
+          }}
+        >
           {toast}
         </div>
       )}

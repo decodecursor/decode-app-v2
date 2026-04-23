@@ -67,7 +67,7 @@ export default function AmbassadorAuthEmailPage() {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
     toastTimerRef.current = setTimeout(() => {
       setToast(prev => (prev && prev.id === id ? null : prev))
-    }, 2000)
+    }, 5200)
   }, [])
 
   const isButtonActive = email.length > 0 && email.includes('@')
@@ -194,21 +194,27 @@ export default function AmbassadorAuthEmailPage() {
       </div>
 
       {toast && (
-        <div style={{
-          position: 'absolute',
-          left: '50%',
-          bottom: '60px',
-          transform: 'translateX(-50%)',
-          background: 'rgba(28,28,28,0.95)',
-          border: `1px solid ${toast.success ? '#e91e8c' : '#333'}`,
-          color: '#fff',
-          padding: '10px 18px',
-          borderRadius: '24px',
-          fontSize: '12px',
-          zIndex: 20,
-          whiteSpace: 'nowrap',
-          pointerEvents: 'none',
-        }}>
+        <div
+          key={toast.id}
+          style={{
+            position: 'absolute',
+            left: '50%',
+            bottom: '60px',
+            transform: 'translateX(-50%)',
+            background: 'rgba(28,28,28,0.95)',
+            border: `1px solid ${toast.success ? '#e91e8c' : '#333'}`,
+            color: '#fff',
+            padding: '10px 18px',
+            borderRadius: '24px',
+            fontSize: '12px',
+            zIndex: 20,
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            animation:
+              'amb-toast-in 1200ms cubic-bezier(.2,.7,.2,1) forwards, ' +
+              'amb-toast-out 1200ms cubic-bezier(.5,.2,.8,.1) 4000ms forwards',
+          }}
+        >
           {toast.msg}
         </div>
       )}

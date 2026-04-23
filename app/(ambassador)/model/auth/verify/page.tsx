@@ -280,6 +280,9 @@ export default function VerifyOTPPage() {
             zIndex: 1000,
             whiteSpace: 'nowrap',
             fontFamily: 'system-ui, -apple-system, sans-serif',
+            animation:
+              'amb-toast-in 1200ms cubic-bezier(.2,.7,.2,1) forwards, ' +
+              'amb-toast-out 1200ms cubic-bezier(.5,.2,.8,.1) 4000ms forwards',
           }}
         >
           {toast}

@@ -81,6 +81,7 @@ export default function SettingsPage() {
   const [signupMethod, setSignupMethod] = useState<'whatsapp' | 'email'>('whatsapp')
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState('')
+  const [toastKey, setToastKey] = useState(0)
   const [copied, setCopied] = useState(false)
 
   // Login methods modals
@@ -141,8 +142,9 @@ export default function SettingsPage() {
 
   const showToast = (msg: string) => {
     setToast(msg)
+    setToastKey((k) => k + 1)
     if (toastTimer.current) clearTimeout(toastTimer.current)
-    toastTimer.current = setTimeout(() => setToast(''), 1800)
+    toastTimer.current = setTimeout(() => setToast(''), 5200)
   }
 
   const saveField = async (updates: Record<string, unknown>) => {
@@ -586,21 +588,28 @@ export default function SettingsPage() {
 
       {/* Toast */}
       {toast && (
-        <div style={{
-          position: 'fixed',
-          bottom: 80,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: '#1c1c1c',
-          border: '1px solid #333',
-          color: '#fff',
-          padding: '10px 18px',
-          borderRadius: 24,
-          fontSize: 12,
-          zIndex: 30,
-          whiteSpace: 'nowrap',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-        }}>
+        <div
+          key={toastKey}
+          style={{
+            position: 'fixed',
+            bottom: 80,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#1c1c1c',
+            border: '1px solid #333',
+            color: '#fff',
+            padding: '10px 18px',
+            borderRadius: 24,
+            fontSize: 12,
+            zIndex: 30,
+            whiteSpace: 'nowrap',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+            pointerEvents: 'none',
+            animation:
+              'amb-toast-in 1200ms cubic-bezier(.2,.7,.2,1) forwards, ' +
+              'amb-toast-out 1200ms cubic-bezier(.5,.2,.8,.1) 4000ms forwards',
+          }}
+        >
           {toast}
         </div>
       )}
