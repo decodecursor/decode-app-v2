@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { ListingCardRow } from '@/lib/ambassador/listing-shape'
+import { DeleteListingModal } from '@/components/ambassador/DeleteListingModal'
+
+type ToastPayload = { emoji?: string; message: string }
 
 type Filter = 'all' | 'active' | 'trial' | 'pending' | 'expired'
 
@@ -118,20 +121,64 @@ function untilLine(row: ListingCardRow): string {
   return ''
 }
 
-export default function ListingsClient({ listings }: { listings: ListingCardRow[] }) {
+export default function ListingsClient({ listings: initialListings }: { listings: ListingCardRow[] }) {
   const router = useRouter()
   const [filter, setFilter] = useState<Filter>('all')
-  const [toast, setToast] = useState<string | null>(null)
+  const [listings, setListings] = useState<ListingCardRow[]>(initialListings)
+  const [toast, setToast] = useState<ToastPayload | null>(null)
+  const [openDelete, setOpenDelete] = useState<ListingCardRow | null>(null)
+  const [removingId, setRemovingId] = useState<string | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => () => {
     if (toastTimer.current) clearTimeout(toastTimer.current)
   }, [])
 
-  const showToast = (msg: string) => {
-    setToast(msg)
+  const showToast = (payload: ToastPayload | string) => {
+    setToast(typeof payload === 'string' ? { message: payload } : payload)
     if (toastTimer.current) clearTimeout(toastTimer.current)
     toastTimer.current = setTimeout(() => setToast(null), 1800)
+  }
+
+  const refetchListings = async () => {
+    try {
+      const res = await fetch('/api/ambassador/model/listings', { cache: 'no-store' })
+      if (!res.ok) return
+      const data = await res.json()
+      if (Array.isArray(data.listings)) setListings(data.listings)
+    } catch {
+      // Non-fatal — the stale toast already fired; next page load will re-sync.
+    }
+  }
+
+  const handleRemoveConfirm = async () => {
+    const target = openDelete
+    if (!target) return
+    setOpenDelete(null)
+
+    try {
+      const res = await fetch(`/api/ambassador/model/listings/${target.id}`, { method: 'DELETE' })
+
+      if (res.ok) {
+        setRemovingId(target.id)
+        setTimeout(() => {
+          setListings((prev) => prev.filter((l) => l.id !== target.id))
+          setRemovingId(null)
+        }, 450)
+        showToast({ emoji: '🗑️', message: 'Listing removed' })
+        return
+      }
+
+      if (res.status === 409) {
+        void refetchListings()
+        showToast({ emoji: '🔒', message: "This listing's status just changed. Refreshing…" })
+        return
+      }
+
+      showToast({ emoji: '📡', message: 'Couldn’t reach server. Try again.' })
+    } catch {
+      showToast({ emoji: '📡', message: 'Couldn’t reach server. Try again.' })
+    }
   }
 
   const visible = listings.filter((l) => matchesFilter(l, filter))
@@ -215,8 +262,22 @@ export default function ListingsClient({ listings }: { listings: ListingCardRow[
             const until = untilLine(l)
             const percent = progressPercent(l)
 
+            const isRemoving = removingId === l.id
+
             return (
-              <div key={l.id} data-id={l.id} style={{ padding: '18px 0', borderBottom: '1px solid #1f1f1f' }}>
+              <div
+                key={l.id}
+                data-id={l.id}
+                style={{
+                  padding: isRemoving ? '0' : '18px 0',
+                  borderBottom: isRemoving ? '1px solid transparent' : '1px solid #1f1f1f',
+                  maxHeight: isRemoving ? 0 : 400,
+                  opacity: isRemoving ? 0 : 1,
+                  overflow: 'hidden',
+                  transition:
+                    'opacity 300ms ease, max-height 400ms ease, padding 400ms ease, border-color 400ms ease',
+                }}
+              >
                 {/* Row 1 — name + clicks + icons */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flex: 1, minWidth: 0 }}>
@@ -237,7 +298,7 @@ export default function ListingsClient({ listings }: { listings: ListingCardRow[
                       <line x1="12" y1="2" x2="12" y2="15" />
                     </svg>
                     <svg
-                      /* TODO Slice 3A C5: wire Delete modal + DELETE fetch */
+                      onClick={() => setOpenDelete(l)}
                       width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={deleteStroke(l)} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                       style={{ cursor: 'pointer' }}
                     >
@@ -315,7 +376,7 @@ export default function ListingsClient({ listings }: { listings: ListingCardRow[
 
       <div style={{ padding: '24px 20px 20px' }} />
 
-      {/* Toast */}
+      {/* Toast — same chrome as the coming-soon toast, optional leading emoji */}
       {toast && (
         <div style={{
           position: 'fixed',
@@ -330,10 +391,20 @@ export default function ListingsClient({ listings }: { listings: ListingCardRow[
           borderRadius: 24,
           zIndex: 50,
           whiteSpace: 'nowrap',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
         }}>
-          {toast}
+          {toast.emoji && <span style={{ fontSize: 14, lineHeight: 1 }}>{toast.emoji}</span>}
+          <span>{toast.message}</span>
         </div>
       )}
+
+      <DeleteListingModal
+        listing={openDelete}
+        onClose={() => setOpenDelete(null)}
+        onRemoveConfirm={handleRemoveConfirm}
+      />
     </div>
   )
 }
