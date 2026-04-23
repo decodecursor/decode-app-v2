@@ -1,122 +1,125 @@
 'use client'
 
 /**
- * Canonical image cropper for the ambassador surface.
+ * Professional avatar (and listing-photo) cropper.
  *
- * Locked during Slice 3B per CLAUDE_CODE_HANDOFF.md (Slice 3B locked
- * decisions #2). Every image-crop surface — avatar, listing photos,
- * any future crop consumer — should use this component (Principle I).
+ * Authoritative spec: `_features/ambassador/professional_avatar_cropper_final_UI_Spec.md`
+ * Mockup: `_features/ambassador/professional_avatar_cropper_final.html`
  *
- * Props-driven, zero coupling to Add Listing. The component owns its
- * full-screen overlay chrome, zoom/pan UX, and canvas export. Callers
- * pass the source image + target dimensions and receive a cropped
- * Blob on confirm.
+ * Full-screen overlay in the same visual language as the public media
+ * lightbox (shared scrim values, chrome positioning, brand-pink token).
+ * Parent passes a File; the cropper URL.createObjectURL's it, handles
+ * drag + zoom within a circular (avatar) or rectangular (listing) frame,
+ * and canvas-exports a JPEG Blob on Use.
  *
- * UX translated from add_listing_final.html:168-603 (the mockup's
- * inline cropper) and matches the spec's crop dimensions (400x400
- * for avatar, 720x1280 for listing media).
+ * Principle I canonical component: every image-crop surface in the
+ * ambassador feature uses this one.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
-type Shape = 'circle' | 'rect'
+type Mode = 'avatar' | 'listing'
 
-interface Props {
-  open: boolean
-  source: string | null
-  targetWidth: number
-  targetHeight: number
-  /** Visual frame shape. 'circle' only renders correctly when target is square. */
-  shape?: Shape
-  /** Header title. Defaults to "Crop photo". */
-  title?: string
-  /** JPEG quality, 0-1. Defaults to 0.9 to match mockup. */
-  quality?: number
+interface ImageCropperProps {
+  sourceFile: File
+  mode: Mode
+  onCropComplete: (blob: Blob) => void
   onCancel: () => void
-  onCrop: (blob: Blob) => void
 }
 
-const MAX_WINDOW_WIDTH = 320
-const MAX_WINDOW_HEIGHT = 560
-const MIN_ZOOM = 1
-const MAX_ZOOM = 4
-
-function computeWindow(targetWidth: number, targetHeight: number) {
-  const aspect = targetWidth / targetHeight
-  let windowW = MAX_WINDOW_WIDTH
-  let windowH = windowW / aspect
-  if (windowH > MAX_WINDOW_HEIGHT) {
-    windowH = MAX_WINDOW_HEIGHT
-    windowW = windowH * aspect
-  }
-  return { w: Math.round(windowW), h: Math.round(windowH) }
+// Frame = on-screen crop container; Output = canvas export dimensions.
+// Values match spec §4 and §11 build checklist.
+const DIMS: Record<Mode, {
+  frameW: number; frameH: number; outW: number; outH: number;
+  shape: 'circle' | 'rect';
+}> = {
+  avatar:  { frameW: 280, frameH: 280, outW: 400,  outH: 400,  shape: 'circle' },
+  listing: { frameW: 280, frameH: 498, outW: 720,  outH: 1280, shape: 'rect'   },
 }
 
-export function ImageCropper({
-  open,
-  source,
-  targetWidth,
-  targetHeight,
-  shape = 'rect',
-  title = 'Crop photo',
-  quality = 0.9,
-  onCancel,
-  onCrop,
-}: Props) {
+const BRAND_PINK = '#e91e8c'
+const DIM_COLOR = 'rgba(0,0,0,0.55)'
+const ZOOM_MIN = 1
+const ZOOM_MAX = 4
+const JPEG_QUALITY = 0.9
+
+export function ImageCropper({ sourceFile, mode, onCropComplete, onCancel }: ImageCropperProps) {
+  const dims = DIMS[mode]
+
+  // Portal SSR guard — only mount after client hydration.
+  const [portalReady, setPortalReady] = useState(false)
+  useEffect(() => { setPortalReady(true) }, [])
+
+  // Source URL lifecycle — create from File on mount, revoke on unmount.
+  const [sourceUrl, setSourceUrl] = useState<string | null>(null)
+  useEffect(() => {
+    const url = URL.createObjectURL(sourceFile)
+    setSourceUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [sourceFile])
+
+  // Natural image size + pan + zoom state.
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null)
   const [zoom, setZoom] = useState(1)
   const [pos, setPos] = useState({ x: 0, y: 0 })
-  const containerRef = useRef<HTMLDivElement | null>(null)
+  const [dragging, setDragging] = useState(false)
+
   const dragRef = useRef({ active: false, startX: 0, startY: 0, startPosX: 0, startPosY: 0 })
+  const imgElRef = useRef<HTMLImageElement | null>(null)
 
-  const windowDims = computeWindow(targetWidth, targetHeight)
-  const frameRadius = shape === 'circle' ? '50%' : '8px'
-
-  // Reset transform whenever the source changes or the modal is opened.
-  useEffect(() => {
-    if (!open) return
-    setNatural(null)
-    setZoom(1)
-    setPos({ x: 0, y: 0 })
-  }, [open, source])
-
-  const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget
-    setNatural({ w: img.naturalWidth, h: img.naturalHeight })
-    setZoom(1)
-    setPos({ x: 0, y: 0 })
-  }, [])
-
-  // Scale factor: image always fills the window at zoom=1.
+  // Cover-fit math: at zoom=1, the image's shorter side fills the frame.
   const baseScale = natural
-    ? Math.max(windowDims.w / natural.w, windowDims.h / natural.h)
+    ? Math.max(dims.frameW / natural.w, dims.frameH / natural.h)
     : 1
   const renderedW = natural ? natural.w * baseScale * zoom : 0
   const renderedH = natural ? natural.h * baseScale * zoom : 0
-  const maxX = Math.max(0, (renderedW - windowDims.w) / 2)
-  const maxY = Math.max(0, (renderedH - windowDims.h) / 2)
 
   const clampPos = useCallback((x: number, y: number, z: number) => {
     if (!natural) return { x: 0, y: 0 }
     const rW = natural.w * baseScale * z
     const rH = natural.h * baseScale * z
-    const mX = Math.max(0, (rW - windowDims.w) / 2)
-    const mY = Math.max(0, (rH - windowDims.h) / 2)
+    const maxX = Math.max(0, (rW - dims.frameW) / 2)
+    const maxY = Math.max(0, (rH - dims.frameH) / 2)
     return {
-      x: Math.max(-mX, Math.min(mX, x)),
-      y: Math.max(-mY, Math.min(mY, y)),
+      x: Math.max(-maxX, Math.min(maxX, x)),
+      y: Math.max(-maxY, Math.min(maxY, y)),
     }
-  }, [natural, baseScale, windowDims.w, windowDims.h])
+  }, [natural, baseScale, dims.frameW, dims.frameH])
+
+  const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    const el = e.currentTarget
+    setNatural({ w: el.naturalWidth, h: el.naturalHeight })
+    setZoom(1)
+    setPos({ x: 0, y: 0 })
+  }, [])
 
   const handleZoomChange = useCallback((next: number) => {
-    const clamped = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, next))
+    const clamped = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, next))
     setZoom(clamped)
     setPos((prev) => clampPos(prev.x, prev.y, clamped))
   }, [clampPos])
 
-  // Drag handlers — document-level listeners so drag continues past the container edge.
+  // Drag handlers (mouse + single-finger touch). Document-level listeners
+  // keep drag continuous past the container edge.
+  const onMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    dragRef.current = {
+      active: true, startX: e.clientX, startY: e.clientY,
+      startPosX: pos.x, startPosY: pos.y,
+    }
+    setDragging(true)
+  }
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length !== 1) return
+    dragRef.current = {
+      active: true, startX: e.touches[0].clientX, startY: e.touches[0].clientY,
+      startPosX: pos.x, startPosY: pos.y,
+    }
+    setDragging(true)
+  }
+
   useEffect(() => {
-    if (!open) return
     const onMove = (clientX: number, clientY: number) => {
       if (!dragRef.current.active) return
       const dx = clientX - dragRef.current.startX
@@ -125,13 +128,16 @@ export function ImageCropper({
     }
     const onMouseMove = (e: MouseEvent) => onMove(e.clientX, e.clientY)
     const onTouchMove = (e: TouchEvent) => {
-      if (!dragRef.current.active) return
-      e.preventDefault()
+      if (!dragRef.current.active || e.touches.length !== 1) return
       onMove(e.touches[0].clientX, e.touches[0].clientY)
     }
-    const onEnd = () => { dragRef.current.active = false }
+    const onEnd = () => {
+      if (!dragRef.current.active) return
+      dragRef.current.active = false
+      setDragging(false)
+    }
     document.addEventListener('mousemove', onMouseMove)
-    document.addEventListener('touchmove', onTouchMove, { passive: false })
+    document.addEventListener('touchmove', onTouchMove, { passive: true })
     document.addEventListener('mouseup', onEnd)
     document.addEventListener('touchend', onEnd)
     return () => {
@@ -140,98 +146,158 @@ export function ImageCropper({
       document.removeEventListener('mouseup', onEnd)
       document.removeEventListener('touchend', onEnd)
     }
-  }, [open, zoom, clampPos])
+  }, [zoom, clampPos])
 
-  const onMouseDown = (e: React.MouseEvent) => {
-    dragRef.current = {
-      active: true, startX: e.clientX, startY: e.clientY,
-      startPosX: pos.x, startPosY: pos.y,
-    }
-  }
-  const onTouchStart = (e: React.TouchEvent) => {
-    dragRef.current = {
-      active: true, startX: e.touches[0].clientX, startY: e.touches[0].clientY,
-      startPosX: pos.x, startPosY: pos.y,
-    }
-  }
+  // Escape → cancel (spec §8).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onCancel])
 
-  const handleCrop = useCallback(() => {
-    if (!source || !natural) return
-    const img = new Image()
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = targetWidth
-      canvas.height = targetHeight
-      const ctx = canvas.getContext('2d')
-      if (!ctx) return
-      // Compute source rect on the original image that corresponds to the
-      // current window view. The window is (windowW x windowH); the image
-      // is translated by (pos.x, pos.y) from the window center.
-      const imgLeftInWindow = windowDims.w / 2 + pos.x - renderedW / 2
-      const imgTopInWindow = windowDims.h / 2 + pos.y - renderedH / 2
-      const sx = (-imgLeftInWindow / renderedW) * natural.w
-      const sy = (-imgTopInWindow / renderedH) * natural.h
-      const sw = (windowDims.w / renderedW) * natural.w
-      const sh = (windowDims.h / renderedH) * natural.h
-      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight)
-      canvas.toBlob((blob) => { if (blob) onCrop(blob) }, 'image/jpeg', quality)
-    }
-    img.src = source
-  }, [source, natural, targetWidth, targetHeight, windowDims.w, windowDims.h, renderedW, renderedH, pos.x, pos.y, quality, onCrop])
+  // Canvas export — spec §6 math, unchanged from prior implementation.
+  // Samples from natural-resolution source, outputs JPEG Blob quality 0.9.
+  const handleUse = useCallback(() => {
+    if (!natural || !imgElRef.current || !sourceUrl) return
+    const canvas = document.createElement('canvas')
+    canvas.width = dims.outW
+    canvas.height = dims.outH
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    const srcScale = natural.w / renderedW
+    const srcW = dims.frameW * srcScale
+    const srcH = dims.frameH * srcScale
+    const srcX = (natural.w - srcW) / 2 - (pos.x * srcScale)
+    const srcY = (natural.h - srcH) / 2 - (pos.y * srcScale)
+    ctx.drawImage(imgElRef.current, srcX, srcY, srcW, srcH, 0, 0, dims.outW, dims.outH)
+    canvas.toBlob((blob) => { if (blob) onCropComplete(blob) }, 'image/jpeg', JPEG_QUALITY)
+  }, [natural, renderedW, pos.x, pos.y, dims.frameW, dims.frameH, dims.outW, dims.outH, sourceUrl, onCropComplete])
 
-  if (!open || !source) return null
+  if (!portalReady || !sourceUrl) return null
 
-  return (
+  const zoomPct = ((zoom - ZOOM_MIN) / (ZOOM_MAX - ZOOM_MIN)) * 100
+
+  const overlay = (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={title}
+      aria-label="Crop photo"
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.97)',
+        background: '#000',
         zIndex: 200,
-        display: 'flex',
-        flexDirection: 'column',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        color: '#fff',
       }}
     >
-      {/* Header */}
+      {/* Scrim top — z-index 1 */}
       <div style={{
-        padding: '14px 16px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderBottom: '1px solid #1a1a1a',
-      }}>
-        <div onClick={onCancel} style={{ fontSize: 14, color: '#888', cursor: 'pointer', padding: 4, userSelect: 'none' }}>
-          Cancel
-        </div>
-        <div style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>{title}</div>
-        <div onClick={handleCrop} style={{ fontSize: 14, color: '#e91e8c', fontWeight: 600, cursor: 'pointer', padding: 4, userSelect: 'none' }}>
-          Use
-        </div>
+        position: 'absolute',
+        top: 0, left: 0, right: 0,
+        height: 110,
+        background: 'linear-gradient(rgba(0,0,0,0.55), transparent)',
+        pointerEvents: 'none',
+        zIndex: 1,
+      }} />
+      {/* Scrim bottom — z-index 1 */}
+      <div style={{
+        position: 'absolute',
+        bottom: 0, left: 0, right: 0,
+        height: 170,
+        background: 'linear-gradient(transparent, rgba(0,0,0,0.92))',
+        pointerEvents: 'none',
+        zIndex: 1,
+      }} />
+
+      {/* Cancel (X, top-left) — z-index 4 */}
+      <div
+        onClick={onCancel}
+        role="button"
+        aria-label="Cancel"
+        style={{
+          position: 'absolute',
+          top: 20, left: 18,
+          width: 32, height: 32,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          zIndex: 4,
+        }}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
       </div>
 
-      {/* Crop window */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 0' }}>
+      {/* Title (center, top) — z-index 4, non-interactive */}
+      <div style={{
+        position: 'absolute',
+        top: 20,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        height: 32,
+        display: 'flex',
+        alignItems: 'center',
+        fontSize: 14,
+        fontWeight: 500,
+        color: '#fff',
+        zIndex: 4,
+        pointerEvents: 'none',
+      }}>
+        Crop photo
+      </div>
+
+      {/* Use (top-right) — z-index 4 */}
+      <div
+        onClick={handleUse}
+        role="button"
+        aria-label="Use cropped image"
+        style={{
+          position: 'absolute',
+          top: 20, right: 18,
+          height: 32,
+          padding: '0 8px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 14,
+          fontWeight: 600,
+          color: BRAND_PINK,
+          cursor: 'pointer',
+          zIndex: 4,
+        }}
+      >
+        Use
+      </div>
+
+      {/* Crop stage — z-index 2 */}
+      <div style={{
+        position: 'absolute',
+        top: 70, bottom: 170, left: 0, right: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 2,
+      }}>
         <div
-          ref={containerRef}
           onMouseDown={onMouseDown}
           onTouchStart={onTouchStart}
           style={{
             position: 'relative',
-            width: windowDims.w,
-            height: windowDims.h,
-            overflow: 'hidden',
-            background: '#0a0a0a',
-            borderRadius: frameRadius,
-            cursor: dragRef.current.active ? 'grabbing' : 'grab',
+            width: dims.frameW,
+            height: dims.frameH,
+            cursor: dragging ? 'grabbing' : 'grab',
             userSelect: 'none',
             touchAction: 'none',
           }}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={source}
+            ref={imgElRef}
+            src={sourceUrl}
             alt=""
             draggable={false}
             onLoad={onImageLoad}
@@ -242,49 +308,112 @@ export function ImageCropper({
               width: renderedW || 'auto',
               height: renderedH || 'auto',
               maxWidth: 'none',
+              maxHeight: 'none',
               transform: `translate(calc(-50% + ${pos.x}px), calc(-50% + ${pos.y}px))`,
               pointerEvents: 'none',
-            }}
+              userSelect: 'none',
+              WebkitUserDrag: 'none',
+            } as React.CSSProperties}
           />
-          {/* Frame overlay */}
+
+          {/* Mask — SVG cutout. Avatar: circle cutout (dims corners).
+              Listing: full-rect cutout (no dimming — whole frame is crop). */}
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+            <svg viewBox={`0 0 ${dims.frameW} ${dims.frameH}`} preserveAspectRatio="none" style={{ width: '100%', height: '100%', display: 'block' }}>
+              <defs>
+                <mask id={`cropperMask-${mode}`}>
+                  <rect width={dims.frameW} height={dims.frameH} fill="white" />
+                  {dims.shape === 'circle' ? (
+                    <circle cx={dims.frameW / 2} cy={dims.frameH / 2} r={Math.min(dims.frameW, dims.frameH) / 2} fill="black" />
+                  ) : (
+                    <rect width={dims.frameW} height={dims.frameH} fill="black" />
+                  )}
+                </mask>
+              </defs>
+              <rect width={dims.frameW} height={dims.frameH} fill={DIM_COLOR} mask={`url(#cropperMask-${mode})`} />
+            </svg>
+          </div>
+
+          {/* Frame border */}
           <div style={{
             position: 'absolute',
             inset: 0,
             border: '2px solid #fff',
+            borderRadius: dims.shape === 'circle' ? '50%' : '8px',
             pointerEvents: 'none',
-            borderRadius: frameRadius,
           }} />
         </div>
       </div>
 
-      {/* Zoom control */}
-      <div style={{ padding: '0 24px 20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            <line x1="8" y1="11" x2="14" y2="11" />
-          </svg>
-          <input
-            type="range"
-            min={MIN_ZOOM}
-            max={MAX_ZOOM}
-            step={0.01}
-            value={zoom}
-            onChange={(e) => handleZoomChange(parseFloat(e.target.value))}
-            style={{ flex: 1, accentColor: '#e91e8c' }}
-          />
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            <line x1="11" y1="8" x2="11" y2="14" />
-            <line x1="8" y1="11" x2="14" y2="11" />
-          </svg>
+      {/* Slider — z-index 3 */}
+      <div style={{
+        position: 'absolute',
+        bottom: 48, left: 0, right: 0,
+        padding: '0 32px',
+        zIndex: 3,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, height: 20 }}>
+          {/* Minus icon (10x10 viewBox, 1.5 stroke, rgba white 75) */}
+          <div style={{ width: 14, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="10" height="10" viewBox="0 0 10 10">
+              <line x1="1" y1="5" x2="9" y2="5" stroke="rgba(255,255,255,0.75)" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </div>
+
+          {/* Custom track + fill + thumb + invisible native range overlay */}
+          <div style={{ flex: 1, position: 'relative', height: 2, background: 'rgba(255,255,255,0.2)', borderRadius: 2 }}>
+            <div style={{
+              position: 'absolute', left: 0, top: 0,
+              height: '100%', width: `${zoomPct}%`,
+              background: BRAND_PINK, borderRadius: 2,
+            }} />
+            <div style={{
+              position: 'absolute', top: '50%', left: `${zoomPct}%`,
+              width: 14, height: 14, marginTop: -7, marginLeft: -7,
+              background: '#fff', borderRadius: '50%',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.4)',
+              cursor: 'grab',
+            }} />
+            <input
+              type="range"
+              min={ZOOM_MIN}
+              max={ZOOM_MAX}
+              step={0.01}
+              value={zoom}
+              onChange={(e) => handleZoomChange(parseFloat(e.target.value))}
+              aria-label="Zoom"
+              style={{
+                position: 'absolute',
+                inset: -10,
+                width: 'calc(100% + 20px)',
+                height: 40,
+                opacity: 0,
+                cursor: 'pointer',
+                margin: 0,
+                padding: 0,
+              }}
+            />
+          </div>
+
+          {/* Plus icon */}
+          <div style={{ width: 14, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="10" height="10" viewBox="0 0 10 10">
+              <line x1="1" y1="5" x2="9" y2="5" stroke="rgba(255,255,255,0.75)" strokeWidth="1.5" strokeLinecap="round" />
+              <line x1="5" y1="1" x2="5" y2="9" stroke="rgba(255,255,255,0.75)" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </div>
         </div>
-        <div style={{ textAlign: 'center', fontSize: 11, color: '#666', marginTop: 6 }}>
+        <div style={{
+          textAlign: 'center',
+          fontSize: 11,
+          color: 'rgba(255,255,255,0.5)',
+          marginTop: 12,
+        }}>
           Drag to position · Slider to zoom
         </div>
       </div>
     </div>
   )
+
+  return createPortal(overlay, document.body)
 }
