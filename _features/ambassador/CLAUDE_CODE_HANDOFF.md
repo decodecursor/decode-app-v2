@@ -140,6 +140,23 @@ When a commit's content (docs, backlog closures, origin notes) needs to referenc
 
 Lesson from Slice 3A retrofit (commit `e2095e4` → `af5e7d8`): the first-try workflow was commit-with-placeholder → amend-with-real-hash, and the amend generated a new SHA (`a99ec01` → `e2095e4`) that didn't match the hash substituted inside it, leaving the docs pointing to an unreachable ghost commit. Recovered with a follow-up doc-fix commit — the only convergent path.
 
+### Guardrail 12 — Pre-flight audit before every slice
+
+Every slice begins with a pre-flight audit before any code is written. The audit reconciles all current inputs — specs, principles, past decisions, hardening backlog, shipped commits, live schema, live storage, live code patterns — against reality right now. Findings are reported grouped by section, surprises first. No code is written until the user has reviewed findings and locked any open decisions.
+
+The audit covers, at minimum:
+1. **Schema ground truth** — every table the slice touches, verified via read-only MCP against spec claims
+2. **Storage ground truth** — bucket state, RLS policies, path conventions
+3. **Pattern ground truth** — grep the codebase for existing patterns the slice would reuse (Principle E)
+4. **Principle I check** — for every user-visible primitive, is a canonical implementation available or does one need defining?
+5. **UX-lock gate** — full read of all mockup + UI-spec files in scope; surface every un-locked decision and every spec-vs-reality drift
+6. **Scope sanity** — Principle H check; estimate days, propose split points if over limit (surface the read, don't decide)
+7. **Hardening backlog state** — still accurate? Any items to close, any new items to add?
+
+The audit is NOT implementation planning. It surfaces ground truth and blocking decisions. Implementation planning happens AFTER the user reviews findings and locks decisions.
+
+**Origin:** Emerged organically during Slice 2; caught 5/5 code surprises that session. Locked as Guardrail 12 during Slice 3B pre-flight (2026-04-23) after catching an additional 15 surprises across Slices 3A + 3B. Without pre-flight, these surface as rework after code ships — the expensive kind.
+
 ### Pre-launch checklist
 
 Temporary dev/testing values that must be reset before launch are
