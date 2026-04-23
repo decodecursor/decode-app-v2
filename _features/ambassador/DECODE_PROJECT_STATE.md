@@ -117,7 +117,7 @@ Per-slice invention of generic primitives (pop-in on page A, fade on page B, sli
 
 Trigger: if a slice introduces a new toast/modal/button/animation behavior, the slice MUST either (a) reuse an existing canonical implementation, or (b) define the canonical version in a shared location AND add a hardening backlog item to retrofit any existing divergent instances to match.
 
-**Origin:** Slice 3A toast animation divergence. Seven existing ambassador toasts had no entrance animation; the Listings spec defined a slide-up/fade animation that shipped on Listings only. Principle locked after user feedback that per-slice UI invention is the exact architectural drift the principles exist to prevent. Retrofit completed in `a99ec01` — all 7 divergent toasts now use the canonical animation.
+**Origin:** Slice 3A toast animation divergence. Seven existing ambassador toasts had no entrance animation; the Listings spec defined a slide-up/fade animation that shipped on Listings only. Principle locked after user feedback that per-slice UI invention is the exact architectural drift the principles exist to prevent. Retrofit completed in `e2095e4` — all 7 divergent toasts now use the canonical animation.
 
 ---
 
