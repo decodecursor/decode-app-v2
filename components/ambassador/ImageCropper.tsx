@@ -68,6 +68,19 @@ export function ImageCropper({ sourceFile, mode, onCropComplete, onCancel }: Ima
   const dragRef = useRef({ active: false, startX: 0, startY: 0, startPosX: 0, startPosY: 0 })
   const imgElRef = useRef<HTMLImageElement | null>(null)
 
+  // Viewport size for the full-viewport dim mask. Tracks resize so the
+  // mask + frame border stay aligned when mobile URL bar toggles or the
+  // device rotates. Initialized to 0 and populated by the mount effect —
+  // SVG is guarded to render only once w > 0 to avoid a zero-sized first
+  // frame.
+  const [viewportSize, setViewportSize] = useState({ w: 0, h: 0 })
+  useEffect(() => {
+    const update = () => setViewportSize({ w: window.innerWidth, h: window.innerHeight })
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
+
   // Cover-fit math: at zoom=1, the image's shorter side fills the frame.
   const baseScale = natural
     ? Math.max(dims.frameW / natural.w, dims.frameH / natural.h)
@@ -316,34 +329,50 @@ export function ImageCropper({ sourceFile, mode, onCropComplete, onCancel }: Ima
             } as React.CSSProperties}
           />
 
-          {/* Mask — SVG cutout. Avatar: circle cutout (dims corners).
-              Listing: full-rect cutout (no dimming — whole frame is crop). */}
-          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-            <svg viewBox={`0 0 ${dims.frameW} ${dims.frameH}`} preserveAspectRatio="none" style={{ width: '100%', height: '100%', display: 'block' }}>
-              <defs>
-                <mask id={`cropperMask-${mode}`}>
-                  <rect width={dims.frameW} height={dims.frameH} fill="white" />
-                  {dims.shape === 'circle' ? (
-                    <circle cx={dims.frameW / 2} cy={dims.frameH / 2} r={Math.min(dims.frameW, dims.frameH) / 2} fill="black" />
-                  ) : (
-                    <rect width={dims.frameW} height={dims.frameH} fill="black" />
-                  )}
-                </mask>
-              </defs>
-              <rect width={dims.frameW} height={dims.frameH} fill={DIM_COLOR} mask={`url(#cropperMask-${mode})`} />
-            </svg>
-          </div>
-
-          {/* Frame border */}
-          <div style={{
-            position: 'absolute',
-            inset: 0,
-            border: '2px solid #fff',
-            borderRadius: dims.shape === 'circle' ? '50%' : '8px',
-            pointerEvents: 'none',
-          }} />
         </div>
       </div>
+
+      {/* Full-viewport dim + frame border — single SVG overlay sibling.
+          Pixel-coordinate SVG (no viewBox) sized to window inner dims.
+          Mask uses maskUnits=userSpaceOnUse so the cutout coordinates
+          match the outer rect's pixel space. Frame border rendered
+          inside the same SVG so it overlays the cutout crisply.
+          pointerEvents:none so drag events still reach the crop
+          container below. z-index 3 sits above the crop stage (2) and
+          the scrims (1), below the chrome (4). */}
+      {viewportSize.w > 0 && (() => {
+        const cx = viewportSize.w / 2
+        // Crop stage spans top:70 to bottom:170; its vertical center
+        // is (vh - 240)/2 + 70 = vh/2 - 50.
+        const cy = viewportSize.h / 2 - 50
+        const halfW = dims.frameW / 2
+        const halfH = dims.frameH / 2
+        const isCircle = dims.shape === 'circle'
+        return (
+          <svg
+            width={viewportSize.w}
+            height={viewportSize.h}
+            style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', zIndex: 3 }}
+          >
+            <defs>
+              <mask id={`cropperMask-${mode}`} maskUnits="userSpaceOnUse" x="0" y="0" width={viewportSize.w} height={viewportSize.h}>
+                <rect x="0" y="0" width={viewportSize.w} height={viewportSize.h} fill="white" />
+                {isCircle ? (
+                  <circle cx={cx} cy={cy} r={Math.min(halfW, halfH)} fill="black" />
+                ) : (
+                  <rect x={cx - halfW} y={cy - halfH} width={dims.frameW} height={dims.frameH} rx={8} fill="black" />
+                )}
+              </mask>
+            </defs>
+            <rect x="0" y="0" width={viewportSize.w} height={viewportSize.h} fill={DIM_COLOR} mask={`url(#cropperMask-${mode})`} />
+            {isCircle ? (
+              <circle cx={cx} cy={cy} r={Math.min(halfW, halfH)} fill="none" stroke="#fff" strokeWidth="2" />
+            ) : (
+              <rect x={cx - halfW} y={cy - halfH} width={dims.frameW} height={dims.frameH} rx={8} fill="none" stroke="#fff" strokeWidth="2" />
+            )}
+          </svg>
+        )
+      })()}
 
       {/* Slider — z-index 3 */}
       <div style={{

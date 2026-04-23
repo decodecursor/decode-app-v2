@@ -153,7 +153,7 @@ export default function ListingsClient({ listings: initialListings }: { listings
     if (type === 'trial') {
       setToast({ emoji: '🎉', message: 'Your trial listing is live — 30 days until it expires' })
     } else if (type === 'paid') {
-      setToast({ emoji: 'ℹ️', message: 'Listing created — Send Link ships in the next update' })
+      setToast({ emoji: '🎉', message: 'Listing created — Send Link ships in the next update' })
     } else {
       return
     }
