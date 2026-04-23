@@ -623,7 +623,14 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 
 - **Slice 3A** — `/model/listings` read surface + `GET` / `DELETE` API + dashboard nav wire-up. ~0.5–1 day. **SHIPPED 2026-04-23.**
   - Principle I (DECODE_PROJECT_STATE.md) locked during Slice 3A after toast animation surfaced the divergence pattern. Backlog item 6 (retrofit all ambassador toasts) is the corrective action.
-- **Slice 3B** — `/model/listings/new` (Add form + photo/video uploads + professional dedup) + `POST` API. ~1 day.
+- **Slice 3B** — `/model/listings/new` (Add form + photo/video uploads + professional dedup) + `POST` API. ~2 days (revised from ~1 day after 3B pre-flight — cropper + uploads are heavier than initially scoped; held to one slice on Principle H grounds).
+
+  **Slice 3B locked decisions (set during 3B pre-flight partner review):**
+   1. **Video transcoding:** None in V1 (Phase 1 #13). HEVC accepted silently. `add_listing_final_UI_Spec.md` §4.5 superseded in `08bf4f0`.
+   2. **Image cropper:** Canonical `<ImageCropper>` at `components/ambassador/ImageCropper.tsx`. Shared across every image-crop surface in 3B (avatar + listing photos) and any future crop consumer. Principle I application; keyframes and styles scoped for reuse.
+   3. **Professional dedup collision:** Auto-swap. If the typed Instagram handle matches an existing `model_professionals` row, the form auto-fills name/city/country from the existing row and keeps the user's typed IG. Toast "Using existing {name}" fires on swap. Existing professional data is **immutable from Add Listing** — ambassador cannot edit name/city/country of an existing professional (Principle A: Instagram is authoritative identity; other fields are snapshot-on-first-create). Correction path is out-of-band for V1 (future hardening or admin action).
+   4. **Paid-path submit redirect (Send Link placeholder):** `/model/listings` with toast "Listing created — Send Link ships in the next update". Matches the 3A coming-soon convention (UX1).
+   5. **Scope:** one slice, ~2 days, no sub-split. Hold the Principle H line.
 - **Slice 3C** — `/model/listings/[id]/edit` (reuses Add form in edit mode) + `/model/listings/[id]/send-link` + `PATCH` API. ~0.5–1 day.
 
 **Scope-split rationale:** original Slice 3 scope combined ~2.5 days of work into one slice, violating Principle H. Natural cut points at read-vs-write and create-vs-edit. The original scope text above is preserved as historical record; the VERIFY checklist covers the whole of Slice 3 end-to-end and will be ticked through across 3A/3B/3C.
