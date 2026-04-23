@@ -139,6 +139,31 @@ export default function ListingsClient({ listings: initialListings }: { listings
   // 1200ms amb-toast-in + 2800ms hold + 1200ms amb-toast-out = 5200ms.
   const TOAST_LIFECYCLE_MS = 5200
 
+  // Celebration toast on arrival from /model/listings/new. The URL flag is
+  // written by AddListingClient on successful create. We fire the toast on
+  // mount, then scrub the flag via replaceState so refreshing / bookmarking
+  // doesn't re-fire. The `celebrated_at` one-shot DB guard from
+  // listings_final_UI_Spec §7.10 isn't live in V1 — URL-scrub gives us the
+  // same in-session "fire once" behavior.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const newId = params.get('new')
+    const type = params.get('type')
+    if (!newId || !type) return
+    if (type === 'trial') {
+      setToast({ emoji: '🎉', message: 'Your trial listing is live — 30 days until it expires' })
+    } else if (type === 'paid') {
+      setToast({ emoji: 'ℹ️', message: 'Listing created — Send Link ships in the next update' })
+    } else {
+      return
+    }
+    setToastKey((k) => k + 1)
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToast(null), TOAST_LIFECYCLE_MS)
+    window.history.replaceState({}, '', '/model/listings')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const showToast = (payload: ToastPayload | string) => {
     setToast(typeof payload === 'string' ? { message: payload } : payload)
     setToastKey((k) => k + 1)

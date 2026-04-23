@@ -3,30 +3,42 @@
 /**
  * Add Listing form (client).
  *
- * Slice 3B Phase 5 Commit A — scaffold only:
- *   - All sections render with empty state
- *   - Text inputs, category dropdown, trial toggle, pricing UI are all
- *     state-driven and functional
- *   - Avatar tile + media tile render empty (no click handlers yet)
- *   - Submit button is permanently disabled (no handler wired)
- *
- * Upload flow, dedup POST, listing POST, and redirect all ship in
- * Commit B after the Guardrail 4 design-review pass.
+ * Slice 3B Phase 5 Commit B — full wiring:
+ *   - Avatar upload via <ImageCropper mode="avatar"> → client-side direct
+ *     upload to model-media bucket under {uid}/professionals/avatars/.
+ *   - Listing photo uploads (×1-3) via <ImageCropper mode="listing"> →
+ *     client-side direct upload to {uid}/listings/photos/.
+ *   - Video uploads with client-side validation (≤15s duration, ≤15MB
+ *     size, MP4/MOV/WebM MIME) → {uid}/listings/videos/. HEVC accepted
+ *     silently per Phase 1 #13.
+ *   - Instagram handle dedup on blur (when form has enough to attempt a
+ *     full create) → auto-swap name/city/country from existing row.
+ *   - Submit: resolve professional (dedup-or-create), POST listing,
+ *     redirect to /model/listings?new={id}&type=trial|paid. Celebration
+ *     toast fires on the listings page from the ?new flag.
  *
  * UX spec: `_features/ambassador/add_listing_final_UI_Spec.md`
  * Mockup:  `_features/ambassador/add_listing_final.html`
+ *
+ * Uploads go client-side via the authenticated Supabase browser client.
+ * RLS on the model-media INSERT policy enforces that {auth.uid()}/... is
+ * the only writable path, so a client can't upload to another user's
+ * folder. Matches cover-upload semantics without needing a new server
+ * proxy route (Principle E — preserve the shape, not the channel).
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AmbSubmitButton } from '@/components/ambassador/AmbSubmitButton'
+import { ImageCropper } from '@/components/ambassador/ImageCropper'
+import { createClient } from '@/utils/supabase/client'
 
 type Category = { id: string; label: string; slug: string }
 
 interface Props {
   categories: Category[]
-  currency: string   // lowercase ISO from model_profiles.currency
-  profileId: string  // unused in Commit A; wired in Commit B
+  currency: string
+  profileId: string
 }
 
 type CategorySelection =
@@ -34,8 +46,20 @@ type CategorySelection =
   | { type: 'custom'; text: string }
   | null
 
+type Media =
+  | { kind: 'photos'; urls: string[] }
+  | { kind: 'video'; url: string; previewUrl: string }
+  | null
+
+type ToastPayload = { emoji?: string; message: string }
+
 const PRICE_FLOORS: Record<string, number> = { usd: 10, eur: 10, gbp: 10, aed: 50 }
 const DEFAULT_PRICE_FLOOR = 10
+const MAX_VIDEO_BYTES = 15 * 1024 * 1024
+const MAX_VIDEO_DURATION_S = 15
+const ALLOWED_VIDEO_MIMES = ['video/mp4', 'video/quicktime', 'video/webm']
+const MODEL_MEDIA_BUCKET = 'model-media'
+const TOAST_LIFECYCLE_MS = 5200
 
 function priceFloorForCurrency(currency: string): number {
   return PRICE_FLOORS[currency.toLowerCase()] ?? DEFAULT_PRICE_FLOOR
@@ -54,6 +78,63 @@ function currencySymbol(currency: string): string {
   if (code === 'GBP') return '£'
   if (code === 'AED') return 'AED'
   return code
+}
+
+function videoExtForMime(mime: string): string {
+  if (mime === 'video/mp4') return 'mp4'
+  if (mime === 'video/quicktime') return 'mov'
+  if (mime === 'video/webm') return 'webm'
+  return 'mp4'
+}
+
+function normalizeInstagram(raw: string): string {
+  return raw.trim().toLowerCase().replace(/^@/, '')
+}
+
+// Path builders — kept local per slice scope guard. Paths are user-scoped
+// (first segment = auth.uid()) so the storage RLS INSERT policy on
+// model-media admits the upload.
+function buildAvatarPath(userId: string): string {
+  return `${userId}/professionals/avatars/${crypto.randomUUID()}.jpg`
+}
+function buildListingPhotoPath(userId: string): string {
+  return `${userId}/listings/photos/${crypto.randomUUID()}.jpg`
+}
+function buildListingVideoPath(userId: string, mime: string): string {
+  return `${userId}/listings/videos/${crypto.randomUUID()}.${videoExtForMime(mime)}`
+}
+
+// Validate a picked video against Phase 1 #15 (size + duration + MIME).
+// Uses a hidden <video preload="metadata"> to probe duration. Cleans up
+// the object URL on both the success and failure paths.
+type VideoValidation = { ok: true } | { ok: false; error: string }
+function validateVideoFile(file: File): Promise<VideoValidation> {
+  return new Promise<VideoValidation>((resolve) => {
+    if (file.size > MAX_VIDEO_BYTES) {
+      resolve({ ok: false, error: 'Video must be 15 MB or less' })
+      return
+    }
+    if (!ALLOWED_VIDEO_MIMES.includes(file.type)) {
+      resolve({ ok: false, error: 'Video must be MP4, MOV, or WebM' })
+      return
+    }
+    const video = document.createElement('video')
+    video.preload = 'metadata'
+    const url = URL.createObjectURL(file)
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(url)
+      if (video.duration > MAX_VIDEO_DURATION_S) {
+        resolve({ ok: false, error: 'Video must be 15 seconds or less' })
+      } else {
+        resolve({ ok: true })
+      }
+    }
+    video.onerror = () => {
+      URL.revokeObjectURL(url)
+      resolve({ ok: false, error: "Couldn't read that video" })
+    }
+    video.src = url
+  })
 }
 
 // --- Styling constants (kept local, match canonical ambassador forms) ---
@@ -83,10 +164,23 @@ const INPUT_BASE: React.CSSProperties = {
 
 const FOCUS_SCOPE_ID = 'add-listing-page'
 
-export default function AddListingClient({ categories, currency }: Props) {
+export default function AddListingClient({ categories, currency, profileId: _profileId }: Props) {
   const router = useRouter()
+  // Stable browser Supabase client — one per component mount.
+  const supabase = useMemo(() => createClient(), [])
+  // Current auth user id (for storage path scoping). Captured client-side
+  // on mount — the server component already redirected unauthed users, so
+  // this should always resolve to a valid UUID shortly after mount.
+  const [userId, setUserId] = useState<string | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    supabase.auth.getUser().then(({ data }) => {
+      if (!cancelled && data.user) setUserId(data.user.id)
+    })
+    return () => { cancelled = true }
+  }, [supabase])
 
-  // --- Form state ---
+  // --- Text form state ---
   const [name, setName] = useState('')
   const [city, setCity] = useState('')
   const [country, setCountry] = useState('')
@@ -105,14 +199,48 @@ export default function AddListingClient({ categories, currency }: Props) {
 
   const [freeTrial, setFreeTrial] = useState(false)
 
-  // Close category dropdown on outside click
+  // --- Upload state ---
+  const [avatarCropperFile, setAvatarCropperFile] = useState<File | null>(null)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [avatarError, setAvatarError] = useState<string | null>(null)
+
+  const [mediaCropperFile, setMediaCropperFile] = useState<File | null>(null)
+  const [media, setMedia] = useState<Media>(null)
+  const [uploadingMedia, setUploadingMedia] = useState(false)
+  const [mediaError, setMediaError] = useState<string | null>(null)
+
+  // --- Dedup state ---
+  // professionalId is captured either from the on-blur dedup probe or from
+  // submit-time resolution. professionalLocked means an existing row was
+  // matched and name/city/country are now read-only snapshots from it.
+  const [professionalId, setProfessionalId] = useState<string | null>(null)
+  const [professionalLocked, setProfessionalLocked] = useState(false)
+  const [dedupInFlight, setDedupInFlight] = useState(false)
+  const lastProbedIgRef = useRef<string>('')
+
+  // --- Toast state (canonical amb-toast-in/out animation) ---
+  const [toast, setToast] = useState<ToastPayload | null>(null)
+  const [toastKey, setToastKey] = useState(0)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current) }, [])
+  const showToast = useCallback((payload: ToastPayload) => {
+    setToast(payload)
+    setToastKey((k) => k + 1)
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToast(null), TOAST_LIFECYCLE_MS)
+  }, [])
+
+  // --- Hidden file inputs ---
+  const avatarInputRef = useRef<HTMLInputElement | null>(null)
+  const mediaInputRef = useRef<HTMLInputElement | null>(null)
+
+  // --- Close category dropdown on outside click ---
   const catRef = useRef<HTMLDivElement | null>(null)
   useEffect(() => {
     if (!categoryOpen) return
     const onClick = (e: MouseEvent) => {
-      if (catRef.current && !catRef.current.contains(e.target as Node)) {
-        setCategoryOpen(false)
-      }
+      if (catRef.current && !catRef.current.contains(e.target as Node)) setCategoryOpen(false)
     }
     document.addEventListener('mousedown', onClick)
     return () => document.removeEventListener('mousedown', onClick)
@@ -124,17 +252,210 @@ export default function AddListingClient({ categories, currency }: Props) {
     setCustomCategoryText('')
     setCategoryOpen(false)
   }
-
   const selectCustom = () => {
     setShowCustomInput(true)
     setCategory({ type: 'custom', text: '' })
     setCategoryOpen(false)
   }
-
   const onCustomCategoryChange = (v: string) => {
     const capped = capFirst(v)
     setCustomCategoryText(capped)
     setCategory({ type: 'custom', text: capped })
+  }
+
+  // ---- Upload helper (client-side direct to Supabase Storage) ----
+  const uploadBlob = useCallback(async (blob: Blob, path: string, contentType: string): Promise<string> => {
+    const { error } = await supabase.storage
+      .from(MODEL_MEDIA_BUCKET)
+      .upload(path, blob, { contentType, cacheControl: '3600', upsert: false })
+    if (error) throw error
+    const { data } = supabase.storage.from(MODEL_MEDIA_BUCKET).getPublicUrl(path)
+    return data.publicUrl
+  }, [supabase])
+
+  // ---- Avatar flow ----
+  const openAvatarPicker = () => {
+    if (professionalLocked) return // existing professional — avatar is snapshot
+    avatarInputRef.current?.click()
+  }
+  const onAvatarFilePicked = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setAvatarError(null)
+    setAvatarCropperFile(file)
+  }
+  const onAvatarCropComplete = async (blob: Blob) => {
+    setAvatarCropperFile(null)
+    if (!userId) return
+    setUploadingAvatar(true)
+    setAvatarError(null)
+    try {
+      const path = buildAvatarPath(userId)
+      const url = await uploadBlob(blob, path, 'image/jpeg')
+      setAvatarUrl(url)
+    } catch (err) {
+      console.error('[AddListing] Avatar upload failed:', err)
+      setAvatarError('Upload failed. Try again.')
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+  const onAvatarCropCancel = () => setAvatarCropperFile(null)
+  const removeAvatar = () => {
+    if (professionalLocked) return
+    setAvatarUrl(null)
+    setAvatarError(null)
+  }
+
+  // ---- Media flow ----
+  const openMediaPicker = () => {
+    mediaInputRef.current?.click()
+  }
+  const onMediaFilePicked = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setMediaError(null)
+
+    if (file.type.startsWith('image/')) {
+      // Photos path. If a video is already present, refuse.
+      if (media?.kind === 'video') {
+        setMediaError('Remove the video first to upload photos.')
+        return
+      }
+      if (media?.kind === 'photos' && media.urls.length >= 3) {
+        setMediaError("Can't add more than 3 photos.")
+        return
+      }
+      setMediaCropperFile(file)
+      return
+    }
+
+    if (file.type.startsWith('video/')) {
+      // Video path. If photos are already present, refuse.
+      if (media?.kind === 'photos' && media.urls.length > 0) {
+        setMediaError('Remove the photos first to upload a video.')
+        return
+      }
+      if (!userId) return
+      setUploadingMedia(true)
+      const v = await validateVideoFile(file)
+      if (v.ok === false) {
+        setMediaError(v.error)
+        setUploadingMedia(false)
+        return
+      }
+      try {
+        const path = buildListingVideoPath(userId, file.type)
+        const url = await uploadBlob(file, path, file.type)
+        const previewUrl = URL.createObjectURL(file)
+        setMedia({ kind: 'video', url, previewUrl })
+      } catch (err) {
+        console.error('[AddListing] Video upload failed:', err)
+        setMediaError('Upload failed. Try again.')
+      } finally {
+        setUploadingMedia(false)
+      }
+      return
+    }
+
+    setMediaError('Unsupported file type.')
+  }
+  const onMediaCropComplete = async (blob: Blob) => {
+    setMediaCropperFile(null)
+    if (!userId) return
+    setUploadingMedia(true)
+    setMediaError(null)
+    try {
+      const path = buildListingPhotoPath(userId)
+      const url = await uploadBlob(blob, path, 'image/jpeg')
+      setMedia((prev) => {
+        if (prev?.kind === 'video') return prev // defensive; state transition blocked above
+        const existing = prev?.kind === 'photos' ? prev.urls : []
+        return { kind: 'photos', urls: [...existing, url].slice(0, 3) }
+      })
+    } catch (err) {
+      console.error('[AddListing] Photo upload failed:', err)
+      setMediaError('Upload failed. Try again.')
+    } finally {
+      setUploadingMedia(false)
+    }
+  }
+  const onMediaCropCancel = () => setMediaCropperFile(null)
+  const removeMediaPhoto = (idx: number) => {
+    setMedia((prev) => {
+      if (prev?.kind !== 'photos') return prev
+      const next = prev.urls.filter((_, i) => i !== idx)
+      return next.length === 0 ? null : { kind: 'photos', urls: next }
+    })
+  }
+  const removeMediaVideo = () => {
+    setMedia((prev) => {
+      if (prev?.kind === 'video') URL.revokeObjectURL(prev.previewUrl)
+      return null
+    })
+  }
+
+  // ---- Instagram dedup on blur ----
+  // Fire-and-forget probe. If the handle matches an existing professional,
+  // auto-swap name/city/country and lock those fields. If the handle is
+  // new, the server may 400 on missing fields (avatar not yet uploaded,
+  // etc.) — we ignore those silently and defer dedup to submit time.
+  const onInstagramBlur = async () => {
+    const normalized = normalizeInstagram(instagram)
+    if (!normalized) return
+    if (normalized === lastProbedIgRef.current) return
+    lastProbedIgRef.current = normalized
+
+    setDedupInFlight(true)
+    try {
+      const res = await fetch('/api/ambassador/model/professionals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instagram_handle: normalized,
+          // Pass whatever we currently have. Server only requires the full
+          // set when no existing row matches. The match path succeeds
+          // regardless of completeness.
+          name,
+          city,
+          country,
+          avatar_photo_url: avatarUrl,
+        }),
+      })
+      if (!res.ok) return // 400 on missing fields for new row — defer to submit
+      const data = await res.json() as { professional: { id: string; name: string; city: string; country: string; avatar_photo_url: string }; created: boolean }
+      if (!data.created) {
+        // Existing professional — auto-swap and lock
+        setName(data.professional.name)
+        setCity(data.professional.city)
+        setCountry(data.professional.country)
+        setAvatarUrl(data.professional.avatar_photo_url)
+        setProfessionalId(data.professional.id)
+        setProfessionalLocked(true)
+        showToast({ emoji: '🔄', message: `Using existing ${data.professional.name}` })
+      } else {
+        // Server created a new row from what we had. Capture the id.
+        setProfessionalId(data.professional.id)
+      }
+    } catch (err) {
+      console.error('[AddListing] Dedup probe failed:', err)
+      // Silent — re-resolved on submit
+    } finally {
+      setDedupInFlight(false)
+    }
+  }
+
+  // User is editing IG post-lock → unlock and clear the resolved id
+  const onInstagramChange = (v: string) => {
+    const next = v.replace(/[^a-zA-Z0-9._]/g, '')
+    setInstagram(next)
+    if (professionalLocked) {
+      setProfessionalLocked(false)
+      setProfessionalId(null)
+      lastProbedIgRef.current = ''
+    }
   }
 
   // --- Pricing derived values ---
@@ -148,7 +469,6 @@ export default function AddListingClient({ categories, currency }: Props) {
   const perDay60 = p60n > 0 ? (p60n / 60).toFixed(2) : ''
   const perDay90 = p90n > 0 ? (p90n / 90).toFixed(2) : ''
 
-  // OFF badge percentages relative to 30-day per-day rate
   const offPct = (amount: number, days: number) => {
     if (p30n <= 0 || amount <= 0) return null
     const per = amount / days
@@ -159,7 +479,6 @@ export default function AddListingClient({ categories, currency }: Props) {
   const off60 = p60n > p30n ? offPct(p60n, 60) : null
   const off90 = p90n > p60n ? offPct(p90n, 90) : null
 
-  // --- Pricing error logic (blur-triggered, same semantics as mockup §6.2) ---
   const min30 = touched30 && p30n > 0 && p30n < floor
   const min60 = touched60 && p60n > 0 && p60n < floor
   const min90 = touched90 && p90n > 0 && p90n < floor
@@ -180,9 +499,86 @@ export default function AddListingClient({ categories, currency }: Props) {
     return ''
   }, [min30, min60, min90, err30, err60, err90, p60, p90, symbol, floor])
 
-  // --- Submit is disabled throughout Commit A. Handler wired in Commit B. ---
-  const submitDisabled = true
-  const noop = useCallback(async () => { /* Commit B wires the real handler */ }, [])
+  // --- Form validity ---
+  const pricingValid = freeTrial || (
+    p30n >= floor && p60n >= floor && p90n >= floor && p30n < p60n && p60n < p90n
+  )
+  const categoryValid = !!category && (category.type === 'id' || category.text.trim().length >= 2)
+  const allUploadsDone = !!avatarUrl && !!media && !uploadingAvatar && !uploadingMedia
+  const textFieldsValid =
+    name.trim().length >= 2 &&
+    city.trim().length >= 2 &&
+    country.trim().length >= 2 &&
+    instagram.trim().length >= 1
+  const isValid = textFieldsValid && categoryValid && allUploadsDone && pricingValid
+  const isUploading = uploadingAvatar || uploadingMedia
+  const submitIdleLabel = isUploading ? 'Uploading…' : 'Create listing'
+
+  // ---- Submit handler ----
+  const handleSubmit = useCallback(async () => {
+    if (!isValid) throw new Error('form invalid')
+
+    // Force validation on all pricing fields (catches never-blurred paths)
+    if (!freeTrial) {
+      setTouched30(true); setTouched60(true); setTouched90(true)
+      if (!pricingValid) throw new Error('pricing invalid')
+    }
+
+    // 1. Resolve professional (if not already resolved via blur-dedup)
+    let pid = professionalId
+    if (!pid) {
+      const res = await fetch('/api/ambassador/model/professionals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instagram_handle: normalizeInstagram(instagram),
+          name,
+          city,
+          country,
+          avatar_photo_url: avatarUrl,
+        }),
+      })
+      if (!res.ok) {
+        showToast({ emoji: '📡', message: 'Couldn’t reach server. Try again.' })
+        throw new Error('professionals POST failed')
+      }
+      const data = await res.json() as { professional: { id: string }; created: boolean }
+      pid = data.professional.id
+      setProfessionalId(pid)
+    }
+
+    // 2. Build listing payload
+    const payload: Record<string, unknown> = {
+      professional_id: pid,
+      category_id: category?.type === 'id' ? category.id : null,
+      category_custom: category?.type === 'custom' ? category.text : null,
+      media_type: media!.kind === 'photos' ? 'photos' : 'video',
+      video_url: media!.kind === 'video' ? media!.url : null,
+      photo_urls: media!.kind === 'photos' ? media!.urls : null,
+      is_free_trial: freeTrial,
+    }
+    if (!freeTrial) {
+      payload.price_30 = p30n
+      payload.price_60 = p60n
+      payload.price_90 = p90n
+    }
+
+    // 3. Create listing
+    const listingRes = await fetch('/api/ambassador/model/listings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!listingRes.ok) {
+      showToast({ emoji: '📡', message: 'Couldn’t reach server. Try again.' })
+      throw new Error('listings POST failed')
+    }
+    const listingData = await listingRes.json() as { listing: { id: string; is_free_trial: boolean } }
+
+    // 4. Redirect — celebration toast fires on listings page via ?new flag
+    const type = listingData.listing.is_free_trial ? 'trial' : 'paid'
+    router.push(`/model/listings?new=${listingData.listing.id}&type=${type}`)
+  }, [isValid, freeTrial, pricingValid, professionalId, instagram, name, city, country, avatarUrl, category, media, p30n, p60n, p90n, showToast, router])
 
   const onPriceInput = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const digitsOnly = e.target.value.replace(/[^0-9]/g, '')
@@ -195,8 +591,8 @@ export default function AddListingClient({ categories, currency }: Props) {
       background: '#000',
       color: '#fff',
       fontFamily: 'system-ui, -apple-system, sans-serif',
+      position: 'relative',
     }}>
-      {/* Pink focus ring — scoped to this page, matches mockup vocabulary */}
       <style>{`
         #${FOCUS_SCOPE_ID} input[type="text"]:focus,
         #${FOCUS_SCOPE_ID} input[type="tel"]:focus,
@@ -208,7 +604,24 @@ export default function AddListingClient({ categories, currency }: Props) {
           border-color: #e91e8c !important;
           transition: border-color 0.15s;
         }
+        #${FOCUS_SCOPE_ID} input:disabled { color: #888; }
       `}</style>
+
+      {/* Hidden file inputs */}
+      <input
+        ref={avatarInputRef}
+        type="file"
+        accept="image/*"
+        onChange={onAvatarFilePicked}
+        style={{ display: 'none' }}
+      />
+      <input
+        ref={mediaInputRef}
+        type="file"
+        accept="image/*,video/*"
+        onChange={onMediaFilePicked}
+        style={{ display: 'none' }}
+      />
 
       {/* Header — back arrow */}
       <div style={{ padding: '14px 20px 0' }}>
@@ -249,34 +662,85 @@ export default function AddListingClient({ categories, currency }: Props) {
             placeholder="Salon, clinic or doctor name"
             value={name}
             onChange={(e) => setName(capFirst(e.target.value))}
-            style={{ ...INPUT_BASE, marginBottom: 10 }}
+            disabled={professionalLocked}
+            style={{
+              ...INPUT_BASE,
+              marginBottom: 10,
+              opacity: professionalLocked ? 0.6 : 1,
+              cursor: professionalLocked ? 'not-allowed' : 'text',
+            }}
           />
 
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
-            {/* Avatar tile — empty state, no click handler in Commit A */}
+            {/* Avatar tile — click opens picker. Shows image when uploaded. */}
             <div style={{ flexShrink: 0, position: 'relative' }}>
-              <div style={{
-                width: 52, height: 52, borderRadius: '50%',
-                background: '#1c1c1c', border: '1.5px dashed #333',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                overflow: 'hidden', textAlign: 'center',
-              }}>
-                <div style={{ fontSize: 8, color: '#666', lineHeight: 1.2, fontWeight: 500 }}>
-                  Profile<br />Image
+              <div
+                onClick={openAvatarPicker}
+                style={{
+                  width: 52, height: 52, borderRadius: '50%',
+                  background: '#1c1c1c',
+                  border: avatarUrl
+                    ? '2px solid transparent'
+                    : '1.5px dashed #333',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  overflow: 'hidden', textAlign: 'center',
+                  cursor: professionalLocked ? 'default' : 'pointer',
+                  backgroundImage: avatarUrl
+                    ? `linear-gradient(#000,#000), linear-gradient(45deg,#FEDA75 0%,#FA7E1E 25%,#D62976 50%,#962FBF 100%)`
+                    : undefined,
+                  backgroundOrigin: avatarUrl ? 'border-box' : undefined,
+                  backgroundClip: avatarUrl ? 'padding-box, border-box' : undefined,
+                  padding: avatarUrl ? 2 : 0,
+                }}
+              >
+                {uploadingAvatar ? (
+                  <div style={{ fontSize: 9, color: '#888' }}>…</div>
+                ) : avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={avatarUrl}
+                    alt="avatar"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%', display: 'block' }}
+                  />
+                ) : (
+                  <div style={{ fontSize: 8, color: '#666', lineHeight: 1.2, fontWeight: 500 }}>
+                    Profile<br />Image
+                  </div>
+                )}
+              </div>
+              {/* Remove button — only when avatar present and not locked */}
+              {avatarUrl && !professionalLocked && !uploadingAvatar && (
+                <div
+                  onClick={(e) => { e.stopPropagation(); removeAvatar() }}
+                  style={{
+                    position: 'absolute', top: -4, right: -4,
+                    width: 18, height: 18, borderRadius: '50%',
+                    background: '#000', border: '1.5px solid #262626',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
                 </div>
-              </div>
-              <div style={{
-                position: 'absolute', bottom: -2, right: -2,
-                width: 20, height: 20, borderRadius: '50%',
-                background: '#1c1c1c', border: '2px solid #1c1c1c',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0z" fill="#e91e8c" />
-                  <path d="M12 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8z" fill="#e91e8c" />
-                  <circle cx="18.406" cy="5.594" r="1.44" fill="#e91e8c" />
-                </svg>
-              </div>
+              )}
+              {!avatarUrl && !uploadingAvatar && (
+                <div style={{
+                  position: 'absolute', bottom: -2, right: -2,
+                  width: 20, height: 20, borderRadius: '50%',
+                  background: '#1c1c1c', border: '2px solid #1c1c1c',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  pointerEvents: 'none',
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0z" fill="#e91e8c" />
+                    <path d="M12 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8z" fill="#e91e8c" />
+                    <circle cx="18.406" cy="5.594" r="1.44" fill="#e91e8c" />
+                  </svg>
+                </div>
+              )}
             </div>
 
             {/* Category dropdown */}
@@ -294,9 +758,7 @@ export default function AddListingClient({ categories, currency }: Props) {
                   alignItems: 'center',
                   cursor: 'pointer',
                   color: category
-                    ? (category.type === 'custom' && !customCategoryText
-                        ? '#e91e8c'
-                        : '#fff')
+                    ? (category.type === 'custom' && !customCategoryText ? '#e91e8c' : '#fff')
                     : '#666',
                 }}
               >
@@ -326,25 +788,14 @@ export default function AddListingClient({ categories, currency }: Props) {
                     <div
                       key={c.id}
                       onClick={() => selectCategory(c)}
-                      style={{
-                        padding: '12px 16px',
-                        fontSize: 13,
-                        cursor: 'pointer',
-                        borderBottom: '1px solid #262626',
-                      }}
+                      style={{ padding: '12px 16px', fontSize: 13, cursor: 'pointer', borderBottom: '1px solid #262626' }}
                     >
                       {c.label}
                     </div>
                   ))}
                   <div
                     onClick={selectCustom}
-                    style={{
-                      padding: '12px 16px',
-                      fontSize: 13,
-                      cursor: 'pointer',
-                      color: '#e91e8c',
-                      borderTop: '1px solid #333',
-                    }}
+                    style={{ padding: '12px 16px', fontSize: 13, cursor: 'pointer', color: '#e91e8c', borderTop: '1px solid #333' }}
                   >
                     Customize
                   </div>
@@ -353,34 +804,28 @@ export default function AddListingClient({ categories, currency }: Props) {
             </div>
           </div>
 
-          {/* Custom category input — appears when "Customize" is selected */}
+          {avatarError && (
+            <div style={{ fontSize: 11, color: '#ef4444', marginBottom: 10, paddingLeft: 4 }}>
+              {avatarError}
+            </div>
+          )}
+
           {showCustomInput && (
             <div style={{ marginBottom: 10 }}>
               <div className="al-fw" style={{
-                background: '#1c1c1c',
-                border: '1.5px solid #262626',
-                borderRadius: 12,
-                display: 'flex',
-                alignItems: 'center',
-                transition: 'border-color 0.15s',
+                background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
+                display: 'flex', alignItems: 'center', transition: 'border-color 0.15s',
               }}>
                 <input
                   type="text"
                   placeholder="Type your category and press Enter"
                   value={customCategoryText}
                   onChange={(e) => onCustomCategoryChange(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLInputElement).blur() }
-                  }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLInputElement).blur() } }}
                   style={{
                     flex: 1, minWidth: 0,
-                    background: 'transparent',
-                    border: 'none',
-                    outline: 'none',
-                    padding: '14px 16px',
-                    fontSize: 14,
-                    color: '#fff',
-                    fontFamily: 'inherit',
+                    background: 'transparent', border: 'none', outline: 'none',
+                    padding: '14px 16px', fontSize: 14, color: '#fff', fontFamily: 'inherit',
                   }}
                 />
                 {customCategoryText.trim().length >= 2 && (
@@ -400,29 +845,31 @@ export default function AddListingClient({ categories, currency }: Props) {
               placeholder="City"
               value={city}
               onChange={(e) => setCity(capFirst(e.target.value))}
-              style={{ ...INPUT_BASE, flex: 1, minWidth: 0 }}
+              disabled={professionalLocked}
+              style={{
+                ...INPUT_BASE, flex: 1, minWidth: 0,
+                opacity: professionalLocked ? 0.6 : 1,
+                cursor: professionalLocked ? 'not-allowed' : 'text',
+              }}
             />
             <input
               type="text"
               placeholder="Country"
               value={country}
               onChange={(e) => setCountry(capFirst(e.target.value))}
-              style={{ ...INPUT_BASE, flex: 1, minWidth: 0 }}
+              disabled={professionalLocked}
+              style={{
+                ...INPUT_BASE, flex: 1, minWidth: 0,
+                opacity: professionalLocked ? 0.6 : 1,
+                cursor: professionalLocked ? 'not-allowed' : 'text',
+              }}
             />
           </div>
 
-          {/* Instagram row — IG icon + input, focus-within pink ring */}
           <div className="al-fw" style={{
-            background: '#1c1c1c',
-            border: '1.5px solid #262626',
-            borderRadius: 12,
-            padding: '0 16px',
-            fontSize: 14,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            height: 48,
-            transition: 'border-color 0.15s',
+            background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
+            padding: '0 16px', fontSize: 14, display: 'flex', alignItems: 'center',
+            gap: 10, height: 48, transition: 'border-color 0.15s',
           }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
               <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0z" fill="#e91e8c" />
@@ -433,18 +880,16 @@ export default function AddListingClient({ categories, currency }: Props) {
               type="text"
               placeholder="Professional's username"
               value={instagram}
-              onChange={(e) => setInstagram(e.target.value.replace(/[^a-zA-Z0-9._]/g, ''))}
+              onChange={(e) => onInstagramChange(e.target.value)}
+              onBlur={onInstagramBlur}
               style={{
-                flex: 1,
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                fontSize: 14,
-                color: '#fff',
-                fontFamily: 'inherit',
-                padding: 0,
+                flex: 1, background: 'transparent', border: 'none', outline: 'none',
+                fontSize: 14, color: '#fff', fontFamily: 'inherit', padding: 0,
               }}
             />
+            {dedupInFlight && (
+              <span style={{ fontSize: 11, color: '#666', flexShrink: 0 }}>…</span>
+            )}
           </div>
         </div>
 
@@ -452,29 +897,111 @@ export default function AddListingClient({ categories, currency }: Props) {
         <div style={{ marginBottom: 22 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             <div style={{ ...SECTION_LABEL, marginBottom: 0 }}>Media</div>
+            {media?.kind === 'photos' && (
+              <div style={{ fontSize: 11, color: '#666' }}>{media.urls.length}/3 images</div>
+            )}
           </div>
 
-          {/* Empty-state tile — no click handler in Commit A */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#1c1c1c',
-            border: '1.5px dashed #333',
-            borderRadius: 12,
-            padding: 24,
-          }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 8 }}>
-              <polygon points="23 7 16 12 23 17 23 7" />
-              <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-            </svg>
-            <div style={{ fontSize: 11, color: '#666' }}>Upload 1 video OR up to 3 photos</div>
-            <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>Vertical works best</div>
-          </div>
+          {!media && !uploadingMedia && (
+            <div
+              onClick={openMediaPicker}
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                background: '#1c1c1c', border: '1.5px dashed #333', borderRadius: 12, padding: 24,
+                cursor: 'pointer',
+              }}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 8 }}>
+                <polygon points="23 7 16 12 23 17 23 7" />
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+              </svg>
+              <div style={{ fontSize: 11, color: '#666' }}>Upload 1 video OR up to 3 photos</div>
+              <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>Vertical works best</div>
+            </div>
+          )}
+
+          {uploadingMedia && !media && (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: '#1c1c1c', border: '1.5px dashed #333', borderRadius: 12, padding: 24,
+              fontSize: 11, color: '#888',
+            }}>
+              Uploading…
+            </div>
+          )}
+
+          {media?.kind === 'video' && (
+            <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', background: '#1c1c1c', border: '1.5px solid #262626' }}>
+              <video
+                src={media.previewUrl}
+                controls
+                style={{ width: '100%', height: 220, objectFit: 'cover', display: 'block' }}
+              />
+              <div
+                onClick={removeMediaVideo}
+                style={{
+                  position: 'absolute', top: 8, right: 8,
+                  width: 26, height: 26, background: 'rgba(0,0,0,0.7)', borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', border: '1px solid rgba(255,255,255,0.2)',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </div>
+            </div>
+          )}
+
+          {media?.kind === 'photos' && (
+            <div style={{ display: 'flex', gap: 8 }}>
+              {media.urls.map((url, i) => (
+                <div key={i} style={{ flex: 1, aspectRatio: '9/16', position: 'relative', borderRadius: 10, overflow: 'hidden', background: '#1c1c1c', border: '1.5px solid #262626' }}>
+                  { /* eslint-disable-next-line @next/next/no-img-element */ }
+                  <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <div
+                    onClick={() => removeMediaPhoto(i)}
+                    style={{
+                      position: 'absolute', top: 4, right: 4,
+                      width: 22, height: 22, background: 'rgba(0,0,0,0.75)', borderRadius: '50%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                    }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </div>
+                </div>
+              ))}
+              {media.urls.length < 3 && Array.from({ length: 3 - media.urls.length }).map((_, j) => (
+                <div
+                  key={`empty-${j}`}
+                  onClick={openMediaPicker}
+                  style={{
+                    flex: 1, aspectRatio: '9/16', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center',
+                    background: '#1c1c1c', border: '1.5px dashed #333', borderRadius: 12, cursor: 'pointer',
+                  }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {mediaError && (
+            <div style={{ fontSize: 11, color: '#ef4444', marginTop: 8, paddingLeft: 4 }}>
+              {mediaError}
+            </div>
+          )}
         </div>
 
-        {/* ================== PRICING (collapses on trial) ================== */}
+        {/* ================== PRICING ================== */}
         <div style={{
           marginBottom: freeTrial ? 0 : 22,
           overflow: 'hidden',
@@ -514,42 +1041,26 @@ export default function AddListingClient({ categories, currency }: Props) {
 
         {/* ================== FREE TRIAL ================== */}
         <div style={{
-          background: '#1c1c1c',
-          border: `1.5px solid ${freeTrial ? '#e91e8c' : '#262626'}`,
-          borderRadius: 12,
-          padding: '14px 16px',
-          marginBottom: 24,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          background: '#1c1c1c', border: `1.5px solid ${freeTrial ? '#e91e8c' : '#262626'}`,
+          borderRadius: 12, padding: '14px 16px', marginBottom: 24,
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           transition: 'border-color 0.25s',
         }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 500 }}>Free 30-day trial</div>
-            <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>
-              Listing goes live immediately
-            </div>
+            <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>Listing goes live immediately</div>
           </div>
-          {/* Toggle — same knob/track math as settings/page.tsx ToggleRow */}
           <div
             onClick={() => setFreeTrial((v) => !v)}
             style={{
-              width: 44, height: 24,
-              background: freeTrial ? '#e91e8c' : '#262626',
-              borderRadius: 12,
-              position: 'relative',
-              cursor: 'pointer',
-              transition: 'background 0.2s',
-              flexShrink: 0,
+              width: 44, height: 24, background: freeTrial ? '#e91e8c' : '#262626',
+              borderRadius: 12, position: 'relative', cursor: 'pointer',
+              transition: 'background 0.2s', flexShrink: 0,
             }}
           >
             <div style={{
-              width: 20, height: 20,
-              background: '#fff',
-              borderRadius: '50%',
-              position: 'absolute',
-              top: 2,
-              left: freeTrial ? 22 : 2,
+              width: 20, height: 20, background: '#fff', borderRadius: '50%',
+              position: 'absolute', top: 2, left: freeTrial ? 22 : 2,
               transition: 'left 0.2s',
             }} />
           </div>
@@ -559,16 +1070,55 @@ export default function AddListingClient({ categories, currency }: Props) {
         <AmbSubmitButton
           verb="save"
           variant="solid"
-          idleLabel="Create listing"
-          disabled={submitDisabled}
-          onSubmit={noop}
+          idleLabel={submitIdleLabel}
+          disabled={!isValid}
+          onSubmit={handleSubmit}
         />
       </div>
+
+      {/* Cropper mounts — portaled internally */}
+      {avatarCropperFile && (
+        <ImageCropper
+          sourceFile={avatarCropperFile}
+          mode="avatar"
+          onCropComplete={onAvatarCropComplete}
+          onCancel={onAvatarCropCancel}
+        />
+      )}
+      {mediaCropperFile && (
+        <ImageCropper
+          sourceFile={mediaCropperFile}
+          mode="listing"
+          onCropComplete={onMediaCropComplete}
+          onCancel={onMediaCropCancel}
+        />
+      )}
+
+      {/* Toast — canonical amb-toast-in/out animation (Slice 3A retrofit pattern) */}
+      {toast && (
+        <div
+          key={toastKey}
+          style={{
+            position: 'fixed',
+            top: 50, left: '50%', transform: 'translateX(-50%)',
+            background: 'rgba(28,28,28,0.95)', border: '1px solid #333',
+            color: '#fff', fontSize: 12, padding: '10px 18px', borderRadius: 24,
+            zIndex: 150, whiteSpace: 'nowrap',
+            display: 'flex', alignItems: 'center', gap: 8,
+            pointerEvents: 'none',
+            animation:
+              'amb-toast-in 1200ms cubic-bezier(.2,.7,.2,1) forwards, ' +
+              'amb-toast-out 1200ms cubic-bezier(.5,.2,.8,.1) 4000ms forwards',
+          }}
+        >
+          {toast.emoji && <span style={{ fontSize: 14, lineHeight: 1 }}>{toast.emoji}</span>}
+          <span>{toast.message}</span>
+        </div>
+      )}
     </div>
   )
 }
 
-// Pricing box — kept local, rule-of-three hasn't triggered.
 function PriceBox({
   days, value, onInput, onFocus, onBlur, perDay, symbol, bad, offPct,
 }: {
@@ -586,16 +1136,10 @@ function PriceBox({
     <div style={{ flex: 1, position: 'relative' }}>
       {offPct != null && (
         <div style={{
-          display: 'block',
-          position: 'absolute',
-          top: -10, left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 2,
-          fontSize: 9, fontWeight: 600,
-          background: '#e91e8c', color: '#fff',
-          padding: '2px 8px',
-          borderRadius: 8,
-          whiteSpace: 'nowrap',
+          display: 'block', position: 'absolute', top: -10, left: '50%',
+          transform: 'translateX(-50%)', zIndex: 2,
+          fontSize: 9, fontWeight: 600, background: '#e91e8c', color: '#fff',
+          padding: '2px 8px', borderRadius: 8, whiteSpace: 'nowrap',
         }}>
           {offPct}% OFF
         </div>
@@ -603,31 +1147,21 @@ function PriceBox({
       <div style={{
         background: '#1c1c1c',
         border: `1.5px solid ${bad ? '#e91e8c' : '#262626'}`,
-        borderRadius: 12,
-        padding: 10,
-        textAlign: 'center',
+        borderRadius: 12, padding: 10, textAlign: 'center',
         transition: 'border-color 0.15s',
       }}>
         <div style={{ fontSize: 11, color: '#666', marginBottom: 6 }}>{days} days</div>
         <input
-          type="text"
-          inputMode="numeric"
-          placeholder={symbol}
+          type="text" inputMode="numeric" placeholder={symbol}
           value={value}
           onChange={onInput}
           onFocus={onFocus}
           onBlur={onBlur}
           onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
           style={{
-            width: '100%',
-            background: 'transparent',
-            border: 'none',
-            outline: 'none',
-            fontSize: 18, fontWeight: 600,
-            color: '#fff',
-            textAlign: 'center',
-            fontFamily: 'inherit',
-            padding: 0,
+            width: '100%', background: 'transparent', border: 'none', outline: 'none',
+            fontSize: 18, fontWeight: 600, color: '#fff', textAlign: 'center',
+            fontFamily: 'inherit', padding: 0,
           }}
         />
         <div style={{ fontSize: 11, color: '#666', marginTop: 4, height: 13 }}>
