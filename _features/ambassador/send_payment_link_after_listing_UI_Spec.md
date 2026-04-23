@@ -71,6 +71,10 @@ Error message: **"Minimum {symbol}{X}"** or **"60-day price must be higher than 
 
 ## 6. Payment Link
 
+**SUPERSEDED by Slice 3B Phase 4 schema decisions.** The spec's proposed `payment_token` TEXT + `payment_token_expires_at` TIMESTAMP columns are NOT added. Live schema uses `model_listings.payment_link_token` (8-char UNIQUE, generated at listing POST via `randomBytes(6).toString('base64url')`, **permanent per row — never rotated**). The spec's lazy-generation + 14-day expiry flow is replaced with permanent tokens for V1. Rotation/expiry can be retrofit later if product needs surface. `link_sent_at` tracking column is also deferred — spec remains unchanged but production does not implement it. Original spec language retained as historical reference only.
+
+---
+
 ### 6.1 Generation
 - **Lazy: generated on this page load** (not at Add Listing time)
 - Reason: tokens have an expiry — fresh generation gives full validity window
@@ -183,6 +187,10 @@ Ambassador notification copy and channels are existing system patterns — Claud
 ---
 
 ## 11. Build Notes for Claude Code
+
+**SUPERSEDED by Slice 3B Phase 4 schema decisions.** See §6 supersession note. Schema-addition proposals below (§11.1) are NOT implemented. Production uses the existing `model_listings.payment_link_token` column; no `payment_token`, no `payment_token_expires_at`, no `link_sent_at`. Token-generation details below (§11.2) are also not used — tokens are generated once at listing creation, not lazily on visit. Original language retained as historical reference only.
+
+---
 
 ### 11.1 Schema additions
 
