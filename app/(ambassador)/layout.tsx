@@ -77,6 +77,16 @@ export default function AmbassadorLayout({
           40%  { filter: brightness(1.15); }
           100% { filter: brightness(1); }
         }
+        /* Toast entrance + exit. Baked-in translateX(-50%) preserves
+           the horizontal centering used by every ambassador toast. */
+        @keyframes amb-toast-in {
+          0%   { opacity: 0; transform: translate(-50%, 20px); }
+          100% { opacity: 1; transform: translate(-50%, 0); }
+        }
+        @keyframes amb-toast-out {
+          0%   { opacity: 1; transform: translate(-50%, 0); }
+          100% { opacity: 0; transform: translate(-50%, 20px); }
+        }
       `}</style>
       <div
         style={{

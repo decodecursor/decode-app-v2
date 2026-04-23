@@ -126,6 +126,7 @@ export default function ListingsClient({ listings: initialListings }: { listings
   const [filter, setFilter] = useState<Filter>('all')
   const [listings, setListings] = useState<ListingCardRow[]>(initialListings)
   const [toast, setToast] = useState<ToastPayload | null>(null)
+  const [toastKey, setToastKey] = useState(0)
   const [openDelete, setOpenDelete] = useState<ListingCardRow | null>(null)
   const [removingId, setRemovingId] = useState<string | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -134,10 +135,15 @@ export default function ListingsClient({ listings: initialListings }: { listings
     if (toastTimer.current) clearTimeout(toastTimer.current)
   }, [])
 
+  // Lifecycle matches listings_final_UI_Spec.md §7.9:
+  // 1200ms amb-toast-in + 2800ms hold + 1200ms amb-toast-out = 5200ms.
+  const TOAST_LIFECYCLE_MS = 5200
+
   const showToast = (payload: ToastPayload | string) => {
     setToast(typeof payload === 'string' ? { message: payload } : payload)
+    setToastKey((k) => k + 1)
     if (toastTimer.current) clearTimeout(toastTimer.current)
-    toastTimer.current = setTimeout(() => setToast(null), 1800)
+    toastTimer.current = setTimeout(() => setToast(null), TOAST_LIFECYCLE_MS)
   }
 
   const refetchListings = async () => {
@@ -391,25 +397,36 @@ export default function ListingsClient({ listings: initialListings }: { listings
 
       <div style={{ padding: '24px 20px 20px' }} />
 
-      {/* Toast — same chrome as the coming-soon toast, optional leading emoji */}
+      {/* Toast — chrome identical to other ambassador toasts (Principle E).
+          Animation per listings_final_UI_Spec.md §7.9 — amb-toast-in +
+          amb-toast-out keyframes live in (ambassador)/layout.tsx for reuse.
+          key prop forces a fresh mount per payload so back-to-back toasts
+          replay the entrance animation. */}
       {toast && (
-        <div style={{
-          position: 'fixed',
-          top: 50,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'rgba(28,28,28,0.95)',
-          border: '1px solid #333',
-          color: '#fff',
-          fontSize: 12,
-          padding: '10px 18px',
-          borderRadius: 24,
-          zIndex: 50,
-          whiteSpace: 'nowrap',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-        }}>
+        <div
+          key={toastKey}
+          style={{
+            position: 'fixed',
+            top: 50,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(28,28,28,0.95)',
+            border: '1px solid #333',
+            color: '#fff',
+            fontSize: 12,
+            padding: '10px 18px',
+            borderRadius: 24,
+            zIndex: 50,
+            whiteSpace: 'nowrap',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            animation:
+              'amb-toast-in 1200ms cubic-bezier(.2,.7,.2,1) forwards, ' +
+              'amb-toast-out 1200ms cubic-bezier(.5,.2,.8,.1) 4000ms forwards',
+            pointerEvents: 'none',
+          }}
+        >
           {toast.emoji && <span style={{ fontSize: 14, lineHeight: 1 }}>{toast.emoji}</span>}
           <span>{toast.message}</span>
         </div>
