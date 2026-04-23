@@ -134,6 +134,12 @@ Added after Slice 2 code review surfaced that `email_change_requests` (created i
 
 Added after Slice 3A toast-animation divergence: seven existing ambassador toasts had no entrance animation; the Listings spec prescribed one; shipping it only on Listings created the exact per-page invention pattern Principle I forbids. Pairs with Principle I in DECODE_PROJECT_STATE.md.
 
+### Guardrail 11 — Self-referential commit pattern
+
+When a commit's content (docs, backlog closures, origin notes) needs to reference its own hash, use a two-commit pattern — the code/content commit first with a placeholder, then a follow-up doc-fix commit that substitutes the real hash. Do NOT use `git commit --amend` for this — amending changes the commit content, which changes the SHA, which invalidates the substituted hash.
+
+Lesson from Slice 3A retrofit (commit `e2095e4` → `af5e7d8`): the first-try workflow was commit-with-placeholder → amend-with-real-hash, and the amend generated a new SHA (`a99ec01` → `e2095e4`) that didn't match the hash substituted inside it, leaving the docs pointing to an unreachable ghost commit. Recovered with a follow-up doc-fix commit — the only convergent path.
+
 ### Pre-launch checklist
 
 Temporary dev/testing values that must be reset before launch are
