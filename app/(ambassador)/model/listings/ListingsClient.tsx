@@ -149,10 +149,12 @@ export default function ListingsClient({ listings: initialListings }: { listings
     const params = new URLSearchParams(window.location.search)
     const newId = params.get('new')
     const type = params.get('type')
-    if (!newId || !type) return
-    if (type === 'trial') {
+    const updatedId = params.get('updated')
+    if (updatedId) {
+      setToast({ emoji: '✓', message: 'Listing updated' })
+    } else if (newId && type === 'trial') {
       setToast({ emoji: '🎉', message: 'Your trial listing is live — 30 days until it expires' })
-    } else if (type === 'paid') {
+    } else if (newId && type === 'paid') {
       setToast({ emoji: '🎉', message: 'Listing created — Send Link ships in the next update' })
     } else {
       return
@@ -343,6 +345,16 @@ export default function ListingsClient({ listings: initialListings }: { listings
                       <polyline points="16 6 12 2 8 6" />
                       <line x1="12" y1="2" x2="12" y2="15" />
                     </svg>
+                    {l.effective_status !== 'expired' && (
+                      <svg
+                        onClick={() => router.push(`/model/listings/${l.id}/edit`)}
+                        width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                      </svg>
+                    )}
                     <svg
                       onClick={() => setOpenDelete(l)}
                       width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={deleteStroke(l)} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"

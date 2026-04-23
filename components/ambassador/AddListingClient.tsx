@@ -46,10 +46,42 @@ import {
 
 type Category = { id: string; label: string; slug: string }
 
+// Prefill shapes — required when mode='edit', optional otherwise.
+// professional mirrors the model_professionals row joined through the
+// listing's professional_id FK. listing carries the editable fields plus
+// is_free_trial (drives pricing lock) and status.
+type Professional = {
+  id: string
+  instagram_handle: string
+  name: string
+  city: string
+  country: string
+  avatar_photo_url: string
+}
+
+type ListingPrefill = {
+  id: string
+  is_free_trial: boolean
+  status: string
+  category_id: string | null
+  category_custom: string | null
+  media_type: 'video' | 'photos' | null
+  video_url: string | null
+  photo_url_1: string | null
+  photo_url_2: string | null
+  photo_url_3: string | null
+  price_30: number | null
+  price_60: number | null
+  price_90: number | null
+}
+
 interface Props {
   categories: Category[]
   currency: string
   profileId: string
+  mode?: 'create' | 'edit'
+  listing?: ListingPrefill
+  professional?: Professional
 }
 
 type CategorySelection =
@@ -97,7 +129,15 @@ const INPUT_BASE: React.CSSProperties = {
 
 const FOCUS_SCOPE_ID = 'add-listing-page'
 
-export default function AddListingClient({ categories, currency, profileId: _profileId }: Props) {
+export default function AddListingClient({
+  categories,
+  currency,
+  profileId: _profileId,
+  mode = 'create',
+  listing,
+  professional,
+}: Props) {
+  const isEdit = mode === 'edit'
   const router = useRouter()
   // Stable browser Supabase client — one per component mount.
   const supabase = useMemo(() => createClient(), [])
@@ -114,41 +154,86 @@ export default function AddListingClient({ categories, currency, profileId: _pro
   }, [supabase])
 
   // --- Text form state ---
-  const [name, setName] = useState('')
-  const [city, setCity] = useState('')
-  const [country, setCountry] = useState('')
-  const [instagram, setInstagram] = useState('')
-  const [category, setCategory] = useState<CategorySelection>(null)
+  // In edit mode, professional fields (name/city/country/instagram) are
+  // prefilled from the joined model_professionals row and rendered locked
+  // (per Slice 3C locked decision #2 — identity immutable). In create mode
+  // these are empty and editable. Lazy initializers run exactly once at
+  // mount so the prefill check happens without re-evaluation.
+  const [name, setName] = useState(() => (isEdit && professional ? professional.name : ''))
+  const [city, setCity] = useState(() => (isEdit && professional ? professional.city : ''))
+  const [country, setCountry] = useState(() => (isEdit && professional ? professional.country : ''))
+  const [instagram, setInstagram] = useState(() => (isEdit && professional ? professional.instagram_handle : ''))
+  const [category, setCategory] = useState<CategorySelection>(() => {
+    if (isEdit && listing) {
+      if (listing.category_id) {
+        const found = categories.find((c) => c.id === listing.category_id)
+        if (found) return { type: 'id', id: found.id, label: found.label }
+      }
+      if (listing.category_custom) return { type: 'custom', text: listing.category_custom }
+    }
+    return null
+  })
   const [categoryOpen, setCategoryOpen] = useState(false)
-  const [customCategoryText, setCustomCategoryText] = useState('')
-  const [showCustomInput, setShowCustomInput] = useState(false)
+  const [customCategoryText, setCustomCategoryText] = useState(() =>
+    isEdit && listing?.category_custom ? listing.category_custom : '',
+  )
+  const [showCustomInput, setShowCustomInput] = useState(() =>
+    !!(isEdit && listing?.category_custom),
+  )
 
-  const [p30, setP30] = useState('')
-  const [p60, setP60] = useState('')
-  const [p90, setP90] = useState('')
+  const [p30, setP30] = useState(() =>
+    isEdit && listing?.price_30 != null ? String(listing.price_30) : '',
+  )
+  const [p60, setP60] = useState(() =>
+    isEdit && listing?.price_60 != null ? String(listing.price_60) : '',
+  )
+  const [p90, setP90] = useState(() =>
+    isEdit && listing?.price_90 != null ? String(listing.price_90) : '',
+  )
   const [touched30, setTouched30] = useState(false)
   const [touched60, setTouched60] = useState(false)
   const [touched90, setTouched90] = useState(false)
 
-  const [freeTrial, setFreeTrial] = useState(false)
+  // is_free_trial is immutable in edit mode (locked decision #2). Prefill
+  // matches the existing row; toggle is disabled below.
+  const [freeTrial, setFreeTrial] = useState(() => (isEdit && listing ? listing.is_free_trial : false))
 
   // --- Upload state ---
   const [avatarCropperFile, setAvatarCropperFile] = useState<File | null>(null)
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(() =>
+    isEdit && professional ? professional.avatar_photo_url : null,
+  )
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [avatarError, setAvatarError] = useState<string | null>(null)
 
   const [mediaCropperFile, setMediaCropperFile] = useState<File | null>(null)
-  const [media, setMedia] = useState<Media>(null)
+  const [media, setMedia] = useState<Media>(() => {
+    if (isEdit && listing) {
+      if (listing.media_type === 'video' && listing.video_url) {
+        // previewUrl = the public URL; <video src> plays it directly. No
+        // local createObjectURL lifecycle in edit mode — the file lives
+        // in storage already.
+        return { kind: 'video', url: listing.video_url, previewUrl: listing.video_url }
+      }
+      if (listing.media_type === 'photos' && listing.photo_url_1) {
+        const urls = [listing.photo_url_1, listing.photo_url_2, listing.photo_url_3].filter(Boolean) as string[]
+        return { kind: 'photos', urls }
+      }
+    }
+    return null
+  })
   const [uploadingMedia, setUploadingMedia] = useState(false)
   const [mediaError, setMediaError] = useState<string | null>(null)
 
   // --- Dedup state ---
-  // professionalId is captured either from the on-blur dedup probe or from
-  // submit-time resolution. professionalLocked means an existing row was
-  // matched and name/city/country are now read-only snapshots from it.
-  const [professionalId, setProfessionalId] = useState<string | null>(null)
-  const [professionalLocked, setProfessionalLocked] = useState(false)
+  // In create mode, professionalId + professionalLocked are set by the
+  // blur-dedup auto-swap path. In edit mode they're seeded from the
+  // joined professional and never mutate (IG handle is locked — no
+  // re-resolve path exists).
+  const [professionalId, setProfessionalId] = useState<string | null>(() =>
+    isEdit && professional ? professional.id : null,
+  )
+  const [professionalLocked, setProfessionalLocked] = useState(() => isEdit)
   const [dedupInFlight, setDedupInFlight] = useState(false)
   const lastProbedIgRef = useRef<string>('')
 
@@ -445,7 +530,9 @@ export default function AddListingClient({ categories, currency, profileId: _pro
     instagram.trim().length >= 1
   const isValid = textFieldsValid && categoryValid && allUploadsDone && pricingValid
   const isUploading = uploadingAvatar || uploadingMedia
-  const submitIdleLabel = isUploading ? 'Uploading…' : 'Create listing'
+  const submitIdleLabel = isUploading
+    ? 'Uploading…'
+    : isEdit ? 'Save changes' : 'Create listing'
 
   // ---- Submit handler ----
   const handleSubmit = useCallback(async () => {
@@ -457,6 +544,38 @@ export default function AddListingClient({ categories, currency, profileId: _pro
       if (!pricingValid) throw new Error('pricing invalid')
     }
 
+    // --- Edit mode: PATCH path, skip dedup entirely ---
+    // Professional is locked per Slice 3C locked decision #2 — IG handle
+    // + professional fields are immutable in edit. Only category / media /
+    // pricing mutate. PATCH rejects non-editable fields server-side; we
+    // only send what's editable.
+    if (isEdit && listing) {
+      const patchPayload: Record<string, unknown> = {
+        category_id: category?.type === 'id' ? category.id : null,
+        category_custom: category?.type === 'custom' ? category.text : null,
+        media_type: media!.kind === 'photos' ? 'photos' : 'video',
+        video_url: media!.kind === 'video' ? media!.url : null,
+        photo_url_1: media!.kind === 'photos' ? media!.urls[0] ?? null : null,
+        photo_url_2: media!.kind === 'photos' ? media!.urls[1] ?? null : null,
+        photo_url_3: media!.kind === 'photos' ? media!.urls[2] ?? null : null,
+        price_30: freeTrial ? null : p30n,
+        price_60: freeTrial ? null : p60n,
+        price_90: freeTrial ? null : p90n,
+      }
+      const patchRes = await fetch(`/api/ambassador/model/listings/${listing.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patchPayload),
+      })
+      if (!patchRes.ok) {
+        showToast({ emoji: '📡', message: 'Couldn’t reach server. Try again.' })
+        throw new Error('listings PATCH failed')
+      }
+      router.push(`/model/listings?updated=${listing.id}`)
+      return
+    }
+
+    // --- Create mode: dedup professional, POST listing, redirect ---
     // 1. Resolve professional (if not already resolved via blur-dedup)
     let pid = professionalId
     if (!pid) {
@@ -511,7 +630,7 @@ export default function AddListingClient({ categories, currency, profileId: _pro
     // 4. Redirect — celebration toast fires on listings page via ?new flag
     const type = listingData.listing.is_free_trial ? 'trial' : 'paid'
     router.push(`/model/listings?new=${listingData.listing.id}&type=${type}`)
-  }, [isValid, freeTrial, pricingValid, professionalId, instagram, name, city, country, avatarUrl, category, media, p30n, p60n, p90n, showToast, router])
+  }, [isValid, freeTrial, pricingValid, professionalId, instagram, name, city, country, avatarUrl, category, media, p30n, p60n, p90n, showToast, router, isEdit, listing])
 
   const onPriceInput = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const digitsOnly = e.target.value.replace(/[^0-9]/g, '')
@@ -577,10 +696,10 @@ export default function AddListingClient({ categories, currency, profileId: _pro
       {/* Hero */}
       <div style={{ padding: '8px 22px 22px', textAlign: 'center' }}>
         <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.2px', marginBottom: 6 }}>
-          Add listing
+          {isEdit ? 'Edit listing' : 'Add listing'}
         </div>
         <div style={{ fontSize: 11, color: '#888' }}>
-          Professional you want to display on your page
+          {isEdit ? 'Update the details — photo, category, pricing' : 'Professional you want to display on your page'}
         </div>
       </div>
 
@@ -803,6 +922,8 @@ export default function AddListingClient({ categories, currency, profileId: _pro
             background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
             padding: '0 16px', fontSize: 14, display: 'flex', alignItems: 'center',
             gap: 10, height: 48, transition: 'border-color 0.15s',
+            opacity: isEdit ? 0.6 : 1,
+            cursor: isEdit ? 'not-allowed' : 'text',
           }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
               <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0z" fill="#e91e8c" />
@@ -815,9 +936,11 @@ export default function AddListingClient({ categories, currency, profileId: _pro
               value={instagram}
               onChange={(e) => onInstagramChange(e.target.value)}
               onBlur={onInstagramBlur}
+              disabled={isEdit}
               style={{
                 flex: 1, background: 'transparent', border: 'none', outline: 'none',
                 fontSize: 14, color: '#fff', fontFamily: 'inherit', padding: 0,
+                cursor: isEdit ? 'not-allowed' : 'text',
               }}
             />
             {dedupInFlight && (
@@ -984,11 +1107,13 @@ export default function AddListingClient({ categories, currency, profileId: _pro
             <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>Listing goes live immediately</div>
           </div>
           <div
-            onClick={() => setFreeTrial((v) => !v)}
+            onClick={isEdit ? undefined : () => setFreeTrial((v) => !v)}
             style={{
               width: 44, height: 24, background: freeTrial ? '#e91e8c' : '#262626',
-              borderRadius: 12, position: 'relative', cursor: 'pointer',
+              borderRadius: 12, position: 'relative',
+              cursor: isEdit ? 'not-allowed' : 'pointer',
               transition: 'background 0.2s', flexShrink: 0,
+              opacity: isEdit ? 0.6 : 1,
             }}
           >
             <div style={{
