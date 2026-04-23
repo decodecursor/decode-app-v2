@@ -59,6 +59,10 @@ Form to list a beauty professional on the ambassador's public page. Collects ide
 
 ### 4.5 Video transcoding — REQUIRED for production
 
+**SUPERSEDED by DECODE_PROJECT_STATE.md Phase 1 #13.** V1 ships with NO transcoding. HEVC videos uploaded as-is; acceptable because 95%+ of beauty industry users are on iPhone Safari + Chrome where HEVC plays natively. Firefox/Android users may see playback issues; revisit if complaints arise. Silent acceptance — no banner, no tooltip, no upload-time warning. Original spec language below retained as historical reference only.
+
+---
+
 **Problem:** iPhones default to recording in HEVC (H.265) codec. Firefox and older Android browsers **cannot decode HEVC**. Without transcoding, ~30% of uploaded videos will fail to play for visitors.
 
 **Required behavior:**
