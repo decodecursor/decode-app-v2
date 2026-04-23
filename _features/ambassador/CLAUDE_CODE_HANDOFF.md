@@ -128,6 +128,12 @@ If a migration sets `ENABLE ROW LEVEL SECURITY` on a new table, at least one exp
 
 Added after Slice 2 code review surfaced that `email_change_requests` (created in Slice 1.5) had `ENABLE ROW LEVEL SECURITY` with zero policies. Functionally safe throughout — all callsites used service-role — but caught during review and backfilled in Slice 2 closeout.
 
+### Guardrail 10 — Principle I check (generic UI primitives)
+
+**Principle I check — generic UI primitives:** For every user-visible primitive this slice touches (toasts, modals, buttons, inputs, loading states, transitions, skeletons), report whether a canonical implementation exists in the codebase. If yes, the slice reuses it. If no, the slice proposes a canonical implementation + shared location + adds a retrofit item to the hardening backlog for any divergent existing instances. Report this BEFORE any code is written.
+
+Added after Slice 3A toast-animation divergence: seven existing ambassador toasts had no entrance animation; the Listings spec prescribed one; shipping it only on Listings created the exact per-page invention pattern Principle I forbids. Pairs with Principle I in DECODE_PROJECT_STATE.md.
+
 ### Pre-launch checklist
 
 Temporary dev/testing values that must be reset before launch are
@@ -610,6 +616,7 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 #### Slice 3 split (decided during 3A pre-flight, Principle H grounds)
 
 - **Slice 3A** — `/model/listings` read surface + `GET` / `DELETE` API + dashboard nav wire-up. ~0.5–1 day.
+  - Principle I (DECODE_PROJECT_STATE.md) locked during Slice 3A after toast animation surfaced the divergence pattern. Backlog item 6 (retrofit all ambassador toasts) is the corrective action.
 - **Slice 3B** — `/model/listings/new` (Add form + photo/video uploads + professional dedup) + `POST` API. ~1 day.
 - **Slice 3C** — `/model/listings/[id]/edit` (reuses Add form in edit mode) + `/model/listings/[id]/send-link` + `PATCH` API. ~0.5–1 day.
 

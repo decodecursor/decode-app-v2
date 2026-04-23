@@ -109,6 +109,16 @@ Each slice targets ~1 to 1.5 days of focused work with a single, testable end-to
 
 **Addendum 2026-04-22 — Pre-flight UX-lock gate (Slice 2 session lesson).** Pre-flight audit caught 5/5 code surprises this session but missed two UX-churn cases: B3→2.5 (action sheet superseded by direct-edit within hours) and 2.6→2.7 (onboarding mode branch added then deleted within ~30 min). Root cause: UX-churn isn't a code surprise, it's an un-locked upstream decision. For UI-heavy slices, pre-flight must add a "UX pattern locked?" gate — a 10-minute sketch review before any code is written. Net progress in both cases was still real (B3→2.5 delivered direct-edit; 2.6→2.7 delivered -90 lines of duplicate drag/position logic in `setup/page.tsx`), so neither is retrospectively regrettable — but both were avoidable with an earlier UX lock.
 
+### Principle I — Generic UI primitives must be defined once and reused everywhere
+
+Generic interaction primitives (toasts, modals, buttons, inputs, loading states, transitions, skeleton screens) must have one canonical implementation shared across all pages. When a slice needs a primitive that doesn't exist yet, the slice defines the canonical version once — shared location, shared styles, shared animation, shared timing — and all current and future instances use that one implementation.
+
+Per-slice invention of generic primitives (pop-in on page A, fade on page B, slide on page C) is a Principle I violation. User experience consistency is architectural, not cosmetic.
+
+Trigger: if a slice introduces a new toast/modal/button/animation behavior, the slice MUST either (a) reuse an existing canonical implementation, or (b) define the canonical version in a shared location AND add a hardening backlog item to retrofit any existing divergent instances to match.
+
+**Origin:** Slice 3A toast animation divergence. Seven existing ambassador toasts had no entrance animation; the Listings spec defined a slide-up/fade animation that shipped on Listings only. Principle locked after user feedback that per-slice UI invention is the exact architectural drift the principles exist to prevent.
+
 ---
 
 # PHASE 1.6 — FEATURE COMPLETENESS GAP (acknowledged, deferred)
