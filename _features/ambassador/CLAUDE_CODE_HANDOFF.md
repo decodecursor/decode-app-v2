@@ -648,6 +648,9 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
    3. **Professional dedup collision:** Auto-swap. If the typed Instagram handle matches an existing `model_professionals` row, the form auto-fills name/city/country from the existing row and keeps the user's typed IG. Toast "Using existing {name}" fires on swap. Existing professional data is **immutable from Add Listing** — ambassador cannot edit name/city/country of an existing professional (Principle A: Instagram is authoritative identity; other fields are snapshot-on-first-create). Correction path is out-of-band for V1 (future hardening or admin action).
    4. **Paid-path submit redirect (Send Link placeholder):** `/model/listings` with toast "Listing created — Send Link ships in the next update". Matches the 3A coming-soon convention (UX1).
    5. **Scope:** one slice, ~2 days, no sub-split. Hold the Principle H line.
+
+  **Slice 3B closeout checklist (tick at shipping):**
+   - [ ] Delete the `/dev/cropper` verifier route (`app/dev/cropper/page.tsx` + the `app/dev/cropper/` directory). Shipped during Phase 2 (`e692f63`, rewritten in `59ee24e`) as a safety-net standalone verifier; once the cropper is verified in production as an actual overlay on the Add Listing page, the verifier is throwaway scaffolding and should be removed to keep the route surface clean. Delete in the same commit that marks 3B as shipped.
 - **Slice 3C** — `/model/listings/[id]/edit` (reuses Add form in edit mode) + `/model/listings/[id]/send-link` + `PATCH` API. ~0.5–1 day.
 
 **Scope-split rationale:** original Slice 3 scope combined ~2.5 days of work into one slice, violating Principle H. Natural cut points at read-vs-write and create-vs-edit. The original scope text above is preserved as historical record; the VERIFY checklist covers the whole of Slice 3 end-to-end and will be ticked through across 3A/3B/3C.
