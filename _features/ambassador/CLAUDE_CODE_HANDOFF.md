@@ -626,12 +626,12 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 - Wishes (deferred to Slice 5)
 
 **✅ VERIFY before next slice:**
-- [ ] Ambassador creates a listing with photos (1-3) successfully uploaded
-- [ ] Ambassador creates a listing with a video (HEVC from iPhone) — plays on Safari
-- [ ] Ambassador edits an existing listing (title, photos, professional)
-- [ ] Professional dedup works — second listing linked to same IG finds existing professional
-- [ ] Free trial listing: status=`free_trial`, `free_trial_ends_at` = 30 days out
-- [ ] Paid listing (mocked paid_until): send-link page shows payment link with token
+- [x] Ambassador creates a listing with photos (1-3) successfully uploaded — **shipped 3B (3408196)**
+- [x] Ambassador creates a listing with a video (HEVC from iPhone) — plays on Safari — **shipped 3B (3408196 — HEVC accepted silently per Phase 1 #13)**
+- [ ] Ambassador edits an existing listing (title, photos, professional) — **Slice 3C scope**
+- [x] Professional dedup works — second listing linked to same IG finds existing professional — **shipped 3B (a3ef037 + 3408196); auto-swap on blur per locked decision #3**
+- [x] Free trial listing: status=`free_trial`, `free_trial_ends_at` = 30 days out — **shipped 3B (b11f0ec)**
+- [ ] Paid listing (mocked paid_until): send-link page shows payment link with token — **Slice 3C scope**
 - [x] Listings page shows listing status correctly (effective_status) — **shipped 3A (f121ef3)**
 - [x] Delete listing works for Trial/Pending/Expired, blocked for Active — **shipped 3A (4e86c2c + de5c862)**
 - [x] Dashboard shows correct listing count + expiring alerts — **shipped 3A (f121ef3)**
@@ -640,7 +640,7 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 
 - **Slice 3A** — `/model/listings` read surface + `GET` / `DELETE` API + dashboard nav wire-up. ~0.5–1 day. **SHIPPED 2026-04-23.**
   - Principle I (DECODE_PROJECT_STATE.md) locked during Slice 3A after toast animation surfaced the divergence pattern. Backlog item 6 (retrofit all ambassador toasts) is the corrective action.
-- **Slice 3B** — `/model/listings/new` (Add form + photo/video uploads + professional dedup) + `POST` API. ~2 days (revised from ~1 day after 3B pre-flight — cropper + uploads are heavier than initially scoped; held to one slice on Principle H grounds).
+- **Slice 3B** — `/model/listings/new` (Add form + photo/video uploads + professional dedup) + `POST` API. ~2 days (revised from ~1 day after 3B pre-flight — cropper + uploads are heavier than initially scoped; held to one slice on Principle H grounds). **SHIPPED 2026-04-23.**
 
   **Slice 3B locked decisions (set during 3B pre-flight partner review):**
    1. **Video transcoding:** None in V1 (Phase 1 #13). HEVC accepted silently. `add_listing_final_UI_Spec.md` §4.5 superseded in `08bf4f0`.
@@ -650,7 +650,7 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
    5. **Scope:** one slice, ~2 days, no sub-split. Hold the Principle H line.
 
   **Slice 3B closeout checklist (tick at shipping):**
-   - [ ] Delete the `/dev/cropper` verifier route (`app/dev/cropper/page.tsx` + the `app/dev/cropper/` directory). Shipped during Phase 2 (`e692f63`, rewritten in `59ee24e`) as a safety-net standalone verifier; once the cropper is verified in production as an actual overlay on the Add Listing page, the verifier is throwaway scaffolding and should be removed to keep the route surface clean. Delete in the same commit that marks 3B as shipped.
+   - [x] Delete the `/dev/cropper` verifier route (`app/dev/cropper/page.tsx` + the `app/dev/cropper/` directory) — **done in the 3B closeout commit**. Verifier was shipped during Phase 2 (`e692f63`, rewritten in `59ee24e`) as a safety-net standalone; production integration on the Add Listing page verified, verifier retired.
 - **Slice 3C** — `/model/listings/[id]/edit` (reuses Add form in edit mode) + `/model/listings/[id]/send-link` + `PATCH` API. ~0.5–1 day.
 
 **Scope-split rationale:** original Slice 3 scope combined ~2.5 days of work into one slice, violating Principle H. Natural cut points at read-vs-write and create-vs-edit. The original scope text above is preserved as historical record; the VERIFY checklist covers the whole of Slice 3 end-to-end and will be ticked through across 3A/3B/3C.
@@ -667,6 +667,33 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 - `8a28410` — DOCS: lock Principle I (generic UI primitives must be defined once and reused everywhere)
 
 Design review (Guardrail 4) passed with seeded 6-row matrix covering free_trial / active / pending_payment / expired states and the view's `effective_status` auto-flip. DELETE latency diagnosis → optimistic UI fix landed mid-slice. Toast "robotic fast" feedback → spec §7.9 animation landed + retrofit logged as backlog item 6. Principle I locked during slice closeout.
+
+#### Slice 3B shipped (2026-04-23) — commit range `08bf4f0..bf10c0b`, 11 commits
+
+- `08bf4f0` — DOCS: supersede add_listing spec §4.5 video transcoding (Phase 1 #13 wins)
+- `9a17e78` — DOCS: lock Slice 3B decisions (video / cropper / dedup / redirect / scope)
+- `2710b51` — CHORE: Phase 1 — add browser-image-compression@2.0.2
+- `e692f63` — FEAT: Phase 2 — canonical `<ImageCropper>` + `/dev/cropper` verifier (zoom+pan)
+- `e16e2dd`¹ — DOCS: Guardrail 11 (self-referential commit pattern) — session hygiene between 3A and 3B
+- `e1b0e29`¹ — DOCS: Guardrail 12 (pre-flight audit formalized) — session hygiene between 3A and 3B
+- `59ee24e` — UI: rewrite `<ImageCropper>` against authoritative spec (circle mask, scrims, chrome)
+- `ece37a8` — DOCS: Slice 3B closeout reminder (delete `/dev/cropper` at shipping)
+- `a3ef037` — API: Phase 3 — POST `/api/ambassador/model/professionals` (dedup by IG handle)
+- `b11f0ec` — API: Phase 4 — POST `/api/ambassador/model/listings` (create listing)
+- `304c66d` — UI: Phase 5 part 1 — Add Listing page + form scaffold (pre-design-review)
+- `3408196` — UI: Phase 5 part 2 — wire uploads + dedup + submit (post-design-review)
+- `bf10c0b` — UI: Phase 5 fixes — full-viewport dim outside cropper + 🎉 emoji on paid-path
+
+¹ `e16e2dd` and `e1b0e29` fall within the commit range for linearity but weren't 3B-specific work — they were Guardrail 11 and Guardrail 12 session-hygiene commits that landed between 3A closeout and 3B start.
+
+Cropper UX landed in two visual corrections:
+ 1. Phase 2 initial shipped a faithful rewrite of the `add_listing_final.html` cropper logic (zoom+pan+canvas export) — reviewer flagged "center-locked Instagram-style" feel mismatch vs `<CoverPhoto>`'s in-place reposition.
+ 2. New authoritative spec landed (`professional_avatar_cropper_final.html` + `_UI_Spec.md`) — rewrote cropper to lightbox-family chrome (scrims, X top-left, pink Use top-right, SVG mask cutout).
+ 3. Live-test reveal: mask was container-scoped (corners only). Phase 5 fixes moved the mask to a full-viewport SVG overlay. Spec + mockup updated to match.
+
+Paid-path celebration emoji flipped from ℹ️ to 🎉 post-live-test — listing creation is a success regardless of trial/paid distinction.
+
+`/dev/cropper` verifier route retired at closeout (production integration verified on live, scaffolding no longer needed).
 
 ---
 

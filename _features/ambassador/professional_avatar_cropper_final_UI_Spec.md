@@ -321,10 +321,12 @@ The cropper feels like a sibling of the lightbox, not a parallel invention. This
 - [ ] On `onCancel`: unmount cropper, leave form state unchanged
 - [ ] Upload uses existing cover-upload pattern in `/api/ambassador/model/settings/route.ts` for Principle E consistency
 
-### Dev verifier (already exists at `/dev/cropper`)
+### ~~Dev verifier (previously at `/dev/cropper`)~~
 
-- [ ] Update to match this spec (circle mask, scrims, brand pink, icon-based slider marks)
-- [ ] Both avatar and listing presets verifiable in isolation
+~~- [ ] Update to match this spec (circle mask, scrims, brand pink, icon-based slider marks)~~
+~~- [ ] Both avatar and listing presets verifiable in isolation~~
+
+**RETIRED at Slice 3B closeout.** The `/dev/cropper` standalone verifier route served its purpose during Phase 2 (pre-integration sanity checks on the cropper in isolation). Once the cropper was verified in production as an actual overlay on the Add Listing page, the verifier became throwaway scaffolding and was deleted to keep the public route surface clean.
 
 ---
 
