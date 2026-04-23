@@ -32,6 +32,17 @@ import { useRouter } from 'next/navigation'
 import { AmbSubmitButton } from '@/components/ambassador/AmbSubmitButton'
 import { ImageCropper } from '@/components/ambassador/ImageCropper'
 import { createClient } from '@/utils/supabase/client'
+import {
+  capFirst,
+  currencySymbol,
+  priceFloorForCurrency,
+  normalizeInstagram,
+  buildAvatarPath,
+  buildListingPhotoPath,
+  buildListingVideoPath,
+  validateVideoFile,
+  PriceBox,
+} from '@/lib/ambassador/add-listing-helpers'
 
 type Category = { id: string; label: string; slug: string }
 
@@ -53,89 +64,11 @@ type Media =
 
 type ToastPayload = { emoji?: string; message: string }
 
-const PRICE_FLOORS: Record<string, number> = { usd: 10, eur: 10, gbp: 10, aed: 50 }
-const DEFAULT_PRICE_FLOOR = 10
-const MAX_VIDEO_BYTES = 15 * 1024 * 1024
-const MAX_VIDEO_DURATION_S = 15
-const ALLOWED_VIDEO_MIMES = ['video/mp4', 'video/quicktime', 'video/webm']
+// Module-private constants used only by this component's state machine.
+// priceFloorForCurrency / currencySymbol / video-related constants live in
+// lib/ambassador/add-listing-helpers.tsx.
 const MODEL_MEDIA_BUCKET = 'model-media'
 const TOAST_LIFECYCLE_MS = 5200
-
-function priceFloorForCurrency(currency: string): number {
-  return PRICE_FLOORS[currency.toLowerCase()] ?? DEFAULT_PRICE_FLOOR
-}
-
-function capFirst(s: string): string {
-  if (!s) return s
-  const first = s.charAt(0).toUpperCase()
-  return first === s.charAt(0) ? s : first + s.slice(1)
-}
-
-function currencySymbol(currency: string): string {
-  const code = currency.toUpperCase()
-  if (code === 'USD') return '$'
-  if (code === 'EUR') return '€'
-  if (code === 'GBP') return '£'
-  if (code === 'AED') return 'AED'
-  return code
-}
-
-function videoExtForMime(mime: string): string {
-  if (mime === 'video/mp4') return 'mp4'
-  if (mime === 'video/quicktime') return 'mov'
-  if (mime === 'video/webm') return 'webm'
-  return 'mp4'
-}
-
-function normalizeInstagram(raw: string): string {
-  return raw.trim().toLowerCase().replace(/^@/, '')
-}
-
-// Path builders — kept local per slice scope guard. Paths are user-scoped
-// (first segment = auth.uid()) so the storage RLS INSERT policy on
-// model-media admits the upload.
-function buildAvatarPath(userId: string): string {
-  return `${userId}/professionals/avatars/${crypto.randomUUID()}.jpg`
-}
-function buildListingPhotoPath(userId: string): string {
-  return `${userId}/listings/photos/${crypto.randomUUID()}.jpg`
-}
-function buildListingVideoPath(userId: string, mime: string): string {
-  return `${userId}/listings/videos/${crypto.randomUUID()}.${videoExtForMime(mime)}`
-}
-
-// Validate a picked video against Phase 1 #15 (size + duration + MIME).
-// Uses a hidden <video preload="metadata"> to probe duration. Cleans up
-// the object URL on both the success and failure paths.
-type VideoValidation = { ok: true } | { ok: false; error: string }
-function validateVideoFile(file: File): Promise<VideoValidation> {
-  return new Promise<VideoValidation>((resolve) => {
-    if (file.size > MAX_VIDEO_BYTES) {
-      resolve({ ok: false, error: 'Video must be 15 MB or less' })
-      return
-    }
-    if (!ALLOWED_VIDEO_MIMES.includes(file.type)) {
-      resolve({ ok: false, error: 'Video must be MP4, MOV, or WebM' })
-      return
-    }
-    const video = document.createElement('video')
-    video.preload = 'metadata'
-    const url = URL.createObjectURL(file)
-    video.onloadedmetadata = () => {
-      URL.revokeObjectURL(url)
-      if (video.duration > MAX_VIDEO_DURATION_S) {
-        resolve({ ok: false, error: 'Video must be 15 seconds or less' })
-      } else {
-        resolve({ ok: true })
-      }
-    }
-    video.onerror = () => {
-      URL.revokeObjectURL(url)
-      resolve({ ok: false, error: "Couldn't read that video" })
-    }
-    video.src = url
-  })
-}
 
 // --- Styling constants (kept local, match canonical ambassador forms) ---
 
@@ -1119,55 +1052,3 @@ export default function AddListingClient({ categories, currency, profileId: _pro
   )
 }
 
-function PriceBox({
-  days, value, onInput, onFocus, onBlur, perDay, symbol, bad, offPct,
-}: {
-  days: 30 | 60 | 90
-  value: string
-  onInput: (e: React.ChangeEvent<HTMLInputElement>) => void
-  onFocus: () => void
-  onBlur: () => void
-  perDay: string
-  symbol: string
-  bad: boolean
-  offPct?: number | null
-}) {
-  return (
-    <div style={{ flex: 1, position: 'relative' }}>
-      {offPct != null && (
-        <div style={{
-          display: 'block', position: 'absolute', top: -10, left: '50%',
-          transform: 'translateX(-50%)', zIndex: 2,
-          fontSize: 9, fontWeight: 600, background: '#e91e8c', color: '#fff',
-          padding: '2px 8px', borderRadius: 8, whiteSpace: 'nowrap',
-        }}>
-          {offPct}% OFF
-        </div>
-      )}
-      <div style={{
-        background: '#1c1c1c',
-        border: `1.5px solid ${bad ? '#e91e8c' : '#262626'}`,
-        borderRadius: 12, padding: 10, textAlign: 'center',
-        transition: 'border-color 0.15s',
-      }}>
-        <div style={{ fontSize: 11, color: '#666', marginBottom: 6 }}>{days} days</div>
-        <input
-          type="text" inputMode="numeric" placeholder={symbol}
-          value={value}
-          onChange={onInput}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
-          style={{
-            width: '100%', background: 'transparent', border: 'none', outline: 'none',
-            fontSize: 18, fontWeight: 600, color: '#fff', textAlign: 'center',
-            fontFamily: 'inherit', padding: 0,
-          }}
-        />
-        <div style={{ fontSize: 11, color: '#666', marginTop: 4, height: 13 }}>
-          {perDay ? `${symbol}${perDay}/day` : ''}
-        </div>
-      </div>
-    </div>
-  )
-}
