@@ -156,27 +156,42 @@ export default function ListingsClient({ listings: initialListings }: { listings
     if (!target) return
     setOpenDelete(null)
 
+    // Snapshot the current ordered list for rollback on server failure.
+    // Mirrors the snapshot/restore pattern used for cover-photo replace,
+    // toggle flags, and cover position in app/(ambassador)/model/settings/page.tsx
+    // (Principle E).
+    const snapshot = listings
+
+    // Optimistic: start fade now, schedule row removal at end of animation,
+    // fire success toast immediately. Server request runs in the background.
+    setRemovingId(target.id)
+    const removeTimer = setTimeout(() => {
+      setListings((prev) => prev.filter((l) => l.id !== target.id))
+      setRemovingId(null)
+    }, 450)
+    showToast({ emoji: '🗑️', message: 'Listing removed' })
+
+    const rollback = () => {
+      clearTimeout(removeTimer)
+      setListings(snapshot)
+      setRemovingId(null)
+    }
+
     try {
       const res = await fetch(`/api/ambassador/model/listings/${target.id}`, { method: 'DELETE' })
 
-      if (res.ok) {
-        setRemovingId(target.id)
-        setTimeout(() => {
-          setListings((prev) => prev.filter((l) => l.id !== target.id))
-          setRemovingId(null)
-        }, 450)
-        showToast({ emoji: '🗑️', message: 'Listing removed' })
-        return
-      }
+      if (res.ok) return // happy path — optimistic state stands
+
+      rollback()
 
       if (res.status === 409) {
         void refetchListings()
         showToast({ emoji: '🔒', message: "This listing's status just changed. Refreshing…" })
-        return
+      } else {
+        showToast({ emoji: '📡', message: 'Couldn’t reach server. Try again.' })
       }
-
-      showToast({ emoji: '📡', message: 'Couldn’t reach server. Try again.' })
     } catch {
+      rollback()
       showToast({ emoji: '📡', message: 'Couldn’t reach server. Try again.' })
     }
   }
