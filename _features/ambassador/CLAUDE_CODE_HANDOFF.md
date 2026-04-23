@@ -568,7 +568,7 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
    - **Same structural pattern: `model_professionals.created_by` is NOT NULL + FK to `users(id)` with NO ACTION.** Surfaced during Slice 3 pre-flight. Bundle into same fix pass when item 4 unblocks.
 4. **BLOCKED: Account-deletion flow — `admin.deleteUser()` not called** — blocked by: product decision on soft-delete vs hard-delete semantics (same upstream as item 3). The app's DELETE endpoint (`app/api/ambassador/model/settings/route.ts:254`) wipes model-side tables via `delete_model_profile_cascade` RPC, then `auth.signOut()`, but never calls `admin.deleteUser()`. Result: `auth.users` rows persist forever, `public.users` row persists forever. Either intentional soft-delete or a bug. Product decision needed.
 5. ~~**Re-upgrade `react-hooks/rules-of-hooks` from `warn` to `error`** in `eslint.config.mjs:46`. Gated on: next hook-violation cleanup pass (no known violations remain post-H3, so this is safe to do once any new ones are cleared). Rule was downgraded in H1 (b1284eb) to unblock `npm run lint` with two known auction-side violations; those were fixed in H3 (8fc50c4). Re-upgrading now would make the repo exit-0 today but catch any future regression at CI rather than review.~~ **CLOSED by `1ceaa28` (Slice 3A opening).** Pre-flight verified zero violations; rule flipped to `error`; `npm run lint` still exit 0.
-6. **Retrofit toast slide-up/fade animation to all ambassador toasts.** Currently 7 pop-in toasts across Dashboard (`app/(ambassador)/model/DashboardClient.tsx`), Settings (`app/(ambassador)/model/settings/page.tsx`), auth pages (`app/(ambassador)/model/auth/{page,email/page,verify/page}.tsx`), and the Add/Change Email & WhatsApp modals (`components/ambassador/{Add,Change}{Email,WhatsApp}Modal.tsx`) — all render via `{toast && <div style={{…}}>}` with no entrance or exit animation. Animation spec established in Slice 3A per `listings_final_UI_Spec.md` §7.9; reusable keyframes `amb-toast-in` / `amb-toast-out` already live in `app/(ambassador)/layout.tsx` (added alongside the existing `amb-dot-*` / `amb-submit-flash` family). Scope: identify each toast site, apply the shared animation (`1200ms cubic-bezier(.2,.7,.2,1) amb-toast-in + 4000ms-delayed 1200ms cubic-bezier(.5,.2,.8,.1) amb-toast-out`), bump dismiss timers to 5200ms lifecycle, add a `key={toastKey}` prop so back-to-back toasts replay the entrance. Not urgent — visual-consistency hygiene, not user-blocking.
+6. **IN PROGRESS: Retrofit toast slide-up/fade animation to all ambassador toasts.** Currently 7 pop-in toasts across Dashboard (`app/(ambassador)/model/DashboardClient.tsx`), Settings (`app/(ambassador)/model/settings/page.tsx`), auth pages (`app/(ambassador)/model/auth/{page,email/page,verify/page}.tsx`), and the Add/Change Email & WhatsApp modals (`components/ambassador/{Add,Change}{Email,WhatsApp}Modal.tsx`) — all render via `{toast && <div style={{…}}>}` with no entrance or exit animation. Animation spec established in Slice 3A per `listings_final_UI_Spec.md` §7.9; reusable keyframes `amb-toast-in` / `amb-toast-out` already live in `app/(ambassador)/layout.tsx` (added alongside the existing `amb-dot-*` / `amb-submit-flash` family). Scope: identify each toast site, apply the shared animation (`1200ms cubic-bezier(.2,.7,.2,1) amb-toast-in + 4000ms-delayed 1200ms cubic-bezier(.5,.2,.8,.1) amb-toast-out`), bump dismiss timers to 5200ms lifecycle, add a `key={toastKey}` prop so back-to-back toasts replay the entrance. Not urgent — visual-consistency hygiene, not user-blocking.
 
 ### Slice 3 feature candidates (to be scoped separately, NOT to be conflated with hardening backlog)
 
@@ -609,18 +609,31 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 - [ ] Professional dedup works — second listing linked to same IG finds existing professional
 - [ ] Free trial listing: status=`free_trial`, `free_trial_ends_at` = 30 days out
 - [ ] Paid listing (mocked paid_until): send-link page shows payment link with token
-- [ ] Listings page shows listing status correctly (effective_status)
-- [ ] Delete listing works for Trial/Pending/Expired, blocked for Active
-- [ ] Dashboard shows correct listing count + expiring alerts
+- [x] Listings page shows listing status correctly (effective_status) — **shipped 3A (f121ef3)**
+- [x] Delete listing works for Trial/Pending/Expired, blocked for Active — **shipped 3A (4e86c2c + de5c862)**
+- [x] Dashboard shows correct listing count + expiring alerts — **shipped 3A (f121ef3)**
 
 #### Slice 3 split (decided during 3A pre-flight, Principle H grounds)
 
-- **Slice 3A** — `/model/listings` read surface + `GET` / `DELETE` API + dashboard nav wire-up. ~0.5–1 day.
+- **Slice 3A** — `/model/listings` read surface + `GET` / `DELETE` API + dashboard nav wire-up. ~0.5–1 day. **SHIPPED 2026-04-23.**
   - Principle I (DECODE_PROJECT_STATE.md) locked during Slice 3A after toast animation surfaced the divergence pattern. Backlog item 6 (retrofit all ambassador toasts) is the corrective action.
 - **Slice 3B** — `/model/listings/new` (Add form + photo/video uploads + professional dedup) + `POST` API. ~1 day.
 - **Slice 3C** — `/model/listings/[id]/edit` (reuses Add form in edit mode) + `/model/listings/[id]/send-link` + `PATCH` API. ~0.5–1 day.
 
 **Scope-split rationale:** original Slice 3 scope combined ~2.5 days of work into one slice, violating Principle H. Natural cut points at read-vs-write and create-vs-edit. The original scope text above is preserved as historical record; the VERIFY checklist covers the whole of Slice 3 end-to-end and will be ticked through across 3A/3B/3C.
+
+#### Slice 3A shipped (2026-04-23) — commit range `1ceaa28..8a28410`, 8 commits
+
+- `1ceaa28` — CHORE: re-upgrade react-hooks/rules-of-hooks to error (closes hardening backlog item 5)
+- `a3a9e79` — DOCS: Slice 3A opening — S1+S7 fixes, API prefix normalization, 3A/3B/3C split, item 5 closed
+- `47409d3` — FEAT: GET + DELETE listings API (`/api/ambassador/model/listings` + `/[id]`)
+- `f121ef3` — FEAT: Listings page (read surface) + dashboard Listings-nav-card wire-up
+- `4e86c2c` — FEAT: delete modal (2 variants) + 3-variant toast + activate delete icon
+- `de5c862` — PERF: optimistic DELETE UI (instant fade + toast, rollback on server failure)
+- `98bd60c` — UI: toast slide-up/fade entrance animation per `listings_final_UI_Spec` §7.9
+- `8a28410` — DOCS: lock Principle I (generic UI primitives must be defined once and reused everywhere)
+
+Design review (Guardrail 4) passed with seeded 6-row matrix covering free_trial / active / pending_payment / expired states and the view's `effective_status` auto-flip. DELETE latency diagnosis → optimistic UI fix landed mid-slice. Toast "robotic fast" feedback → spec §7.9 animation landed + retrofit logged as backlog item 6. Principle I locked during slice closeout.
 
 ---
 

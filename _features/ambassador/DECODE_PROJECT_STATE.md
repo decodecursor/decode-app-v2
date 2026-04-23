@@ -1,6 +1,6 @@
 # DECODE — Ambassador Feature Project State
 
-**Last updated:** 2026-04-22 (Slice 2 closed — shipped d8468d8 + f6c3201 + 81d5f1a; Slice 2.5 cover-UX shipped 3ae5ffe; Slice 2.7 onboarding unified 545e485; Slice H1 ESLint migration b1284eb; Slice H2 model_payouts CASCADE 1dfa086; H3 8fc50c4+925c815)
+**Last updated:** 2026-04-23 (Slice 3A closed — shipped 1ceaa28 rules-of-hooks re-upgrade, a3a9e79 opening doc, 47409d3 GET+DELETE API, f121ef3 Listings page + dashboard wire-up, 4e86c2c delete modals + toast, de5c862 optimistic UI, 98bd60c toast animation per spec §7.9, 8a28410 Principle I lock. Previously: 2026-04-22 Slice 2 closed — d8468d8 + f6c3201 + 81d5f1a; 2.5 3ae5ffe; 2.7 545e485; H1 b1284eb; H2 1dfa086; H3 8fc50c4+925c815.)
 **Project:** DECODE (welovedecode.com) — Ambassador feature
 **Current subdomain:** `app.welovedecode.com` (apex still on Carrd, migration later)
 **Status:** Slice 1.5 shipped. Slices 2/3/4 replace the old mega-Slice-2 (completeness / listings CRUD / payment).
