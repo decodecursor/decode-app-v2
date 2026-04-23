@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
+import { extractCoverObjectPath } from '@/lib/ambassador/storage'
 import { toCardRow, LIVE_VIEW_SELECT, type LiveViewRow } from '@/lib/ambassador/listing-shape'
 
 /**
@@ -78,4 +79,270 @@ export async function DELETE(
   }
 
   return NextResponse.json({ ok: true })
+}
+
+// ---------------------------------------------------------------------------
+// PATCH /api/ambassador/model/listings/[id] — Slice 3C Phase 1
+//
+// Edit an existing listing. Owner-only (model_profiles.user_id = auth.uid()).
+//
+// Editable (per Slice 3C locked decision #2):
+//   - category_id / category_custom (XOR — exactly one)
+//   - media_type + media URLs (XOR — 'photos' or 'video', consistent urls)
+//   - price_30 / price_60 / price_90 (required for paid; must be null for trial)
+//
+// Rejected (non-editable fields; 400 if present in body):
+//   - professional_id (Principle A — IG handle is authoritative identity)
+//   - is_free_trial (locked — conversions go via Stripe webhook in Slice 4)
+//   - status (system-controlled via webhook + view auto-flip + delete)
+//   - currency (Phase 2 lock)
+//   - payment_link_token, id, model_id, created_at, updated_at,
+//     free_trial_ends_at, paid_until, expiry_notification_sent_at
+//
+// Pricing rules come from the existing row's is_free_trial (authoritative).
+// If the row is a trial, all three prices must be null in the body. If paid,
+// all three required + currency floor + price_30 < price_60 < price_90.
+// ---------------------------------------------------------------------------
+
+const EDITABLE_KEYS = new Set([
+  'category_id', 'category_custom',
+  'media_type', 'photo_url_1', 'photo_url_2', 'photo_url_3', 'video_url',
+  'price_30', 'price_60', 'price_90',
+])
+
+const PRICE_FLOORS: Record<string, number> = { usd: 10, eur: 10, gbp: 10, aed: 50 }
+const DEFAULT_PRICE_FLOOR = 10
+const VALID_MEDIA_TYPES = ['video', 'photos'] as const
+type MediaType = typeof VALID_MEDIA_TYPES[number]
+
+function priceFloorForCurrency(currency: string): number {
+  return PRICE_FLOORS[currency.toLowerCase()] ?? DEFAULT_PRICE_FLOOR
+}
+
+function isValidUuid(v: unknown): v is string {
+  return typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v)
+}
+
+function ownsModelMediaUrl(url: string, userId: string): boolean {
+  const path = extractCoverObjectPath(url)
+  return !!path && path.split('/')[0] === userId
+}
+
+function coercePrice(v: unknown): number | null {
+  if (v === null) return null
+  if (typeof v === 'number' && Number.isFinite(v)) return v
+  if (typeof v === 'string') {
+    const n = parseFloat(v)
+    return Number.isFinite(n) ? n : NaN as unknown as number
+  }
+  return NaN as unknown as number
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params
+
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+    }
+
+    const admin = createServiceRoleClient()
+
+    // Owner profile lookup (match Principle E pattern from DELETE above + Phase 4 POST).
+    const { data: profile } = await admin
+      .from('model_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle<{ id: string }>()
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+    }
+
+    // ---- Owner + existence check; also pulls is_free_trial + currency ----
+    // is_free_trial drives the pricing-rule branch; currency drives the floor.
+    const { data: existing, error: existingError } = await admin
+      .from('model_listings')
+      .select('id, is_free_trial, currency')
+      .eq('id', id)
+      .eq('model_id', profile.id)
+      .maybeSingle<{ id: string; is_free_trial: boolean; currency: string }>()
+
+    if (existingError) {
+      console.error('[Ambassador Listings] PATCH owner/existence lookup failed:', existingError)
+      return NextResponse.json({ error: 'Failed to load listing' }, { status: 500 })
+    }
+    if (!existing) {
+      return NextResponse.json({ error: 'Listing not found' }, { status: 404 })
+    }
+
+    // ---- Parse + whitelist body ----
+    const body = (await request.json().catch(() => null)) as Record<string, unknown> | null
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
+    }
+
+    for (const k of Object.keys(body)) {
+      if (!EDITABLE_KEYS.has(k)) {
+        return NextResponse.json({ error: `Field not editable: ${k}` }, { status: 400 })
+      }
+    }
+
+    // ---- Category XOR ----
+    const hasCategoryId = body.category_id != null && body.category_id !== ''
+    const hasCategoryCustom = typeof body.category_custom === 'string' && body.category_custom.trim().length > 0
+    if (hasCategoryId === hasCategoryCustom) {
+      return NextResponse.json(
+        { error: 'Exactly one of category_id or category_custom is required' },
+        { status: 400 },
+      )
+    }
+    let category_id: string | null = null
+    let category_custom: string | null = null
+    if (hasCategoryId) {
+      if (!isValidUuid(body.category_id)) {
+        return NextResponse.json({ error: 'category_id must be a valid uuid' }, { status: 400 })
+      }
+      category_id = body.category_id as string
+    } else {
+      category_custom = (body.category_custom as string).trim()
+    }
+
+    // ---- Media type + URL consistency ----
+    if (typeof body.media_type !== 'string' || !(VALID_MEDIA_TYPES as readonly string[]).includes(body.media_type)) {
+      return NextResponse.json({ error: "media_type must be 'video' or 'photos'" }, { status: 400 })
+    }
+    const media_type = body.media_type as MediaType
+
+    let video_url: string | null = null
+    let photo_url_1: string | null = null
+    let photo_url_2: string | null = null
+    let photo_url_3: string | null = null
+
+    if (media_type === 'video') {
+      if (typeof body.video_url !== 'string' || !body.video_url.trim()) {
+        return NextResponse.json({ error: 'video_url required when media_type=video' }, { status: 400 })
+      }
+      const v = body.video_url.trim()
+      if (!ownsModelMediaUrl(v, user.id)) {
+        return NextResponse.json(
+          { error: 'video_url must point to caller-owned model-media storage' },
+          { status: 400 },
+        )
+      }
+      video_url = v
+      // photo_url_* must be null on the video path (matches CHECK constraint).
+      if (body.photo_url_1 != null || body.photo_url_2 != null || body.photo_url_3 != null) {
+        return NextResponse.json(
+          { error: 'photo_url_* must be null when media_type=video' },
+          { status: 400 },
+        )
+      }
+    } else {
+      // photos path — photo_url_1 required, 2/3 optional. All provided URLs
+      // must be caller-owned.
+      if (typeof body.photo_url_1 !== 'string' || !body.photo_url_1.trim()) {
+        return NextResponse.json({ error: 'photo_url_1 required when media_type=photos' }, { status: 400 })
+      }
+      const urls: (string | null)[] = [
+        body.photo_url_1 as string,
+        typeof body.photo_url_2 === 'string' && body.photo_url_2.trim() ? body.photo_url_2 : null,
+        typeof body.photo_url_3 === 'string' && body.photo_url_3.trim() ? body.photo_url_3 : null,
+      ]
+      for (const url of urls) {
+        if (url && !ownsModelMediaUrl(url.trim(), user.id)) {
+          return NextResponse.json(
+            { error: 'every photo_url must point to caller-owned model-media storage' },
+            { status: 400 },
+          )
+        }
+      }
+      photo_url_1 = urls[0]!.trim()
+      photo_url_2 = urls[1]?.trim() ?? null
+      photo_url_3 = urls[2]?.trim() ?? null
+      if (body.video_url != null) {
+        return NextResponse.json(
+          { error: 'video_url must be null when media_type=photos' },
+          { status: 400 },
+        )
+      }
+    }
+
+    // ---- Pricing — rules driven by EXISTING row's is_free_trial ----
+    let price_30: number | null = null
+    let price_60: number | null = null
+    let price_90: number | null = null
+
+    if (existing.is_free_trial) {
+      // Trial — prices MUST be null.
+      if (body.price_30 != null || body.price_60 != null || body.price_90 != null) {
+        return NextResponse.json(
+          { error: 'Prices must be null when editing a trial listing' },
+          { status: 400 },
+        )
+      }
+    } else {
+      // Paid — all three required, within currency floor, strictly ordered.
+      const p30 = coercePrice(body.price_30)
+      const p60 = coercePrice(body.price_60)
+      const p90 = coercePrice(body.price_90)
+      if (!Number.isFinite(p30) || !Number.isFinite(p60) || !Number.isFinite(p90)
+          || p30 === null || p60 === null || p90 === null) {
+        return NextResponse.json(
+          { error: 'price_30, price_60, price_90 required when editing a paid listing' },
+          { status: 400 },
+        )
+      }
+      const floor = priceFloorForCurrency(existing.currency)
+      if (p30 < floor || p60 < floor || p90 < floor) {
+        return NextResponse.json(
+          { error: `Each price must be at least ${floor} ${existing.currency.toUpperCase()}` },
+          { status: 400 },
+        )
+      }
+      if (!(p30 < p60 && p60 < p90)) {
+        return NextResponse.json(
+          { error: 'Prices must satisfy price_30 < price_60 < price_90' },
+          { status: 400 },
+        )
+      }
+      price_30 = p30
+      price_60 = p60
+      price_90 = p90
+    }
+
+    // ---- UPDATE with double-check owner in WHERE ----
+    const { data: updated, error: updateError } = await admin
+      .from('model_listings')
+      .update({
+        category_id,
+        category_custom,
+        media_type,
+        video_url,
+        photo_url_1,
+        photo_url_2,
+        photo_url_3,
+        price_30,
+        price_60,
+        price_90,
+      })
+      .eq('id', id)
+      .eq('model_id', profile.id)
+      .select('id, status, is_free_trial')
+      .single<{ id: string; status: string; is_free_trial: boolean }>()
+
+    if (updateError || !updated) {
+      console.error('[Ambassador Listings] PATCH UPDATE failed:', updateError)
+      return NextResponse.json({ error: 'Failed to update listing' }, { status: 500 })
+    }
+
+    return NextResponse.json({ listing: updated }, { status: 200 })
+  } catch (err) {
+    console.error('[Ambassador Listings] PATCH threw:', err)
+    return NextResponse.json({ error: 'Server error' }, { status: 500 })
+  }
 }
