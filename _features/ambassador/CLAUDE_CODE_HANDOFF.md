@@ -651,7 +651,16 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 
   **Slice 3B closeout checklist (tick at shipping):**
    - [x] Delete the `/dev/cropper` verifier route (`app/dev/cropper/page.tsx` + the `app/dev/cropper/` directory) — **done in the 3B closeout commit**. Verifier was shipped during Phase 2 (`e692f63`, rewritten in `59ee24e`) as a safety-net standalone; production integration on the Add Listing page verified, verifier retired.
-- **Slice 3C** — `/model/listings/[id]/edit` (reuses Add form in edit mode) + `/model/listings/[id]/send-link` + `PATCH` API. ~0.5–1 day.
+- **Slice 3C** — `/model/listings/[id]/edit` (reuses Add form in edit mode) + `/model/listings/[id]/send-link` + `PATCH` API. ~1–1.5 days (revised from ~0.5–1 day after 3C pre-flight — edit-mode branching in AddListingClient adds weight; held as one slice on Principle H grounds).
+
+  **Slice 3C locked decisions (set during 3C pre-flight partner review):**
+   1. **Token semantics:** Permanent. `payment_link_token` generated once at listing POST (Slice 3B Phase 4), never rotated. No expiry column. Send-link spec §6 + §11 superseded in `49c00e0`.
+   2. **Edit mode field locks:** Lock all identity + classification fields — Instagram handle, professional name/city/country/avatar, `is_free_trial`, `status`, `currency`. Editable: category, pricing (paid listings only), media (photos/video XOR). Identity immutability follows Principle A; trial-flag locking prevents manual status-bypass of the Stripe webhook path (Slice 4); currency already locked globally (Phase 2).
+   3. **Post-edit redirect:** `router.push('/model/listings?updated={id}')` + canonical toast (`amb-toast-in/out` animation) with neutral emoji (✓ or ✏️) and message "Listing updated". URL-flag pattern mirrors 3B's creation-toast pattern. 🎉 reserved for creation events only — edit is maintenance, not celebration.
+   4. **Share button visibility:** Enabled for `free_trial`, `pending_payment`, `active`. Hidden for `expired` (no action to take on an expired listing). Disabled via CSS + `onClick` guard — not a different render path.
+   5. **Paid-path redirect replacement:** AddListingClient's paid-path submit redirect changes from `/model/listings?new={id}&type=paid` → `/model/listings/{id}/send-link`. Trial path unchanged (`?new={id}&type=trial` → ListingsClient celebration).
+   6. **ListingsClient `type=paid` celebration branch removal:** Delete the `type=paid` branch entirely in ListingsClient's mount effect. Dead code is a future trap. Only `type=trial` + new `type=updated` branches remain. If a paid redirect ever re-routes through ListingsClient for any reason, nothing fires — intentional silence over lingering toast.
+   7. **Scope:** one slice, ~1–1.5 days. Natural split exists (3C.1 Edit / 3C.2 Send-link) but held as one slice on Principle H grounds. If `AddListingClient.tsx` approaches ~1100 lines during edit-mode branching, STOP and split.
 
 **Scope-split rationale:** original Slice 3 scope combined ~2.5 days of work into one slice, violating Principle H. Natural cut points at read-vs-write and create-vs-edit. The original scope text above is preserved as historical record; the VERIFY checklist covers the whole of Slice 3 end-to-end and will be ticked through across 3A/3B/3C.
 
