@@ -174,8 +174,6 @@ No separate API call. Iframe shares top-level origin so it loads cleanly without
 
 ## 5. Payment Modal
 
-> **⚠ SUPERSESSION (Slice 4B+4C commit 6 polish, 2026-04-24).** §5.1 (default view) and §5.2 (card form view) as separate screens no longer apply. The modal now uses Stripe's current best-practice single-screen Elements flow: Express Checkout Element (Apple Pay / Google Pay / Link) and Payment Element (card) are rendered together with an "Or pay by card" divider between them. A single Pay button drives both via `stripe.confirmPayment({ elements })`. Change motivated by a live-prod bug where the mode-toggle flow left the Pay button disabled-without-visual-cue during Payment Element's ~500ms mount window, producing a silent "click does nothing" on the card path. Original §5.1 + §5.2 language retained below as historical reference.
-
 ### 5.1 Default view
 
 - **Amount** (32px bold): `AED {total}` — dynamic, matches selected package

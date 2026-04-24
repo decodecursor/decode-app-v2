@@ -1,30 +1,33 @@
 'use client'
 
 /**
- * Stripe payment modal for the listing checkout flow.
+ * Payment modal shell — outer chrome + PaymentIntent-create state machine
+ * + <Elements> provider. Hosts <StripeElementsForm/> as its child, which
+ * owns everything inside the Elements context (wallet detection, mode
+ * toggle, Pay button, confirm call). G12 item #8 split: this file was
+ * previously components/checkout/PaymentModal.tsx (pre-decompose 373 LOC);
+ * the Stripe Elements surface carved out to StripeElementsForm.tsx in
+ * Slice 4B+4C commit 7.
  *
- * Spec: checkout_for_listing-professional_final_UI_Spec.md §5.
- *
- * Two view modes inside one modal shell — Express Checkout (Apple Pay
- * / Google Pay / Link) as the default surface, Payment Element (card
- * only) as the "Pay by card" fallback. A single stripe.confirmPayment()
- * call drives both; Stripe redirects to the return_url on success.
+ * Two-screen UX per checkout spec §5 + mockup:
+ *   S1 — wallet (Apple/Google Pay/Link) with "Pay by card" toggle
+ *   S2 — card form with pink Pay button
+ * Detection + mode state live in the child form; this shell renders
+ * identical chrome for both views (amount, chips, in-app webview banner).
  *
  * PaymentIntent create is lazy — fires on first modal open for the
  * currently-selected package. Idempotency lives server-side (see
  * /api/checkout/listing). Re-opening the modal with the same package
  * reuses the cached PI via the 24h idempotency window.
- *
- * beforeunload guard is armed for the active-payment window so a
- * closed tab during confirm doesn't orphan the PI silently.
  */
 
 import { useEffect, useRef, useState } from 'react'
-import { Elements, PaymentElement, ExpressCheckoutElement, useStripe, useElements } from '@stripe/react-stripe-js'
+import { Elements } from '@stripe/react-stripe-js'
 import type { StripeElementsOptions } from '@stripe/stripe-js'
 import { stripePromise } from '@/lib/stripe-client'
 import { formatCurrency } from '@/lib/ambassador/utils'
 import type { PackageDays } from '@/lib/checkout/checkout-shape'
+import { StripeElementsForm } from './StripeElementsForm'
 
 interface Props {
   isOpen: boolean
@@ -40,11 +43,6 @@ type PIState =
   | { status: 'loading' }
   | { status: 'ready'; clientSecret: string; paymentIntentId: string }
   | { status: 'error'; message: string }
-
-function buildReturnUrl(paymentIntentId: string): string {
-  const base = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.welovedecode.com').replace(/\/$/, '')
-  return `${base}/listing/confirmation/${paymentIntentId}`
-}
 
 function isInAppWebView(): boolean {
   if (typeof navigator === 'undefined') return false
@@ -185,7 +183,7 @@ export function PaymentModal({ isOpen, token, packageDays, amount, currency, onC
             stripe={stripePromise}
             options={{ clientSecret: pi.clientSecret, appearance: { theme: 'night', variables: { colorPrimary: '#e91e8c' } } } satisfies StripeElementsOptions}
           >
-            <PaymentSurface paymentIntentId={pi.paymentIntentId} amountLabel={amountLabel} onCancel={onClose} />
+            <StripeElementsForm paymentIntentId={pi.paymentIntentId} amountLabel={amountLabel} onCancel={onClose} />
           </Elements>
         )}
       </div>
@@ -202,109 +200,3 @@ function Chip({ children }: { children: React.ReactNode }) {
   )
 }
 
-function PaymentSurface({ paymentIntentId, amountLabel, onCancel }: { paymentIntentId: string; amountLabel: string; onCancel: () => void }) {
-  const stripe = useStripe()
-  const elements = useElements()
-  const [error, setError] = useState<string | null>(null)
-  const [processing, setProcessing] = useState(false)
-
-  // beforeunload guard — fires only while a confirmPayment call is in flight.
-  useEffect(() => {
-    if (!processing) return
-    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
-    window.addEventListener('beforeunload', handler)
-    return () => window.removeEventListener('beforeunload', handler)
-  }, [processing])
-
-  // Single confirm path — ExpressCheckoutElement fires its own onConfirm
-  // after the wallet sheet resolves; the Pay button fires this directly
-  // for the Payment Element card path. Both call stripe.confirmPayment
-  // with the shared `elements` instance, which Stripe uses to submit
-  // whichever element surface the user engaged.
-  const confirm = async () => {
-    if (!stripe || !elements || processing) return
-    setError(null)
-    setProcessing(true)
-    try {
-      const result = await stripe.confirmPayment({
-        elements,
-        confirmParams: { return_url: buildReturnUrl(paymentIntentId) },
-      })
-      // Success path redirects — this branch only runs on explicit Stripe error
-      if (result.error) {
-        setError(result.error.message ?? 'Payment could not be completed. Try again.')
-        setProcessing(false)
-      }
-    } catch (err) {
-      // Unexpected throw (network, SDK bug) — surface instead of leaving
-      // the button stuck in the 'Processing…' state.
-      const msg = err instanceof Error ? err.message : 'Payment could not be completed. Try again.'
-      console.error('[PaymentModal] confirmPayment threw:', err)
-      setError(msg)
-      setProcessing(false)
-    }
-  }
-
-  // Disabled state tracks every condition that makes the button inert:
-  // Stripe hook not resolved, Elements not registered yet, or an
-  // in-flight confirmPayment. The style mirrors this so clicks on a
-  // disabled button aren't silently dropped by the browser with the
-  // button still looking "active" (prior bug, surfaced on live).
-  const btnDisabled = !stripe || !elements || processing
-
-  return (
-    <div>
-      {/* Express Checkout (Apple Pay / Google Pay / Link) — renders above
-          the card form per Stripe's recommended single-screen pattern.
-          Collapses to zero height when no wallet is available on the
-          device, so desktop Chrome users see only the card form below. */}
-      <div style={{ padding: '4px 0 8px', minHeight: 0 }}>
-        <ExpressCheckoutElement onConfirm={confirm} options={{ buttonHeight: 52 }} />
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '10px 0 14px' }}>
-        <div style={{ flex: 1, height: 1, background: '#262626' }} />
-        <span style={{ fontSize: 10, color: '#666', letterSpacing: 0.5, textTransform: 'uppercase' }}>Or pay by card</span>
-        <div style={{ flex: 1, height: 1, background: '#262626' }} />
-      </div>
-
-      <div style={{ padding: '0 0 14px' }}>
-        <PaymentElement options={{ layout: 'tabs' }} />
-      </div>
-
-      <button
-        type="button"
-        onClick={confirm}
-        disabled={btnDisabled}
-        style={{
-          width: '100%', padding: '16px', borderRadius: 10,
-          background: btnDisabled ? '#1f1f1f' : '#e91e8c',
-          border: 'none', color: '#fff', fontSize: 15, fontWeight: 700,
-          cursor: btnDisabled ? 'not-allowed' : 'pointer',
-          opacity: btnDisabled && !processing ? 0.7 : 1,
-          marginBottom: 10,
-        }}
-      >{processing ? 'Processing…' : `Pay ${amountLabel}`}</button>
-
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 5, fontSize: 10, color: '#555', marginBottom: 12 }}>
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
-        Secure payment by Stripe
-      </div>
-
-      {error && (
-        <div style={{ fontSize: 12, color: '#f87171', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.25)', borderRadius: 8, padding: '10px 12px', marginBottom: 12, textAlign: 'center' }}>
-          {error}
-        </div>
-      )}
-
-      <div style={{ textAlign: 'center' }}>
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={processing}
-          style={{ fontSize: 12, color: '#777', background: 'transparent', border: 'none', cursor: processing ? 'not-allowed' : 'pointer', padding: '6px 10px' }}
-        >Cancel</button>
-      </div>
-    </div>
-  )
-}

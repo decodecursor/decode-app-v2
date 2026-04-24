@@ -18,7 +18,7 @@ import { ambassadorDisplayName } from '@/lib/checkout/checkout-shape'
 import { formatCurrency } from '@/lib/ambassador/utils'
 import { PackagePicker } from './PackagePicker'
 import { UrlOverlay } from './UrlOverlay'
-import { PaymentModal } from './PaymentModal'
+import { PaymentModal } from './PaymentModalShell'
 
 interface Props {
   data: CheckoutData
