@@ -14,8 +14,9 @@ const requiredEnvVars: EnvVar[] = [
   // Stripe
   { name: 'STRIPE_SECRET_KEY', required: true, description: 'Stripe API secret key' },
   { name: 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY', required: true, publicVar: true, description: 'Stripe publishable key' },
-  { name: 'STRIPE_WEBHOOK_SECRET', required: true, description: 'Stripe webhook endpoint secret' },
-  
+  { name: 'STRIPE_WEBHOOK_SECRET', required: true, description: 'Stripe webhook endpoint secret (legacy /api/webhooks/stripe)' },
+  { name: 'STRIPE_AMBASSADOR_WEBHOOK_SECRET', required: false, description: 'Stripe webhook endpoint secret for /api/webhooks/ambassador-stripe (Slice 4B+4C). Required once ambassador payments are live.' },
+
   // Supabase
   { name: 'SUPABASE_URL', required: true, description: 'Supabase project URL' },
   { name: 'NEXT_PUBLIC_SUPABASE_URL', required: true, publicVar: true, description: 'Supabase public URL' },
