@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { getBusinessDisplayName } from '@/lib/user-display'
 import PaymentPageClient from '@/components/payment/PaymentPageClient'
@@ -30,9 +30,10 @@ import {
  * every request. Listing payload is fetched via service-role because
  * public RLS on model_listings hides pending_payment + expired rows.
  *
- * Stub target for expired fallback: notFound() for now. Commit 5 ships
- * the /expired page; this file will switch to redirect('/expired')
- * once that lands.
+ * Expired fallback: redirect('/expired') for all listings-branch
+ * failure modes (missing row, already-paid, missing FK/prices) and
+ * for invalid token shapes. The expired page (app/(public)/expired)
+ * ships the neutral "Link no longer active" terminal state per spec.
  */
 
 function getAppBase(): string {
@@ -143,12 +144,12 @@ export default async function PayPage({ params }: { params: Promise<{ token: str
 
   if (kind === 'listing') {
     const row = await fetchListingByToken(token)
-    if (!row) notFound()
+    if (!row) redirect('/expired')
     const data = toCheckoutData(row)
     // already_paid (race with another payer) + missing price/FK data
     // all funnel to the terminal "link no longer active" destination
     // per audit decision #2.
-    if (!data || data.already_paid) notFound()
+    if (!data || data.already_paid) redirect('/expired')
     const shareUrl = `${getAppBase()}/pay/${token}`
     return <CheckoutClient data={data} shareUrl={shareUrl} />
   }
@@ -160,5 +161,5 @@ export default async function PayPage({ params }: { params: Promise<{ token: str
     return <PaymentPageClient />
   }
 
-  notFound()
+  redirect('/expired')
 }
