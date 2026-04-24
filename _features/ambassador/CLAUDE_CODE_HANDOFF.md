@@ -820,8 +820,8 @@ Flags carried from Phase 2 milestone review (slice-close partner review):
 8. **Notifications + email copy.** Deferred to final polish pass (post-4C). Not a Slice 4A or 4B+4C blocker; webhook writes the row, notification wiring is additive.
 
 **✅ VERIFY before next slice:**
-- [ ] Public page `/{slug}` loads, shows listing cards
-- [ ] Lightbox opens on photo/video click
+- [x] Public page `/{slug}` loads, shows listing cards — **shipped 4A (aaa9c8e + Phase 2/2 closeout)**
+- [x] Lightbox opens on photo/video click — **shipped 4A (aaa9c8e + Phase 2/2 closeout)**
 - [ ] Instagram link fires analytics event (check DB)
 - [ ] Professional clicks payment link from WhatsApp → mobile Safari loads checkout
 - [ ] Turnstile verifies silently (no visible CAPTCHA)
