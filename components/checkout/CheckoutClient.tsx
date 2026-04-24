@@ -44,7 +44,13 @@ export function CheckoutClient({ data, shareUrl }: Props) {
     : { background: 'linear-gradient(180deg, #2a2a2a 0%, #111 100%)' }
 
   return (
+    // Outer: full-viewport black chrome (matches app/(public)/layout.tsx).
+    // Inner: 500px mobile frame centered on desktop — same pattern as
+    // PublicPageClient on /{slug}. Position-fixed children (UrlOverlay,
+    // PaymentModal) escape this frame via viewport-based containing block,
+    // so modals still cover full viewport on desktop.
     <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <div style={{ width: '100%', maxWidth: 500, margin: '0 auto', minHeight: '100vh' }}>
       {/* Cover */}
       <div style={{ position: 'relative', height: 180, width: '100%', ...coverStyle }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 30%, #000 100%)' }} />
@@ -133,6 +139,7 @@ export function CheckoutClient({ data, shareUrl }: Props) {
         currency={data.currency}
         onClose={() => setModalOpen(false)}
       />
+      </div>
     </div>
   )
 }
