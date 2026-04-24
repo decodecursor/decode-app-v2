@@ -20,6 +20,11 @@
  * Payment URL is displayed as `welovedecode.com/pay/{token}` and
  * shared over WhatsApp via the open-contact-picker `wa.me` URL —
  * no phone number stored. Per spec §7.1.
+ *
+ * NOTE (Slice 4A): PAYMENT_BASE is still hardcoded — that's hardening
+ * backlog item 7. The /pay/[token] route + env-aware PAYMENT_BASE both
+ * land in Slice 4B+4C (locked decision #2, 2026-04-23). Slice 4A does
+ * not touch this file.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'

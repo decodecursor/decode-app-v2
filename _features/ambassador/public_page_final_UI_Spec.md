@@ -6,6 +6,11 @@
 
 ---
 
+> **⚠ V1 SCOPE SUPERSESSION (Slice 4A locked decision #4, 2026-04-23).**
+> V1 ships the listings surface only. §4.3 My Beauty Wishlist and §4.4 My Wall of Love are **NOT rendered** in V1 — neither populated nor shown as empty states. Wishlist visibility gains a user toggle in Settings during Slice 5, and both sections re-enable behind that toggle once Slice 5 ships the wish-gifting flow end-to-end. Original spec language for §4.3 + §4.4 preserved below as the canonical target for Slice 5 — do not delete. Slice 4A (the V1 public page) renders header + cover + listings (§4.2 My Beauty Squad) + footer + media lightbox only. Section §2.4 view tracking and §2.5 click tracking are deferred to Slice 4D (hardening). Section §2.3 share button is in 4A scope.
+
+---
+
 ## 1. Purpose
 
 The ambassador's public-facing profile page. Strangers arriving from Sara's Instagram bio or a shared link see her Beauty Squad (professionals she recommends), her Wishlist (treatments followers can gift her), and her Wall of Love (prior gifts received). This is the top of the conversion funnel — it has to load fast, read clearly, and convert taps into listing media opens, Instagram clicks, and wish gifts.
