@@ -121,6 +121,34 @@ Trigger: if a slice introduces a new toast/modal/button/animation behavior, the 
 
 **Origin:** Slice 3A toast animation divergence. Seven existing ambassador toasts had no entrance animation; the Listings spec defined a slide-up/fade animation that shipped on Listings only. Principle locked after user feedback that per-slice UI invention is the exact architectural drift the principles exist to prevent. Retrofit completed in `e2095e4` — all 7 divergent toasts now use the canonical animation.
 
+### Architecture patterns
+
+Cross-cutting patterns documented after locked decisions in prior slices. These are DEFAULTS for future work — applicable without re-litigation unless a slice-specific locked decision overrides.
+
+#### Pattern 1 — No rate-limiting on webhook endpoints
+
+Stripe (and similar webhook sources) retries on 5xx/429 with exponential backoff over days. Rate-limiting a webhook endpoint turns legitimate burst traffic (e.g. multiple payments in quick succession on a launch day) into retry storms and delivery delays. The threat model for webhooks is authenticity (signature verification) and idempotency (unique `event_id` dedupe at the DB level), not volume.
+
+**Rule:** webhook endpoints rely on signature verification + dual-layer idempotency; they do NOT use Upstash rate-limit.
+
+**Origin:** Slice 4D pre-flight locked decision #2 (2026-04-24). Verified against Slice 4B+4C webhook design: `/api/webhooks/ambassador-stripe` at `44e04bf` uses `webhook_events.event_id` UNIQUE (outer) + `model_listing_payments.stripe_event_id` UNIQUE (inner) — no abuse vector that rate-limiting would close.
+
+#### Pattern 2 — Public-page analytics: client-side POST from browser useEffect
+
+Public ambassador pages use ISR caching (`revalidate = 60` at `app/(public)/[slug]/page.tsx`). Server-side view-tracking on render undercounts because most visits hit the ISR cache, not the server, and adding `Set-Cookie` to an ISR'd response poisons the cache. Industry-standard pattern (Google Analytics, Plausible, Mixpanel, Fathom) is client-side POST after hydration.
+
+**Rule:** analytics for ISR'd public pages fires from the client via `fetch` POST to a single `/api/analytics/track` endpoint. Server handles bot filtering + session dedup + insertion.
+
+**Origin:** Slice 4D pre-flight locked decision #4 (2026-04-24). Supersedes `public_page_final_UI_Spec.md` §2.4 server-side-on-render language (which predated Slice 4A's ISR lock).
+
+#### Pattern 3 — Single multi-event analytics endpoint
+
+One `POST /api/analytics/track` accepts any `event_type` from the `model_analytics_events.event_type` DB CHECK enum. Server validates `event_type` against the enum, inserts with the discriminator. NOT one endpoint per event type.
+
+**Rule:** analytics instrumentation uses one multi-event endpoint, discriminated server-side by `event_type` field against the DB enum.
+
+**Origin:** Slice 4D pre-flight locked decision #5 (2026-04-24). Supersedes `public_page_final_UI_Spec.md` §2.5's two-endpoint (`/api/public/track-click` + implicit view endpoint) design. Single endpoint simplifies client instrumentation + server auth/rate-limit wiring; DB CHECK enum is the single source of truth for valid events.
+
 ---
 
 # PHASE 1.6 — FEATURE COMPLETENESS GAP (acknowledged, deferred)

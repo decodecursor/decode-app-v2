@@ -160,6 +160,16 @@ The audit is NOT implementation planning. It surfaces ground truth and blocking 
 
 **Addendum 2026-04-23 — File-size planning (Slice 3C Phase 2a + 2b bundled retro).** Pre-flight projected AddListingClient would fit under the ~1100-line ceiling after helper extraction. Phase 2a extraction landed at 1054 (headroom 46). Phase 2b edit-mode branching landed at 1179 — 79 over, behavior-complete and accepted. Phase 3.2 added another +9 to 1188. Two lessons: (a) **Measure actual line counts, don't approximate** — the Phase 2b projection was "some growth, probably under ceiling"; real addition was +125 lines across state initializers + handleSubmit branch + disabled-attr threading. Future slices: measure before projecting. (b) **Decompose before building when the trajectory is clear** — AddListingClient had four natural section boundaries (Professional, Media, Pricing, Free Trial) visible in the spec. Deciding upfront to carve them into sub-components would have kept the parent near 400 lines and avoided the ceiling trigger entirely. The 1188-line file is a post-3C decomposition candidate for a future hardening slice. Item 8 above is the guardrail formalization.
 
+**Addendum 2026-04-24 — Pre-flight doctrine inputs (Slice 4D).** When running G12 pre-flight audits, default assumptions based on prior-slice doctrine (see `DECODE_PROJECT_STATE.md` § Architecture patterns):
+
+- **Webhook endpoints: no rate-limit** (Pattern 1 — sig verification + idempotency cover the threat model).
+- **Public-page tracking: client-side POST** (Pattern 2 — ISR-safe, industry-standard).
+- **Analytics surface: single multi-event endpoint** (Pattern 3 — discriminated server-side by `event_type`).
+- **Schema pre-built check.** Always grep live schema via MCP before proposing migrations. Slice 4B+4C taught this: 22-col `model_listing_payments` + all UNIQUE constraints + RLS were already live from Slice 2 — a pre-flight that assumed greenfield would have been 2x longer.
+- **Infrastructure pre-built check.** Always grep `lib/` for existing helpers before proposing new ones. Slice 4D taught this: `lib/ambassador/rate-limit.ts` (7 pre-configured Ratelimit instances including `checkoutLimiter` + `analyticsLimiter`) and `lib/ambassador/turnstile.ts` (`verifyTurnstile(token)` helper) were already shipped. 4D's projected scope shrank from ~550 LOC to ~325 LOC on that discovery alone.
+
+These are DEFAULTS, not rules — any slice can override with locked-decision reasoning. But pre-flights should START from these instead of re-discovering each time. Overrides must cite the justification explicitly (like Slice 4B+4C audit Surprise #7 did for the placeholder-bypass rejection).
+
 ### Guardrail 13 — Partner-mode protocol
 
 Formalizes how slice work runs in partner-mode (reviewer-driver cadence). Sister to G11 (two-commit self-reference) and G12 (pre-flight audit).
