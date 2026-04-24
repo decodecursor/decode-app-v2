@@ -1,5 +1,7 @@
 'use client'
 
+import { Fragment } from 'react'
+
 const CheckIcon = () => (
   <svg
     width="10"
@@ -38,22 +40,24 @@ export function ProgressTracker({
   padding = '0 8px',
   marginBottom,
 }: {
-  steps: readonly [string, string, string]
-  // 4 = all-done state (e.g. email-changed confirmation)
-  step: 1 | 2 | 3 | 4
+  steps: readonly string[]
+  // 1..steps.length = active step; steps.length + 1 = all-done state.
+  step: number
   padding?: string
   marginBottom?: number | string
 }) {
-  const stepState = (n: 1 | 2 | 3) =>
-    n < step ? 'done' : n === step ? 'active' : 'future'
+  const n = steps.length
+  const stepState = (i: number) =>
+    i < step ? 'done' : i === step ? 'active' : 'future'
 
-  const circles: ('done' | 'active' | 'future')[] = [1, 2, 3].map((n) =>
-    stepState(n as 1 | 2 | 3),
+  const circles: ('done' | 'active' | 'future')[] = Array.from(
+    { length: n },
+    (_, i) => stepState(i + 1),
   )
-  const rails: ('solid' | 'dashed')[] = [
-    circles[0] === 'done' ? 'solid' : 'dashed',
-    circles[1] === 'done' ? 'solid' : 'dashed',
-  ]
+  const rails: ('solid' | 'dashed')[] = Array.from(
+    { length: Math.max(0, n - 1) },
+    (_, i) => (circles[i] === 'done' ? 'solid' : 'dashed'),
+  )
 
   const renderCircle = (state: 'done' | 'active' | 'future') => {
     if (state === 'done') {
@@ -116,41 +120,43 @@ export function ProgressTracker({
     whiteSpace: 'nowrap',
   })
 
+  // Grid template: N fixed 20px columns for circles, (N-1) 1fr spacers between.
+  // e.g. N=3 → "20px 1fr 20px 1fr 20px"; N=4 → "20px 1fr 20px 1fr 20px 1fr 20px".
+  const gridTemplateColumns = ['20px', ...Array(Math.max(0, n - 1)).fill('1fr 20px')].join(' ')
+
+  const labelPosition = (i: number): React.CSSProperties => {
+    if (i === 0) return { left: 0 }
+    if (i === n - 1) return { right: 0 }
+    return { left: '50%', transform: 'translateX(-50%)' }
+  }
+
   return (
     <div style={{ padding, marginBottom }}>
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        {renderCircle(circles[0])}
-        {renderRail(rails[0])}
-        {renderCircle(circles[1])}
-        {renderRail(rails[1])}
-        {renderCircle(circles[2])}
+        {circles.map((c, i) => (
+          <Fragment key={i}>
+            {i > 0 && renderRail(rails[i - 1])}
+            {renderCircle(c)}
+          </Fragment>
+        ))}
       </div>
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '20px 1fr 20px 1fr 20px',
+          gridTemplateColumns,
           marginTop: 10,
         }}
       >
-        <div style={{ position: 'relative' }}>
-          <span style={{ ...labelStyle(circles[0]), left: 0 }}>{steps[0]}</span>
-        </div>
-        <div />
-        <div style={{ position: 'relative' }}>
-          <span
-            style={{
-              ...labelStyle(circles[1]),
-              left: '50%',
-              transform: 'translateX(-50%)',
-            }}
-          >
-            {steps[1]}
-          </span>
-        </div>
-        <div />
-        <div style={{ position: 'relative' }}>
-          <span style={{ ...labelStyle(circles[2]), right: 0 }}>{steps[2]}</span>
-        </div>
+        {circles.map((c, i) => (
+          <Fragment key={i}>
+            {i > 0 && <div />}
+            <div style={{ position: 'relative' }}>
+              <span style={{ ...labelStyle(c), ...labelPosition(i) }}>
+                {steps[i]}
+              </span>
+            </div>
+          </Fragment>
+        ))}
       </div>
     </div>
   )
