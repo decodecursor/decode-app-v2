@@ -152,10 +152,47 @@ The audit covers, at minimum:
 5. **UX-lock gate** — full read of all mockup + UI-spec files in scope; surface every un-locked decision and every spec-vs-reality drift
 6. **Scope sanity** — Principle H check; estimate days, propose split points if over limit (surface the read, don't decide)
 7. **Hardening backlog state** — still accurate? Any items to close, any new items to add?
+8. **File-size planning** — for any single-file module expected to grow past ~400 lines during the slice, scope the decomposition BEFORE writing code. Identify section boundaries and decide: inline until a ceiling triggers, or decompose upfront into sub-components. Ceilings trigger stops, not hard blocks — behavior-complete work can land over ceiling with decomposition scheduled as a follow-up hardening slice.
 
 The audit is NOT implementation planning. It surfaces ground truth and blocking decisions. Implementation planning happens AFTER the user reviews findings and locks decisions.
 
 **Origin:** Emerged organically during Slice 2; caught 5/5 code surprises that session. Locked as Guardrail 12 during Slice 3B pre-flight (2026-04-23) after catching an additional 15 surprises across Slices 3A + 3B. Without pre-flight, these surface as rework after code ships — the expensive kind.
+
+**Addendum 2026-04-23 — File-size planning (Slice 3C Phase 2a + 2b bundled retro).** Pre-flight projected AddListingClient would fit under the ~1100-line ceiling after helper extraction. Phase 2a extraction landed at 1054 (headroom 46). Phase 2b edit-mode branching landed at 1179 — 79 over, behavior-complete and accepted. Phase 3.2 added another +9 to 1188. Two lessons: (a) **Measure actual line counts, don't approximate** — the Phase 2b projection was "some growth, probably under ceiling"; real addition was +125 lines across state initializers + handleSubmit branch + disabled-attr threading. Future slices: measure before projecting. (b) **Decompose before building when the trajectory is clear** — AddListingClient had four natural section boundaries (Professional, Media, Pricing, Free Trial) visible in the spec. Deciding upfront to carve them into sub-components would have kept the parent near 400 lines and avoided the ceiling trigger entirely. The 1188-line file is a post-3C decomposition candidate for a future hardening slice. Item 8 above is the guardrail formalization.
+
+### Guardrail 13 — Partner-mode protocol
+
+Formalizes how slice work runs in partner-mode (reviewer-driver cadence). Sister to G11 (two-commit self-reference) and G12 (pre-flight audit).
+
+**Default cadence:**
+1. **Ship, don't propose.** Non-UI commits: typecheck + lint green → commit → push → short report (file count + LOC delta + what shipped). No go/no-go wait.
+2. **UI commits: spot-check, not pre-review.** Commit → push → paste live URL → partner spot-checks on the deployed page. Drift caught on live = immediate fix.
+3. **Pre-commit diff review ONLY when a trigger fires:**
+   - Scope guard trips (file count or LOC exceeds declared limit)
+   - Principle A / D / I violation flagged during implementation
+   - Security-adjacent endpoint (auth, payments, identity)
+   - Schema migration or RLS change
+   - Claude Code is genuinely uncertain
+4. **Milestone review at SLICE boundaries** (end of 3A, 3B, 3C, 4 — not between phases). The slice review replaces all per-phase reviews within that slice. Per-phase pre-commit reviews are reserved for trigger hits above.
+5. **User interrupts any time.** UX issue caught on live → fix immediately regardless of commit status.
+
+**Standing rules:**
+6. **Flag deviations immediately.** Reality contradicts a locked decision / spec / plan → stop, report the delta, wait.
+7. **Before/after in every commit report.** File count, LOC delta, ceiling status, any surface that shifted vs. the plan.
+8. **Locked decisions are frozen.** Reference by number; only unlock on explicit request.
+9. **No drive-by refactors.** Nearby issue spotted → file as Flag/Backlog, don't bundle.
+10. **Ceiling overshoot = stop-point.** File LOC ceilings are triggers, not guidelines. Hit one, stop and surface before continuing.
+
+**What Claude must NOT do in partner-mode:**
+- Guess scope from ambiguity — ask.
+- Bundle unrelated fixes.
+- Silently expand file surface.
+- Skip the slice-boundary review.
+
+**What the user owns:**
+- Locked-decision unlocks · scope approvals · slice-gate passes · ceiling overshoot accept/retry calls · live spot-check sign-off.
+
+**Origin:** Formalized during Slice 3C Phase 3 (2026-04-23) after partner-mode evolved organically through Slices 3A/3B/3C. Replaces the looser per-phase-review convention. G13 establishes ship-by-default cadence, preserves trigger-gated diff review for high-risk work, and consolidates review into slice-boundary milestones.
 
 ### Pre-launch checklist
 
@@ -628,10 +665,10 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 **✅ VERIFY before next slice:**
 - [x] Ambassador creates a listing with photos (1-3) successfully uploaded — **shipped 3B (3408196)**
 - [x] Ambassador creates a listing with a video (HEVC from iPhone) — plays on Safari — **shipped 3B (3408196 — HEVC accepted silently per Phase 1 #13)**
-- [ ] Ambassador edits an existing listing (title, photos, professional) — **Slice 3C scope**
+- [x] Ambassador edits an existing listing (title, photos, professional) — **shipped 3C (8c85532)**
 - [x] Professional dedup works — second listing linked to same IG finds existing professional — **shipped 3B (a3ef037 + 3408196); auto-swap on blur per locked decision #3**
 - [x] Free trial listing: status=`free_trial`, `free_trial_ends_at` = 30 days out — **shipped 3B (b11f0ec)**
-- [ ] Paid listing (mocked paid_until): send-link page shows payment link with token — **Slice 3C scope**
+- [x] Paid listing: send-link page shows payment link with token — **shipped 3C (12ec72a)**
 - [x] Listings page shows listing status correctly (effective_status) — **shipped 3A (f121ef3)**
 - [x] Delete listing works for Trial/Pending/Expired, blocked for Active — **shipped 3A (4e86c2c + de5c862)**
 - [x] Dashboard shows correct listing count + expiring alerts — **shipped 3A (f121ef3)**
@@ -703,6 +740,28 @@ Cropper UX landed in two visual corrections:
 Paid-path celebration emoji flipped from ℹ️ to 🎉 post-live-test — listing creation is a success regardless of trial/paid distinction.
 
 `/dev/cropper` verifier route retired at closeout (production integration verified on live, scaffolding no longer needed).
+
+#### Slice 3C shipped (2026-04-23) — commit range `49c00e0..12ec72a`, 7 commits (+ Phase 4 closeout commit for this block)
+
+- `49c00e0` — DOCS: supersede send-link spec §6 + §11 (permanent `payment_link_token` reuse, no 14-day rotation)
+- `7f8c4b4` — DOCS: lock Slice 3C decisions (edit locks, permanent tokens, send-link redirect)
+- `fed7600` — API: Phase 1 — PATCH `/api/ambassador/model/listings/[id]` (edit listing; whitelist rejects non-editable fields)
+- `5e8729e` — REFACTOR: Phase 2a prep — extract AddListing helpers to `lib/ambassador/add-listing-helpers.tsx` (behavior-preserving)
+- `8c85532` — UI: Phase 2b — Edit Listing page + `mode` prop on `<AddListingClient>` + card edit icon
+- `08418d6` — REFACTOR: Phase 3.1 prep — generalize `<ProgressTracker>` to N-step (Principle E — extend canonical, don't fork)
+- `12ec72a` — UI: Phase 3.2 — Send Payment Link page + paid-path redirect + ListingsClient cleanup + inert pricing wrapper
+
+Phase-review cadence evolved through this slice from per-phase pre-commit diff reviews to ship-by-default with milestone review at slice close. Formalized as Guardrail 13 mid-Phase-3 and written into this handoff in the Phase 4 closeout commit.
+
+AddListingClient landed at 1188 lines (88 over the ~1100 ceiling set in Slice 3B locked decision #7). Overshoot explicitly accepted — behavior-complete, decomposition scheduled as a post-3C hardening candidate (natural section boundaries: Professional, Media, Pricing, Free Trial). Retro bundled into the Guardrail 12 addendum + item #8 (File-size planning) in this closeout commit.
+
+Principle A (identity immutability) enforced end-to-end for the first time in 3C: client (locked professional inputs + trial toggle + IG disabled + pricing `inert` on trial), API (PATCH whitelist rejects `professional_id` / `is_free_trial` / `status` / `currency` / timestamps), DB (existing RLS + column defaults, no schema change). Three-layer defense.
+
+Flags carried from Phase 2 milestone review (slice-close partner review):
+- **Flag 1 (minor style)** — `Professional` + `ListingPrefill` types declared in both `components/ambassador/AddListingClient.tsx` and `app/(ambassador)/model/listings/[id]/edit/page.tsx`. Candidate for promotion to `lib/ambassador/listing-shape.ts` on next touch.
+- **Flag 2 (a11y)** — **resolved** in Phase 3.2 via `inert={freeTrial}` on the pricing collapse wrapper.
+- **Flag 3 (style)** — non-null `media!` assertions in AddListingClient handleSubmit edit branch. Deferred to post-3C decomposition slice.
+- **Flag 4 (scope)** — 1188-line AddListingClient. Accepted, retro in Guardrail 12 addendum.
 
 ---
 
