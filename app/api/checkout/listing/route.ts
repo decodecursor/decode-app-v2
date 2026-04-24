@@ -148,8 +148,26 @@ export async function POST(request: NextRequest) {
       payment_intent_id: paymentIntent.id,
     })
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
-    console.error('[Checkout] PaymentIntent create failed:', message)
-    return NextResponse.json({ error: 'pi_create_failed' }, { status: 500 })
+    // Widen the error response with Stripe's structured fields so the
+    // client modal can surface the real cause (e.g. "No valid payment
+    // method types for this Payment Intent") instead of a generic code.
+    // Stripe's `raw.message` is the user-safe API error string; `type`
+    // and `code` are non-secret diagnostic slugs. Stack traces + env
+    // values never leave the server.
+    const stripeErr = err as { type?: string; code?: string; message?: string; raw?: { message?: string } } | undefined
+    const safeMessage = stripeErr?.raw?.message ?? stripeErr?.message ?? 'Unknown error'
+    console.error('[Checkout] PaymentIntent create failed:', safeMessage, {
+      type: stripeErr?.type,
+      code: stripeErr?.code,
+    })
+    return NextResponse.json(
+      {
+        error: 'pi_create_failed',
+        stripe_type: stripeErr?.type ?? null,
+        stripe_code: stripeErr?.code ?? null,
+        message: safeMessage,
+      },
+      { status: 500 },
+    )
   }
 }
