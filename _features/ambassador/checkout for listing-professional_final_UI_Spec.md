@@ -7,6 +7,25 @@
 
 ---
 
+> **⚠ SUPERSESSION NOTE (Slice 4B+4C opening, 2026-04-24).**
+> This spec predates Slice 3C and Slice 4 locked decisions. The items below are superseded — follow the locked decisions, not the original language. Original text preserved for traceability.
+>
+> - **§2.2 + §2.4 URL route `welovedecode.com/checkout/{token}`** → **`/pay/[token]`** (Slice 4 locked decision #2). Single route dispatches listings-token first (8-char base64url matching `model_listings.payment_link_token`), legacy offers `payment_links.id` fallback on miss.
+> - **§2.4 row "Payment link validity | 7 days from link creation"** → **Permanent tokens, no expiry** (Slice 3C locked decision #1). `model_listings.payment_link_token` is generated once at listing POST and never rotated. No `payment_link_expires_at` column exists.
+> - **§3.1 `GET /api/payment-link/{token}` endpoint** → **Server-component fetch** (no public read endpoint). `/pay/[token]/page.tsx` is a server component (pattern: `app/(public)/[slug]/page.tsx`) that reads via `createServiceRoleClient()`. Public RLS on `model_listings` blocks anon read of `pending_payment` rows by design.
+> - **§3.1 response shape fields `payment_link_expires_at`, `reference: 'L8473921'`** → `payment_link_expires_at` removed; `payment_reference` format is `^L-\d{3}-\d{4}$` per DB CHECK (e.g. `L-001-0001`), NOT `L8473921`.
+> - **§6 notifications (Resend + AUTHKey) exact copy** → **Stub in Slice 4B+4C** (Slice 4 locked decision #8). Webhook calls placeholder emit functions with TODO bodies; real copy lands in post-4C polish. Trigger shape (fire from `payment_intent.succeeded` handler) is authoritative.
+> - **§7 full `listings` schema** → **Already exists.** Real tables are `model_listings` (shipped Slice 1) + `model_listing_payments` (shipped Slice 2). See `DECODE_PROJECT_STATE.md` + live schema via Supabase MCP. No new schema in 4B+4C. Fee stored as `gross_amount` / `platform_fee` / `net_amount` (CHECK enforces `gross = fee + net`); `platform_fee = round(gross * 0.20, 2)` per Phase 1 decision #1 (20% flat, NOT the §6.1 tiered-fee legacy structure).
+> - **§7.2 status transition `pending_payment → expired` on cron** → **Not needed.** Permanent token, no link-expiry transition. `model_listings_live` view auto-computes `effective_status='expired'` from `paid_until < now()` — no cron job.
+> - **§7.3 daily cron "expire pending listings past `payment_link_expires_at`"** → **Removed.** Pending listings stay pending until ambassador deletes or payment completes.
+> - **§8 "past expiry" path + 410 from `GET /api/payment-link/{token}`** → **Not reachable via expiry.** The expired-link page (Slice 4B+4C scope, spec `payment_link_no_longer_active_final_UI_Spec.md`) covers: listing hidden/deleted by ambassador, admin revocation, and the 4B+4C-temporary already-paid fallback (Slice 7 builds the dedicated `/listing/paid` page).
+> - **§9 edge case "link twice after paying" → `/listing/confirmation?tx=L8473921`** → **Expired-link page** for V1 (audit decision #2). Slice 7 will add `/listing/paid?slug=&first=` for privacy-preserving already-paid redirect.
+> - **§11 backend checklist items referencing `GET /api/payment-link/{token}`, `payment_link_expires_at`, pending-expiry cron** → **Superseded.** 4B+4C ships `POST /api/checkout/listing` (PaymentIntent create), `GET /api/listings/by-payment-intent/[pi_id]` (receipt hydration), `POST /api/webhooks/ambassador-stripe` (webhook handler). Trial→paid transition owned by webhook (Slice 4 locked decision #5); `paid_until` stacking math is `MAX(paid_until, NOW()) + package_days * INTERVAL '1 day'`.
+>
+> Locked decision trace: Slice 3C #1 (permanent token) · Slice 4 #2 (URL route) · Slice 4 #5 (webhook-owned trial flip) · Slice 4 #6 (permanent-token supersession) · Slice 4 #8 (notification copy deferred) · Phase 1 #1 (20% flat platform fee).
+
+---
+
 ## 1. Purpose
 
 A single landing page where a professional (e.g. Salon de Luxe) can:
