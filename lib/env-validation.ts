@@ -37,6 +37,12 @@ const requiredEnvVars: EnvVar[] = [
   { name: 'UPSTASH_REDIS_REST_URL', required: true, description: 'Upstash Redis REST URL (rate-limit backend)' },
   { name: 'UPSTASH_REDIS_REST_TOKEN', required: true, description: 'Upstash Redis REST token' },
 
+  // Analytics (Slice 4D commit 2)
+  // Marked required:true — the runStartupChecks() validator only throws
+  // in production, so dev machines get a warning and the hashIp() helper
+  // falls back to a hardcoded dev-only salt. Prod boot fails loudly.
+  { name: 'ANALYTICS_IP_SALT', required: true, description: 'HMAC salt for daily-rotating IP hashes in model_analytics_events (GDPR-safe bucketing — raw IP never stored)' },
+
   // Cron Jobs
   { name: 'CRON_SECRET', required: false, description: 'Secret for authenticating cron requests' },
 ]

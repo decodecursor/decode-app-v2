@@ -14,9 +14,11 @@ type Flash = 'idle' | 'shared' | 'copied' | 'failed'
 export function ShareButton({
   url,
   title,
+  slug,
 }: {
   url: string
   title: string
+  slug: string
 }) {
   const [flash, setFlash] = useState<Flash>('idle')
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -28,6 +30,17 @@ export function ShareButton({
   }
 
   const onShare = () => {
+    // Fire analytics BEFORE branching on capability — even if the share
+    // sheet or clipboard write fails, the intent-to-share is the signal
+    // we want to count. keepalive ensures it survives if the user
+    // immediately switches apps after picking a target.
+    fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_type: 'public_page_share_click', slug }),
+      keepalive: true,
+    }).catch(() => { /* fire-and-forget */ })
+
     if (typeof navigator === 'undefined') {
       flashFor('failed')
       return

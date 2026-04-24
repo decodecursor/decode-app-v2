@@ -5,27 +5,44 @@ import { categoryText, locationText } from '@/lib/public/slug-page-shape'
 
 /**
  * A single listing row in the "My Beauty Squad" list. Three tap targets:
- *   - professional avatar → Instagram
- *   - professional name → Instagram
- *   - play-button circle → opens the media lightbox
+ *   - professional avatar → Instagram (fires listing_instagram_click)
+ *   - professional name → Instagram (fires listing_instagram_click)
+ *   - play-button circle → opens the media lightbox (fires listing_media_click)
  *
  * Spec: public_page_final_UI_Spec.md §4.2.
  * Mockup: public_page_final.html lines 30-76.
  *
- * Analytics (listing_instagram / listing_media click events) land in
- * Slice 4D — anchors are plain <a target="_blank"> for now; play button
- * invokes the onOpenMedia callback, no fetch.
+ * Analytics fires via /api/analytics/track with keepalive:true so the
+ * request survives the target=_blank navigation (belt-and-suspenders —
+ * the nav opens in a new tab anyway, so the current page stays open).
+ * Server silently dedupes via analyticsLimiter (1/30s per IP+event).
  */
+function fireClick(slug: string, event_type: 'listing_instagram_click' | 'listing_media_click', target_id: string) {
+  fetch('/api/analytics/track', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_type, slug, target_id }),
+    keepalive: true,
+  }).catch(() => { /* fire-and-forget */ })
+}
+
 export function SquadRow({
   listing,
+  slug,
   isLast,
   onOpenMedia,
 }: {
   listing: PublicListingRow
+  slug: string
   isLast: boolean
   onOpenMedia: (listingId: string) => void
 }) {
   const igUrl = `https://instagram.com/${listing.professional_instagram}`
+  const onIgClick = () => fireClick(slug, 'listing_instagram_click', listing.id)
+  const onMediaClick = () => {
+    fireClick(slug, 'listing_media_click', listing.id)
+    onOpenMedia(listing.id)
+  }
 
   return (
     <div
@@ -43,6 +60,7 @@ export function SquadRow({
         href={igUrl}
         target="_blank"
         rel="noopener"
+        onClick={onIgClick}
         style={{
           width: 52,
           height: 52,
@@ -87,6 +105,7 @@ export function SquadRow({
             href={igUrl}
             target="_blank"
             rel="noopener"
+            onClick={onIgClick}
             style={{ color: '#fff', textDecoration: 'none' }}
           >
             {listing.professional_name}
@@ -97,7 +116,7 @@ export function SquadRow({
 
       {/* Play button — opens lightbox */}
       <div
-        onClick={() => onOpenMedia(listing.id)}
+        onClick={onMediaClick}
         style={{
           background: '#000',
           width: 36,

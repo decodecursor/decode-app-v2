@@ -34,7 +34,7 @@ export function PublicHeader({
           zIndex: 2,
         }}
       >
-        <ShareButton url={shareUrl} title={`${displayName} — WeLoveDecode`} />
+        <ShareButton url={shareUrl} title={`${displayName} — WeLoveDecode`} slug={profile.slug} />
       </div>
 
       {/* Cover image — positioned with cover_photo_position_y (0-100)

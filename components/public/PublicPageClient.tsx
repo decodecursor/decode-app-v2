@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { PublicPageData } from '@/lib/public/slug-page-shape'
 import { PublicHeader } from './PublicHeader'
 import { SquadRow } from './SquadRow'
@@ -16,6 +16,10 @@ import { PublicFooter } from './PublicFooter'
  * deliberately not rendered. When no listings exist, shows a neutral
  * empty-state message — the ambassador's self-view sees this too, no
  * special owner UI (matches ambassador dashboard conventions).
+ *
+ * Slice 4D: fires public_page_view analytics on mount + click events
+ * on child interactions. Server dedupes via analyticsLimiter so
+ * Strict-Mode double-mount in dev doesn't inflate counts.
  */
 export default function PublicPageClient({
   data,
@@ -30,6 +34,19 @@ export default function PublicPageClient({
     () => data.listings.find((l) => l.id === openListingId) ?? null,
     [data.listings, openListingId],
   )
+
+  useEffect(() => {
+    fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_type: 'public_page_view',
+        slug: data.profile.slug,
+        referrer: typeof document !== 'undefined' ? document.referrer || null : null,
+      }),
+      keepalive: true,
+    }).catch(() => { /* fire-and-forget */ })
+  }, [data.profile.slug])
 
   return (
     <div
@@ -63,6 +80,7 @@ export default function PublicPageClient({
             <SquadRow
               key={l.id}
               listing={l}
+              slug={data.profile.slug}
               isLast={i === data.listings.length - 1}
               onOpenMedia={setOpenListingId}
             />

@@ -60,6 +60,19 @@ Fallback chain: `navigator.share` → `navigator.clipboard.writeText` → error 
 
 ### 2.4 View tracking — session dedupe
 
+> **⚠ SUPERSESSION (Slice 4D commit 2, 2026-04-24).** Replaced by the
+> doctrine in `DECODE_PROJECT_STATE.md` § Architecture patterns — Pattern 2
+> (client-side POST) + Pattern 3 (single multi-event endpoint). Views fire
+> from `PublicPageClient` on mount to `POST /api/analytics/track` with
+> `event_type='public_page_view'` + `slug`. Server handles bot filter
+> (`isbot`), IP+event_type rate-limit (`analyticsLimiter` 1/30s), ambassador
+> self-view skip, session cookie (`wld_visitor`, 30-day max-age), and insert
+> into `model_analytics_events` (NOT a separate `view_events` table — single
+> events table with `event_type` discriminator). The "server-side on render"
+> flow below no longer applies. The 24h window language is superseded by
+> Upstash's 30s-per-IP-per-event dedup; true 24h view dedup is a post-V1
+> fidelity concern.
+
 Page views recorded in `view_events`. Deduped by `wld_visitor` cookie with **24-hour** window (matches Instagram / Linktree / Beacons creator-analytics standard).
 
 **Server-side on render:**
@@ -76,6 +89,15 @@ Page views recorded in `view_events`. Deduped by `wld_visitor` cookie with **24-
 See also: Analytics spec §2.4 — same dedupe rule applies there.
 
 ### 2.5 Click tracking
+
+> **⚠ SUPERSESSION (Slice 4D commit 2, 2026-04-24).** Click tracking also
+> fires to `POST /api/analytics/track` (same endpoint as views, Pattern 3).
+> `click_type` value space superseded by the `model_analytics_events.event_type`
+> DB CHECK enum — `listing_instagram_click`, `listing_media_click`,
+> `public_page_share_click`. The separate `/api/public/track-click` endpoint
+> below is NOT built. Body shape is `{ event_type, slug, target_id? }` per
+> the endpoint; `keepalive: true` on the client `fetch` preserves the spec's
+> survive-tab-close behavior for IG link-opens.
 
 Every tap on a tracked element fires `POST /api/public/track-click`:
 
