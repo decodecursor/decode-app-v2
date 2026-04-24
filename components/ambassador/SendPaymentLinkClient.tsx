@@ -21,10 +21,10 @@
  * shared over WhatsApp via the open-contact-picker `wa.me` URL —
  * no phone number stored. Per spec §7.1.
  *
- * NOTE (Slice 4A): PAYMENT_BASE is still hardcoded — that's hardening
- * backlog item 7. The /pay/[token] route + env-aware PAYMENT_BASE both
- * land in Slice 4B+4C (locked decision #2, 2026-04-23). Slice 4A does
- * not touch this file.
+ * PAYMENT_BASE is env-aware (hardening backlog item 7, closed in Slice
+ * 4B+4C commit 4). Derived from NEXT_PUBLIC_APP_URL with a prod default
+ * fallback so staging + preview Vercel deploys resolve to their own
+ * host without code changes.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -61,7 +61,14 @@ type Listing = {
 type ToastPayload = { emoji?: string; message: string }
 
 const TOAST_LIFECYCLE_MS = 5200
-const PAYMENT_BASE = 'welovedecode.com/pay'
+
+// Display-form URL (no scheme) so the UI renders `welovedecode.com/pay/...`
+// bare. The copy-to-clipboard + WhatsApp-share flows re-prepend `https://`
+// when writing the full URL to external surfaces.
+const APP_HOST = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.welovedecode.com')
+  .replace(/^https?:\/\//, '')
+  .replace(/\/$/, '')
+const PAYMENT_BASE = `${APP_HOST}/pay`
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-GB', {

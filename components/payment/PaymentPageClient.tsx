@@ -30,7 +30,10 @@ export default function PaymentPageClient() {
   
   const params = useParams()
   const router = useRouter()
-  const linkId = params.linkId as string
+  // Route param renamed from `linkId` → `token` in Slice 4B+4C commit 4
+  // (dispatch rewrite at app/pay/[token]/page.tsx). Internal variable
+  // keeps the legacy `linkId` name so the rest of this file is untouched.
+  const linkId = params.token as string
 
   // Format amount with thousands separators
   const formatAmount = (amount: number): string => {
