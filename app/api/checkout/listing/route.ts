@@ -3,6 +3,8 @@ import Stripe from 'stripe'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { isSupportedCurrency } from '@/lib/ambassador/currencies'
 import { toStripeAmount } from '@/lib/ambassador/utils'
+import { checkoutLimiter } from '@/lib/ambassador/rate-limit'
+import { verifyTurnstile } from '@/lib/ambassador/turnstile'
 
 /**
  * POST /api/checkout/listing
@@ -10,7 +12,19 @@ import { toStripeAmount } from '@/lib/ambassador/utils'
  * Creates a Stripe PaymentIntent for a listing payment. Called from the
  * client-side checkout modal once the professional picks a package.
  *
- * Body: { token: string(8), package_days: 30 | 60 | 90 }
+ * Body: { token: string(8), package_days: 30 | 60 | 90, turnstileToken: string }
+ *
+ * Gating order (cheap → expensive):
+ *   1. Body shape (token + package_days format) — synchronous, no I/O
+ *   2. Upstash rate-limit by IP (checkoutLimiter: 3/10min) — single Redis call
+ *   3. Turnstile verification — network call to Cloudflare siteverify
+ *   4. DB listing lookup — service-role Supabase
+ *   5. Stripe PaymentIntent create
+ *
+ * Rate-limit before Turnstile so a flooder can't burn through our
+ * Cloudflare siteverify budget. Turnstile verify is fail-open on empty
+ * token by design (widget didn't load — real users shouldn't be
+ * blocked by Cloudflare script failures) per lib/ambassador/turnstile.
  *
  * The token + package_days are the only client inputs we trust. Amount
  * is derived server-side from model_listings.price_{days} — NEVER from
@@ -29,9 +43,6 @@ import { toStripeAmount } from '@/lib/ambassador/utils'
  * Direct Stripe client construction (not the lib/stripe.ts singleton)
  * per Slice 4 locked decision #3 — keeps the legacy tiered-fee +
  * legacy webhook-secret paths out of the ambassador surface entirely.
- *
- * Rate limiting + Turnstile: intentionally not wired in 4B+4C; lands
- * in Slice 4D (locked decision #1 of Slice 4 scope split).
  */
 
 const VALID_PACKAGE_DAYS = new Set([30, 60, 90])
@@ -42,9 +53,21 @@ function getStripe(): Stripe {
   })
 }
 
+function getClientIp(request: NextRequest): string {
+  // Vercel sets x-forwarded-for; first entry is the client IP.
+  // Fallback to a deterministic marker so the rate-limit still keys
+  // something instead of sharing one bucket across all unknown clients.
+  const fwd = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+  if (fwd) return fwd
+  const real = request.headers.get('x-real-ip')?.trim()
+  if (real) return real
+  return 'unknown'
+}
+
 type CheckoutRequest = {
   token?: unknown
   package_days?: unknown
+  turnstileToken?: unknown
 }
 
 type ListingRow = {
@@ -66,12 +89,36 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 })
   }
 
-  const { token, package_days } = body
+  const { token, package_days, turnstileToken } = body
   if (typeof token !== 'string' || token.length !== 8) {
     return NextResponse.json({ error: 'invalid_token' }, { status: 400 })
   }
   if (typeof package_days !== 'number' || !VALID_PACKAGE_DAYS.has(package_days)) {
     return NextResponse.json({ error: 'invalid_package' }, { status: 400 })
+  }
+
+  // Rate-limit BEFORE Turnstile verify so flooders can't drain the
+  // Cloudflare siteverify budget. 3 attempts per IP per 10 minutes —
+  // covers retry-after-decline but blocks bot enumeration.
+  const ip = getClientIp(request)
+  const { success: rlOk, reset } = await checkoutLimiter.limit(ip)
+  if (!rlOk) {
+    const retryAfterSec = Math.max(1, Math.ceil((reset - Date.now()) / 1000))
+    return NextResponse.json(
+      { error: 'rate_limited', message: 'Too many attempts. Please wait a few minutes before trying again.' },
+      { status: 429, headers: { 'Retry-After': String(retryAfterSec) } },
+    )
+  }
+
+  // Turnstile — fail-open on empty token per helper (widget didn't load).
+  // On genuine failure (Cloudflare says "not a human"), reject with 403.
+  const turnstileStr = typeof turnstileToken === 'string' ? turnstileToken : ''
+  const isHuman = await verifyTurnstile(turnstileStr)
+  if (!isHuman) {
+    return NextResponse.json(
+      { error: 'turnstile_failed', message: 'Verification failed. Please reload the page and try again.' },
+      { status: 403 },
+    )
   }
 
   const admin = createServiceRoleClient()

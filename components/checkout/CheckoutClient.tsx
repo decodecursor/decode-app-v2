@@ -12,7 +12,7 @@
  * is a cleaner variant without the share affordance.
  */
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CheckoutData, PackageDays } from '@/lib/checkout/checkout-shape'
 import { ambassadorDisplayName } from '@/lib/checkout/checkout-shape'
 import { formatCurrency } from '@/lib/ambassador/utils'
@@ -25,6 +25,20 @@ interface Props {
   shareUrl: string
 }
 
+// Cloudflare Turnstile global injected by the api.js script.
+// Signature matches the one already declared in
+// app/(ambassador)/model/auth/page.tsx — TypeScript merges interface
+// declarations across files, so shapes must be identical to avoid
+// TS2717 "subsequent property declarations must have the same type".
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (selector: string, options: Record<string, unknown>) => string
+      reset: (widgetId: string) => void
+    }
+  }
+}
+
 export function CheckoutClient({ data, shareUrl }: Props) {
   const defaultPkg = useMemo<PackageDays>(
     () => (data.packages.find((p) => p.is_default)?.days ?? data.packages[0]!.days) as PackageDays,
@@ -33,6 +47,46 @@ export function CheckoutClient({ data, shareUrl }: Props) {
   const [selected, setSelected] = useState<PackageDays>(defaultPkg)
   const [overlayOpen, setOverlayOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+  // Turnstile lives on the checkout page (not the modal) so the token
+  // is already warm by the time the user taps Pay. Matches the auth-page
+  // pattern at app/(ambassador)/model/auth/page.tsx.
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const turnstileWidgetId = useRef<string | null>(null)
+
+  useEffect(() => {
+    const existing = document.querySelector<HTMLScriptElement>(
+      'script[src="https://challenges.cloudflare.com/turnstile/v0/api.js"]',
+    )
+    const mount = () => {
+      if (!window.turnstile) return
+      if (turnstileWidgetId.current) return
+      const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+      if (!siteKey) {
+        console.warn('[CheckoutClient] NEXT_PUBLIC_TURNSTILE_SITE_KEY not configured; skipping widget')
+        return
+      }
+      const id = window.turnstile.render('#turnstile-container', {
+        sitekey: siteKey,
+        size: 'invisible',
+        callback: (token: string) => setTurnstileToken(token),
+        'expired-callback': () => setTurnstileToken(''),
+        'error-callback': () => setTurnstileToken(''),
+      })
+      turnstileWidgetId.current = id
+    }
+    if (existing) {
+      mount()
+      return
+    }
+    const script = document.createElement('script')
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+    script.async = true
+    script.defer = true
+    script.onload = mount
+    document.body.appendChild(script)
+    // Script stays in the DOM across route changes — intentional; don't
+    // unmount or the next navigation re-downloads it.
+  }, [])
 
   const selectedPkg = data.packages.find((p) => p.days === selected) ?? data.packages[0]!
   const ambassadorName = ambassadorDisplayName(data.ambassador)
@@ -137,8 +191,15 @@ export function CheckoutClient({ data, shareUrl }: Props) {
         packageDays={selected}
         amount={selectedPkg.total}
         currency={data.currency}
+        turnstileToken={turnstileToken}
         onClose={() => setModalOpen(false)}
       />
+
+      {/* Hidden Turnstile widget. Renders invisibly; token callback sets
+          state, which flows into the PI create body when the user taps
+          Pay. Container must exist on mount — the script references it
+          by selector on widget render. */}
+      <div id="turnstile-container" style={{ display: 'none' }} />
       </div>
     </div>
   )

@@ -35,6 +35,11 @@ interface Props {
   packageDays: PackageDays
   amount: number
   currency: string
+  // Turnstile token sourced from CheckoutClient (widget lives on the
+  // checkout page, not the modal, so the token is warm when the modal
+  // opens). Empty string is fine — the server-side verifyTurnstile
+  // helper fail-opens on empty per its documented behavior.
+  turnstileToken: string
   onClose: () => void
 }
 
@@ -49,10 +54,11 @@ function isInAppWebView(): boolean {
   return /WhatsApp|Instagram|FBAN|FBAV/i.test(navigator.userAgent)
 }
 
-export function PaymentModal({ isOpen, token, packageDays, amount, currency, onClose }: Props) {
+export function PaymentModal({ isOpen, token, packageDays, amount, currency, turnstileToken, onClose }: Props) {
   const [pi, setPi] = useState<PIState>({ status: 'idle' })
   // Cache by package_days so toggling packages doesn't refetch uselessly,
-  // and reopening the same package is instant.
+  // and reopening the same package is instant. Cache is per-modal-mount,
+  // so turnstileToken rotation during a session doesn't leak stale PIs.
   const piCache = useRef<Map<PackageDays, { clientSecret: string; paymentIntentId: string }>>(new Map())
 
   useEffect(() => {
@@ -67,7 +73,7 @@ export function PaymentModal({ isOpen, token, packageDays, amount, currency, onC
     fetch('/api/checkout/listing', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, package_days: packageDays }),
+      body: JSON.stringify({ token, package_days: packageDays, turnstileToken }),
     })
       .then(async (res) => {
         const body = await res.json().catch(() => ({}))
@@ -92,7 +98,7 @@ export function PaymentModal({ isOpen, token, packageDays, amount, currency, onC
         setPi({ status: 'error', message: err?.message ?? 'Could not start payment' })
       })
     return () => { cancelled = true }
-  }, [isOpen, packageDays, token])
+  }, [isOpen, packageDays, token, turnstileToken])
 
   if (!isOpen) return null
 
