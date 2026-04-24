@@ -89,11 +89,14 @@ export const CHECKOUT_LISTING_SELECT = `
   )
 `
 
-// Dispatch classification — 8 alphanumerics is the listings-token
-// shape (matches model_listings.payment_link_token CHECK constraint);
-// the canonical UUID regex matches the legacy payment_links.id shape.
-// Anything else routes to the terminal expired page.
-export const LISTINGS_TOKEN_PATTERN = /^[A-Za-z0-9]{8}$/
+// Dispatch classification — 8 base64url chars is the listings-token
+// shape produced by app/api/ambassador/model/listings/route.ts
+// (randomBytes(6).toString('base64url'), so the alphabet is
+// [A-Za-z0-9_-]). The canonical UUID regex matches the legacy
+// payment_links.id shape. Length differs (8 vs 36) so the two
+// patterns cannot collide. Anything else routes to notFound()
+// (→ /expired once Slice 4B+4C commit 5 ships).
+export const LISTINGS_TOKEN_PATTERN = /^[A-Za-z0-9_-]{8}$/
 export const LEGACY_UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
