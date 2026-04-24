@@ -805,6 +805,20 @@ Flags carried from Phase 2 milestone review (slice-close partner review):
    - **(c) PATCH gains a conversion mode** (expanded whitelist, allow `is_free_trial` + prices together under a specific transition rule). Keeps one endpoint but adds a mode concept to PATCH.
    Decision required in Slice 4 pre-flight. Locked decision #2 of 3C and the Stripe webhook design of Slice 4 must be reconciled as the same sub-question: who owns the trial→paid transition.
 
+**🔒 Slice 4 locked decisions (set during Slice 4 pre-flight partner review, 2026-04-23):**
+
+1. **Scope split.** Slice 4 splits into three sub-slices on Principle H grounds:
+   - **4A** — Public page read surface (`app/[slug]/page.tsx` + orchestrator + header + SquadRow + MediaLightbox + ShareButton + Footer + layout). No Stripe. ~1–1.5 days.
+   - **4B+4C** — Paid-flow end-to-end merged (checkout page + receipt page + PI create endpoint + webhook handler + email + WhatsApp notification). Single atomic review — real money, security-adjacent. ~3 days.
+   - **4D** — Hardening (Turnstile on checkout, Upstash rate limit, analytics track endpoints, cookie-based view dedup, bot UA exclusion, S2/S3 trial-conversion resolution). ~1 day.
+2. **Payment URL route.** Single route at `/pay/[token]`. Listings-token lookup first (8-char base64url matches `model_listings.payment_link_token`), fall back to legacy offers `payment_links.id` on miss. Co-exist + dispatch. Resolves URL drift across specs (HANDOFF said `/{slug}/listing/{token}`, checkout spec said `/checkout/{token}`, send-link spec said `/pay/{token}` — send-link spec wins because it's what's already shipped in production). Fixes hardening backlog item 7: `SendPaymentLinkClient.PAYMENT_BASE` becomes env-aware (`NEXT_PUBLIC_APP_URL`) in Slice 4B+4C. **Slice 4A does NOT touch `/pay/[token]`** — that's 4B+4C scope.
+3. **Stripe mode.** Whatever `STRIPE_SECRET_KEY` env var resolves to — no test/live branching in app code. 4A has no Stripe surface.
+4. **Public page V1 scope.** Listings section ONLY. No Wishlist rendered, no Wall of Love rendered. Wishlist visibility gets a user toggle in Settings (Slice 5 work). V1 = header + listings + lightbox + footer. Public page spec `public_page_final_UI_Spec.md` §4.3 (Wishlist) and §4.4 (Wall of Love) superseded for V1 in Slice 4A opening doc commit.
+5. **S2/S3 trial-conversion.** Option (a) from pre-flight input 1 — Stripe webhook owns the `is_free_trial` flip + price set on successful payment. PATCH route stays immutable around the flag. Draft pricing pre-payment is not supported in V1 — ambassador must set final prices before sending the link (matches current SendPaymentLinkClient behavior). Slice 4B+4C concern.
+6. **Permanent token supersession.** Checkout spec §6.3 still says "7-day link validity" — supersede in Slice 4B+4C prep doc commit. Slice 3C locked decision #1 (permanent token) wins.
+7. **Infra env vars.** `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` / `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` confirmed in Vercel. No Slice 0 install blockers.
+8. **Notifications + email copy.** Deferred to final polish pass (post-4C). Not a Slice 4A or 4B+4C blocker; webhook writes the row, notification wiring is additive.
+
 **✅ VERIFY before next slice:**
 - [ ] Public page `/{slug}` loads, shows listing cards
 - [ ] Lightbox opens on photo/video click
