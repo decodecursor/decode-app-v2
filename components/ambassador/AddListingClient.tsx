@@ -627,9 +627,15 @@ export default function AddListingClient({
     }
     const listingData = await listingRes.json() as { listing: { id: string; is_free_trial: boolean } }
 
-    // 4. Redirect — celebration toast fires on listings page via ?new flag
-    const type = listingData.listing.is_free_trial ? 'trial' : 'paid'
-    router.push(`/model/listings?new=${listingData.listing.id}&type=${type}`)
+    // 4. Redirect. Trial path lands on /listings with the ?new&type=trial
+    // celebration flag. Paid path routes to the Send Payment Link page
+    // (locked decision #5) — celebration for paid listings happens there,
+    // not on the listings page, so no ?new flag for paid.
+    if (listingData.listing.is_free_trial) {
+      router.push(`/model/listings?new=${listingData.listing.id}&type=trial`)
+    } else {
+      router.push(`/model/listings/${listingData.listing.id}/send-link`)
+    }
   }, [isValid, freeTrial, pricingValid, professionalId, instagram, name, city, country, avatarUrl, category, media, p30n, p60n, p90n, showToast, router, isEdit, listing])
 
   const onPriceInput = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1058,7 +1064,10 @@ export default function AddListingClient({
         </div>
 
         {/* ================== PRICING ================== */}
-        <div style={{
+        {/* inert when freeTrial=true — section collapses via maxHeight/opacity
+            but the inputs stayed tabbable without it (see Slice 3C Phase 2
+            review, Flag 2). */}
+        <div inert={freeTrial} style={{
           marginBottom: freeTrial ? 0 : 22,
           overflow: 'hidden',
           transition: 'max-height 0.3s ease, opacity 0.25s ease, margin-bottom 0.3s ease',
