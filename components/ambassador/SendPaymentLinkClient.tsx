@@ -43,8 +43,14 @@ type Listing = {
   currency: string
   free_trial_ends_at: string | null
   paid_until: string | null
+  category_id: string | null
   category_label: string | null
   category_custom: string | null
+  media_type: 'video' | 'photos' | null
+  photo_url_1: string | null
+  photo_url_2: string | null
+  photo_url_3: string | null
+  video_url: string | null
 }
 
 type ToastPayload = { emoji?: string; message: string }
@@ -162,17 +168,33 @@ export default function SendPaymentLinkClient({
 
   const patchPricing = useCallback(async () => {
     if (!pricingValid) return
+    // PATCH route is full-replace-shape (category XOR + media_type unconditional).
+    // We re-send the existing row's category + media alongside the edited prices
+    // so the server-side gates pass. Principle E — match AddListingClient edit
+    // mode's PATCH payload shape exactly.
+    const payload: Record<string, unknown> = {
+      category_id: listing.category_id,
+      category_custom: listing.category_id ? null : listing.category_custom,
+      media_type: listing.media_type,
+      photo_url_1: listing.photo_url_1,
+      photo_url_2: listing.photo_url_2,
+      photo_url_3: listing.photo_url_3,
+      video_url: listing.video_url,
+      price_30: n30,
+      price_60: n60,
+      price_90: n90,
+    }
     try {
       const res = await fetch(`/api/ambassador/model/listings/${listing.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ price_30: n30, price_60: n60, price_90: n90 }),
+        body: JSON.stringify(payload),
       })
       if (!res.ok) showToast({ emoji: '📡', message: "Couldn't save prices. Try again." })
     } catch {
       showToast({ emoji: '📡', message: "Couldn't reach server. Try again." })
     }
-  }, [pricingValid, n30, n60, n90, listing.id, showToast])
+  }, [pricingValid, n30, n60, n90, listing, showToast])
 
   const onBlurPrice = (setTouched: (v: boolean) => void) => () => {
     setTouched(true)

@@ -16,7 +16,13 @@ type LiveRow = {
   currency: string
   free_trial_ends_at: string | null
   paid_until: string | null
+  category_id: string | null
   category_custom: string | null
+  media_type: 'video' | 'photos' | null
+  photo_url_1: string | null
+  photo_url_2: string | null
+  photo_url_3: string | null
+  video_url: string | null
   model_professionals: { name: string } | null
   model_categories: { label: string } | null
 }
@@ -73,7 +79,7 @@ export default async function SendPaymentLinkPage({
   const { data: row } = await admin
     .from('model_listings_live')
     .select(
-      'id, status, effective_status, payment_link_token, price_30, price_60, price_90, currency, free_trial_ends_at, paid_until, category_custom, model_professionals!model_listings_professional_id_fkey ( name ), model_categories!model_listings_category_id_fkey ( label )',
+      'id, status, effective_status, payment_link_token, price_30, price_60, price_90, currency, free_trial_ends_at, paid_until, category_id, category_custom, media_type, photo_url_1, photo_url_2, photo_url_3, video_url, model_professionals!model_listings_professional_id_fkey ( name ), model_categories!model_listings_category_id_fkey ( label )',
     )
     .eq('id', id)
     .eq('model_id', profile.id)
@@ -94,8 +100,14 @@ export default async function SendPaymentLinkPage({
         currency: row.currency,
         free_trial_ends_at: row.free_trial_ends_at,
         paid_until: row.paid_until,
+        category_id: row.category_id,
         category_label: row.model_categories?.label ?? null,
         category_custom: row.category_custom,
+        media_type: row.media_type,
+        photo_url_1: row.photo_url_1,
+        photo_url_2: row.photo_url_2,
+        photo_url_3: row.photo_url_3,
+        video_url: row.video_url,
       }}
       professional={{ name: row.model_professionals.name }}
     />
