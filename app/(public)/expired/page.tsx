@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 export default function ExpiredPage() {
   return (
     <div style={{ width: '100%', maxWidth: 500, margin: '0 auto', minHeight: '100vh', padding: '0 20px' }}>
-      <div style={{ paddingTop: 160 }}>
+      <div style={{ paddingTop: 160, textAlign: 'center' }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.2px', marginBottom: 14, color: '#fff' }}>
           Link no longer active
         </h1>
