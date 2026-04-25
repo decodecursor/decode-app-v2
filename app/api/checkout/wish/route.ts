@@ -83,6 +83,16 @@ type WishRow = {
   price: number | string
   currency: string
   status: 'available' | 'taken'
+  // Profile join is consumed only to enrich the 409 race-loser response
+  // with ambassador { slug, first_name } per spec §2.1, so the client
+  // can build the /wish/taken redirect URL even if it didn't have the
+  // ambassador in props. WishCheckoutClient currently has it in props
+  // (loaded server-side at /pay/[token] dispatch time), so this is
+  // defense-in-depth for future callers that POST directly.
+  profile: {
+    slug: string
+    first_name: string
+  } | null
 }
 
 type ClaimResult =
@@ -144,7 +154,10 @@ export async function POST(request: NextRequest) {
 
   const { data: wish, error: lookupErr } = await admin
     .from('model_wishes')
-    .select('id, model_id, price, currency, status')
+    .select(`
+      id, model_id, price, currency, status,
+      profile:model_profiles!model_wishes_model_id_fkey ( slug, first_name )
+    `)
     .eq('payment_link_token', token)
     .maybeSingle<WishRow>()
 
@@ -175,8 +188,17 @@ export async function POST(request: NextRequest) {
   }
   const result = claim as ClaimResult | null
   if (!result || !result.claimed) {
+    // Race lost — include ambassador { slug, first_name } per spec §2.1
+    // so the client can build the /wish/taken redirect URL even when
+    // it didn't preload the ambassador info via dispatch props.
     return NextResponse.json(
-      { error: 'wish_already_taken', redirect: '/wish/taken' },
+      {
+        error: 'wish_already_taken',
+        redirect: '/wish/taken',
+        ambassador: wish.profile
+          ? { slug: wish.profile.slug, first_name: wish.profile.first_name }
+          : null,
+      },
       { status: 409 },
     )
   }

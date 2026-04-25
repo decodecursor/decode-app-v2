@@ -79,12 +79,12 @@ interface WishLookupRow {
   } | null
 }
 
-interface WishDispatchData {
-  wish: WishCheckoutWish
-  ambassador: WishCheckoutAmbassador
-}
+type WishDispatchResult =
+  | { kind: 'available'; wish: WishCheckoutWish; ambassador: WishCheckoutAmbassador }
+  | { kind: 'taken'; ambassador: WishCheckoutAmbassador }
+  | { kind: 'not_found' }
 
-async function fetchWishByToken(token: string): Promise<WishDispatchData | null> {
+async function fetchWishByToken(token: string): Promise<WishDispatchResult> {
   const admin = createServiceRoleClient()
   // Read from model_wishes_live so effective_status reflects the cron-
   // released state immediately (a stale 'taken' lock with expired
@@ -104,17 +104,33 @@ async function fetchWishByToken(token: string): Promise<WishDispatchData | null>
 
   if (error) {
     console.error('[/pay dispatch] Wish lookup failed:', error)
-    return null
+    return { kind: 'not_found' }
   }
-  if (!data) return null
-  if (!data.profile) return null
-  // Already gifted → terminal /wish/taken page rather than checkout.
+  if (!data) return { kind: 'not_found' }
+  if (!data.profile) return { kind: 'not_found' }
+
+  const ambassador: WishCheckoutAmbassador = {
+    slug: data.profile.slug,
+    first_name: data.profile.first_name,
+    last_name: data.profile.last_name,
+    cover_photo_url: data.profile.cover_photo_url,
+    tagline: data.profile.tagline,
+  }
+
+  // Already gifted → terminal /wish/taken page rather than /expired
+  // (the listings-style "Link no longer active" page is wrong for
+  // wishes — they have a dedicated "Someone was faster!" page with
+  // ambassador-specific CTA copy). Caller routes the redirect with
+  // ambassador slug + first_name as URL params.
   // We use effective_status (not raw status) so a stale lock that's
   // expired but not yet swept by revert_expired_wish_locks() is still
-  // shown as available — matches what the wishlist UI would show.
-  if (data.effective_status !== 'available') return null
+  // treated as available, matching the wishlist UI.
+  if (data.effective_status !== 'available') {
+    return { kind: 'taken', ambassador }
+  }
 
   return {
+    kind: 'available',
     wish: {
       id: data.id,
       payment_link_token: data.payment_link_token,
@@ -125,14 +141,12 @@ async function fetchWishByToken(token: string): Promise<WishDispatchData | null>
       price: typeof data.price === 'string' ? Number(data.price) : data.price,
       currency: data.currency,
     },
-    ambassador: {
-      slug: data.profile.slug,
-      first_name: data.profile.first_name,
-      last_name: data.profile.last_name,
-      cover_photo_url: data.profile.cover_photo_url,
-      tagline: data.profile.tagline,
-    },
+    ambassador,
   }
+}
+
+function buildWishTakenPath(ambassador: WishCheckoutAmbassador): string {
+  return `/wish/taken?slug=${encodeURIComponent(ambassador.slug)}&first=${encodeURIComponent(ambassador.first_name)}`
 }
 
 interface LegacyLinkRow {
@@ -218,20 +232,27 @@ export async function generateMetadata({ params }: { params: Promise<{ token: st
     }
 
     // Not a listing → try wish.
-    const wishData = await fetchWishByToken(token)
-    if (wishData) {
-      const name = `${wishData.ambassador.first_name}${wishData.ambassador.last_name ? ' ' + wishData.ambassador.last_name : ''}`
-      const title = `Gift ${wishData.ambassador.first_name} a beauty wish`
-      const description = `Make ${wishData.ambassador.first_name}'s beauty wish come true`
+    const wishResult = await fetchWishByToken(token)
+    if (wishResult.kind === 'available') {
+      const amb = wishResult.ambassador
+      const name = `${amb.first_name}${amb.last_name ? ' ' + amb.last_name : ''}`
+      const title = `Gift ${amb.first_name} a beauty wish`
+      const description = `Make ${amb.first_name}'s beauty wish come true`
       const url = `${getAppBase()}/pay/${token}`
-      const images = wishData.ambassador.cover_photo_url
-        ? [{ url: wishData.ambassador.cover_photo_url, width: 1200, height: 630, alt: name }]
+      const images = amb.cover_photo_url
+        ? [{ url: amb.cover_photo_url, width: 1200, height: 630, alt: name }]
         : undefined
       return {
         title,
         openGraph: { title, type: 'website', description, url, images },
-        twitter: { card: 'summary_large_image', title, images: wishData.ambassador.cover_photo_url ? [wishData.ambassador.cover_photo_url] : undefined },
+        twitter: { card: 'summary_large_image', title, images: amb.cover_photo_url ? [amb.cover_photo_url] : undefined },
       }
+    }
+    if (wishResult.kind === 'taken') {
+      // Wish exists but already gifted — render head metadata for the
+      // terminal "Someone was faster!" page that the dispatch will
+      // redirect into.
+      return { title: 'This wish has already been gifted', robots: { index: false, follow: false } }
     }
 
     return { title: 'Link no longer active' }
@@ -265,18 +286,27 @@ export default async function PayPage({ params }: { params: Promise<{ token: str
     // Not a listing — fall through to wish lookup. Same 8-char shape;
     // wishes are stored in a different table with a different UNIQUE
     // index, so a token can match at most one of the two.
-    const wishData = await fetchWishByToken(token)
-    if (wishData) {
-      const shareUrl = `${getAppBase()}/${wishData.ambassador.slug}`
+    const wishResult = await fetchWishByToken(token)
+    if (wishResult.kind === 'available') {
+      const shareUrl = `${getAppBase()}/${wishResult.ambassador.slug}`
       return (
         <WishCheckoutClient
-          wish={wishData.wish}
-          ambassador={wishData.ambassador}
+          wish={wishResult.wish}
+          ambassador={wishResult.ambassador}
           shareUrl={shareUrl}
         />
       )
     }
+    if (wishResult.kind === 'taken') {
+      // Already gifted → terminal /wish/taken page (NOT /expired —
+      // wishes have a dedicated "Someone was faster!" page with
+      // ambassador-specific CTA copy). Pass slug + first_name so the
+      // page can render the personalized "Go to {first_name}'s page"
+      // button without a separate fetch.
+      redirect(buildWishTakenPath(wishResult.ambassador))
+    }
 
+    // Token not in either table → terminal listings-style /expired page.
     redirect('/expired')
   }
 

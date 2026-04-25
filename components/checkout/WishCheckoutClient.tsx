@@ -109,12 +109,21 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
   // 409 → /wish/taken. The shell still throws on non-OK and surfaces
   // the message briefly, but router.push fires first so navigation
   // pre-empts the error display in the common case.
+  // Prefer server-provided ambassador { slug, first_name } when
+  // present (spec §2.1) — defense-in-depth in case props drift from
+  // the wish row server-side. Falls back to props (always populated
+  // because the page loaded with this data via /pay/[token] dispatch).
   const handlePiCreateError = (body: unknown, status: number) => {
     if (status !== 409) return
-    const b = body as { error?: string; redirect?: string } | null
-    if (b?.error === 'wish_already_taken' || b?.redirect === '/wish/taken') {
-      router.push(`/wish/taken?slug=${encodeURIComponent(ambassador.slug)}&first=${encodeURIComponent(ambassadorFirstName)}`)
-    }
+    const b = body as {
+      error?: string
+      redirect?: string
+      ambassador?: { slug?: string; first_name?: string } | null
+    } | null
+    if (b?.error !== 'wish_already_taken' && b?.redirect !== '/wish/taken') return
+    const slug = b?.ambassador?.slug ?? ambassador.slug
+    const first = b?.ambassador?.first_name ?? ambassadorFirstName
+    router.push(`/wish/taken?slug=${encodeURIComponent(slug)}&first=${encodeURIComponent(first)}`)
   }
 
   const coverStyle: React.CSSProperties = ambassador.cover_photo_url
