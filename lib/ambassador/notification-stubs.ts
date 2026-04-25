@@ -71,3 +71,66 @@ export async function sendListingPaidWhatsApp(payload: ListingPaidWhatsAppPayloa
     amount_currency: `${payload.amount} ${payload.currency}`,
   })
 }
+
+// ============================================================================
+// Slice 6B-2: payout-paid notifications (stub — real copy in Slice 7)
+// ============================================================================
+// Per Slice 6B locked decision #4: trigger sites land in 6B-2, real Resend +
+// AUTHKey copy + template wiring lands in Slice 7 polish. Same fire-and-
+// forget pattern as the listing-paid notifications above.
+
+export interface PayoutPaidEmailPayload {
+  ambassadorEmail: string
+  ambassadorName: string
+  payoutReference: string
+  netAmount: number
+  currency: string
+  bankName: string
+  bankLast4: string
+  paidAt: Date
+  listingsCount: number
+  wishesCount: number
+}
+
+export interface PayoutPaidWhatsAppPayload {
+  ambassadorPhone: string | null
+  payoutReference: string
+  netAmount: number
+  currency: string
+  bankLast4: string
+}
+
+export async function sendPayoutPaidEmail(payload: PayoutPaidEmailPayload): Promise<void> {
+  // TODO (Slice 7): Resend API call per payout-statement spec §10.
+  // Template vars: {ambassador_name}, {net_amount}, {currency},
+  // {bank_name}, {bank_last4}, {paid_at}, {listings_count},
+  // {wishes_count}, {payout_reference}, {statement_url}.
+  // From: notifications@welovedecode.com.
+  console.log('[ambassador-notif:email] stub payload', {
+    kind: 'payout_paid',
+    reference: payload.payoutReference,
+    to: payload.ambassadorEmail,
+    amount_currency: `${payload.netAmount} ${payload.currency}`,
+    bank: `${payload.bankName} •••• ${payload.bankLast4}`,
+    rows: `${payload.listingsCount}L + ${payload.wishesCount}W`,
+  })
+}
+
+export async function sendPayoutPaidWhatsApp(payload: PayoutPaidWhatsAppPayload): Promise<void> {
+  // TODO (Slice 7): AUTHKey API call. New AUTHKEY_WID_PAYOUT_PAID env
+  // var + Meta-approved template required before this can ship live.
+  // Skip silently when no phone on file (matches listing-paid pattern).
+  if (!payload.ambassadorPhone) {
+    console.log('[ambassador-notif:whatsapp] skipped — no phone on file', {
+      reference: payload.payoutReference,
+    })
+    return
+  }
+  console.log('[ambassador-notif:whatsapp] stub payload', {
+    kind: 'payout_paid',
+    reference: payload.payoutReference,
+    to: payload.ambassadorPhone,
+    amount_currency: `${payload.netAmount} ${payload.currency}`,
+    bank_last4: payload.bankLast4,
+  })
+}
