@@ -66,6 +66,12 @@ interface Props {
   // optional `package_days`, and `turnstileToken`. Wish-checkout passes
   // { wish_id, gifter_name, gifter_instagram, gifter_is_anonymous }.
   bodyExtras?: Record<string, unknown>
+  // Fired synchronously when the PI-create POST returns non-OK, BEFORE
+  // the shell sets pi.status='error'. Lets the consumer act on
+  // structured error responses (e.g. wish-checkout's 409 → router.push
+  // to /wish/taken). Receives the parsed body + HTTP status. Defaults
+  // to undefined → shell behavior unchanged for listings.
+  onPiCreateError?: (body: unknown, status: number) => void
 }
 
 type PIState =
@@ -88,7 +94,13 @@ export function PaymentModal({
   returnPathBuilder = DEFAULT_RETURN_PATH_BUILDER,
   chips,
   bodyExtras,
+  onPiCreateError,
 }: Props) {
+  // Stable ref to the latest onPiCreateError so the PI-create effect can
+  // call it without depending on (and re-firing for) a fresh callback
+  // identity from an inline-arrow consumer.
+  const onPiCreateErrorRef = useRef(onPiCreateError)
+  onPiCreateErrorRef.current = onPiCreateError
   const [pi, setPi] = useState<PIState>({ status: 'idle' })
   // H2: lifted from StripeElementsForm so we can gate the dim-background
   // close handler on it (mirrors the existing Cancel-button gate inside
@@ -133,6 +145,13 @@ export function PaymentModal({
       .then(async (res) => {
         const body = await res.json().catch(() => ({}))
         if (!res.ok) {
+          // Fire structured-error callback BEFORE throwing so wish-checkout
+          // can route 409 → /wish/taken before the user sees the error
+          // message in the modal. The callback fires synchronously; the
+          // throw still happens so the shell's normal error-state path
+          // runs (cached PI invalidated, Try-again button surfaced) for
+          // any consumer that doesn't navigate away.
+          onPiCreateErrorRef.current?.(body, res.status)
           // Prefer the real Stripe message the server now passes through
           // (see app/api/checkout/listing catch block). Falls back through
           // stripe_code → generic error slug → HTTP status so we never
