@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import {
-  handlePaymentIntentSucceeded,
-  handlePaymentIntentFailed,
-  handleChargeRefunded,
+  handleListingPaymentSucceeded,
+  handleListingPaymentFailed,
+  handleListingChargeRefunded,
 } from '@/lib/ambassador/webhook-handlers'
 
 /**
@@ -89,13 +89,13 @@ export async function POST(request: NextRequest) {
   try {
     switch (event.type) {
       case 'payment_intent.succeeded':
-        await handlePaymentIntentSucceeded(admin, event)
+        await handleListingPaymentSucceeded(admin, event)
         break
       case 'payment_intent.payment_failed':
-        await handlePaymentIntentFailed(admin, event)
+        await handleListingPaymentFailed(admin, event)
         break
       case 'charge.refunded':
-        await handleChargeRefunded(admin, event)
+        await handleListingChargeRefunded(admin, event)
         break
       default:
         await markStatus(admin, event.id, 'unhandled')

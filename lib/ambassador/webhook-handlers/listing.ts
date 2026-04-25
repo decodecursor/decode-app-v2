@@ -1,10 +1,11 @@
 /**
- * Per-event handlers for /api/webhooks/ambassador-stripe.
+ * Listing-flow per-event handlers for /api/webhooks/ambassador-stripe.
  *
- * Split from the route file per G12 item #8 (file-size planning) so
- * the route can stay thin orchestration + per-event logic lives here.
+ * Carved out of the prior single-file webhook-handlers.ts at the start
+ * of Slice 5C so wish-flow handlers (Slice 5C-2) can live alongside as
+ * a sibling file without growing one file past the G12 #8 alarm.
  *
- * Contracts:
+ * Contracts (unchanged from pre-split):
  *  - Every handler throws on unexpected errors → the route marks the
  *    webhook_events row as 'failed' + returns 500 so Stripe retries.
  *  - Handlers returning normally mean "processed" — the row gets
@@ -15,14 +16,17 @@
  *    .stripe_event_id before inserting, so the "same event processed
  *    twice" case is a silent no-op even if the outer webhook_events
  *    dedup somehow fails.
+ *  - Each handler defensively no-ops on metadata.kind !== 'listing' so
+ *    wish events landing on the same Stripe endpoint don't false-fire.
+ *    Wish handlers (Slice 5C-2) do the symmetric guard for 'wish'.
  */
 
 import type Stripe from 'stripe'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
-import { splitFee, computePaymentPeriod } from './payout-math'
-import { generateReference } from './utils'
-import { sendListingPaidEmail, sendListingPaidWhatsApp } from './notification-stubs'
+import { splitFee, computePaymentPeriod } from '../payout-math'
+import { generateReference } from '../utils'
+import { sendListingPaidEmail, sendListingPaidWhatsApp } from '../notification-stubs'
 
 type Admin = SupabaseClient
 
@@ -52,7 +56,7 @@ interface ExistingPaymentRow {
   refund_amount: number | null
 }
 
-export async function handlePaymentIntentSucceeded(
+export async function handleListingPaymentSucceeded(
   admin: Admin,
   event: Stripe.Event,
 ): Promise<void> {
@@ -223,7 +227,7 @@ async function fetchReferenceByEventId(admin: Admin, eventId: string): Promise<s
   return data?.payment_reference ?? null
 }
 
-export async function handlePaymentIntentFailed(
+export async function handleListingPaymentFailed(
   admin: Admin,
   event: Stripe.Event,
 ): Promise<void> {
@@ -242,7 +246,7 @@ export async function handlePaymentIntentFailed(
   // retry from the same /pay/[token] URL.
 }
 
-export async function handleChargeRefunded(
+export async function handleListingChargeRefunded(
   admin: Admin,
   event: Stripe.Event,
 ): Promise<void> {
