@@ -1,33 +1,44 @@
 'use client'
 
+/**
+ * /model/wishlist client. Visual fidelity to
+ * _features/ambassador/wishlist_incl_wish_delete_modal_final.html
+ * (mockup is authoritative visual truth — Slice 4B+4C lesson).
+ *
+ * Card layout differs from listings:
+ *   Open card:    professional (primary) | share + delete icons
+ *                 service · location | "Open" pill
+ *                 age progress bar
+ *                 "{days_live} days live" | money
+ *
+ *   Gifted card:  professional (primary) | gifted-at date
+ *                 service · location | "Gifted" pill (green)
+ *                 IG icon + gifter name | money
+ *                 (no delete icon — FK ON DELETE RESTRICT enforces)
+ *
+ * Celebration toast (top-positioned, dedicated wlCelebIn/Out keyframes,
+ * 🎉 + title + subtitle) on arrival from /model/wishlist/new with
+ * ?created={id}.
+ *
+ * Action toast (small, bottom-positioned) for delete confirmations
+ * + 409 race feedback. Inline animation per mockup; canonical
+ * amb-toast-in/out keyframes are not used here because the mockup's
+ * action-toast is structurally simpler (opacity + translate transition,
+ * no keyframe animation).
+ *
+ * Mockup features deferred to future slices:
+ *   - Per-wish click count ("X clicks" indicator) — needs aggregation
+ *     of wish_giftit_click events from model_analytics_events.
+ *     Schema event_type already exists; aggregation endpoint not yet
+ *     built. Omitted with no placeholder per V1.
+ */
+
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { WishCardRow } from '@/lib/ambassador/wish-shape'
 import { DeleteWishModal } from '@/components/ambassador/DeleteWishModal'
-import { formatCurrency } from '@/lib/ambassador/utils'
-
-/**
- * /model/wishlist client. Mirrors ListingsClient (Slice 3A pattern):
- * filter tabs + cards + delete-with-optimistic-UI + canonical toast.
- *
- * Spec: wishlist_incl_wish_delete_modal_final_UI_Spec.md.
- *
- * Spec drift superseded in 5A-3:
- *   - "/wishlist" route → /model/wishlist (matches listings convention)
- *   - status: 'open' / 'gifted' / 'deleted' → DB binary 'available'/'taken'
- *     (no 'deleted' state — hard delete; FK on payments table protects audit)
- *   - "INSERT into gifts" → INSERT into model_wish_payments
- *
- * Two card variants per spec §5:
- *   - Open (effective_status='available'): service + professional + location +
- *     share + delete icons
- *   - Gifted (effective_status='taken' AND completed payment exists): service +
- *     professional + location + amount + gifter (name+IG OR Anonymous) +
- *     reference. NO delete icon (FK ON DELETE RESTRICT enforces this anyway).
- */
 
 type Filter = 'all' | 'open' | 'gifted'
-type ToastPayload = { emoji?: string; message: string }
 
 const FILTER_TABS: { key: Filter; label: string }[] = [
   { key: 'all', label: 'All' },
@@ -35,7 +46,12 @@ const FILTER_TABS: { key: Filter; label: string }[] = [
   { key: 'gifted', label: 'Gifted' },
 ]
 
-const TOAST_LIFECYCLE_MS = 5200
+// PAYMENT_BASE for wish share URLs. Same env-aware pattern as
+// SendPaymentLinkClient (hardening item 7 — closed in 5e692cd).
+const APP_HOST = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.welovedecode.com')
+  .replace(/^https?:\/\//, '')
+  .replace(/\/$/, '')
+const PAYMENT_BASE = `${APP_HOST}/pay`
 
 function isGifted(w: WishCardRow): boolean {
   return w.effective_status === 'taken' && w.payment_reference !== null
@@ -47,58 +63,96 @@ function matchesFilter(w: WishCardRow, filter: Filter): boolean {
   return isGifted(w)
 }
 
-function emptyCopy(filter: Filter): string {
-  if (filter === 'all') return 'No wishes yet'
-  if (filter === 'open') return 'No open wishes'
-  return 'No gifted wishes yet'
-}
-
 function locationText(w: WishCardRow): string {
   if (w.professional_city && w.professional_country) return `${w.professional_city}, ${w.professional_country}`
   return w.professional_city ?? w.professional_country ?? ''
 }
 
-function formatDate(iso: string | null): string {
+function daysLive(createdAt: string): number {
+  return Math.max(0, Math.floor((Date.now() - new Date(createdAt).getTime()) / 86_400_000))
+}
+
+function ageBarPct(createdAt: string): number {
+  // Simple visual proxy: 1 day = 1% bar fill, capped at 100. Mirrors the
+  // mockup's age_bar_pct without needing analytics data.
+  return Math.min(100, daysLive(createdAt))
+}
+
+function formatGiftedDate(iso: string | null): string {
   if (!iso) return ''
-  return new Date(iso).toLocaleDateString('en-GB', {
-    day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC',
-  })
+  const d = new Date(iso)
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December']
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
+}
+
+function formatMoney(w: WishCardRow): string {
+  return `${w.currency.toUpperCase()} ${w.price}`
+}
+
+function ShareIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ cursor: 'pointer' }}>
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+      <polyline points="16 6 12 2 8 6" />
+      <line x1="12" y1="2" x2="12" y2="15" />
+    </svg>
+  )
+}
+
+function TrashIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ cursor: 'pointer' }}>
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
+  )
+}
+
+function IgIcon({ color }: { color: string }) {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle', flexShrink: 0 }}>
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  )
 }
 
 export default function WishlistClient({ wishes: initialWishes }: { wishes: WishCardRow[] }) {
   const router = useRouter()
   const [filter, setFilter] = useState<Filter>('all')
   const [wishes, setWishes] = useState<WishCardRow[]>(initialWishes)
-  const [toast, setToast] = useState<ToastPayload | null>(null)
-  const [toastKey, setToastKey] = useState(0)
+  const [actionToast, setActionToast] = useState<string | null>(null)
+  const [showCelebration, setShowCelebration] = useState(false)
   const [openDelete, setOpenDelete] = useState<WishCardRow | null>(null)
   const [removingId, setRemovingId] = useState<string | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const celebrationTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => () => {
     if (toastTimer.current) clearTimeout(toastTimer.current)
+    if (celebrationTimer.current) clearTimeout(celebrationTimer.current)
   }, [])
 
-  // Celebration toast on arrival from /model/wishlist/new (5A-2). The
-  // URL flag is written by AddWishClient on successful create. Same
-  // URL-scrub-after-fire pattern as ListingsClient (Slice 3A).
+  // Celebration toast on arrival from /model/wishlist/new?created={id}.
+  // The animation handles its own fade-out at 5000ms via CSS keyframe;
+  // we mount the element on detection, scrub the URL flag, and unmount
+  // after the full animation completes (~6500ms).
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const newId = params.get('created') ?? params.get('new')
-    if (!newId) return
-    setToast({ emoji: '🎉', message: 'Wish is live — ready to be gifted' })
-    setToastKey((k) => k + 1)
-    if (toastTimer.current) clearTimeout(toastTimer.current)
-    toastTimer.current = setTimeout(() => setToast(null), TOAST_LIFECYCLE_MS)
+    if (!params.get('created')) return
+    setShowCelebration(true)
     window.history.replaceState({}, '', '/model/wishlist')
+    if (celebrationTimer.current) clearTimeout(celebrationTimer.current)
+    // 400ms in-delay + 1200ms in + 5000ms hold + 1200ms out = ~7800ms total.
+    celebrationTimer.current = setTimeout(() => setShowCelebration(false), 8000)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const showToast = (payload: ToastPayload | string) => {
-    setToast(typeof payload === 'string' ? { message: payload } : payload)
-    setToastKey((k) => k + 1)
+  const showActionToast = (msg: string) => {
+    setActionToast(msg)
     if (toastTimer.current) clearTimeout(toastTimer.current)
-    toastTimer.current = setTimeout(() => setToast(null), TOAST_LIFECYCLE_MS)
+    toastTimer.current = setTimeout(() => setActionToast(null), 1800)
   }
 
   const refetchWishes = async () => {
@@ -108,7 +162,7 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
       const data = await res.json()
       if (Array.isArray(data.wishes)) setWishes(data.wishes)
     } catch {
-      // Non-fatal — next page load will re-sync.
+      // Non-fatal
     }
   }
 
@@ -123,7 +177,7 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
       setWishes((prev) => prev.filter((w) => w.id !== target.id))
       setRemovingId(null)
     }, 450)
-    showToast({ emoji: '🗑️', message: 'Wish removed' })
+    showActionToast('Wish removed')
 
     const rollback = () => {
       clearTimeout(removeTimer)
@@ -137,174 +191,260 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
       rollback()
       if (res.status === 409) {
         void refetchWishes()
-        showToast({ emoji: '🔒', message: "This wish was just gifted. Refreshing…" })
+        showActionToast('This wish was just gifted. Refreshing…')
       } else {
-        showToast({ emoji: '📡', message: 'Couldn’t reach server. Try again.' })
+        showActionToast("Couldn’t reach server. Try again.")
       }
     } catch {
       rollback()
-      showToast({ emoji: '📡', message: 'Couldn’t reach server. Try again.' })
+      showActionToast("Couldn’t reach server. Try again.")
     }
   }
 
-  const visible = wishes.filter((w) => matchesFilter(w, filter))
+  const handleShare = (w: WishCardRow) => {
+    const url = `https://${PAYMENT_BASE}/${w.payment_link_token}`
+    const message = `Looking for a gift idea for me? I’ve got a beauty wish ready 🎁 ${url}`
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
+  }
+
+  // Sort: open first, gifted second (matches mockup behavior at line 219).
+  const sorted = [...wishes].sort((a, b) => {
+    const aGifted = isGifted(a) ? 1 : 0
+    const bGifted = isGifted(b) ? 1 : 0
+    if (aGifted !== bGifted) return aGifted - bGifted
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  })
+  const visible = sorted.filter((w) => matchesFilter(w, filter))
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', position: 'relative' }}>
-      {/* Header */}
-      <div style={{ padding: '16px 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <svg
-            onClick={() => router.push('/model')}
-            width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-            style={{ cursor: 'pointer' }}
-          >
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
-          <span style={{ fontSize: 20, fontWeight: 700 }}>Wishlist</span>
-        </div>
-        <div
-          onClick={() => router.push('/model/wishlist/new')}
-          style={{
-            width: 36, height: 36, borderRadius: '50%', border: '1.5px solid #e91e8c',
-            background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', boxSizing: 'border-box',
-          }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-        </div>
-      </div>
+    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', position: 'relative', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      {/* Inline keyframes for the celebration toast — mockup spec exactly. */}
+      <style>{`
+        @keyframes wlCelebIn { 0% { opacity: 0; transform: translateY(20px) } 100% { opacity: 1; transform: translateY(0) } }
+        @keyframes wlCelebOut { 0% { opacity: 1; transform: translateY(0) } 100% { opacity: 0; transform: translateY(20px) } }
+      `}</style>
 
-      {/* Filter tabs */}
-      <div style={{ padding: '0 20px 12px', display: 'flex', gap: 20 }}>
-        {FILTER_TABS.map((t) => {
-          const active = filter === t.key
-          return (
-            <div
-              key={t.key}
-              onClick={() => setFilter(t.key)}
-              style={{
-                fontSize: 13, fontWeight: active ? 700 : 600,
-                color: active ? '#fff' : '#777', padding: '6px 0 4px',
-                borderBottom: active ? '1.5px solid #e91e8c' : '1.5px solid transparent',
-                cursor: 'pointer',
-              }}
+      <div style={{ width: '100%', maxWidth: 500, margin: '0 auto', minHeight: '100vh', position: 'relative' }}>
+        {/* Header */}
+        <div style={{ padding: '16px 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <svg
+              onClick={() => router.push('/model')}
+              width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              style={{ cursor: 'pointer' }}
             >
-              {t.label}
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Cards */}
-      <div style={{ padding: '0 20px' }}>
-        {visible.length === 0 ? (
-          <div style={{
-            padding: '48px 0 32px', textAlign: 'center', display: 'flex',
-            flexDirection: 'column', alignItems: 'center', gap: 16,
-          }}>
-            <div style={{ fontSize: 14, color: '#888' }}>{emptyCopy(filter)}</div>
-            <div
-              onClick={() => router.push('/model/wishlist/new')}
-              style={{
-                background: '#e91e8c', color: '#fff', borderRadius: 12,
-                padding: '12px 22px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                userSelect: 'none',
-              }}
-            >
-              Add your first wish
-            </div>
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+            <span style={{ fontSize: 20, fontWeight: 700 }}>Wishlist</span>
           </div>
-        ) : (
-          visible.map((w) => {
-            const isRemoving = removingId === w.id
-            const gifted = isGifted(w)
+          <div
+            onClick={() => router.push('/model/wishlist/new')}
+            style={{
+              width: 36, height: 36, borderRadius: '50%', border: '1.5px solid #e91e8c',
+              background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', boxSizing: 'border-box',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Filter tabs */}
+        <div style={{ padding: '0 20px 12px', display: 'flex', gap: 20 }}>
+          {FILTER_TABS.map((t) => {
+            const active = filter === t.key
             return (
               <div
-                key={w.id}
+                key={t.key}
+                onClick={() => setFilter(t.key)}
                 style={{
-                  padding: isRemoving ? '0' : '18px 0',
-                  borderBottom: isRemoving ? '1px solid transparent' : '1px solid #1f1f1f',
-                  maxHeight: isRemoving ? 0 : 400,
-                  opacity: isRemoving ? 0 : 1,
-                  overflow: 'hidden',
-                  transition: 'opacity 300ms ease, max-height 400ms ease, padding 400ms ease, border-color 400ms ease',
+                  fontSize: 13, fontWeight: active ? 700 : 600,
+                  color: active ? '#fff' : '#777', padding: '6px 0 4px',
+                  borderBottom: active ? '1.5px solid #e91e8c' : '1.5px solid transparent',
+                  cursor: 'pointer',
+                  transition: 'color 0.15s, border-color 0.15s',
                 }}
               >
-                {/* Row 1 — service + icons */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: gifted ? '#888' : '#fff' }}>
-                    {w.service_name}
-                  </div>
-                  <div style={{ display: 'flex', gap: 10, flexShrink: 0, alignItems: 'center' }}>
-                    {!gifted && (
-                      <svg
-                        onClick={() => setOpenDelete(w)}
-                        width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                        style={{ cursor: 'pointer' }}
+                {t.label}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Rows */}
+        <div style={{ padding: '0 20px', minHeight: 400 }}>
+          {visible.length === 0 ? (
+            <div style={{ padding: '80px 20px', textAlign: 'center' }}>
+              <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>No beauty wishes yet</div>
+              <div style={{ fontSize: 13, color: '#888', marginBottom: 24 }}>
+                Add your first beauty wish to show data here.
+              </div>
+              <div
+                onClick={() => router.push('/model/wishlist/new')}
+                style={{
+                  background: '#e91e8c', borderRadius: 12, padding: '14px 28px',
+                  fontSize: 14, fontWeight: 700, letterSpacing: '0.2px', cursor: 'pointer',
+                  display: 'inline-block', color: '#fff',
+                }}
+              >
+                Add beauty wish
+              </div>
+            </div>
+          ) : (
+            visible.map((w) => {
+              const isRemoving = removingId === w.id
+              const gifted = isGifted(w)
+              const wrapStyle: React.CSSProperties = {
+                padding: isRemoving ? '0' : '18px 0',
+                borderBottom: isRemoving ? '1px solid transparent' : '1px solid #1f1f1f',
+                maxHeight: isRemoving ? 0 : 400,
+                opacity: isRemoving ? 0 : 1,
+                overflow: 'hidden',
+                transition: 'opacity 300ms ease, max-height 400ms ease, padding 400ms ease, border-color 400ms ease',
+              }
+
+              if (gifted) {
+                const g = {
+                  first_name: w.gifter_name ?? 'Anonymous',
+                  instagram: w.gifter_instagram,
+                  anonymous: w.gifter_is_anonymous,
+                }
+                const iconColor = g.anonymous ? '#666' : '#e91e8c'
+                const isClickable = !g.anonymous && !!g.instagram
+                return (
+                  <div key={w.id} style={wrapStyle}>
+                    {/* Row 1 — professional + gifted-at date */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flex: 1, minWidth: 0 }}>
+                        <span style={{ fontSize: 14, fontWeight: 700 }}>{w.professional_name ?? '—'}</span>
+                      </div>
+                      <span style={{ fontSize: 10, color: '#777' }}>{formatGiftedDate(w.taken_at)}</span>
+                    </div>
+                    {/* Row 2 — service · location | Gifted pill */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 11, letterSpacing: 1, color: '#e91e8c', fontWeight: 700 }}>{w.service_name}</span>
+                        {locationText(w) && (
+                          <>
+                            <span style={{ fontSize: 11, color: '#777' }}>·</span>
+                            <span style={{ fontSize: 10, color: '#777' }}>{locationText(w)}</span>
+                          </>
+                        )}
+                      </div>
+                      <span style={{ fontSize: 11, letterSpacing: 1, color: '#34d399', fontWeight: 700 }}>Gifted</span>
+                    </div>
+                    {/* Row 3 — IG icon + gifter name | money */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span
+                        onClick={isClickable ? () => window.open(`https://instagram.com/${g.instagram}`, '_blank') : undefined}
+                        style={{
+                          cursor: isClickable ? 'pointer' : 'default',
+                          display: 'inline-flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap',
+                        }}
                       >
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                      </svg>
-                    )}
+                        <IgIcon color={iconColor} />
+                        <span style={{ fontSize: 11, fontWeight: 500, color: '#fff' }}>{g.first_name}</span>
+                      </span>
+                      <span style={{ fontSize: 11, color: '#fff', fontWeight: 700 }}>{formatMoney(w)}</span>
+                    </div>
                   </div>
-                </div>
+                )
+              }
 
-                {/* Row 2 — professional + location */}
-                <div style={{ fontSize: 12, color: gifted ? '#666' : '#888', marginBottom: 4 }}>
-                  {w.professional_name ?? '—'}
-                  {locationText(w) && (
-                    <>
-                      <span style={{ margin: '0 6px', opacity: 0.6 }}>·</span>
-                      <span>{locationText(w)}</span>
-                    </>
-                  )}
-                </div>
-
-                {/* Row 3 — amount + (gifted: gifter info) */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: gifted ? '#888' : '#fff' }}>
-                    {formatCurrency(w.price, w.currency)}
+              // Open card
+              const days = daysLive(w.created_at)
+              const pct = ageBarPct(w.created_at)
+              return (
+                <div key={w.id} style={wrapStyle}>
+                  {/* Row 1 — professional | share + delete */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: 14, fontWeight: 700 }}>{w.professional_name ?? '—'}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, flexShrink: 0, alignItems: 'center' }}>
+                      <span onClick={(e) => { e.stopPropagation(); handleShare(w) }}>
+                        <ShareIcon />
+                      </span>
+                      <span onClick={(e) => { e.stopPropagation(); setOpenDelete(w) }}>
+                        <TrashIcon />
+                      </span>
+                    </div>
                   </div>
-                  {gifted && (
-                    <div style={{ fontSize: 11, color: '#888', display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span>by</span>
-                      {w.gifter_is_anonymous ? (
-                        <span style={{ color: '#888' }}>Anonymous</span>
-                      ) : w.gifter_instagram ? (
-                        <a
-                          href={`https://instagram.com/${w.gifter_instagram}`}
-                          style={{ color: '#e91e8c', textDecoration: 'none' }}
-                        >
-                          {w.gifter_name ?? `@${w.gifter_instagram}`}
-                        </a>
-                      ) : (
-                        <span style={{ color: '#e91e8c' }}>{w.gifter_name ?? '—'}</span>
-                      )}
-                      {w.taken_at && (
+                  {/* Row 2 — service · location | Open pill */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 11, letterSpacing: 1, color: '#e91e8c', fontWeight: 700 }}>{w.service_name}</span>
+                      {locationText(w) && (
                         <>
-                          <span style={{ opacity: 0.6 }}>·</span>
-                          <span>{formatDate(w.taken_at)}</span>
+                          <span style={{ fontSize: 11, color: '#777' }}>·</span>
+                          <span style={{ fontSize: 10, color: '#777' }}>{locationText(w)}</span>
                         </>
                       )}
                     </div>
-                  )}
-                </div>
-
-                {/* Reference (gifted only) */}
-                {gifted && w.payment_reference && (
-                  <div style={{ fontSize: 10, color: '#555', marginTop: 6, fontFamily: 'monospace' }}>
-                    {w.payment_reference}
+                    <span style={{ fontSize: 11, letterSpacing: 1, color: '#e91e8c', fontWeight: 700 }}>Open</span>
                   </div>
-                )}
-              </div>
-            )
-          })
+                  {/* Age progress bar — pink fill over dashed grey track */}
+                  <div
+                    style={{
+                      height: 4, borderRadius: 2, marginBottom: 6,
+                      backgroundImage: `linear-gradient(#e91e8c, #e91e8c), repeating-linear-gradient(90deg, #4a1a30 0 4px, transparent 4px 8px)`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundSize: `${pct}% 100%, 100% 100%`,
+                      transition: 'background-size 1500ms cubic-bezier(.2,.7,.2,1)',
+                    }}
+                  />
+                  {/* Bottom row — days live | money */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 11, color: '#777' }}>{days} days live</span>
+                    <span style={{ fontSize: 11, color: '#fff', fontWeight: 700 }}>{formatMoney(w)}</span>
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
+
+        <div style={{ padding: '24px 20px 20px' }} />
+
+        {/* Celebration toast — top-positioned, dedicated keyframes */}
+        {showCelebration && (
+          <div
+            style={{
+              pointerEvents: 'none', position: 'absolute',
+              left: 6, right: 6, top: 65, zIndex: 50,
+              background: '#0c0c0c', borderRadius: 12, padding: 14,
+              display: 'flex', alignItems: 'center', gap: 12,
+              boxShadow: '0 4px 8px rgba(0,0,0,0.6)',
+              animation: 'wlCelebIn 1200ms cubic-bezier(.2,.7,.2,1) 400ms backwards, wlCelebOut 1200ms cubic-bezier(.5,.2,.8,.1) 5000ms forwards',
+            }}
+          >
+            <span style={{ fontSize: 22, lineHeight: 1 }}>🎉</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 2 }}>Wish is live</div>
+              <div style={{ fontSize: 11, color: '#999' }}>Ready to be gifted</div>
+            </div>
+          </div>
         )}
+
+        {/* Action toast — bottom-positioned, simple opacity transition */}
+        <div
+          style={{
+            position: 'fixed', left: 20, right: 20, bottom: 28,
+            maxWidth: 460, margin: '0 auto',
+            background: '#0c0c0c', border: '1px solid #262626', borderRadius: 12,
+            padding: '12px 16px', fontSize: 12, color: '#fff', textAlign: 'center',
+            zIndex: 90, pointerEvents: 'none',
+            opacity: actionToast ? 1 : 0,
+            transform: actionToast ? 'translateY(0)' : 'translateY(10px)',
+            transition: 'opacity 0.2s, transform 0.2s',
+          }}
+        >
+          {actionToast ?? ''}
+        </div>
       </div>
 
       <DeleteWishModal
@@ -312,23 +452,6 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
         onClose={() => setOpenDelete(null)}
         onRemoveConfirm={handleRemoveConfirm}
       />
-
-      {toast && (
-        <div
-          key={toastKey}
-          style={{
-            position: 'fixed', top: '50px', left: '50%', transform: 'translateX(-50%)',
-            background: 'rgba(28,28,28,0.95)', border: '1px solid #333',
-            color: '#fff', fontSize: '12px', padding: '10px 18px', borderRadius: '24px',
-            zIndex: 1000, boxShadow: '0 4px 8px rgba(0,0,0,0.6)',
-            display: 'flex', alignItems: 'center', gap: '8px',
-            animation: 'amb-toast-in 1200ms ease, amb-toast-out 1200ms ease 4000ms forwards',
-          }}
-        >
-          {toast.emoji && <span>{toast.emoji}</span>}
-          <span>{toast.message}</span>
-        </div>
-      )}
     </div>
   )
 }

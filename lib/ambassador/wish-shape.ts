@@ -24,6 +24,11 @@ export interface WishCardRow {
   gifter_is_anonymous: boolean
   taken_at: string | null
   payment_reference: string | null
+  // 8-char base64url token. Surfaced to the client so the wishlist
+  // share button can construct the gifter checkout URL. The token is
+  // not a secret (it's the path component of the public payment link),
+  // so client exposure is safe.
+  payment_link_token: string
   created_at: string
   // True when the row can be hard-deleted by the owner. False once a
   // completed payment exists — the FK ON DELETE RESTRICT on
@@ -51,6 +56,7 @@ export interface WishLiveRow {
   gifter_instagram: string | null
   gifter_is_anonymous: boolean
   taken_at: string | null
+  payment_link_token: string
   created_at: string
   // PostgREST embed: zero or one completed payment row per wish in V1.
   // (Schema enforces no UNIQUE on wish_id but the application invariant
@@ -63,7 +69,7 @@ export const WISH_LIVE_SELECT = `
   professional_name, professional_city, professional_country,
   price, currency,
   gifter_name, gifter_instagram, gifter_is_anonymous,
-  taken_at, created_at,
+  taken_at, payment_link_token, created_at,
   model_wish_payments!model_wish_payments_wish_id_fkey ( payment_reference, status )
 `
 
@@ -94,6 +100,7 @@ export function toWishCardRow(row: WishLiveRow): WishCardRow {
     gifter_is_anonymous: row.gifter_is_anonymous,
     taken_at: row.taken_at,
     payment_reference: completed?.payment_reference ?? null,
+    payment_link_token: row.payment_link_token,
     created_at: row.created_at,
     removable: !hasCompletedPayment,
   }
