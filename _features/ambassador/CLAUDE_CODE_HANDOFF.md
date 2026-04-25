@@ -1050,8 +1050,10 @@ Additional Slice 5A items shipped (not on original Slice 5 checklist):
 - `/model/payouts/[id]` — Payout statement
 
 **API routes:**
-- `/api/model/analytics` — GET aggregated analytics data (with top gifter SQL)
-- `/api/admin/payouts/create` — Admin-only endpoint for batching unpaid payments (atomic UPDATE pattern)
+- `/api/ambassador/model/analytics` — GET aggregated analytics data (with top gifter SQL) — *path superseded by Slice 6 locked decision #1: matches Slice 5A `/api/ambassador/model/wishes/` precedent. Original `/api/model/analytics` rejected because `/app/api/analytics/model/route.ts` is occupied by legacy auctions code.*
+- `/api/ambassador/model/payouts` — GET ambassador's own payouts list — *new in 6B per locked decision #1*
+- `/api/ambassador/model/payouts/[id]` — GET single payout detail (statement) — *new in 6B per locked decision #1*
+- `/api/admin/payouts/create` — Admin-only endpoint for batching unpaid payments (atomic UPDATE pattern via `create_payout_batch()` RPC per locked decision #4)
 - `/api/admin/payouts/[id]/mark-paid` — Admin marks as paid
 
 **Dashboard update:**
@@ -1061,13 +1063,40 @@ Additional Slice 5A items shipped (not on original Slice 5 checklist):
 - [ ] Analytics page shows page views, listing clicks, wish clicks (real data from Slices 4 + 5)
 - [ ] Top gifter ranking: anonymous gifts excluded from named list
 - [ ] Trend comparison (vs previous 7/30 days) displays correctly
-- [ ] Chart.js lazy-loads only on this page (check Network tab)
+- [ ] ~~Chart.js lazy-loads only on this page (check Network tab)~~ **SUPERSEDED by locked decision #8 — raw SVG per mockup, no charting library bundled.** Replacement check: `next/dynamic` not used for charts; sparkline path strings computed server-side
 - [ ] Admin endpoint batches all unpaid completed payments atomically
 - [ ] Payout row created with correct gross/fee/net totals + currency
 - [ ] Ambassador sees payout with status `pending` in their payouts list
 - [ ] Double-click admin "Pay" button test: no duplicate payouts
 - [ ] Admin marks payout as paid → status = `paid`, `paid_at` set
 - [ ] Payout statement shows all included payments with refs
+
+**🔒 Slice 6 locked decisions (set during Slice 6 pre-flight partner review, 2026-04-25):**
+
+1. **Scope split.** Slice 6 splits into two sub-slices on Principle H grounds (~5 days combined exceeds the ~1.5-day target):
+   - **6A** — Analytics surface (`/model/analytics` page + `/api/ambassador/model/analytics` GET endpoint + dashboard nav-card route wire). Read-only, testable standalone. ~2-2.5 days.
+   - **6B** — Payouts (admin batch + mark-paid endpoints + ambassador-side list/statement pages + `create_payout_batch()` RPC migration). Real-money admin surface, full pre-commit review required. ~2-3 days.
+   API paths land at `/api/ambassador/model/analytics` and `/api/ambassador/model/payouts` matching Slice 5A `/api/ambassador/model/wishes/` precedent; admin paths stay at `/api/admin/payouts/*`. HANDOFF §1053 path `/api/model/analytics` superseded by this decision.
+2. **Admin-auth pattern.** All `/api/admin/payouts/*` endpoints use `await supabase.auth.getUser()` → 401 if missing → `SELECT role FROM users WHERE id = user.id` → 403 if not Admin. Pattern shape from `app/api/analytics/model/route.ts:9-26`. **Reject** `/api/admin/transfers/route.ts` `?adminUserId=` query-param gate — surfaced during pre-flight as client-spoofable (Surprise #1, logged as hardening item 29 for post-Slice-6 retrofit). Real-money endpoints must not inherit a flawed auth gate.
+3. **Atomic batching architecture.** Schema-side RPC `create_payout_batch(model_id_in uuid)` deployed via migration before the admin endpoint is wired. RPC does the atomic UPDATE-RETURNING on `model_listing_payments` + `model_wish_payments` (sets `payout_id` where currently NULL + status='completed' for the given model), creates the `model_payouts` row in the same transaction, returns the payout row + counts. Mirrors Slice 5C `claim_wish_for_payment` precedent — schema-side RPC removes the deployment-ordering hazard of app-side service-role transactions and makes the atomic boundary explicit.
+4. **Mark-paid notifications.** Stub trigger sites in 6B (call no-op `sendPayoutPaidEmail` + `sendPayoutPaidWhatsApp` from `lib/ambassador/notification-stubs.ts` extended); real Resend/AUTHKey copy + template wiring lands in Slice 7 polish per existing item 20 precedent for listing receipts. Not a 6B launch blocker — webhook + admin endpoint write the DB row + flip status regardless of notification result.
+5. **Analytics page file-size strategy** (closes hardening item 25 partial — for new files). Decompose `/model/analytics` upfront into `<FilterTabs>`, `<EarningsChart>`, `<BreakdownSection>`, `<TopCards>` sub-components rather than allowing monolithic growth. Parent client orchestrator (`AnalyticsClient.tsx`) stays under 300 LOC. Item 25 retrofit of three pre-existing 420-484 LOC clients (WishlistClient, AddWishClient, ListingsClient) still deferred — separate hardening slice.
+6. **Empty-payout cleanup.** App-side post-RPC: after `create_payout_batch()` returns, if both `listing_count === 0 && wish_count === 0` (no eligible rows in the window — race against parallel batch attempt), the API DELETEs the orphan payout row before returning 200 with a "no eligible payments" response. Per HANDOFF §2057. Cleaner than admin-triggered cleanup and avoids orphan rows accumulating.
+7. **Chart rendering.** Raw SVG per `analytics_final.html` mockup (single `<path d="…">` for the line + a separate `<path>` with gradient fill for the area beneath). No Chart.js, no Recharts, no charting library. Single-page surface doesn't justify the bundle cost; HANDOFF §1064 lazy-load note signaled deference to bundle weight already. Path strings computed server-side in `lib/ambassador/chart-path.ts` (small new helper) consuming the daily totals series. **HANDOFF §1064 VERIFY item superseded** to "no charting library bundled."
+8. **Currency display.** Per-payout currency on `/model/payouts` list rows and statement detail; no conversion to a primary account currency. Payouts are immutable historical records — converting them violates the audit-trail principle. Mockup shows per-row currency. Multi-currency portfolios (AED + USD mixed) display each in source.
+
+**Pre-flight infrastructure-pre-built check results (per G12 §169 doctrine):**
+- `lib/ambassador/payout-math.ts` (4B+4C) — `splitFee()` is per-payment and already applied at webhook time; batch aggregation (sum gross/fee/net + count) is greenfield, inline in `create_payout_batch()` RPC body
+- `lib/server/ip.ts` `getClientIp` (5B-2) — usable in admin endpoints if IP logging desired (not required since auth-gated)
+- `lib/ambassador/rate-limit.ts` (4D) — admin endpoints should still rate-limit (hostile insider scenario); add a new `adminPayoutLimiter` if not pre-configured
+- `model_analytics_events` schema + 7-value CHECK enum — already populated with live data from 4D + 5D instrumentation, zero ramp-up
+- `model_payouts` 17 cols + `payout_id` FK on both payment tables — already shipped Slice 0; no migrations beyond `create_payout_batch()` RPC
+- `claim_wish_for_payment` RPC pattern (pre-Slice 5C) — mirror shape for `create_payout_batch()`
+- Admin-auth pattern — NOT shipped soundly; build new from `app/api/analytics/model/route.ts:9-26` shape
+- Chart library — not present; raw SVG per mockup
+- Date-range helpers — not standardized; inline in 6A, extract to `lib/ambassador/date-ranges.ts` if Slice 7 reuses
+
+**Slice 6A opens 2026-04-25** — this commit `TODO-6A-open-hash` locks the eight decisions above and supersedes HANDOFF §1053 path + §1064 VERIFY line. Implementation begins next commit.
 
 ---
 
