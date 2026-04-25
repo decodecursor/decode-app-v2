@@ -1096,7 +1096,7 @@ Additional Slice 5A items shipped (not on original Slice 5 checklist):
 - Chart library — not present; raw SVG per mockup
 - Date-range helpers — not standardized; inline in 6A, extract to `lib/ambassador/date-ranges.ts` if Slice 7 reuses
 
-**Slice 6A opens 2026-04-25** — this commit `TODO-6A-open-hash` locks the eight decisions above and supersedes HANDOFF §1053 path + §1064 VERIFY line. Implementation begins next commit.
+**Slice 6A opens 2026-04-25** — commit `f60a7bd` (hash backfilled by `TODO-hashfix-hash` per G11) locks the eight decisions above and supersedes HANDOFF §1053 path + §1064 VERIFY line. Implementation begins next commit.
 
 ---
 
