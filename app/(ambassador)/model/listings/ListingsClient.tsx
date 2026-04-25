@@ -334,15 +334,22 @@ export default function ListingsClient({ listings: initialListings }: { listings
                     <span style={{ fontSize: 10, color: dim ? '#444' : '#777' }}>0 clicks</span>
                   </div>
                   <div style={{ display: 'flex', gap: 10, flexShrink: 0, alignItems: 'center' }}>
-                    <svg
-                      onClick={() => showToast('Share link ships in the next update')}
-                      width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={shareStroke(l)} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-                      <polyline points="16 6 12 2 8 6" />
-                      <line x1="12" y1="2" x2="12" y2="15" />
-                    </svg>
+                    {/* Send payment link — S1 (pending_payment) / S2 (free_trial) /
+                        S3 (active, always-renewable). Hidden on expired listings
+                        per Slice 4D locked decision (renewal-after-expiry needs
+                        a different flow not in V1). Send-link page already wires
+                        all 3 states by effective_status (Slice 3C 12ec72a). */}
+                    {l.effective_status !== 'expired' && (
+                      <svg
+                        onClick={() => router.push(`/model/listings/${l.id}/send-link`)}
+                        width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={shareStroke(l)} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                        <polyline points="16 6 12 2 8 6" />
+                        <line x1="12" y1="2" x2="12" y2="15" />
+                      </svg>
+                    )}
                     {l.effective_status !== 'expired' && (
                       <svg
                         onClick={() => router.push(`/model/listings/${l.id}/edit`)}

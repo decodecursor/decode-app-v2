@@ -273,27 +273,41 @@ export async function PATCH(
     }
 
     // ---- Pricing — rules driven by EXISTING row's is_free_trial ----
+    //
+    // Slice 4D commit 3 relaxation: trial listings now accept price
+    // writes so the Send Payment Link page (S2 state) can persist
+    // ambassador-entered prices before the professional pays. The
+    // is_free_trial flag itself remains immutable via this route
+    // (EDITABLE_KEYS gates the body; flag flip is webhook-owned per
+    // Slice 4 locked decision #5). Two valid trial shapes:
+    //   (a) all three prices null — pre-conversion "media-only" edit
+    //   (b) all three prices set + valid — ambassador has set pricing
+    //       on the send-link page, ready to share with professional
+    // Mixed/partial prices on a trial listing fall into the paid
+    // validation branch below and reject with the same "all three
+    // required" error a paid listing would.
     let price_30: number | null = null
     let price_60: number | null = null
     let price_90: number | null = null
 
-    if (existing.is_free_trial) {
-      // Trial — prices MUST be null.
-      if (body.price_30 != null || body.price_60 != null || body.price_90 != null) {
-        return NextResponse.json(
-          { error: 'Prices must be null when editing a trial listing' },
-          { status: 400 },
-        )
-      }
+    const trialKeepsPricesNull = existing.is_free_trial
+      && body.price_30 == null
+      && body.price_60 == null
+      && body.price_90 == null
+
+    if (trialKeepsPricesNull) {
+      // Leave prices null. Ambassador editing other fields (media,
+      // category) on an unpriced trial listing.
     } else {
-      // Paid — all three required, within currency floor, strictly ordered.
+      // Paid listing OR trial-with-prices — same validation:
+      // all three required + currency floor + strict ordering.
       const p30 = coercePrice(body.price_30)
       const p60 = coercePrice(body.price_60)
       const p90 = coercePrice(body.price_90)
       if (!Number.isFinite(p30) || !Number.isFinite(p60) || !Number.isFinite(p90)
           || p30 === null || p60 === null || p90 === null) {
         return NextResponse.json(
-          { error: 'price_30, price_60, price_90 required when editing a paid listing' },
+          { error: 'price_30, price_60, price_90 required when prices are provided' },
           { status: 400 },
         )
       }
