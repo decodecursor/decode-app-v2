@@ -43,7 +43,6 @@ export default function AddWishClient({ categories, currency }: Props) {
   const [service, setService] = useState<ServiceSelection>(null)
   const [serviceOpen, setServiceOpen] = useState(false)
   const [customText, setCustomText] = useState('')
-  const [customCommitted, setCustomCommitted] = useState(false)
   const [proName, setProName] = useState('')
   const [proCity, setProCity] = useState('')
   const [proCountry, setProCountry] = useState('')
@@ -71,15 +70,23 @@ export default function AddWishClient({ categories, currency }: Props) {
 
   const priceNum = price === '' ? null : Number(price)
   const priceValid = priceNum !== null && Number.isFinite(priceNum) && priceNum >= floor
-  const priceError = priceTouched && price !== '' && !priceValid
-    ? `Minimum ${floor} ${currency.toUpperCase()}`
-    : null
+  // Price error wording matches mockup: distinguish exactly-zero from
+  // below-floor cases (mockup updatePriceUI lines 282-297).
+  const priceError =
+    priceTouched && price === '0'
+      ? 'Price must be greater than 0'
+      : priceTouched && price !== '' && !priceValid
+        ? `Minimum ${symbol}${floor}`
+        : null
 
-  // Service is valid if: a category is selected OR custom is committed
-  // with non-empty trimmed text.
+  // Service is valid if: a category is selected OR custom text has
+  // ≥ 2 chars (matches mockup live-validation at line 251 + the
+  // CTA-validity check at line 305-307).
+  const customLive = customText.trim()
+  const customLiveValid = customLive.length >= 2
   const serviceValid =
     (service?.type === 'category' && !!service.label) ||
-    (service?.type === 'custom' && customText.trim().length > 0 && customCommitted)
+    (service?.type === 'custom' && customLiveValid)
 
   const formValid =
     serviceValid &&
@@ -92,20 +99,11 @@ export default function AddWishClient({ categories, currency }: Props) {
     setService({ type: 'category', label })
     setServiceOpen(false)
     setCustomText('')
-    setCustomCommitted(false)
   }
 
   const handleSelectCustomize = () => {
     setService({ type: 'custom', text: '' })
     setServiceOpen(false)
-    setCustomCommitted(false)
-  }
-
-  const handleCustomCommit = () => {
-    if (customText.trim().length > 0) {
-      setCustomCommitted(true)
-      setService({ type: 'custom', text: customText.trim() })
-    }
   }
 
   const onSubmit = async () => {
@@ -153,21 +151,48 @@ export default function AddWishClient({ categories, currency }: Props) {
     }
   }
 
+  // CTA visual states match mockup #cw_createBtn (lines 14-19):
+  //   default → grey-on-dark, no border-color shift, cursor:default
+  //   ready   → pink, white, cursor:pointer, hover:brightness, active:scale
+  //   working → pink, white, cursor:default, "Creating…"
+  //   success → pink (NOT green), white, cursor:default, "Wish created!"
+  const ctaState: 'default' | 'ready' | 'working' | 'success' =
+    submitState === 'success' ? 'success'
+    : submitState === 'creating' ? 'working'
+    : formValid && !submitting ? 'ready'
+    : 'default'
   const ctaLabel =
-    submitState === 'creating' ? 'Creating…'
-    : submitState === 'success' ? 'Wish created!'
+    ctaState === 'working' ? 'Creating…'
+    : ctaState === 'success' ? 'Wish created!'
     : 'Create wish'
-  const ctaActive = formValid && !submitting
-  const ctaBg = submitState === 'success' ? '#4ade80' : ctaActive ? '#e91e8c' : '#1c1c1c'
-  const ctaColor = ctaActive || submitState === 'success' ? '#fff' : '#555'
 
+  // Service label color logic matches mockup cwSelectTreat + cwCustomCheck:
+  //   "Select" placeholder → grey
+  //   "Customize" picked but text not yet ≥ 2 chars → pink (live transition cue)
+  //   Custom text ≥ 2 chars OR category picked → white (committed)
   const serviceLabel =
     service?.type === 'category' ? service.label
-    : service?.type === 'custom' && customCommitted ? customText.trim()
+    : service?.type === 'custom' && customLiveValid ? customLive
+    : service?.type === 'custom' ? 'Customize'
     : 'Select'
+  const serviceLabelColor =
+    serviceLabel === 'Select' ? '#666'
+    : service?.type === 'custom' && !customLiveValid ? '#e91e8c'
+    : '#fff'
 
   return (
     <div style={{ minHeight: '100vh', background: '#000', color: '#fff' }}>
+      {/* Inline page-scoped CSS for :focus-within (price box) and the
+          ready-state hover/active polish on the CTA — inline-style React
+          can't express these. Pattern matches the mockup's <style> block
+          at lines 8-19. */}
+      <style>{`
+        #cw_priceBox.cw-focusable:focus-within { border-color: #e91e8c !important; transition: border-color 0.15s }
+        #cw_createBtn.cw-ready:hover { filter: brightness(1.08) }
+        #cw_createBtn.cw-ready:active { transform: scale(0.99) }
+        #cw_createBtn { transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.05s }
+      `}</style>
+
       <div style={{ width: '100%', maxWidth: 500, margin: '0 auto', minHeight: '100vh' }}>
         {/* Header — back arrow */}
         <div style={{ padding: '14px 20px 0' }}>
@@ -205,7 +230,7 @@ export default function AddWishClient({ categories, currency }: Props) {
                 justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer',
               }}
             >
-              <span style={{ color: serviceLabel === 'Select' ? '#666' : '#fff' }}>{serviceLabel}</span>
+              <span style={{ color: serviceLabelColor }}>{serviceLabel}</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: serviceOpen ? 'rotate(180deg)' : undefined, transition: 'transform 0.2s ease' }}>
                 <polyline points="6 9 12 15 18 9" />
               </svg>
@@ -220,14 +245,16 @@ export default function AddWishClient({ categories, currency }: Props) {
                   <div
                     key={c.id}
                     onClick={() => handleSelectCategory(c.label)}
-                    style={{ padding: '12px 16px', fontSize: 14, color: '#fff', cursor: 'pointer', borderBottom: '1px solid #262626' }}
+                    style={{ padding: '12px 16px', fontSize: 13, color: '#fff', cursor: 'pointer', borderBottom: '1px solid #262626' }}
                   >
                     {c.label}
                   </div>
                 ))}
+                {/* Customize entry: pink, top-bordered separator (matches
+                    mockup line 129 — border-top instead of -bottom). */}
                 <div
                   onClick={handleSelectCustomize}
-                  style={{ padding: '12px 16px', fontSize: 14, color: '#e91e8c', cursor: 'pointer', fontWeight: 600 }}
+                  style={{ padding: '12px 16px', fontSize: 13, color: '#e91e8c', cursor: 'pointer', borderTop: '1px solid #262626' }}
                 >
                   Customize
                 </div>
@@ -235,7 +262,9 @@ export default function AddWishClient({ categories, currency }: Props) {
             )}
           </div>
 
-          {/* Custom service input — revealed when Customize selected */}
+          {/* Custom service input — revealed when Customize selected.
+              Green check appears live at ≥ 2 chars (matches mockup
+              cwCustomCheck line 251). No explicit commit gesture needed. */}
           {service?.type === 'custom' && (
             <div style={{ marginBottom: 10 }}>
               <div style={{
@@ -244,8 +273,7 @@ export default function AddWishClient({ categories, currency }: Props) {
               }}>
                 <input
                   value={customText}
-                  onChange={(e) => { setCustomText(capFirst(e.target.value)); setCustomCommitted(false) }}
-                  onBlur={handleCustomCommit}
+                  onChange={(e) => setCustomText(capFirst(e.target.value))}
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLInputElement).blur() } }}
                   type="text"
                   placeholder="Type your service and press Enter"
@@ -254,8 +282,8 @@ export default function AddWishClient({ categories, currency }: Props) {
                     padding: '14px 16px', fontSize: 14, color: '#fff', outline: 'none',
                   }}
                 />
-                {customCommitted && (
-                  <span style={{ paddingRight: 14, flexShrink: 0 }}>
+                {customLiveValid && (
+                  <span style={{ paddingRight: 14, flexShrink: 0, display: 'flex' }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
@@ -302,8 +330,12 @@ export default function AddWishClient({ categories, currency }: Props) {
             />
           </div>
 
-          {/* Price box */}
+          {/* Price box. id + class enable the inline-CSS :focus-within
+              pink border ring (matches mockup line 11). Error state
+              still wins via inline border-color override below. */}
           <div
+            id="cw_priceBox"
+            className="cw-focusable"
             onClick={() => document.getElementById('cw_price')?.focus()}
             style={{
               background: '#1c1c1c', border: `1.5px solid ${priceError ? '#e91e8c' : '#262626'}`, borderRadius: 12,
@@ -347,15 +379,23 @@ export default function AddWishClient({ categories, currency }: Props) {
           </div>
         )}
 
-        {/* CTA */}
+        {/* CTA — class drives the inline-CSS :hover/:active polish; */}
+        {/* inline style sets the per-state colors. Success stays pink */}
+        {/* per mockup (NOT green — earlier draft used #4ade80; corrected). */}
         <div style={{ padding: '10px 20px 22px' }}>
           <button
+            id="cw_createBtn"
+            className={ctaState === 'ready' ? 'cw-ready' : ''}
             onClick={onSubmit}
-            disabled={!ctaActive}
+            disabled={ctaState !== 'ready'}
             style={{
-              width: '100%', background: ctaBg, border: ctaActive ? 'none' : '1px solid #262626',
+              width: '100%',
+              background: ctaState === 'default' ? '#1c1c1c' : '#e91e8c',
+              border: ctaState === 'default' ? '1px solid #262626' : '1px solid #e91e8c',
               borderRadius: 12, padding: 16, textAlign: 'center', fontSize: 15, fontWeight: 700,
-              color: ctaColor, letterSpacing: 0.2, cursor: ctaActive ? 'pointer' : 'default',
+              color: ctaState === 'default' ? '#555' : '#fff',
+              letterSpacing: '0.2px',
+              cursor: ctaState === 'ready' ? 'pointer' : 'default',
             }}
           >
             {ctaLabel}
