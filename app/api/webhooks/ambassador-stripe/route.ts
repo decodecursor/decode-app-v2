@@ -5,6 +5,9 @@ import {
   handleListingPaymentSucceeded,
   handleListingPaymentFailed,
   handleListingChargeRefunded,
+  handleWishPaymentSucceeded,
+  handleWishPaymentFailed,
+  handleWishChargeRefunded,
 } from '@/lib/ambassador/webhook-handlers'
 
 /**
@@ -86,16 +89,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'log_failed' }, { status: 500 })
   }
 
+  // Discriminate by metadata.kind so listing vs wish handlers fire on
+  // the right events. Both surfaces also defensively re-check kind at
+  // the top of each handler, so a metadata-less event (legacy or test
+  // webhook) routes to the listing path and that path's guard no-ops.
+  const meta =
+    (event.data.object as { metadata?: Record<string, string> }).metadata ?? {}
+  const kind = meta.kind === 'wish' ? 'wish' : 'listing'
+
   try {
     switch (event.type) {
       case 'payment_intent.succeeded':
-        await handleListingPaymentSucceeded(admin, event)
+        if (kind === 'wish') await handleWishPaymentSucceeded(admin, event)
+        else await handleListingPaymentSucceeded(admin, event)
         break
       case 'payment_intent.payment_failed':
-        await handleListingPaymentFailed(admin, event)
+        if (kind === 'wish') await handleWishPaymentFailed(admin, event)
+        else await handleListingPaymentFailed(admin, event)
         break
       case 'charge.refunded':
+        // Charge events don't carry our metadata directly; both wish
+        // and listing handlers look up the payment row by the charge's
+        // payment_intent. Whichever table holds the row updates; the
+        // other no-ops on `if (!payment) return`. So calling both is
+        // safe and avoids needing a charge → PI lookup just to dispatch.
         await handleListingChargeRefunded(admin, event)
+        await handleWishChargeRefunded(admin, event)
         break
       default:
         await markStatus(admin, event.id, 'unhandled')

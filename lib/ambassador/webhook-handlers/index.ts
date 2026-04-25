@@ -13,3 +13,9 @@ export {
   handleListingPaymentFailed,
   handleListingChargeRefunded,
 } from './listing'
+
+export {
+  handleWishPaymentSucceeded,
+  handleWishPaymentFailed,
+  handleWishChargeRefunded,
+} from './wish'
