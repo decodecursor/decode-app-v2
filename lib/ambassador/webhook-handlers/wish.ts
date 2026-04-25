@@ -39,6 +39,9 @@ interface WishWithProfileRow {
   price: number | string
   currency: string
   service_name: string
+  gifter_name: string | null
+  gifter_instagram: string | null
+  gifter_is_anonymous: boolean
   profile: { slug: string } | null
 }
 
@@ -85,6 +88,7 @@ export async function handleWishPaymentSucceeded(
     .from('model_wishes')
     .select(`
       id, model_id, price, currency, service_name,
+      gifter_name, gifter_instagram, gifter_is_anonymous,
       profile:model_profiles!model_wishes_model_id_fkey ( slug )
     `)
     .eq('id', wishId)
@@ -102,6 +106,17 @@ export async function handleWishPaymentSucceeded(
   }
   const { fee, net } = splitFee(gross)
 
+  // Snapshot gifter identity at completion. The wish row's gifter_*
+  // columns can be clobbered by a future re-claim (per Slice 5C
+  // closeout: schema-designed overwrite-without-preservation), so
+  // analytics + statement display read from these payment-row
+  // snapshots, not from the wish row. Anonymous gifts null name + IG
+  // here as defense-in-depth (DB CHECK
+  // model_wish_payments_anonymous_no_identity also enforces).
+  const isAnonymous = wish.gifter_is_anonymous === true
+  const snapshotName = isAnonymous ? null : wish.gifter_name
+  const snapshotIg   = isAnonymous ? null : wish.gifter_instagram
+
   // Insert with reference-collision retry. payment_reference space is
   // 9M (W-xxx-xxxx); a collision will fail the UNIQUE index and we
   // regenerate. 3 retries is overkill but cheap.
@@ -117,6 +132,9 @@ export async function handleWishPaymentSucceeded(
       net_amount: net,
       currency: wish.currency,
       gifter_email: pi.receipt_email,
+      gifter_name: snapshotName,
+      gifter_instagram: snapshotIg,
+      gifter_is_anonymous: isAnonymous,
       stripe_payment_intent_id: pi.id,
       stripe_event_id: event.id,
       status: 'completed',
