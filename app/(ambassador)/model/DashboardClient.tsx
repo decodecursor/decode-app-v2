@@ -26,6 +26,7 @@ export default function DashboardClient({
   viewsThisWeek,
   topClicks,
   expiringCount,
+  openWishCount,
   showEmailHint,
 }: {
   profile: Profile
@@ -34,6 +35,7 @@ export default function DashboardClient({
   viewsThisWeek: number
   topClicks: TopClick[]
   expiringCount: number
+  openWishCount: number
   showEmailHint: boolean
 }) {
   const router = useRouter()
@@ -346,14 +348,14 @@ export default function DashboardClient({
           alert={expiringCount > 0 ? `${expiringCount} expiring soon` : null}
         />
         <NavCard
-          /* TODO(slice-2-or-3): swap onClick to router.push('/model/wishlist') */
-          onClick={() => navigatePlaceholder('Wishlist')}
+          onClick={() => router.push('/model/wishlist')}
           icon={(
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
           )}
           label="Wishlist"
+          alert={openWishCount > 0 ? `${openWishCount} open` : null}
         />
         <NavCard
           /* TODO(slice-2-or-3): swap onClick to router.push('/model/analytics') */

@@ -63,6 +63,7 @@ export default async function DashboardPage() {
     viewsThisWeekRes,
     topClicksRes,
     activeListingsRes,
+    openWishesRes,
   ] = await Promise.all([
     adminClient
       .from('model_analytics_events')
@@ -81,6 +82,15 @@ export default async function DashboardPage() {
       .select('id, paid_until, free_trial_ends_at')
       .eq('model_id', profile.id)
       .in('status', ['active', 'free_trial']),
+    // Slice 5A: count open wishes (status='available') for the
+    // Wishlist nav-card alert. Mirrors the listings expiringCount
+    // pattern but uses total-open as the actionable signal since
+    // wishes have no expiry/renewal cycle.
+    adminClient
+      .from('model_wishes')
+      .select('id', { count: 'exact', head: true })
+      .eq('model_id', profile.id)
+      .eq('status', 'available'),
   ])
 
   const sevenDaysFromNow = Date.now() + 7 * 24 * 3600 * 1000
@@ -88,6 +98,8 @@ export default async function DashboardPage() {
     const exp = l.paid_until ?? l.free_trial_ends_at
     return exp && new Date(exp).getTime() < sevenDaysFromNow
   }).length
+
+  const openWishCount = openWishesRes.count ?? 0
 
   const showEmailHint = !user.email || isInternalEmail(user.email)
 
@@ -99,6 +111,7 @@ export default async function DashboardPage() {
       viewsThisWeek={viewsThisWeekRes.count ?? 0}
       topClicks={(topClicksRes.data as Array<{ category: string; clicks: number }> | null) ?? []}
       expiringCount={expiringCount}
+      openWishCount={openWishCount}
       showEmailHint={showEmailHint}
     />
   )
