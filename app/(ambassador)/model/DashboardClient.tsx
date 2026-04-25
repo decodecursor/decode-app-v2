@@ -358,8 +358,7 @@ export default function DashboardClient({
           alert={openWishCount > 0 ? `${openWishCount} open` : null}
         />
         <NavCard
-          /* TODO(slice-2-or-3): swap onClick to router.push('/model/analytics') */
-          onClick={() => navigatePlaceholder('Analytics')}
+          onClick={() => router.push('/model/analytics')}
           icon={(
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="20" x2="18" y2="10" />
