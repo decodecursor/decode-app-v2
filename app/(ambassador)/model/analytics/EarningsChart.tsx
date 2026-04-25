@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { useCountUp } from './useCountUp'
+import { useCountUp } from '@/components/ambassador/useCountUp'
 import type { RangeData, RangeKey, TrendValue } from './types'
 
 /**
