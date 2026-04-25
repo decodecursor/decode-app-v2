@@ -7,6 +7,16 @@
 
 ---
 
+> **⚠ SUPERSESSION (Slice 5A closeout, 2026-04-25).** Built to live schema, not to spec text. Drift items resolved as follows:
+>
+> - **Status terminology.** Spec language `'open' / 'gifted' / 'deleted'` superseded by the live `model_wishes.status` enum `'available' / 'taken'` plus the computed `effective_status` on `model_wishes_live` view. There is no `'deleted'` status — see hard-delete decision below.
+> - **Table names.** Spec references `wishes` and `gifts` superseded by actual schema names `model_wishes` and `model_wish_payments`. Wish FK lives on `model_wish_payments.wish_id` with `ON DELETE RESTRICT`, which preserves the audit trail naturally without a soft-delete column.
+> - **§6 Delete behavior.** Spec language describing soft delete via `status='deleted'` + `deleted_at` superseded by **hard delete** (`DELETE /api/ambassador/model/wishes/[id]`). The FK constraint blocks delete after a completed payment exists, so the audit row is preserved by the payment row, not by a tombstone wish row. UI hides the delete icon on gifted cards (`removable=false` from `toWishCardRow`).
+> - **§11.4 Pull-to-refresh.** Not implemented. Standard mobile browser pull-to-refresh covers it; no app-level gesture wired.
+> - **Instagram + avatar fields on wishes.** Spec mentioned both for the professional, but neither column exists on `model_wishes`. Removed from scope. `gifter_instagram` IS on the schema, populated by the wish-checkout webhook on the gifter's payment row — that lands in Slice 5C.
+
+---
+
 ## 1. Purpose
 
 Index of the ambassador's wishes — services she wants as gifts from followers. Followers can pay (via Stripe) to gift a wish; funds go to the platform, which pays the ambassador directly. Ambassador then books + pays the professional outside the system.

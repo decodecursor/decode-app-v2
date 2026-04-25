@@ -657,6 +657,7 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 22. **`<TurnstileWidget/>` rule-of-three watch (Slice 4D milestone review, 2026-04-25; extends item 19).** Two consumers today inline-render the same script-load + widget-mount + token-callback pattern (~50 LOC each): `app/(ambassador)/model/auth/page.tsx` (Slice 1.5) and `components/checkout/CheckoutClient.tsx` (Slice 4D commit 1). Both also declaration-merge an identical `Window.turnstile` interface across files. **If Slice 5 wish-gifter checkout adds a third Turnstile surface (likely — same threat profile as listings checkout), EXTRACT to a shared `<TurnstileWidget/>` component before more drift accumulates.** Add Turnstile to existing item 19's Slice-5 Principle I watch list. Extraction surface: `components/turnstile/TurnstileWidget.tsx` exporting a hook-based component that owns script-load + render + token state + reset handling, returning `(turnstileToken, resetWidget)` for the consumer.
 23. **`getClientIp(request)` helper duplication (Slice 4D milestone review, 2026-04-25).** Identical 6-LOC implementation in `app/api/checkout/listing/route.ts` AND `app/api/analytics/track/route.ts` (reads `x-forwarded-for` first, `x-real-ip` second, `'unknown'` fallback). Rule-of-two; rule-of-three would trigger extraction. **Slice 5 wish-checkout will need IP detection too — that's the third use.** Extract to `lib/server/ip.ts` (or similar) when Slice 5 lands. Not urgent; 6 LOC × 2 sites is well under the rule-of-three threshold today.
 24. **`ANALYTICS_IP_SALT` entropy validation (Slice 4D milestone review, 2026-04-25).** `lib/env-validation.ts:33` checks the salt is set but doesn't validate length/entropy. A weak prod salt (e.g. `"x"` or `"changeme"`) would pass validation but produce a guessable hash + enable rainbow-table reversal of common IPs. **Add `value.length >= 32` check** for `ANALYTICS_IP_SALT` (matches typical 32-byte hex secret format). Trivial; bundle into next env-validation touch.
+25. **Ambassador-side list/form Client LOC ceiling re-evaluation (Slice 5A closeout, 2026-04-25).** Three index/form Clients now sit past the G12 #8 350-LOC hard-decompose threshold: `WishlistClient.tsx` (457 LOC after `1cf463f` polish), `AddWishClient.tsx` (376 LOC after `aadb808` pixel-fidelity rewrite), and `ListingsClient.tsx` (484 LOC, longstanding). All three exhibit the same shape: route-group layout + filter/state-machine logic + 2-3 card/section variants + inline styles to match a per-page mockup CSS block. The shape is consistent enough that **decomposition would be mechanical** (split into `*Shell.tsx` + `*Card.tsx` + `*Modal.tsx` per the 4B+4C `PaymentModalShell`/`StripeElementsForm` precedent). **Decision deferred:** either (a) decompose all three when next iteration touches them, OR (b) raise the G12 #8 hard-decompose threshold to 500 LOC for ambassador-side index/form Clients specifically (citing the consistent pattern as evidence the current threshold is mis-calibrated for this surface). Pick (a) vs (b) at the start of Slice 5C if 5C touches `WishlistClient`/`AddWishClient`; otherwise revisit at Slice 6 entry. Not a launch blocker — files compile, validate, and behave correctly; this is a maintainability flag.
 
 ### Slice 3 feature candidates (to be scoped separately, NOT to be conflated with hardening backlog)
 
@@ -893,6 +894,18 @@ The pre-flight doctrine inputs addendum on G12 (line 163) should be referenced b
 
 ---
 
+**Slice 5A shipped 2026-04-25** — commit range `8478427..aadb808` (5 commits: 8478427 wishlist page server + GET API + DELETE API + WishlistClient + DeleteWishModal + dashboard nav-card wire + open-wish count, 86292c0 Add Wish form (`/model/wishlist/new`) + POST `/api/ambassador/model/wishes` with `payment_link_token` generator (8-char base64url, 5-retry on 23505), 1cf463f wishlist visual polish (card layouts + two distinct toasts + age progress bar + share-icon WhatsApp wiring + delete modal preview), 7a28f16 Add Wish first polish iteration (8 visual gaps closed), aadb808 Add Wish second polish — pixel-fidelity rewrite (full `#cwPage`-scoped CSS port: focus rings on text inputs, `.cwFw:focus-within`, placeholder color, CTA `.ready/.working/.success` !important class pattern, custom-input auto-focus 50ms, `priceTouched` reset on focus)). 8 source files, +91/-78 net on the second polish; full slice ~1450 LOC. Live proof: ambassador can create wishes, list them, delete unbacked wishes, dashboard shows open-wish count badge. Closes `gifts_enabled` toggle (pre-shipped in Slice 1.5 settings). Slice 5C will add the gifter-side flow + the webhook handler that populates `gifter_instagram` on the payment row.
+
+### 💡 Slice 5A closeout retro — visual fidelity needs explicit per-element verification
+
+The first 5A-2 polish (`7a28f16`) shipped with a "matches mockup" claim but the live page still drifted from `add_wish_final.html`. A second polish (`aadb808`) was required, with strict mockup-line-by-line comparison that surfaced 10 discrete gaps (no `#cwPage` scoped CSS, no pink focus border on text inputs, missing `.cwFw` class on custom input wrap, missing `padding:0` on price input, missing 50ms auto-focus on Customize, missing `priceTouched` reset on focus, chevron `transform:undefined` snap-back, CTA inline-style state coloring instead of mockup's class+`!important` pattern, missing `font-family: system-ui` on root, missing `transition: border-color 0.15s` on text inputs).
+
+**Rule for future visual polish commits:** the post-commit report MUST list before/after per visual element (sizes, colors, spacing, animation timings, CSS rule names, class names) — the pattern `aadb808`'s commit message + post-push report used. Generic "matches mockup" claims without per-element diff invite drift, because the human reviewer can't see what was *not* compared.
+
+**Origin:** Slice 5A second-polish iteration (2026-04-25). Reinforces Guardrail 3 (read mockups in full) and the 4B+4C lesson "fix the direct issue before re-evaluating architecture" — both root in the same failure mode: shipping based on partial comparison.
+
+---
+
 ### 🎁 Slice 5 — Wishlist flow (end-to-end gifting)
 
 **Goal:** Ambassador creates wishes, gifters pay for them, they appear on Wall of Love. Race condition handled.
@@ -925,18 +938,25 @@ The pre-flight doctrine inputs addendum on G12 (line 163) should be referenced b
 - Payouts
 
 **✅ VERIFY before next slice:**
-- [ ] Ambassador creates a wish with city + country
-- [ ] Public page shows wishes section when `gifts_enabled=true`
-- [ ] Public page HIDES wishes when `gifts_enabled=false`
-- [ ] Gifter clicks "Gift It" → sees checkout with Turnstile
-- [ ] **Race condition test:** open checkout in 2 tabs simultaneously, both tap Pay → second redirects to `/wish/taken`
-- [ ] **Payment-in-flight test:** start payment, wait 11 min for lock to "expire", payment still completes (not reverted, thanks to pending check)
-- [ ] Anonymous gift: receipt shows "See your gift on Sara's page", Wall of Love shows "Anonymous"
-- [ ] Non-anonymous gift: shows name + Instagram on Wall of Love
-- [ ] Rate limit: 4th attempt within 10 min blocked
-- [ ] Payment failed: wish status reverts to `available` after next revert cycle
-- [ ] Delete wish: available wishes can be deleted; taken wishes cannot
-- [ ] Refund via Stripe → Wall of Love entry removed
+- [x] Ambassador creates a wish with city + country  *(Slice 5A — `86292c0` Add Wish form + POST endpoint)*
+- [ ] Public page shows wishes section when `gifts_enabled=true`  *(Slice 5D)*
+- [ ] Public page HIDES wishes when `gifts_enabled=false`  *(Slice 5D)*
+- [ ] Gifter clicks "Gift It" → sees checkout with Turnstile  *(Slice 5C)*
+- [ ] **Race condition test:** open checkout in 2 tabs simultaneously, both tap Pay → second redirects to `/wish/taken`  *(Slice 5C)*
+- [ ] **Payment-in-flight test:** start payment, wait 11 min for lock to "expire", payment still completes (not reverted, thanks to pending check)  *(Slice 5C)*
+- [ ] Anonymous gift: receipt shows "See your gift on Sara's page", Wall of Love shows "Anonymous"  *(Slice 5C + 5D)*
+- [ ] Non-anonymous gift: shows name + Instagram on Wall of Love  *(Slice 5C + 5D)*
+- [ ] Rate limit: 4th attempt within 10 min blocked  *(Slice 5C)*
+- [ ] Payment failed: wish status reverts to `available` after next revert cycle  *(Slice 5C)*
+- [x] Delete wish: available wishes can be deleted; taken wishes cannot  *(Slice 5A — `8478427` DELETE endpoint + `removable` projection + UI hides icon when `removable=false`)*
+- [ ] Refund via Stripe → Wall of Love entry removed  *(Slice 5C webhook + 5D Wall of Love)*
+
+Additional Slice 5A items shipped (not on original Slice 5 checklist):
+- [x] Wishlist page (`/model/wishlist`) lists wishes with filter tabs All/Open/Gifted, two card variants, share-button WhatsApp wiring  *(`8478427` + `1cf463f` polish)*
+- [x] Add Wish form (`/model/wishlist/new`) gated by `gifts_enabled`, currency snapshot at creation  *(`86292c0` + `7a28f16` first polish + `aadb808` pixel-fidelity rewrite)*
+- [x] Dashboard nav-card wired to wishlist with open-wish count badge  *(`8478427`)*
+- [x] `gifts_enabled` toggle live in settings (pre-shipped Slice 1.5; gates `/model/wishlist/new` server-side)
+- [x] Spec drift superseded — terminology (`open/gifted/deleted` → `available/taken`), table names (`wishes` → `model_wishes`, `gifts` → `model_wish_payments`), §11.1 schema (FK + custom → single text), §11.4 pull-to-refresh dropped, Instagram + avatar fields removed, §6 soft-delete → hard-delete with FK ON DELETE RESTRICT preserving audit  *(supersession blocks added to both spec files in Slice 5A closeout)*
 
 ---
 

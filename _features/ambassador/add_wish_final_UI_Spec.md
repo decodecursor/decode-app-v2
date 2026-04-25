@@ -7,6 +7,14 @@
 
 ---
 
+> **⚠ SUPERSESSION (Slice 5A closeout, 2026-04-25).** Built to live schema, not to spec text. Drift items resolved as follows:
+>
+> - **§8.1 / §11.1 schema suggestion.** Spec proposed `category_id` FK + `category_custom` columns on the wishes table. Superseded by the live `model_wishes.service_name` (single free-form `text` column). The dropdown still presents `model_categories` rows for UX, but the persisted shape is one string. No FK to categories.
+> - **Table names.** Spec references `wishes` and `gifts` superseded by actual schema names `model_wishes` and `model_wish_payments`.
+> - **Instagram + avatar fields on wishes.** Spec mentioned both for the professional, but neither column exists on `model_wishes`. Removed from scope (Slice 5A locked decision A — build to schema + mockup, not to spec text). `gifter_instagram` IS on the schema, populated by the wish-checkout webhook on the gifter's payment row — that lands in Slice 5C.
+
+---
+
 ## 1. Purpose
 
 Form for an ambassador to add a service as a "wish" — a gift their followers can see on the public page and purchase for them. Gift economy, not crowdfunding. Collects: service (category or custom), professional name, price.
