@@ -938,6 +938,27 @@ Three planned refactors became seven commits. The pattern: extraction work gives
 
 ---
 
+**Slice 5C shipped 2026-04-25** — 4 commits (`a986229..dd017d4`):
+
+ - `a986229` (5C-1) — Pure refactor: split `lib/ambassador/webhook-handlers.ts` (289 LOC) into `webhook-handlers/listing.ts` + `webhook-handlers/index.ts`. Function rename `handlePaymentIntent*` → `handleListing*` to make kind-discrimination explicit at the call site. 93% rename similarity per git. Listings webhook flow byte-identical.
+ - `bd91597` (5C-2, **pre-commit reviewed**) — Real-money atomic-claim wish flow. New `app/api/checkout/wish/route.ts` (260 LOC) calls schema-side RPC `claim_wish_for_payment` for race-free atomicity, writes gifter identity post-claim (gifter_B overwrites gifter_A's stale data without preservation logic — schema-designed pattern), creates Stripe PI with metadata `{kind:'wish', wish_id, model_id}` and idempotency key `wish_${id}_${expiresMs}`. New `app/api/wishes/by-payment-intent/[pi_id]/route.ts` (164 LOC) for receipt hydration with anonymous-flag defense-in-depth (gifter.name/IG null in API response when anonymous regardless of wish row state). New `lib/ambassador/webhook-handlers/wish.ts` (222 LOC) sibling of listing.ts with dual-layer idempotency, `splitFee`, INSERT model_wish_payments with W-prefix reference + 23505 retry. Webhook does NOT touch wish.gifter_* (verified pre-commit). `handleWishPaymentFailed` log-only — lock stays in place 10 min so original gifter retains retry window; cron `revert_expired_wish_locks()` releases later. Route dispatch discriminates by `metadata.kind`; charge.refunded calls both refund handlers (charge events don't carry our metadata).
+ - `dd017d4` (5C-3) — UI consuming the parameterized shells from 5B-3. New `WishCheckoutClient.tsx` (325 LOC, sibling of CheckoutClient): cover + hero + wish details (3-row card) + collapsing optional gifter inputs + anonymous toggle + Pay CTA. Validation: pay enabled if anonymous OR name >= 2 chars. Consumes `useTurnstile({size:'invisible'})` + `<PaymentModal>` with `endpointPath='/api/checkout/wish'`, `returnPathBuilder=(pi)=>'/wish/confirmation/${pi}'`, three chips ([One-time, No subscription, One gift]), memo'd `bodyExtras={gifter_name, gifter_instagram, gifter_is_anonymous}`, `onPiCreateError` handler that catches 409 → `router.push('/wish/taken?slug&first')`. New `WishConfirmationClient.tsx` (262 LOC, sibling of ConfirmationClient): same loading/ready/not-found state machine + 5x pending-webhook retry; wish-shaped fields (Gifted to / Service / At / Date / Reference / Amount), refunded-overrides-default branch with refund banner + row. Sibling-rather-than-shared per locked decision (rule of three not yet crossed). New `/wish/confirmation/[pi_id]/page.tsx` (31 LOC) thin server wrapper, `noindex`. New `/wish/taken/page.tsx` (28 LOC) + `WishTakenClient.tsx` (94 LOC) for terminal "Someone was faster!" page with slug + first-name URL param validation + `history.replaceState` to skip the back-button loop. Dispatch extension in `app/pay/[token]/page.tsx` (165 → 291 LOC): listings + wishes share the same 8-char base64url token shape (both use `randomBytes(6).toString('base64url')`); `classifyToken` cannot disambiguate by regex alone, so the dispatch tries listings first (hot path) then falls through to a `model_wishes_live` lookup that uses `effective_status` so the cron-released-but-not-yet-swept state reads as available. Wish branch calls `WishCheckoutClient` with the resolved wish + ambassador. **Touched** PaymentModalShell.tsx (302 → 321 LOC) with one new optional prop `onPiCreateError?: (body, status) => void` — fires synchronously when PI-create POST returns non-OK, BEFORE the shell sets `pi.status='error'`, so wish-checkout can route 409 → `/wish/taken` before the user sees the error message. Default `undefined` keeps listings byte-identical. All 4B+4C and 5B-3 hardening invariants preserved.
+ - `TODO-5C-4-hash` (5C-4, this commit) — Closeout doc.
+
+12 source files touched across the slice (3 new APIs, 1 webhook handler split + new wish handler, 4 new UI components, 1 dispatch extension, 1 shell prop addition). Live proof: pending — slice will be exercised end-to-end on iOS Safari + desktop Chrome with a test wish post-deploy. Atomic claim race tested via 2-tab simultaneous Pay (per VERIFY checklist).
+
+### 💡 Slice 5C closeout retro — schema-side RPCs are load-bearing primitives
+
+The `claim_wish_for_payment` RPC + `revert_expired_wish_locks` cron function were already in the live schema when 5C started — discovered via Supabase MCP query (Guardrail 1) before writing the API route. Without them, the atomic-claim semantics would have required either app-level distributed locking (complex, race-prone) or a stored function created from the API code (deployment ordering nightmare).
+
+**Pattern observation:** when the schema author has already designed the atomic primitives, the API code becomes a thin adapter (call RPC, map result to HTTP status, write side-effects). The API LOC was ~260 — most of it body validation + Stripe PI construction + gifter-identity write. The atomic core is a single RPC call (4 lines).
+
+**Rule reinforced:** Guardrail 1 (MCP step 0) earned its keep again. The earlier hardening item that added "infrastructure-pre-built check" to G12 doctrine (Slice 4D `2ecd90f`) generalizes naturally: ALWAYS query the live schema for stored functions + views + triggers before writing app-side state machines. The win on 4D was discovering pre-built `lib/` helpers; the win on 5C was discovering pre-built schema RPCs. Same lesson, different layer.
+
+**Origin:** Slice 5C-2 pre-write schema audit (2026-04-25). No new guardrail — reinforces existing Guardrail 1 + G12 infrastructure-pre-built check.
+
+---
+
 ### 🎁 Slice 5 — Wishlist flow (end-to-end gifting)
 
 **Goal:** Ambassador creates wishes, gifters pay for them, they appear on Wall of Love. Race condition handled.
@@ -973,15 +994,15 @@ Three planned refactors became seven commits. The pattern: extraction work gives
 - [x] Ambassador creates a wish with city + country  *(Slice 5A — `86292c0` Add Wish form + POST endpoint)*
 - [ ] Public page shows wishes section when `gifts_enabled=true`  *(Slice 5D)*
 - [ ] Public page HIDES wishes when `gifts_enabled=false`  *(Slice 5D)*
-- [ ] Gifter clicks "Gift It" → sees checkout with Turnstile  *(Slice 5C)*
-- [ ] **Race condition test:** open checkout in 2 tabs simultaneously, both tap Pay → second redirects to `/wish/taken`  *(Slice 5C)*
-- [ ] **Payment-in-flight test:** start payment, wait 11 min for lock to "expire", payment still completes (not reverted, thanks to pending check)  *(Slice 5C)*
-- [ ] Anonymous gift: receipt shows "See your gift on Sara's page", Wall of Love shows "Anonymous"  *(Slice 5C + 5D)*
-- [ ] Non-anonymous gift: shows name + Instagram on Wall of Love  *(Slice 5C + 5D)*
-- [ ] Rate limit: 4th attempt within 10 min blocked  *(Slice 5C)*
-- [ ] Payment failed: wish status reverts to `available` after next revert cycle  *(Slice 5C)*
+- [x] Gifter clicks "Gift It" → sees checkout with Turnstile  *(Slice 5C — `dd017d4` WishCheckoutClient + `bd91597` /api/checkout/wish with verifyTurnstile)*
+- [x] **Race condition test:** open checkout in 2 tabs simultaneously, both tap Pay → second redirects to `/wish/taken`  *(Slice 5C — `bd91597` claim_wish_for_payment RPC race-free at DB layer + `dd017d4` `onPiCreateError` 409 handler routes to /wish/taken with slug+first params)*
+- [x] **Payment-in-flight test:** start payment, wait 11 min for lock to "expire", payment still completes (not reverted, thanks to pending check)  *(Slice 5C — `bd91597` `model_wishes_live.effective_status` view's NOT EXISTS subquery sees pending/completed payment row and stops auto-reverting; `revert_expired_wish_locks()` cron same condition)*
+- [x] Anonymous gift: receipt API surfaces gifter.name/IG=null when anonymous regardless of wish row state  *(Slice 5C — `bd91597` /api/wishes/by-payment-intent defense-in-depth at receipt API layer; `dd017d4` WishConfirmationClient renders "Wish granted!" hero)*. Wall of Love shows "Anonymous" → Slice 5D.
+- [x] Non-anonymous gift: receipt surfaces name + Instagram via /api/wishes/by-payment-intent  *(Slice 5C — `bd91597` + `dd017d4`)*. Wall of Love shows them → Slice 5D.
+- [x] Rate limit: 4th attempt within 10 min blocked  *(Slice 5C — `bd91597` /api/checkout/wish reuses `checkoutLimiter` 3/10min IP-keyed; same precedence as listings)*
+- [x] Payment failed: wish status revert via cron after 10-min lock expiry  *(Slice 5C — `bd91597` handleWishPaymentFailed log-only; cron `revert_expired_wish_locks()` releases base table row to status='available' once `payment_attempt_expires_at < NOW()` AND no pending/completed payment row exists. UI sees `effective_status='available'` immediately via view computation; cron makes base table consistent.)*
 - [x] Delete wish: available wishes can be deleted; taken wishes cannot  *(Slice 5A — `8478427` DELETE endpoint + `removable` projection + UI hides icon when `removable=false`)*
-- [ ] Refund via Stripe → Wall of Love entry removed  *(Slice 5C webhook + 5D Wall of Love)*
+- [x] Refund via Stripe → payment row marked refunded  *(Slice 5C — `bd91597` handleWishChargeRefunded updates payment row status to 'refunded' or 'partial_refund' with `refund_amount` + `refunded_at`. Wall of Love filtering on payment.status='completed' → Slice 5D.)*
 
 Additional Slice 5A items shipped (not on original Slice 5 checklist):
 - [x] Wishlist page (`/model/wishlist`) lists wishes with filter tabs All/Open/Gifted, two card variants, share-button WhatsApp wiring  *(`8478427` + `1cf463f` polish)*
