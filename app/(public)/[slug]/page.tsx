@@ -26,7 +26,7 @@ async function fetchProfile(slug: string): Promise<ProfileRow | null> {
   const { data } = await admin
     .from('model_profiles')
     .select(
-      'id, slug, first_name, last_name, tagline, cover_photo_url, cover_photo_position_y, is_published, is_suspended',
+      'id, slug, first_name, last_name, tagline, cover_photo_url, cover_photo_position_y, gifts_enabled, is_published, is_suspended',
     )
     .eq('slug', slug)
     .maybeSingle<ProfileRow>()
@@ -108,6 +108,7 @@ export default async function PublicSlugPage({
           tagline: profile.tagline,
           cover_photo_url: profile.cover_photo_url,
           cover_photo_position_y: profile.cover_photo_position_y,
+          gifts_enabled: profile.gifts_enabled,
         },
         listings,
       }}
