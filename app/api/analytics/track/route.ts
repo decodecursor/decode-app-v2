@@ -3,6 +3,7 @@ import { isbot } from 'isbot'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { createClient } from '@/utils/supabase/server'
 import { analyticsLimiter } from '@/lib/ambassador/rate-limit'
+import { getClientIp } from '@/lib/server/ip'
 import {
   readSessionId,
   createSessionId,
@@ -50,11 +51,6 @@ type TrackRequest = {
   target_id?: unknown
   referrer?: unknown
   utm_params?: unknown
-}
-
-function getClientIp(request: NextRequest): string {
-  const fwd = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-  return fwd || request.headers.get('x-real-ip')?.trim() || 'unknown'
 }
 
 function silentOk(sessionId: string, wasCreated: boolean): NextResponse {

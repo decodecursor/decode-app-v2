@@ -5,6 +5,7 @@ import { isSupportedCurrency } from '@/lib/ambassador/currencies'
 import { toStripeAmount } from '@/lib/ambassador/utils'
 import { checkoutLimiter } from '@/lib/ambassador/rate-limit'
 import { verifyTurnstile } from '@/lib/ambassador/turnstile'
+import { getClientIp } from '@/lib/server/ip'
 
 /**
  * POST /api/checkout/listing
@@ -51,17 +52,6 @@ function getStripe(): Stripe {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: '2025-06-30.basil',
   })
-}
-
-function getClientIp(request: NextRequest): string {
-  // Vercel sets x-forwarded-for; first entry is the client IP.
-  // Fallback to a deterministic marker so the rate-limit still keys
-  // something instead of sharing one bucket across all unknown clients.
-  const fwd = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-  if (fwd) return fwd
-  const real = request.headers.get('x-real-ip')?.trim()
-  if (real) return real
-  return 'unknown'
 }
 
 type CheckoutRequest = {
