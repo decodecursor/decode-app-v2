@@ -36,7 +36,16 @@ import { ExpressCheckoutElement, PaymentElement, useElements, useStripe } from '
 type Mode = 'wallet' | 'card'
 type WalletState = 'unknown' | 'available' | 'none'
 
-const WALLET_DETECT_TIMEOUT_MS = 2500
+// Cap on the "Loading payment options…" duration before we give up on
+// wallet detection and auto-advance to the card form. Bumped from 2500
+// to 5000 after a confirmed iOS-Safari cold-load race: Apple Pay's
+// onReady fires when Stripe SDK download + Elements mount + Apple Pay
+// availability handshake all complete, which on 4G/5G with a cold
+// Vercel function can land 3-4s in. 2.5s lost the race; 5s is
+// conservative for legitimate detection while still capping the
+// spinner. Tradeoff accepted: desktops with no wallet wait an extra
+// 2.5s before seeing the card form.
+const WALLET_DETECT_TIMEOUT_MS = 5000
 
 interface Props {
   paymentIntentId: string
