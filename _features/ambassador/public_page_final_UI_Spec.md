@@ -6,8 +6,8 @@
 
 ---
 
-> **⚠ V1 SCOPE SUPERSESSION (Slice 4A locked decision #4, 2026-04-23).**
-> V1 ships the listings surface only. §4.3 My Beauty Wishlist and §4.4 My Wall of Love are **NOT rendered** in V1 — neither populated nor shown as empty states. Wishlist visibility gains a user toggle in Settings during Slice 5, and both sections re-enable behind that toggle once Slice 5 ships the wish-gifting flow end-to-end. Original spec language for §4.3 + §4.4 preserved below as the canonical target for Slice 5 — do not delete. Slice 4A (the V1 public page) renders header + cover + listings (§4.2 My Beauty Squad) + footer + media lightbox only. Section §2.4 view tracking and §2.5 click tracking are deferred to Slice 4D (hardening). Section §2.3 share button is in 4A scope.
+> **⚠ V1 SCOPE SUPERSESSION (Slice 4A locked decision #4, 2026-04-23) — UN-SUPERSEDED in Slice 5D (2026-04-25).**
+> Original V1 cut shipped listings only and held §4.3 My Beauty Wishlist + §4.4 My Wall of Love until the wish-gifting flow was end-to-end. **Slice 5D `3a3c1a5` shipped both sections** as the canonical implementations described below: WishesSection gated on `profile.gifts_enabled`, WallOfLoveSection gated on existence of completed payments (independent of toggle — gift history persists). Both fetch via anon supabase-js post-mount per Pattern 2 doctrine, ISR-safe. Slice 4D (`d5d1530`) shipped §2.4 view tracking + §2.5 click tracking; Slice 5D-2 (`1a08d5f`) extended the click-event allowlist to `wish_giftit_click` + `wall_of_love_instagram_click`. Schema/spec drift on §4.3 wish business name → professional Instagram link: `model_wishes` doesn't carry a `professional_instagram` column (Slice 5A locked decision A built to schema, omitted IG from the wish form), so the wish-row business name renders as plain text rather than an IG link; the `wish_instagram_click` event slug is allowlisted at the API but has no UI fire-site in the current implementation.
 
 ---
 

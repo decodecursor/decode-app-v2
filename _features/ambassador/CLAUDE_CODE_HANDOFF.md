@@ -959,6 +959,32 @@ The `claim_wish_for_payment` RPC + `revert_expired_wish_locks` cron function wer
 
 ---
 
+**Slice 5C polish (`71faacb` 2026-04-25)** — race-loser routing fix. Pre-fix the server-side `/pay/[token]` dispatch returned `null` from `fetchWishByToken` when `effective_status='taken'`, then fell through to `redirect('/expired')` (the listings-style "Link no longer active" page — wrong for wishes). Fix: discriminated union return `{kind: 'available' | 'taken' | 'not_found'}` so the `'taken'` branch redirects to `/wish/taken?slug&first` with ambassador context for the personalized "Go to {first_name}'s page" CTA. Defense-in-depth: `/api/checkout/wish` 409 response now also includes `ambassador {slug, first_name}` per spec §2.1; client handler prefers server-provided over props.
+
+**Slice 5C also shipped a hotfix (`a6cc8e3` 2026-04-25)** — wrap `/wish/taken` page in `<Suspense>` for Next.js 15 static prerender requirement (any client subtree calling `useSearchParams` must live inside Suspense or build fails). Pattern matches legacy `app/pay/{failed,pending,success}/page.tsx`. Local `npm run build` exit 0 verified before push.
+
+**Slice 5D shipped 2026-04-25** — 3 commits (`3a3c1a5..TODO-5D-3-hash`):
+
+ - `3a3c1a5` (5D-1) — Public-page WishesSection + WallOfLoveSection. Both fetch via anon supabase-js post-mount per Pattern 2 (ISR-safe). RLS verified live: `model_wishes` "Public read wishes for published profiles with gifts enabled" + `model_wish_payments` "Public read completed wish payments for Wall of Love" — both surfaces are anon-readable without service-role. WishesSection (168 LOC) gated on `profile.gifts_enabled` (UI gate complementing the RLS gate); reads `model_wishes_live` filtered by `effective_status='available'` (stale-locked wishes that haven't been swept by the cron still appear). WallOfLoveSection (178 LOC) gated on existence of completed payments — independent of `gifts_enabled` toggle (gift history persists). Both self-hide on empty data + during loading (no flash of empty heading). Visual fidelity to mockup verified per-element. PublicProfile interface extended with `gifts_enabled` (lib/public/slug-page-shape.ts +9 LOC); `app/(public)/[slug]/page.tsx` SELECT extended +1 column.
+
+ - `1a08d5f` (5D-2) — Analytics event_types extension. ALLOWED_EVENT_TYPES Set in `/api/analytics/track` extended from 4 → 7 (DB CHECK enum on `model_analytics_events.event_type` already had all 7 — schema author seeded all wish slugs in Slice 1 even though they were UI-blocked until 5D). Click handlers wired: WishesSection Gift-it pill fires `wish_giftit_click` with `target_id=wish.id`; WallOfLoveSection gifter Instagram link fires `wall_of_love_instagram_click` with `target_id=row.id` (payment row id, uniquely identifies the gift on the wall — wish_id would be ambiguous if a future re-claim ever produced multiple completed payments per wish). Anonymous rows render plain text (no link, no event) per spec §4.4. **Spec/schema drift flagged inline:** spec §4.3 implies wish business name → professional Instagram link with `wish_instagram_click` event, but `model_wishes` doesn't carry a `professional_instagram` column (Slice 5A locked decision A built to schema, omitted IG from the wish form). The slug is allowlisted at the API for forward-compat if the schema gains that column later, but has no UI fire-site today. Public_page spec §4.3 un-supersession block notes the drift.
+
+ - `TODO-5D-3-hash` (5D-3, this commit) — Closeout doc.
+
+5 source files touched across 5D-1 + 5D-2 (2 new components, 3 modifications). Live proof: pending Vercel deploy + spot-check.
+
+### 💡 Slice 5 closeout retro — schema-author seeding pays dividends across slices
+
+The DB CHECK enum on `model_analytics_events.event_type` shipped in Slice 1 with all 7 final values, including the 3 wish slugs that wouldn't have UI fire-sites until Slice 5D — four slices later. Slice 4D could have shipped only the listings slugs in the CHECK and added wish slugs as a migration in 5D. Instead the original migration covered the future scope, so 5D-2 was a one-line app-side change (extend the Set in `/api/analytics/track`) with zero schema work.
+
+Same pattern: the `claim_wish_for_payment` + `revert_expired_wish_locks` RPCs (5C lesson) and the `model_wishes_live` view's `effective_status` computation (5A + 5C). Schema-side primitives shipped before the app-side consumer, then the app code is a thin adapter when the slice arrives.
+
+**Rule for future slices:** when designing a feature that lives behind a flag or rolls out across multiple slices, **seed the schema-side primitives in the EARLIEST migration that touches the surface**. Migrations are cheap; back-filling them later is not. The cost is a few extra rows in the CHECK enum or a couple of unused-for-now SQL functions. The benefit is that the slice that finally ships the UI has zero schema work.
+
+**Origin:** Slice 5D-2 trivial-extension observation (2026-04-25). Reinforces the schema-author-as-load-bearing pattern that 5C already noted, generalizing from RPCs/views to CHECK-enum values.
+
+---
+
 ### 🎁 Slice 5 — Wishlist flow (end-to-end gifting)
 
 **Goal:** Ambassador creates wishes, gifters pay for them, they appear on Wall of Love. Race condition handled.
@@ -992,17 +1018,17 @@ The `claim_wish_for_payment` RPC + `revert_expired_wish_locks` cron function wer
 
 **✅ VERIFY before next slice:**
 - [x] Ambassador creates a wish with city + country  *(Slice 5A — `86292c0` Add Wish form + POST endpoint)*
-- [ ] Public page shows wishes section when `gifts_enabled=true`  *(Slice 5D)*
-- [ ] Public page HIDES wishes when `gifts_enabled=false`  *(Slice 5D)*
+- [x] Public page shows wishes section when `gifts_enabled=true`  *(Slice 5D — `3a3c1a5` WishesSection gated on `profile.gifts_enabled` at PublicPageClient render layer + RLS server-side gate)*
+- [x] Public page HIDES wishes when `gifts_enabled=false`  *(Slice 5D — same `3a3c1a5`. Both gates flip together: parent skips render, anon RLS would block read anyway. Wall of Love unaffected by the toggle — gift history persists.)*
 - [x] Gifter clicks "Gift It" → sees checkout with Turnstile  *(Slice 5C — `dd017d4` WishCheckoutClient + `bd91597` /api/checkout/wish with verifyTurnstile)*
 - [x] **Race condition test:** open checkout in 2 tabs simultaneously, both tap Pay → second redirects to `/wish/taken`  *(Slice 5C — `bd91597` claim_wish_for_payment RPC race-free at DB layer + `dd017d4` `onPiCreateError` 409 handler routes to /wish/taken with slug+first params)*
 - [x] **Payment-in-flight test:** start payment, wait 11 min for lock to "expire", payment still completes (not reverted, thanks to pending check)  *(Slice 5C — `bd91597` `model_wishes_live.effective_status` view's NOT EXISTS subquery sees pending/completed payment row and stops auto-reverting; `revert_expired_wish_locks()` cron same condition)*
-- [x] Anonymous gift: receipt API surfaces gifter.name/IG=null when anonymous regardless of wish row state  *(Slice 5C — `bd91597` /api/wishes/by-payment-intent defense-in-depth at receipt API layer; `dd017d4` WishConfirmationClient renders "Wish granted!" hero)*. Wall of Love shows "Anonymous" → Slice 5D.
-- [x] Non-anonymous gift: receipt surfaces name + Instagram via /api/wishes/by-payment-intent  *(Slice 5C — `bd91597` + `dd017d4`)*. Wall of Love shows them → Slice 5D.
+- [x] Anonymous gift: receipt shows "Wish granted!" with anonymous gifter; Wall of Love shows "Anonymous" with grey IG icon, no link, no click event  *(Slice 5C — `bd91597` + `dd017d4` for receipt; Slice 5D — `3a3c1a5` WallOfLoveSection renders anonymous rows as plain text, icon stroke `#777`, no `<a>` wrapper, no fireClick)*
+- [x] Non-anonymous gift: Wall of Love shows gifter name with pink IG icon + IG link in new tab; click fires `wall_of_love_instagram_click`  *(Slice 5C receipt API; Slice 5D — `3a3c1a5` WallOfLoveSection real-name rows + `1a08d5f` click handler with target_id=row.id)*
 - [x] Rate limit: 4th attempt within 10 min blocked  *(Slice 5C — `bd91597` /api/checkout/wish reuses `checkoutLimiter` 3/10min IP-keyed; same precedence as listings)*
 - [x] Payment failed: wish status revert via cron after 10-min lock expiry  *(Slice 5C — `bd91597` handleWishPaymentFailed log-only; cron `revert_expired_wish_locks()` releases base table row to status='available' once `payment_attempt_expires_at < NOW()` AND no pending/completed payment row exists. UI sees `effective_status='available'` immediately via view computation; cron makes base table consistent.)*
 - [x] Delete wish: available wishes can be deleted; taken wishes cannot  *(Slice 5A — `8478427` DELETE endpoint + `removable` projection + UI hides icon when `removable=false`)*
-- [x] Refund via Stripe → payment row marked refunded  *(Slice 5C — `bd91597` handleWishChargeRefunded updates payment row status to 'refunded' or 'partial_refund' with `refund_amount` + `refunded_at`. Wall of Love filtering on payment.status='completed' → Slice 5D.)*
+- [x] Refund via Stripe → Wall of Love entry removed  *(Slice 5C — `bd91597` handleWishChargeRefunded updates payment row status to 'refunded' or 'partial_refund'; Slice 5D — `3a3c1a5` WallOfLoveSection filters `status='completed'` so refunded gifts disappear automatically. RLS "Public read completed wish payments for Wall of Love" enforces server-side too — defense-in-depth.)*
 
 Additional Slice 5A items shipped (not on original Slice 5 checklist):
 - [x] Wishlist page (`/model/wishlist`) lists wishes with filter tabs All/Open/Gifted, two card variants, share-button WhatsApp wiring  *(`8478427` + `1cf463f` polish)*
