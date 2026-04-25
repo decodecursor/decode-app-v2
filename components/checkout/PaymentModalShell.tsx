@@ -176,7 +176,18 @@ export function PaymentModal({ isOpen, token, packageDays, amount, currency, tur
 
         {pi.status === 'error' && (
           <div style={{ padding: '20px 0', textAlign: 'center' }}>
-            <div style={{ fontSize: 13, color: '#f87171', marginBottom: 12 }}>{pi.message}</div>
+            {pi.message.startsWith('Too many attempts') ? (
+              <>
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#f87171', marginBottom: 4 }}>
+                  Too many attempts
+                </div>
+                <div style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>
+                  {pi.message.replace(/^Too many attempts\.\s*/, '')}
+                </div>
+              </>
+            ) : (
+              <div style={{ fontSize: 13, color: '#f87171', marginBottom: 12 }}>{pi.message}</div>
+            )}
             <button
               onClick={() => { piCache.current.delete(packageDays); setPi({ status: 'idle' }); }}
               style={{ fontSize: 12, color: '#888', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
