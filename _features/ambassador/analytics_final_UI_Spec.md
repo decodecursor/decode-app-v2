@@ -5,11 +5,52 @@
 **Project:** WeLoveDecode — beauty ambassador platform
 
 **Logical routes (surfaced as in-page overlays):**
-- `/dashboard/ambassador/analytics` — Analytics page (base)
-- `/dashboard/ambassador/payouts` — Payouts list (overlay 1)
-- `/dashboard/ambassador/payouts/:id` — Statement (overlay 2)
+- `/dashboard/ambassador/analytics` — Analytics page (base) *— superseded to `/model/analytics`, see leading block*
+- `/dashboard/ambassador/payouts` — Payouts list (overlay 1) *— superseded to `/model/payouts`*
+- `/dashboard/ambassador/payouts/:id` — Statement (overlay 2) *— superseded to `/model/payouts/[id]`*
 
 **Access:** Authenticated ambassadors only
+
+---
+
+> **⚠ SCHEMA + ROUTE SUPERSESSION (Slice 6A opening, 2026-04-25).** This spec was authored against an aspirational schema that pre-dates the slice-by-slice ambassador shipping. Live state (verified via Supabase MCP) supersedes the §5 schema and the §1.1 / §2 / §3 / §4 route + endpoint references as follows:
+>
+> **Table names (live → spec mapping):**
+> - `model_analytics_events` ← spec's `view_events` AND `click_events` (single events table with `event_type` enum discriminator, not two tables)
+> - `model_listing_payments` ← spec's `listing_commissions` (the column that was `commission_amount` is named `net_amount` live; spec's `gross_amount` / `platform_fee` / `currency` columns match)
+> - `model_wish_payments` ← spec's `wish_commissions` (same column-name mapping; **no `gifter_display_name` column** — see Slice 6A migration `20260425_*_add_wish_payment_gifter_snapshot.sql` which adds `gifter_name` / `gifter_instagram` / `gifter_is_anonymous` snapshot columns at payment-completion time so analytics top-gifter ranking is reliable across wish re-claims)
+> - `model_payouts` ← spec's `payouts` (column names: `gross_total` / `platform_fee_total` / `net_total` / `payout_reference` rather than spec's `total_amount` / `reference`; status enum is `pending` / `processing` / `paid` / `failed` per HANDOFF §2059, not spec §3.5's two-state `scheduled` / `paid` simplification)
+> - `model_profiles` ← spec's references to `users` table for ambassador identity (`auth.users` is Supabase-managed; `model_profiles` carries `currency` + `slug` + `gifts_enabled` + `is_published` + `is_suspended`)
+> - `model_wishes` ← spec's `wishes` (no `wish_gifts` table; gifter info travels with `model_wish_payments` post-snapshot)
+>
+> **Event-type values (live CHECK enum on `model_analytics_events.event_type`):**
+> - `public_page_view` (no spec equivalent — spec calls these `view_events` rows)
+> - `listing_instagram_click` ← spec's `listing_instagram`
+> - `listing_media_click` ← spec's `listing_media`
+> - `wish_giftit_click` ← spec's `wish_checkout`
+> - `wish_instagram_click` ← spec's `wish_instagram`
+> - `public_page_share_click` (no spec equivalent — spec doesn't track shares)
+> - `wall_of_love_instagram_click` ← spec's `walloflove_gifter_instagram`
+>
+> **Routes (live → spec mapping):**
+> - `/model/analytics` ← `/dashboard/ambassador/analytics`
+> - `/model/payouts` ← `/dashboard/ambassador/payouts`
+> - `/model/payouts/[id]` ← `/dashboard/ambassador/payouts/:id`
+> - `GET /api/ambassador/model/analytics` ← `GET /api/analytics` (path matches Slice 5A `/api/ambassador/model/wishes/` precedent; HANDOFF §1053 `/api/model/analytics` superseded by Slice 6 locked decision #1; spec's `/api/analytics` clashes with the legacy auctions `/api/analytics/model/route.ts`)
+> - `GET /api/ambassador/model/payouts` ← `GET /api/ambassador/payouts` (Slice 6B)
+> - `GET /api/ambassador/model/payouts/[id]` ← `GET /api/ambassador/payouts/:id` (Slice 6B)
+>
+> **View-tracking dedup (§2.4):** spec describes 24h cookie + server-side row check. Live behavior (per Slice 4D commit `d5d1530` + public_page §2.4 supersession) is client-side `POST /api/analytics/track` with `wld_visitor` cookie + Upstash 30s-per-IP-per-event-type rate-limit. The 24h dedup window is NOT enforced server-side — true 24h dedup is a post-V1 fidelity concern. Effect on Slice 6A: the "Visits" funnel number counts every `public_page_view` row (one per non-rate-limited request), which over-counts vs. spec's strict-session-visit semantics. Acknowledged drift; revisit if dashboard view-counts diverge meaningfully from gut-feel reality.
+>
+> **The 80% rule (§5.1 + §5.3):** holds. Live `model_listing_payments.net_amount` and `model_wish_payments.net_amount` are 80% of `gross_amount` (verified live: payment `L-400-5194` AED 50.00 / fee 10.00 / net 40.00). Slice 6A reads `net_amount` directly — no client-side multiplication.
+>
+> **Removed/deferred from Slice 6A scope:**
+> - Pull-to-refresh on Analytics (§1.2) — deferred to Slice 7 polish
+> - Overlay slide architecture (§0) — Slice 6A ships `/model/analytics` as a standard Next.js page; Slice 6B may layer the Payouts/Statement overlays on top, or surface them as proper routes (decision deferred to 6B pre-flight)
+> - `topWishes` (§2.10) — kept for Slice 6A; ranks by gift count grouped by wish_id
+> - `walloflove_gifter_instagram` clicks excluded from "Clicks" funnel per §2.5 — Slice 6A respects this (funnel SUM excludes that event_type)
+>
+> **Items NOT changed (spec §6 amount formatting + §2.7 trend math + §2.8 sparkline buckets all stand as-written):** whole-number rounding for Analytics, 2-decimal for Payouts/Statement, server-side trend pre-compute, 24/7/30/12-bucket sparkline arrays.
 
 ---
 
