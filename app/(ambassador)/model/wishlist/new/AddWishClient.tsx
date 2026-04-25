@@ -4,21 +4,17 @@
  * Add Wish form (Slice 5A-2). Single-page form per spec — no progress
  * tracker, simpler than Add Listing's 4-step flow.
  *
- * Spec: add_wish_final_UI_Spec.md.
- * Mockup: add_wish_final.html (authoritative visual truth).
+ * Spec:   add_wish_final_UI_Spec.md
+ * Mockup: add_wish_final.html (authoritative visual truth)
  *
- * Schema vs. spec: spec mentions Instagram + avatar fields for the
- * professional, but neither column exists on model_wishes (only
- * gifter_instagram exists, populated by the gifter checkout flow).
- * Building to schema + mockup per Slice 5A locked decision A.
+ * CSS strategy mirrors the mockup exactly — a single `#cwPage`-scoped
+ * <style> block carries the focus-ring rules and CTA state classes,
+ * so inline styles only express the static layout. Behavior (POST,
+ * validation, redirect) is unchanged from the prior commit.
  *
- * Persisted shape per schema:
- *   service_name (text, free-form — no FK)
- *   professional_name (text)
- *   professional_city (text)
- *   professional_country (text)
- *   price (numeric, > 0)
- *   currency (text, snapshot from model_profiles.currency)
+ * Schema vs spec: the spec mentioned Instagram + avatar on the
+ * professional, but neither column exists on model_wishes. Built to
+ * schema + mockup per Slice 5A locked decision A.
  */
 
 import { useEffect, useRef, useState } from 'react'
@@ -52,8 +48,9 @@ export default function AddWishClient({ categories, currency }: Props) {
   const [submitState, setSubmitState] = useState<'idle' | 'creating' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const customInputRef = useRef<HTMLInputElement>(null)
 
-  // Close dropdown on outside click
+  // Outside-click closes dropdown.
   useEffect(() => {
     if (!serviceOpen) return
     const onDocClick = (e: MouseEvent) => {
@@ -65,13 +62,19 @@ export default function AddWishClient({ categories, currency }: Props) {
     return () => document.removeEventListener('mousedown', onDocClick)
   }, [serviceOpen])
 
+  // Auto-focus the custom input 50ms after Customize is picked
+  // (mockup cwSelectTreat line 231).
+  useEffect(() => {
+    if (service?.type !== 'custom') return
+    const t = setTimeout(() => customInputRef.current?.focus(), 50)
+    return () => clearTimeout(t)
+  }, [service?.type])
+
   const symbol = currencySymbol(currency)
   const floor = priceFloorForCurrency(currency)
 
   const priceNum = price === '' ? null : Number(price)
   const priceValid = priceNum !== null && Number.isFinite(priceNum) && priceNum >= floor
-  // Price error wording matches mockup: distinguish exactly-zero from
-  // below-floor cases (mockup updatePriceUI lines 282-297).
   const priceError =
     priceTouched && price === '0'
       ? 'Price must be greater than 0'
@@ -79,9 +82,6 @@ export default function AddWishClient({ categories, currency }: Props) {
         ? `Minimum ${symbol}${floor}`
         : null
 
-  // Service is valid if: a category is selected OR custom text has
-  // ≥ 2 chars (matches mockup live-validation at line 251 + the
-  // CTA-validity check at line 305-307).
   const customLive = customText.trim()
   const customLiveValid = customLive.length >= 2
   const serviceValid =
@@ -140,7 +140,6 @@ export default function AddWishClient({ categories, currency }: Props) {
       }
 
       setSubmitState('success')
-      // Brief success flash then redirect (mirrors Add Listing pattern).
       setTimeout(() => {
         router.push(`/model/wishlist?created=${body?.wish?.id ?? ''}`)
       }, 600)
@@ -151,25 +150,19 @@ export default function AddWishClient({ categories, currency }: Props) {
     }
   }
 
-  // CTA visual states match mockup #cw_createBtn (lines 14-19):
-  //   default → grey-on-dark, no border-color shift, cursor:default
-  //   ready   → pink, white, cursor:pointer, hover:brightness, active:scale
-  //   working → pink, white, cursor:default, "Creating…"
-  //   success → pink (NOT green), white, cursor:default, "Wish created!"
-  const ctaState: 'default' | 'ready' | 'working' | 'success' =
+  // CTA state → class. Pattern matches mockup #cw_createBtn.ready/.working/.success
+  // (lines 14-19) — class rules use !important to override inline defaults.
+  const ctaClass =
     submitState === 'success' ? 'success'
     : submitState === 'creating' ? 'working'
     : formValid && !submitting ? 'ready'
-    : 'default'
+    : ''
   const ctaLabel =
-    ctaState === 'working' ? 'Creating…'
-    : ctaState === 'success' ? 'Wish created!'
+    ctaClass === 'working' ? 'Creating…'
+    : ctaClass === 'success' ? 'Wish created!'
     : 'Create wish'
 
-  // Service label color logic matches mockup cwSelectTreat + cwCustomCheck:
-  //   "Select" placeholder → grey
-  //   "Customize" picked but text not yet ≥ 2 chars → pink (live transition cue)
-  //   Custom text ≥ 2 chars OR category picked → white (committed)
+  // Service label color logic mirrors mockup cwSelectTreat + cwCustomCheck.
   const serviceLabel =
     service?.type === 'category' ? service.label
     : service?.type === 'custom' && customLiveValid ? customLive
@@ -181,20 +174,35 @@ export default function AddWishClient({ categories, currency }: Props) {
     : '#fff'
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000', color: '#fff' }}>
-      {/* Inline page-scoped CSS for :focus-within (price box) and the
-          ready-state hover/active polish on the CTA — inline-style React
-          can't express these. Pattern matches the mockup's <style> block
-          at lines 8-19. */}
+    <div
+      id="cwPage"
+      style={{
+        minHeight: '100vh',
+        background: '#000',
+        color: '#fff',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+      }}
+    >
+      {/* Page-scoped CSS — exact port of mockup <style> block (lines 3-20).
+          Scoping to #cwPage prevents global pollution; class rules use
+          !important to win over inline defaults on the CTA. */}
       <style>{`
-        #cw_priceBox.cw-focusable:focus-within { border-color: #e91e8c !important; transition: border-color 0.15s }
-        #cw_createBtn.cw-ready:hover { filter: brightness(1.08) }
-        #cw_createBtn.cw-ready:active { transform: scale(0.99) }
+        #cwPage * { -webkit-tap-highlight-color: transparent; box-sizing: border-box }
+        #cwPage input, #cwPage button { font-family: inherit; outline: none }
+        #cwPage input::placeholder { color: #666 !important; opacity: 1 }
+        #cwPage input[type="text"]:focus { border-color: #e91e8c !important; transition: border-color 0.15s }
+        #cwPage .cwFw:focus-within { border-color: #e91e8c !important; transition: border-color 0.15s }
+        #cwPage #cw_priceBox:focus-within { border-color: #e91e8c !important; transition: border-color 0.15s }
         #cw_createBtn { transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.05s }
+        #cw_createBtn.ready { background: #e91e8c !important; border-color: #e91e8c !important; color: #fff !important; cursor: pointer !important }
+        #cw_createBtn.ready:hover { filter: brightness(1.08) }
+        #cw_createBtn.ready:active { transform: scale(0.99) }
+        #cw_createBtn.working { background: #e91e8c !important; border-color: #e91e8c !important; color: #fff !important; cursor: default !important }
+        #cw_createBtn.success { background: #e91e8c !important; border-color: #e91e8c !important; color: #fff !important; cursor: default !important }
       `}</style>
 
       <div style={{ width: '100%', maxWidth: 500, margin: '0 auto', minHeight: '100vh' }}>
-        {/* Header — back arrow */}
+        {/* Back arrow */}
         <div style={{ padding: '14px 20px 0' }}>
           <div
             onClick={() => router.back()}
@@ -228,10 +236,15 @@ export default function AddWishClient({ categories, currency }: Props) {
                 background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
                 padding: '14px 16px', fontSize: 14, display: 'flex',
                 justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer',
+                transition: 'border-color 0.15s',
               }}
             >
               <span style={{ color: serviceLabelColor }}>{serviceLabel}</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: serviceOpen ? 'rotate(180deg)' : undefined, transition: 'transform 0.2s ease' }}>
+              <svg
+                width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                style={{ transform: serviceOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}
+              >
                 <polyline points="6 9 12 15 18 9" />
               </svg>
             </div>
@@ -250,8 +263,6 @@ export default function AddWishClient({ categories, currency }: Props) {
                     {c.label}
                   </div>
                 ))}
-                {/* Customize entry: pink, top-bordered separator (matches
-                    mockup line 129 — border-top instead of -bottom). */}
                 <div
                   onClick={handleSelectCustomize}
                   style={{ padding: '12px 16px', fontSize: 13, color: '#e91e8c', cursor: 'pointer', borderTop: '1px solid #262626' }}
@@ -262,16 +273,19 @@ export default function AddWishClient({ categories, currency }: Props) {
             )}
           </div>
 
-          {/* Custom service input — revealed when Customize selected.
-              Green check appears live at ≥ 2 chars (matches mockup
-              cwCustomCheck line 251). No explicit commit gesture needed. */}
+          {/* Custom service input — revealed when Customize picked.
+              cwFw class drives the focus-within pink ring. */}
           {service?.type === 'custom' && (
             <div style={{ marginBottom: 10 }}>
-              <div style={{
-                background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
-                display: 'flex', alignItems: 'center',
-              }}>
+              <div
+                className="cwFw"
+                style={{
+                  background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
+                  display: 'flex', alignItems: 'center', transition: 'border-color 0.15s',
+                }}
+              >
                 <input
+                  ref={customInputRef}
                   value={customText}
                   onChange={(e) => setCustomText(capFirst(e.target.value))}
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLInputElement).blur() } }}
@@ -279,7 +293,7 @@ export default function AddWishClient({ categories, currency }: Props) {
                   placeholder="Type your service and press Enter"
                   style={{
                     flex: 1, minWidth: 0, background: 'transparent', border: 'none',
-                    padding: '14px 16px', fontSize: 14, color: '#fff', outline: 'none',
+                    padding: '14px 16px', fontSize: 14, color: '#fff',
                   }}
                 />
                 {customLiveValid && (
@@ -301,12 +315,12 @@ export default function AddWishClient({ categories, currency }: Props) {
             placeholder="Salon, clinic or professional"
             style={{
               width: '100%', background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
-              padding: '14px 16px', fontSize: 14, color: '#fff', outline: 'none', boxSizing: 'border-box',
-              marginBottom: 10,
+              padding: '14px 16px', fontSize: 14, color: '#fff', boxSizing: 'border-box',
+              marginBottom: 10, transition: 'border-color 0.15s',
             }}
           />
 
-          {/* City + Country side-by-side */}
+          {/* City + Country */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
             <input
               value={proCity}
@@ -315,7 +329,8 @@ export default function AddWishClient({ categories, currency }: Props) {
               placeholder="City"
               style={{
                 flex: 1, minWidth: 0, background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
-                padding: '14px 16px', fontSize: 14, color: '#fff', outline: 'none', boxSizing: 'border-box',
+                padding: '14px 16px', fontSize: 14, color: '#fff', boxSizing: 'border-box',
+                transition: 'border-color 0.15s',
               }}
             />
             <input
@@ -325,21 +340,21 @@ export default function AddWishClient({ categories, currency }: Props) {
               placeholder="Country"
               style={{
                 flex: 1, minWidth: 0, background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
-                padding: '14px 16px', fontSize: 14, color: '#fff', outline: 'none', boxSizing: 'border-box',
+                padding: '14px 16px', fontSize: 14, color: '#fff', boxSizing: 'border-box',
+                transition: 'border-color 0.15s',
               }}
             />
           </div>
 
-          {/* Price box. id + class enable the inline-CSS :focus-within
-              pink border ring (matches mockup line 11). Error state
-              still wins via inline border-color override below. */}
+          {/* Price box. id enables the #cw_priceBox:focus-within rule. */}
           <div
             id="cw_priceBox"
-            className="cw-focusable"
             onClick={() => document.getElementById('cw_price')?.focus()}
             style={{
-              background: '#1c1c1c', border: `1.5px solid ${priceError ? '#e91e8c' : '#262626'}`, borderRadius: 12,
-              padding: 12, textAlign: 'center', cursor: 'text',
+              background: '#1c1c1c',
+              border: `1.5px solid ${priceError ? '#e91e8c' : '#262626'}`,
+              borderRadius: 12, padding: 12, textAlign: 'center', cursor: 'text',
+              transition: 'border-color 0.15s',
             }}
           >
             <div style={{ fontSize: 9, color: '#666', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Price</div>
@@ -347,13 +362,14 @@ export default function AddWishClient({ categories, currency }: Props) {
               id="cw_price"
               value={price ? `${symbol}${price}` : ''}
               onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ''))}
+              onFocus={() => setPriceTouched(false)}
               onBlur={() => setPriceTouched(true)}
               onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
               inputMode="numeric"
               placeholder={symbol}
               style={{
                 width: '100%', background: 'transparent', border: 'none',
-                fontSize: 18, fontWeight: 700, color: '#fff', textAlign: 'center', outline: 'none',
+                fontSize: 18, fontWeight: 700, color: '#fff', textAlign: 'center', padding: 0,
               }}
             />
             <div style={{ fontSize: 11, color: '#666', marginTop: 4, minHeight: 13 }}>
@@ -367,7 +383,7 @@ export default function AddWishClient({ categories, currency }: Props) {
           )}
         </div>
 
-        {/* Error banner */}
+        {/* Server error banner */}
         {errorMsg && (
           <div style={{ padding: '0 20px 10px' }}>
             <div style={{
@@ -379,23 +395,20 @@ export default function AddWishClient({ categories, currency }: Props) {
           </div>
         )}
 
-        {/* CTA — class drives the inline-CSS :hover/:active polish; */}
-        {/* inline style sets the per-state colors. Success stays pink */}
-        {/* per mockup (NOT green — earlier draft used #4ade80; corrected). */}
+        {/* CTA — class drives all 4 visual states (default/ready/working/success).
+            Inline style is the default-state baseline; class rules with !important
+            override for the active states. Mirrors mockup line 80 exactly. */}
         <div style={{ padding: '10px 20px 22px' }}>
           <button
             id="cw_createBtn"
-            className={ctaState === 'ready' ? 'cw-ready' : ''}
+            className={ctaClass}
             onClick={onSubmit}
-            disabled={ctaState !== 'ready'}
+            disabled={ctaClass !== 'ready'}
             style={{
-              width: '100%',
-              background: ctaState === 'default' ? '#1c1c1c' : '#e91e8c',
-              border: ctaState === 'default' ? '1px solid #262626' : '1px solid #e91e8c',
-              borderRadius: 12, padding: 16, textAlign: 'center', fontSize: 15, fontWeight: 700,
-              color: ctaState === 'default' ? '#555' : '#fff',
-              letterSpacing: '0.2px',
-              cursor: ctaState === 'ready' ? 'pointer' : 'default',
+              width: '100%', background: '#1c1c1c', border: '1px solid #262626',
+              borderRadius: 12, padding: 16, textAlign: 'center',
+              fontSize: 15, fontWeight: 700, color: '#555',
+              letterSpacing: '0.2px', cursor: 'default',
             }}
           >
             {ctaLabel}
