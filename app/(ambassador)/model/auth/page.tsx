@@ -7,6 +7,7 @@ import { COUNTRY_CODES, type CountryCode } from '@/lib/country-codes'
 import { formatPhoneNumber } from '@/lib/ambassador/phone-format'
 import { CountryPicker } from '@/components/ambassador/CountryPicker'
 import { AmbSubmitButton } from '@/components/ambassador/AmbSubmitButton'
+import { useTurnstile } from '@/components/turnstile/TurnstileWidget'
 
 type ToastState = { msg: string; success: boolean; id: number }
 
@@ -19,43 +20,21 @@ export default function AmbassadorAuthPage() {
   const [phone, setPhone] = useState('')
   const [showPicker, setShowPicker] = useState(false)
   const [toast, setToast] = useState<ToastState | null>(null)
-  const [turnstileToken, setTurnstileToken] = useState('')
+  const {
+    token: turnstileToken,
+    reset: resetTurnstile,
+    containerRef: turnstileContainerRef,
+  } = useTurnstile({
+    size: 'compact',
+    appearance: 'interaction-only',
+    refreshExpired: 'auto',
+  })
 
-  const turnstileWidgetId = useRef<string | null>(null)
   const phoneInputRef = useRef<HTMLInputElement | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  useEffect(() => {
-    const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
-    if (!siteKey) return
-    const script = document.createElement('script')
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
-    script.async = true
-    script.onload = () => {
-      if (window.turnstile) {
-        const widgetId = window.turnstile.render('#turnstile-container', {
-          sitekey: siteKey,
-          callback: (token: string) => setTurnstileToken(token),
-          'refresh-expired': 'auto',
-          size: 'compact',
-          appearance: 'interaction-only',
-        })
-        turnstileWidgetId.current = widgetId
-      }
-    }
-    document.head.appendChild(script)
-    return () => { script.remove() }
-  }, [])
-
   useEffect(() => () => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
-  }, [])
-
-  const resetTurnstile = useCallback(() => {
-    setTurnstileToken('')
-    if (window.turnstile && turnstileWidgetId.current) {
-      window.turnstile.reset(turnstileWidgetId.current)
-    }
   }, [])
 
   const rawDigits = phone.replace(/\D/g, '')
@@ -262,7 +241,7 @@ export default function AmbassadorAuthPage() {
         </div>
       )}
 
-      <div id="turnstile-container" style={{ display: 'none' }} />
+      <div ref={turnstileContainerRef} style={{ display: 'none' }} />
 
       <style>{`
         @keyframes drawLine { from { transform: scaleX(0); } to { transform: scaleX(1); } }
@@ -271,13 +250,4 @@ export default function AmbassadorAuthPage() {
       `}</style>
     </div>
   )
-}
-
-declare global {
-  interface Window {
-    turnstile?: {
-      render: (selector: string, options: Record<string, unknown>) => string
-      reset: (widgetId: string) => void
-    }
-  }
 }

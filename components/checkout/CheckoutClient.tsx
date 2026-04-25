@@ -12,31 +12,18 @@
  * is a cleaner variant without the share affordance.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { CheckoutData, PackageDays } from '@/lib/checkout/checkout-shape'
 import { ambassadorDisplayName } from '@/lib/checkout/checkout-shape'
 import { formatCurrency } from '@/lib/ambassador/utils'
 import { PackagePicker } from './PackagePicker'
 import { UrlOverlay } from './UrlOverlay'
 import { PaymentModal } from './PaymentModalShell'
+import { useTurnstile } from '@/components/turnstile/TurnstileWidget'
 
 interface Props {
   data: CheckoutData
   shareUrl: string
-}
-
-// Cloudflare Turnstile global injected by the api.js script.
-// Signature matches the one already declared in
-// app/(ambassador)/model/auth/page.tsx — TypeScript merges interface
-// declarations across files, so shapes must be identical to avoid
-// TS2717 "subsequent property declarations must have the same type".
-declare global {
-  interface Window {
-    turnstile?: {
-      render: (selector: string, options: Record<string, unknown>) => string
-      reset: (widgetId: string) => void
-    }
-  }
 }
 
 export function CheckoutClient({ data, shareUrl }: Props) {
@@ -48,45 +35,9 @@ export function CheckoutClient({ data, shareUrl }: Props) {
   const [overlayOpen, setOverlayOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   // Turnstile lives on the checkout page (not the modal) so the token
-  // is already warm by the time the user taps Pay. Matches the auth-page
-  // pattern at app/(ambassador)/model/auth/page.tsx.
-  const [turnstileToken, setTurnstileToken] = useState('')
-  const turnstileWidgetId = useRef<string | null>(null)
-
-  useEffect(() => {
-    const existing = document.querySelector<HTMLScriptElement>(
-      'script[src="https://challenges.cloudflare.com/turnstile/v0/api.js"]',
-    )
-    const mount = () => {
-      if (!window.turnstile) return
-      if (turnstileWidgetId.current) return
-      const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
-      if (!siteKey) {
-        console.warn('[CheckoutClient] NEXT_PUBLIC_TURNSTILE_SITE_KEY not configured; skipping widget')
-        return
-      }
-      const id = window.turnstile.render('#turnstile-container', {
-        sitekey: siteKey,
-        size: 'invisible',
-        callback: (token: string) => setTurnstileToken(token),
-        'expired-callback': () => setTurnstileToken(''),
-        'error-callback': () => setTurnstileToken(''),
-      })
-      turnstileWidgetId.current = id
-    }
-    if (existing) {
-      mount()
-      return
-    }
-    const script = document.createElement('script')
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
-    script.async = true
-    script.defer = true
-    script.onload = mount
-    document.body.appendChild(script)
-    // Script stays in the DOM across route changes — intentional; don't
-    // unmount or the next navigation re-downloads it.
-  }, [])
+  // is already warm by the time the user taps Pay.
+  const { token: turnstileToken, containerRef: turnstileContainerRef } =
+    useTurnstile({ size: 'invisible' })
 
   const selectedPkg = data.packages.find((p) => p.days === selected) ?? data.packages[0]!
   const ambassadorName = ambassadorDisplayName(data.ambassador)
@@ -196,10 +147,10 @@ export function CheckoutClient({ data, shareUrl }: Props) {
       />
 
       {/* Hidden Turnstile widget. Renders invisibly; token callback sets
-          state, which flows into the PI create body when the user taps
-          Pay. Container must exist on mount — the script references it
-          by selector on widget render. */}
-      <div id="turnstile-container" style={{ display: 'none' }} />
+          state via the useTurnstile hook, which flows into the PI create
+          body when the user taps Pay. Container must exist on mount —
+          the hook captures the ref and calls turnstile.render on it. */}
+      <div ref={turnstileContainerRef} style={{ display: 'none' }} />
       </div>
     </div>
   )
