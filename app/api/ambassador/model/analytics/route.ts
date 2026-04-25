@@ -99,7 +99,7 @@ export async function GET() {
 
   const out: Record<string, unknown> = {}
   for (const key of ['today', 'week', 'month', 'all'] as const satisfies RangeKey[]) {
-    out[key] = buildRange(ranges[key], events, listingPayments, wishPayments, listingNames, wishNames, currency)
+    out[key] = buildRange(key, ranges[key], events, listingPayments, wishPayments, listingNames, wishNames, currency)
   }
   return NextResponse.json(out)
 }

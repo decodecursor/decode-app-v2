@@ -1,143 +1,65 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import type { Direction, FunnelMetric, RangeData } from './types'
+import { useEffect, useRef } from 'react'
+import type { RangeData, RangeKey } from './types'
 
 /**
- * Middle section of the Analytics page: 3-tile funnel
- * (Visits → Clicks → Gifts) + two click-by columns (listings | wishes).
- * Two columns are tappable blocks per spec §2.10 — the entire column
- * navigates to /listings or /wishlist.
+ * Breakdown split bar — own section per mockup (lines 112-123).
+ * Section padding 18px 0 + border-bottom 1px #1f1f1f. Split bar is
+ * 4px height, 2px radius, #262626 unfilled bg, with pink + mint
+ * segments that grow from width 0 to target% over 1500ms
+ * cubic-bezier(.2,.7,.2,1) (CSS lines 14-17). Legend below has a
+ * 6px circle + label + amount per side, justify-content
+ * space-between.
  */
-export default function BreakdownSection({ data }: { data: RangeData }) {
-  return (
-    <>
-      <FunnelTiles funnel={data.funnel} />
-      <ClicksColumns topListings={data.topListings} topWishes={data.topWishes} />
-    </>
-  )
-}
+export default function BreakdownSection({ data, range }: { data: RangeData; range: RangeKey }) {
+  const pinkRef = useRef<HTMLDivElement | null>(null)
+  const mintRef = useRef<HTMLDivElement | null>(null)
+  const { listings_pct, wishes_pct, listings_formatted, wishes_formatted } = data.breakdown
 
-function FunnelTiles({ funnel }: { funnel: RangeData['funnel'] }) {
-  return (
-    <div style={{
-      padding: '18px 0',
-      borderBottom: '1px solid #1f1f1f',
-      display: 'flex',
-      alignItems: 'stretch',
-    }}>
-      <Tile label="Page visits" metric={funnel.visits} />
-      <Chevron />
-      <Tile label="Clicks" metric={funnel.clicks} />
-      <Chevron />
-      <Tile label="Gifts" metric={funnel.gifts} />
-    </div>
-  )
-}
+  // Re-animate from 0 → target on every range change. Mirrors mockup
+  // applyDataset() pattern (lines 720-721, 753-754).
+  useEffect(() => {
+    const pink = pinkRef.current
+    const mint = mintRef.current
+    if (!pink || !mint) return
+    pink.style.width = '0'
+    mint.style.width = '0'
+    const raf = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        pink.style.width = `${listings_pct}%`
+        mint.style.width = `${wishes_pct}%`
+      })
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [range, listings_pct, wishes_pct])
 
-function Tile({ label, metric }: { label: string; metric: FunnelMetric }) {
   return (
-    <div style={{ flex: 1, textAlign: 'center' }}>
-      <div style={{ fontSize: '11px', color: '#666' }}>{label}</div>
-      <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: '5px', marginTop: '4px' }}>
-        <div style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.2px', color: '#fff' }}>
-          {metric.value}
+    <div style={{ padding: '18px 0', borderBottom: '1px solid #1f1f1f' }}>
+      <div style={{ fontSize: '11px', color: '#666', marginBottom: '10px', textAlign: 'left' }}>Breakdown</div>
+      <div style={{
+        display: 'flex',
+        height: '4px',
+        borderRadius: '2px',
+        overflow: 'hidden',
+        marginBottom: '4px',
+        background: '#262626',
+      }}>
+        <div ref={pinkRef} className="an-split-pink" />
+        <div ref={mintRef} className="an-split-mint" />
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div>
+          <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#e91e8c', marginRight: '6px', verticalAlign: 'middle' }} />
+          <span style={{ fontSize: '11px', color: '#777' }}>Listings</span>{' '}
+          <span style={{ fontSize: '11px', color: '#fff', fontWeight: 600 }}>{listings_formatted}</span>
         </div>
-        <TrendBadge metric={metric} />
+        <div>
+          <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#34d399', marginRight: '6px', verticalAlign: 'middle' }} />
+          <span style={{ fontSize: '11px', color: '#777' }}>Gifts</span>{' '}
+          <span style={{ fontSize: '11px', color: '#fff', fontWeight: 600 }}>{wishes_formatted}</span>
+        </div>
       </div>
     </div>
   )
 }
-
-function TrendBadge({ metric }: { metric: FunnelMetric }) {
-  if (metric.direction === 'flat') {
-    return <div style={{ fontSize: '9px', color: '#777' }}>·</div>
-  }
-  const color = metric.direction === 'up' ? '#34d399' : '#ef4444'
-  const arrow = metric.direction === 'up' ? '↑' : '↓'
-  return (
-    <div style={{ fontSize: '9px', color, fontWeight: 600 }}>
-      {arrow} {metric.trend}%
-    </div>
-  )
-}
-
-function Chevron() {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px' }}>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="9 18 15 12 9 6" />
-      </svg>
-    </div>
-  )
-}
-
-function ClicksColumns({ topListings, topWishes }: {
-  topListings: RangeData['topListings']
-  topWishes: RangeData['topWishes']
-}) {
-  const router = useRouter()
-  return (
-    <div style={{
-      padding: '18px 0',
-      borderBottom: '1px solid #1f1f1f',
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-      gap: '18px',
-    }}>
-      <Column title="Clicks by listings" rows={topListings} accent="#e91e8c" onTap={() => router.push('/model/listings')} />
-      <Column title="Clicks by wishes" rows={topWishes} accent="#34d399" onTap={() => router.push('/model/wishlist')} />
-    </div>
-  )
-}
-
-function Column({ title, rows, accent, onTap }: {
-  title: string
-  rows: { name: string; count: number; pct: number }[]
-  accent: string
-  onTap: () => void
-}) {
-  return (
-    <button
-      onClick={onTap}
-      style={{
-        display: 'block',
-        width: '100%',
-        textAlign: 'left',
-        background: 'transparent',
-        border: 'none',
-        padding: 0,
-        cursor: 'pointer',
-      }}
-    >
-      <div style={{ fontSize: '11px', color: '#666', marginBottom: '12px' }}>{title}</div>
-      {rows.length === 0 ? (
-        <div style={{ fontSize: '11px', color: '#444' }}>No clicks yet</div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {rows.map((r, i) => (
-            <div key={`${r.name}-${i}`}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span style={{ fontSize: '12px', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px' }}>
-                  {r.name}
-                </span>
-                <span style={{ fontSize: '11px', color: '#777' }}>{r.count}</span>
-              </div>
-              <div style={{ height: '3px', background: '#1a1a1a', borderRadius: '2px', overflow: 'hidden' }}>
-                <div style={{
-                  width: `${r.pct}%`,
-                  height: '100%',
-                  background: accent,
-                  transition: 'width 600ms cubic-bezier(.2,.7,.2,1)',
-                }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </button>
-  )
-}
-
-// silence unused type imports in lints — Direction is part of the type surface
-export type { Direction }

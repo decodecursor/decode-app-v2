@@ -51,10 +51,16 @@ export type RangeKey = 'today' | 'week' | 'month' | 'all'
 
 export type Direction = 'up' | 'down' | 'flat'
 
+export interface TrendValue {
+  trend: number
+  direction: Direction
+}
+
 export interface RangePayload {
   total: number
   total_formatted: string
-  chart: { line: string | null; fill: string | null; buckets: number[] }
+  total_trend: TrendValue
+  chart: { line: string | null; fill: string | null; buckets: number[]; xLabels: string[] }
   breakdown: { listings: number; wishes: number; listings_pct: number; wishes_pct: number; listings_formatted: string; wishes_formatted: string }
   funnel: {
     visits: { value: number; trend: number; direction: Direction }
@@ -63,8 +69,25 @@ export interface RangePayload {
   }
   topListings: { name: string; count: number; pct: number }[]
   topWishes: { name: string; count: number; pct: number }[]
-  topListing: { name: string; amount_formatted: string } | null
-  topGifter: { name: string; gift_count: number; amount_formatted: string } | null
+  topListing: { name: string; meta: string; amount_formatted: string } | null
+  topGifter: { name: string; meta: string; amount_formatted: string } | null
+}
+
+// X-axis labels per range — matches mockup hardcoded values verbatim
+// (analytics_final.html lines 576, 601, 626, 651). Labels are
+// cosmetic axis markers, not bucket-aligned.
+const X_LABELS: Record<RangeKey, string[]> = {
+  today: ['9am', '12pm', '3pm', '6pm', '9pm'],
+  week:  ['Mon', 'Wed', 'Fri', 'Sun'],
+  month: ['1', '8', '15', '22', '30'],
+  all:   ['Jan', 'Apr', 'Jul', 'Oct', 'Now'],
+}
+
+const TOP_LISTING_META: Record<RangeKey, string> = {
+  today: 'Today',
+  week:  '7 days',
+  month: '30 days',
+  all:   'All time',
 }
 
 export function computeRanges(now: Date, profileCreatedAt: Date): Record<RangeKey, RangePair> {
@@ -144,6 +167,7 @@ function bestEntry(map: Map<string, number>): [string, number] | null {
 }
 
 export function buildRange(
+  key: RangeKey,
   pair: RangePair,
   events: AnalyticsEvent[],
   listingPayments: ListingPayment[],
@@ -160,6 +184,13 @@ export function buildRange(
   const listingsTotal = listingsInRange.reduce((s, p) => s + netAmount(p), 0)
   const wishesTotal = wishesInRange.reduce((s, p) => s + netAmount(p), 0)
   const total = listingsTotal + wishesTotal
+
+  let totalTrend: TrendValue = { trend: 0, direction: 'flat' }
+  if (prev) {
+    const listingsPrev = listingPayments.filter((p) => inRange(p.created_at, prev)).reduce((s, p) => s + netAmount(p), 0)
+    const wishesPrev   = wishPayments.filter((p) => inRange(p.created_at, prev)).reduce((s, p) => s + netAmount(p), 0)
+    totalTrend = trendDirection(total, listingsPrev + wishesPrev)
+  }
 
   const earningSeries = [
     ...listingsInRange.map((p) => ({ iso: p.created_at, amount: netAmount(p) })),
@@ -212,7 +243,11 @@ export function buildRange(
   for (const p of listingsInRange) listingEarn.set(p.listing_id, (listingEarn.get(p.listing_id) ?? 0) + netAmount(p))
   const topListingEntry = bestEntry(listingEarn)
   const topListing = topListingEntry
-    ? { name: listingNames.get(topListingEntry[0]) ?? 'Unknown', amount_formatted: fmtMoney(topListingEntry[1], currency) }
+    ? {
+        name: listingNames.get(topListingEntry[0]) ?? 'Unknown',
+        meta: TOP_LISTING_META[key],
+        amount_formatted: fmtMoney(topListingEntry[1], currency),
+      }
     : null
 
   const gifterEarn = new Map<string, { total: number; count: number }>()
@@ -224,13 +259,18 @@ export function buildRange(
   }
   const topGifterEntry = [...gifterEarn.entries()].sort((a, b) => b[1].total - a[1].total)[0]
   const topGifter = topGifterEntry
-    ? { name: topGifterEntry[0], gift_count: topGifterEntry[1].count, amount_formatted: fmtMoney(topGifterEntry[1].total, currency) }
+    ? {
+        name: topGifterEntry[0],
+        meta: `${topGifterEntry[1].count} ${topGifterEntry[1].count === 1 ? 'gift' : 'gifts'}`,
+        amount_formatted: fmtMoney(topGifterEntry[1].total, currency),
+      }
     : null
 
   return {
     total,
     total_formatted: fmtMoney(total, currency),
-    chart: { line: paths?.line ?? null, fill: paths?.fill ?? null, buckets },
+    total_trend: totalTrend,
+    chart: { line: paths?.line ?? null, fill: paths?.fill ?? null, buckets, xLabels: X_LABELS[key] },
     breakdown: {
       listings: listingsTotal,
       wishes: wishesTotal,

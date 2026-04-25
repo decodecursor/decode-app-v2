@@ -1,95 +1,85 @@
 'use client'
 
-import type { RangeData } from './types'
+import { useEffect, useRef } from 'react'
+import { useCountUp } from './useCountUp'
+import type { RangeData, RangeKey, TrendValue } from './types'
 
 /**
- * Top section of the Analytics page: total + sparkline + breakdown +
- * next-payout. SVG chart paths are pre-computed server-side per Slice
- * 6 locked decision #7 (raw SVG, no charting library) — client just
- * renders the strings.
+ * Total earnings + sparkline + x-axis labels. Mirrors mockup lines
+ * 97-110 — section padding-bottom 18px with bottom border, total
+ * 28px/700/-0.3px with inline trend chip (gap 5px, baseline-aligned),
+ * then a 280×48 SVG with stroke-dasharray draw-in (1800ms) + opacity
+ * fade-in (1000ms with 800ms delay) per CSS lines 19-23, then
+ * x-axis labels (10px #777, justify space-between) line 109.
+ *
+ * Chart line + fill animations re-trigger on filter swap by toggling
+ * the `show` class via the `range` key prop.
  */
-export default function EarningsChart({ data }: { data: RangeData }) {
-  const { total_formatted, chart, breakdown } = data
-  const hasChart = chart.line !== null && chart.fill !== null
+export default function EarningsChart({ data, range }: { data: RangeData; range: RangeKey }) {
+  const lineRef = useRef<SVGPathElement | null>(null)
+  const fillRef = useRef<SVGPathElement | null>(null)
+  const animatedTotal = useCountUp(data.total_formatted)
+  const trendChip = formatTrend(data.total_trend)
+
+  // Class-toggle to re-trigger CSS transitions: remove .show on the
+  // range change → next frame add .show back. Matches mockup
+  // applyDataset() pattern (lines 750-754).
+  useEffect(() => {
+    const line = lineRef.current
+    const fill = fillRef.current
+    if (line) line.classList.remove('an-show')
+    if (fill) fill.classList.remove('an-show')
+    const raf = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (line) line.classList.add('an-show')
+        if (fill) fill.classList.add('an-show')
+      })
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [range])
+
+  const hasChart = data.chart.line !== null && data.chart.fill !== null
 
   return (
-    <div style={{ padding: '18px 0', borderBottom: '1px solid #1f1f1f' }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '4px' }}>
-        <div style={{ fontSize: '11px', color: '#666' }}>Total earnings</div>
-      </div>
-      <div style={{ fontSize: '34px', fontWeight: 700, letterSpacing: '-0.4px', color: '#fff', marginBottom: '12px' }}>
-        {total_formatted}
+    <div style={{ paddingBottom: '18px', borderBottom: '1px solid #1f1f1f' }}>
+      <div style={{ fontSize: '11px', color: '#666', textAlign: 'left' }}>Total earnings</div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px', marginTop: '4px' }}>
+        <div style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.3px', color: '#fff' }}>
+          {animatedTotal}
+        </div>
+        <div style={{ fontSize: '11px', color: trendChip.color, fontWeight: 600 }}>
+          {trendChip.text}
+        </div>
       </div>
 
       {hasChart ? (
-        <svg width="100%" viewBox="0 0 280 48" preserveAspectRatio="none" style={{ display: 'block', height: '48px' }}>
+        <svg viewBox="0 0 280 48" style={{ width: '100%', height: '48px', marginTop: '14px', display: 'block' }} preserveAspectRatio="none">
           <defs>
             <linearGradient id="anGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#e91e8c" stopOpacity="0.35" />
               <stop offset="100%" stopColor="#e91e8c" stopOpacity="0" />
             </linearGradient>
           </defs>
-          <path d={chart.fill ?? ''} fill="url(#anGradient)" />
-          <path d={chart.line ?? ''} stroke="#e91e8c" strokeWidth="1.5" fill="none" />
+          <path ref={fillRef} className="an-chart-fill" d={data.chart.fill ?? ''} fill="url(#anGradient)" />
+          <path ref={lineRef} className="an-chart-line" d={data.chart.line ?? ''} stroke="#e91e8c" strokeWidth="1.5" fill="none" />
         </svg>
       ) : (
-        <div style={{ height: '48px', display: 'flex', alignItems: 'center', color: '#444', fontSize: '11px' }}>
+        <div style={{ height: '48px', marginTop: '14px', display: 'flex', alignItems: 'center', color: '#444', fontSize: '11px' }}>
           No earnings yet in this range
         </div>
       )}
 
-      <BreakdownBar
-        listingsPct={breakdown.listings_pct}
-        wishesPct={breakdown.wishes_pct}
-        listingsFmt={breakdown.listings_formatted}
-        wishesFmt={breakdown.wishes_formatted}
-      />
+      {hasChart && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#777', marginTop: '6px' }}>
+          {data.chart.xLabels.map((l, i) => <span key={`${i}-${l}`}>{l}</span>)}
+        </div>
+      )}
     </div>
   )
 }
 
-function BreakdownBar({ listingsPct, wishesPct, listingsFmt, wishesFmt }: {
-  listingsPct: number
-  wishesPct: number
-  listingsFmt: string
-  wishesFmt: string
-}) {
-  const isEmpty = listingsPct === 0 && wishesPct === 0
-  return (
-    <div style={{ marginTop: '20px' }}>
-      <div style={{ fontSize: '11px', color: '#666', marginBottom: '10px' }}>Breakdown</div>
-      <div style={{
-        display: 'flex',
-        gap: '4px',
-        height: '6px',
-        marginBottom: '10px',
-        opacity: isEmpty ? 0.3 : 1,
-      }}>
-        <div style={{
-          width: isEmpty ? '50%' : `${listingsPct}%`,
-          background: '#e91e8c',
-          borderRadius: '3px',
-          transition: 'width 600ms cubic-bezier(.2,.7,.2,1)',
-        }} />
-        <div style={{
-          width: isEmpty ? '50%' : `${wishesPct}%`,
-          background: '#34d399',
-          borderRadius: '3px',
-          transition: 'width 600ms cubic-bezier(.2,.7,.2,1)',
-        }} />
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <div>
-          <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#e91e8c', marginRight: '6px', verticalAlign: 'middle' }} />
-          <span style={{ fontSize: '11px', color: '#777' }}>Listings</span>{' '}
-          <span style={{ fontSize: '11px', color: '#fff', fontWeight: 600 }}>{listingsFmt}</span>
-        </div>
-        <div>
-          <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#34d399', marginRight: '6px', verticalAlign: 'middle' }} />
-          <span style={{ fontSize: '11px', color: '#777' }}>Gifts</span>{' '}
-          <span style={{ fontSize: '11px', color: '#fff', fontWeight: 600 }}>{wishesFmt}</span>
-        </div>
-      </div>
-    </div>
-  )
+function formatTrend(t: TrendValue): { text: string; color: string } {
+  if (t.direction === 'up')   return { text: `↑ ${t.trend}%`, color: '#34d399' }
+  if (t.direction === 'down') return { text: `↓ ${t.trend}%`, color: '#e91e8c' }
+  return { text: '· 0%', color: '#777' }
 }

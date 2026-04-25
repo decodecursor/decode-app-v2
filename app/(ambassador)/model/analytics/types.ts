@@ -7,6 +7,11 @@ export type RangeKey = 'today' | 'week' | 'month' | 'all'
 
 export type Direction = 'up' | 'down' | 'flat'
 
+export interface TrendValue {
+  trend: number
+  direction: Direction
+}
+
 export interface FunnelMetric {
   value: number
   trend: number
@@ -16,7 +21,8 @@ export interface FunnelMetric {
 export interface RangeData {
   total: number
   total_formatted: string
-  chart: { line: string | null; fill: string | null; buckets: number[] }
+  total_trend: TrendValue
+  chart: { line: string | null; fill: string | null; buckets: number[]; xLabels: string[] }
   breakdown: {
     listings: number
     wishes: number
@@ -28,8 +34,8 @@ export interface RangeData {
   funnel: { visits: FunnelMetric; clicks: FunnelMetric; gifts: FunnelMetric }
   topListings: { name: string; count: number; pct: number }[]
   topWishes: { name: string; count: number; pct: number }[]
-  topListing: { name: string; amount_formatted: string } | null
-  topGifter: { name: string; gift_count: number; amount_formatted: string } | null
+  topListing: { name: string; meta: string; amount_formatted: string } | null
+  topGifter: { name: string; meta: string; amount_formatted: string } | null
 }
 
 export type AnalyticsResponse = Record<RangeKey, RangeData>

@@ -9,16 +9,26 @@ const LABELS: Record<RangeKey, string> = {
   all: 'All',
 }
 
+/**
+ * Filter tabs row. Mirrors mockup lines 87-93. Wrapper padding
+ * 0 20px 20px (top/right + bottom/left), flex gap 15px. Inactive
+ * tabs are 13px/600 #777 with padding 6px 0 4px. Active tab is
+ * 13px/700 #fff with a 1.5px #e91e8c bottom border (mockup CSS
+ * line 26 + active style on line 90).
+ *
+ * Element type swapped from mockup `<div onclick>` to `<button>`
+ * for accessibility — deliberate Slice 6A polish deviation,
+ * functionally identical.
+ */
 export default function FilterTabs({ active, onChange }: {
   active: RangeKey
   onChange: (k: RangeKey) => void
 }) {
   return (
     <div style={{
+      padding: '0 20px 20px',
       display: 'flex',
-      gap: '24px',
-      padding: '14px 0',
-      borderBottom: '1px solid #1f1f1f',
+      gap: '15px',
     }}>
       {(['today', 'week', 'month', 'all'] as RangeKey[]).map((k) => {
         const isActive = active === k
@@ -29,13 +39,14 @@ export default function FilterTabs({ active, onChange }: {
             style={{
               background: 'transparent',
               border: 'none',
-              padding: '6px 0',
+              padding: '6px 0 4px',
               color: isActive ? '#fff' : '#777',
               fontSize: '13px',
-              fontWeight: isActive ? 700 : 400,
+              fontWeight: isActive ? 700 : 600,
               borderBottom: isActive ? '1.5px solid #e91e8c' : '1.5px solid transparent',
               cursor: 'pointer',
               transition: 'color 0.15s, border-color 0.15s',
+              fontFamily: 'inherit',
             }}
           >
             {LABELS[k]}
