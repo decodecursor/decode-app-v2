@@ -20,13 +20,30 @@
  * the wishlist surface react to ambassador toggle changes within the
  * 60s ISR window.
  *
- * Click instrumentation lands in 5D-2 — this commit ships the visual
- * surface only.
+ * Click instrumentation (Slice 5D-2): Gift-it pill fires
+ * wish_giftit_click with target_id=wish.id. The schema-spec drift on
+ * professional Instagram (spec §4.3 implies the business name links
+ * to IG with a wish_instagram_click event, but model_wishes doesn't
+ * carry a professional_instagram column) means we don't wire that
+ * event from this surface — the allowlist still includes the slug for
+ * forward-compat if the schema gains that column later.
  */
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { formatCurrency } from '@/lib/ambassador/utils'
+
+// Same fire-and-forget shape as SquadRow's analytics fire (Slice 4D
+// `d5d1530`). keepalive:true so the request survives the
+// /pay/[token] navigation.
+function fireClick(slug: string, event_type: 'wish_giftit_click', target_id: string) {
+  fetch('/api/analytics/track', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_type, slug, target_id }),
+    keepalive: true,
+  }).catch(() => { /* fire-and-forget */ })
+}
 
 interface WishRow {
   id: string
@@ -95,7 +112,7 @@ export function WishesSection({ modelId, slug, ambassadorFirstName }: {
   )
 }
 
-function WishRowDisplay({ wish, isLast }: {
+function WishRowDisplay({ wish, slug, isLast }: {
   wish: WishRow
   slug: string
   ambassadorFirstName: string
@@ -109,8 +126,9 @@ function WishRowDisplay({ wish, isLast }: {
 
   // Gift-it pill routes to /pay/{wish.payment_link_token} — same
   // dispatch that the WishCheckoutClient consumes (5C-3 wired the
-  // server-component branch).
+  // server-component branch). Fires wish_giftit_click on tap.
   const payUrl = `/pay/${wish.payment_link_token}`
+  const onPayClick = () => fireClick(slug, 'wish_giftit_click', wish.id)
 
   return (
     <div
@@ -136,6 +154,7 @@ function WishRowDisplay({ wish, isLast }: {
       </div>
       <a
         href={payUrl}
+        onClick={onPayClick}
         style={{
           border: '1.5px solid #e91e8c',
           borderRadius: 18,

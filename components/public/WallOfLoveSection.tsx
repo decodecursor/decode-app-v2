@@ -32,6 +32,21 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 
+// Same fire-and-forget shape as SquadRow's analytics fire (Slice 4D
+// `d5d1530`). target_id is the payment row id (uniquely identifies
+// the gift on the wall) — wish_id would be ambiguous if a future
+// re-claim ever produced multiple completed payments per wish (today
+// FK ON DELETE RESTRICT prevents that, but payment-id keeps the
+// analytics joinable to the source row regardless).
+function fireClick(slug: string, target_id: string) {
+  fetch('/api/analytics/track', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_type: 'wall_of_love_instagram_click', slug, target_id }),
+    keepalive: true,
+  }).catch(() => { /* fire-and-forget */ })
+}
+
 interface WallRow {
   id: string
   gross_amount: number | string
@@ -46,7 +61,7 @@ interface WallRow {
   } | null
 }
 
-export function WallOfLoveSection({ modelId }: { modelId: string }) {
+export function WallOfLoveSection({ modelId, slug }: { modelId: string; slug: string }) {
   const [rows, setRows] = useState<WallRow[] | null>(null)
 
   useEffect(() => {
@@ -93,13 +108,13 @@ export function WallOfLoveSection({ modelId }: { modelId: string }) {
         </svg>
       </div>
       {rows.map((row, i) => (
-        <WallRowDisplay key={row.id} row={row} isLast={i === rows.length - 1} />
+        <WallRowDisplay key={row.id} row={row} slug={slug} isLast={i === rows.length - 1} />
       ))}
     </div>
   )
 }
 
-function WallRowDisplay({ row, isLast }: { row: WallRow; isLast: boolean }) {
+function WallRowDisplay({ row, slug, isLast }: { row: WallRow; slug: string; isLast: boolean }) {
   const wish = row.wish
   const isAnonymous = wish?.gifter_is_anonymous ?? true
   const gifterName = isAnonymous ? 'Anonymous' : (wish?.gifter_name ?? 'Anonymous')
@@ -141,6 +156,7 @@ function WallRowDisplay({ row, isLast }: { row: WallRow; isLast: boolean }) {
               href={igUrl}
               target="_blank"
               rel="noopener"
+              onClick={() => fireClick(slug, row.id)}
               style={{ color: '#fff', textDecoration: 'none', fontSize: 15, fontWeight: 600 }}
             >
               {gifterName}

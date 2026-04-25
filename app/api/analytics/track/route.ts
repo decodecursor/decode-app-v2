@@ -35,14 +35,20 @@ import {
  * from "dropped" — defense against targeted enumeration.
  */
 
-// 4D scope — listings-side public events only. Wish + Wall-of-Love
-// events ship with Slice 5. The DB CHECK enum is wider (7 values); this
-// set is the per-slice view of that enum.
+// Slice 5D extends to all 7 values in the DB CHECK enum. Wish-side
+// events were reserved in the schema (Slice 1) but only wired into the
+// allowlist here once the corresponding UI surfaces shipped (5D-1
+// rendered the wishes + Wall of Love sections; 5D-2 wires the click
+// handlers). Pattern 3 (single multi-event endpoint) doctrine —
+// extending the Set is the canonical way to opt-in new event types.
 const ALLOWED_EVENT_TYPES = new Set([
   'public_page_view',
   'listing_instagram_click',
   'listing_media_click',
   'public_page_share_click',
+  'wish_giftit_click',
+  'wish_instagram_click',
+  'wall_of_love_instagram_click',
 ])
 
 type TrackRequest = {

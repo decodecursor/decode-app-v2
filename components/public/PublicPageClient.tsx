@@ -108,7 +108,7 @@ export default function PublicPageClient({
           gifts have been received, the wall persists even if the
           ambassador later disables the wishlist. Section self-hides
           on zero completed payments. */}
-      <WallOfLoveSection modelId={data.profile.id} />
+      <WallOfLoveSection modelId={data.profile.id} slug={data.profile.slug} />
 
       <PublicFooter />
 
