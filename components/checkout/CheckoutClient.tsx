@@ -26,6 +26,11 @@ interface Props {
   shareUrl: string
 }
 
+// Stable empty-extras reference — module-level so its identity never
+// changes across renders. Avoids re-firing PaymentModalShell's PI-create
+// effect (cacheKey deps include bodyExtras for non-package flows).
+const LISTINGS_EMPTY_EXTRAS: Record<string, unknown> = {}
+
 export function CheckoutClient({ data, shareUrl }: Props) {
   const defaultPkg = useMemo<PackageDays>(
     () => (data.packages.find((p) => p.is_default)?.days ?? data.packages[0]!.days) as PackageDays,
@@ -38,6 +43,17 @@ export function CheckoutClient({ data, shareUrl }: Props) {
   // is already warm by the time the user taps Pay.
   const { token: turnstileToken, containerRef: turnstileContainerRef } =
     useTurnstile({ size: 'invisible' })
+
+  // Listings chip array — memoized on `selected` so the array reference
+  // is stable across renders that don't change the package.
+  const listingsChips = useMemo(
+    () => [
+      { label: 'One-time' },
+      { label: 'No subscription' },
+      { label: `${selected}-day package` },
+    ],
+    [selected],
+  )
 
   const selectedPkg = data.packages.find((p) => p.days === selected) ?? data.packages[0]!
   const ambassadorName = ambassadorDisplayName(data.ambassador)
@@ -136,6 +152,11 @@ export function CheckoutClient({ data, shareUrl }: Props) {
         tagline={data.ambassador.tagline}
         onClose={() => setOverlayOpen(false)}
       />
+      {/* All multi-flow props passed explicitly even though defaults
+          would also produce the listings shape — keeps the boundary
+          legible and gives Slice 5C wish-checkout a copy-paste model.
+          chips memoized so PaymentModalShell's effect deps stay stable
+          across CheckoutClient re-renders. */}
       <PaymentModal
         isOpen={modalOpen}
         token={data.payment_link_token}
@@ -144,6 +165,10 @@ export function CheckoutClient({ data, shareUrl }: Props) {
         currency={data.currency}
         turnstileToken={turnstileToken}
         onClose={() => setModalOpen(false)}
+        endpointPath="/api/checkout/listing"
+        returnPathBuilder={(pi) => `/listing/confirmation/${pi}`}
+        chips={listingsChips}
+        bodyExtras={LISTINGS_EMPTY_EXTRAS}
       />
 
       {/* Hidden Turnstile widget. Renders invisibly; token callback sets

@@ -55,7 +55,13 @@ interface Props {
   // mid-payment fat-finger tap can't orphan the confirmPayment promise.
   // Stable setState reference is fine; treat as fire-and-forget.
   onProcessingChange?: (processing: boolean) => void
+  // 5B-3 multi-flow: caller controls the Stripe return_url path. Default
+  // preserves listings (/listing/confirmation/{pi_id}); wish-checkout
+  // will pass a /wish/confirmation/{pi_id} builder.
+  returnPathBuilder?: (paymentIntentId: string) => string
 }
+
+const DEFAULT_LISTINGS_RETURN_PATH = (pi: string) => `/listing/confirmation/${pi}`
 
 // H3: confirmPayment safety net. If the SDK resolves with neither an
 // error nor a redirect (rare Stripe Sandbox edge case), processing
@@ -64,12 +70,15 @@ interface Props {
 // almost certainly indicates a true SDK glitch, not a slow network.
 const CONFIRM_SAFETY_TIMEOUT_MS = 30_000
 
-function buildReturnUrl(paymentIntentId: string): string {
+function buildReturnUrl(paymentIntentId: string, builder: (pi: string) => string): string {
   const base = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.welovedecode.com').replace(/\/$/, '')
-  return `${base}/listing/confirmation/${paymentIntentId}`
+  return `${base}${builder(paymentIntentId)}`
 }
 
-export function StripeElementsForm({ paymentIntentId, amountLabel, onCancel, onProcessingChange }: Props) {
+export function StripeElementsForm({
+  paymentIntentId, amountLabel, onCancel, onProcessingChange,
+  returnPathBuilder = DEFAULT_LISTINGS_RETURN_PATH,
+}: Props) {
   const stripe = useStripe()
   const elements = useElements()
   const [mode, setMode] = useState<Mode>('wallet')
@@ -135,7 +144,7 @@ export function StripeElementsForm({ paymentIntentId, amountLabel, onCancel, onP
     try {
       const result = await stripe.confirmPayment({
         elements,
-        confirmParams: { return_url: buildReturnUrl(paymentIntentId) },
+        confirmParams: { return_url: buildReturnUrl(paymentIntentId, returnPathBuilder) },
       })
       if (result.error) {
         setError(result.error.message ?? 'Payment could not be completed. Try again.')

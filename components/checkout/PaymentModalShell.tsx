@@ -32,7 +32,12 @@ import { StripeElementsForm } from './StripeElementsForm'
 interface Props {
   isOpen: boolean
   token: string
-  packageDays: PackageDays
+  // Listings pass the selected package (drives cache key + body field).
+  // Wish-checkout (Slice 5C) leaves this undefined — there's no package
+  // concept for a single-gift purchase. When undefined, the cache key
+  // falls back to a JSON hash of bodyExtras so the cache still de-dupes
+  // by meaningful payload content.
+  packageDays?: PackageDays
   amount: number
   currency: string
   // Turnstile token sourced from CheckoutClient (widget lives on the
@@ -41,6 +46,26 @@ interface Props {
   // helper fail-opens on empty per its documented behavior.
   turnstileToken: string
   onClose: () => void
+
+  // ----- Multi-flow parameterization (Slice 5B-3, hardening item 19) -----
+  // Defaults preserve listings-checkout byte-identical behavior so this
+  // commit is a pure refactor for the existing consumer; Slice 5C
+  // wish-checkout passes explicit values for all four.
+
+  // POST endpoint for PI-create. Default: listings checkout.
+  endpointPath?: string
+  // Stripe confirmParams.return_url path builder. Receives the PI id and
+  // returns an absolute path (no origin). The form prepends NEXT_PUBLIC_APP_URL.
+  // Default: legacy /listing/confirmation/{pi_id}.
+  returnPathBuilder?: (paymentIntentId: string) => string
+  // Pill chips rendered above the in-app-webview banner. Default derives
+  // from packageDays (current listings shape: One-time / No subscription /
+  // {N}-day package). Wish-checkout will pass [{label: 'One gift'}].
+  chips?: ReadonlyArray<{ label: string }>
+  // Extra fields merged into the PI-create POST body alongside `token`,
+  // optional `package_days`, and `turnstileToken`. Wish-checkout passes
+  // { wish_id, gifter_name, gifter_instagram, gifter_is_anonymous }.
+  bodyExtras?: Record<string, unknown>
 }
 
 type PIState =
@@ -54,16 +79,29 @@ function isInAppWebView(): boolean {
   return /WhatsApp|Instagram|FBAN|FBAV/i.test(navigator.userAgent)
 }
 
-export function PaymentModal({ isOpen, token, packageDays, amount, currency, turnstileToken, onClose }: Props) {
+const DEFAULT_ENDPOINT_PATH = '/api/checkout/listing'
+const DEFAULT_RETURN_PATH_BUILDER = (pi: string) => `/listing/confirmation/${pi}`
+
+export function PaymentModal({
+  isOpen, token, packageDays, amount, currency, turnstileToken, onClose,
+  endpointPath = DEFAULT_ENDPOINT_PATH,
+  returnPathBuilder = DEFAULT_RETURN_PATH_BUILDER,
+  chips,
+  bodyExtras,
+}: Props) {
   const [pi, setPi] = useState<PIState>({ status: 'idle' })
   // H2: lifted from StripeElementsForm so we can gate the dim-background
   // close handler on it (mirrors the existing Cancel-button gate inside
   // the form). Form pushes its processing state up via onProcessingChange.
   const [formProcessing, setFormProcessing] = useState(false)
-  // Cache by package_days so toggling packages doesn't refetch uselessly,
-  // and reopening the same package is instant. Cache is per-modal-mount,
-  // so turnstileToken rotation during a session doesn't leak stale PIs.
-  const piCache = useRef<Map<PackageDays, { clientSecret: string; paymentIntentId: string }>>(new Map())
+  // PI cache, keyed by a string derived from the meaningful identifying
+  // payload — packageDays for listings (the original 30/60/90 cache),
+  // a JSON hash of bodyExtras otherwise (wish-checkout: hash of wish_id +
+  // gifter info, so changing the gifter name invalidates the cache and
+  // forces a fresh PI). Survives modal close/reopen but is per-mount.
+  const piCache = useRef<Map<string, { clientSecret: string; paymentIntentId: string }>>(new Map())
+  const cacheKey =
+    packageDays !== undefined ? String(packageDays) : JSON.stringify(bodyExtras ?? {})
   // H4: keep an always-fresh ref to the latest turnstileToken so the
   // PI-create effect can read the current value at fetch time without
   // listing the token in its deps. Listing it caused pointless re-runs
@@ -75,17 +113,22 @@ export function PaymentModal({ isOpen, token, packageDays, amount, currency, tur
 
   useEffect(() => {
     if (!isOpen) return
-    const cached = piCache.current.get(packageDays)
+    const cached = piCache.current.get(cacheKey)
     if (cached) {
       setPi({ status: 'ready', ...cached })
       return
     }
     let cancelled = false
     setPi({ status: 'loading' })
-    fetch('/api/checkout/listing', {
+    fetch(endpointPath, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, package_days: packageDays, turnstileToken: turnstileTokenRef.current }),
+      body: JSON.stringify({
+        token,
+        ...(packageDays !== undefined ? { package_days: packageDays } : {}),
+        ...(bodyExtras ?? {}),
+        turnstileToken: turnstileTokenRef.current,
+      }),
     })
       .then(async (res) => {
         const body = await res.json().catch(() => ({}))
@@ -101,7 +144,7 @@ export function PaymentModal({ isOpen, token, packageDays, amount, currency, tur
       })
       .then((body) => {
         if (cancelled) return
-        piCache.current.set(packageDays, { clientSecret: body.client_secret, paymentIntentId: body.payment_intent_id })
+        piCache.current.set(cacheKey, { clientSecret: body.client_secret, paymentIntentId: body.payment_intent_id })
         setPi({ status: 'ready', clientSecret: body.client_secret, paymentIntentId: body.payment_intent_id })
       })
       .catch((err) => {
@@ -110,7 +153,7 @@ export function PaymentModal({ isOpen, token, packageDays, amount, currency, tur
         setPi({ status: 'error', message: err?.message ?? 'Could not start payment' })
       })
     return () => { cancelled = true }
-  }, [isOpen, packageDays, token])
+  }, [isOpen, cacheKey, token, endpointPath, packageDays, bodyExtras])
 
   // H1: memoize Elements options against pi.clientSecret so a parent
   // re-render (e.g. turnstileToken state churn upstream) doesn't pass
@@ -131,6 +174,14 @@ export function PaymentModal({ isOpen, token, packageDays, amount, currency, tur
   if (!isOpen) return null
 
   const amountLabel = formatCurrency(amount, currency)
+  // Default chips preserve the listings shape (One-time / No subscription /
+  // {N}-day package). When chips prop is passed (current listings call site
+  // and Slice 5C wish-checkout both will), it wins; the default is here as
+  // a defensive fallback for ad-hoc callers that omit chips.
+  const effectiveChips: ReadonlyArray<{ label: string }> =
+    chips ?? (packageDays !== undefined
+      ? [{ label: 'One-time' }, { label: 'No subscription' }, { label: `${packageDays}-day package` }]
+      : [])
 
   return (
     <div
@@ -189,9 +240,7 @@ export function PaymentModal({ isOpen, token, packageDays, amount, currency, tur
         <div style={{ textAlign: 'center', padding: '18px 0 14px' }}>
           <div style={{ fontSize: 32, fontWeight: 700, color: '#fff', letterSpacing: '-0.5px' }}>{amountLabel}</div>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 12 }}>
-            <Chip>One-time</Chip>
-            <Chip>No subscription</Chip>
-            <Chip>{packageDays}-day package</Chip>
+            {effectiveChips.map((c, i) => <Chip key={i}>{c.label}</Chip>)}
           </div>
         </div>
 
@@ -220,7 +269,7 @@ export function PaymentModal({ isOpen, token, packageDays, amount, currency, tur
               <div style={{ fontSize: 13, color: '#f87171', marginBottom: 12 }}>{pi.message}</div>
             )}
             <button
-              onClick={() => { piCache.current.delete(packageDays); setPi({ status: 'idle' }); }}
+              onClick={() => { piCache.current.delete(cacheKey); setPi({ status: 'idle' }); }}
               style={{ fontSize: 12, color: '#888', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
             >Try again</button>
           </div>
@@ -233,6 +282,7 @@ export function PaymentModal({ isOpen, token, packageDays, amount, currency, tur
               amountLabel={amountLabel}
               onCancel={onClose}
               onProcessingChange={setFormProcessing}
+              returnPathBuilder={returnPathBuilder}
             />
           </Elements>
         )}
