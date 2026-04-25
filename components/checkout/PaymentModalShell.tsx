@@ -21,7 +21,7 @@
  * reuses the cached PI via the 24h idempotency window.
  */
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Elements } from '@stripe/react-stripe-js'
 import type { StripeElementsOptions } from '@stripe/stripe-js'
 import { stripePromise } from '@/lib/stripe-client'
@@ -56,10 +56,22 @@ function isInAppWebView(): boolean {
 
 export function PaymentModal({ isOpen, token, packageDays, amount, currency, turnstileToken, onClose }: Props) {
   const [pi, setPi] = useState<PIState>({ status: 'idle' })
+  // H2: lifted from StripeElementsForm so we can gate the dim-background
+  // close handler on it (mirrors the existing Cancel-button gate inside
+  // the form). Form pushes its processing state up via onProcessingChange.
+  const [formProcessing, setFormProcessing] = useState(false)
   // Cache by package_days so toggling packages doesn't refetch uselessly,
   // and reopening the same package is instant. Cache is per-modal-mount,
   // so turnstileToken rotation during a session doesn't leak stale PIs.
   const piCache = useRef<Map<PackageDays, { clientSecret: string; paymentIntentId: string }>>(new Map())
+  // H4: keep an always-fresh ref to the latest turnstileToken so the
+  // PI-create effect can read the current value at fetch time without
+  // listing the token in its deps. Listing it caused pointless re-runs
+  // every time Cloudflare rotated the token (default 30 min, plus
+  // expired/error callbacks), which thrashed the Elements options
+  // object and risked an in-flight payment getting reconciled mid-confirm.
+  const turnstileTokenRef = useRef(turnstileToken)
+  turnstileTokenRef.current = turnstileToken
 
   useEffect(() => {
     if (!isOpen) return
@@ -73,7 +85,7 @@ export function PaymentModal({ isOpen, token, packageDays, amount, currency, tur
     fetch('/api/checkout/listing', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, package_days: packageDays, turnstileToken }),
+      body: JSON.stringify({ token, package_days: packageDays, turnstileToken: turnstileTokenRef.current }),
     })
       .then(async (res) => {
         const body = await res.json().catch(() => ({}))
@@ -98,7 +110,23 @@ export function PaymentModal({ isOpen, token, packageDays, amount, currency, tur
         setPi({ status: 'error', message: err?.message ?? 'Could not start payment' })
       })
     return () => { cancelled = true }
-  }, [isOpen, packageDays, token, turnstileToken])
+  }, [isOpen, packageDays, token])
+
+  // H1: memoize Elements options against pi.clientSecret so a parent
+  // re-render (e.g. turnstileToken state churn upstream) doesn't pass
+  // a new options object identity to <Elements>, which would trigger a
+  // Stripe-side reconciliation that's unsafe while a payment is in
+  // flight. Per Stripe React docs, options must be stable; clientSecret
+  // cannot change on a mounted Elements provider — combine with the
+  // explicit key={pi.clientSecret} below for safe transitions when the
+  // user switches packages and a fresh PI is created.
+  const clientSecret = pi.status === 'ready' ? pi.clientSecret : null
+  const elementsOptions = useMemo<StripeElementsOptions | null>(
+    () => (clientSecret
+      ? { clientSecret, appearance: { theme: 'night', variables: { colorPrimary: '#e91e8c' } } }
+      : null),
+    [clientSecret],
+  )
 
   if (!isOpen) return null
 
@@ -109,7 +137,7 @@ export function PaymentModal({ isOpen, token, packageDays, amount, currency, tur
       role="dialog"
       aria-modal="true"
       aria-label="Payment"
-      onClick={onClose}
+      onClick={() => { if (!formProcessing) onClose() }}
       style={{
         position: 'fixed',
         inset: 0,
@@ -141,12 +169,15 @@ export function PaymentModal({ isOpen, token, packageDays, amount, currency, tur
         <button
           type="button"
           onClick={onClose}
+          disabled={formProcessing}
           aria-label="Close"
           style={{
             position: 'absolute', top: 12, right: 14,
             width: 28, height: 28, borderRadius: '50%',
             background: '#1c1c1c', border: '1px solid #262626',
-            color: '#fff', cursor: 'pointer',
+            color: '#fff',
+            cursor: formProcessing ? 'not-allowed' : 'pointer',
+            opacity: formProcessing ? 0.5 : 1,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
@@ -195,12 +226,14 @@ export function PaymentModal({ isOpen, token, packageDays, amount, currency, tur
           </div>
         )}
 
-        {pi.status === 'ready' && (
-          <Elements
-            stripe={stripePromise}
-            options={{ clientSecret: pi.clientSecret, appearance: { theme: 'night', variables: { colorPrimary: '#e91e8c' } } } satisfies StripeElementsOptions}
-          >
-            <StripeElementsForm paymentIntentId={pi.paymentIntentId} amountLabel={amountLabel} onCancel={onClose} />
+        {pi.status === 'ready' && elementsOptions && (
+          <Elements key={pi.clientSecret} stripe={stripePromise} options={elementsOptions}>
+            <StripeElementsForm
+              paymentIntentId={pi.paymentIntentId}
+              amountLabel={amountLabel}
+              onCancel={onClose}
+              onProcessingChange={setFormProcessing}
+            />
           </Elements>
         )}
       </div>

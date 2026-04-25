@@ -51,14 +51,25 @@ interface Props {
   paymentIntentId: string
   amountLabel: string
   onCancel: () => void
+  // H2: shell uses this to gate its dim-background close handler so a
+  // mid-payment fat-finger tap can't orphan the confirmPayment promise.
+  // Stable setState reference is fine; treat as fire-and-forget.
+  onProcessingChange?: (processing: boolean) => void
 }
+
+// H3: confirmPayment safety net. If the SDK resolves with neither an
+// error nor a redirect (rare Stripe Sandbox edge case), processing
+// would otherwise stay true forever. 30 s is generous — Stripe's own
+// redirect window is sub-2 s in practice — so a fired safety timer
+// almost certainly indicates a true SDK glitch, not a slow network.
+const CONFIRM_SAFETY_TIMEOUT_MS = 30_000
 
 function buildReturnUrl(paymentIntentId: string): string {
   const base = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.welovedecode.com').replace(/\/$/, '')
   return `${base}/listing/confirmation/${paymentIntentId}`
 }
 
-export function StripeElementsForm({ paymentIntentId, amountLabel, onCancel }: Props) {
+export function StripeElementsForm({ paymentIntentId, amountLabel, onCancel, onProcessingChange }: Props) {
   const stripe = useStripe()
   const elements = useElements()
   const [mode, setMode] = useState<Mode>('wallet')
@@ -67,7 +78,7 @@ export function StripeElementsForm({ paymentIntentId, amountLabel, onCancel }: P
   const [processing, setProcessing] = useState(false)
 
   // Fallback — if ExpressCheckoutElement's onReady never fires
-  // (network hiccup, SDK load failure), after 2.5s treat as no wallets
+  // (network hiccup, SDK load failure), after 5s treat as no wallets
   // and fall through to the card form rather than stranding the user.
   useEffect(() => {
     if (walletState !== 'unknown') return
@@ -91,6 +102,25 @@ export function StripeElementsForm({ paymentIntentId, amountLabel, onCancel }: P
     const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
     window.addEventListener('beforeunload', handler)
     return () => window.removeEventListener('beforeunload', handler)
+  }, [processing])
+
+  // H2: notify shell whenever processing flips so the dim-background
+  // close handler can gate on it. setState refs are stable — including
+  // onProcessingChange in deps is harmless but keeps the lint clean.
+  useEffect(() => {
+    onProcessingChange?.(processing)
+  }, [processing, onProcessingChange])
+
+  // H3: safety net described above. Cleanup runs on processing→false
+  // (organic resolution via success-redirect or caught error) and on
+  // unmount, so the timer can never fire after the form has resolved.
+  useEffect(() => {
+    if (!processing) return
+    const t = setTimeout(() => {
+      setProcessing(false)
+      setError("If your payment didn't complete, refresh the page and try again.")
+    }, CONFIRM_SAFETY_TIMEOUT_MS)
+    return () => clearTimeout(t)
   }, [processing])
 
   // Single confirm path. ExpressCheckoutElement fires its own onConfirm
