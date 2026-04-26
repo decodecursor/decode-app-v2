@@ -30,6 +30,10 @@ const requiredEnvVars: EnvVar[] = [
 
   // Application
   { name: 'NEXT_PUBLIC_APP_URL', required: true, publicVar: true, description: 'Application URL' },
+  // Brand homepage URL for terminal-page CTAs (404, /expired). Optional
+  // — defaults to Carrd apex `https://welovedecode.com/` if unset.
+  // Locked Slice 7A pre-flight Q5. Consumed via lib/brand-url.ts.
+  { name: 'NEXT_PUBLIC_BRAND_URL', required: false, publicVar: true, description: 'Brand homepage URL for terminal-page CTAs (defaults to https://welovedecode.com/)' },
 
   // Bot protection + rate limiting (Slice 4D commit 1)
   { name: 'NEXT_PUBLIC_TURNSTILE_SITE_KEY', required: true, publicVar: true, description: 'Cloudflare Turnstile client-widget site key' },
