@@ -149,6 +149,14 @@ function buildWishTakenPath(ambassador: WishCheckoutAmbassador): string {
   return `/wish/taken?slug=${encodeURIComponent(ambassador.slug)}&first=${encodeURIComponent(ambassador.first_name)}`
 }
 
+// /listing/paid is the listings analogue of /wish/taken — shown to a
+// second/third colleague who clicks a shared payment link after the
+// listing was already paid. Privacy: never redirect to person 1's
+// /listing/confirmation/{pi_id} (would leak reference + amount + date).
+function buildListingPaidPath(ambassador: { slug: string; first_name: string }): string {
+  return `/listing/paid?slug=${encodeURIComponent(ambassador.slug)}&first=${encodeURIComponent(ambassador.first_name)}`
+}
+
 interface LegacyLinkRow {
   id: string
   client_name: string | null
@@ -216,6 +224,12 @@ export async function generateMetadata({ params }: { params: Promise<{ token: st
     if (row) {
       const data = toCheckoutData(row)
       if (data) {
+        // Listing exists but already paid — render head metadata for
+        // the terminal "Someone was faster!" page that the dispatch
+        // will redirect into. Mirrors the wish-taken branch below.
+        if (data.already_paid) {
+          return { title: 'This listing has already been paid', robots: { index: false, follow: false } }
+        }
         const name = ambassadorDisplayName(data.ambassador)
         const title = `Join ${name}'s Beauty Squad`
         const description = data.ambassador.tagline ?? `Get listed on ${name}'s page`
@@ -275,10 +289,19 @@ export default async function PayPage({ params }: { params: Promise<{ token: str
     const row = await fetchListingByToken(token)
     if (row) {
       const data = toCheckoutData(row)
-      // already_paid (race with another payer) + missing price/FK data
-      // all funnel to the terminal "link no longer active" destination
-      // per audit decision #2.
-      if (!data || data.already_paid) redirect('/expired')
+      // Missing price/FK data → generic /expired (no ambassador
+      // context to personalize a "Someone was faster" page).
+      if (!data) redirect('/expired')
+      // already_paid (race with another payer on a shared link) →
+      // ambassador-personalized /listing/paid (Slice 7A). Privacy:
+      // never redirect to person 1's /listing/confirmation/{pi_id} —
+      // that would leak the first payer's reference + amount + date.
+      if (data.already_paid) {
+        redirect(buildListingPaidPath({
+          slug: data.ambassador.slug,
+          first_name: data.ambassador.first_name,
+        }))
+      }
       const shareUrl = `${getAppBase()}/pay/${token}`
       return <CheckoutClient data={data} shareUrl={shareUrl} />
     }
