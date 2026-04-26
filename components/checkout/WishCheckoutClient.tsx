@@ -16,10 +16,19 @@
  */
 
 import { useMemo, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { formatCurrency } from '@/lib/ambassador/utils'
-import { PaymentModal } from './PaymentModalShell'
 import { useTurnstile } from '@/components/turnstile/TurnstileWidget'
+
+// Slice 7C bundle remediation A: PaymentModal (and its Stripe.js +
+// @stripe/react-stripe-js dependency tree) is dynamic-imported so the
+// chunk is fetched ONLY when /pay/[token] mounts, not bundled into
+// every ambassador page's First Load JS. Same shape as CheckoutClient.
+const PaymentModal = dynamic(
+  () => import('./PaymentModalShell').then((mod) => mod.PaymentModal),
+  { ssr: false, loading: () => null },
+)
 
 export interface WishCheckoutAmbassador {
   slug: string

@@ -13,13 +13,26 @@
  */
 
 import { useMemo, useState } from 'react'
+import dynamic from 'next/dynamic'
 import type { CheckoutData, PackageDays } from '@/lib/checkout/checkout-shape'
 import { ambassadorDisplayName } from '@/lib/checkout/checkout-shape'
 import { formatCurrency } from '@/lib/ambassador/utils'
 import { PackagePicker } from './PackagePicker'
 import { UrlOverlay } from './UrlOverlay'
-import { PaymentModal } from './PaymentModalShell'
 import { useTurnstile } from '@/components/turnstile/TurnstileWidget'
+
+// Slice 7C bundle remediation A: PaymentModal (and its Stripe.js +
+// @stripe/react-stripe-js dependency tree) is dynamic-imported so the
+// chunk is fetched ONLY when /pay/[token] mounts, not bundled into
+// every ambassador page's First Load JS. ssr:false is mandatory —
+// loadStripe() in lib/stripe-client.ts touches window at module top.
+// loading:null avoids a flash while the chunk arrives; the modal
+// itself returns null when isOpen=false anyway, so the user sees
+// no transition during the initial chunk fetch on page mount.
+const PaymentModal = dynamic(
+  () => import('./PaymentModalShell').then((mod) => mod.PaymentModal),
+  { ssr: false, loading: () => null },
+)
 
 interface Props {
   data: CheckoutData
