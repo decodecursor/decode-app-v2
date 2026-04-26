@@ -30,6 +30,18 @@ export default function RootLayout({
         {/* Preconnect to Stripe for faster SDK loading */}
         <link rel="preconnect" href="https://js.stripe.com" />
         <link rel="dns-prefetch" href="https://js.stripe.com" />
+        {/* Inter font (legacy auctions/payment surfaces). Moved here
+            from globals.css @import (Slice 7C 750ms render-blocking
+            fix) so the font CSS request fires in parallel with the
+            main CSS bundle, not serially after it parses. The
+            preconnect pair primes the TCP+TLS handshake so the
+            stylesheet fetch is one round-trip instead of three. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+        />
       </head>
       <body className="antialiased">
         <AuthProvider>

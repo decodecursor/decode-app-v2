@@ -1,4 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+/* Inter font moved out of @import → <link> in app/layout.tsx <head>
+   (Slice 7C 750ms render-blocking fix). Inline @import here meant the
+   browser had to fetch + parse this CSS file before discovering the
+   Google Fonts URL — serial cascade, ~750ms render-blocking per
+   Lighthouse. Moving to <link> in <head> loads the font CSS in
+   parallel with the main bundle + warmed-up via preconnect. */
 
 
 @tailwind base;
