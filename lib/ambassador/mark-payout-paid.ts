@@ -106,7 +106,12 @@ export async function markPayoutAsPaid(payoutId: string): Promise<MarkPayoutPaid
   if (payout.model?.user_id) {
     void admin
       .from('users')
-      .select('id, email, phone')
+      // Column is `phone_number` on public.users; PostgREST alias maps
+      // it to `phone` for the typed UserContact interface here. Pre-7B
+      // bug: the original Slice 6B-2 mark-paid SELECT read 'phone'
+      // verbatim — column doesn't exist, PostgREST returned undefined,
+      // every payout WhatsApp silently skipped. Alias fixes it.
+      .select('id, email, phone:phone_number')
       .eq('id', payout.model.user_id)
       .maybeSingle<UserContact>()
       .then(({ data: contact }) => {
