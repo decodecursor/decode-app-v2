@@ -1,0 +1,25 @@
+-- ============================================================================
+-- Slice 7B · Item 30 closeout
+-- ============================================================================
+-- Install plpgsql_check 2.7 — extended static analysis for PL/pgSQL functions.
+-- Catches variable_conflict (the trap that bit us in `49bb9e5` where
+-- create_payout_batch's RETURNS TABLE column shadowed a bare SELECT
+-- column reference) at function-create time / on-demand audit, instead of
+-- at first-call time.
+--
+-- Available on Supabase Postgres as a contrib extension; default version 2.7.
+-- Verified live during Slice 7A pre-flight: pg_available_extensions reported
+-- installed_version=null, default_version=2.7.
+--
+-- Usage post-install (read-only, side-effect-free, run from SQL Editor):
+--   SELECT * FROM plpgsql_check_function('<schema>.<function_name>(<arg_types>)');
+-- Examples:
+--   SELECT * FROM plpgsql_check_function('public.create_payout_batch(uuid)');
+--   SELECT * FROM plpgsql_check_function('public.claim_wish_for_payment(uuid,integer)');
+--
+-- Re-run after every new PL/pgSQL function lands or any function body
+-- changes. Captures: variable_conflict, dead-code, unreached-return,
+-- unused-variable, missing-RETURN, suspect plan, NULL deference, etc.
+-- ============================================================================
+
+CREATE EXTENSION IF NOT EXISTS plpgsql_check;
