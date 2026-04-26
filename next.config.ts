@@ -16,11 +16,24 @@ const nextConfig: NextConfig = {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
 
-  // Image optimization
+  // Image optimization (Slice 7C item 36 — public-page LCP perf).
+  // - remotePatterns replaces the deprecated `domains` field. Wildcard
+  //   `*.supabase.co` covers all Supabase Storage hosts (public buckets
+  //   serve under `<project-ref>.supabase.co/storage/v1/object/public/...`).
+  // - minimumCacheTTL bumped 60s → 30 days. Resolves Lighthouse "Use
+  //   efficient cache lifetimes" finding (~308 KiB savings). next/image
+  //   re-optimizes per-variant + serves with this TTL on the proxied URL,
+  //   so longer cache is safe — uploads use content-hashed paths in the
+  //   model-media bucket.
   images: {
-    domains: ['localhost'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+      },
+    ],
     formats: ['image/webp', 'image/avif'],
-    minimumCacheTTL: 60,
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
   },
 
   // Security and CORS headers
