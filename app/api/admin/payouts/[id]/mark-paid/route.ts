@@ -112,6 +112,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
           void sendPayoutPaidEmail({
             ambassadorEmail: contact.email,
             ambassadorName,
+            payoutId: payout.id,
             payoutReference: payout.payout_reference,
             netAmount: Number(payout.net_total),
             currency: payout.currency,

@@ -1,16 +1,28 @@
 /**
- * Notification stubs for the ambassador-stripe webhook.
+ * Notification stubs for the ambassador-stripe webhook + admin payout
+ * mark-paid endpoint.
  *
  * Slice 4 locked decision #8: real email + WhatsApp copy lands in
  * post-4C polish. For the 4B+4C milestone the webhook fires these
  * stubs so the call-graph is complete — swapping in Resend + AUTHKey
  * later becomes a body-only change, no webhook-handler edit needed.
  *
+ * Slice 7B: payout-paid email is now LIVE (Resend wired with
+ * placeholder body per locked Q1 1d — partner swaps real copy via
+ * template-only edit later, no backend changes needed). Listing-paid
+ * email + listing-paid WhatsApp + payout-paid WhatsApp remain stubs
+ * pending real copy + (for WhatsApp) Meta template approval.
+ *
  * Fire-and-forget: callers must NOT await. Failures are logged but
  * don't fail the webhook (notification failure ≠ payment failure;
  * user already paid, DB state is correct, retry-on-500 would
  * reprocess the money side and that's worse than a missed email).
  */
+import { renderPayoutPaidEmail } from './email-templates'
+
+function getAppBase(): string {
+  return (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.welovedecode.com').replace(/\/$/, '')
+}
 
 export interface ListingPaidEmailPayload {
   payerEmail: string | null
@@ -82,6 +94,7 @@ export async function sendListingPaidWhatsApp(payload: ListingPaidWhatsAppPayloa
 export interface PayoutPaidEmailPayload {
   ambassadorEmail: string
   ambassadorName: string
+  payoutId: string
   payoutReference: string
   netAmount: number
   currency: string
@@ -101,19 +114,63 @@ export interface PayoutPaidWhatsAppPayload {
 }
 
 export async function sendPayoutPaidEmail(payload: PayoutPaidEmailPayload): Promise<void> {
-  // TODO (Slice 7): Resend API call per payout-statement spec §10.
-  // Template vars: {ambassador_name}, {net_amount}, {currency},
-  // {bank_name}, {bank_last4}, {paid_at}, {listings_count},
-  // {wishes_count}, {payout_reference}, {statement_url}.
-  // From: notifications@welovedecode.com.
-  console.log('[ambassador-notif:email] stub payload', {
-    kind: 'payout_paid',
-    reference: payload.payoutReference,
-    to: payload.ambassadorEmail,
-    amount_currency: `${payload.netAmount} ${payload.currency}`,
-    bank: `${payload.bankName} •••• ${payload.bankLast4}`,
-    rows: `${payload.listingsCount}L + ${payload.wishesCount}W`,
+  // Slice 7B placeholder live (locked Q1 1d). Real copy swap is a
+  // partner concern post-V1 — touches only `renderPayoutPaidEmail` body
+  // in lib/ambassador/email-templates.ts, not this call site.
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    // Fail-soft: in environments where RESEND_API_KEY isn't set
+    // (local dev, preview without secrets), log + return rather than
+    // throw. Keeps the fire-and-forget contract intact.
+    console.log('[ambassador-notif:email] RESEND_API_KEY unset, skipping send', {
+      kind: 'payout_paid',
+      reference: payload.payoutReference,
+      to: payload.ambassadorEmail,
+    })
+    return
+  }
+
+  const statementUrl = `${getAppBase()}/model/payouts/${encodeURIComponent(payload.payoutId)}`
+  const html = renderPayoutPaidEmail({
+    firstName: payload.ambassadorName,
+    netAmount: payload.netAmount,
+    currency: payload.currency,
+    payoutReference: payload.payoutReference,
+    statementUrl,
   })
+
+  try {
+    // Lazy import + per-call construction (matches add-email/route.ts
+    // TODO note about avoiding top-level Resend instantiation breaking
+    // next build when the env var is unset).
+    const { Resend } = await import('resend')
+    const resend = new Resend(apiKey)
+    const { error } = await resend.emails.send({
+      from: 'WeLoveDecode <noreply@welovedecode.com>',
+      to: payload.ambassadorEmail,
+      subject: 'Your DECODE payout just landed',
+      html,
+      text: `Hi ${payload.ambassadorName}, your DECODE payout of ${payload.netAmount} ${payload.currency.toUpperCase()} just landed in your bank account. View statement: ${statementUrl} (Reference: ${payload.payoutReference})`,
+    })
+    if (error) {
+      console.error('[ambassador-notif:email] payout_paid resend failed', {
+        reference: payload.payoutReference,
+        error,
+      })
+      return
+    }
+    console.log('[ambassador-notif:email] payout_paid sent', {
+      reference: payload.payoutReference,
+      to: payload.ambassadorEmail,
+    })
+  } catch (err) {
+    // Network / SDK error — log + swallow so fire-and-forget contract
+    // holds even on totally unexpected failures.
+    console.error('[ambassador-notif:email] payout_paid threw', {
+      reference: payload.payoutReference,
+      err,
+    })
+  }
 }
 
 export async function sendPayoutPaidWhatsApp(payload: PayoutPaidWhatsAppPayload): Promise<void> {
