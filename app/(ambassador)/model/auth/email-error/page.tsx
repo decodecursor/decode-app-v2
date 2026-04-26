@@ -1,3 +1,28 @@
+import type { Metadata } from 'next'
+import EmailErrorCTA from './EmailErrorCTA'
+
+/**
+ * /model/auth/email-error — universal failure landing for any email
+ * auth link rejected by Supabase (magic-link login + email change).
+ *
+ * Slice 7A locked Q4 (4c): the mockup spec
+ * (`email_error_final_UI_Spec.md` §3) prescribes a single universal
+ * copy across all four failure cases for security-by-obscurity. The
+ * shipped 5-reason copy is materially better UX ("Email already in
+ * use" beats "Link doesn't work" for the conflict case) and the
+ * security argument doesn't fit a 15-min single-use email link.
+ *
+ * Decision: keep shipped 5-reason copy (Principle E — match existing
+ * patterns); supersede only the universal-copy rule. Cherry-pick the
+ * useful mockup mechanics — history.replaceState + button loading-
+ * state — into the EmailErrorCTA client subtree.
+ *
+ * Spec gets a partial supersession block in the 7A closeout doc.
+ *
+ * `<meta robots noindex>` added per spec §9 — keeps failure URLs out
+ * of search engine indexes.
+ */
+
 type Reason = 'invalid' | 'expired' | 'used' | 'conflict' | 'server'
 
 const COPY: Record<Reason, { title: string; body: string }> = {
@@ -21,6 +46,10 @@ const COPY: Record<Reason, { title: string; body: string }> = {
     title: 'Something went wrong',
     body: "We couldn't confirm the email right now.\nPlease try again in a moment.",
   },
+}
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
 }
 
 export default async function EmailErrorPage({
@@ -52,21 +81,7 @@ export default async function EmailErrorPage({
       }}>
         {body}
       </p>
-      <a
-        href="/model/auth"
-        style={{
-          display: 'inline-block',
-          background: '#e91e8c',
-          color: '#fff',
-          textDecoration: 'none',
-          padding: '14px 32px',
-          borderRadius: '12px',
-          fontSize: '14px',
-          fontWeight: 600,
-        }}
-      >
-        Go to login
-      </a>
+      <EmailErrorCTA />
     </div>
   )
 }
