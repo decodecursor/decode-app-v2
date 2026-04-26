@@ -125,10 +125,11 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
         }
         void sendPayoutPaidWhatsApp({
           ambassadorPhone: contact.phone,
+          firstName: ambassadorName,
           payoutReference: payout.payout_reference,
           netAmount: Number(payout.net_total),
           currency: payout.currency,
-          bankLast4: payout.bank_last4,
+          paidAt: now,
         })
       })
   }

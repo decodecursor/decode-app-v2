@@ -107,10 +107,11 @@ export interface PayoutPaidEmailPayload {
 
 export interface PayoutPaidWhatsAppPayload {
   ambassadorPhone: string | null
+  firstName: string
   payoutReference: string
   netAmount: number
   currency: string
-  bankLast4: string
+  paidAt: Date
 }
 
 export async function sendPayoutPaidEmail(payload: PayoutPaidEmailPayload): Promise<void> {
@@ -174,20 +175,89 @@ export async function sendPayoutPaidEmail(payload: PayoutPaidEmailPayload): Prom
 }
 
 export async function sendPayoutPaidWhatsApp(payload: PayoutPaidWhatsAppPayload): Promise<void> {
-  // TODO (Slice 7): AUTHKey API call. New AUTHKEY_WID_PAYOUT_PAID env
-  // var + Meta-approved template required before this can ship live.
-  // Skip silently when no phone on file (matches listing-paid pattern).
+  // Slice 7B wire — locked partner authorization to ship without
+  // Meta-approval confirmation (V1 timeline pressure overrides
+  // approval-confirmation gate; if Meta rejects + reassigns wid on
+  // resubmit, env var swap covers the divergence). Template
+  // `payout_paid_v1_placeholder` registered at AUTHKey wid=32755.
+  //
+  // Variable mapping (5-slot array in order):
+  //   {{1}} first_name, {{2}} net_amount (formatted), {{3}} currency,
+  //   {{4}} payout_reference, {{5}} payout_date (long-form en-GB)
+  //
+  // Calls the canonical AuthkeyWhatsAppService.sendTemplate() shape
+  // (Slice 1.5 OTP precedent + Slice X bid-confirmation precedent),
+  // which auto-logs success + failure to public.whatsapp_messages
+  // with provider_response. Fire-and-forget — failures don't bubble
+  // back to the mark-paid caller.
   if (!payload.ambassadorPhone) {
     console.log('[ambassador-notif:whatsapp] skipped — no phone on file', {
       reference: payload.payoutReference,
     })
     return
   }
-  console.log('[ambassador-notif:whatsapp] stub payload', {
-    kind: 'payout_paid',
-    reference: payload.payoutReference,
-    to: payload.ambassadorPhone,
-    amount_currency: `${payload.netAmount} ${payload.currency}`,
-    bank_last4: payload.bankLast4,
-  })
+
+  const wid = process.env.AUTHKEY_WID_PAYOUT_PAID
+  if (!wid) {
+    console.log('[ambassador-notif:whatsapp] skipped — AUTHKEY_WID_PAYOUT_PAID unset', {
+      reference: payload.payoutReference,
+    })
+    return
+  }
+
+  // Long-form English date per partner spec ("4 January 2026"). Uses
+  // en-GB locale to get day-month-year ordering without commas.
+  const dateFormatted = new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(payload.paidAt)
+
+  // Two-decimal grouped amount for the WhatsApp body. Mirrors the
+  // email helper's formatAmountForEmail to keep cross-channel parity
+  // (recipient sees the same number on both surfaces).
+  const amountFormatted = new Intl.NumberFormat('en', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(payload.netAmount)
+
+  try {
+    const { authkeyWhatsAppService } = await import('@/lib/services/AuthkeyWhatsAppService')
+    if (!authkeyWhatsAppService.isConfigured()) {
+      console.log('[ambassador-notif:whatsapp] skipped — AUTHKEY_API_KEY unset', {
+        reference: payload.payoutReference,
+      })
+      return
+    }
+
+    const result = await authkeyWhatsAppService.sendTemplate({
+      phone: payload.ambassadorPhone,
+      templateWid: wid,
+      templateName: 'payout_paid_v1_placeholder',
+      bodyValues: {
+        '1': payload.firstName,
+        '2': amountFormatted,
+        '3': payload.currency.toUpperCase(),
+        '4': payload.payoutReference,
+        '5': dateFormatted,
+      },
+    })
+
+    if (result.success) {
+      console.log('[ambassador-notif:whatsapp] payout_paid sent', {
+        reference: payload.payoutReference,
+        messageId: result.messageId,
+      })
+    } else {
+      console.error('[ambassador-notif:whatsapp] payout_paid send failed', {
+        reference: payload.payoutReference,
+        error: result.error,
+      })
+    }
+  } catch (err) {
+    console.error('[ambassador-notif:whatsapp] payout_paid threw', {
+      reference: payload.payoutReference,
+      err,
+    })
+  }
 }
