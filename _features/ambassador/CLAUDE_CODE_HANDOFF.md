@@ -630,7 +630,7 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 Slice 7B shipped a temporary service-role-bearer-gated smoke-test endpoint to support end-to-end notification verification without browser-cookie capture. **First task at Slice 7C open is the cleanup walk** — delete the temp endpoint + grep-verify, before any other work lands. Full procedure: `docs/slice-7c-cleanup.md`.
 
 **Files to delete in 7C:**
-- `app/api/_smoke-test-mark-paid/route.ts` (+ the containing `_smoke-test-mark-paid` directory)
+- `app/api/smoke-test-mark-paid/route.ts` (+ the containing `smoke-test-mark-paid` directory)
 - `docs/slice-7b-smoke-test.md` (decision: delete OR archive — partner call at 7C kickoff)
 
 **Files to KEEP** (genuine refactor / production surfaces):
@@ -638,7 +638,7 @@ Slice 7B shipped a temporary service-role-bearer-gated smoke-test endpoint to su
 - `app/api/admin/payouts/[id]/mark-paid/route.ts` — production V1 surface.
 - `lib/ambassador/notification-stubs.ts` + `lib/ambassador/email-templates.ts` — real Resend + AUTHKey wire.
 
-Verification: `grep -rn "_smoke-test-mark-paid" .` must return zero hits after deletion.
+Verification: `grep -rn "smoke-test-mark-paid" .` must return zero hits after deletion.
 
 ---
 

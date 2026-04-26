@@ -10,7 +10,7 @@
 
 The production mark-paid endpoint (`PATCH /api/admin/payouts/[id]/mark-paid`) uses **Supabase SSR cookie auth** via `requireAdmin` (cookies → `auth.getUser` → `users.role='Admin'` check). No curl-only path bypasses that gate — per locked decision #2.
 
-**For this smoke test, partner locked the temporary `/api/_smoke-test-mark-paid` endpoint** (Slice 7B `afb4266`). Service-role-bearer-gated, hard-deleted at Slice 7C kickoff. Calls the same `markPayoutAsPaid()` helper as the production endpoint, so the notification fire path being tested is the real one.
+**For this smoke test, partner locked the temporary `/api/smoke-test-mark-paid` endpoint** (Slice 7B `afb4266`). Service-role-bearer-gated, hard-deleted at Slice 7C kickoff. Calls the same `markPayoutAsPaid()` helper as the production endpoint, so the notification fire path being tested is the real one.
 
 The runbook's Step 5 (`UPDATE model_payouts SET status='paid' …`) **does NOT fire notifications** — it's a pure DB write. Use it for the operator-driven Wednesday batch (per locked Q2 2b), but not for this smoke test.
 
@@ -132,7 +132,7 @@ Don't paste it into chat / share / commit — it has full DB write access.
 PAYOUT_ID="<UUID-from-A.3>"
 
 curl -i -X POST \
-  "https://app.welovedecode.com/api/_smoke-test-mark-paid" \
+  "https://app.welovedecode.com/api/smoke-test-mark-paid" \
   -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
   -H "Content-Type: application/json" \
   -d "{\"payout_id\":\"${PAYOUT_ID}\"}"
@@ -255,4 +255,4 @@ If any line fails, the failing artifact in D.1/D.2/D.3 typically identifies the 
 
 ## Cleanup at Slice 7C open
 
-The `/api/_smoke-test-mark-paid` endpoint shipped in Slice 7B (commit `afb4266`) is **temporary**. First task at Slice 7C kickoff: hard-delete the endpoint per `docs/slice-7c-cleanup.md`. Verification: `grep -rn "_smoke-test-mark-paid" .` returns zero hits. The shared helper (`lib/ambassador/mark-payout-paid.ts`) and the production endpoint (`/api/admin/payouts/[id]/mark-paid`) STAY — they're real surfaces.
+The `/api/smoke-test-mark-paid` endpoint shipped in Slice 7B (commit `afb4266`) is **temporary**. First task at Slice 7C kickoff: hard-delete the endpoint per `docs/slice-7c-cleanup.md`. Verification: `grep -rn "smoke-test-mark-paid" .` returns zero hits. The shared helper (`lib/ambassador/mark-payout-paid.ts`) and the production endpoint (`/api/admin/payouts/[id]/mark-paid`) STAY — they're real surfaces.

@@ -5,7 +5,7 @@
  * sequence so both the production admin endpoint
  * (/api/admin/payouts/[id]/mark-paid, cookie-gated via requireAdmin)
  * and the temporary Slice 7B smoke-test endpoint
- * (/api/_smoke-test-mark-paid, service-role-bearer-gated) hit the
+ * (/api/smoke-test-mark-paid, service-role-bearer-gated) hit the
  * same downstream code path.
  *
  * Rationale: the smoke test must exercise the REAL notification fire

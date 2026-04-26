@@ -8,6 +8,12 @@
  *
  * Tracked for hard-deletion: docs/slice-7c-cleanup.md.
  *
+ * Path note: the original draft was `app/api/_smoke-test-mark-paid/`
+ * (underscore prefix as a "non-production" flag) but Next.js App
+ * Router treats `_*` folders as private (opted-out of routing), which
+ * caused 404. Renamed without the underscore — the file-level comment
+ * block + docs/slice-7c-cleanup.md tracker carry the deletion intent.
+ *
  * Auth: Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>. The
  * service-role key is the same one wired into Vercel env for backend
  * Supabase admin access. Comparison is against
@@ -20,8 +26,8 @@
  * the real notification fire (Resend + AUTHKey), not a copy.
  *
  * Once smoke test passes and Slice 7C opens, this file + the
- * containing _smoke-test-mark-paid directory must be deleted, and
- * the deletion confirmed via grep for `_smoke-test-mark-paid` returning
+ * containing smoke-test-mark-paid directory must be deleted, and the
+ * deletion confirmed via grep for `smoke-test-mark-paid` returning
  * zero hits across the repo.
  */
 

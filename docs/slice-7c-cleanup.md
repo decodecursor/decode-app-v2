@@ -10,7 +10,7 @@
 
 | Item | Path | Reason | Verification after delete |
 |---|---|---|---|
-| Smoke-test mark-paid endpoint | `app/api/_smoke-test-mark-paid/route.ts` (+ containing directory) | Service-role-bearer-gated wrapper that lets the Slice 7B end-to-end notification smoke test bypass admin cookie auth. Production has no business invoking this. | `grep -rn "_smoke-test-mark-paid" .` returns zero hits |
+| Smoke-test mark-paid endpoint | `app/api/smoke-test-mark-paid/route.ts` (+ containing directory) | Service-role-bearer-gated wrapper that lets the Slice 7B end-to-end notification smoke test bypass admin cookie auth. Production has no business invoking this. | `grep -rn "smoke-test-mark-paid" .` returns zero hits |
 | Smoke-test runbook | `docs/slice-7b-smoke-test.md` | Slice-7B-specific procedure; no longer relevant after smoke test completes. Keep ONLY if partner wants the runbook as a re-runnable historical artifact. | Decision in 7C kickoff: delete or archive. |
 
 ## Code to leave in place (NOT for deletion)
@@ -26,12 +26,12 @@
 ## Procedure for 7C kickoff
 
 1. `git checkout -b slice-7c` (or whatever branch shape partner uses)
-2. `rm -r "app/api/_smoke-test-mark-paid"`
+2. `rm -r "app/api/smoke-test-mark-paid"`
 3. Decide on `docs/slice-7b-smoke-test.md`: delete OR move to `docs/archive/`. (Recommend keep in `docs/` as historical procedure — re-runnable if Slice 7C remediation work needs another smoke-test pass.)
-4. `grep -rn "_smoke-test-mark-paid" .` — must return zero hits.
+4. `grep -rn "smoke-test-mark-paid" .` — must return zero hits.
 5. `npm run typecheck` — must pass clean.
 6. Commit: `CHORE: Slice 7C kickoff — remove temporary smoke-test endpoint`.
-7. Push + verify Vercel redeploy doesn't expose the endpoint at `/api/_smoke-test-mark-paid`.
+7. Push + verify Vercel redeploy doesn't expose the endpoint at `/api/smoke-test-mark-paid`.
 
 ---
 
@@ -40,7 +40,7 @@
 After deletion + redeploy, this curl should return 404:
 
 ```bash
-curl -i -X POST "https://app.welovedecode.com/api/_smoke-test-mark-paid" \
+curl -i -X POST "https://app.welovedecode.com/api/smoke-test-mark-paid" \
   -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"payout_id":"00000000-0000-0000-0000-000000000000"}'
