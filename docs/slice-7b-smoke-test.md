@@ -8,15 +8,9 @@
 
 ## Auth shape — important context
 
-The mark-paid endpoint (`/api/admin/payouts/[id]/mark-paid`) uses **Supabase SSR cookie auth**, not a service-role Bearer header. The `requireAdmin` helper (`lib/ambassador/admin-auth.ts`) calls `supabase.auth.getUser()` which reads `sb-*-auth-token` cookies, then SELECTs `public.users.role` to confirm `= 'Admin'`.
+The production mark-paid endpoint (`PATCH /api/admin/payouts/[id]/mark-paid`) uses **Supabase SSR cookie auth** via `requireAdmin` (cookies → `auth.getUser` → `users.role='Admin'` check). No curl-only path bypasses that gate — per locked decision #2.
 
-**There is no curl-only path** that bypasses this gate (per locked decision #2 — `?adminUserId` query-param gates are explicitly forbidden as client-spoofable). The realistic smoke-test path is:
-
-1. Log in as an admin user through the same `/model/auth` magic-link UI any user uses.
-2. Capture the resulting `sb-*` cookies from browser DevTools.
-3. Use those cookies in the curl `-H "Cookie: ..."` header.
-
-Important: if the admin signs up *fresh* via `/model/auth`, the route auto-creates them as `role='Model'`. The admin user must **already exist** in `public.users` with `role='Admin'` (set via Supabase Studio → Authentication → Users → the user's row → Edit → role column). Confirm before proceeding.
+**For this smoke test, partner locked the temporary `/api/_smoke-test-mark-paid` endpoint** (Slice 7B `afb4266`). Service-role-bearer-gated, hard-deleted at Slice 7C kickoff. Calls the same `markPayoutAsPaid()` helper as the production endpoint, so the notification fire path being tested is the real one.
 
 The runbook's Step 5 (`UPDATE model_payouts SET status='paid' …`) **does NOT fire notifications** — it's a pure DB write. Use it for the operator-driven Wednesday batch (per locked Q2 2b), but not for this smoke test.
 
@@ -110,37 +104,38 @@ WHERE id = '<PAYOUT_ID>'::uuid;
 
 ---
 
-## Step B — Capture admin session cookies (2 min)
+## Step B — Get the service-role key (60 seconds)
 
-1. Open a **fresh incognito browser window** at `https://app.welovedecode.com/model/auth`.
-2. Enter the admin email from pre-flight check 1.
-3. Submit. Magic link is sent.
-4. Open the email, click the magic link. Browser lands on `/model` (or `/model/setup` if first sign-in).
-5. Open DevTools (F12) → Application tab → Cookies → `https://app.welovedecode.com`.
-6. Find all cookies whose name **starts with `sb-`** (typically two: `sb-<project-ref>-auth-token` and `sb-<project-ref>-auth-token-code-verifier`).
-7. For each cookie, copy `name=value` separated by `; ` into a single string. The result looks like:
+The smoke-test endpoint authenticates against `process.env.SUPABASE_SERVICE_ROLE_KEY` (the same secret already wired into Vercel for backend Supabase admin access — this is the **secret service_role key**, NOT the public anon key).
 
-   ```
-   sb-abcdefghijkl-auth-token=base64-jwt-blob; sb-abcdefghijkl-auth-token-code-verifier=...
-   ```
+Where to find it:
+1. Open Supabase dashboard → your project → **Project Settings** (gear icon, bottom-left) → **API** (left sidebar).
+2. Scroll to "Project API keys".
+3. Copy the **`service_role` `secret`** value (the row with the warning "This key has the ability to bypass Row Level Security. Never share it publicly.").
+4. **Do NOT paste the `anon` `public` key** — that one is harmless but won't authenticate this endpoint.
 
-   Save this string for Step C — call it `$ADMIN_COOKIE`.
+Save it for Step C — call it `$SUPABASE_SERVICE_ROLE_KEY`. Use it inline in the curl, OR `export` it in your shell first:
 
-**Cookie shape gotcha:** the auth-token cookie value is a long base64 blob (often >2 KB). Copy the entire value verbatim — DevTools shows it truncated by default; click the cookie row → the right-side panel shows the full value.
+```bash
+export SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+Don't paste it into chat / share / commit — it has full DB write access.
 
 ---
 
-## Step C — Mark-paid via curl (60 seconds)
+## Step C — Mark-paid via curl (30 seconds)
 
-🟨 **PASTE TO YOUR TERMINAL** (replace `<PAYOUT_ID>` and `<ADMIN_COOKIE>`)
+🟨 **PASTE TO YOUR TERMINAL** (replace `<PAYOUT_ID>`; key from $SUPABASE_SERVICE_ROLE_KEY env or pasted inline)
 
 ```bash
 PAYOUT_ID="<UUID-from-A.3>"
-ADMIN_COOKIE="<the cookie string from B.7>"
 
-curl -i -X PATCH \
-  "https://app.welovedecode.com/api/admin/payouts/${PAYOUT_ID}/mark-paid" \
-  -H "Cookie: ${ADMIN_COOKIE}"
+curl -i -X POST \
+  "https://app.welovedecode.com/api/_smoke-test-mark-paid" \
+  -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+  -H "Content-Type: application/json" \
+  -d "{\"payout_id\":\"${PAYOUT_ID}\"}"
 ```
 
 Expected response:
@@ -150,14 +145,15 @@ HTTP/2 200
 content-type: application/json
 …
 
-{"success":true,"payout_id":"<UUID>","status":"paid","paid_at":"2026-04-26T…"}
+{"success":true,"payout_id":"<UUID>","status":"paid","paid_at":"2026-04-26T…","smoke_test":true}
 ```
 
 If you see:
-- **HTTP 401 `{"error":"Unauthorized"}`** → cookies expired or mistyped. Re-do Step B.
-- **HTTP 403 `{"error":"Forbidden"}`** → logged-in user is not `role='Admin'` in `public.users`. Confirm pre-flight check 1.
+- **HTTP 401 `{"error":"Unauthorized"}`** → bearer token mismatched. Verify you copied the **service_role secret**, not the anon key. Trim any whitespace.
+- **HTTP 400 `{"error":"payout_id required"}`** → JSON body missing or malformed; verify Content-Type header + JSON quoting.
 - **HTTP 404 `{"error":"Payout not found"}`** → wrong UUID. Re-check A.4.
 - **HTTP 409 `{"error":"Cannot mark-paid from status 'paid'"}`** → already-marked-paid (idempotent guard). Re-run from A.1 with a fresh payout.
+- **HTTP 500 `{"error":"SUPABASE_SERVICE_ROLE_KEY env not configured"}`** → Vercel env not set in the deployment that's serving the request. Check Vercel dashboard.
 
 ---
 
@@ -257,11 +253,6 @@ If any line fails, the failing artifact in D.1/D.2/D.3 typically identifies the 
 
 ---
 
-## Fallback if Step B (cookie capture) is too fiddly
+## Cleanup at Slice 7C open
 
-If extracting cookies from DevTools is painful and partner wants a service-role-friendly path, ask me to ship a temporary `/api/admin/payouts/[id]/_smoke-test-mark-paid` endpoint that:
-- Accepts `Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY` instead of cookies
-- Otherwise behaves identically to the production endpoint (same DB writes, same notification fires)
-- Hard-deleted post-smoke-test in the same Slice 7C
-
-That's a ~30 LOC patch + revert. Not in 7B scope, but trivial if needed.
+The `/api/_smoke-test-mark-paid` endpoint shipped in Slice 7B (commit `afb4266`) is **temporary**. First task at Slice 7C kickoff: hard-delete the endpoint per `docs/slice-7c-cleanup.md`. Verification: `grep -rn "_smoke-test-mark-paid" .` returns zero hits. The shared helper (`lib/ambassador/mark-payout-paid.ts`) and the production endpoint (`/api/admin/payouts/[id]/mark-paid`) STAY — they're real surfaces.
