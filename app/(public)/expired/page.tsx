@@ -1,17 +1,26 @@
 import type { Metadata } from 'next'
+import { getBrandUrl } from '@/lib/brand-url'
+import ExpiredCTA from './ExpiredCTA'
 
 /**
  * Generic terminal page shown when a /pay/[token] link is no longer
- * valid. Covers: listing deleted / hidden, listing paid by another
- * professional (V1 fallback per audit locked decision #2), admin
- * revocation, invalid token format, and — from Slice 5 onward —
- * deleted wishes that aren't "already gifted" (that case ships its
- * own page in Slice 5 per payment_link_no_longer_active spec §2.4).
+ * valid. Covers: missing price/FK data, listing deleted / hidden,
+ * admin revocation, invalid token format, and deleted wishes that
+ * aren't "already gifted" (that case ships /wish/taken).
+ *
+ * Slice 7A: the already-paid case (race with another payer on a
+ * shared link) is now handled by /listing/paid?slug=&first= per
+ * listing_paid_final_UI_Spec.md — that path leaves /expired as the
+ * truly generic "no context to personalize" terminal.
  *
  * Spec: _features/ambassador/payment_link_no_longer_active_final_UI_Spec.md
  *
- * Pure static HTML — no JS, no fetch, no params processed. Works with
- * JS disabled (button is a real <a href="/">).
+ * Server component for static prerender + metadata export. The CTA
+ * button is split into a small client component (`ExpiredCTA.tsx`)
+ * to add the spec §6 loading-state on tap. Button href reads
+ * NEXT_PUBLIC_BRAND_URL via lib/brand-url.ts so the canonical apex
+ * (Carrd default) is the destination, NOT app.welovedecode.com/
+ * which resolves to legacy auctions auth (locked Slice 7A Q5).
  *
  * Route-group layout (app/(public)/layout.tsx) provides the outer
  * black chrome; this page adds the 500px mobile frame inline, matching
@@ -33,24 +42,7 @@ export default function ExpiredPage() {
         <p style={{ fontSize: 13, color: '#888', lineHeight: 1.6, marginBottom: 40 }}>
           This payment link is no longer valid.
         </p>
-        <a
-          href="/"
-          style={{
-            display: 'block',
-            width: '100%',
-            padding: '16px',
-            borderRadius: 12,
-            background: '#e91e8c',
-            color: '#fff',
-            fontSize: 14,
-            fontWeight: 600,
-            textAlign: 'center',
-            textDecoration: 'none',
-            boxSizing: 'border-box',
-          }}
-        >
-          Go to WeLoveDecode
-        </a>
+        <ExpiredCTA brandUrl={getBrandUrl()} />
       </div>
     </div>
   )
