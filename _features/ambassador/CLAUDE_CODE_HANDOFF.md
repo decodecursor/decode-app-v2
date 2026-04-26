@@ -1134,7 +1134,7 @@ Four lessons worth carrying forward into Slice 7 and beyond.
 
 ### 🎨 Slice 7 — Polish + edge cases
 
-**Split:** Slice 7A (terminal/static pages + error boundaries — SHIPPED 2026-04-26, commits `581393e..8e10d2f` plus closeout `TODO-7A-closeout-hash`) + Slice 7B (bundle/Lighthouse audit + items 30/33 + Resend/AUTHKey email-WhatsApp real copy — opens next).
+**Split:** Slice 7A (terminal/static pages + error boundaries — SHIPPED 2026-04-26, commits `581393e..8e10d2f` plus closeout `21b78f0`) + Slice 7B (bundle/Lighthouse audit + items 30/33 + Resend/AUTHKey email-WhatsApp real copy — opens next).
 
 **Goal:** All terminal pages, static content, error states, and launch-readiness polish.
 
