@@ -679,6 +679,14 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 
    **Action:** when any one of (a)-(d) hits a third (or fourth) consumer, do the canonical extraction in the same commit that introduces the third site. (d) is the strongest extraction candidate today since rule-of-three is already met.
 
+35. **Accessibility audit + contrast pass (Slice 7B Lighthouse spillover, 2026-04-26).** Lighthouse scores captured 2026-04-26 across 6 public surfaces × mobile + desktop landed Accessibility in the **82–86 range across every single URL**. The cluster pattern (variance ≤4 across 12 audit runs) strongly suggests a single root cause rather than per-page bugs. **Most likely culprit:** muted-text contrast pairs in the design system fail WCAG AA 4.5:1 for normal body text:
+   - `#888` on `#000` background (subtitles on /expired, /listing/paid, /wish/taken, 404, /privacy hero `Last updated:` line)
+   - `#666` on `#000` (footnotes — hero `Last updated`, payouts statement timestamps, error-boundary digest reference)
+   - `#777` on `#000` (Terms tab idle state)
+   These are heavily reused across the dark-mode design system; a contrast pass would touch many sites.
+   **Action:** dedicated audit + targeted contrast lift (e.g. `#888 → #aaa`, `#666 → #888`) where the contrast falls below WCAG AA. Likely also surfaces some missing `aria-*` attributes on dynamically-toggled UI (skeleton screens, modals). Per locked Q2 2b (Slice 7B captures + reports without remediating); this is a partner-priority decision: V1-polish or post-V1.
+   **Captured data:** `docs/slice-7b-lighthouse.md` has the full 12-run table.
+
 ### Slice 3 feature candidates (to be scoped separately, NOT to be conflated with hardening backlog)
 
 

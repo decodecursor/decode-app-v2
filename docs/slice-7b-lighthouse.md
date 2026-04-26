@@ -1,8 +1,8 @@
 # Slice 7B — Lighthouse Audit
 
-**Captured:** 2026-04-26 (Slice 7B step 6).
+**Captured:** 2026-04-26 (Slice 7B step 6). Scores landed via partner-side run on Chrome DevTools / pagespeed.web.dev.
 **Per Slice 7B locked Q2 (2b):** capture + report only — remediation scope is a partner decision after seeing the report.
-**Constraint:** the WSL environment used to build Slice 7 has no Chrome/Chromium installed and no `lighthouse` package on PATH; this doc captures the audit *procedure* + targets and leaves score capture for the partner via Chrome DevTools or pagespeed.web.dev. Scores get pasted into the table below once captured.
+**Constraint at audit time:** the WSL build environment had no Chrome/Chromium installed and no `lighthouse` package on PATH; partner ran the audit and pasted scores into the tables below.
 
 ---
 
@@ -76,47 +76,51 @@ Repeat per URL, parse JSON for `categories.performance.score * 100` etc.
 
 ---
 
-## Scores — fill in after capture
+## Scores — captured 2026-04-26
+
+Notes:
+- **SEO 60 on /expired, /listing/paid, /wish/taken is expected + intentional** — those pages ship `<meta robots noindex>` per Slice 7A spec adherence. The Lighthouse SEO audit penalizes for `noindex` since its definition of "good SEO" assumes you want to be indexed. This is correct behavior; not a remediation target.
+- **Best Practices 96 across the board** — solid. The −4 is consistent across pages, likely an HSTS / single-warning class shared by Vercel default headers.
+- **Performance: all desktop ≥94, all mobile ≥74. No reds.** Mobile floor is `/yannijohnson` at 74 (only data-heavy public page in the audit; ISR + media). Within Phase 12 §17–18 soft targets, no remediation triggered. Bundle audit findings (`slice-7b-bundle-audit.md`) remain as the actionable surface if mobile Performance becomes a partner priority post-V1.
+- **Accessibility 82–86 across all pages** — clusters tightly. Not red, not flagged as 7B remediation per locked Q2 (capture + report only). Consistent pattern across surfaces strongly suggests a single root cause: muted text contrast (likely `#888` and `#666` on `#000` failing WCAG AA 4.5:1 contrast ratio for normal text). **Logged as hardening item 35** — accessibility audit + contrast pass. Partner decides V1-polish vs. post-V1.
 
 ### Mobile
 
 | URL | Performance | Accessibility | Best Practices | SEO | Date |
 |---|---|---|---|---|---|
-| `/{slug}` (e.g. `/sarajohnson`) | _ | _ | _ | _ | _ |
-| `/expired` | _ | _ | _ | _ | _ |
-| `/listing/paid?slug=&first=` | _ | _ | _ | _ | _ |
-| `/wish/taken?slug=&first=` | _ | _ | _ | _ | _ |
-| `/terms` | _ | _ | _ | _ | _ |
-| `/privacy` | _ | _ | _ | _ | _ |
-| 404 (`/typo-path`) | _ | _ | _ | _ | _ |
+| `/yannijohnson` (sample slug) | 74 | 86 | 96 | 100 | 2026-04-26 |
+| `/expired` | 78 | 85 | 96 | 60 ⓘ | 2026-04-26 |
+| `/listing/paid?slug=&first=` | 83 | 85 | 96 | 60 ⓘ | 2026-04-26 |
+| `/wish/taken?slug=&first=` | 81 | 85 | 96 | 60 ⓘ | 2026-04-26 |
+| `/terms` | 83 | 85 | 96 | 100 | 2026-04-26 |
+| `/privacy` | 95 | 82 | 96 | 100 | 2026-04-26 |
 
 ### Desktop
 
 | URL | Performance | Accessibility | Best Practices | SEO | Date |
 |---|---|---|---|---|---|
-| `/{slug}` | _ | _ | _ | _ | _ |
-| `/expired` | _ | _ | _ | _ | _ |
-| `/listing/paid?slug=&first=` | _ | _ | _ | _ | _ |
-| `/wish/taken?slug=&first=` | _ | _ | _ | _ | _ |
-| `/terms` | _ | _ | _ | _ | _ |
-| `/privacy` | _ | _ | _ | _ | _ |
-| 404 | _ | _ | _ | _ | _ |
+| `/yannijohnson` (sample slug) | 94 | 86 | 96 | 100 | 2026-04-26 |
+| `/expired` | 99 | 85 | 96 | 60 ⓘ | 2026-04-26 |
+| `/listing/paid?slug=&first=` | 97 | 85 | 96 | 60 ⓘ | 2026-04-26 |
+| `/wish/taken?slug=&first=` | 98 | 85 | 96 | 60 ⓘ | 2026-04-26 |
+| `/terms` | 100 | 85 | 96 | 100 | 2026-04-26 |
+| `/privacy` | 99 | 82 | 96 | 100 | 2026-04-26 |
+
+ⓘ SEO 60 = expected `noindex` penalty on terminal pages. Not a remediation target.
 
 ---
 
-## Predicted findings (before run)
+## Findings (post-run)
 
-Based on the bundle audit (`slice-7b-bundle-audit.md`) — these are the most likely yellow/red flags:
+1. **No reds anywhere.** Lowest single score across both form-factors is mobile Performance on `/yannijohnson` at 74 — yellow but not red. Within Phase 12 §17–18 soft targets and locked Q2 capture-only.
 
-1. **Performance on mobile slow-3G** — the 498 KB shared baseline + parse cost will likely push LCP past 2.5 s on slower connections. Predicted Performance score 60–80 mobile, 80–95 desktop. Remediation A from bundle audit (lazy-load Stripe) would lift this directly.
+2. **Accessibility cluster at 82–86 is the most actionable signal.** Same score pattern across all 6 URLs strongly suggests a single root cause rather than per-page bugs. The most likely culprit is color-contrast — the design system uses muted greys (`#888` and `#666`) on a `#000` background for subtitles + helper text, and those pairs fail WCAG AA 4.5:1 contrast for normal-size body text. Logged as **hardening item 35**.
 
-2. **Largest Contentful Paint** — likely flagged on `/{slug}` because the cover photo is the LCP element and may not have `priority` set or a sized placeholder.
+3. **Mobile Performance floor is `/yannijohnson` at 74** — that's the only data-heavy public page in the audit (cover photo + media squad rows + Wishes + Wall of Love + analytics fire). The other 5 surfaces are static-text + one CTA. Remediation A from `slice-7b-bundle-audit.md` (lazy-load Stripe via `next/dynamic`) would lift this since `/{slug}` currently inherits the global Stripe import despite never needing it.
 
-3. **CLS (Cumulative Layout Shift)** — the public profile renders sections (Wishes, Wall of Love) post-mount via client fetch (Pattern 2). CLS could spike if those sections insert above-fold content. Worth watching but probably under the 0.1 threshold given they're below the cover hero.
+4. **Static pages green on desktop, yellow on mobile.** Desktop Performance on the 4 terminal pages clusters at 97–99. Mobile drops to 78–83 because of the same 498 KB shared baseline parse cost. Architecturally consistent.
 
-4. **Static pages (terms / privacy / expired) should green across the board** on Performance + Accessibility. They're 499 KB First Load but most of that is cached after the first page in a session. Standalone Lighthouse runs simulate a cold load each time.
-
-5. **SEO on terminal pages will score lower (~80–90)** because of the `noindex` meta — that's correct behavior, NOT a bug. Flag for the auditor's awareness.
+5. **SEO scoring is correct for both audiences.** Indexable pages (`/{slug}`, `/terms`, `/privacy`) score 100. Terminal pages (`/expired`, `/listing/paid`, `/wish/taken`) score 60 because of the deliberate `noindex` meta — that's the spec, not a regression.
 
 ---
 
