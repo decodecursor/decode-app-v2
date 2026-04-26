@@ -151,7 +151,10 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
     : `One-time payment · Your name forever on ${ambassadorFirstName}’s page`
 
   return (
-    <div
+    // Slice 7C item 35 fix 2: <main> landmark for screen readers.
+    // /pay/[token] is at app root (not in /(public)), so the
+    // /(public) layout's <main> doesn't apply — wrap explicitly here.
+    <main
       id="wpPage"
       style={{
         minHeight: '100vh',
@@ -326,7 +329,7 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
         bodyExtras={bodyExtras}
         onPiCreateError={handlePiCreateError}
       />
-    </div>
+    </main>
   )
 }
 

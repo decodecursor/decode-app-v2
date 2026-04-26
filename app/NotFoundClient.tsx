@@ -28,7 +28,10 @@ export default function NotFoundClient({ brandUrl }: NotFoundClientProps) {
   }
 
   return (
-    <div
+    // Slice 7C item 35 fix 2: <main> landmark for screen readers.
+    // app/not-found.tsx is at app root (not in /(public)), so the
+    // /(public) layout's <main> doesn't apply here — wrap explicitly.
+    <main
       style={{
         minHeight: '100vh',
         background: '#000',
@@ -58,6 +61,6 @@ export default function NotFoundClient({ brandUrl }: NotFoundClientProps) {
           {loading ? 'Loading…' : 'Go to WeLoveDecode'}
         </a>
       </div>
-    </div>
+    </main>
   )
 }

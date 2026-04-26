@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { UserProvider } from "@/providers/UserContext";
@@ -17,6 +17,21 @@ export const metadata: Metadata = {
   },
 };
 
+// Slice 7C item 35 fix 1: viewport meta cleanup. Lighthouse a11y
+// flagged user-scalable=no + maximum-scale=1 as accessibility
+// failures (blocks pinch-to-zoom for users with low vision). The
+// previous static <meta name="viewport"> in <head> below also
+// duplicated the Next-generated meta from the route-group viewport
+// exports — Lighthouse showed two viewport tags. Centralizing here
+// at root via the Viewport export eliminates the duplicate AND
+// drops the bad keys. (ambassador) + (public) layouts override
+// themeColor + viewportFit but inherit width + initialScale from
+// here, NOT the bad maximumScale/userScalable.
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,7 +40,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <meta name="format-detection" content="telephone=no" />
         {/* Preconnect to Stripe for faster SDK loading */}
         <link rel="preconnect" href="https://js.stripe.com" />

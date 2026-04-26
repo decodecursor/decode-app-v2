@@ -55,12 +55,18 @@ export function SquadRow({
         alignItems: 'center',
       }}
     >
-      {/* Avatar — links to Instagram */}
+      {/* Avatar — links to Instagram. Slice 7C item 35 fix 3: aria-label
+          gives screen readers a discernible name for the link, since the
+          child <img> has alt="" (decorative — name is in the sibling <a>
+          below, but the avatar itself was an unlabeled link). The name-
+          link below already has its own text content so it's accessible
+          without an aria-label. */}
       <a
         href={igUrl}
         target="_blank"
         rel="noopener"
         onClick={onIgClick}
+        aria-label={`Visit ${listing.professional_name} on Instagram`}
         style={{
           width: 52,
           height: 52,

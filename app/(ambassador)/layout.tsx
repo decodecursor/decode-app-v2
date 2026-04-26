@@ -5,12 +5,12 @@ export const metadata: Metadata = {
   description: 'Beauty ambassador platform',
 }
 
+// Slice 7C item 35 fix 1: dropped maximumScale + userScalable per
+// Lighthouse a11y. width + initialScale inherit from root layout
+// (app/layout.tsx). themeColor + viewportFit are ambassador-route-
+// group overrides.
 export const viewport: Viewport = {
   themeColor: '#000001',
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: 'cover',
 }
 

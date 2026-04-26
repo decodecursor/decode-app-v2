@@ -83,7 +83,11 @@ export function CheckoutClient({ data, shareUrl }: Props) {
     // PublicPageClient on /{slug}. Position-fixed children (UrlOverlay,
     // PaymentModal) escape this frame via viewport-based containing block,
     // so modals still cover full viewport on desktop.
-    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    //
+    // Slice 7C item 35 fix 2: <main> landmark for screen readers.
+    // /pay/[token] is at app root (not in /(public)), so the
+    // /(public) layout's <main> doesn't apply — wrap explicitly here.
+    <main style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <div style={{ width: '100%', maxWidth: 500, margin: '0 auto', minHeight: '100vh' }}>
       {/* Cover */}
       <div style={{ position: 'relative', height: 180, width: '100%', ...coverStyle }}>
@@ -190,7 +194,7 @@ export function CheckoutClient({ data, shareUrl }: Props) {
           the hook captures the ref and calls turnstile.render on it. */}
       <div ref={turnstileContainerRef} style={{ display: 'none' }} />
       </div>
-    </div>
+    </main>
   )
 }
 
