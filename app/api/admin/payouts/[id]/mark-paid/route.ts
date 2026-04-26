@@ -1,6 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { requireAdmin } from '@/lib/ambassador/admin-auth'
-import { markPayoutAsPaid } from '@/lib/ambassador/mark-payout-paid'
+import {
+  sendPayoutPaidEmail,
+  sendPayoutPaidWhatsApp,
+} from '@/lib/ambassador/notification-stubs'
 
 /**
  * PATCH /api/admin/payouts/[id]/mark-paid
@@ -13,26 +17,128 @@ import { markPayoutAsPaid } from '@/lib/ambassador/mark-payout-paid'
  * Auth: requireAdmin (auth.getUser + users.role='Admin' check), the
  * sound pattern per locked decision #2 — NOT the ?adminUserId
  * query-param gate from /api/admin/transfers (hardening item 29).
- *
- * Slice 7B refactor: the read → status-gate → UPDATE → fire-
- * notifications sequence is extracted to lib/ambassador/mark-payout-
- * paid.ts so the temporary smoke-test endpoint can hit the same
- * downstream code without copy-pasting.
  */
+
+interface PayoutRow {
+  id: string
+  payout_reference: string
+  net_total: number | string
+  currency: string
+  status: 'pending' | 'processing' | 'paid' | 'failed'
+  bank_name: string
+  bank_last4: string
+  listings_count: number
+  wishes_count: number
+  model: {
+    user_id: string
+    first_name: string
+  } | null
+}
+
+interface UserContact {
+  id: string
+  email: string | null
+  phone: string | null
+}
+
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params
   const gate = await requireAdmin(req)
   if (gate instanceof NextResponse) return gate
 
-  const result = await markPayoutAsPaid(id)
-  if (result.ok === false) {
-    return NextResponse.json({ error: result.error }, { status: result.httpStatus })
+  const admin = createServiceRoleClient()
+
+  // Read the row first so we can fire notifications post-update with the
+  // ambassador's contact info. Single round-trip joins to model_profiles.
+  const { data: payout, error: readErr } = await admin
+    .from('model_payouts')
+    .select(`
+      id, payout_reference, net_total, currency, status, bank_name, bank_last4,
+      listings_count, wishes_count,
+      model:model_profiles!model_payouts_model_id_fkey ( user_id, first_name )
+    `)
+    .eq('id', id)
+    .maybeSingle<PayoutRow>()
+
+  if (readErr) {
+    return NextResponse.json({ error: 'Lookup failed' }, { status: 500 })
+  }
+  if (!payout) {
+    return NextResponse.json({ error: 'Payout not found' }, { status: 404 })
+  }
+
+  // Status gate: only pending or processing → paid is valid. Already-paid
+  // or failed payouts can't be re-marked here (admin would need a
+  // separate undo endpoint, out of 6B scope).
+  if (payout.status !== 'pending' && payout.status !== 'processing') {
+    return NextResponse.json(
+      { error: `Cannot mark-paid from status '${payout.status}'` },
+      { status: 409 },
+    )
+  }
+
+  const now = new Date()
+  const { error: updateErr } = await admin
+    .from('model_payouts')
+    .update({
+      status: 'paid',
+      paid_at: now.toISOString(),
+      updated_at: now.toISOString(),
+    })
+    .eq('id', id)
+    // Concurrency guard: only flip if status hasn't changed since read.
+    // If a parallel admin click already marked-paid we get 0 rows
+    // updated; surface as success since the desired end-state holds.
+    .in('status', ['pending', 'processing'])
+
+  if (updateErr) {
+    return NextResponse.json({ error: 'Update failed' }, { status: 500 })
+  }
+
+  // Fire notifications (Slice 7B real Resend + AUTHKey wires). Read
+  // ambassador contact info via PostgREST column alias `phone:phone_number`
+  // — the public.users column is `phone_number`, not `phone` (pre-7B
+  // bug, fixed in f38a6b3). Fire-and-forget so notification failures
+  // never bubble back to the admin caller.
+  if (payout.model?.user_id) {
+    void admin
+      .from('users')
+      .select('id, email, phone:phone_number')
+      .eq('id', payout.model.user_id)
+      .maybeSingle<UserContact>()
+      .then(({ data: contact }) => {
+        if (!contact) return
+        const ambassadorName = payout.model?.first_name ?? 'there'
+        if (contact.email) {
+          void sendPayoutPaidEmail({
+            ambassadorEmail: contact.email,
+            ambassadorName,
+            payoutId: payout.id,
+            payoutReference: payout.payout_reference,
+            netAmount: Number(payout.net_total),
+            currency: payout.currency,
+            bankName: payout.bank_name,
+            bankLast4: payout.bank_last4,
+            paidAt: now,
+            listingsCount: payout.listings_count,
+            wishesCount: payout.wishes_count,
+          })
+        }
+        void sendPayoutPaidWhatsApp({
+          ambassadorPhone: contact.phone,
+          firstName: ambassadorName,
+          payoutReference: payout.payout_reference,
+          netAmount: Number(payout.net_total),
+          currency: payout.currency,
+          paidAt: now,
+        })
+      })
   }
 
   return NextResponse.json({
     success: true,
-    payout_id: result.payoutId,
-    status: result.status,
-    paid_at: result.paidAt,
+    payout_id: id,
+    status: 'paid',
+    paid_at: now.toISOString(),
   })
 }

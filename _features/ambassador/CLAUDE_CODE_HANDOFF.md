@@ -625,23 +625,6 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 - `2cd9145` — AmbSubmitButton extraction with send/verify/save/delete families; auth + settings rewiring.
 - `156fca1` — Change Email confirmation: stack old/new cards on mobile to prevent overflow (follow-up to B1).
 
-### 🚧 Slice 7C kickoff cleanup checklist (DELETE before any 7C feature work)
-
-Slice 7B shipped a temporary service-role-bearer-gated smoke-test endpoint to support end-to-end notification verification without browser-cookie capture. **First task at Slice 7C open is the cleanup walk** — delete the temp endpoint + grep-verify, before any other work lands. Full procedure: `docs/slice-7c-cleanup.md`.
-
-**Files to delete in 7C:**
-- `app/api/smoke-test-mark-paid/route.ts` (+ the containing `smoke-test-mark-paid` directory)
-- `docs/slice-7b-smoke-test.md` (decision: delete OR archive — partner call at 7C kickoff)
-
-**Files to KEEP** (genuine refactor / production surfaces):
-- `lib/ambassador/mark-payout-paid.ts` — real helper, used by both temp endpoint AND the production `/api/admin/payouts/[id]/mark-paid`. Stays in 7C.
-- `app/api/admin/payouts/[id]/mark-paid/route.ts` — production V1 surface.
-- `lib/ambassador/notification-stubs.ts` + `lib/ambassador/email-templates.ts` — real Resend + AUTHKey wire.
-
-Verification: `grep -rn "smoke-test-mark-paid" .` must return zero hits after deletion.
-
----
-
 ### Post-Slice 2 hardening candidates (consolidate into one focused slice, separate from Slice 3 feature work)
 
 1. **WhatsApp OTP delivery to +49 (German) numbers** — investigate AUTHKey dashboard: check template approvals for DE, check delivery logs for failed messages. Not code; 15-min dashboard task. User to handle directly, no Claude Code involvement.
