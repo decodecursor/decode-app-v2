@@ -667,6 +667,18 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 32. **Admin login flow does not exist yet — V1 admin payout path requires either auth flow or accepted manual-SQL runbook (Slice 6B-2 closeout, 2026-04-26).** The `/api/admin/payouts/create` + `/api/admin/payouts/[id]/mark-paid` endpoints shipped with the sound auth gate (`requireAdmin` helper using `auth.getUser` + `users.role='Admin'` per locked decision #2 + new `lib/ambassador/admin-auth.ts`) but **the auth gate is shipped untested** because the verification chain ran directly against the RPC in SQL Editor, not against the HTTP wrappers. There's no admin login UI in the ambassador app today — admins exist as `users.role='Admin'` rows but there's no path to obtain a session JWT scoped to that user. **Two paths to V1:** (a) **build admin login flow in Slice 7** — minimal admin-only auth page (probably reusing the existing `/model/auth` shape with role-aware redirect post-verify) so the HTTP endpoints become exercisable; estimated ~1 day of work covering page + route + role-aware post-login redirect to an admin dashboard or curl-friendly status page. (b) **accept manual SQL invocation as the V1 admin payout path** with a runbook documenting `SELECT * FROM create_payout_batch('<model_id>'::uuid);` for batch creation + `UPDATE model_payouts SET status='paid', paid_at=NOW() WHERE id='<payout_id>';` for marking paid; runbook lives in HANDOFF or a separate `/docs/admin-runbook.md`. Path (a) is the production-grade answer; path (b) is acceptable for a small admin team (1-2 operators, low Wednesday batch volume) and defers the auth-flow work to post-V1. **Decision must be locked at Slice 7 pre-flight** — the choice affects Slice 7's scope (admin login flow is ~1 day, runbook is ~30 min). **Risk of deferring further:** first-Wednesday-batch operator hits the HTTP endpoint, gate raises 401, no fallback documented; under operational pressure they bypass auth entirely with raw service-role SQL, which then becomes the de facto pattern. Surface this decision early in Slice 7 pre-flight so the right answer ships intentionally.
 33. **Migration hygiene — 9 PL/pgSQL functions exist in production without corresponding migration files (item 31 live verification spillover, 2026-04-26).** Surfaced during item 31 live `pg_proc` verification: production schema contains 9 stored functions never committed via `supabase/migrations/` — 6 trigger functions (`handle_user_deletion`, `update_auction_stats_on_bid`, `update_guest_bidder_stats`, `update_payment_link_status`, `update_transactions_updated_at`, `update_updated_at_column`), 1 void cron-shaped (`cleanup_old_webhook_events`), 2 scalar fee functions (`calculate_tiered_fee`, `get_fee_percentage` — legacy auction-side tiered fee math, **NOT used by DECODE ambassador feature**, do not modify without auction-side review per §12 cross-feature isolation). All 9 immune-by-shape to the RETURNS TABLE shadow trap (no RETURNS TABLE in any of them). All confirmed legacy auction-side or generic shared-utility, with zero DECODE-side callers (grep verified 2026-04-26 against `app/(ambassador)/`, `lib/ambassador/`, `components/ambassador/`, `app/api/ambassador/`, `supabase/migrations/`, `app/(public)/`, `components/checkout/`, `components/public/`). **Action:** `pg_get_functiondef()` each, write tracking migrations `supabase/migrations/<date>_track_legacy_<name>.sql` using `DROP FUNCTION IF EXISTS` + `CREATE OR REPLACE` (bodies unchanged, just added to git history so future audits don't re-discover them). Defer to dedicated hygiene slice or fold into Slice 7 polish — **not blocking V1** since functions execute correctly today and are not on the DECODE real-money path. The audit-trail gap is the cost of deferring; production behavior is unchanged either way.
 
+34. **Principle I rule-of-three watch — terminal-page primitives consolidated (Slice 7A closeout, 2026-04-26).** Four candidates surfaced during 7A; none triggered Principle I extraction during the slice (per locked Q6 6a verify-only + per-slice scope discipline). Tracked together for the next opportunistic close:
+
+   (a) **`SLUG_RE` + `FIRST_RE` validators** inline-duplicated across `/wish/taken` (`WishTakenClient.tsx:23-24`) + `/listing/paid` (`ListingPaidClient.tsx:33-34`). Spec itself notes "One validation function could serve both pages" (`listing_paid_final_UI_Spec.md` §5.2). Rule-of-two; rule-of-three would extract to `lib/ambassador/terminal-page-validators.ts` exporting `validateAmbassadorSlug(slug): string | null` + `validateAmbassadorFirstName(first): string` (returns 'their' on failure).
+
+   (b) **Back-arrow circle primitive** (32px, `#1c1c1c` bg, `#262626` border, `history.back()` click handler with `/` fallback) inline-duplicated across `/privacy` (`PrivacyBackArrow.tsx`) + `/terms` (`TermsBackArrow.tsx`). Rule-of-two; rule-of-three would extract to `app/(public)/_components/LegalBackArrow.tsx`.
+
+   (c) **Pink CTA + loading-state-on-tap** inline across `NotFoundClient.tsx` + `ExpiredCTA.tsx` + `EmailErrorCTA.tsx` + `ListingPaidClient.tsx`. Already at rule-of-four for the loading-state pattern, but per-page styling differences (font-size 14 vs 15, padding `16` vs `14px 32px`) make a single canonical primitive non-trivial. Extract on next consumer with full visual unification across the 5 sites.
+
+   (d) **Skeleton loaders** across `AnalyticsClient.tsx:141` + `PayoutsListClient.tsx:139` + `StatementClient.tsx:212` — per-page-invented `@keyframes *-pulse 1.4s ease-in-out` with same visual outcome. Rule-of-three already met. Canonical `<Skeleton>` extraction to `components/ambassador/Skeleton.tsx` is a clean 3-call-site retrofit (~30 LOC per site). **Not Slice 7A scope per locked Q6 6a (verify-only); schedule as a focused hardening slice post-V1 OR opportunistic close on next touch of any of the three pages.**
+
+   **Action:** when any one of (a)-(d) hits a third (or fourth) consumer, do the canonical extraction in the same commit that introduces the third site. (d) is the strongest extraction candidate today since rule-of-three is already met.
+
 ### Slice 3 feature candidates (to be scoped separately, NOT to be conflated with hardening backlog)
 
 
@@ -1122,23 +1134,43 @@ Four lessons worth carrying forward into Slice 7 and beyond.
 
 ### 🎨 Slice 7 — Polish + edge cases
 
+**Split:** Slice 7A (terminal/static pages + error boundaries — SHIPPED 2026-04-26, commits `581393e..8e10d2f` plus closeout `TODO-7A-closeout-hash`) + Slice 7B (bundle/Lighthouse audit + items 30/33 + Resend/AUTHKey email-WhatsApp real copy — opens next).
+
 **Goal:** All terminal pages, static content, error states, and launch-readiness polish.
 
-**Scope (pages to build):**
-- `/listing/paid` — Listing already paid (deduplication edge case)
-- `/expired` — Generic expired link
-- 404 page — Catch-all
-- `/terms` — Terms of Service (static, load `terms_upload.docx` content)
-- `/privacy` — Privacy Policy (static, load `privacy_upload.docx` content)
+**Slice 7A scope (SHIPPED):**
+- `/listing/paid` — Listing already paid (privacy-preserving race-condition redirect target; mirrors `/wish/taken` shape) — `581393e`
+- `app/not-found.tsx` — Universal 404 catch-all (HTTP 404, noindex, apex CTA via `NEXT_PUBLIC_BRAND_URL`) — `e6d5d5b`
+- `/expired` pixel-fidelity verify + apex CTA + button loading-state — `8a4e3e0`
+- `/wish/taken` pixel-fidelity verify (verify-pass, no code changes — spec line 68 explicitly disallows loading state)
+- `/model/auth/email-error` mechanics fold-in (history.replaceState + button loading-state + `<meta robots noindex>`; spec partial supersession — kept shipped 5-reason copy per Q4 4c) — `22aa6b3`
+- `/privacy` — Privacy Policy (single 244-LOC long-form page from `privacy_final.html` mockup inline content per Q7) — `825cefe`
+- `/terms` — Terms of Service (4-tab decomposed upfront per G12 §8 — page server + TermsTabs client + 4 schedule sections + back arrow client = 7 files / 723 LOC / largest 142, all under 300 alarm) — `23bd4f9`
+- `app/(ambassador)/error.tsx` + `app/(public)/error.tsx` — Next-convention error boundaries with reset() retry + apex/dashboard fallback CTA + console.error digest correlation — `8e10d2f`
+- New `lib/brand-url.ts` `getBrandUrl()` + `NEXT_PUBLIC_BRAND_URL` env var (locked Q5 5a — terminal-page CTAs target the canonical apex via env, preserves Phase 1 locked decision #7 by parameterizing rather than hard-coding)
 
-**Final polish:**
-- All skeleton screens verified
+**Slice 7B scope (OPEN):**
+- All skeleton screens verified — locked Q6 6a; 3 sites (Analytics + Payouts + Statement) per-page-invented but functionally equivalent; canonical extraction logged as item 34
 - All loading states verified
-- All error boundaries in place
-- HTTP 410 Gone on terminal pages
-- `noindex` meta on terminal pages
-- Bundle size audit (check targets in master doc)
+- HTTP 410 Gone on terminal pages (currently `noindex` meta is in place via `metadata.robots`; HTTP 410 status separate from `noindex` meta — needs research on Next App Router 410 emission)
+- Bundle size audit (check targets in master doc; ~120KB ambassador, ~250KB analytics)
 - Lighthouse audit on public pages
+- Item 30 — install `plpgsql_check 2.7` extension on Supabase + run audit + document command (locked Q1 1a — extension already available, not installed)
+- Item 33 — defer to dedicated post-V1 hygiene slice (locked Q3 3b)
+- Item 32 — manual SQL runbook for V1 admin payouts (locked Q2 2b — admin login flow logged as post-V1)
+- Deferred Slice 6 work — real Resend payout-paid email + AUTHKey WhatsApp templates (Meta template approval is multi-day external dependency)
+
+**7A closeout retro:**
+
+**1. Pre-flight surface inventory paid off.** Pre-flight audit caught 8 surprises before code: `plpgsql_check` already-available collapsed item 30 to one-liner (saved 7B time); `/listing/paid` was redirect-target swap not green-field build; `/expired` already shipped Slice 4B+4C with byte-fidelity to mockup; `/model/auth/email-error` already shipped Slice 1.5+ with 5-reason copy (vs mockup's universal-copy spec); `/` redirect on app subdomain landed on legacy auctions (locked Q5 partner reasoning); skeleton screens are per-page-invented Principle I drift; static pages mockup chrome is preview-wrapper not production output. Without pre-flight these surface as rework after code ships. Reinforces G12.
+
+**2. Mockup-spec partial supersession is the right move when shipped UX is materially better.** Email-error is the canonical case — mockup §3 prescribed single universal copy for security-by-obscurity, but shipped 5-reason copy is strictly better UX ("Email already in use" beats "Link doesn't work"). Kept shipped copy AND folded in the *useful* mockup mechanics (history.replaceState + loading-state + noindex). Pattern: spec wins on mechanics; shipped wins on copy when partner-validated divergence happened earlier in a slice with full design context. Future similar cases — articulate the partial supersession in the closeout doc rather than treating spec-vs-shipped as either-or.
+
+**3. Env-var with default preserves locked decisions while solving the immediate problem.** Phase 1 locked decision #7 says "relative paths in code so apex migration is trivial later." On `app.welovedecode.com/`, relative `/` resolves to legacy auctions auth — bad UX for the expired-link visitor cohort. Hard-coding `https://welovedecode.com/` would violate decision #7. New `NEXT_PUBLIC_BRAND_URL` with apex default solves both: code remains parameterized (Phase 1 intent preserved), default is the right destination today, env-flip is the trivial migration later. Pattern: when a locked decision conflicts with a real UX problem, look for parameterization before assuming the lock must change.
+
+**4. Decompose-upfront for content-heavy pages saved the file-size headache.** /terms could have shipped as a 700-LOC single-file `page.tsx` (legal text + tab logic + 3 tables) and immediately tripped the 300 alarm + 350 hard-decompose threshold. Pre-flight projected this; G12 §8 file-size planning kicked in upfront — split into 7 files / largest 142 LOC. No retrofit pressure later. Generalizes Slice 6A decomposition lesson: when section boundaries are visible in the spec (4 tabs ≈ 4 sections), decompose upfront.
+
+**Origin:** Slice 7A closeout (2026-04-26). Lessons 1-3 are new doctrine; lesson 4 reinforces existing G12 §8 + Slice 6A decision E.
 
 **✅ VERIFY — launch readiness:**
 - [ ] All 28 URLs work end-to-end
