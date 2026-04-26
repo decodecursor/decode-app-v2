@@ -687,6 +687,23 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
    **Action:** dedicated audit + targeted contrast lift (e.g. `#888 → #aaa`, `#666 → #888`) where the contrast falls below WCAG AA. Likely also surfaces some missing `aria-*` attributes on dynamically-toggled UI (skeleton screens, modals). Per locked Q2 2b (Slice 7B captures + reports without remediating); this is a partner-priority decision: V1-polish or post-V1.
    **Captured data:** `docs/slice-7b-lighthouse.md` has the full 12-run table.
 
+36. **Public-page LCP perf optimization (Slice 7B Lighthouse spillover, 2026-04-26).** Mobile Performance on `/yannijohnson` (the only data-heavy public page in the 7B audit) scored **74 with LCP 6.6s (red)**. PageSpeed/Lighthouse diagnostics captured by partner during the audit run:
+   - **Cover photo not served via Next.js `<Image>`** — currently rendered as a raw `<img>` or CSS background, so no responsive sizing, no automatic WebP/AVIF conversion, no `srcset`, no `priority` prop on the LCP element.
+   - **Supabase Storage `Cache-Control` too short** — bucket default is conservative; the cover photo refetches on every cold load instead of CDN-edge caching.
+   - **Render-blocking requests ~750ms** — likely the layout-tree CSS-in-JS injection cost on first paint.
+   - **LCP request discovery** flagged — the LCP image isn't preloaded/hinted, so the browser discovers it late in the parse.
+   Top insight savings (from PageSpeed):
+   - Improve image delivery: ~309 KiB
+   - Use efficient cache lifetimes: ~308 KiB
+   - Render blocking requests: ~750ms
+   **Action:** dedicated public-page perf pass. Likely scope:
+   - Migrate cover photo to `next/image` with `priority` + sized aspect-ratio container to reserve layout space.
+   - Bump Supabase Storage `Cache-Control` headers on the `model-media` bucket (longer immutable max-age + stale-while-revalidate; uploads use content-hashed paths so cache-busting is the natural fallback).
+   - Preload the LCP image via `<link rel="preload">` or `priority` on `next/image`.
+   - Audit render-blocking CSS-in-JS — possibly extract critical layout styles to globals.css if a single style block is the culprit.
+   Partner has scoped this as **Slice 7C-candidate** post-7B close, pre-V1 ship. Bundle audit's remediation A (lazy-load Stripe via `next/dynamic`) is the natural sibling — both are public-page perf wins, similar shape, could land together. Expected reclaim: most of the ~6.6s LCP collapses if image delivery is fixed.
+   **Captured data:** `docs/slice-7b-lighthouse.md` has the full 12-run scores; `docs/slice-7b-bundle-audit.md` has the bundle-side context.
+
 ### Slice 3 feature candidates (to be scoped separately, NOT to be conflated with hardening backlog)
 
 

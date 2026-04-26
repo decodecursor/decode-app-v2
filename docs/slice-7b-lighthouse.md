@@ -116,7 +116,13 @@ Notes:
 
 2. **Accessibility cluster at 82–86 is the most actionable signal.** Same score pattern across all 6 URLs strongly suggests a single root cause rather than per-page bugs. The most likely culprit is color-contrast — the design system uses muted greys (`#888` and `#666`) on a `#000` background for subtitles + helper text, and those pairs fail WCAG AA 4.5:1 contrast for normal-size body text. Logged as **hardening item 35**.
 
-3. **Mobile Performance floor is `/yannijohnson` at 74** — that's the only data-heavy public page in the audit (cover photo + media squad rows + Wishes + Wall of Love + analytics fire). The other 5 surfaces are static-text + one CTA. Remediation A from `slice-7b-bundle-audit.md` (lazy-load Stripe via `next/dynamic`) would lift this since `/{slug}` currently inherits the global Stripe import despite never needing it.
+3. **Mobile Performance floor is `/yannijohnson` at 74 with LCP 6.6s (red).** That's the only data-heavy public page in the audit (cover photo + media squad rows + Wishes + Wall of Love + analytics fire). PageSpeed diagnostics captured at run time identified the dominant LCP culprits:
+   - Cover photo rendered as raw `<img>` or CSS background, NOT `next/image` — no responsive `srcset`, no automatic WebP/AVIF, no `priority` prop on the LCP element
+   - Supabase Storage `Cache-Control` too short on `model-media` bucket — cover photo refetches on cold load instead of CDN-edge caching
+   - Render-blocking requests ~750ms (likely CSS-in-JS layout-tree injection cost)
+   - LCP request discovery flagged (image isn't preloaded/hinted)
+   Top PageSpeed savings: image delivery ~309 KiB, cache lifetimes ~308 KiB, render-blocking ~750ms.
+   **Logged as hardening item 36** — partner-scoped as Slice 7C-candidate (post-7B close, pre-V1 ship). Bundle audit's remediation A (lazy-load Stripe) is a natural sibling — both are public-page perf wins; could land together. The other 5 audit surfaces are static-text + one CTA; their mobile Performance scores (78–95) are not the LCP problem.
 
 4. **Static pages green on desktop, yellow on mobile.** Desktop Performance on the 4 terminal pages clusters at 97–99. Mobile drops to 78–83 because of the same 498 KB shared baseline parse cost. Architecturally consistent.
 
