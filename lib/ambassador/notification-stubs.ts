@@ -18,7 +18,7 @@
  * user already paid, DB state is correct, retry-on-500 would
  * reprocess the money side and that's worse than a missed email).
  */
-import { renderPayoutPaidEmail } from './email-templates'
+import { formatAmountForEmail, renderPayoutPaidEmail } from './email-templates'
 
 function getAppBase(): string {
   return (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.welovedecode.com').replace(/\/$/, '')
@@ -132,10 +132,18 @@ export async function sendPayoutPaidEmail(payload: PayoutPaidEmailPayload): Prom
   }
 
   const statementUrl = `${getAppBase()}/model/payouts/${encodeURIComponent(payload.payoutId)}`
+  // Long-form English date per partner spec ("4 January 2026"). Mirrors
+  // sendPayoutPaidWhatsApp formatting for cross-channel parity.
+  const formattedDate = new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(payload.paidAt)
   const html = renderPayoutPaidEmail({
     firstName: payload.ambassadorName,
     netAmount: payload.netAmount,
     currency: payload.currency,
+    payoutDate: formattedDate,
     payoutReference: payload.payoutReference,
     statementUrl,
   })
@@ -149,9 +157,21 @@ export async function sendPayoutPaidEmail(payload: PayoutPaidEmailPayload): Prom
     const { error } = await resend.emails.send({
       from: 'WeLoveDecode <noreply@welovedecode.com>',
       to: payload.ambassadorEmail,
-      subject: 'Your DECODE payout just landed',
+      subject: 'We sent you money❤️',
       html,
-      text: `Hi ${payload.ambassadorName}, your DECODE payout of ${payload.netAmount} ${payload.currency.toUpperCase()} just landed in your bank account. View statement: ${statementUrl} (Reference: ${payload.payoutReference})`,
+      text: `Hi ${payload.ambassadorName},
+
+We sent you money ❤️
+
+Payout: ${formatAmountForEmail(payload.netAmount)} ${payload.currency.toUpperCase()}
+Date: ${formattedDate}
+Reference: ${payload.payoutReference}
+
+Funds arrive in 1–2 business days.
+
+View statement: ${statementUrl}
+
+WeLoveDecode`,
     })
     if (error) {
       console.error('[ambassador-notif:email] payout_paid resend failed', {

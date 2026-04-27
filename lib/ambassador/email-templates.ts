@@ -4,7 +4,7 @@
  * currency code already in scope; we don't localize beyond the digits
  * for V1). Two-decimal fixed; thousands grouping. Returns plain string.
  */
-function formatAmountForEmail(amount: number): string {
+export function formatAmountForEmail(amount: number): string {
   return new Intl.NumberFormat('en', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -26,12 +26,14 @@ export function renderPayoutPaidEmail({
   firstName,
   netAmount,
   currency,
+  payoutDate,
   payoutReference,
   statementUrl,
 }: {
   firstName: string
   netAmount: number
   currency: string
+  payoutDate: string
   payoutReference: string
   statementUrl: string
 }): string {
@@ -50,17 +52,19 @@ export function renderPayoutPaidEmail({
     :root { color-scheme: light only; supported-color-schemes: light only; }
     [data-ogsc] .btn-bg, [data-ogsb] .btn-bg { background-color: #e91e8c !important; }
     [data-ogsc] .btn-txt, [data-ogsb] .btn-txt { color: #ffffff !important; }
-    [data-ogsc] .heading, [data-ogsb] .heading { color: #111111 !important; }
-    [data-ogsc] .body, [data-ogsb] .body { color: #444444 !important; }
-    [data-ogsc] .ref, [data-ogsb] .ref { color: #888888 !important; }
+    [data-ogsc] .body, [data-ogsb] .body { color: #111111 !important; }
+    [data-ogsc] .muted, [data-ogsb] .muted { color: #444444 !important; }
+    [data-ogsc] .signoff, [data-ogsb] .signoff { color: #111111 !important; }
   </style>
 </head>
 <body style="margin:0;padding:32px 16px;background-color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
     <tr>
-      <td align="center">
-        <h1 class="heading" style="font-size:20px;font-weight:700;margin:0 0 16px;color:#111111;">WeLoveDecode</h1>
-        <p class="body" style="font-size:15px;line-height:1.5;color:#444444;margin:0 0 24px;max-width:440px;">Hi ${firstName}, your payout of <strong style="color:#111111;">${amountDisplay}</strong> just landed in your bank account.</p>
+      <td align="left">
+        <p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 16px;">Hi ${firstName},</p>
+        <p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 24px;">We sent you money❤️</p>
+        <p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 24px;">Payout: ${amountDisplay}<br>Date: ${payoutDate}<br>Reference: ${payoutReference}</p>
+        <p class="muted" style="font-size:15px;line-height:1.6;color:#444444;margin:0 0 32px;">Funds arrive in 1–2 business days.</p>
         <!--[if mso]>
         <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${statementUrl}" style="height:48px;v-text-anchor:middle;width:240px;" arcsize="17%" strokecolor="#e91e8c" fillcolor="#e91e8c">
           <w:anchorlock/>
@@ -68,7 +72,7 @@ export function renderPayoutPaidEmail({
         </v:roundrect>
         <![endif]-->
         <!--[if !mso]><!-- -->
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="btn-bg" bgcolor="#e91e8c" style="background-color:#e91e8c;border-radius:8px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="left" class="btn-bg" bgcolor="#e91e8c" style="background-color:#e91e8c;border-radius:8px;">
           <tr>
             <td class="btn-bg" bgcolor="#e91e8c" align="center" style="background-color:#e91e8c;border-radius:8px;">
               <a class="btn-txt" href="${statementUrl}" style="display:inline-block;padding:14px 32px;color:#ffffff !important;text-decoration:none;font-weight:600;font-size:14px;line-height:20px;border-radius:8px;background-color:#e91e8c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">View statement</a>
@@ -76,7 +80,7 @@ export function renderPayoutPaidEmail({
           </tr>
         </table>
         <!--<![endif]-->
-        <p class="ref" style="font-size:12px;color:#888888;margin:24px 0 0;">Reference: ${payoutReference}</p>
+        <p class="signoff" style="font-size:14px;line-height:1.6;color:#111111;margin:32px 0 0;">WeLoveDecode</p>
       </td>
     </tr>
   </table>
