@@ -9,6 +9,7 @@ import { AddEmailModal } from '@/components/ambassador/AddEmailModal'
 import { ChangeEmailModal } from '@/components/ambassador/ChangeEmailModal'
 import { AddWhatsAppModal } from '@/components/ambassador/AddWhatsAppModal'
 import { ChangeWhatsAppModal } from '@/components/ambassador/ChangeWhatsAppModal'
+import { BankModal, type BankAccountSummary } from '@/components/ambassador/BankModal'
 
 interface Profile {
   id: string
@@ -91,6 +92,15 @@ export default function SettingsPage() {
   const [showChangeWhatsApp, setShowChangeWhatsApp] = useState(false)
   const [coverMode, setCoverMode] = useState<'fixed' | 'editing'>('fixed')
 
+  // Slice 8: Payout method card state. `bankAccount` is null when no
+  // primary bank exists yet (State A); summary object when present
+  // (State B). `bankFlashKey` increments after each save to retrigger
+  // the row-saved-flash CSS animation.
+  const [bankAccount, setBankAccount] = useState<BankAccountSummary | null>(null)
+  const [showBankModal, setShowBankModal] = useState(false)
+  const [bankModalMode, setBankModalMode] = useState<'add' | 'edit'>('add')
+  const [bankFlashKey, setBankFlashKey] = useState(0)
+
   // Delete modal
   const [showDelete, setShowDelete] = useState(false)
   const [deleteStep, setDeleteStep] = useState<1 | 2>(1)
@@ -135,6 +145,19 @@ export default function SettingsPage() {
 
       setProfile({ ...data, instagram_handle: userRow?.instagram_handle ?? '' } as Profile)
       setCoverPreview(data.cover_photo_url)
+
+      // Slice 8: fetch primary bank account in the same load — fail-soft
+      // if the endpoint errors so the rest of Settings still renders.
+      try {
+        const bankRes = await fetch('/api/ambassador/bank-account', { cache: 'no-store' })
+        if (bankRes.ok) {
+          const bankPayload: { data?: BankAccountSummary | null } = await bankRes.json()
+          setBankAccount(bankPayload.data ?? null)
+        }
+      } catch {
+        // Non-fatal — Payout card just shows State A until next page load.
+      }
+
       setLoading(false)
     }
     load()
@@ -534,6 +557,72 @@ export default function SettingsPage() {
         })}
       </div>
 
+      {/* Payout method (Slice 8) — slots between Login methods and
+          Preferences per settings_final_UI_Spec.md §3.2 + §4. State A
+          (no bank) shows a full-width pink CTA; State B (filled) shows
+          a single row matching the email/WhatsApp filled-row layout. */}
+      <div
+        key={`bank-${bankFlashKey}`}
+        style={{
+          ...cardStyle,
+          animation: bankFlashKey > 0 ? 'row-saved-flash 1.2s ease-out' : undefined,
+        }}
+      >
+        {bankAccount ? (
+          <div
+            onClick={() => { setBankModalMode('edit'); setShowBankModal(true) }}
+            style={{ ...rowStyle, cursor: 'pointer' }}
+          >
+            <span style={{ fontSize: 14, color: '#888', flexShrink: 0, lineHeight: 1.4 }}>
+              Payout method
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0, justifyContent: 'flex-end', marginLeft: 12 }}>
+              <div style={{ textAlign: 'right', minWidth: 0 }}>
+                <div style={{
+                  fontSize: 14,
+                  color: '#fff',
+                  lineHeight: 1.4,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {bankAccount.bank_name}
+                </div>
+                <div style={{ fontSize: 12, color: '#777', marginTop: 2 }}>
+                  •••• {bankAccount.iban_last4}
+                </div>
+              </div>
+              <Chevron />
+            </div>
+          </div>
+        ) : (
+          <div style={{ padding: 16 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6, color: '#fff' }}>
+              Payout method
+            </div>
+            <div style={{ fontSize: 12, color: '#777', marginBottom: 14 }}>
+              Add your bank to receive payouts
+            </div>
+            <div
+              onClick={() => { setBankModalMode('add'); setShowBankModal(true) }}
+              style={{
+                background: '#e91e8c',
+                borderRadius: 12,
+                padding: 14,
+                textAlign: 'center',
+                fontSize: 14,
+                fontWeight: 600,
+                color: '#fff',
+                cursor: 'pointer',
+                userSelect: 'none',
+              }}
+            >
+              Add bank account
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Preferences */}
       <div style={cardStyle}>
         <div style={{ ...rowStyle, borderBottom: '1px solid #262626' }}>
@@ -754,6 +843,18 @@ export default function SettingsPage() {
         onClose={() => setShowChangeWhatsApp(false)}
         currentPhone={userPhone ?? ''}
         onChanged={(phone) => setUserPhone(phone)}
+      />
+      <BankModal
+        open={showBankModal}
+        mode={bankModalMode}
+        initial={bankAccount}
+        onClose={() => setShowBankModal(false)}
+        onSaved={(saved) => {
+          setBankAccount(saved)
+          setShowBankModal(false)
+          setBankFlashKey((k) => k + 1)
+          showToast('Bank saved ✓')
+        }}
       />
     </div>
   )

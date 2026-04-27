@@ -87,6 +87,17 @@ export default function AmbassadorLayout({
           0%   { opacity: 1; transform: translate(-50%, 0); }
           100% { opacity: 0; transform: translate(-50%, 20px); }
         }
+        /* Slice 8: row-saved-flash. Used by Settings cards on save —
+           dark → green → dark over 1.2s. Spec settings_final_UI_Spec
+           §4.8 calls this keyframe "existing"; it wasn't in repo
+           pre-Slice-8 (only amb-submit-flash brightness-flash existed).
+           Defining canonically here so future card-save flashes reuse
+           one source of truth. */
+        @keyframes row-saved-flash {
+          0%   { background-color: #1c1c1c; }
+          30%  { background-color: #14532d; }
+          100% { background-color: #1c1c1c; }
+        }
       `}</style>
       <div
         style={{
