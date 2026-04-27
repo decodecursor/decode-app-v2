@@ -193,19 +193,19 @@ export default function AmbassadorAuthPage() {
         {/* Legal footer */}
         <div className="amb-auth-legal-footer">
           By continuing, you agree to our{' '}
-          <a
-            href="https://welovedecode.com/#terms"
+          <Link
+            href="/terms"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             style={{ cursor: 'pointer', fontWeight: 700, color: '#555', textDecoration: 'none' }}
-          >Terms</a>{' '}
+          >Terms</Link>{' '}
           and{' '}
-          <a
-            href="https://welovedecode.com/#privacy"
+          <Link
+            href="/privacy"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             style={{ cursor: 'pointer', fontWeight: 700, color: '#555', textDecoration: 'none' }}
-          >Privacy Policy</a>
+          >Privacy Policy</Link>
         </div>
       </div>
 

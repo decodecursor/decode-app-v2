@@ -218,7 +218,7 @@ export default function SendPaymentLinkClient({
     if (isPriceDirty) await patchPricing()
     const message =
       `Hello\n\nI've just added you to my Beauty Squad on WeLoveDecode🌸\n\nConfirm here to activate: https://${fullPaymentUrl}`
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer')
     router.push('/model/listings')
   }
 

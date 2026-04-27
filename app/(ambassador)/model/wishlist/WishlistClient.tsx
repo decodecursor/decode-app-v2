@@ -204,7 +204,7 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
   const handleShare = (w: WishCardRow) => {
     const url = `https://${PAYMENT_BASE}/${w.payment_link_token}`
     const message = `Looking for a gift idea for me? I’ve got a beauty wish ready 🎁 ${url}`
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer')
   }
 
   // Sort: open first, gifted second (matches mockup behavior at line 219).
@@ -340,7 +340,7 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
                     {/* Row 3 — IG icon + gifter name | money */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span
-                        onClick={isClickable ? () => window.open(`https://instagram.com/${g.instagram}`, '_blank') : undefined}
+                        onClick={isClickable ? () => window.open(`https://instagram.com/${g.instagram}`, '_blank', 'noopener,noreferrer') : undefined}
                         style={{
                           cursor: isClickable ? 'pointer' : 'default',
                           display: 'inline-flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap',
