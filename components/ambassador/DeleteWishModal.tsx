@@ -55,7 +55,7 @@ export function DeleteWishModal({
           background: '#1c1c1c',
           borderRadius: '20px 20px 0 0',
           width: '100%',
-          maxWidth: 500,
+          maxWidth: 420,
           padding: '20px 20px 24px',
         }}
       >

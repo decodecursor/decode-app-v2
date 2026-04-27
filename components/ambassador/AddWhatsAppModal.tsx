@@ -185,7 +185,7 @@ export function AddWhatsAppModal({
           background: '#1c1c1c',
           borderRadius: '20px 20px 0 0',
           width: '100%',
-          maxWidth: 500,
+          maxWidth: 420,
           padding: '24px 20px 32px',
           border: '1px solid #262626',
           borderBottom: 'none',

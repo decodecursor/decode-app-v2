@@ -13,6 +13,8 @@ import {
   extractCoverObjectPath,
 } from '@/lib/ambassador/storage'
 import { isValidInstagramHandle } from '@/lib/ambassador/validators'
+import { isValidSlug } from '@/lib/ambassador/utils'
+import { RESERVED_SLUGS } from '@/lib/ambassador/constants'
 
 /**
  * PATCH /api/ambassador/model/settings
@@ -104,6 +106,31 @@ export async function PATCH(request: NextRequest) {
     }
     if (updates.coverPhotoPositionY !== undefined) {
       profileUpdate.cover_photo_position_y = Math.max(0, Math.min(100, parseInt(String(updates.coverPhotoPositionY)) || 50))
+    }
+
+    // Slug change (Slice 8.5). Validation order mirrors the public
+    // check-slug endpoint: format → reserved → uniqueness (excluding
+    // the requester's own row). Defense-in-depth — client validates
+    // identically before reaching this branch, but we re-validate
+    // here against a possibly-stale client.
+    if (updates.slug !== undefined) {
+      const newSlug = String(updates.slug).trim().toLowerCase()
+      if (!isValidSlug(newSlug)) {
+        return NextResponse.json({ error: 'Use 3-30 lowercase letters, numbers, or underscores' }, { status: 400 })
+      }
+      if ((RESERVED_SLUGS as readonly string[]).includes(newSlug)) {
+        return NextResponse.json({ error: 'This URL is reserved' }, { status: 400 })
+      }
+      const { data: conflict } = await adminClient
+        .from('model_profiles')
+        .select('id')
+        .eq('slug', newSlug)
+        .neq('id', profile.id)
+        .maybeSingle()
+      if (conflict) {
+        return NextResponse.json({ error: 'This URL is taken' }, { status: 409 })
+      }
+      profileUpdate.slug = newSlug
     }
 
     // Handle cover photo upload — magic-byte sniff + size cap, hard-fail on errors.

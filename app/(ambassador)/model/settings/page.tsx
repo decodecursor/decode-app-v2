@@ -11,6 +11,7 @@ import { AddWhatsAppModal } from '@/components/ambassador/AddWhatsAppModal'
 import { ChangeWhatsAppModal } from '@/components/ambassador/ChangeWhatsAppModal'
 import { BankModal, type BankAccountSummary } from '@/components/ambassador/BankModal'
 import BackArrow from '@/components/ambassador/BackArrow'
+import { ChangeUrlModal } from '@/components/ambassador/ChangeUrlModal'
 
 // App-subdomain base for the public-page share URL. Same env-aware
 // pattern as DashboardClient + WishlistClient + SendPaymentLinkClient
@@ -100,6 +101,7 @@ export default function SettingsPage() {
   const [showChangeEmail, setShowChangeEmail] = useState(false)
   const [showAddWhatsApp, setShowAddWhatsApp] = useState(false)
   const [showChangeWhatsApp, setShowChangeWhatsApp] = useState(false)
+  const [showChangeUrl, setShowChangeUrl] = useState(false)
   const [coverMode, setCoverMode] = useState<'fixed' | 'editing'>('fixed')
 
   // Slice 8: Payout method card state. `bankAccount` is null when no
@@ -439,9 +441,8 @@ export default function SettingsPage() {
               <line x1="10" y1="14" x2="21" y2="3" />
             </svg>
           </button>
-          {/* TODO(slice-5): 3-step URL edit modal per settings.html:82-128 */}
           <button
-            onClick={() => showToast('URL editing coming soon')}
+            onClick={() => setShowChangeUrl(true)}
             style={urlIconBtnStyle}
             title="Edit URL"
           >
@@ -835,6 +836,18 @@ export default function SettingsPage() {
 
       <AddEmailModal open={showAddEmail} onClose={() => setShowAddEmail(false)} />
       <ChangeEmailModal open={showChangeEmail} onClose={() => setShowChangeEmail(false)} />
+      <ChangeUrlModal
+        open={showChangeUrl}
+        onClose={() => setShowChangeUrl(false)}
+        currentSlug={profile.slug}
+        appHost={APP_HOST}
+        onSlugChanged={(updated) => {
+          setProfile((prev) => (prev ? { ...prev, slug: updated.slug } : prev))
+          setShowChangeUrl(false)
+          showToast('URL changed!')
+        }}
+        onError={(msg) => showToast(msg)}
+      />
       <AddWhatsAppModal
         open={showAddWhatsApp}
         onClose={() => setShowAddWhatsApp(false)}
