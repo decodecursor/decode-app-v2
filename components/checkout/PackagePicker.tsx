@@ -88,8 +88,8 @@ function PackageRow({
               fontWeight: 700,
               padding: '3px 8px',
               borderRadius: 4,
-              background: 'rgba(74,222,128,0.1)',
-              border: '1px solid rgba(74,222,128,0.25)',
+              background: 'rgba(52,211,153,0.1)',
+              border: '1px solid rgba(52,211,153,0.25)',
               whiteSpace: 'nowrap',
             }}
           >
