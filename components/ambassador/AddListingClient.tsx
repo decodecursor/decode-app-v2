@@ -681,10 +681,12 @@ export default function AddListingClient({
         style={{ display: 'none' }}
       />
 
-      {/* Header — back arrow */}
+      {/* Header — back arrow. Edit-mode back mirrors the success
+          redirect (/model/listings); add-mode back returns to the
+          dashboard per the mockup add flow. */}
       <div style={{ padding: '14px 20px 0' }}>
         <div
-          onClick={() => router.push('/model')}
+          onClick={() => router.push(isEdit ? '/model/listings' : '/model')}
           style={{
             width: 32, height: 32, borderRadius: '50%',
             background: '#1c1c1c', border: '1px solid #262626',
