@@ -27,7 +27,6 @@ export function WishTakenClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [resolved, setResolved] = useState<{ slug: string; first: string } | null>(null)
-  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const slug = searchParams.get('slug')
@@ -57,19 +56,9 @@ export function WishTakenClient() {
     )
   }
 
-  const ctaLabel = loading
-    ? 'Loading…'
-    : resolved.first === 'their'
-      ? 'Go to their page'
-      : `Go to ${resolved.first}’s page`
-
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (loading) {
-      e.preventDefault()
-      return
-    }
-    setLoading(true)
-  }
+  const ctaLabel = resolved.first === 'their'
+    ? 'Go to their page'
+    : `Go to ${resolved.first}’s page`
 
   return (
     <div
@@ -90,13 +79,10 @@ export function WishTakenClient() {
         </div>
         <a
           href={`/${resolved.slug}`}
-          onClick={handleClick}
           style={{
             background: '#e91e8c', borderRadius: 12, padding: 16,
             fontSize: 15, fontWeight: 600, color: '#fff',
             textAlign: 'center', textDecoration: 'none', display: 'block',
-            opacity: loading ? 0.7 : 1,
-            cursor: loading ? 'default' : 'pointer',
             transition: 'filter 0.15s, transform 0.05s',
           }}
         >
