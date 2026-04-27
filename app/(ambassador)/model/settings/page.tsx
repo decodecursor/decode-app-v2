@@ -417,14 +417,14 @@ export default function SettingsPage() {
                 transform: 'translateX(-50%)',
                 fontSize: 10,
                 fontWeight: 500,
-                color: '#4ade80',
+                color: '#34d399',
                 letterSpacing: 0.3,
                 whiteSpace: 'nowrap',
                 pointerEvents: 'none',
               }}>Copied!</span>
             )}
             {copied ? (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             ) : (

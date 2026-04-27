@@ -84,7 +84,7 @@ function PackageRow({
             style={{
               fontSize: 10,
               letterSpacing: 0.5,
-              color: '#4ade80',
+              color: '#34d399',
               fontWeight: 700,
               padding: '3px 8px',
               borderRadius: 4,

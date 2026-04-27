@@ -44,7 +44,7 @@ export const COLORS = {
   rowHover: '#262626',
   pink: '#e91e8c',
   green: '#34d399',
-  greenToast: '#4ade80',
+  greenToast: '#34d399',
   bodyText: '#ccc',
   bodyWhite: '#fff',
   secondary888: '#888',

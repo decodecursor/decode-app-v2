@@ -102,7 +102,7 @@ export function ShareButton({
           transform: 'translateX(-50%)',
           fontSize: 11,
           fontWeight: 600,
-          color: '#4ade80',
+          color: '#34d399',
           opacity: flash === 'idle' ? 0 : 1,
           transition: 'opacity 0.2s',
           pointerEvents: 'none',

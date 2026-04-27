@@ -74,7 +74,7 @@ function MagicLinkSentInner() {
       ? `Resend (${cooldown}s)`
       : 'Resend'
 
-  const resendColor = phase === 'sent' ? '#4ade80' : '#e91e8c'
+  const resendColor = phase === 'sent' ? '#34d399' : '#e91e8c'
   const resendOpacity = phase === 'cooldown' ? 0.5 : 1
   const resendCursor = phase === 'idle' ? 'pointer' : 'not-allowed'
 

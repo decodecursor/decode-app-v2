@@ -163,7 +163,7 @@ export default function VerifyOTPPage() {
       ? `Resend (${resendCooldown}s)`
       : 'Resend'
 
-  const resendColor = resendPhase === 'sent' ? '#4ade80' : '#e91e8c'
+  const resendColor = resendPhase === 'sent' ? '#34d399' : '#e91e8c'
   const resendOpacity = resendPhase === 'cooldown' ? 0.5 : 1
   const resendCursor = resendPhase === 'idle' ? 'pointer' : 'not-allowed'
 

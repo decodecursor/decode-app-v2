@@ -781,7 +781,7 @@ Both columns may be NULL at the same time momentarily during signup; exactly one
 | Card bg | `#1c1c1c` |
 | Row hover | `#262626` (LIGHTER than card — surfaces the row) |
 | Pink accent (CTA) | `#e91e8c` |
-| Green (status/success) | `#34d399` (or `#4ade80` for toast) |
+| Green (status/success/toast) | `#34d399` |
 | Body text | `#ccc` / `#fff` |
 | Secondary | `#888` / `#777` / `#666` |
 | Title | 22px / weight 700 |
