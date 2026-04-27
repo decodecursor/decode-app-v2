@@ -1,15 +1,19 @@
 'use client'
 
+import { getBrandUrl } from '@/lib/brand-url'
+
 /**
  * Back arrow for /terms. Click handler prefers `history.back()` when
- * the user has prior navigation, falls back to `/` when /terms was
- * opened via direct link / bookmark / new-tab.
+ * the user has prior navigation, falls back to the brand-url apex
+ * when /terms was opened via direct link / bookmark / new-tab.
  *
- * Per terms_final_UI_Spec.md §3.3 + §7. Fallback `href="/"` keeps the
- * no-JS path functional.
+ * Per terms_final_UI_Spec.md §3.3 + §7. Fallback `href={getBrandUrl()}`
+ * keeps the no-JS path functional and lands fresh-tab visitors on
+ * marketing apex (Slice 7A Q5) — relative `/` would resolve to legacy
+ * auctions auth on the app subdomain.
  *
  * Sibling of PrivacyBackArrow at app/(public)/privacy/PrivacyBackArrow.tsx
- * (rule-of-two — Principle I extraction tracked as item 34 watch).
+ * (rule-of-two — Principle I extraction tracked as item 34(b) watch).
  */
 
 export default function TermsBackArrow() {
@@ -22,7 +26,7 @@ export default function TermsBackArrow() {
 
   return (
     <a
-      href="/"
+      href={getBrandUrl()}
       onClick={handleClick}
       aria-label="Back"
       style={{

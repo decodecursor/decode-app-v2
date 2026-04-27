@@ -205,7 +205,10 @@ export default function AddWishClient({ categories, currency }: Props) {
         {/* Back arrow */}
         <div style={{ padding: '14px 20px 0' }}>
           <div
-            onClick={() => router.back()}
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.history.length > 1) router.back()
+              else router.push('/model/wishlist')
+            }}
             style={{
               width: 32, height: 32, borderRadius: '50%',
               background: '#1c1c1c', border: '1px solid #262626',

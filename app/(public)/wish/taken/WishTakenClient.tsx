@@ -9,7 +9,10 @@
  *
  * URL params:
  *   slug:  ambassador slug — validated against /^[a-z0-9_.-]{1,30}$/i;
- *          missing or invalid → router.replace('/') (home).
+ *          missing or invalid → router.replace(getBrandUrl()) (apex).
+ *          Slice 7A Q5: malformed-param safety net lands on marketing
+ *          apex, not relative `/` (which on the app subdomain resolves
+ *          to legacy auctions auth).
  *   first: ambassador first name — validated as letters+spaces, max 50;
  *          missing or invalid → fallback "their" (CTA reads "Go to their page").
  *
@@ -19,6 +22,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { getBrandUrl } from '@/lib/brand-url'
 
 const SLUG_RE = /^[a-z0-9_.-]{1,30}$/i
 const FIRST_RE = /^[\p{L}\s]{1,50}$/u
@@ -33,7 +37,7 @@ export function WishTakenClient() {
     const first = searchParams.get('first')
 
     if (!slug || !SLUG_RE.test(slug)) {
-      router.replace('/')
+      router.replace(getBrandUrl())
       return
     }
 

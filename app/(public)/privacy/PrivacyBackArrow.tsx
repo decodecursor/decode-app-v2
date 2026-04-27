@@ -1,15 +1,19 @@
 'use client'
 
+import { getBrandUrl } from '@/lib/brand-url'
+
 /**
  * Back arrow for /privacy. Click handler prefers `history.back()` when
- * the user has prior navigation, falls back to `/` when /privacy was
- * opened via direct link / bookmark / new-tab (no history).
+ * the user has prior navigation, falls back to the brand-url apex when
+ * /privacy was opened via direct link / bookmark / new-tab (no history).
  *
- * Per privacy_final_UI_Spec.md §3.2 + §7. The fallback `href="/"` keeps
- * the no-JS path functional (graceful degradation per spec §10).
+ * Per privacy_final_UI_Spec.md §3.2 + §7. The fallback `href={getBrandUrl()}`
+ * keeps the no-JS path functional (graceful degradation per spec §10) and
+ * lands fresh-tab visitors on marketing apex (Slice 7A Q5) — relative `/`
+ * would resolve to legacy auctions auth on the app subdomain.
  *
  * Inlined per page on rule-of-two (sibling /terms gets its own copy).
- * Rule-of-three would trigger Principle I extraction — log as item 34
+ * Rule-of-three would trigger Principle I extraction — log as item 34(b)
  * watch in 7A closeout.
  */
 
@@ -19,12 +23,12 @@ export default function PrivacyBackArrow() {
       e.preventDefault()
       window.history.back()
     }
-    // Else fall through — anchor href="/" navigates as fallback.
+    // Else fall through — anchor href={getBrandUrl()} navigates as fallback.
   }
 
   return (
     <a
-      href="/"
+      href={getBrandUrl()}
       onClick={handleClick}
       aria-label="Back"
       style={{
