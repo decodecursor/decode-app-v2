@@ -17,6 +17,7 @@
 import {
   formatAmountForEmail,
   renderListingExpiringEmail,
+  renderListingExpiringProEmail,
   renderListingPaidEmail,
   renderNewUserOperatorEmail,
   renderPayoutPaidEmail,
@@ -836,6 +837,101 @@ export async function sendListingExpiringWhatsApp(payload: ListingExpiringWhatsA
     }
   } catch (err) {
     console.error('[ambassador-notif:whatsapp] listing_expiring threw', {
+      reference: payload.listingReference,
+      err,
+    })
+  }
+}
+
+// ============================================================================
+// 7-day listing-expiry reminder · professional-facing
+// ============================================================================
+// Sibling of sendListingExpiringEmail. Fires alongside the ambassador
+// notifications from the daily cron, paid listings only (trials have
+// no payer). Recipient is the Stripe receipt_email captured at
+// listing checkout. No CTA — pro pings the ambassador for renewal.
+
+export interface ListingExpiringProEmailPayload {
+  payerEmail: string | null
+  serviceName: string
+  ambassadorFullName: string
+  ambassadorFirstName: string
+  packageDays: string
+  expiryDate: string
+  listingReference: string
+}
+
+export async function sendListingExpiringProEmail(payload: ListingExpiringProEmailPayload): Promise<void> {
+  if (!payload.payerEmail) {
+    console.log('[ambassador-notif:email] listing_expiring_pro skipped — no payer email', {
+      reference: payload.listingReference,
+    })
+    return
+  }
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    console.log('[ambassador-notif:email] RESEND_API_KEY unset, skipping send', {
+      kind: 'listing_expiring_pro',
+      reference: payload.listingReference,
+      to: payload.payerEmail,
+    })
+    return
+  }
+
+  const html = renderListingExpiringProEmail({
+    serviceName: payload.serviceName,
+    ambassadorFullName: payload.ambassadorFullName,
+    ambassadorFirstName: payload.ambassadorFirstName,
+    packageDays: payload.packageDays,
+    expiryDate: payload.expiryDate,
+    listingReference: payload.listingReference,
+  })
+
+  const text = `Hello,
+
+It's renewal time⏰
+
+Your listing expires in 7 days.
+
+---
+
+Listing:        ${payload.serviceName}
+Ambassador:     ${payload.ambassadorFullName}
+Package:        ${payload.packageDays}
+Expires:        ${payload.expiryDate}
+Reference:      ${payload.listingReference}
+
+---
+
+To keep your spotlight, ask ${payload.ambassadorFirstName} for a renewal link.
+
+Your DECODE team
+welovedecode.com`
+
+  try {
+    const { Resend } = await import('resend')
+    const resend = new Resend(apiKey)
+    const { error } = await resend.emails.send({
+      from: 'WeLoveDecode <noreply@welovedecode.com>',
+      to: payload.payerEmail,
+      bcc: getOperatorBcc(),
+      subject: `One week left on ${payload.ambassadorFirstName}'s page ⏰`,
+      html,
+      text,
+    })
+    if (error) {
+      console.error('[ambassador-notif:email] listing_expiring_pro resend failed', {
+        reference: payload.listingReference,
+        error,
+      })
+      return
+    }
+    console.log('[ambassador-notif:email] listing_expiring_pro sent', {
+      reference: payload.listingReference,
+      to: payload.payerEmail,
+    })
+  } catch (err) {
+    console.error('[ambassador-notif:email] listing_expiring_pro threw', {
       reference: payload.listingReference,
       err,
     })

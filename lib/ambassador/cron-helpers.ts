@@ -1,6 +1,7 @@
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import {
   sendListingExpiringEmail,
+  sendListingExpiringProEmail,
   sendListingExpiringWhatsApp,
 } from './notification-stubs'
 
@@ -14,6 +15,7 @@ interface ExpiringListingRow {
   professional: { name: string } | null
   model: {
     first_name: string | null
+    last_name: string | null
     user: {
       email: string | null
       phone_number: string | null
@@ -73,6 +75,7 @@ export async function sendListingExpiringNotifications(): Promise<{ sent: number
       professional:model_professionals(name),
       model:model_profiles(
         first_name,
+        last_name,
         user:users(email, phone_number)
       )
     `)
@@ -111,20 +114,29 @@ export async function sendListingExpiringNotifications(): Promise<{ sent: number
       }
       const expiryAt = new Date(expiryRaw)
 
-      // Latest completed payment_reference (only for PAID — trials
-      // have no payment yet; reference stays empty and the email
-      // helper omits the Reference row for the trial variant).
+      // Latest completed payment row (only for PAID — trials have no
+      // payment yet; reference stays empty + the pro email is skipped).
+      // We pull payer_email + package_days alongside the reference so
+      // the pro-facing email can fire without a second round-trip.
       let listingReference = ''
+      let payerEmail: string | null = null
+      let packageDays: number | null = null
       if (!isFreeTrial) {
         const { data: payment } = await admin
           .from('model_listing_payments')
-          .select('payment_reference')
+          .select('payment_reference, payer_email, package_days')
           .eq('listing_id', row.id)
           .eq('status', 'completed')
           .order('created_at', { ascending: false })
           .limit(1)
-          .maybeSingle()
+          .maybeSingle<{
+            payment_reference: string
+            payer_email: string | null
+            package_days: number
+          }>()
         listingReference = payment?.payment_reference ?? ''
+        payerEmail = payment?.payer_email ?? null
+        packageDays = payment?.package_days ?? null
       }
 
       // Fire each channel under its own try/catch — one failure
@@ -158,6 +170,31 @@ export async function sendListingExpiringNotifications(): Promise<{ sent: number
         })
       } catch (err) {
         console.error('[cron-helpers:listing_expiring] whatsapp threw', { listingId: row.id, err })
+      }
+
+      // Pro-facing email — paid listings only with a captured
+      // payer_email. Trials excluded by design (no professional
+      // payer); rows with null payer_email skipped silently.
+      if (!isFreeTrial && payerEmail) {
+        const ambassadorFullName = `${row.model?.first_name ?? ''} ${row.model?.last_name ?? ''}`.trim()
+        const expiryDateFormatted = new Intl.DateTimeFormat('en-GB', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        }).format(expiryAt)
+        try {
+          await sendListingExpiringProEmail({
+            payerEmail,
+            serviceName,
+            ambassadorFullName,
+            ambassadorFirstName: firstName,
+            packageDays: packageDays != null ? `${packageDays} days` : '',
+            expiryDate: expiryDateFormatted,
+            listingReference,
+          })
+        } catch (err) {
+          console.error('[cron-helpers:listing_expiring] pro email threw', { listingId: row.id, err })
+        }
       }
 
       // Stamp regardless of channel-level success (fail-soft per

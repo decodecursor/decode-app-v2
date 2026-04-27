@@ -299,6 +299,72 @@ ${RECEIPT_SEPARATOR}`
 }
 
 /**
+ * 7-day listing-expiry reminder — sent to the PROFESSIONAL whose
+ * listing is about to expire. Pro can't self-serve renewal (no
+ * dashboard / no checkout link they own), so the email asks them to
+ * ping the ambassador for a fresh renewal link. No CTA button.
+ *
+ * Same receipt-style monospace shell as renderListingPaidEmail.
+ */
+export function renderListingExpiringProEmail({
+  serviceName,
+  ambassadorFullName,
+  ambassadorFirstName,
+  packageDays,
+  expiryDate,
+  listingReference,
+}: {
+  serviceName: string
+  ambassadorFullName: string
+  ambassadorFirstName: string
+  packageDays: string
+  expiryDate: string
+  listingReference: string
+}): string {
+  const dataBlock = `${RECEIPT_SEPARATOR}
+
+Listing:        ${serviceName}
+Ambassador:     ${ambassadorFullName}
+Package:        ${packageDays}
+Expires:        ${expiryDate}
+Reference:      ${listingReference}
+
+${RECEIPT_SEPARATOR}`
+
+  return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light only">
+  <meta name="supported-color-schemes" content="light only">
+  <!--[if mso]>
+  <xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
+  <![endif]-->
+  <style>
+    :root { color-scheme: light only; supported-color-schemes: light only; }
+    [data-ogsc] .body, [data-ogsb] .body { color: #111111 !important; }
+    [data-ogsc] .signoff, [data-ogsb] .signoff { color: #111111 !important; }
+  </style>
+</head>
+<body style="margin:0;padding:32px 16px;background-color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+    <tr>
+      <td align="left">
+        <p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 16px;">Hello,</p>
+        <p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 24px;">It's renewal time⏰</p>
+        <p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 24px;">Your listing expires in 7 days.</p>
+        <div style="margin:0 0 24px;"><pre style="font-family:'Courier New',Consolas,monospace;font-size:14px;line-height:1.6;margin:0;white-space:pre;color:#111111;">${dataBlock}</pre></div>
+        <p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 24px;">To keep your spotlight, ask ${ambassadorFirstName} for a renewal link.</p>
+        <p class="signoff" style="font-size:14px;line-height:1.6;color:#111111;margin:32px 0 0;">Your DECODE team<br>welovedecode.com</p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
+/**
  * Wish-gifted receipt email — sent to the gifter who just fulfilled
  * an ambassador's wish. Two variants:
  * - NAMED (isAnonymous=false) → confirms the gifter's name + Instagram
