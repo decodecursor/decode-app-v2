@@ -1,17 +1,13 @@
 /**
- * Notification stubs for the ambassador-stripe webhook + admin payout
- * mark-paid endpoint.
+ * Notification senders for the ambassador-stripe webhook, admin payout
+ * mark-paid endpoint, and daily expiry cron.
  *
- * Slice 4 locked decision #8: real email + WhatsApp copy lands in
- * post-4C polish. For the 4B+4C milestone the webhook fires these
- * stubs so the call-graph is complete — swapping in Resend + AUTHKey
- * later becomes a body-only change, no webhook-handler edit needed.
- *
- * Slice 7B: payout-paid email is now LIVE (Resend wired with
- * placeholder body per locked Q1 1d — partner swaps real copy via
- * template-only edit later, no backend changes needed). Listing-paid
- * email + listing-paid WhatsApp + payout-paid WhatsApp remain stubs
- * pending real copy + (for WhatsApp) Meta template approval.
+ * Email surfaces are LIVE (Resend wired): listing-paid (sent to the
+ * professional), payout-paid, listing-expiring (paid + free trial
+ * variants), wish-gifted (sent to the gifter; named + anonymous
+ * variants). WhatsApp surfaces still stubbed for: listing-paid,
+ * wish-gifted (pending Meta template approval per partner). Payout-paid
+ * + listing-expiring WhatsApp are LIVE (templates already approved).
  *
  * Fire-and-forget: callers must NOT await. Failures are logged but
  * don't fail the webhook (notification failure ≠ payment failure;
@@ -21,8 +17,18 @@
 import {
   formatAmountForEmail,
   renderListingExpiringEmail,
+  renderListingPaidEmail,
   renderPayoutPaidEmail,
+  renderWishGiftedEmail,
 } from './email-templates'
+
+function formatLongDate(d: Date): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(d)
+}
 
 function getAppBase(): string {
   return (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.welovedecode.com').replace(/\/$/, '')
@@ -31,15 +37,18 @@ function getAppBase(): string {
 export interface ListingPaidEmailPayload {
   payerEmail: string | null
   ambassadorEmail: string
-  ambassadorName: string
+  ambassadorFirstName: string
+  ambassadorFullName: string
   professionalName: string
   packageDays: number
   amount: number
   currency: string
   reference: string
-  activeUntil: Date
+  purchaseDate: Date
+  startDate: Date
+  endDate: Date
   ambassadorSlug: string
-  categoryLabel: string | null
+  receiptUrl: string
 }
 
 export interface ListingPaidWhatsAppPayload {
@@ -53,18 +62,235 @@ export interface ListingPaidWhatsAppPayload {
 }
 
 export async function sendListingPaidEmail(payload: ListingPaidEmailPayload): Promise<void> {
-  // TODO (post-4C polish): Resend API call per checkout spec §6.1.
-  // Template vars: {professional_name}, {package_days}, {amount},
-  // {currency}, {active_until}, {category}, {instagram}, {reference},
-  // {ambassador_slug}. From: notifications@welovedecode.com.
-  console.log('[ambassador-notif:email] stub payload', {
-    kind: 'listing_paid',
+  // Recipient is the PROFESSIONAL (Stripe receipt_email = the person
+  // who paid for the listing). Skip + log when null — Stripe Checkout
+  // can complete without a receipt_email in some flows.
+  if (!payload.payerEmail) {
+    console.log('[ambassador-notif:email] listing_paid skipped — no payer email', {
+      reference: payload.reference,
+    })
+    return
+  }
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    console.log('[ambassador-notif:email] RESEND_API_KEY unset, skipping send', {
+      kind: 'listing_paid',
+      reference: payload.reference,
+      to: payload.payerEmail,
+    })
+    return
+  }
+
+  const purchaseDate = formatLongDate(payload.purchaseDate)
+  const startDate = formatLongDate(payload.startDate)
+  const endDate = formatLongDate(payload.endDate)
+  const amountDisplay = `${formatAmountForEmail(payload.amount)} ${payload.currency.toUpperCase()}`
+  const listingUrl = `https://app.welovedecode.com/${payload.ambassadorSlug}`
+
+  const html = renderListingPaidEmail({
+    ambassadorFirstName: payload.ambassadorFirstName,
+    ambassadorFullName: payload.ambassadorFullName,
+    professionalName: payload.professionalName,
+    packageDays: payload.packageDays,
     reference: payload.reference,
-    to: payload.ambassadorEmail,
-    professional: payload.professionalName,
-    package_days: payload.packageDays,
-    amount_currency: `${payload.amount} ${payload.currency}`,
+    purchaseDate,
+    amount: payload.amount,
+    currency: payload.currency,
+    startDate,
+    endDate,
+    ambassadorSlug: payload.ambassadorSlug,
+    receiptUrl: payload.receiptUrl,
   })
+
+  const text = `Congrats
+
+${payload.professionalName} is now live on ${payload.ambassadorFirstName}'s page 🎉
+
+Thousands of her followers will be able to discover your work.
+
+---
+
+Ambassador:     ${payload.ambassadorFullName}
+Reference:      ${payload.reference}
+Service:        ${payload.packageDays}-day listing on ${payload.ambassadorFirstName}'s page
+Purchase date:  ${purchaseDate}
+Amount:         ${amountDisplay}
+Start date:     ${startDate}
+End date:       ${endDate}
+
+---
+
+View listing:
+${listingUrl}
+
+View receipt online:
+${payload.receiptUrl}
+
+---
+
+Didn't make this payment? Please reply right away.
+
+Your DECODE team
+welovedecode.com`
+
+  try {
+    const { Resend } = await import('resend')
+    const resend = new Resend(apiKey)
+    const { error } = await resend.emails.send({
+      from: 'WeLoveDecode <noreply@welovedecode.com>',
+      to: payload.payerEmail,
+      subject: `You're live on ${payload.ambassadorFirstName}'s page 🎉`,
+      html,
+      text,
+    })
+    if (error) {
+      console.error('[ambassador-notif:email] listing_paid resend failed', {
+        reference: payload.reference,
+        error,
+      })
+      return
+    }
+    console.log('[ambassador-notif:email] listing_paid sent', {
+      reference: payload.reference,
+      to: payload.payerEmail,
+    })
+  } catch (err) {
+    console.error('[ambassador-notif:email] listing_paid threw', {
+      reference: payload.reference,
+      err,
+    })
+  }
+}
+
+export interface WishGiftedEmailPayload {
+  gifterEmail: string | null
+  ambassadorFirstName: string
+  ambassadorFullName: string
+  isAnonymous: boolean
+  reference: string
+  giftLabel: string
+  purchaseDate: Date
+  amount: number
+  currency: string
+  gifterName: string | null
+  gifterInstagram: string | null
+  ambassadorSlug: string
+  paymentIntentId: string
+}
+
+export async function sendWishGiftedEmail(payload: WishGiftedEmailPayload): Promise<void> {
+  if (!payload.gifterEmail) {
+    console.log('[ambassador-notif:email] wish_gifted skipped — no gifter email', {
+      reference: payload.reference,
+    })
+    return
+  }
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    console.log('[ambassador-notif:email] RESEND_API_KEY unset, skipping send', {
+      kind: 'wish_gifted',
+      reference: payload.reference,
+      to: payload.gifterEmail,
+    })
+    return
+  }
+
+  const receiptUrl = `${getAppBase()}/wish/confirmation/${encodeURIComponent(payload.paymentIntentId)}`
+  const purchaseDate = formatLongDate(payload.purchaseDate)
+  const amountDisplay = `${formatAmountForEmail(payload.amount)} ${payload.currency.toUpperCase()}`
+  const listingUrl = `https://app.welovedecode.com/${payload.ambassadorSlug}`
+
+  const html = renderWishGiftedEmail({
+    ambassadorFirstName: payload.ambassadorFirstName,
+    ambassadorFullName: payload.ambassadorFullName,
+    isAnonymous: payload.isAnonymous,
+    reference: payload.reference,
+    giftLabel: payload.giftLabel,
+    purchaseDate,
+    amount: payload.amount,
+    currency: payload.currency,
+    gifterName: payload.gifterName,
+    gifterInstagram: payload.gifterInstagram,
+    ambassadorSlug: payload.ambassadorSlug,
+    receiptUrl,
+  })
+
+  // Plain-text fallback. Anonymous variant swaps the name+IG rows for
+  // a "Visibility: Anonymous" row and the prose lines for the privacy
+  // note (matches the html branch).
+  const visibilityProse = payload.isAnonymous
+    ? `Your gift will appear as "Anonymous" on her Wall of Love.
+
+Your name and Instagram stay private.`
+    : `Thousands will see your name and Instagram on her Wall of Love.`
+
+  const dataLines = payload.isAnonymous
+    ? `Gift received:  ${payload.ambassadorFullName}
+Reference:      ${payload.reference}
+Gift:           ${payload.giftLabel}
+Purchase date:  ${purchaseDate}
+Amount:         ${amountDisplay}
+Visibility:     Anonymous`
+    : `Gift received:  ${payload.ambassadorFullName}
+Reference:      ${payload.reference}
+Gift:           ${payload.giftLabel}
+Purchase date:  ${purchaseDate}
+Amount:         ${amountDisplay}
+Your name:      ${payload.gifterName ?? ''}
+Your IG:        @${payload.gifterInstagram ?? ''}`
+
+  const text = `Amazing
+
+You fulfilled ${payload.ambassadorFirstName}'s beauty wish 🎁
+
+${visibilityProse}
+
+---
+
+${dataLines}
+
+---
+
+View ${payload.ambassadorFirstName}'s page:
+${listingUrl}
+
+View receipt online:
+${receiptUrl}
+
+---
+
+Didn't make this gift? Please reply right away.
+
+Your DECODE team
+welovedecode.com`
+
+  try {
+    const { Resend } = await import('resend')
+    const resend = new Resend(apiKey)
+    const { error } = await resend.emails.send({
+      from: 'WeLoveDecode <noreply@welovedecode.com>',
+      to: payload.gifterEmail,
+      subject: `You made ${payload.ambassadorFirstName}'s day 🎁`,
+      html,
+      text,
+    })
+    if (error) {
+      console.error('[ambassador-notif:email] wish_gifted resend failed', {
+        reference: payload.reference,
+        error,
+      })
+      return
+    }
+    console.log('[ambassador-notif:email] wish_gifted sent', {
+      reference: payload.reference,
+      to: payload.gifterEmail,
+    })
+  } catch (err) {
+    console.error('[ambassador-notif:email] wish_gifted threw', {
+      reference: payload.reference,
+      err,
+    })
+  }
 }
 
 export async function sendListingPaidWhatsApp(payload: ListingPaidWhatsAppPayload): Promise<void> {

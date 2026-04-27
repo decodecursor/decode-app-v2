@@ -30,6 +30,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { splitFee } from '../payout-math'
 import { generateReference } from '../utils'
+import { sendWishGiftedEmail } from '../notification-stubs'
 
 type Admin = SupabaseClient
 
@@ -39,10 +40,11 @@ interface WishWithProfileRow {
   price: number | string
   currency: string
   service_name: string
+  professional_name: string | null
   gifter_name: string | null
   gifter_instagram: string | null
   gifter_is_anonymous: boolean
-  profile: { slug: string } | null
+  profile: { slug: string; first_name: string; last_name: string } | null
 }
 
 interface ExistingWishPaymentRow {
@@ -87,9 +89,9 @@ export async function handleWishPaymentSucceeded(
   const { data: wish, error: wishErr } = await admin
     .from('model_wishes')
     .select(`
-      id, model_id, price, currency, service_name,
+      id, model_id, price, currency, service_name, professional_name,
       gifter_name, gifter_instagram, gifter_is_anonymous,
-      profile:model_profiles!model_wishes_model_id_fkey ( slug )
+      profile:model_profiles!model_wishes_model_id_fkey ( slug, first_name, last_name )
     `)
     .eq('id', wishId)
     .maybeSingle<WishWithProfileRow>()
@@ -121,6 +123,7 @@ export async function handleWishPaymentSucceeded(
   // 9M (W-xxx-xxxx); a collision will fail the UNIQUE index and we
   // regenerate. 3 retries is overkill but cheap.
   let inserted = false
+  let paymentReference = ''
   for (let attempt = 0; attempt < 3 && !inserted; attempt++) {
     const ref = generateReference('W')
     const { error: insertErr } = await admin.from('model_wish_payments').insert({
@@ -141,6 +144,7 @@ export async function handleWishPaymentSucceeded(
     })
     if (!insertErr) {
       inserted = true
+      paymentReference = ref
       break
     }
     const code = (insertErr as { code?: string }).code
@@ -168,8 +172,27 @@ export async function handleWishPaymentSucceeded(
   // wish immediately on next visit (Wall of Love + wishlist surfaces).
   revalidatePath(`/${wish.profile.slug}`)
 
-  // Notification stubs deferred — wish-paid email/WhatsApp is a Slice
-  // 5D follow-up paired with the listings notifications (item 20).
+  // Fire-and-forget gifter receipt email. WhatsApp side stays stubbed
+  // until Meta template lands (out of this slice). Anonymous-vs-named
+  // copy branching happens inside the sender's render call.
+  const giftLabel = wish.professional_name
+    ? `${wish.service_name} @ ${wish.professional_name}`
+    : wish.service_name
+  void sendWishGiftedEmail({
+    gifterEmail: pi.receipt_email,
+    ambassadorFirstName: wish.profile.first_name,
+    ambassadorFullName: `${wish.profile.first_name} ${wish.profile.last_name}`.trim(),
+    isAnonymous,
+    reference: paymentReference,
+    giftLabel,
+    purchaseDate: new Date(),
+    amount: gross,
+    currency: wish.currency,
+    gifterName: snapshotName,
+    gifterInstagram: snapshotIg,
+    ambassadorSlug: wish.profile.slug,
+    paymentIntentId: pi.id,
+  }).catch((err) => console.error('[ambassador-webhook] wish-gifted email failed:', err))
 }
 
 export async function handleWishPaymentFailed(

@@ -185,10 +185,12 @@ export async function handleListingPaymentSucceeded(
     .eq('id', listing.profile.user_id)
     .maybeSingle<{ email: string | null; phone_number: string | null }>()
 
-  const ambassadorName = `${listing.profile.first_name}${listing.profile.last_name ? ' ' + listing.profile.last_name : ''}`
+  const ambassadorFirstName = listing.profile.first_name
+  const ambassadorFullName = `${listing.profile.first_name}${listing.profile.last_name ? ' ' + listing.profile.last_name : ''}`
   const professionalName = listing.model_professionals?.name ?? 'your professional'
-  const categoryLabel = listing.model_categories?.label ?? listing.category_custom ?? null
   const reference = (await fetchReferenceByEventId(admin, event.id)) ?? 'L-???-????'
+  const appBase = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.welovedecode.com').replace(/\/$/, '')
+  const receiptUrl = `${appBase}/listing/confirmation/${encodeURIComponent(pi.id)}`
 
   // Don't await — spec §6.4 says notification failure MUST NOT roll
   // back the DB update, and Stripe's 30s webhook timeout makes
@@ -196,16 +198,19 @@ export async function handleListingPaymentSucceeded(
   void sendListingPaidEmail({
     payerEmail: pi.receipt_email,
     ambassadorEmail: ambassadorUser?.email ?? '',
-    ambassadorName,
+    ambassadorFirstName,
+    ambassadorFullName,
     professionalName,
     packageDays,
     amount: gross,
     currency: listing.currency,
     reference,
-    activeUntil: periodEnd,
+    purchaseDate: new Date(),
+    startDate: periodStart,
+    endDate: periodEnd,
     ambassadorSlug: listing.profile.slug,
-    categoryLabel,
-  }).catch((err) => console.error('[ambassador-webhook] email stub failed:', err))
+    receiptUrl,
+  }).catch((err) => console.error('[ambassador-webhook] listing-paid email failed:', err))
 
   void sendListingPaidWhatsApp({
     ambassadorPhone: ambassadorUser?.phone_number ?? null,
