@@ -2366,6 +2366,58 @@ Standard professional practice for multi-feature platforms (cf. Stripe, Linear, 
 
 ---
 
+### §13 — URL-base invariant (added 2026-04-27)
+
+Every URL constructed in DECODE code must declare base intent. Four categories, no exceptions:
+
+1. **`NEXT_PUBLIC_BRAND_URL` via `getBrandUrl()`** — apex marketing destination only. Valid for terminal-page CTAs sending the user OUT of the app back to marketing (`/expired` CTA, `/not-found` CTA, public `/error.tsx` CTA, PublicFooter "Powered by WeLoveDecode" link, back-arrow fallback on /terms + /privacy). INVALID for any URL that touches a slug, token, or in-app route.
+
+2. **`NEXT_PUBLIC_APP_URL` (with `app.welovedecode.com` fallback)** — app subdomain. Valid for any URL containing `/{slug}`, `/pay/{token}`, `/listing/confirmation/{pi}`, `/wish/confirmation/{pi}` — share, copy, open, preview, WhatsApp pre-fill, receipt-link surfaces. **Display labels must match action URLs** — no aspirational apex-shape labels paired with subdomain-shape clipboard writes (honesty principle, locked during batch (c) URL-base sweep `2095654`).
+
+3. **Relative path (no host)** — in-app navigation only. `router.push`, `<Link href="/...">`, in-component clicks. Including malformed-param safety nets like `router.replace('/')` — those go to `getBrandUrl()` instead per category 1.
+
+4. **Hardcoded `welovedecode.com` string literal** — must not exist in production code. Mockup HTML cleanup leftover. Replace per category 1 or 2 based on intent.
+
+**Failure mode this prevents:** relative `/` on the app subdomain `app.welovedecode.com` resolves to legacy auctions auth page, not to apex marketing. Same trap caught back-arrow fallbacks (`86a6e78`) after URL-base sweep (`2095654`).
+
+**Audit checklist for any cross-cutting URL change:**
+
+    rg "getBrandUrl\(" --type ts --type tsx
+    rg "NEXT_PUBLIC_APP_URL" --type ts --type tsx
+    rg "welovedecode\.com" --type ts --type tsx
+    rg "history\.back" --type ts --type tsx
+    rg "router\.(push|replace)\(['\"]\/['\"]" --type ts --type tsx
+
+Classify every hit against the 4 categories. INTENTIONAL hits stay; WRONG-BASE and HARDCODED hits get fixed.
+
+---
+
+### §14 — Layout contract upfront (added 2026-04-27)
+
+Cross-cutting layout decisions (page width, top padding, modal width, frame chrome) MUST be locked before pages are written, not audited after. Lesson from batch (d) pre-launch QA: 12 ambassador pages had 5 different top-padding values, 3 different max-widths, and 1 phone-frame-border holdover that nobody noticed for 4 slices.
+
+**For any new slice that adds pages:**
+- Top padding: must declare which cluster the page belongs to (internal / auth / terminal / receipt / legal) before writing the page wrapper. Cluster values locked in PROJECT_STATE Phase 7.
+- Page width: 420px default, divergence requires explicit decision in slice-opening question block.
+- Modal width: 420px default for `components/ambassador/*Modal.tsx`. Divergence requires explicit decision per item 40.
+- Frame chrome: none. Phone-frame mockup borders are mockup artifacts, not page architecture.
+
+---
+
+### §15 — Audit-then-fix workflow for cross-cutting changes (added 2026-04-27)
+
+When a slice or QA pass touches >5 files of the same failure class, default to two-pass:
+
+**Pass 1 — Audit:** Enumerate the call sites via grep + classify each (intentional / wrong / ambiguous). Report findings to partner. Don't fix.
+
+**Pass 2 — Fix:** Single commit covering the agreed set. Commit message references the invariant being enforced.
+
+**Why two passes:** the audit phase forces explicit classification; one-shot "fix as you go" implicitly auto-classifies and ships wrong assumptions. Three pre-launch QA examples ran this shape: URL-base sweep (`2095654`), back-arrow fallback sweep (`86a6e78`), batch (d) design contract (`536ccb1`). Each surfaced at least one wrong assumption that one-shot would have shipped.
+
+**Auditor calibration on "verified clean" claims:** any audit reporting a surface as "verified clean" must state the failure mode being checked. "URL resolves to a string" is not the same check as "URL resolves to the correct host." Surfaces that hand URLs to third parties (professionals, gifters, public visitors) get extra scrutiny on the second.
+
+---
+
 ## 📬 Notifications (emails + WhatsApp)
 
 V1 fires a small set of transactional notifications. No marketing emails, no promo WhatsApp — just receipts and useful nudges.
