@@ -451,7 +451,7 @@ export default function SetupPage() {
       <ProgressTracker
         steps={['Verify', 'Set up', 'Live']}
         step={trackerStep}
-        padding="20px 22px 0"
+        padding="36px 22px 0"
       />
 
       <div style={{ padding: '24px 22px 16px', textAlign: 'center' }}>

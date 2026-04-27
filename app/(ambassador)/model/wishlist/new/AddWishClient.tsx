@@ -19,6 +19,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import BackArrow from '@/components/ambassador/BackArrow'
 import {
   capFirst,
   currencySymbol,
@@ -201,26 +202,10 @@ export default function AddWishClient({ categories, currency }: Props) {
         #cw_createBtn.success { background: #e91e8c !important; border-color: #e91e8c !important; color: #fff !important; cursor: default !important }
       `}</style>
 
-      <div style={{ width: '100%', maxWidth: 500, margin: '0 auto', minHeight: '100vh' }}>
+      <div style={{ width: '100%', margin: '0 auto', minHeight: '100vh' }}>
         {/* Back arrow */}
-        <div style={{ padding: '14px 20px 0' }}>
-          <div
-            onClick={() => {
-              if (typeof window !== 'undefined' && window.history.length > 1) router.back()
-              else router.push('/model/wishlist')
-            }}
-            style={{
-              width: 32, height: 32, borderRadius: '50%',
-              background: '#1c1c1c', border: '1px solid #262626',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer',
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
-          </div>
+        <div style={{ padding: '36px 20px 0' }}>
+          <BackArrow fallbackHref="/model/wishlist" />
         </div>
 
         {/* Hero */}

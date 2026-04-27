@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import TermsBackArrow from './TermsBackArrow'
+import BackArrow from '@/components/ambassador/BackArrow'
+import { getBrandUrl } from '@/lib/brand-url'
 import TermsTabs from './TermsTabs'
 import GeneralSection from './sections/General'
 import ScheduleASection from './sections/ScheduleA'
@@ -51,7 +52,7 @@ export default function TermsPage() {
   return (
     <div style={{
       width: '100%',
-      maxWidth: 500,
+      maxWidth: 420,
       margin: '0 auto',
       minHeight: '100vh',
       color: '#fff',
@@ -105,8 +106,8 @@ export default function TermsPage() {
         .tp-sched-sub { font-size: 13px; color: #ccc; line-height: 1.65 }
       `}</style>
 
-      <div style={{ padding: '14px 20px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <TermsBackArrow />
+      <div style={{ padding: '60px 20px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <BackArrow fallbackHref={getBrandUrl()} />
       </div>
 
       <div style={{ padding: '8px 22px 18px', textAlign: 'center' }}>

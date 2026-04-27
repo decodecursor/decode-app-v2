@@ -104,7 +104,7 @@ export default function DashboardClient({
     <div style={{ paddingBottom: '24px', position: 'relative' }}>
       {/* Cover */}
       <div style={{
-        margin: '14px 20px 0',
+        margin: '36px 20px 0',
         borderRadius: '14px',
         overflow: 'hidden',
         position: 'relative',

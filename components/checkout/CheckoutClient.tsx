@@ -88,7 +88,7 @@ export function CheckoutClient({ data, shareUrl }: Props) {
     // /pay/[token] is at app root (not in /(public)), so the
     // /(public) layout's <main> doesn't apply — wrap explicitly here.
     <main style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <div style={{ width: '100%', maxWidth: 500, margin: '0 auto', minHeight: '100vh' }}>
+      <div style={{ width: '100%', maxWidth: 420, margin: '0 auto', minHeight: '100vh' }}>
       {/* Cover */}
       <div style={{ position: 'relative', height: 180, width: '100%', ...coverStyle }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 30%, #000 100%)' }} />

@@ -58,7 +58,7 @@ export default function PublicPageClient({
     <div
       style={{
         width: '100%',
-        maxWidth: 500,
+        maxWidth: 420,
         margin: '0 auto',
         background: '#000',
         color: '#fff',

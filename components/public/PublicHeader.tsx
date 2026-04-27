@@ -28,9 +28,8 @@ import { ShareButton } from './ShareButton'
  * translate the original `backgroundSize: cover` + `backgroundPosition:
  * center {y}%` 1:1.
  *
- * `sizes` hints — public route group is mobile-frame-locked at 500px
- * max-width (per /(public)/layout.tsx + page.tsx wrappers), so 100vw on
- * mobile and 500px on desktop covers all viewport widths.
+ * `sizes` hints — page wrappers cap at 420px (batch (d) design contract),
+ * so 100vw on mobile and 420px on desktop covers all viewport widths.
  */
 export function PublicHeader({
   profile,
@@ -70,7 +69,7 @@ export function PublicHeader({
           alt=""
           fill
           priority
-          sizes="(max-width: 500px) 100vw, 500px"
+          sizes="(max-width: 420px) 100vw, 420px"
           style={{
             objectFit: 'cover',
             objectPosition: `center ${profile.cover_photo_position_y ?? 50}%`,

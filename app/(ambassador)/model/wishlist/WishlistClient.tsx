@@ -37,6 +37,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { WishCardRow } from '@/lib/ambassador/wish-shape'
 import { DeleteWishModal } from '@/components/ambassador/DeleteWishModal'
+import BackArrow from '@/components/ambassador/BackArrow'
 
 type Filter = 'all' | 'open' | 'gifted'
 
@@ -224,18 +225,11 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
         @keyframes wlCelebOut { 0% { opacity: 1; transform: translateY(0) } 100% { opacity: 0; transform: translateY(20px) } }
       `}</style>
 
-      <div style={{ width: '100%', maxWidth: 500, margin: '0 auto', minHeight: '100vh', position: 'relative' }}>
+      <div style={{ width: '100%', margin: '0 auto', minHeight: '100vh', position: 'relative' }}>
         {/* Header */}
-        <div style={{ padding: '16px 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ padding: '36px 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <svg
-              onClick={() => router.push('/model')}
-              width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              style={{ cursor: 'pointer' }}
-            >
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
+            <BackArrow fallbackHref="/model" />
             <span style={{ fontSize: 20, fontWeight: 700 }}>Wishlist</span>
           </div>
           <div

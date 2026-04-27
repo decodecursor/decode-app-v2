@@ -33,8 +33,8 @@ export default function PublicError({ error, reset }: ErrorBoundaryProps) {
   }, [error])
 
   return (
-    <div style={{ width: '100%', maxWidth: 500, margin: '0 auto', minHeight: '100vh', padding: '0 20px' }}>
-      <div style={{ paddingTop: 160, textAlign: 'center', color: '#fff' }}>
+    <div style={{ width: '100%', maxWidth: 420, margin: '0 auto', minHeight: '100vh', padding: '0 20px' }}>
+      <div style={{ paddingTop: 200, textAlign: 'center', color: '#fff' }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.2px', marginBottom: 14 }}>
           Something went wrong
         </h1>

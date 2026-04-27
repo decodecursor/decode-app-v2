@@ -168,7 +168,7 @@ export default function VerifyOTPPage() {
   const resendCursor = resendPhase === 'idle' ? 'pointer' : 'not-allowed'
 
   return (
-    <div style={{ padding: '60px 22px 20px', textAlign: 'center', position: 'relative' }}>
+    <div style={{ padding: '126px 22px 20px', textAlign: 'center', position: 'relative' }}>
       <div
         style={{
           fontSize: 22,

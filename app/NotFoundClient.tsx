@@ -39,7 +39,7 @@ export default function NotFoundClient({ brandUrl }: NotFoundClientProps) {
         fontFamily: 'system-ui, -apple-system, sans-serif',
       }}
     >
-      <div style={{ width: '100%', maxWidth: 500, margin: '0 auto', minHeight: '100vh', padding: '160px 22px 40px', textAlign: 'center' }}>
+      <div style={{ width: '100%', maxWidth: 420, margin: '0 auto', minHeight: '100vh', padding: '200px 22px 40px', textAlign: 'center' }}>
         <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 14, letterSpacing: '-0.2px' }}>
           Page not found
         </div>

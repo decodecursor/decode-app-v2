@@ -64,7 +64,7 @@ export default async function EmailErrorPage({
   return (
     <div style={{
       padding: '0 24px',
-      paddingTop: '160px',
+      paddingTop: '126px',
       textAlign: 'center',
     }}>
       <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', marginBottom: '12px' }}>

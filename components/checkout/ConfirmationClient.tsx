@@ -92,7 +92,7 @@ export function ConfirmationClient({ piId }: { piId: string }) {
   }, [piId])
 
   return (
-    <div style={{ width: '100%', maxWidth: 500, margin: '0 auto', minHeight: '100vh', padding: '0 20px' }}>
+    <div style={{ width: '100%', maxWidth: 420, margin: '0 auto', minHeight: '100vh', padding: '0 20px' }}>
       {state.kind === 'loading' && <LoadingView />}
       {state.kind === 'not_found' && <NotFoundView />}
       {state.kind === 'ready' && <ReceiptView receipt={state.receipt} />}
@@ -102,7 +102,7 @@ export function ConfirmationClient({ piId }: { piId: string }) {
 
 function LoadingView() {
   return (
-    <div style={{ paddingTop: 120, textAlign: 'center' }}>
+    <div style={{ paddingTop: 200, textAlign: 'center' }}>
       <div
         aria-hidden="true"
         style={{
@@ -119,7 +119,7 @@ function LoadingView() {
 
 function NotFoundView() {
   return (
-    <div style={{ paddingTop: 140, textAlign: 'center' }}>
+    <div style={{ paddingTop: 200, textAlign: 'center' }}>
       <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 14, color: '#fff' }}>Receipt not found</h1>
       <p style={{ fontSize: 12, color: '#888', lineHeight: 1.6, marginBottom: 28 }}>
         We couldn&rsquo;t find this receipt.<br />
@@ -149,7 +149,7 @@ function ReceiptView({ receipt }: { receipt: Receipt }) {
   const supportHref = `mailto:support@welovedecode.com?subject=${encodeURIComponent(`Support request — ${receipt.reference}`)}`
 
   return (
-    <div style={{ paddingTop: 40, paddingBottom: 40 }}>
+    <div style={{ paddingTop: 60, paddingBottom: 40 }}>
       {receipt.is_refunded && receipt.refunded_at && (
         <div style={{ background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.35)', borderRadius: 10, padding: '12px 14px', textAlign: 'center', fontSize: 12, color: '#f87171', marginBottom: 24 }}>
           This payment was refunded on {formatDate(receipt.refunded_at)}

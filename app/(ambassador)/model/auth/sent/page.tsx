@@ -79,7 +79,7 @@ function MagicLinkSentInner() {
   const resendCursor = phase === 'idle' ? 'pointer' : 'not-allowed'
 
   return (
-    <div style={{ padding: '60px 22px 20px', textAlign: 'center' }}>
+    <div style={{ padding: '126px 22px 20px', textAlign: 'center' }}>
       <div
         style={{
           fontSize: 22,

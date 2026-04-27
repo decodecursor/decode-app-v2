@@ -170,9 +170,9 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
         #wpPage input[type="text"]:focus { border-color: #e91e8c !important; transition: border-color 0.15s }
       `}</style>
 
-      <div style={{ width: '100%', maxWidth: 500, margin: '0 auto', minHeight: '100vh' }}>
+      <div style={{ width: '100%', maxWidth: 420, margin: '0 auto', minHeight: '100vh' }}>
         {/* Cover */}
-        <div style={{ position: 'relative', height: 180, marginTop: 14 }}>
+        <div style={{ position: 'relative', height: 180 }}>
           <div style={{ width: '100%', height: '100%', ...coverStyle }} />
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 120, background: 'linear-gradient(transparent, #000)', pointerEvents: 'none' }} />
         </div>

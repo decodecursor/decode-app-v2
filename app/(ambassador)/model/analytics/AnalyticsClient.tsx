@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import FilterTabs from './FilterTabs'
+import BackArrow from '@/components/ambassador/BackArrow'
 import EarningsChart from './EarningsChart'
 import BreakdownSection from './BreakdownSection'
 import NextPayoutSection from './NextPayoutSection'
@@ -38,7 +38,6 @@ import type { AnalyticsResponse, RangeKey } from './types'
  *     lines 8-12)
  */
 export default function AnalyticsClient() {
-  const router = useRouter()
   const [data, setData] = useState<AnalyticsResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [active, setActive] = useState<RangeKey>('week')
@@ -57,13 +56,9 @@ export default function AnalyticsClient() {
 
   return (
     <div style={{
-      width: '375px',
-      maxWidth: '100%',
+      width: '100%',
       margin: '0 auto',
       background: '#000',
-      border: '2px solid #1a1a1a',
-      borderRadius: '24px',
-      overflow: 'hidden',
       color: '#fff',
       fontFamily: 'system-ui, -apple-system, sans-serif',
       position: 'relative',
@@ -81,7 +76,7 @@ export default function AnalyticsClient() {
         .an-pbar-fill.an-mint { background: #34d399 }
       `}</style>
 
-      <Header onBack={() => router.push('/model')} />
+      <Header />
       <FilterTabs active={active} onChange={setActive} />
 
       {error && (
@@ -108,31 +103,15 @@ export default function AnalyticsClient() {
   )
 }
 
-function Header({ onBack }: { onBack: () => void }) {
+function Header() {
   return (
     <div style={{
-      padding: '16px 20px 20px',
+      padding: '36px 20px 20px',
       display: 'flex',
       alignItems: 'center',
       gap: '12px',
     }}>
-      <svg
-        onClick={onBack}
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#fff"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{ cursor: 'pointer' }}
-        role="button"
-        aria-label="Back to dashboard"
-      >
-        <line x1="19" y1="12" x2="5" y2="12" />
-        <polyline points="12 19 5 12 12 5" />
-      </svg>
+      <BackArrow fallbackHref="/model" />
       <span style={{ fontSize: '20px', fontWeight: 700 }}>Analytics</span>
     </div>
   )

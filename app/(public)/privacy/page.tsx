@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import PrivacyBackArrow from './PrivacyBackArrow'
+import BackArrow from '@/components/ambassador/BackArrow'
+import { getBrandUrl } from '@/lib/brand-url'
 
 /**
  * Privacy Policy — public, SEO-indexable. UAE Federal Decree-Law
@@ -19,9 +20,9 @@ import PrivacyBackArrow from './PrivacyBackArrow'
  * mockup — visually emphasizes the page's primary CTA: how to
  * exercise data rights.
  *
- * Back arrow → history.back() with fallback to `/`. Inline split to a
- * tiny client component (PrivacyBackArrow.tsx) so the rest of this
- * page stays a server component for static prerender + SEO.
+ * Back arrow → history.back() with apex fallback (Slice 7A Q5).
+ * Uses the canonical BackArrow primitive (item 34(b) extraction)
+ * so the page stays a server component for static prerender + SEO.
  */
 
 export const metadata: Metadata = {
@@ -34,7 +35,7 @@ export default function PrivacyPage() {
   return (
     <div style={{
       width: '100%',
-      maxWidth: 500,
+      maxWidth: 420,
       margin: '0 auto',
       minHeight: '100vh',
       color: '#fff',
@@ -58,8 +59,8 @@ export default function PrivacyPage() {
         .pp-contact-label { color: #888; font-size: 11px; margin-right: 6px }
       `}</style>
 
-      <div style={{ padding: '14px 20px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <PrivacyBackArrow />
+      <div style={{ padding: '60px 20px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <BackArrow fallbackHref={getBrandUrl()} />
       </div>
 
       <div style={{ padding: '8px 22px 24px', textAlign: 'center' }}>

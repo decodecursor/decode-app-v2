@@ -10,6 +10,7 @@ import { ChangeEmailModal } from '@/components/ambassador/ChangeEmailModal'
 import { AddWhatsAppModal } from '@/components/ambassador/AddWhatsAppModal'
 import { ChangeWhatsAppModal } from '@/components/ambassador/ChangeWhatsAppModal'
 import { BankModal, type BankAccountSummary } from '@/components/ambassador/BankModal'
+import BackArrow from '@/components/ambassador/BackArrow'
 
 // App-subdomain base for the public-page share URL. Same env-aware
 // pattern as DashboardClient + WishlistClient + SendPaymentLinkClient
@@ -355,21 +356,10 @@ export default function SettingsPage() {
   const currencySymbol = CURRENCY_SYMBOLS[currencyCode]
 
   return (
-    <div style={{ padding: '16px 20px 24px', position: 'relative' }}>
+    <div style={{ padding: '36px 20px 24px', position: 'relative' }}>
       {/* Header */}
       <div style={{ padding: '0 0 12px', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <svg
-          onClick={() => {
-            if (typeof window !== 'undefined' && window.history.length > 1) router.back()
-            else router.push('/model')
-          }}
-          width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"
-          strokeLinecap="round" strokeLinejoin="round"
-          style={{ cursor: 'pointer' }}
-        >
-          <line x1="19" y1="12" x2="5" y2="12" />
-          <polyline points="12 19 5 12 12 5" />
-        </svg>
+        <BackArrow fallbackHref="/model" />
         <span style={{ fontSize: 20, fontWeight: 700, color: '#fff' }}>Settings</span>
       </div>
 

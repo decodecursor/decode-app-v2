@@ -35,7 +35,7 @@ export default function AmbassadorError({ error, reset }: ErrorBoundaryProps) {
   }, [error])
 
   return (
-    <div style={{ paddingTop: 160, textAlign: 'center', color: '#fff' }}>
+    <div style={{ paddingTop: 176, textAlign: 'center', color: '#fff' }}>
       <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.2px', marginBottom: 14 }}>
         Something went wrong
       </h1>

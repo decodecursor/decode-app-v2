@@ -82,7 +82,7 @@ export default function AmbassadorAuthEmailPage() {
 
   return (
     <div style={{ position: 'relative', minHeight: '760px' }}>
-      <div style={{ padding: '80px 40px 24px', textAlign: 'center' }}>
+      <div style={{ padding: '126px 40px 24px', textAlign: 'center' }}>
         <div style={{
           fontSize: '10px',
           letterSpacing: '3px',

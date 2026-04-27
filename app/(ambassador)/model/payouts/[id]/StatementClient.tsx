@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import HeroCard from './HeroCard'
 import LineRow from './LineRow'
 import type { StatementResponse } from '../types'
+import BackArrow from '@/components/ambassador/BackArrow'
 
 /**
  * Statement detail page orchestrator. Mirrors mockup
@@ -31,7 +31,6 @@ import type { StatementResponse } from '../types'
  * lifecycle.
  */
 export default function StatementClient({ payoutId }: { payoutId: string }) {
-  const router = useRouter()
   const [data, setData] = useState<StatementResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -52,11 +51,6 @@ export default function StatementClient({ payoutId }: { payoutId: string }) {
       if (copiedTimer.current) clearTimeout(copiedTimer.current)
     }
   }, [payoutId])
-
-  const onBack = () => {
-    if (window.history.length > 1) router.back()
-    else router.push('/model/payouts')
-  }
 
   const onCopy = async () => {
     if (!data) return
@@ -80,24 +74,18 @@ export default function StatementClient({ payoutId }: { payoutId: string }) {
 
   return (
     <div style={{
-      width: '375px',
-      maxWidth: '100%',
+      width: '100%',
       margin: '0 auto',
       background: '#000',
-      border: '2px solid #1a1a1a',
-      borderRadius: '24px',
-      overflow: 'hidden',
       color: '#fff',
       fontFamily: 'system-ui, -apple-system, sans-serif',
     }}>
       <style>{`
-        .pd-back { cursor: pointer; transition: transform 0.05s }
-        .pd-back:active { transform: scale(0.9) }
         .pd-copybtn { transition: background-color 0.15s ease }
         .pd-copybtn:hover { background-color: #262626 }
       `}</style>
 
-      <Header onBack={onBack} />
+      <Header />
 
       {error && (
         <div style={{ padding: '32px 20px', color: '#ef4444', fontSize: '12px', textAlign: 'center' }}>
@@ -119,31 +107,15 @@ export default function StatementClient({ payoutId }: { payoutId: string }) {
   )
 }
 
-function Header({ onBack }: { onBack: () => void }) {
+function Header() {
   return (
     <div style={{
-      padding: '16px 20px 20px',
+      padding: '36px 20px 20px',
       display: 'flex',
       alignItems: 'center',
       gap: '12px',
     }}>
-      <svg
-        onClick={onBack}
-        className="pd-back"
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#fff"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        role="button"
-        aria-label="Back"
-      >
-        <line x1="19" y1="12" x2="5" y2="12" />
-        <polyline points="12 19 5 12 12 5" />
-      </svg>
+      <BackArrow fallbackHref="/model/payouts" />
       <span style={{ fontSize: '20px', fontWeight: 700 }}>Statement</span>
     </div>
   )

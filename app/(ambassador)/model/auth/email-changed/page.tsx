@@ -35,7 +35,7 @@ export default async function EmailChangedPage({
   return (
     <div style={{
       padding: '0 24px',
-      paddingTop: '80px',
+      paddingTop: '126px',
       paddingBottom: '40px',
       textAlign: 'center',
     }}>

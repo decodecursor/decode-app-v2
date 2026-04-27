@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import NextPayoutCard from './NextPayoutCard'
 import HistoryCard from './HistoryCard'
 import type { PayoutsListResponse } from './types'
+import BackArrow from '@/components/ambassador/BackArrow'
 
 /**
  * Client-side orchestrator for the Payouts list page. Mirrors mockup
@@ -28,7 +28,6 @@ import type { PayoutsListResponse } from './types'
  * you earn your first commission".
  */
 export default function PayoutsListClient() {
-  const router = useRouter()
   const [data, setData] = useState<PayoutsListResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -44,30 +43,19 @@ export default function PayoutsListClient() {
     return () => { cancelled = true }
   }, [])
 
-  const onBack = () => {
-    if (window.history.length > 1) router.back()
-    else router.push('/model/analytics')
-  }
-
   return (
     <div style={{
-      width: '375px',
-      maxWidth: '100%',
+      width: '100%',
       margin: '0 auto',
       background: '#000',
-      border: '2px solid #1a1a1a',
-      borderRadius: '24px',
-      overflow: 'hidden',
       color: '#fff',
       fontFamily: 'system-ui, -apple-system, sans-serif',
     }}>
       <style>{`
-        .po-back { cursor: pointer; transition: transform 0.05s }
-        .po-back:active { transform: scale(0.9) }
         .po-row:hover { background-color: #262626 }
       `}</style>
 
-      <Header onBack={onBack} />
+      <Header />
 
       {error && (
         <div style={{ padding: '32px 20px', color: '#ef4444', fontSize: '12px', textAlign: 'center' }}>
@@ -93,31 +81,15 @@ export default function PayoutsListClient() {
   )
 }
 
-function Header({ onBack }: { onBack: () => void }) {
+function Header() {
   return (
     <div style={{
-      padding: '16px 20px 20px',
+      padding: '36px 20px 20px',
       display: 'flex',
       alignItems: 'center',
       gap: '12px',
     }}>
-      <svg
-        onClick={onBack}
-        className="po-back"
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#fff"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        role="button"
-        aria-label="Back"
-      >
-        <line x1="19" y1="12" x2="5" y2="12" />
-        <polyline points="12 19 5 12 12 5" />
-      </svg>
+      <BackArrow fallbackHref="/model/analytics" />
       <span style={{ fontSize: '20px', fontWeight: 700 }}>Payouts</span>
     </div>
   )

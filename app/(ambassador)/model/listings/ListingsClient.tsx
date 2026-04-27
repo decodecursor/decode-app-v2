@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { ListingCardRow } from '@/lib/ambassador/listing-shape'
 import { DeleteListingModal } from '@/components/ambassador/DeleteListingModal'
+import BackArrow from '@/components/ambassador/BackArrow'
 
 type ToastPayload = { emoji?: string; message: string }
 
@@ -232,16 +233,9 @@ export default function ListingsClient({ listings: initialListings }: { listings
   return (
     <div style={{ minHeight: '100vh', background: '#000', color: '#fff', position: 'relative' }}>
       {/* Header */}
-      <div style={{ padding: '16px 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ padding: '36px 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <svg
-            onClick={() => router.push('/model')}
-            width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-            style={{ cursor: 'pointer' }}
-          >
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
+          <BackArrow fallbackHref="/model" />
           <span style={{ fontSize: 20, fontWeight: 700 }}>Listings</span>
         </div>
         <div
