@@ -245,7 +245,7 @@ export default function ListingsClient({ listings: initialListings }: { listings
           <span style={{ fontSize: 20, fontWeight: 700 }}>Listings</span>
         </div>
         <div
-          onClick={() => showToast('Add Listing ships in the next update')}
+          onClick={() => router.push('/model/listings/new')}
           style={{
             width: 36, height: 36, borderRadius: '50%', border: '1.5px solid #e91e8c',
             background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -291,7 +291,7 @@ export default function ListingsClient({ listings: initialListings }: { listings
           }}>
             <div style={{ fontSize: 14, color: '#888' }}>{emptyCopy(filter)}</div>
             <div
-              onClick={() => showToast('Add Listing ships in the next update')}
+              onClick={() => router.push('/model/listings/new')}
               style={{
                 background: '#e91e8c', color: '#fff', borderRadius: 12,
                 padding: '12px 22px', fontSize: 13, fontWeight: 600, cursor: 'pointer',

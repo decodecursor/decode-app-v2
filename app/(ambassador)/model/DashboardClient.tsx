@@ -89,10 +89,6 @@ export default function DashboardClient({
     window.open(fullUrl, '_blank', 'noopener,noreferrer')
   }
 
-  const navigatePlaceholder = (label: string) => {
-    showToast(`${label} — coming soon`)
-  }
-
   const maxClicks = topClicks.reduce((m, c) => (c.clicks > m ? c.clicks : m), 0)
 
   return (
@@ -285,9 +281,8 @@ export default function DashboardClient({
 
       {/* Primary actions */}
       <div style={{ padding: '0 20px 16px', display: 'flex', gap: '10px' }}>
-        {/* TODO(slice-2-or-3): swap to router.push('/model/listings/new') when route ships */}
         <button
-          onClick={() => navigatePlaceholder('Add Listing')}
+          onClick={() => router.push('/model/listings/new')}
           style={{
             flex: 1,
             borderRadius: '12px',
@@ -311,9 +306,8 @@ export default function DashboardClient({
           </svg>
           Add Listing
         </button>
-        {/* TODO(slice-2-or-3): swap to router.push('/model/wishlist/new') when route ships */}
         <button
-          onClick={() => navigatePlaceholder('Add Wish')}
+          onClick={() => router.push('/model/wishlist/new')}
           style={{
             flex: 1,
             borderRadius: '12px',
