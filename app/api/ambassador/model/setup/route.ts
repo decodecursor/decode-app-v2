@@ -12,6 +12,7 @@ import {
   MAX_COVER_PHOTO_BYTES,
 } from '@/lib/ambassador/image-validation'
 import { COVER_BUCKET, buildCoverObjectPath } from '@/lib/ambassador/storage'
+import { sendNewUserOperatorEmail } from '@/lib/ambassador/notification-stubs'
 
 /**
  * POST /api/ambassador/model/setup
@@ -154,6 +155,38 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[Ambassador Setup] Profile created:', profile.slug)
+
+    // Operator notification — fire-and-forget so a notif failure never
+    // 500s the setup endpoint. Reads minimal fields from public.users
+    // for signup_method (WhatsApp vs Email), the contact line value
+    // (phone vs email), and signup-time created_at (NOT setup time).
+    try {
+      const { data: shadowRow } = await adminClient
+        .from('users')
+        .select('signup_method, phone_number, email, created_at')
+        .eq('id', user.id)
+        .maybeSingle<{
+          signup_method: string
+          phone_number: string | null
+          email: string | null
+          created_at: string
+        }>()
+      if (shadowRow) {
+        const method: 'WhatsApp' | 'Email' = shadowRow.signup_method === 'whatsapp' ? 'WhatsApp' : 'Email'
+        void sendNewUserOperatorEmail({
+          method,
+          phone: method === 'WhatsApp' ? shadowRow.phone_number : null,
+          email: method === 'Email' ? shadowRow.email : null,
+          firstName,
+          lastName,
+          slug,
+          instagramHandle: instagram,
+          createdAt: new Date(shadowRow.created_at),
+        }).catch((err) => console.error('[ambassador-signup-notif] new-user threw:', err))
+      }
+    } catch (notifErr) {
+      console.error('[ambassador-signup-notif] new-user lookup threw:', notifErr)
+    }
 
     return NextResponse.json({ success: true, profile })
   } catch (error) {

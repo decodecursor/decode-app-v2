@@ -406,6 +406,59 @@ ${RECEIPT_SEPARATOR}`
 }
 
 /**
+ * New-user operator notification email — internal triage surface.
+ *
+ * NOT customer-facing. Plain default sans-serif HTML, lightly styled,
+ * optimized for inbox scanning. Deliberately omits the customer-facing
+ * shell: no VML / [data-ogsc] / monospace receipt block / box-drawing
+ * separators. Layout = three grouped blocks (Method / Name / Handle),
+ * blank-line separators via margin-top:16px on each group's first line.
+ *
+ * Branches on `method` for the contact line: WhatsApp signups render
+ * Phone, Email signups render Email — partner-locked, no fallback / no
+ * em-dash placeholder for the missing channel.
+ */
+export function renderNewUserOperatorEmail({
+  method,
+  phone,
+  email,
+  firstName,
+  lastName,
+  slug,
+  instagramHandle,
+  registeredAt,
+}: {
+  method: 'WhatsApp' | 'Email'
+  phone: string | null
+  email: string | null
+  firstName: string
+  lastName: string
+  slug: string
+  instagramHandle: string
+  registeredAt: string
+}): string {
+  const contactLine = method === 'WhatsApp'
+    ? `<p style="font-size:15px;line-height:1.5;color:#111111;margin:0;">Phone: ${phone ?? ''}</p>`
+    : `<p style="font-size:15px;line-height:1.5;color:#111111;margin:0;">Email: ${email ?? ''}</p>`
+
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:32px 16px;background-color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <p style="font-size:15px;line-height:1.5;color:#111111;margin:0 0 16px;">New user 🎉</p>
+  <p style="font-size:15px;line-height:1.5;color:#111111;margin:0;">Method: ${method}</p>
+  ${contactLine}
+  <p style="font-size:15px;line-height:1.5;color:#111111;margin:16px 0 0;">First name: ${firstName}</p>
+  <p style="font-size:15px;line-height:1.5;color:#111111;margin:0;">Last name: ${lastName}</p>
+  <p style="font-size:15px;line-height:1.5;color:#111111;margin:16px 0 0;">Slug: ${slug}</p>
+  <p style="font-size:15px;line-height:1.5;color:#111111;margin:0;">Instagram: ${instagramHandle}</p>
+  <p style="font-size:15px;line-height:1.5;color:#111111;margin:16px 0 0;">Registered: ${registeredAt}</p>
+  <p style="font-size:14px;line-height:1.5;color:#111111;margin:32px 0 0;">WeLoveDecode</p>
+</body>
+</html>`
+}
+
+/**
  * Shared Outlook-dark-mode-safe button email template.
  *
  * Design notes:

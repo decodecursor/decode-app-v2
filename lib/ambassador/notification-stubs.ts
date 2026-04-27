@@ -18,6 +18,7 @@ import {
   formatAmountForEmail,
   renderListingExpiringEmail,
   renderListingPaidEmail,
+  renderNewUserOperatorEmail,
   renderPayoutPaidEmail,
   renderWishGiftedEmail,
 } from './email-templates'
@@ -28,6 +29,14 @@ function formatLongDate(d: Date): string {
     month: 'long',
     year: 'numeric',
   }).format(d)
+}
+
+// BCC for transactional emails when OPERATOR_BCC_EMAIL is set in env.
+// Returns undefined when unset so the field is omitted from the Resend
+// payload (vs. an empty array, which the API rejects).
+function getOperatorBcc(): string[] | undefined {
+  const bcc = process.env.OPERATOR_BCC_EMAIL
+  return bcc ? [bcc] : undefined
 }
 
 function getAppBase(): string {
@@ -155,6 +164,7 @@ welovedecode.com`
     const { error } = await resend.emails.send({
       from: 'WeLoveDecode <noreply@welovedecode.com>',
       to: payload.payerEmail,
+      bcc: getOperatorBcc(),
       subject: `You're live on ${payload.ambassadorFirstName}'s page 🎉`,
       html,
       text,
@@ -286,6 +296,7 @@ welovedecode.com`
     const { error } = await resend.emails.send({
       from: 'WeLoveDecode <noreply@welovedecode.com>',
       to: payload.gifterEmail,
+      bcc: getOperatorBcc(),
       subject: `You made ${payload.ambassadorFirstName}'s day 🎁`,
       html,
       text,
@@ -520,6 +531,7 @@ export async function sendPayoutPaidEmail(payload: PayoutPaidEmailPayload): Prom
     const { error } = await resend.emails.send({
       from: 'WeLoveDecode <noreply@welovedecode.com>',
       to: payload.ambassadorEmail,
+      bcc: getOperatorBcc(),
       subject: 'We sent you money❤️',
       html,
       text: `Hi ${payload.ambassadorName},
@@ -743,6 +755,7 @@ WeLoveDecode`
     const { error } = await resend.emails.send({
       from: 'WeLoveDecode <noreply@welovedecode.com>',
       to: payload.ambassadorEmail,
+      bcc: getOperatorBcc(),
       subject,
       html,
       text,
@@ -824,6 +837,133 @@ export async function sendListingExpiringWhatsApp(payload: ListingExpiringWhatsA
   } catch (err) {
     console.error('[ambassador-notif:whatsapp] listing_expiring threw', {
       reference: payload.listingReference,
+      err,
+    })
+  }
+}
+
+// ============================================================================
+// Operator-facing notifications (internal triage surface)
+// ============================================================================
+// Fires once per fully-registered ambassador (after profile + instagram
+// shadow update at /api/ambassador/model/setup). Single env var
+// OPERATOR_BCC_EMAIL pulls double-duty: it's both the recipient address
+// for this notification AND the BCC address for the 5 transactional emails
+// above. Unset → silent (no signup notif, no BCC). Wiring lands once,
+// behavior toggles via Vercel env.
+
+export interface NewUserOperatorEmailPayload {
+  method: 'WhatsApp' | 'Email'
+  phone: string | null
+  email: string | null
+  firstName: string
+  lastName: string
+  slug: string
+  instagramHandle: string
+  createdAt: Date
+}
+
+function formatRegisteredAtForOperator(d: Date): string {
+  // Hand-format date + time + zone suffix because Intl's
+  // `timeZoneName: 'short'` renders "GMT+4" on some Node runtimes
+  // instead of "GST". Splitting the two formats keeps the output
+  // stable across runtimes.
+  const dateOnly = new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'Asia/Dubai',
+  }).format(d)
+  const timeOnly = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Dubai',
+  }).format(d)
+  return `${dateOnly}, ${timeOnly} GST`
+}
+
+function buildNewUserSubject(payload: NewUserOperatorEmailPayload): string {
+  const fullName = `${payload.firstName} ${payload.lastName}`.trim()
+  if (fullName) return `New user - ${fullName} 🎉`
+  if (payload.method === 'WhatsApp' && payload.phone) return `New user - ${payload.phone} 🎉`
+  if (payload.method === 'Email' && payload.email) return `New user - ${payload.email} 🎉`
+  return 'New user 🎉'
+}
+
+export async function sendNewUserOperatorEmail(payload: NewUserOperatorEmailPayload): Promise<void> {
+  const operatorEmail = process.env.OPERATOR_BCC_EMAIL
+  if (!operatorEmail) {
+    console.log('[ambassador-notif:operator] OPERATOR_BCC_EMAIL unset, skipping new-user notif', {
+      method: payload.method,
+      slug: payload.slug,
+    })
+    return
+  }
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    console.log('[ambassador-notif:operator] RESEND_API_KEY unset, skipping new-user notif', {
+      method: payload.method,
+      slug: payload.slug,
+    })
+    return
+  }
+
+  const registeredAt = formatRegisteredAtForOperator(payload.createdAt)
+  const html = renderNewUserOperatorEmail({
+    method: payload.method,
+    phone: payload.phone,
+    email: payload.email,
+    firstName: payload.firstName,
+    lastName: payload.lastName,
+    slug: payload.slug,
+    instagramHandle: payload.instagramHandle,
+    registeredAt,
+  })
+
+  const contactLine = payload.method === 'WhatsApp'
+    ? `Phone: ${payload.phone ?? ''}`
+    : `Email: ${payload.email ?? ''}`
+
+  const text = `New user 🎉
+
+Method: ${payload.method}
+${contactLine}
+
+First name: ${payload.firstName}
+Last name: ${payload.lastName}
+
+Slug: ${payload.slug}
+Instagram: ${payload.instagramHandle}
+
+Registered: ${registeredAt}
+
+WeLoveDecode`
+
+  try {
+    const { Resend } = await import('resend')
+    const resend = new Resend(apiKey)
+    const { error } = await resend.emails.send({
+      from: 'WeLoveDecode <noreply@welovedecode.com>',
+      to: operatorEmail,
+      subject: buildNewUserSubject(payload),
+      html,
+      text,
+    })
+    if (error) {
+      console.error('[ambassador-notif:operator] new-user resend failed', {
+        slug: payload.slug,
+        error,
+      })
+      return
+    }
+    console.log('[ambassador-notif:operator] new-user sent', {
+      slug: payload.slug,
+      method: payload.method,
+    })
+  } catch (err) {
+    console.error('[ambassador-notif:operator] new-user threw', {
+      slug: payload.slug,
       err,
     })
   }
