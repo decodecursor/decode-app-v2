@@ -292,8 +292,9 @@ export async function sendPayoutPaidWhatsApp(payload: PayoutPaidWhatsAppPayload)
 // Fired by app/api/cron/daily via lib/ambassador/cron-helpers.ts when a paid
 // listing's paid_until lands in the next 7 days and no expiry-notification
 // stamp exists. Email + WhatsApp wired to the same Resend / AUTHKey pattern
-// as Slice 7B payout-paid. AUTHKEY_WID_LISTING_EXPIRING_AMB=32766 (Meta
-// approval pending; sender fail-soft if env var or AUTHKEY_API_KEY unset).
+// as Slice 7B payout-paid. AUTHKEY_WID_LISTING_EXPIRING_7D=32771 (UTILITY,
+// Meta-approved; v1 wid=32766 was auto-recategorized to MARKETING and
+// retired). Sender fail-soft if env var or AUTHKEY_API_KEY unset.
 
 export interface ListingExpiringEmailPayload {
   ambassadorEmail: string
@@ -393,9 +394,9 @@ export async function sendListingExpiringWhatsApp(payload: ListingExpiringWhatsA
     return
   }
 
-  const wid = process.env.AUTHKEY_WID_LISTING_EXPIRING_AMB
+  const wid = process.env.AUTHKEY_WID_LISTING_EXPIRING_7D
   if (!wid) {
-    console.log('[ambassador-notif:whatsapp] skipped — AUTHKEY_WID_LISTING_EXPIRING_AMB unset', {
+    console.log('[ambassador-notif:whatsapp] skipped — AUTHKEY_WID_LISTING_EXPIRING_7D unset', {
       reference: payload.listingReference,
     })
     return
