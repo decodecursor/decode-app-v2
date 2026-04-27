@@ -303,7 +303,7 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
 
               if (gifted) {
                 const g = {
-                  first_name: w.gifter_name ?? 'Anonymous',
+                  first_name: w.gifter_name ?? 'Secret Gifter',
                   instagram: w.gifter_instagram,
                   anonymous: w.gifter_is_anonymous,
                 }

@@ -341,7 +341,7 @@ export function renderWishGiftedEmail({
   const receiptUrlDisplay = stripUrlProtocol(receiptUrl)
 
   const visibilityProse = isAnonymous
-    ? `<p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 24px;">Your gift will appear as &quot;Anonymous&quot; on her Wall of Love.</p>
+    ? `<p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 24px;">Your gift will appear as &quot;Secret Gifter&quot; on her Wall of Love.</p>
         <p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 24px;">Your name and Instagram stay private.</p>`
     : `<p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 24px;">Thousands will see your name and Instagram on her Wall of Love.</p>`
 
@@ -353,7 +353,7 @@ Reference:      ${reference}
 Gift:           ${giftLabel}
 Purchase date:  ${purchaseDate}
 Amount:         ${amountDisplay}
-Visibility:     Anonymous
+Visibility:     Secret Gifter
 
 ${RECEIPT_SEPARATOR}`
     : `${RECEIPT_SEPARATOR}

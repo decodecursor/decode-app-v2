@@ -188,6 +188,7 @@ export async function handleListingPaymentSucceeded(
   const ambassadorFirstName = listing.profile.first_name
   const ambassadorFullName = `${listing.profile.first_name}${listing.profile.last_name ? ' ' + listing.profile.last_name : ''}`
   const professionalName = listing.model_professionals?.name ?? 'your professional'
+  const serviceName = listing.model_categories?.label ?? listing.category_custom ?? 'your service'
   const reference = (await fetchReferenceByEventId(admin, event.id)) ?? 'L-???-????'
   const appBase = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.welovedecode.com').replace(/\/$/, '')
   const receiptUrl = `${appBase}/listing/confirmation/${encodeURIComponent(pi.id)}`
@@ -214,13 +215,16 @@ export async function handleListingPaymentSucceeded(
 
   void sendListingPaidWhatsApp({
     ambassadorPhone: ambassadorUser?.phone_number ?? null,
+    ambassadorFirstName,
+    ambassadorSlug: listing.profile.slug,
+    serviceName,
     professionalName,
     packageDays,
+    activeUntil: periodEnd,
     amount: gross,
     currency: listing.currency,
     reference,
-    ambassadorSlug: listing.profile.slug,
-  }).catch((err) => console.error('[ambassador-webhook] whatsapp stub failed:', err))
+  }).catch((err) => console.error('[ambassador-webhook] listing-paid whatsapp failed:', err))
 }
 
 async function fetchReferenceByEventId(admin: Admin, eventId: string): Promise<string | null> {

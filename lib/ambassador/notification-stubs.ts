@@ -53,12 +53,28 @@ export interface ListingPaidEmailPayload {
 
 export interface ListingPaidWhatsAppPayload {
   ambassadorPhone: string | null
+  ambassadorFirstName: string
+  ambassadorSlug: string
+  serviceName: string
   professionalName: string
   packageDays: number
+  activeUntil: Date
   amount: number
   currency: string
   reference: string
+}
+
+export interface WishGiftedWhatsAppPayload {
+  ambassadorPhone: string | null
+  ambassadorFirstName: string
   ambassadorSlug: string
+  isAnonymous: boolean
+  wishService: string
+  gifterName: string | null
+  purchaseDate: Date
+  amount: number
+  currency: string
+  reference: string
 }
 
 export async function sendListingPaidEmail(payload: ListingPaidEmailPayload): Promise<void> {
@@ -219,7 +235,7 @@ export async function sendWishGiftedEmail(payload: WishGiftedEmailPayload): Prom
   // a "Visibility: Anonymous" row and the prose lines for the privacy
   // note (matches the html branch).
   const visibilityProse = payload.isAnonymous
-    ? `Your gift will appear as "Anonymous" on her Wall of Love.
+    ? `Your gift will appear as "Secret Gifter" on her Wall of Love.
 
 Your name and Instagram stay private.`
     : `Thousands will see your name and Instagram on her Wall of Love.`
@@ -230,7 +246,7 @@ Reference:      ${payload.reference}
 Gift:           ${payload.giftLabel}
 Purchase date:  ${purchaseDate}
 Amount:         ${amountDisplay}
-Visibility:     Anonymous`
+Visibility:     Secret Gifter`
     : `Gift received:  ${payload.ambassadorFullName}
 Reference:      ${payload.reference}
 Gift:           ${payload.giftLabel}
@@ -294,24 +310,141 @@ welovedecode.com`
 }
 
 export async function sendListingPaidWhatsApp(payload: ListingPaidWhatsAppPayload): Promise<void> {
-  // TODO (post-4C polish): AUTHKey API call per checkout spec §6.2.
-  // Reuse AUTHKEY_API_KEY + AUTHKEY_WID_LISTING_PAID env vars.
-  // Skip silently when ambassador has no phone on file (not an error
-  // condition — WhatsApp notifications are opt-in via phone verification).
+  // Skip silently when ambassador has no phone on file — WhatsApp
+  // notifications are opt-in via phone verification, not an error.
   if (!payload.ambassadorPhone) {
     console.log('[ambassador-notif:whatsapp] skipped — no phone on file', {
       reference: payload.reference,
     })
     return
   }
-  console.log('[ambassador-notif:whatsapp] stub payload', {
-    kind: 'listing_paid',
-    reference: payload.reference,
-    to: payload.ambassadorPhone,
-    professional: payload.professionalName,
-    package_days: payload.packageDays,
-    amount_currency: `${payload.amount} ${payload.currency}`,
-  })
+
+  const wid = process.env.AUTHKEY_WID_LISTING_PAID
+  if (!wid) {
+    console.log('[ambassador-notif:whatsapp] skipped — AUTHKEY_WID_LISTING_PAID unset', {
+      reference: payload.reference,
+    })
+    return
+  }
+
+  const dateFormatted = formatLongDate(payload.activeUntil)
+  const amountFormatted = `${formatAmountForEmail(payload.amount)} ${payload.currency.toUpperCase()}`
+
+  try {
+    const { authkeyWhatsAppService } = await import('@/lib/services/AuthkeyWhatsAppService')
+    if (!authkeyWhatsAppService.isConfigured()) {
+      console.log('[ambassador-notif:whatsapp] skipped — AUTHKEY_API_KEY unset', {
+        reference: payload.reference,
+      })
+      return
+    }
+
+    const result = await authkeyWhatsAppService.sendTemplate({
+      phone: payload.ambassadorPhone,
+      templateWid: wid,
+      templateName: 'listing_paid_v1',
+      bodyValues: {
+        '1': payload.ambassadorFirstName,
+        '2': payload.serviceName,
+        '3': payload.professionalName,
+        '4': `${payload.packageDays} days`,
+        '5': dateFormatted,
+        '6': amountFormatted,
+        '7': payload.reference,
+      },
+      buttonValues: {
+        '1': payload.ambassadorSlug,
+      },
+    })
+
+    if (result.success) {
+      console.log('[ambassador-notif:whatsapp] listing_paid sent', {
+        reference: payload.reference,
+        messageId: result.messageId,
+      })
+    } else {
+      console.error('[ambassador-notif:whatsapp] listing_paid send failed', {
+        reference: payload.reference,
+        error: result.error,
+      })
+    }
+  } catch (err) {
+    console.error('[ambassador-notif:whatsapp] listing_paid threw', {
+      reference: payload.reference,
+      err,
+    })
+  }
+}
+
+export async function sendWishGiftedWhatsApp(payload: WishGiftedWhatsAppPayload): Promise<void> {
+  if (!payload.ambassadorPhone) {
+    console.log('[ambassador-notif:whatsapp] skipped — no phone on file', {
+      reference: payload.reference,
+    })
+    return
+  }
+
+  const wid = process.env.AUTHKEY_WID_WISH_GIFTED
+  if (!wid) {
+    console.log('[ambassador-notif:whatsapp] skipped — AUTHKEY_WID_WISH_GIFTED unset', {
+      reference: payload.reference,
+    })
+    return
+  }
+
+  const dateFormatted = formatLongDate(payload.purchaseDate)
+  const amountFormatted = `${formatAmountForEmail(payload.amount)} ${payload.currency.toUpperCase()}`
+  // Anonymous gifters surface as "Secret Gifter" per partner-locked
+  // copy. Snapshot row's gifter_name is null for anonymous gifts (DB
+  // CHECK enforces this), so the explicit branch + fallback covers
+  // both paths defensively.
+  const gifterDisplay = payload.isAnonymous
+    ? 'Secret Gifter'
+    : (payload.gifterName ?? 'Secret Gifter')
+
+  try {
+    const { authkeyWhatsAppService } = await import('@/lib/services/AuthkeyWhatsAppService')
+    if (!authkeyWhatsAppService.isConfigured()) {
+      console.log('[ambassador-notif:whatsapp] skipped — AUTHKEY_API_KEY unset', {
+        reference: payload.reference,
+      })
+      return
+    }
+
+    const result = await authkeyWhatsAppService.sendTemplate({
+      phone: payload.ambassadorPhone,
+      templateWid: wid,
+      templateName: 'wish_gifted_v1',
+      bodyValues: {
+        '1': payload.ambassadorFirstName,
+        '2': payload.wishService,
+        '3': gifterDisplay,
+        '4': dateFormatted,
+        '5': amountFormatted,
+        '6': payload.reference,
+      },
+      buttonValues: {
+        '1': payload.ambassadorSlug,
+      },
+    })
+
+    if (result.success) {
+      console.log('[ambassador-notif:whatsapp] wish_gifted sent', {
+        reference: payload.reference,
+        messageId: result.messageId,
+      })
+    } else {
+      console.error('[ambassador-notif:whatsapp] wish_gifted send failed', {
+        reference: payload.reference,
+        error: result.error,
+      })
+    }
+  } catch (err) {
+    console.error('[ambassador-notif:whatsapp] wish_gifted threw', {
+      reference: payload.reference,
+      err,
+    })
+  }
 }
 
 // ============================================================================

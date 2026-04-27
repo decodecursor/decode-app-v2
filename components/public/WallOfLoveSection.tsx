@@ -117,7 +117,7 @@ export function WallOfLoveSection({ modelId, slug }: { modelId: string; slug: st
 function WallRowDisplay({ row, slug, isLast }: { row: WallRow; slug: string; isLast: boolean }) {
   const wish = row.wish
   const isAnonymous = wish?.gifter_is_anonymous ?? true
-  const gifterName = isAnonymous ? 'Anonymous' : (wish?.gifter_name ?? 'Anonymous')
+  const gifterName = isAnonymous ? 'Secret Gifter' : (wish?.gifter_name ?? 'Secret Gifter')
   const gifterIg = isAnonymous ? null : (wish?.gifter_instagram ?? null)
   const serviceLabel = wish?.service_name ?? ''
   const amount = typeof row.gross_amount === 'string' ? Number(row.gross_amount) : row.gross_amount

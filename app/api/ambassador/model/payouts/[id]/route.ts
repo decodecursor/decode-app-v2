@@ -183,8 +183,8 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   const wishes = wishPayments.map((p) => {
     const datePretty = formatPrettyDate(p.created_at)
     const displayName = p.gifter_is_anonymous
-      ? 'Anonymous'
-      : (p.gifter_name ?? 'Anonymous')
+      ? 'Secret Gifter'
+      : (p.gifter_name ?? 'Secret Gifter')
     return {
       service_name: p.wish?.service_name ?? 'Wish',
       gifter_display_name: displayName,

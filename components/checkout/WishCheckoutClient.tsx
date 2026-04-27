@@ -261,7 +261,7 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
             <div style={{ flex: 1, minWidth: 0, paddingRight: 14 }}>
               <div style={{ fontSize: 13, fontWeight: 500 }}>
                 {anonymous
-                  ? <>Appear as <span style={{ fontWeight: 700 }}>Anonymous</span> on {ambassadorFirstName}&rsquo;s page</>
+                  ? <>Appear as <span style={{ fontWeight: 700 }}>Secret Gifter</span> on {ambassadorFirstName}&rsquo;s page</>
                   : 'Gift anonymously'}
               </div>
               <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>

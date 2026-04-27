@@ -30,7 +30,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { splitFee } from '../payout-math'
 import { generateReference } from '../utils'
-import { sendWishGiftedEmail } from '../notification-stubs'
+import { sendWishGiftedEmail, sendWishGiftedWhatsApp } from '../notification-stubs'
 
 type Admin = SupabaseClient
 
@@ -44,7 +44,7 @@ interface WishWithProfileRow {
   gifter_name: string | null
   gifter_instagram: string | null
   gifter_is_anonymous: boolean
-  profile: { slug: string; first_name: string; last_name: string } | null
+  profile: { slug: string; first_name: string; last_name: string; user_id: string } | null
 }
 
 interface ExistingWishPaymentRow {
@@ -91,7 +91,7 @@ export async function handleWishPaymentSucceeded(
     .select(`
       id, model_id, price, currency, service_name, professional_name,
       gifter_name, gifter_instagram, gifter_is_anonymous,
-      profile:model_profiles!model_wishes_model_id_fkey ( slug, first_name, last_name )
+      profile:model_profiles!model_wishes_model_id_fkey ( slug, first_name, last_name, user_id )
     `)
     .eq('id', wishId)
     .maybeSingle<WishWithProfileRow>()
@@ -172,9 +172,8 @@ export async function handleWishPaymentSucceeded(
   // wish immediately on next visit (Wall of Love + wishlist surfaces).
   revalidatePath(`/${wish.profile.slug}`)
 
-  // Fire-and-forget gifter receipt email. WhatsApp side stays stubbed
-  // until Meta template lands (out of this slice). Anonymous-vs-named
-  // copy branching happens inside the sender's render call.
+  // Fire-and-forget gifter receipt email + ambassador WhatsApp.
+  // Anonymous-vs-named copy branching happens inside each sender.
   const giftLabel = wish.professional_name
     ? `${wish.service_name} @ ${wish.professional_name}`
     : wish.service_name
@@ -193,6 +192,27 @@ export async function handleWishPaymentSucceeded(
     ambassadorSlug: wish.profile.slug,
     paymentIntentId: pi.id,
   }).catch((err) => console.error('[ambassador-webhook] wish-gifted email failed:', err))
+
+  // Ambassador phone for WhatsApp — separate fetch to avoid coupling
+  // to the wish embed shape. Mirrors listing.ts ambassador-user lookup.
+  const { data: ambassadorUser } = await admin
+    .from('users')
+    .select('phone_number')
+    .eq('id', wish.profile.user_id)
+    .maybeSingle<{ phone_number: string | null }>()
+
+  void sendWishGiftedWhatsApp({
+    ambassadorPhone: ambassadorUser?.phone_number ?? null,
+    ambassadorFirstName: wish.profile.first_name,
+    ambassadorSlug: wish.profile.slug,
+    isAnonymous,
+    wishService: wish.service_name,
+    gifterName: snapshotName,
+    purchaseDate: new Date(),
+    amount: gross,
+    currency: wish.currency,
+    reference: paymentReference,
+  }).catch((err) => console.error('[ambassador-webhook] wish-gifted whatsapp failed:', err))
 }
 
 export async function handleWishPaymentFailed(

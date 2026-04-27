@@ -2894,8 +2894,8 @@ Add these to Vercel before deploying Slice 4 (first slice that uses them):
 | `UPSTASH_REDIS_REST_URL` | Upstash Redis REST endpoint (rate limiting backend) | upstash.com → Create Redis database → Details → copy REST URL |
 | `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis auth token | Same Upstash database details page → copy REST token |
 | `RESEND_API_KEY` | Email delivery service for 3 custom templates | resend.com → sign up → verify `welovedecode.com` domain → API keys → create key |
-| `AUTHKEY_WID_LISTING_PAID` | AUTHKey template ID for "listing paid" WhatsApp | AUTHKey dashboard → create UTILITY template → submit to Meta → copy wid after approval |
-| `AUTHKEY_WID_WISH_GIFTED` | AUTHKey template ID for "wish gifted" WhatsApp | Same as above |
+| `AUTHKEY_WID_LISTING_PAID` | AUTHKey template ID for "listing paid" WhatsApp (wid=32846, Meta approval pending) | AUTHKey dashboard → create UTILITY template → submit to Meta → copy wid after approval |
+| `AUTHKEY_WID_WISH_GIFTED` | AUTHKey template ID for "wish gifted" WhatsApp (wid=32847, Meta approval pending) | Same as above |
 | `AUTHKEY_WID_LISTING_EXPIRING_7D` | AUTHKey template ID for 7-day listing expiry reminder (wid=32771, UTILITY-approved; v1 wid=32766 was auto-recategorized to MARKETING by Meta and retired) | Same as above |
 | `AUTHKEY_WID_LISTING_EXPIRING_PRO` | AUTHKey template ID for professional expiring reminder | Same as above |
 | `CRON_SECRET` | Bearer token for `/api/cron/daily` manual trigger + smoke tests (Vercel cron scheduler is auth'd via `x-vercel-cron` header so this is a secondary auth path). Generate: `openssl rand -hex 32` | Generate locally → paste into Vercel env |
