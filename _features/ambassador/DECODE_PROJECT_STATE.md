@@ -332,6 +332,438 @@ Day 40:  Salon renews early, pays $50 for 60 more days
 
 ---
 
+## V1 Notification Matrix
+
+Authoritative reference for all notification triggers, recipients, channels, and templates as of V1 ship.
+
+| # | Event | Email recipient | Email template | Email subject | WhatsApp recipient | WhatsApp wid | WhatsApp template | Operator BCC |
+|---|---|---|---|---|---|---|---|---|
+| 1 | User requests login (email path) | User | renderButtonEmail | Your Secure Login | — | — | — | — |
+| 2 | User requests login (WhatsApp path) | — | — | — | User | 22008 | OTP (legacy hardcoded) | — |
+| 3 | User adds email in Settings | User | renderButtonEmail (flow=add) | Add your email | — | — | — | — |
+| 4 | User changes email in Settings | User | renderButtonEmail (flow=change) | Change your email | — | — | — | — |
+| 5 | New user completes registration | Operator | renderNewUserOperatorEmail | New user - {firstName} {lastName} 🎉 | — | — | — | — (direct to operator, not BCC) |
+| 6 | Listing payment succeeds (Stripe webhook) | Professional | renderListingPaidEmail | You're live on {firstName}'s page 🎉 | Ambassador | 32846 | listing_paid_v2 | ✅ |
+| 7A | Wish payment succeeds, named gifter (Stripe webhook) | Gifter | renderWishGiftedEmail (named) | You made {firstName}'s day 🎁 | Ambassador | 32847 | wish_gifted_v2 | ✅ |
+| 7B | Wish payment succeeds, anonymous gifter (Stripe webhook) | Gifter | renderWishGiftedEmail (anonymous) | You made {firstName}'s day 🎁 | Ambassador | 32847 | wish_gifted_v2 | ✅ |
+| 8 | Admin marks payout paid | Ambassador | renderPayoutPaidEmail | We sent you money❤️ | Ambassador | 32755 | payout_paid_v1_placeholder | ✅ |
+| 9 | Listing 7 days from expiry (paid, daily cron) | Ambassador | renderListingExpiringEmail (paid branch) | Time to renew ⏰ | Ambassador | 32766 | listing_expiring_v1 | ✅ |
+| 10 | Listing 7 days from expiry (free trial, daily cron) | Ambassador | renderListingExpiringEmail (trial branch) | Time to upgrade ⏰ | Ambassador | 32766 | listing_expiring_v1 | ✅ |
+| 11 | Listing 7 days from expiry → professional (paid only, daily cron) | Professional | renderListingExpiringProEmail | One week left on {firstName}'s page ⏰ | — | — | — | ✅ |
+
+---
+
+## V1 Notification Body Drafts
+
+Locked copy for each notification surface as of V1 ship; source of truth for "what does the user see". Email body strings live in `lib/ambassador/email-templates.ts` (renderXxxEmail helpers) and `lib/ambassador/notification-stubs.ts` (sender helpers); WhatsApp template bodies live in the AUTHKey dashboard.
+
+### EMAIL 1 — Magic-link sign-in (renderButtonEmail)
+
+- From: `WeLoveDecode <noreply@welovedecode.com>`
+- To: User
+- Subject: `Your Secure Login`
+- Body: WeLoveDecode wordmark heading + pink "Login to WeLoveDecode" CTA button → magic link callback URL.
+- Plain-text fallback: `Login to WeLoveDecode: ${callbackUrl}`
+
+### EMAIL 2 — Add email confirm (renderButtonEmail, flow=add)
+
+- From: `WeLoveDecode <noreply@welovedecode.com>`
+- To: User
+- Subject: `Add your email`
+- Button label: `Confirm your email`
+- Plain-text fallback: `Confirm your email for WeLoveDecode: ${callbackUrl}`
+
+### EMAIL 3 — Change email confirm (renderButtonEmail, flow=change)
+
+- From: `WeLoveDecode <noreply@welovedecode.com>`
+- To: User
+- Subject: `Change your email`
+- Button label: `Confirm your email`
+- Plain-text fallback: same as EMAIL 2.
+
+### EMAIL 4 — Payout paid (renderPayoutPaidEmail)
+
+- From: `WeLoveDecode <noreply@welovedecode.com>`
+- To: Ambassador (BCC operator)
+- Subject: `We sent you money❤️`
+
+```
+Hi Yanni,
+
+We sent you money❤️
+
+Payout: 1,440.00 AED
+Date: 27 April 2026
+Reference: P-300-0001
+
+Funds arrive in 1–2 business days.
+
+[View statement] (pink button → /model/payouts/{ref})
+
+WeLoveDecode
+```
+
+### EMAIL 5 — New user (renderNewUserOperatorEmail)
+
+- From: `WeLoveDecode <noreply@welovedecode.com>`
+- To: Operator (`OPERATOR_BCC_EMAIL` value, direct to address — not BCC)
+- Subject: `New user - Yanni Johnson 🎉`
+
+WhatsApp signup branch:
+
+```
+New user 🎉
+
+Method: WhatsApp
+Phone: +971501234567
+
+First name: Yanni
+Last name: Johnson
+
+Slug: yannijohnson
+Instagram: yannijohnson
+
+Registered: 27 April 2026, 14:35 GST
+
+WeLoveDecode
+```
+
+Email signup branch: same shape; `Method: Email` and the Email line replace the Phone line (Phone omitted entirely).
+
+### EMAIL 6 — Listing paid (renderListingPaidEmail)
+
+- From: `WeLoveDecode <noreply@welovedecode.com>`
+- To: Professional (BCC operator)
+- Subject: `You're live on Yanni's page 🎉`
+
+```
+Congrats
+
+Glow Studio is now live on Yanni's page 🎉
+
+Thousands of her followers will be able to discover your work.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ambassador:     Yanni Johnson
+Reference:      L-100-0001
+Service:        30-day listing on Yanni's page
+Purchase date:  27 April 2026
+Amount:         1,000 AED
+Start date:     27 April 2026
+End date:       27 May 2026
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+View listing:
+app.welovedecode.com/yannijohnson
+
+View receipt online:
+app.welovedecode.com/listing/confirmation/{pi_id}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Didn't make this payment? Please reply right away.
+
+Your DECODE team
+welovedecode.com
+```
+
+### EMAIL 7A — Wish gifted, named (renderWishGiftedEmail, named branch)
+
+- From: `WeLoveDecode <noreply@welovedecode.com>`
+- To: Gifter (BCC operator)
+- Subject: `You made Yanni's day 🎁`
+
+```
+Amazing
+
+You fulfilled Yanni's beauty wish 🎁
+
+Thousands will see your name and Instagram on her Wall of Love.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Gift received:  Yanni Johnson
+Reference:      W-200-0001
+Gift:           Designer Bag @ Boutique Avenue
+Purchase date:  27 April 2026
+Amount:         350 AED
+Your name:      Sebastian Lucht
+Your IG:        @sebastian.lucht
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+View Yanni's page:
+app.welovedecode.com/yannijohnson
+
+View receipt online:
+app.welovedecode.com/wish/confirmation/{pi_id}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Didn't make this gift? Please reply right away.
+
+Your DECODE team
+welovedecode.com
+```
+
+### EMAIL 7B — Wish gifted, anonymous (renderWishGiftedEmail, anonymous branch)
+
+Same shape as 7A. Differences:
+
+- Replace `Thousands will see your name and Instagram on her Wall of Love.` with:
+  ```
+  Your gift will appear as "Secret Gifter" on her Wall of Love.
+
+  Your name and Instagram stay private.
+  ```
+- Replace the `Your name:` + `Your IG:` rows with a single row: `Visibility:     Secret Gifter`.
+
+### EMAIL 9 — Listing expiring 7d → ambassador (paid branch)
+
+- From: `WeLoveDecode <noreply@welovedecode.com>`
+- To: Ambassador (BCC operator)
+- Subject: `Time to renew ⏰`
+
+```
+Hi Yanni,
+
+Time to renew ⏰
+
+Listing expires in 7 days.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Listing:        Lashes
+Professional:   Oasis Beauty Lounge
+Expires:        4 May 2026
+Reference:      L-100-0002
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Keep your listing active.
+
+[Send renewal link] (pink button → /model/listings/{id}/send-link)
+
+WeLoveDecode
+```
+
+### EMAIL 10 — Listing expiring 7d → ambassador (trial branch)
+
+Same shape as EMAIL 9. Differences:
+
+- Subject: `Time to upgrade ⏰`
+- Heading line: `Time to upgrade ⏰`
+- Body line `Free trial expires in 7 days.` replaces `Listing expires in 7 days.`
+- Reference row OMITTED (trial has no `payment_reference` yet).
+- Body line `Send Oasis Beauty Lounge a payment link to keep their listing live.` replaces `Keep your listing active.`
+- Button label `Send payment link` replaces `Send renewal link`.
+
+### EMAIL 11 — Listing expiring 7d → professional (paid only)
+
+- From: `WeLoveDecode <noreply@welovedecode.com>`
+- To: Professional (BCC operator)
+- Subject: `One week left on Yanni's page ⏰`
+
+```
+Hello,
+
+It's renewal time⏰
+
+Your listing expires in 7 days.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Listing:        Hydrafacial
+Ambassador:     Yanni Johnson
+Package:        30 days
+Expires:        4 May 2026
+Reference:      L-100-0001
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+To keep your spotlight, ask Yanni for a renewal link.
+
+Your DECODE team
+welovedecode.com
+```
+
+### WHATSAPP — OTP login (wid 22008, legacy AUTHENTICATION)
+
+Body locked by Meta — cannot be customized:
+
+```
+{{1}} is your verification code.
+For your security, do not share this code.
+```
+
+Button: `Copy Code` (Meta default).
+
+### WHATSAPP — Payout paid (wid 32755, payout_paid_v1_placeholder, UTILITY)
+
+```
+Hi {{1}},
+
+We sent you money❤️
+
+Payout: {{2}} {{3}}
+Date: {{5}}
+Reference: {{4}}
+
+Funds arrive in 1–2 business days.
+
+WeLoveDecode
+```
+
+### WHATSAPP — Listing expiring 7d (wid 32766, listing_expiring_v1, MARKETING auto-cat)
+
+```
+Hi {{1}},
+
+Time to renew ⏰
+
+Listing expires in 7 days.
+
+Listing: {{2}}
+Where: {{3}}
+Expires: {{4}}
+Reference: {{5}}
+
+Keep your listing active.
+```
+
+Button: `Send renewal link` → static URL `https://app.welovedecode.com/model/listings`.
+
+### WHATSAPP — Listing booked (wid 32846, listing_paid_v2, UTILITY)
+
+```
+Hi {{1}},
+
+Listing booked🎉
+
+Listing: {{2}}
+Professional: {{3}}
+Package: {{4}}
+Active until: {{5}}
+Amount: {{6}}
+Reference: {{7}}
+
+See it live on your page🔥
+```
+
+Button: `View page` → dynamic URL `https://app.welovedecode.com/{1}` (single-bracket — see Section "Notification Architecture Doctrine" §4.5).
+
+### WHATSAPP — Wish fulfilled (wid 32847, wish_gifted_v2, UTILITY)
+
+```
+Hi {{1}},
+
+Wish fulfilled🎁
+
+Wish: {{2}}
+From: {{3}}
+Date: {{4}}
+Amount: {{5}}
+Reference: {{6}}
+
+See it live on your page🔥
+```
+
+Button: `View page` → dynamic URL `https://app.welovedecode.com/{1}` (single-bracket — see §4.5).
+
+Anonymous handling: code substitutes `Secret Gifter` for `{{3}}` when `gifter_is_anonymous = true`.
+
+---
+
+## Major Learnings (Notification Audit, 2026-04-27)
+
+Project-wide takeaways from the V1 notification audit session, captured to inform future feature work.
+
+- Meta locks AUTHENTICATION template body text. Body cannot be customized regardless of provider (AUTHKey, Twilio, MessageBird). Optional: security recommendation line, expiration footer, button label. Brand presence must come from the WhatsApp Business profile header bar, not template content.
+- Meta auto-recategorizes UTILITY templates to MARKETING when the body contains nudge/CTA-flavored language ("Time to renew", emojis, second-person imperatives). MARKETING category = higher per-send cost + 24h delivery rule. To preserve UTILITY: use cold transactional language ("Your listing expires on X"), no emoji, no "renew" verb, no second-person imperative.
+- AUTHKey dashboard expects single-bracket `{1}` syntax for URL button variables, NOT double-bracket `{{1}}` like body variables. Surfaced via repeated Meta error 2388052 ("Button URL has invalid format"). Body still uses `{{1}}`, `{{2}}`, etc. Button URL variable counter is INDEPENDENT from body variable counter and starts at 1.
+- WhatsApp template button URLs must be static OR have the variable at the absolute end of the path (no static suffix after the variable). Variables in middle-path positions are rejected. Workaround when slug needs to be in middle: redirect route on the app side (V2 backlog).
+- Stripe Sandbox automatically sends customer-facing receipt emails when "Successful payments" toggle is ON in Customer emails settings. If shipping custom Resend receipts, MUST turn off Stripe customer emails to prevent duplication. Path: Stripe Dashboard → Settings → Business → Customer emails.
+- Vercel Hobby plan: 100 cron jobs per project (not 2 as some outdated docs claim). One daily cron handler can sequentially run multiple time-based checks via helper functions inside the same route — extension pattern keeps the cron count low while supporting unlimited future time-based triggers.
+- Webhook handlers + cron helpers should fire-and-forget notifications via `.catch()` to prevent a notification failure from 500'ing the upstream operation (payment webhook, signup setup endpoint, etc.). Pattern: `void sendXxx(...).catch(err => console.error(...))`.
+- Notification env vars enable swap-without-redeploy: storing AUTHKey wid + recipient email + WhatsApp template ids in env means template revocation, A/B variant testing, and per-env routing all become 30-second Vercel actions instead of code changes. Hardcoded wids (legacy OTP at 22008) are the outlier; new ambassador wids are env-driven.
+- Operator BCC pattern: single env var `OPERATOR_BCC_EMAIL` acts as both feature flag AND recipient address. When set: BCC active on transactional emails + signup notifications fire. When unset: silent operator surface. Zero code change to mute or activate.
+- Database migrations should be applied BEFORE the app code that references them. Slice 6A migration was committed to repo but never applied to production — surfaced when wish-gifted email slice tried to read columns that didn't exist in live schema. MCP read-only restriction means partner applies via Supabase Studio SQL Editor; CC verifies via read-only query post-apply.
+- Pre-flight against live schema saves rework. CC's pre-flight on the wish-gifted slice surfaced the missing migration before code was written. Standing rule: before any DB-touching code, MCP-query live schema for column existence, CHECK constraints, and stored function signatures. Don't trust spec docs as source of truth for live schema.
+- Commit discipline: stale staged files in git index hitch rides on commits when only path-scoped `git add` is used. Run `git status` + `git diff --cached --name-status` before every commit. Use `git commit -m "..." -- <paths>` to scope explicitly when working tree carries unrelated drift. Surfaced via accidental deletion of PrivacyBackArrow + TermsBackArrow in commit `d44874d`.
+- Date format standard: long format with full month name ("27 April 2026"), never abbreviated ("Apr"). Applied across emails, dashboard, payouts, all user-facing surfaces. Use `Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })` for consistent rendering.
+- Anonymous user-facing label: "Secret Gifter" not "Anonymous". Replaced across email + Wall of Love display surfaces. Database column `gifter_is_anonymous` and code variable `isAnonymous` unchanged — only display strings replaced.
+- Reference format standard: `prefix-NNN-NNNN` shape for all payment + payout references (`L-100-0001` listing payment, `W-200-0001` wish payment, `P-300-0001` payout). Applied consistently across emails, WhatsApp, dashboard, public receipt URLs. App-code generated via existing helpers, NOT via DB sequences.
+
+---
+
+## Notification Architecture Doctrine
+
+Cross-cutting decisions and patterns for notification surfaces. New notifications must align with these unless a deliberate exception is logged.
+
+### 4.1 Channel intent
+
+- WhatsApp = real-time + emotional + action-required moments (celebration, urgent reminder, OTP). High signal, low volume.
+- Email = transactional records + receipts + items the user may want to inbox-search later (payments, payouts, expiry, account changes).
+- Many events fire BOTH (e.g. payout-paid sends ambassador a WhatsApp celebration AND email record).
+
+### 4.2 Stripe customer emails are OFF
+
+- Stripe Dashboard → Settings → Business → Customer emails: both toggles (Successful payments + Refunds) MUST stay OFF.
+- Reason: would duplicate the custom Resend receipts that ship to gifter + professional.
+- Stripe operator alerts (fraud, disputes, compliance) come through Stripe's separate Communication preferences screen and remain ON.
+
+### 4.3 OPERATOR_BCC_EMAIL doctrine
+
+- Single env var pulls dual duty: feature flag AND recipient address.
+- When set: BCC active on 5 transactional emails (payout-paid, listing-paid, wish-gifted named + anon, listing-expiring ambassador + pro), AND new-signup operator email fires.
+- When unset: notifications silent on operator side (no BCC, no signup email).
+- 3 auth emails NEVER BCC'd (would flood operator inbox with every magic-link + email-add request).
+
+### 4.4 Daily cron infrastructure
+
+- Single Vercel cron at 09:00 UTC: `/api/cron/daily`.
+- Auth gate: `x-vercel-cron` header OR `CRON_SECRET` Bearer token.
+- Extension pattern: future time-based checks added as helper function calls inside the same route handler. Each helper wrapped in try/catch so one failing check doesn't block the next.
+- One Vercel cron slot covers unlimited time-based triggers.
+
+### 4.5 AUTHKey single-bracket dynamic URL syntax
+
+- AUTHKey dashboard expects `{1}` (single bracket) for URL button variables, NOT `{{1}}` (double bracket like body variables).
+- Body variables and button URL variable use INDEPENDENT counters — both start at `{{1}}` for body, `{1}` for button URL.
+- Variable must be at the END of the URL path, not mid-path.
+- Static URL fallback works when dynamic isn't viable (Meta domain verification required for some dynamic cases).
+- Discovered via Meta error 2388052 "Button URL has invalid format" during template submission for `listing_paid_v2` + `wish_gifted_v2`.
+
+### 4.6 Anonymous gifter rendering
+
+- Database: `gifter_is_anonymous` boolean (Slice 6A column).
+- User-facing display: "Secret Gifter" (NOT "Anonymous") across all surfaces — wish-gifted email body, Wall of Love public page, `wish_gifted_v2` WhatsApp template variable `{{3}}`.
+- Code branches at variable-fill time, not at template level. Single template handles both cases.
+
+### 4.7 Auth-template body text
+
+- WhatsApp AUTHENTICATION templates: body locked by Meta. Cannot customize wording. DECODE LLC header bar (WhatsApp Business profile) provides brand presence on every send.
+- Optional toggles: security recommendation line ("For your security, do not share this code"), expiration footer ("This code expires in N minutes"), button label.
+- Legacy OTP wid 22008 hardcoded in `lib/services/AuthkeyWhatsAppService.ts` — accepted cross-feature reuse with legacy auctions per Phase 12 §19 cross-feature isolation doctrine.
+
+---
+
+## V2 Notification Backlog
+
+Post-V1 cleanup items captured during the notification audit. Each item ships as a small slice when prioritized, NOT bundled into V1.
+
+1. WhatsApp `listing_expiring_v1` (wid 32766) UTILITY rewrite — currently MARKETING auto-categorized by Meta. Higher per-send cost + 24h delivery rule. Rewrite body as cold transactional language ("Your listing expires on X"), no emoji, no "renew" verb, submit as v2 with single-bracket dynamic URL.
+2. Real payout-paid WhatsApp copy. Currently uses `payout_paid_v1_placeholder` (wid 32755) with placeholder body text per Slice 7B Q1 lock. Partner provides final copy post-V1, AUTHKey resubmission for new wid, env var swap.
+3. Pro-facing 7-day expiry WhatsApp. Pro phone not captured at Stripe checkout; would require checkout flow modification + new template + env var. Email-only for V1.
+4. Dynamic deep-link WhatsApp button URLs for `listing_paid_v2` + `wish_gifted_v2`. Currently lands on `/{slug}` via single-bracket pattern. V2 stretch: deep-link directly to the specific listing or wish row (current Meta restriction blocks middle-path variables; redirect-route workaround possible).
+5. DECODE-branded ambassador OTP template. Currently shares legacy auctions OTP (wid 22008, hardcoded). Meta locks the body so customization limited to template type (zero_tap vs copy_code), button label, optional footer. Low-value for V1; consider when DECODE volume justifies full separation.
+6. Refund-issued operator notification (Resend). Currently relies on Stripe Communication preferences (fraud + dispute alerts) for operator awareness. Custom Resend template with refund context + dashboard link CTA + structured alert format would improve triage.
+7. Failed-payment operator + customer notifications. Stripe operator notifications for failed payments not yet enabled (Stripe screen showed only Communication preferences for compliance, not transactional events). Custom Resend template alternative possible but lower priority — failed payments retry naturally via professional reattempt.
+
+---
+
 # PHASE 5 — DATABASE SCHEMA (FINAL)
 
 ## Tables overview
