@@ -6,7 +6,9 @@ import {
 
 interface ExpiringListingRow {
   id: string
-  paid_until: string
+  paid_until: string | null
+  free_trial_ends_at: string | null
+  is_free_trial: boolean
   category_custom: string | null
   category: { name: string } | null
   professional: { name: string } | null
@@ -22,15 +24,19 @@ interface ExpiringListingRow {
 /**
  * Daily-cron helper · 7-day listing-expiry notifications (ambassador).
  *
- * Selects active paid listings whose paid_until lands within the
- * next 7 days and which have not yet been notified, then fires
- * email + WhatsApp per listing. Stamps expiry_notification_sent_at
- * unconditionally after the send-attempt — partner-acceptable
- * failure mode is one dropped notification, NOT duplicate sends
- * if Resend / AUTHKey are flaky.
+ * Two cohorts in one pass:
+ * - PAID  (status='active', is_free_trial=false): paid_until in
+ *   next 7 days → "Time to renew" email + WhatsApp, CTA = send
+ *   renewal link.
+ * - TRIAL (status='free_trial', is_free_trial=true):
+ *   free_trial_ends_at in next 7 days → "Time to upgrade" email
+ *   variant, CTA = send payment link. Trials reuse the same
+ *   WhatsApp template (partner-locked) — body slot {{5}} is
+ *   blank since no payment_reference exists yet.
  *
- * Free-trial listings are excluded — they have a separate
- * conversion path via the send-link button (Slice 4D).
+ * Stamps expiry_notification_sent_at unconditionally after the
+ * send-attempt — partner-acceptable failure mode is one dropped
+ * notification, NOT duplicate sends if Resend / AUTHKey are flaky.
  *
  * Returns { sent, errors }: `sent` is the count of listings
  * processed (independent of channel-level success — stamping
@@ -43,12 +49,25 @@ export async function sendListingExpiringNotifications(): Promise<{ sent: number
   const admin = createServiceRoleClient()
   const now = new Date()
   const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+  const nowISO = now.toISOString()
+  const sevenDaysISO = sevenDaysFromNow.toISOString()
+
+  // OR over two cohorts: paid listings (use paid_until) and free
+  // trials (use free_trial_ends_at). PostgREST .or() with nested
+  // .and() groups; ISO timestamps don't contain commas so the
+  // filter string is unambiguous.
+  const cohortFilter = [
+    `and(is_free_trial.eq.false,status.eq.active,paid_until.gte.${nowISO},paid_until.lte.${sevenDaysISO})`,
+    `and(is_free_trial.eq.true,status.eq.free_trial,free_trial_ends_at.gte.${nowISO},free_trial_ends_at.lte.${sevenDaysISO})`,
+  ].join(',')
 
   const { data: rows, error: readErr } = await admin
     .from('model_listings_live')
     .select(`
       id,
       paid_until,
+      free_trial_ends_at,
+      is_free_trial,
       category_custom,
       category:model_categories(name),
       professional:model_professionals(name),
@@ -57,11 +76,8 @@ export async function sendListingExpiringNotifications(): Promise<{ sent: number
         user:users(email, phone_number)
       )
     `)
-    .gte('paid_until', now.toISOString())
-    .lte('paid_until', sevenDaysFromNow.toISOString())
     .is('expiry_notification_sent_at', null)
-    .eq('status', 'active')
-    .eq('is_free_trial', false)
+    .or(cohortFilter)
     .returns<ExpiringListingRow[]>()
 
   if (readErr) {
@@ -83,19 +99,33 @@ export async function sendListingExpiringNotifications(): Promise<{ sent: number
       const firstName = row.model?.first_name ?? 'there'
       const professionalName = row.professional?.name ?? 'your professional'
       const serviceName = row.category_custom ?? row.category?.name ?? 'your service'
-      const paidUntil = new Date(row.paid_until)
+      const isFreeTrial = row.is_free_trial
+      const expiryRaw = isFreeTrial ? row.free_trial_ends_at : row.paid_until
+      if (!expiryRaw) {
+        // Belt-and-suspenders: filter guarantees a non-null
+        // expiry, but if the cohort source column is somehow
+        // null we skip rather than email "Invalid Date".
+        console.error('[cron-helpers:listing_expiring] missing expiry, skipping', { listingId: row.id, isFreeTrial })
+        errors++
+        continue
+      }
+      const expiryAt = new Date(expiryRaw)
 
-      // Latest completed payment_reference for the listing (the
-      // L-XXX-XXXX shown in the email + WhatsApp body).
-      const { data: payment } = await admin
-        .from('model_listing_payments')
-        .select('payment_reference')
-        .eq('listing_id', row.id)
-        .eq('status', 'completed')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      const listingReference = payment?.payment_reference ?? ''
+      // Latest completed payment_reference (only for PAID — trials
+      // have no payment yet; reference stays empty and the email
+      // helper omits the Reference row for the trial variant).
+      let listingReference = ''
+      if (!isFreeTrial) {
+        const { data: payment } = await admin
+          .from('model_listing_payments')
+          .select('payment_reference')
+          .eq('listing_id', row.id)
+          .eq('status', 'completed')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        listingReference = payment?.payment_reference ?? ''
+      }
 
       // Fire each channel under its own try/catch — one failure
       // does not poison the other. Senders themselves swallow
@@ -107,9 +137,10 @@ export async function sendListingExpiringNotifications(): Promise<{ sent: number
             ambassadorName: firstName,
             serviceName,
             professionalName,
-            paidUntil,
+            expiryAt,
             listingId: row.id,
             listingReference,
+            isFreeTrial,
           })
         } catch (err) {
           console.error('[cron-helpers:listing_expiring] email threw', { listingId: row.id, err })
@@ -122,7 +153,7 @@ export async function sendListingExpiringNotifications(): Promise<{ sent: number
           firstName,
           serviceName,
           professionalName,
-          paidUntil,
+          expiryAt,
           listingReference,
         })
       } catch (err) {

@@ -91,11 +91,21 @@ export function renderPayoutPaidEmail({
 /**
  * 7-day listing-expiry reminder email (ambassador-side).
  *
+ * Two variants:
+ * - PAID  (isFreeTrial=false) → "Time to renew" + reference row +
+ *   "Send renewal link" CTA.
+ * - TRIAL (isFreeTrial=true)  → "Time to upgrade" + no reference
+ *   (no payment exists yet) + "Send payment link" CTA + softer
+ *   trailing prose pointing the ambassador at the professional.
+ *
+ * Receipt-style monospace data block (Courier New, white-space:pre)
+ * with box-drawing separators is the partner-locked aesthetic for
+ * all transactional summary emails — same pattern reused by the
+ * upcoming listing-paid + wish-gifted helpers.
+ *
  * Same Outlook-safe shell as renderPayoutPaidEmail (left-aligned,
  * VML roundrect, color-scheme light only, [data-ogsc] selectors,
- * WeLoveDecode wordmark as bottom sign-off). CTA links to the
- * ambassador's send-link page so they can fire a renewal payment
- * link to the professional in one tap.
+ * WeLoveDecode wordmark as bottom sign-off).
  */
 export function renderListingExpiringEmail({
   firstName,
@@ -104,6 +114,7 @@ export function renderListingExpiringEmail({
   expiryDate,
   listingReference,
   sendLinkUrl,
+  isFreeTrial,
 }: {
   firstName: string
   serviceName: string
@@ -111,7 +122,33 @@ export function renderListingExpiringEmail({
   expiryDate: string
   listingReference: string
   sendLinkUrl: string
+  isFreeTrial: boolean
 }): string {
+  const heading = isFreeTrial ? 'Time to upgrade ⏰' : 'Time to renew ⏰'
+  const expiryLine = isFreeTrial ? 'Free trial expires in 7 days.' : 'Listing expires in 7 days.'
+  const trailingLine = isFreeTrial
+    ? `Send ${professionalName} a payment link to keep their listing live.`
+    : 'Keep your listing active.'
+  const buttonLabel = isFreeTrial ? 'Send payment link' : 'Send renewal link'
+
+  const separator = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+  const dataBlock = isFreeTrial
+    ? `${separator}
+
+Listing:        ${serviceName}
+Professional:   ${professionalName}
+Expires:        ${expiryDate}
+
+${separator}`
+    : `${separator}
+
+Listing:        ${serviceName}
+Professional:   ${professionalName}
+Expires:        ${expiryDate}
+Reference:      ${listingReference}
+
+${separator}`
+
   return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
@@ -135,21 +172,21 @@ export function renderListingExpiringEmail({
     <tr>
       <td align="left">
         <p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 16px;">Hi ${firstName},</p>
-        <p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 24px;">Time to renew ⏰</p>
-        <p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 24px;">Listing expires in 7 days.</p>
-        <p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 24px;">Listing: ${serviceName}<br>Where: ${professionalName}<br>Expires: ${expiryDate}<br>Reference: ${listingReference}</p>
-        <p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 32px;">Keep your listing active.</p>
+        <p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 24px;">${heading}</p>
+        <p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 24px;">${expiryLine}</p>
+        <div style="margin:0 0 24px;"><pre style="font-family:'Courier New',Consolas,monospace;font-size:14px;line-height:1.6;margin:0;white-space:pre;color:#111111;">${dataBlock}</pre></div>
+        <p class="body" style="font-size:15px;line-height:1.6;color:#111111;margin:0 0 32px;">${trailingLine}</p>
         <!--[if mso]>
         <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${sendLinkUrl}" style="height:48px;v-text-anchor:middle;width:240px;" arcsize="17%" strokecolor="#e91e8c" fillcolor="#e91e8c">
           <w:anchorlock/>
-          <center style="color:#ffffff;font-family:Arial,sans-serif;font-size:14px;font-weight:700;">Send renewal link</center>
+          <center style="color:#ffffff;font-family:Arial,sans-serif;font-size:14px;font-weight:700;">${buttonLabel}</center>
         </v:roundrect>
         <![endif]-->
         <!--[if !mso]><!-- -->
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="left" class="btn-bg" bgcolor="#e91e8c" style="background-color:#e91e8c;border-radius:8px;">
           <tr>
             <td class="btn-bg" bgcolor="#e91e8c" align="center" style="background-color:#e91e8c;border-radius:8px;">
-              <a class="btn-txt" href="${sendLinkUrl}" style="display:inline-block;padding:14px 32px;color:#ffffff !important;text-decoration:none;font-weight:600;font-size:14px;line-height:20px;border-radius:8px;background-color:#e91e8c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Send renewal link</a>
+              <a class="btn-txt" href="${sendLinkUrl}" style="display:inline-block;padding:14px 32px;color:#ffffff !important;text-decoration:none;font-weight:600;font-size:14px;line-height:20px;border-radius:8px;background-color:#e91e8c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">${buttonLabel}</a>
             </td>
           </tr>
         </table>

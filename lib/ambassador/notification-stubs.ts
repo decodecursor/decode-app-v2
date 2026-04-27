@@ -301,9 +301,10 @@ export interface ListingExpiringEmailPayload {
   ambassadorName: string
   serviceName: string
   professionalName: string
-  paidUntil: Date
+  expiryAt: Date
   listingId: string
   listingReference: string
+  isFreeTrial: boolean
 }
 
 export interface ListingExpiringWhatsAppPayload {
@@ -311,7 +312,7 @@ export interface ListingExpiringWhatsAppPayload {
   firstName: string
   serviceName: string
   professionalName: string
-  paidUntil: Date
+  expiryAt: Date
   listingReference: string
 }
 
@@ -331,7 +332,7 @@ export async function sendListingExpiringEmail(payload: ListingExpiringEmailPayl
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-  }).format(payload.paidUntil)
+  }).format(payload.expiryAt)
 
   const html = renderListingExpiringEmail({
     firstName: payload.ambassadorName,
@@ -340,24 +341,34 @@ export async function sendListingExpiringEmail(payload: ListingExpiringEmailPayl
     expiryDate: formattedDate,
     listingReference: payload.listingReference,
     sendLinkUrl,
+    isFreeTrial: payload.isFreeTrial,
   })
 
-  try {
-    const { Resend } = await import('resend')
-    const resend = new Resend(apiKey)
-    const { error } = await resend.emails.send({
-      from: 'WeLoveDecode <noreply@welovedecode.com>',
-      to: payload.ambassadorEmail,
-      subject: 'Time to renew ⏰',
-      html,
-      text: `Hi ${payload.ambassadorName},
+  const subject = payload.isFreeTrial ? 'Time to upgrade ⏰' : 'Time to renew ⏰'
+  const text = payload.isFreeTrial
+    ? `Hi ${payload.ambassadorName},
+
+Time to upgrade ⏰
+
+Free trial expires in 7 days.
+
+Listing: ${payload.serviceName}
+Professional: ${payload.professionalName}
+Expires: ${formattedDate}
+
+Send ${payload.professionalName} a payment link to keep their listing live.
+
+Send payment link: ${sendLinkUrl}
+
+WeLoveDecode`
+    : `Hi ${payload.ambassadorName},
 
 Time to renew ⏰
 
 Listing expires in 7 days.
 
 Listing: ${payload.serviceName}
-Where: ${payload.professionalName}
+Professional: ${payload.professionalName}
 Expires: ${formattedDate}
 Reference: ${payload.listingReference}
 
@@ -365,7 +376,17 @@ Keep your listing active.
 
 Send renewal link: ${sendLinkUrl}
 
-WeLoveDecode`,
+WeLoveDecode`
+
+  try {
+    const { Resend } = await import('resend')
+    const resend = new Resend(apiKey)
+    const { error } = await resend.emails.send({
+      from: 'WeLoveDecode <noreply@welovedecode.com>',
+      to: payload.ambassadorEmail,
+      subject,
+      html,
+      text,
     })
     if (error) {
       console.error('[ambassador-notif:email] listing_expiring resend failed', {
@@ -406,7 +427,7 @@ export async function sendListingExpiringWhatsApp(payload: ListingExpiringWhatsA
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-  }).format(payload.paidUntil)
+  }).format(payload.expiryAt)
 
   try {
     const { authkeyWhatsAppService } = await import('@/lib/services/AuthkeyWhatsAppService')
