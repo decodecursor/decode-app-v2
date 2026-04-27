@@ -11,6 +11,15 @@ import { AddWhatsAppModal } from '@/components/ambassador/AddWhatsAppModal'
 import { ChangeWhatsAppModal } from '@/components/ambassador/ChangeWhatsAppModal'
 import { BankModal, type BankAccountSummary } from '@/components/ambassador/BankModal'
 
+// App-subdomain base for the public-page share URL. Same env-aware
+// pattern as DashboardClient + WishlistClient + SendPaymentLinkClient
+// (Slice 4B+4C hardening item 7). /{slug} lives on the app subdomain
+// — apex (Carrd) 404s on slug paths until apex migrates (Phase 1
+// locked decision #7), at which point this env-flips.
+const APP_HOST = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.welovedecode.com')
+  .replace(/^https?:\/\//, '')
+  .replace(/\/$/, '')
+
 interface Profile {
   id: string
   slug: string
@@ -326,7 +335,7 @@ export default function SettingsPage() {
   const handleCopy = async () => {
     if (!profile) return
     try {
-      await navigator.clipboard.writeText(`https://welovedecode.com/${profile.slug}`)
+      await navigator.clipboard.writeText(`https://${APP_HOST}/${profile.slug}`)
     } catch { /* clipboard unavailable */ }
     setCopied(true)
     if (copiedTimer.current) clearTimeout(copiedTimer.current)
@@ -335,7 +344,7 @@ export default function SettingsPage() {
 
   const openPublic = () => {
     if (!profile) return
-    window.open(`https://welovedecode.com/${profile.slug}`, '_blank', 'noopener,noreferrer')
+    window.open(`https://${APP_HOST}/${profile.slug}`, '_blank', 'noopener,noreferrer')
   }
 
   if (loading) return <div style={{ minHeight: '100vh', background: '#000' }} />
@@ -399,7 +408,7 @@ export default function SettingsPage() {
             overflow: 'hidden',
             textOverflow: 'ellipsis',
           }}>
-            <span style={{ color: '#666' }}>welovedecode.com/</span>
+            <span style={{ color: '#666' }}>{APP_HOST}/</span>
             <span style={{ color: '#fff', fontWeight: 500 }}>{slug}</span>
           </div>
         </div>

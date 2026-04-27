@@ -3,6 +3,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+// App-subdomain base for the public-page share URL. Same env-aware
+// pattern as WishlistClient + SendPaymentLinkClient (Slice 4B+4C
+// hardening item 7). Public profile route /{slug} lives on the app
+// subdomain — apex (Carrd) 404s on slug paths until apex migrates
+// (Phase 1 locked decision #7), at which point this env-flips.
+const APP_HOST = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.welovedecode.com')
+  .replace(/^https?:\/\//, '')
+  .replace(/\/$/, '')
+
 interface Profile {
   id: string
   slug: string
@@ -52,7 +61,7 @@ export default function DashboardClient({
   const copyResetRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const pageUrl = `welovedecode.com/${profile.slug}`
+  const pageUrl = `${APP_HOST}/${profile.slug}`
   const fullUrl = `https://${pageUrl}`
 
   useEffect(() => {

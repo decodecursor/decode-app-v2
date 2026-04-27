@@ -91,10 +91,11 @@ export default async function PublicSlugPage({
 
   // Canonical share URL. Apex still on Carrd per PROJECT_STATE decision
   // #7 — until apex migrates, the share link points at the app subdomain
-  // via NEXT_PUBLIC_APP_URL. Falls back to the apex marketing domain so
-  // production copies always render a valid-looking URL.
+  // via NEXT_PUBLIC_APP_URL. Fallback matches sibling app-base fallbacks
+  // (UrlOverlay, StripeElementsForm, pay/[token], notification-stubs):
+  // app subdomain, NOT the apex (apex 404s on /{slug}).
   const appOrigin =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'https://welovedecode.com'
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'https://app.welovedecode.com'
   const shareUrl = `${appOrigin}/${profile.slug}`
 
   return (
