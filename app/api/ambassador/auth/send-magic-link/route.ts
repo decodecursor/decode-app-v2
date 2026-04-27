@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     const { error: sendError } = await resend.emails.send({
       from: 'WeLoveDecode <noreply@welovedecode.com>',
       to: normalizedEmail,
-      subject: 'Your Secure Login Link',
+      subject: 'Your Secure Login',
       html,
       text: `Login to WeLoveDecode: ${callbackUrl}`,
     })

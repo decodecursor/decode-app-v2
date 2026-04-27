@@ -99,8 +99,8 @@ export async function POST(request: NextRequest) {
     const callbackUrl = `${origin}/model/auth/confirm-email?token=${token}`
 
     const subject = flow === 'change'
-      ? 'Confirm your new email for WeLoveDecode'
-      : 'Add this email to your WeLoveDecode account'
+      ? 'Change your email'
+      : 'Add your email'
 
     const html = renderButtonEmail({ heading: 'WeLoveDecode', buttonLabel: 'Confirm your email', callbackUrl })
 
