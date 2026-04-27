@@ -27,7 +27,7 @@ export default function DashboardClient({
   topClicks,
   expiringCount,
   openWishCount,
-  showEmailHint,
+  settingsHint,
 }: {
   profile: Profile
   isFirstVisit: boolean
@@ -36,7 +36,13 @@ export default function DashboardClient({
   topClicks: TopClick[]
   expiringCount: number
   openWishCount: number
-  showEmailHint: boolean
+  /**
+   * Pre-composed settings hint label per spec §6.2 stacking rules
+   * (`Bank + Email missing`, `Bank missing`, `Email missing`, or null).
+   * Composition lives in the server component — DashboardClient just
+   * passes the string through to the NavCard's `alert` prop.
+   */
+  settingsHint: string | null
 }) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
@@ -377,7 +383,7 @@ export default function DashboardClient({
             </svg>
           )}
           label="Settings"
-          alert={showEmailHint ? 'Email missing' : null}
+          alert={settingsHint}
         />
       </div>
 

@@ -64,6 +64,7 @@ export default async function DashboardPage() {
     topClicksRes,
     activeListingsRes,
     openWishesRes,
+    bankExistsRes,
   ] = await Promise.all([
     adminClient
       .from('model_analytics_events')
@@ -91,6 +92,15 @@ export default async function DashboardPage() {
       .select('id', { count: 'exact', head: true })
       .eq('model_id', profile.id)
       .eq('status', 'available'),
+    // Slice 8: derive has_bank_account via EXISTS (locked Q2=A
+    // path — JOIN/EXISTS at server-render time, no schema column,
+    // no maintenance trigger). HEAD count is the cheapest probe;
+    // any positive count = bank present.
+    adminClient
+      .from('user_bank_accounts')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('is_primary', true),
   ])
 
   const sevenDaysFromNow = Date.now() + 7 * 24 * 3600 * 1000
@@ -101,7 +111,18 @@ export default async function DashboardPage() {
 
   const openWishCount = openWishesRes.count ?? 0
 
-  const showEmailHint = !user.email || isInternalEmail(user.email)
+  // Slice 8: settings hint stacking per spec §6.2. Bank > email
+  // priority. Both missing = "Bank + Email missing"; one missing =
+  // single text; neither = null (no hint shown).
+  const emailMissing = !user.email || isInternalEmail(user.email)
+  const bankMissing = (bankExistsRes.count ?? 0) === 0
+  const settingsHint = bankMissing && emailMissing
+    ? 'Bank + Email missing'
+    : bankMissing
+      ? 'Bank missing'
+      : emailMissing
+        ? 'Email missing'
+        : null
 
   return (
     <DashboardClient
@@ -112,7 +133,7 @@ export default async function DashboardPage() {
       topClicks={(topClicksRes.data as Array<{ category: string; clicks: number }> | null) ?? []}
       expiringCount={expiringCount}
       openWishCount={openWishCount}
-      showEmailHint={showEmailHint}
+      settingsHint={settingsHint}
     />
   )
 }
