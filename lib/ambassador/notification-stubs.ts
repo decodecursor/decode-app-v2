@@ -18,7 +18,11 @@
  * user already paid, DB state is correct, retry-on-500 would
  * reprocess the money side and that's worse than a missed email).
  */
-import { formatAmountForEmail, renderPayoutPaidEmail } from './email-templates'
+import {
+  formatAmountForEmail,
+  renderListingExpiringEmail,
+  renderPayoutPaidEmail,
+} from './email-templates'
 
 function getAppBase(): string {
   return (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.welovedecode.com').replace(/\/$/, '')
@@ -277,6 +281,168 @@ export async function sendPayoutPaidWhatsApp(payload: PayoutPaidWhatsAppPayload)
   } catch (err) {
     console.error('[ambassador-notif:whatsapp] payout_paid threw', {
       reference: payload.payoutReference,
+      err,
+    })
+  }
+}
+
+// ============================================================================
+// 7-day listing-expiry notifications (ambassador-side, daily cron)
+// ============================================================================
+// Fired by app/api/cron/daily via lib/ambassador/cron-helpers.ts when a paid
+// listing's paid_until lands in the next 7 days and no expiry-notification
+// stamp exists. Email + WhatsApp wired to the same Resend / AUTHKey pattern
+// as Slice 7B payout-paid. AUTHKEY_WID_LISTING_EXPIRING_AMB=32766 (Meta
+// approval pending; sender fail-soft if env var or AUTHKEY_API_KEY unset).
+
+export interface ListingExpiringEmailPayload {
+  ambassadorEmail: string
+  ambassadorName: string
+  serviceName: string
+  professionalName: string
+  paidUntil: Date
+  listingId: string
+  listingReference: string
+}
+
+export interface ListingExpiringWhatsAppPayload {
+  ambassadorPhone: string | null
+  firstName: string
+  serviceName: string
+  professionalName: string
+  paidUntil: Date
+  listingReference: string
+}
+
+export async function sendListingExpiringEmail(payload: ListingExpiringEmailPayload): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    console.log('[ambassador-notif:email] RESEND_API_KEY unset, skipping send', {
+      kind: 'listing_expiring',
+      reference: payload.listingReference,
+      to: payload.ambassadorEmail,
+    })
+    return
+  }
+
+  const sendLinkUrl = `${getAppBase()}/model/listings/${encodeURIComponent(payload.listingId)}/send-link`
+  const formattedDate = new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(payload.paidUntil)
+
+  const html = renderListingExpiringEmail({
+    firstName: payload.ambassadorName,
+    serviceName: payload.serviceName,
+    professionalName: payload.professionalName,
+    expiryDate: formattedDate,
+    listingReference: payload.listingReference,
+    sendLinkUrl,
+  })
+
+  try {
+    const { Resend } = await import('resend')
+    const resend = new Resend(apiKey)
+    const { error } = await resend.emails.send({
+      from: 'WeLoveDecode <noreply@welovedecode.com>',
+      to: payload.ambassadorEmail,
+      subject: 'Time to renew ⏰',
+      html,
+      text: `Hi ${payload.ambassadorName},
+
+Time to renew ⏰
+
+Listing expires in 7 days.
+
+Listing: ${payload.serviceName}
+Where: ${payload.professionalName}
+Expires: ${formattedDate}
+Reference: ${payload.listingReference}
+
+Keep your listing active.
+
+Send renewal link: ${sendLinkUrl}
+
+WeLoveDecode`,
+    })
+    if (error) {
+      console.error('[ambassador-notif:email] listing_expiring resend failed', {
+        reference: payload.listingReference,
+        error,
+      })
+      return
+    }
+    console.log('[ambassador-notif:email] listing_expiring sent', {
+      reference: payload.listingReference,
+      to: payload.ambassadorEmail,
+    })
+  } catch (err) {
+    console.error('[ambassador-notif:email] listing_expiring threw', {
+      reference: payload.listingReference,
+      err,
+    })
+  }
+}
+
+export async function sendListingExpiringWhatsApp(payload: ListingExpiringWhatsAppPayload): Promise<void> {
+  if (!payload.ambassadorPhone) {
+    console.log('[ambassador-notif:whatsapp] skipped — no phone on file', {
+      reference: payload.listingReference,
+    })
+    return
+  }
+
+  const wid = process.env.AUTHKEY_WID_LISTING_EXPIRING_AMB
+  if (!wid) {
+    console.log('[ambassador-notif:whatsapp] skipped — AUTHKEY_WID_LISTING_EXPIRING_AMB unset', {
+      reference: payload.listingReference,
+    })
+    return
+  }
+
+  const dateFormatted = new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(payload.paidUntil)
+
+  try {
+    const { authkeyWhatsAppService } = await import('@/lib/services/AuthkeyWhatsAppService')
+    if (!authkeyWhatsAppService.isConfigured()) {
+      console.log('[ambassador-notif:whatsapp] skipped — AUTHKEY_API_KEY unset', {
+        reference: payload.listingReference,
+      })
+      return
+    }
+
+    const result = await authkeyWhatsAppService.sendTemplate({
+      phone: payload.ambassadorPhone,
+      templateWid: wid,
+      templateName: 'listing_expiring_amb_v1',
+      bodyValues: {
+        '1': payload.firstName,
+        '2': payload.serviceName,
+        '3': payload.professionalName,
+        '4': dateFormatted,
+        '5': payload.listingReference,
+      },
+    })
+
+    if (result.success) {
+      console.log('[ambassador-notif:whatsapp] listing_expiring sent', {
+        reference: payload.listingReference,
+        messageId: result.messageId,
+      })
+    } else {
+      console.error('[ambassador-notif:whatsapp] listing_expiring send failed', {
+        reference: payload.listingReference,
+        error: result.error,
+      })
+    }
+  } catch (err) {
+    console.error('[ambassador-notif:whatsapp] listing_expiring threw', {
+      reference: payload.listingReference,
       err,
     })
   }

@@ -1808,7 +1808,7 @@ Call `revert_expired_wish_locks()` at the START of every wish-related query:
 - Public page loading wishes for `/{slug}`
 - Wishlist page `/model/wishlist`
 - Wish checkout page `/{slug}/wish/{token}`
-This ensures expired locks are cleaned up before any wish data is read. No Vercel cron dependency.
+This ensures expired locks are cleaned up before any wish data is read. Vercel crons in use: `/api/auctions/cron/cleanup-videos` (legacy auctions, daily 00:00 UTC) + `/api/cron/daily` (DECODE ambassador, daily 09:00 UTC).
 
 **Usage in checkout flow:**
 ```typescript
@@ -2896,8 +2896,9 @@ Add these to Vercel before deploying Slice 4 (first slice that uses them):
 | `RESEND_API_KEY` | Email delivery service for 3 custom templates | resend.com → sign up → verify `welovedecode.com` domain → API keys → create key |
 | `AUTHKEY_WID_LISTING_PAID` | AUTHKey template ID for "listing paid" WhatsApp | AUTHKey dashboard → create UTILITY template → submit to Meta → copy wid after approval |
 | `AUTHKEY_WID_WISH_GIFTED` | AUTHKey template ID for "wish gifted" WhatsApp | Same as above |
-| `AUTHKEY_WID_LISTING_EXPIRING_AMB` | AUTHKey template ID for ambassador expiring reminder | Same as above |
+| `AUTHKEY_WID_LISTING_EXPIRING_AMB` | AUTHKey template ID for ambassador expiring reminder (wid=32766, Meta approval pending) | Same as above |
 | `AUTHKEY_WID_LISTING_EXPIRING_PRO` | AUTHKey template ID for professional expiring reminder | Same as above |
+| `CRON_SECRET` | Bearer token for `/api/cron/daily` manual trigger + smoke tests (Vercel cron scheduler is auth'd via `x-vercel-cron` header so this is a secondary auth path). Generate: `openssl rand -hex 32` | Generate locally → paste into Vercel env |
 
 **Total new env vars: 10.** Everything else reuses legacy.
 
