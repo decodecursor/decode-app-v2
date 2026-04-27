@@ -707,31 +707,6 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 
     **Combined slice:** treat (a) + (b) as a single post-V1 security hardening slice. Both touch the same table + same legacy file; coordinated retrofit avoids two passes. Estimate ~1-1.5 days. Not V1-launch-blocking by partner Q1=D + Q6=B locks but worth scheduling soon after V1 ship.
 
-35. **Accessibility audit + contrast pass (Slice 7B Lighthouse spillover, 2026-04-26).** Lighthouse scores captured 2026-04-26 across 6 public surfaces × mobile + desktop landed Accessibility in the **82–86 range across every single URL**. The cluster pattern (variance ≤4 across 12 audit runs) strongly suggests a single root cause rather than per-page bugs. **Most likely culprit:** muted-text contrast pairs in the design system fail WCAG AA 4.5:1 for normal body text:
-   - `#888` on `#000` background (subtitles on /expired, /listing/paid, /wish/taken, 404, /privacy hero `Last updated:` line)
-   - `#666` on `#000` (footnotes — hero `Last updated`, payouts statement timestamps, error-boundary digest reference)
-   - `#777` on `#000` (Terms tab idle state)
-   These are heavily reused across the dark-mode design system; a contrast pass would touch many sites.
-   **Action:** dedicated audit + targeted contrast lift (e.g. `#888 → #aaa`, `#666 → #888`) where the contrast falls below WCAG AA. Likely also surfaces some missing `aria-*` attributes on dynamically-toggled UI (skeleton screens, modals). Per locked Q2 2b (Slice 7B captures + reports without remediating); this is a partner-priority decision: V1-polish or post-V1.
-   **Captured data:** `docs/slice-7b-lighthouse.md` has the full 12-run table.
-
-36. **Public-page LCP perf optimization (Slice 7B Lighthouse spillover, 2026-04-26).** Mobile Performance on `/yannijohnson` (the only data-heavy public page in the 7B audit) scored **74 with LCP 6.6s (red)**. PageSpeed/Lighthouse diagnostics captured by partner during the audit run:
-   - **Cover photo not served via Next.js `<Image>`** — currently rendered as a raw `<img>` or CSS background, so no responsive sizing, no automatic WebP/AVIF conversion, no `srcset`, no `priority` prop on the LCP element.
-   - **Supabase Storage `Cache-Control` too short** — bucket default is conservative; the cover photo refetches on every cold load instead of CDN-edge caching.
-   - **Render-blocking requests ~750ms** — likely the layout-tree CSS-in-JS injection cost on first paint.
-   - **LCP request discovery** flagged — the LCP image isn't preloaded/hinted, so the browser discovers it late in the parse.
-   Top insight savings (from PageSpeed):
-   - Improve image delivery: ~309 KiB
-   - Use efficient cache lifetimes: ~308 KiB
-   - Render blocking requests: ~750ms
-   **Action:** dedicated public-page perf pass. Likely scope:
-   - Migrate cover photo to `next/image` with `priority` + sized aspect-ratio container to reserve layout space.
-   - Bump Supabase Storage `Cache-Control` headers on the `model-media` bucket (longer immutable max-age + stale-while-revalidate; uploads use content-hashed paths so cache-busting is the natural fallback).
-   - Preload the LCP image via `<link rel="preload">` or `priority` on `next/image`.
-   - Audit render-blocking CSS-in-JS — possibly extract critical layout styles to globals.css if a single style block is the culprit.
-   Partner has scoped this as **Slice 7C-candidate** post-7B close, pre-V1 ship. Bundle audit's remediation A (lazy-load Stripe via `next/dynamic`) is the natural sibling — both are public-page perf wins, similar shape, could land together. Expected reclaim: most of the ~6.6s LCP collapses if image delivery is fixed.
-   **Captured data:** `docs/slice-7b-lighthouse.md` has the full 12-run scores; `docs/slice-7b-bundle-audit.md` has the bundle-side context.
-
 ### Slice 3 feature candidates (to be scoped separately, NOT to be conflated with hardening backlog)
 
 
@@ -1254,6 +1229,8 @@ Four lessons worth carrying forward into Slice 7 and beyond.
 ### 🏦 Slice 8 — Bank entry UI
 
 **Status:** SHIPPED 2026-04-27. Last V1 engineering blocker before launch (modulo notification copy swap which is post-V1).
+
+**Schema apply state:** the migration file at `supabase/migrations/20260427_slice8_user_bank_accounts.sql` is **applied to live Supabase via partner SQL Editor paste, NOT via MCP** (MCP is read-only per CLAUDE.md — `mcp__supabase__apply_migration` returns `Cannot apply migration in read-only mode`). The migration file lives in git for the audit trail; the applied state is a partner-managed paste step. Same convention as `20260426_install_plpgsql_check.sql` (Slice 7B item 30). When pre-flighting any future slice that touches `user_bank_accounts`, verify live schema state via MCP `information_schema.columns` query — don't trust the migration file alone. Initial apply hit a live-vs-file divergence after `2cb633c` (file committed but partner paste happened only after re-surfacing); pattern documented to prevent recurrence.
 
 **Scope shipped:**
 - Schema migration `supabase/migrations/20260427_slice8_user_bank_accounts.sql` — `iban_last4` column + backfill + UNIQUE (user_id, is_primary) + nullability tightening + cleanup (yannijohnson 7B test row + orphan `iban` column)
