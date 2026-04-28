@@ -32,6 +32,7 @@ export default function AmbassadorLayout({
         boxSizing: 'border-box',
         overflowX: 'hidden',
         touchAction: 'pan-y',
+        scrollPaddingTop: '120px',
       }}
     >
       <style>{`
