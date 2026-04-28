@@ -103,8 +103,7 @@ export default function DashboardClient({
   return (
     <div style={{ paddingBottom: '24px', position: 'relative' }}>
       {/* Cover */}
-      <div style={{
-        margin: '36px 20px 0',
+      <div className="amb-dashboard-cover" style={{
         borderRadius: '14px',
         overflow: 'hidden',
         position: 'relative',

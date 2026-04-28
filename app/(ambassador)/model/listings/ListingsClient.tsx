@@ -233,7 +233,7 @@ export default function ListingsClient({ listings: initialListings }: { listings
   return (
     <div style={{ minHeight: '100vh', background: '#000', color: '#fff', position: 'relative' }}>
       {/* Header */}
-      <div style={{ padding: '36px 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="amb-internal-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <BackArrow fallbackHref="/model" />
           <span style={{ fontSize: 20, fontWeight: 700 }}>Listings</span>

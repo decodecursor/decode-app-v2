@@ -204,7 +204,7 @@ export default function AddWishClient({ categories, currency }: Props) {
 
       <div style={{ width: '100%', margin: '0 auto', minHeight: '100vh' }}>
         {/* Back arrow */}
-        <div style={{ padding: '36px 20px 0' }}>
+        <div className="amb-internal-header-flush">
           <BackArrow fallbackHref="/model/wishlist" />
         </div>
 

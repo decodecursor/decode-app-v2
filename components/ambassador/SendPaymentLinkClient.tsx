@@ -235,7 +235,7 @@ export default function SendPaymentLinkClient({
       fontFamily: 'system-ui, -apple-system, sans-serif', position: 'relative',
     }}>
       {/* Back arrow */}
-      <div style={{ padding: '36px 20px 0' }}>
+      <div className="amb-internal-header-flush">
         <BackArrow fallbackHref={backHref} />
       </div>
 

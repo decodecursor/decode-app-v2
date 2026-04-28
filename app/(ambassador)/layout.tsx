@@ -62,6 +62,34 @@ export default function AmbassadorLayout({
             bottom: calc(20px + env(safe-area-inset-bottom, 0px) + 56px);
           }
         }
+        /* Phase 7 internal-cluster top-padding carriers. Desktop
+           preserves the locked 36px first-content gap; mobile
+           (≤768px) reduces top to 20px (~16px reclaimed on
+           phone-width viewports). Per-page divergent shapes
+           preserved (Settings 24 bottom, Setup 22 horiz, Dashboard
+           margin not padding) — only the top dimension changes. */
+        .amb-internal-header {
+          padding: 36px 20px 20px;
+        }
+        .amb-internal-header-flush {
+          padding: 36px 20px 0;
+        }
+        .amb-settings-header {
+          padding: 36px 20px 24px;
+        }
+        .amb-dashboard-cover {
+          margin: 36px 20px 0;
+        }
+        .amb-setup-tracker {
+          padding: 36px 22px 0;
+        }
+        @media (max-width: 768px) {
+          .amb-internal-header { padding-top: 20px; }
+          .amb-internal-header-flush { padding-top: 20px; }
+          .amb-settings-header { padding-top: 20px; }
+          .amb-dashboard-cover { margin-top: 20px; }
+          .amb-setup-tracker { padding-top: 20px; }
+        }
         .amb-dot {
           display: inline-block;
           vertical-align: baseline;

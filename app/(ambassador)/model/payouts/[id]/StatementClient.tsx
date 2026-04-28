@@ -109,8 +109,7 @@ export default function StatementClient({ payoutId }: { payoutId: string }) {
 
 function Header() {
   return (
-    <div style={{
-      padding: '36px 20px 20px',
+    <div className="amb-internal-header" style={{
       display: 'flex',
       alignItems: 'center',
       gap: '12px',

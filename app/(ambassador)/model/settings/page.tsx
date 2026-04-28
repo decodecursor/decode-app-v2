@@ -358,7 +358,7 @@ export default function SettingsPage() {
   const currencySymbol = CURRENCY_SYMBOLS[currencyCode]
 
   return (
-    <div style={{ padding: '36px 20px 24px', position: 'relative' }}>
+    <div className="amb-settings-header" style={{ position: 'relative' }}>
       {/* Header */}
       <div style={{ padding: '0 0 12px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <BackArrow fallbackHref="/model" />

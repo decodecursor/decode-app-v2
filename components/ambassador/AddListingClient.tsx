@@ -686,7 +686,7 @@ export default function AddListingClient({
       {/* Header — back arrow. Edit-mode back mirrors the success
           redirect (/model/listings); add-mode back returns to the
           dashboard per the mockup add flow. */}
-      <div style={{ padding: '36px 20px 0' }}>
+      <div className="amb-internal-header-flush">
         <BackArrow fallbackHref={isEdit ? '/model/listings' : '/model'} />
       </div>
 

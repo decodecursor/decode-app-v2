@@ -448,11 +448,13 @@ export default function SetupPage() {
 
   return (
     <div style={{ color: '#fff' }}>
-      <ProgressTracker
-        steps={['Verify', 'Set up', 'Live']}
-        step={trackerStep}
-        padding="36px 22px 0"
-      />
+      <div className="amb-setup-tracker">
+        <ProgressTracker
+          steps={['Verify', 'Set up', 'Live']}
+          step={trackerStep}
+          padding="0"
+        />
+      </div>
 
       <div style={{ padding: '24px 22px 16px', textAlign: 'center' }}>
         <div

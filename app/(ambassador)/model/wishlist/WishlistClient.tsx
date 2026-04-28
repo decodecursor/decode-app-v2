@@ -227,7 +227,7 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
 
       <div style={{ width: '100%', margin: '0 auto', minHeight: '100vh', position: 'relative' }}>
         {/* Header */}
-        <div style={{ padding: '36px 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="amb-internal-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <BackArrow fallbackHref="/model" />
             <span style={{ fontSize: 20, fontWeight: 700 }}>Wishlist</span>
