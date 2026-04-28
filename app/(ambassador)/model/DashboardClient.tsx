@@ -243,13 +243,13 @@ export default function DashboardClient({
           display: 'flex',
           flexDirection: 'column',
         }}>
-          <div style={{ fontSize: '9px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
+          <div style={{ fontSize: '9px', color: '#777', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
             Total views
           </div>
           <div style={{ fontSize: '30px', fontWeight: 700, color: '#fff', lineHeight: 1, letterSpacing: '-0.5px' }}>
             {viewsTotal}
           </div>
-          <div style={{ fontSize: '9px', color: '#666', marginTop: '6px' }}>
+          <div style={{ fontSize: '9px', color: '#777', marginTop: '6px' }}>
             {viewsTotal === 0 ? 'Share your page to get started' : `+${viewsThisWeek} this week`}
           </div>
         </div>
@@ -259,7 +259,7 @@ export default function DashboardClient({
           borderRadius: '12px',
           padding: '13px 15px',
         }}>
-          <div style={{ fontSize: '9px', color: '#666', marginBottom: '9px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div style={{ fontSize: '9px', color: '#777', marginBottom: '9px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Top clicks
           </div>
           {topClicks.length === 0 ? (
