@@ -108,7 +108,7 @@ export default function DashboardClient({
         borderRadius: '14px',
         overflow: 'hidden',
         position: 'relative',
-        height: '110px',
+        height: '140px',
         background: profile.cover_photo_url
           ? `url(${profile.cover_photo_url}) center ${profile.cover_photo_position_y}% / cover no-repeat`
           : 'linear-gradient(135deg, #e91e8c, #ff6b9d)',
@@ -119,8 +119,8 @@ export default function DashboardClient({
           bottom: 0,
           left: 0,
           right: 0,
-          height: '60px',
-          background: 'linear-gradient(transparent, #000)',
+          height: '80px',
+          background: 'linear-gradient(transparent 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.85) 100%)',
         }} />
         {/* Bottom row: greeting+url left, icons right */}
         <div style={{
@@ -151,7 +151,7 @@ export default function DashboardClient({
               style={{
                 fontSize: '11px',
                 color: '#888',
-                marginTop: '2px',
+                marginTop: '1px',
                 cursor: 'pointer',
                 display: 'inline-block',
               }}
