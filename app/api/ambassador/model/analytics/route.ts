@@ -95,7 +95,26 @@ export async function GET() {
   )
   const wishNames = new Map((wishesMetaRes.data ?? []).map((w) => [w.id, w.service_name]))
 
-  const ranges = computeRanges(new Date(), new Date(profile.created_at as string))
+  // Compute the earliest row across the 3 in-scope tables for the
+  // "All" tab lower bound. Pure in-memory MIN over the arrays already
+  // fetched above — no extra round-trips. NULL when no data exists
+  // for this model (computeRanges falls back to profileCreatedAt).
+  const allCreatedAts: number[] = []
+  for (const e of events) {
+    const t = Date.parse(e.created_at)
+    if (Number.isFinite(t)) allCreatedAts.push(t)
+  }
+  for (const p of listingPayments) {
+    const t = Date.parse(p.created_at)
+    if (Number.isFinite(t)) allCreatedAts.push(t)
+  }
+  for (const p of wishPayments) {
+    const t = Date.parse(p.created_at)
+    if (Number.isFinite(t)) allCreatedAts.push(t)
+  }
+  const dataFloor = allCreatedAts.length > 0 ? new Date(Math.min(...allCreatedAts)) : null
+
+  const ranges = computeRanges(new Date(), new Date(profile.created_at as string), dataFloor)
 
   const out: Record<string, unknown> = {}
   for (const key of ['today', 'week', 'month', 'all'] as const satisfies RangeKey[]) {

@@ -90,7 +90,11 @@ const TOP_LISTING_META: Record<RangeKey, string> = {
   all:   'All time',
 }
 
-export function computeRanges(now: Date, profileCreatedAt: Date): Record<RangeKey, RangePair> {
+export function computeRanges(
+  now: Date,
+  profileCreatedAt: Date,
+  dataFloor: Date | null = null,
+): Record<RangeKey, RangePair> {
   const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
   const endOfDay = new Date(startOfDay.getTime() + 86_400_000)
 
@@ -104,11 +108,21 @@ export function computeRanges(now: Date, profileCreatedAt: Date): Record<RangeKe
   const prevMonthStart = new Date(month.getTime() - 30 * 86_400_000)
   const prevMonthEnd = new Date(month.getTime())
 
+  // "All" lower bound: defensively the EARLIER of profile.created_at
+  // and the oldest payment/event row in scope. In prod the FK
+  // invariant means no row predates profile.created_at, so dataFloor
+  // collapses to profileCreatedAt and behavior is unchanged. Defends
+  // against back-dated rows from migrations / admin tools / test
+  // populators silently dropping data from the All tab.
+  const allStart = dataFloor && dataFloor.getTime() < profileCreatedAt.getTime()
+    ? dataFloor
+    : profileCreatedAt
+
   return {
     today: { current: { start: startOfDay, end: endOfDay }, previous: { start: startOfYesterday, end: startOfDay }, sparkBuckets: 24 },
     week:  { current: { start: week,       end: endOfDay }, previous: { start: prevWeekStart,   end: prevWeekEnd }, sparkBuckets: 7 },
     month: { current: { start: month,      end: endOfDay }, previous: { start: prevMonthStart,  end: prevMonthEnd }, sparkBuckets: 30 },
-    all:   { current: { start: profileCreatedAt, end: endOfDay }, previous: null, sparkBuckets: 12 },
+    all:   { current: { start: allStart,   end: endOfDay }, previous: null, sparkBuckets: 12 },
   }
 }
 
