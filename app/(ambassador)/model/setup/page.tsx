@@ -436,7 +436,7 @@ export default function SetupPage() {
   const inputStyle: React.CSSProperties = {
     width: '100%',
     padding: '14px 16px',
-    fontSize: 14,
+    fontSize: 16,
     color: '#fff',
     background: 'transparent',
     border: 'none',
@@ -574,7 +574,7 @@ export default function SetupPage() {
               maxLength={30}
               style={{
                 padding: '14px 10px 14px 1px',
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: 500,
                 flex: 1,
                 minWidth: 0,
@@ -840,7 +840,7 @@ export default function SetupPage() {
                     style={{
                       width: '100%',
                       padding: '12px 14px',
-                      fontSize: 13,
+                      fontSize: 16,
                       background: 'transparent',
                       border: 'none',
                       color: '#fff',

@@ -174,7 +174,7 @@ export function ChangeEmailModal({
                   background: 'transparent',
                   border: 'none',
                   outline: 'none',
-                  fontSize: 14,
+                  fontSize: 16,
                   color: '#fff',
                   caretColor: '#e91e8c',
                   fontFamily: 'inherit',

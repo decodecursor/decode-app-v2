@@ -155,7 +155,7 @@ export function CountryPicker({
               border: '1.5px solid #2a2a2a',
               borderRadius: '12px',
               padding: '0 16px 0 42px',
-              fontSize: '14px',
+              fontSize: '16px',
               color: '#fff',
               outline: 'none',
               fontFamily: 'inherit',

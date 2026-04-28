@@ -292,7 +292,7 @@ function Step1({
             background: 'transparent',
             border: 'none',
             outline: 'none',
-            fontSize: 14,
+            fontSize: 16,
             fontWeight: 500,
             color: '#fff',
             caretColor: '#e91e8c',

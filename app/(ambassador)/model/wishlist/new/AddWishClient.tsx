@@ -281,7 +281,7 @@ export default function AddWishClient({ categories, currency }: Props) {
                   placeholder="Type your service and press Enter"
                   style={{
                     flex: 1, minWidth: 0, background: 'transparent', border: 'none',
-                    padding: '14px 16px', fontSize: 14, color: '#fff',
+                    padding: '14px 16px', fontSize: 16, color: '#fff',
                   }}
                 />
                 {customLiveValid && (
@@ -303,7 +303,7 @@ export default function AddWishClient({ categories, currency }: Props) {
             placeholder="Salon, clinic or professional"
             style={{
               width: '100%', background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
-              padding: '14px 16px', fontSize: 14, color: '#fff', boxSizing: 'border-box',
+              padding: '14px 16px', fontSize: 16, color: '#fff', boxSizing: 'border-box',
               marginBottom: 10, transition: 'border-color 0.15s',
             }}
           />
@@ -317,7 +317,7 @@ export default function AddWishClient({ categories, currency }: Props) {
               placeholder="City"
               style={{
                 flex: 1, minWidth: 0, background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
-                padding: '14px 16px', fontSize: 14, color: '#fff', boxSizing: 'border-box',
+                padding: '14px 16px', fontSize: 16, color: '#fff', boxSizing: 'border-box',
                 transition: 'border-color 0.15s',
               }}
             />
@@ -328,7 +328,7 @@ export default function AddWishClient({ categories, currency }: Props) {
               placeholder="Country"
               style={{
                 flex: 1, minWidth: 0, background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
-                padding: '14px 16px', fontSize: 14, color: '#fff', boxSizing: 'border-box',
+                padding: '14px 16px', fontSize: 16, color: '#fff', boxSizing: 'border-box',
                 transition: 'border-color 0.15s',
               }}
             />
