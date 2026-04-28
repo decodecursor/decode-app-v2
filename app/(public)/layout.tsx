@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 // overrides.
 export const viewport: Viewport = {
   themeColor: '#000',
+  colorScheme: 'dark',
   viewportFit: 'cover',
 }
 

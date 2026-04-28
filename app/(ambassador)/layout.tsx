@@ -10,7 +10,8 @@ export const metadata: Metadata = {
 // (app/layout.tsx). themeColor + viewportFit are ambassador-route-
 // group overrides.
 export const viewport: Viewport = {
-  themeColor: '#000001',
+  themeColor: '#000',
+  colorScheme: 'dark',
   viewportFit: 'cover',
 }
 
