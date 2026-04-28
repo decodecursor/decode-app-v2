@@ -2437,6 +2437,40 @@ When a slice or QA pass touches >5 files of the same failure class, default to t
 
 ---
 
+### §17 — iOS Safari input auto-zoom 16px floor (added 2026-04-28)
+
+iOS Safari (and all iOS browsers, since they wrap WebKit) auto-zooms the entire page to a focused <input>, <textarea>, or <select> when the element's computed font-size is below 16px. The zoom does not auto-revert on blur — the user is left at zoom > 1 until they pinch out. To the user, this looks like the page "shifted right" or "broke layout" because the zoomed layout viewport is wider than the visible viewport.
+
+This is iOS-only. Android Chrome, desktop browsers, and Safari on macOS do not enforce this rule.
+
+Diagnostic signature:
+- Page appears centered and clean before tap
+- On tap of a text input, page visibly zooms in (not just keyboard appearing)
+- Right edges of layout get clipped, content accessible by horizontal pan
+- Pricing/numeric inputs typically immune (often sized 16-18px because the values matter visually)
+- Persists until user manually pinch-zooms out
+
+Rule:
+ALL focusable inputs (<input type="text|email|tel|search|url|password|number">, <textarea>, <select>) must have computed font-size of 16px or greater on mobile viewports.
+
+Implementation pattern:
+- Set fontSize: 16 (not 14, not 15, not 15.5) on the input element itself, or on a shared INPUT_BASE constant the input spreads.
+- Surrounding labels, prefixes, and helper text below/above the input have no constraint — only the focused element's computed font-size matters.
+- Do NOT solve via meta viewport maximum-scale=1 or user-scalable=no — those break Slice 7C item 35 a11y (pinch-zoom for low-vision users must work).
+- Do NOT rely on interactive-widget, scroll-padding-top, touch-action, or overflowX:hidden — those are §16-class fixes for scroll-into-view, a different mechanism. Auto-zoom is upstream of all of them.
+
+Audit pattern when this surfaces:
+1. rg -n "fontSize:\s*1[0-5][^0-9]" components/ <feature>/ app/<feature>/ --type tsx
+2. rg -n "font-size:\s*1[0-5]px" app/globals.css <feature-styles>
+3. For each hit on an actual input element (not labels), bump to 16.
+
+Diagnostic mistake to avoid (logged 2026-04-28):
+When a user reports "page shifts right on iOS keyboard open" or "I can push left and right after tapping field", the FIRST check is the focused input's font-size, not §16 scroll-into-view doctrine. §16 addresses a different failure class. Three commits were spent on §16-class fixes (interactive-widget, scroll-padding-top, touch-action, inner-wrapper overflowX) before the actual root cause (14px inputs) was diagnosed. The 30-second font-size check should precede any §16 reasoning.
+
+Reference: confirmed 2026-04-28 against AddListingClient.tsx — bumping INPUT_BASE 14→16 (commit 845794a) eliminated the symptom on Salon name, IG, City, Country, and customize-category inputs. Pricing inputs were immune because already 18px.
+
+---
+
 ## 📬 Notifications (emails + WhatsApp)
 
 V1 fires a small set of transactional notifications. No marketing emails, no promo WhatsApp — just receipts and useful nudges.
