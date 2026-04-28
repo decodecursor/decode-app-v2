@@ -29,6 +29,7 @@ export default function AmbassadorLayout({
         paddingTop: 'max(24px, env(safe-area-inset-top))',
         paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
         boxSizing: 'border-box',
+        overflowX: 'hidden',
       }}
     >
       <style>{`
