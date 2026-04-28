@@ -31,6 +31,7 @@ export default function AmbassadorLayout({
         paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
         boxSizing: 'border-box',
         overflowX: 'hidden',
+        touchAction: 'pan-y',
       }}
     >
       <style>{`
@@ -135,6 +136,8 @@ export default function AmbassadorLayout({
           maxWidth: '420px',
           margin: '0 auto',
           minHeight: 'calc(100vh - 48px)',
+          overflowX: 'hidden',
+          position: 'relative',
         }}
       >
         {children}
