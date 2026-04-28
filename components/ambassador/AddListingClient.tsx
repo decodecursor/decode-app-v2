@@ -663,6 +663,7 @@ export default function AddListingClient({
           border-color: #e91e8c !important;
           transition: border-color 0.15s;
         }
+        #${FOCUS_SCOPE_ID} input::placeholder { color: #666 !important; opacity: 1 }
         #${FOCUS_SCOPE_ID} input:disabled { color: #888; }
       `}</style>
 
@@ -700,6 +701,99 @@ export default function AddListingClient({
       </div>
 
       <div style={{ padding: '0 20px 24px' }}>
+
+        {/* ================== CATEGORY ================== */}
+        <div style={{ marginBottom: 22 }}>
+          <div style={SECTION_LABEL}>Category</div>
+
+          <div ref={catRef} style={{ position: 'relative' }}>
+            <div
+              onClick={() => setCategoryOpen((o) => !o)}
+              style={{
+                background: '#1c1c1c',
+                border: '1.5px solid #262626',
+                borderRadius: 12,
+                padding: '14px 16px',
+                fontSize: 14,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                cursor: 'pointer',
+                color: category
+                  ? (category.type === 'custom' && !customCategoryText ? '#e91e8c' : '#fff')
+                  : '#666',
+              }}
+            >
+              <span>
+                {category
+                  ? (category.type === 'id'
+                      ? category.label
+                      : (customCategoryText || 'Customize'))
+                  : 'Category'}
+              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+            {categoryOpen && (
+              <div style={{
+                position: 'absolute',
+                top: 52, left: 0, right: 0,
+                background: '#1c1c1c',
+                border: '1.5px solid #333',
+                borderRadius: 12,
+                zIndex: 10,
+                maxHeight: 200,
+                overflowY: 'auto',
+              }}>
+                {categories.map((c) => (
+                  <div
+                    key={c.id}
+                    onClick={() => selectCategory(c)}
+                    style={{ padding: '12px 16px', fontSize: 13, cursor: 'pointer', borderBottom: '1px solid #262626' }}
+                  >
+                    {c.label}
+                  </div>
+                ))}
+                <div
+                  onClick={selectCustom}
+                  style={{ padding: '12px 16px', fontSize: 13, cursor: 'pointer', color: '#e91e8c', borderTop: '1px solid #333' }}
+                >
+                  Customize
+                </div>
+              </div>
+            )}
+          </div>
+
+          {showCustomInput && (
+            <div style={{ marginTop: 10 }}>
+              <div className="al-fw" style={{
+                background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
+                display: 'flex', alignItems: 'center', transition: 'border-color 0.15s',
+              }}>
+                <input
+                  type="text"
+                  placeholder="Type your category and press Enter"
+                  value={customCategoryText}
+                  onChange={(e) => onCustomCategoryChange(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLInputElement).blur() } }}
+                  style={{
+                    flex: 1, minWidth: 0,
+                    background: 'transparent', border: 'none', outline: 'none',
+                    padding: '14px 16px', fontSize: 14, color: '#fff', fontFamily: 'inherit',
+                  }}
+                />
+                {customCategoryText.trim().length >= 2 && (
+                  <span style={{ paddingRight: 14, flexShrink: 0, display: 'flex' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* ================== PROFESSIONAL ================== */}
         <div style={{ marginBottom: 22 }}>
@@ -791,63 +885,36 @@ export default function AddListingClient({
               )}
             </div>
 
-            {/* Category dropdown */}
-            <div ref={catRef} style={{ flex: 1, position: 'relative' }}>
-              <div
-                onClick={() => setCategoryOpen((o) => !o)}
+            {/* IG-username field — sits in the slot Category vacated. */}
+            <div className="al-fw" style={{
+              flex: 1, minWidth: 0,
+              background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
+              padding: '0 16px', fontSize: 14, display: 'flex', alignItems: 'center',
+              gap: 10, height: 48, transition: 'border-color 0.15s',
+              opacity: isEdit ? 0.6 : 1,
+              cursor: isEdit ? 'not-allowed' : 'text',
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0z" fill="#e91e8c" />
+                <path d="M12 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8z" fill="#e91e8c" />
+                <circle cx="18.406" cy="5.594" r="1.44" fill="#e91e8c" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Professional's username"
+                value={instagram}
+                onChange={(e) => onInstagramChange(e.target.value)}
+                onBlur={onInstagramBlur}
+                disabled={isEdit}
                 style={{
-                  background: '#1c1c1c',
-                  border: '1.5px solid #262626',
-                  borderRadius: 12,
-                  padding: '14px 16px',
-                  fontSize: 14,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  cursor: 'pointer',
-                  color: category
-                    ? (category.type === 'custom' && !customCategoryText ? '#e91e8c' : '#fff')
-                    : '#666',
+                  flex: 1, minWidth: 0,
+                  background: 'transparent', border: 'none', outline: 'none',
+                  fontSize: 14, color: '#fff', fontFamily: 'inherit', padding: 0,
+                  cursor: isEdit ? 'not-allowed' : 'text',
                 }}
-              >
-                <span>
-                  {category
-                    ? (category.type === 'id'
-                        ? category.label
-                        : (customCategoryText || 'Customize'))
-                    : 'Category'}
-                </span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </div>
-              {categoryOpen && (
-                <div style={{
-                  position: 'absolute',
-                  top: 52, left: 0, right: 0,
-                  background: '#1c1c1c',
-                  border: '1.5px solid #333',
-                  borderRadius: 12,
-                  zIndex: 10,
-                  maxHeight: 200,
-                  overflowY: 'auto',
-                }}>
-                  {categories.map((c) => (
-                    <div
-                      key={c.id}
-                      onClick={() => selectCategory(c)}
-                      style={{ padding: '12px 16px', fontSize: 13, cursor: 'pointer', borderBottom: '1px solid #262626' }}
-                    >
-                      {c.label}
-                    </div>
-                  ))}
-                  <div
-                    onClick={selectCustom}
-                    style={{ padding: '12px 16px', fontSize: 13, cursor: 'pointer', color: '#e91e8c', borderTop: '1px solid #333' }}
-                  >
-                    Customize
-                  </div>
-                </div>
+              />
+              {dedupInFlight && (
+                <span style={{ fontSize: 11, color: '#666', flexShrink: 0 }}>…</span>
               )}
             </div>
           </div>
@@ -855,35 +922,6 @@ export default function AddListingClient({
           {avatarError && (
             <div style={{ fontSize: 11, color: '#ef4444', marginBottom: 10, paddingLeft: 4 }}>
               {avatarError}
-            </div>
-          )}
-
-          {showCustomInput && (
-            <div style={{ marginBottom: 10 }}>
-              <div className="al-fw" style={{
-                background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
-                display: 'flex', alignItems: 'center', transition: 'border-color 0.15s',
-              }}>
-                <input
-                  type="text"
-                  placeholder="Type your category and press Enter"
-                  value={customCategoryText}
-                  onChange={(e) => onCustomCategoryChange(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLInputElement).blur() } }}
-                  style={{
-                    flex: 1, minWidth: 0,
-                    background: 'transparent', border: 'none', outline: 'none',
-                    padding: '14px 16px', fontSize: 14, color: '#fff', fontFamily: 'inherit',
-                  }}
-                />
-                {customCategoryText.trim().length >= 2 && (
-                  <span style={{ paddingRight: 14, flexShrink: 0, display: 'flex' }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </span>
-                )}
-              </div>
             </div>
           )}
 
@@ -913,36 +951,6 @@ export default function AddListingClient({
               }}
             />
           </div>
-
-          <div className="al-fw" style={{
-            background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
-            padding: '0 16px', fontSize: 14, display: 'flex', alignItems: 'center',
-            gap: 10, height: 48, transition: 'border-color 0.15s',
-            opacity: isEdit ? 0.6 : 1,
-            cursor: isEdit ? 'not-allowed' : 'text',
-          }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0z" fill="#e91e8c" />
-              <path d="M12 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8z" fill="#e91e8c" />
-              <circle cx="18.406" cy="5.594" r="1.44" fill="#e91e8c" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Professional's username"
-              value={instagram}
-              onChange={(e) => onInstagramChange(e.target.value)}
-              onBlur={onInstagramBlur}
-              disabled={isEdit}
-              style={{
-                flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                fontSize: 14, color: '#fff', fontFamily: 'inherit', padding: 0,
-                cursor: isEdit ? 'not-allowed' : 'text',
-              }}
-            />
-            {dedupInFlight && (
-              <span style={{ fontSize: 11, color: '#666', flexShrink: 0 }}>…</span>
-            )}
-          </div>
         </div>
 
         {/* ================== MEDIA ================== */}
@@ -968,7 +976,7 @@ export default function AddListingClient({
                 <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
               </svg>
               <div style={{ fontSize: 11, color: '#666' }}>Upload 1 video OR up to 3 photos</div>
-              <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>Vertical works best</div>
+              <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>Vertical 9:16 works best</div>
             </div>
           )}
 
@@ -1102,7 +1110,7 @@ export default function AddListingClient({
           transition: 'border-color 0.25s',
         }}>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 500 }}>Free 30-day trial</div>
+            <div style={{ fontSize: 14, fontWeight: 500, color: freeTrial ? '#38bdf8' : '#fff' }}>Free 30-day trial</div>
             <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>Listing goes live immediately</div>
           </div>
           <div
