@@ -121,7 +121,7 @@ const INPUT_BASE: React.CSSProperties = {
   border: '1.5px solid #262626',
   borderRadius: 12,
   padding: '14px 16px',
-  fontSize: 14,
+  fontSize: 16,
   color: '#fff',
   outline: 'none',
   boxSizing: 'border-box',
@@ -780,7 +780,7 @@ export default function AddListingClient({
                   style={{
                     flex: 1, minWidth: 0,
                     background: 'transparent', border: 'none', outline: 'none',
-                    padding: '14px 16px', fontSize: 14, color: '#fff', fontFamily: 'inherit',
+                    padding: '14px 16px', fontSize: 16, color: '#fff', fontFamily: 'inherit',
                   }}
                 />
                 {customCategoryText.trim().length >= 2 && (
@@ -909,7 +909,7 @@ export default function AddListingClient({
                 style={{
                   flex: 1, minWidth: 0,
                   background: 'transparent', border: 'none', outline: 'none',
-                  fontSize: 14, color: '#fff', fontFamily: 'inherit', padding: 0,
+                  fontSize: 16, color: '#fff', fontFamily: 'inherit', padding: 0,
                   cursor: isEdit ? 'not-allowed' : 'text',
                 }}
               />
