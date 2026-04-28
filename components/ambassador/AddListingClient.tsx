@@ -111,7 +111,7 @@ const SECTION_LABEL: React.CSSProperties = {
   fontWeight: 400,
   textTransform: 'uppercase',
   letterSpacing: 0.5,
-  marginBottom: 12,
+  marginBottom: 8,
   paddingLeft: 4,
 }
 
@@ -955,7 +955,7 @@ export default function AddListingClient({
 
         {/* ================== MEDIA ================== */}
         <div style={{ marginBottom: 22 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <div style={{ ...SECTION_LABEL, marginBottom: 0 }}>Media</div>
             {media?.kind === 'photos' && (
               <div style={{ fontSize: 11, color: '#666' }}>{media.urls.length}/3 images</div>
@@ -1072,7 +1072,7 @@ export default function AddListingClient({
           maxHeight: freeTrial ? 0 : 500,
           opacity: freeTrial ? 0 : 1,
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <div style={{ ...SECTION_LABEL, marginBottom: 0 }}>Pricing</div>
             <div style={{ fontSize: 11, color: '#666' }}>{currency.toUpperCase()} ({symbol})</div>
           </div>
