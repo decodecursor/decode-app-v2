@@ -123,7 +123,7 @@ export default function AmbassadorAuthEmailPage() {
             border: '1.5px solid #2a2a2a',
             borderRadius: '12px',
             padding: '0 16px',
-            fontSize: '15px',
+            fontSize: '16px',
             color: '#fff',
             outline: 'none',
             fontFamily: 'inherit',
