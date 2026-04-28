@@ -2418,6 +2418,25 @@ When a slice or QA pass touches >5 files of the same failure class, default to t
 
 ---
 
+### §16 — iOS scroll-into-view horizontal pan (added 2026-04-27)
+
+**The bug:** On iOS Safari with mobile keyboard open, tapping into a side-by-side input (City + Country, First name + Last name, etc.) causes the layout viewport to pan horizontally — left-aligning the field's left edge, right-clipping the rest of the page. Tapping the sibling input pans the opposite way. Salon-name-style full-width inputs are unaffected (no horizontal slack to scroll into).
+
+**Why body-level `overflow-x: hidden` is insufficient:** iOS Safari's "scroll focused input into view" behavior operates against the layout viewport via the outermost scroll-container ancestor — not against `body`'s overflow. `body { overflow-x: hidden }` clips the visual overflow but doesn't prevent the layout-viewport pan. The fix must live on a non-body ancestor that breaks the iOS scroll-container chain.
+
+**The fix (already shipped, `746f86f`):** `overflowX: 'hidden'` on the outermost wrapper of `app/(ambassador)/layout.tsx`. Single declaration. Covers every side-by-side input row on every ambassador form (Add Listing, Add Wish, Setup, Auth, Settings, etc.).
+
+**Why outer wrapper, not inner 420 wrapper:** the inner 420-max-width wrapper sits inside the outer wrapper and never legitimately overflows. iOS picks the outer wrapper as the scroll-container ancestor — that's where the fix has to live.
+
+**Doctrine for future work:**
+- Adding a new side-by-side input row anywhere under `(ambassador)` requires no per-form overflow rule. The layout-level rule is the single source of truth.
+- If a future feature needs intentional horizontal scroll under `(ambassador)` (e.g. a horizontally-scrollable card carousel), that component must declare `overflow-x: auto` on its own scroll container, NOT remove the layout-level rule.
+- Modals + toasts + popovers are immune (position: fixed escapes ancestor overflow contexts) — verified via Slice 8.5 modal sweep + Slice 4B+4C toast survey.
+- Public/checkout/payment surfaces are NOT covered by this rule (different layout root). If the same iOS pan bug surfaces there, a sibling rule on `app/(public)/layout.tsx` is the answer — separate decision per audience.
+- `<meta viewport>` config (`width=device-width, initialScale=1`, no `maximumScale` or `userScalable=no`) stays as-is for accessibility (pinch-zoom must work for low-vision users per Slice 7C item 35). The layout-level overflowX fix coexists cleanly with pinch-zoom.
+
+---
+
 ## 📬 Notifications (emails + WhatsApp)
 
 V1 fires a small set of transactional notifications. No marketing emails, no promo WhatsApp — just receipts and useful nudges.
