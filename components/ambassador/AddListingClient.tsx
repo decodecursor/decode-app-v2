@@ -696,7 +696,7 @@ export default function AddListingClient({
           {isEdit ? 'Edit listing' : 'Add listing'}
         </div>
         <div style={{ fontSize: 11, color: '#888' }}>
-          {isEdit ? 'Update the details — photo, category, pricing' : 'Professional you want to display on your page'}
+          {isEdit ? 'Update the details — photo, category, pricing' : 'Display your beauty professional on your page'}
         </div>
       </div>
 
