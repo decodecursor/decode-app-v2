@@ -120,7 +120,7 @@ export default function DashboardClient({
           left: 0,
           right: 0,
           height: '80px',
-          background: 'linear-gradient(transparent 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.85) 100%)',
+          background: 'linear-gradient(transparent 0%, rgba(0,0,0,0.5) 50%, #000 100%)',
         }} />
         {/* Bottom row: greeting+url left, icons right */}
         <div style={{
