@@ -85,11 +85,11 @@ export default function AmbassadorLayout({
           padding: 36px 22px 0;
         }
         @media (max-width: 768px) {
-          .amb-internal-header { padding-top: 20px; }
-          .amb-internal-header-flush { padding-top: 20px; }
-          .amb-settings-header { padding-top: 20px; }
-          .amb-dashboard-cover { margin-top: 20px; }
-          .amb-setup-tracker { padding-top: 20px; }
+          .amb-internal-header { padding-top: 16px; }
+          .amb-internal-header-flush { padding-top: 16px; }
+          .amb-settings-header { padding-top: 16px; }
+          .amb-dashboard-cover { margin-top: 16px; }
+          .amb-setup-tracker { padding-top: 16px; }
         }
         .amb-dot {
           display: inline-block;
