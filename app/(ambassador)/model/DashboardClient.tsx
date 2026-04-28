@@ -137,6 +137,7 @@ export default function DashboardClient({
               fontSize: '19px',
               fontWeight: 700,
               letterSpacing: '-0.2px',
+              lineHeight: 1,
               color: '#fff',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
@@ -150,8 +151,9 @@ export default function DashboardClient({
               onClick={openPublic}
               style={{
                 fontSize: '11px',
+                lineHeight: 1,
                 color: '#888',
-                marginTop: '1px',
+                marginTop: '2px',
                 cursor: 'pointer',
                 display: 'inline-block',
               }}
