@@ -117,7 +117,7 @@ export default function DashboardClient({
           left: 0,
           right: 0,
           height: '80px',
-          background: 'linear-gradient(transparent 0%, rgba(0,0,0,0.5) 50%, #000 100%)',
+          background: 'linear-gradient(rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.75) 50%, #000 100%)',
         }} />
         {/* Bottom row: greeting+url left, icons right */}
         <div style={{
@@ -139,6 +139,7 @@ export default function DashboardClient({
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
+              textShadow: '0 1px 2px rgba(0,0,0,0.6)',
             }}>
               {isFirstVisit
                 ? `${profile.first_name}, you\u2019re live! \uD83C\uDF89`
@@ -152,6 +153,7 @@ export default function DashboardClient({
                 color: '#888',
                 cursor: 'pointer',
                 display: 'inline-block',
+                textShadow: '0 1px 2px rgba(0,0,0,0.6)',
               }}
             >
               {pageUrl}
