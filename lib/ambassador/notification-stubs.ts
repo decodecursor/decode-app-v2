@@ -15,7 +15,6 @@
  * reprocess the money side and that's worse than a missed email).
  */
 import {
-  formatAmountForEmail,
   renderListingExpiringEmail,
   renderListingExpiringProEmail,
   renderListingPaidEmail,
@@ -23,6 +22,7 @@ import {
   renderPayoutPaidEmail,
   renderWishGiftedEmail,
 } from './email-templates'
+import { formatCurrencyText } from './currency-format'
 
 function formatLongDate(d: Date): string {
   return new Intl.DateTimeFormat('en-GB', {
@@ -110,7 +110,7 @@ export async function sendListingPaidEmail(payload: ListingPaidEmailPayload): Pr
   const purchaseDate = formatLongDate(payload.purchaseDate)
   const startDate = formatLongDate(payload.startDate)
   const endDate = formatLongDate(payload.endDate)
-  const amountDisplay = `${formatAmountForEmail(payload.amount)} ${payload.currency.toUpperCase()}`
+  const amountDisplay = formatCurrencyText('amount-with-code', payload.currency, payload.amount, { decimals: 'fixed-2' })
   const listingUrl = `https://app.welovedecode.com/${payload.ambassadorSlug}`
 
   const html = renderListingPaidEmail({
@@ -224,7 +224,7 @@ export async function sendWishGiftedEmail(payload: WishGiftedEmailPayload): Prom
 
   const receiptUrl = `${getAppBase()}/wish/confirmation/${encodeURIComponent(payload.paymentIntentId)}`
   const purchaseDate = formatLongDate(payload.purchaseDate)
-  const amountDisplay = `${formatAmountForEmail(payload.amount)} ${payload.currency.toUpperCase()}`
+  const amountDisplay = formatCurrencyText('amount-with-code', payload.currency, payload.amount, { decimals: 'fixed-2' })
   const listingUrl = `https://app.welovedecode.com/${payload.ambassadorSlug}`
 
   const html = renderWishGiftedEmail({
@@ -340,7 +340,7 @@ export async function sendListingPaidWhatsApp(payload: ListingPaidWhatsAppPayloa
   }
 
   const dateFormatted = formatLongDate(payload.activeUntil)
-  const amountFormatted = `${formatAmountForEmail(payload.amount)} ${payload.currency.toUpperCase()}`
+  const amountFormatted = formatCurrencyText('amount-with-code', payload.currency, payload.amount, { decimals: 'fixed-2' })
 
   try {
     const { authkeyWhatsAppService } = await import('@/lib/services/AuthkeyWhatsAppService')
@@ -405,7 +405,7 @@ export async function sendWishGiftedWhatsApp(payload: WishGiftedWhatsAppPayload)
   }
 
   const dateFormatted = formatLongDate(payload.purchaseDate)
-  const amountFormatted = `${formatAmountForEmail(payload.amount)} ${payload.currency.toUpperCase()}`
+  const amountFormatted = formatCurrencyText('amount-with-code', payload.currency, payload.amount, { decimals: 'fixed-2' })
   // Anonymous gifters surface as "Secret Gifter" per partner-locked
   // copy. Snapshot row's gifter_name is null for anonymous gifts (DB
   // CHECK enforces this), so the explicit branch + fallback covers
@@ -539,7 +539,7 @@ export async function sendPayoutPaidEmail(payload: PayoutPaidEmailPayload): Prom
 
 We sent you money ❤️
 
-Payout: ${formatAmountForEmail(payload.netAmount)} ${payload.currency.toUpperCase()}
+Payout: ${formatCurrencyText('amount-with-code', payload.currency, payload.netAmount, { decimals: 'fixed-2' })}
 Date: ${formattedDate}
 Reference: ${payload.payoutReference}
 
@@ -609,9 +609,11 @@ export async function sendPayoutPaidWhatsApp(payload: PayoutPaidWhatsAppPayload)
     year: 'numeric',
   }).format(payload.paidAt)
 
-  // Two-decimal grouped amount for the WhatsApp body. Mirrors the
-  // email helper's formatAmountForEmail to keep cross-channel parity
-  // (recipient sees the same number on both surfaces).
+  // Two-decimal grouped amount for the WhatsApp body. Inlined here
+  // (not formatCurrencyText) because the WhatsApp template expects
+  // amount and currency in separate slots — bodyValues['2'] is the
+  // number alone, bodyValues['3'] carries the code. Keeps cross-channel
+  // parity with the email/text receipts (same fixed-2 grouping shape).
   const amountFormatted = new Intl.NumberFormat('en', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,

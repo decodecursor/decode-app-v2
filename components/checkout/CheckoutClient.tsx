@@ -16,7 +16,7 @@ import { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import type { CheckoutData, PackageDays } from '@/lib/checkout/checkout-shape'
 import { ambassadorDisplayName } from '@/lib/checkout/checkout-shape'
-import { formatCurrency } from '@/lib/ambassador/utils'
+import { formatCurrencyText } from '@/lib/ambassador/currency-format'
 import { PackagePicker } from './PackagePicker'
 import { UrlOverlay } from './UrlOverlay'
 import { useTurnstile } from '@/components/turnstile/TurnstileWidget'
@@ -157,7 +157,7 @@ export function CheckoutClient({ data, shareUrl }: Props) {
             fontSize: 15, fontWeight: 700, cursor: 'pointer',
           }}
         >
-          Pay {formatCurrency(selectedPkg.total, data.currency)}
+          Pay {formatCurrencyText('amount-with-code', data.currency, selectedPkg.total, { decimals: 'flex-0-2' })}
         </button>
       </div>
 

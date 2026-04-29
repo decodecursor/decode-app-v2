@@ -25,7 +25,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Elements } from '@stripe/react-stripe-js'
 import type { StripeElementsOptions } from '@stripe/stripe-js'
 import { stripePromise } from '@/lib/stripe-client'
-import { formatCurrency } from '@/lib/ambassador/utils'
+import { formatCurrencyText } from '@/lib/ambassador/currency-format'
 import type { PackageDays } from '@/lib/checkout/checkout-shape'
 import { StripeElementsForm } from './StripeElementsForm'
 
@@ -192,7 +192,7 @@ export function PaymentModal({
 
   if (!isOpen) return null
 
-  const amountLabel = formatCurrency(amount, currency)
+  const amountLabel = formatCurrencyText('amount-with-code', currency, amount, { decimals: 'flex-0-2' })
   // Default chips preserve the listings shape (One-time / No subscription /
   // {N}-day package). When chips prop is passed (current listings call site
   // and Slice 5C wish-checkout both will), it wins; the default is here as

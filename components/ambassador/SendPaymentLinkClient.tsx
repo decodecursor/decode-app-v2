@@ -32,10 +32,10 @@ import { useRouter } from 'next/navigation'
 import { ProgressTracker } from '@/components/ambassador/ProgressTracker'
 import BackArrow from '@/components/ambassador/BackArrow'
 import {
-  currencySymbol,
   priceFloorForCurrency,
   PriceBox,
 } from '@/lib/ambassador/add-listing-helpers'
+import { formatCurrencyText } from '@/lib/ambassador/currency-format'
 
 type EffectiveStatus = 'free_trial' | 'pending_payment' | 'active' | 'expired'
 
@@ -109,7 +109,7 @@ export default function SendPaymentLinkClient({
   // return to Listings page (card-button origin). Per spec §10.2.
   const backHref = sendState === 'S1' ? '/model/listings/new' : '/model/listings'
 
-  const symbol = useMemo(() => currencySymbol(listing.currency), [listing.currency])
+  const symbol = useMemo(() => formatCurrencyText('symbol-only', listing.currency), [listing.currency])
   const floor = useMemo(() => priceFloorForCurrency(listing.currency), [listing.currency])
 
   // Prefill pricing from the listing row. Trial listings have null

@@ -20,11 +20,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BackArrow from '@/components/ambassador/BackArrow'
+import { CurrencyAmount } from '@/components/ambassador/CurrencyAmount'
 import {
   capFirst,
-  currencySymbol,
   priceFloorForCurrency,
 } from '@/lib/ambassador/add-listing-helpers'
+import { formatCurrencyText } from '@/lib/ambassador/currency-format'
 
 type Category = { id: string; label: string; slug: string }
 type ServiceSelection = { type: 'category'; label: string } | { type: 'custom'; text: string } | null
@@ -71,7 +72,7 @@ export default function AddWishClient({ categories, currency }: Props) {
     return () => clearTimeout(t)
   }, [service?.type])
 
-  const symbol = currencySymbol(currency)
+  const symbol = formatCurrencyText('symbol-only', currency)
   const floor = priceFloorForCurrency(currency)
 
   const priceNum = price === '' ? null : Number(price)
@@ -361,7 +362,7 @@ export default function AddWishClient({ categories, currency }: Props) {
               }}
             />
             <div style={{ fontSize: 11, color: '#666', marginTop: 4, minHeight: 13 }}>
-              {currency.toUpperCase()} ({symbol})
+              <CurrencyAmount currency={currency} variant="code-with-symbol" />
             </div>
           </div>
           {priceError && (

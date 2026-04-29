@@ -1,15 +1,4 @@
-/**
- * Format a numeric amount for display in transactional emails.
- * Uses Intl.NumberFormat with the locale-neutral 'en' tag (a single
- * currency code already in scope; we don't localize beyond the digits
- * for V1). Two-decimal fixed; thousands grouping. Returns plain string.
- */
-export function formatAmountForEmail(amount: number): string {
-  return new Intl.NumberFormat('en', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount)
-}
+import { formatCurrencyText } from './currency-format'
 
 /**
  * Slice 7B placeholder · payout-paid receipt email.
@@ -37,7 +26,7 @@ export function renderPayoutPaidEmail({
   payoutReference: string
   statementUrl: string
 }): string {
-  const amountDisplay = `${formatAmountForEmail(netAmount)} ${currency.toUpperCase()}`
+  const amountDisplay = formatCurrencyText('amount-with-code', currency, netAmount, { decimals: 'fixed-2' })
   return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
@@ -245,7 +234,7 @@ export function renderListingPaidEmail({
   ambassadorSlug: string
   receiptUrl: string
 }): string {
-  const amountDisplay = `${formatAmountForEmail(amount)} ${currency.toUpperCase()}`
+  const amountDisplay = formatCurrencyText('amount-with-code', currency, amount, { decimals: 'fixed-2' })
   const listingUrl = `https://app.welovedecode.com/${ambassadorSlug}`
   const listingUrlDisplay = `app.welovedecode.com/${ambassadorSlug}`
   const receiptUrlDisplay = stripUrlProtocol(receiptUrl)
@@ -401,7 +390,7 @@ export function renderWishGiftedEmail({
   ambassadorSlug: string
   receiptUrl: string
 }): string {
-  const amountDisplay = `${formatAmountForEmail(amount)} ${currency.toUpperCase()}`
+  const amountDisplay = formatCurrencyText('amount-with-code', currency, amount, { decimals: 'fixed-2' })
   const listingUrl = `https://app.welovedecode.com/${ambassadorSlug}`
   const listingUrlDisplay = `app.welovedecode.com/${ambassadorSlug}`
   const receiptUrlDisplay = stripUrlProtocol(receiptUrl)

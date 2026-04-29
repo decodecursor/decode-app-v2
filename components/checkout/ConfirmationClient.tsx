@@ -15,7 +15,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
-import { formatCurrency } from '@/lib/ambassador/utils'
+import { formatCurrencyText } from '@/lib/ambassador/currency-format'
 
 type Receipt = {
   reference: string
@@ -169,7 +169,7 @@ function ReceiptView({ receipt }: { receipt: Receipt }) {
         <ReceiptRow label="Active until" value={formatDate(receipt.active_until)} />
         <ReceiptRow
           label="Amount"
-          value={formatCurrency(receipt.amount, receipt.currency)}
+          value={formatCurrencyText('amount-with-code', receipt.currency, receipt.amount, { decimals: 'flex-0-2' })}
           sub={presentmentSubtitle}
         />
         <ReceiptRow label="Date" value={formatDate(receipt.paid_at)} />
@@ -177,7 +177,7 @@ function ReceiptView({ receipt }: { receipt: Receipt }) {
         {receipt.is_refunded && receipt.refund_amount != null && receipt.refunded_at && (
           <ReceiptRow
             label="Refunded"
-            value={`${formatCurrency(receipt.refund_amount, receipt.currency)} · ${formatDate(receipt.refunded_at)}`}
+            value={`${formatCurrencyText('amount-with-code', receipt.currency, receipt.refund_amount, { decimals: 'flex-0-2' })} · ${formatDate(receipt.refunded_at)}`}
             danger
           />
         )}

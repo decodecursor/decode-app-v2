@@ -83,35 +83,6 @@ export function calculateFeeSplit(grossAmount: number): {
 }
 
 // ============================================================================
-// Currency formatting
-// ============================================================================
-
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  usd: '$',
-  eur: '\u20AC',
-  gbp: '\u00A3',
-}
-
-/**
- * Format a currency amount for display.
- * e.g. formatCurrency(1234.5, 'aed') → "1,235 AED"
- *      formatCurrency(99.99, 'usd') → "$100 USD"
- */
-export function formatCurrency(amount: number, currency: string): string {
-  const upper = currency.toUpperCase()
-  const symbol = CURRENCY_SYMBOLS[currency.toLowerCase()]
-  const formatted = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(amount)
-
-  if (symbol) {
-    return `${symbol}${formatted} ${upper}`
-  }
-  return `${formatted} ${upper}`
-}
-
-// ============================================================================
 // Slug validation
 // ============================================================================
 

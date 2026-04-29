@@ -12,6 +12,7 @@ import { ChangeWhatsAppModal } from '@/components/ambassador/ChangeWhatsAppModal
 import { BankModal, type BankAccountSummary } from '@/components/ambassador/BankModal'
 import BackArrow from '@/components/ambassador/BackArrow'
 import { ChangeUrlModal } from '@/components/ambassador/ChangeUrlModal'
+import { CurrencyAmount } from '@/components/ambassador/CurrencyAmount'
 
 // App-subdomain base for the public-page share URL. Same env-aware
 // pattern as DashboardClient + WishlistClient + SendPaymentLinkClient
@@ -34,25 +35,6 @@ interface Profile {
   cover_photo_position_y: number
   is_published: boolean
   gifts_enabled: boolean
-}
-
-const AedSvg = () => (
-  <svg
-    width="11"
-    height="10"
-    viewBox="0 0 344.84 299.91"
-    fill="#fff"
-    style={{ verticalAlign: '-1px', margin: '0 1px' }}
-  >
-    <path d="M342.14,140.96l2.7,2.54v-7.72c0-17-11.92-30.84-26.56-30.84h-23.41C278.49,36.7,222.69,0,139.68,0c-52.86,0-59.65,0-109.71,0,0,0,15.03,12.63,15.03,52.4v52.58h-27.68c-5.38,0-10.43-2.08-14.61-6.01l-2.7-2.54v7.72c0,17.01,11.92,30.84,26.56,30.84h18.44s0,29.99,0,29.99h-27.68c-5.38,0-10.43-2.07-14.61-6.01l-2.7-2.54v7.71c0,17,11.92,30.82,26.56,30.82h18.44s0,54.89,0,54.89c0,38.65-15.03,50.06-15.03,50.06h109.71c85.62,0,139.64-36.96,155.38-104.98h32.46c5.38,0,10.43,2.07,14.61,6l2.7,2.54v-7.71c0-17-11.92-30.83-26.56-30.83h-18.9c.32-4.88.49-9.87.49-15s-.18-10.11-.51-14.99h28.17c5.37,0,10.43,2.07,14.61,6.01ZM89.96,15.01h45.86c61.7,0,97.44,27.33,108.1,89.94l-153.96.02V15.01ZM136.21,284.93h-46.26v-89.98l153.87-.02c-9.97,56.66-42.07,88.38-107.61,90ZM247.34,149.96c0,5.13-.11,10.13-.34,14.99l-157.04.02v-29.99l157.05-.02c.22,4.84.33,9.83.33,15Z" />
-  </svg>
-)
-
-const CURRENCY_SYMBOLS: Record<string, React.ReactNode> = {
-  USD: <span>$</span>,
-  EUR: <span>€</span>,
-  GBP: <span>£</span>,
-  AED: <AedSvg />,
 }
 
 const urlIconBtnStyle: React.CSSProperties = {
@@ -355,7 +337,6 @@ export default function SettingsPage() {
 
   const slug = profile.slug
   const currencyCode = (profile.currency || '').toUpperCase()
-  const currencySymbol = CURRENCY_SYMBOLS[currencyCode]
 
   return (
     <div className="amb-settings-header" style={{ position: 'relative' }}>
@@ -637,7 +618,7 @@ export default function SettingsPage() {
             <span style={{
               fontSize: 14, color: '#fff', lineHeight: 1, whiteSpace: 'nowrap',
             }}>
-              {currencyCode}{currencySymbol ? <> (<span style={{ display: 'inline-flex', alignItems: 'center' }}>{currencySymbol}</span>)</> : null}
+              <CurrencyAmount currency={currencyCode} variant="code-with-symbol" />
             </span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" style={{ display: 'block', flexShrink: 0 }}>
               <rect x="3" y="11" width="18" height="11" rx="2" />

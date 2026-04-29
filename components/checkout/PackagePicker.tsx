@@ -9,7 +9,7 @@
  */
 
 import type { CheckoutPackage, PackageDays } from '@/lib/checkout/checkout-shape'
-import { formatCurrency } from '@/lib/ambassador/utils'
+import { formatCurrencyText } from '@/lib/ambassador/currency-format'
 
 interface Props {
   packages: CheckoutPackage[]
@@ -47,7 +47,7 @@ function PackageRow({
 }) {
   const borderColor = isSelected ? '#e91e8c' : '#262626'
   const bgColor = isSelected ? 'rgba(233,30,140,0.08)' : '#1c1c1c'
-  const perDayLabel = formatCurrency(pkg.per_day, currency)
+  const perDayLabel = formatCurrencyText('amount-with-code', currency, pkg.per_day, { decimals: 'flex-0-2' })
 
   return (
     <div
@@ -97,7 +97,7 @@ function PackageRow({
           </span>
         )}
         <span style={{ fontSize: 17, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap' }}>
-          {formatCurrency(pkg.total, currency)}
+          {formatCurrencyText('amount-with-code', currency, pkg.total, { decimals: 'flex-0-2' })}
         </span>
       </div>
     </div>

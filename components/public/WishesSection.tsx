@@ -31,7 +31,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { formatCurrency } from '@/lib/ambassador/utils'
+import { formatCurrencyText } from '@/lib/ambassador/currency-format'
 
 // Same fire-and-forget shape as SquadRow's analytics fire (Slice 4D
 // `d5d1530`). keepalive:true so the request survives the
@@ -119,7 +119,7 @@ function WishRowDisplay({ wish, slug, isLast }: {
   isLast: boolean
 }) {
   const price = typeof wish.price === 'string' ? Number(wish.price) : wish.price
-  const priceLabel = formatCurrencyShort(price, wish.currency)
+  const priceLabel = formatCurrencyText('amount-with-code', wish.currency, price, { decimals: 'rounded' })
   const locationText = wish.professional_city && wish.professional_country
     ? `${wish.professional_city}, ${wish.professional_country}`
     : wish.professional_city ?? wish.professional_country ?? ''
@@ -175,13 +175,3 @@ function WishRowDisplay({ wish, slug, isLast }: {
   )
 }
 
-// Compact currency for the Gift-it pill — symbol + integer amount, no
-// thousands-separator gymnastics or trailing currency code (the pill
-// is small; full formatCurrency would overflow). Falls through to
-// standard formatCurrency for unsupported currencies.
-function formatCurrencyShort(amount: number, currency: string): string {
-  const symbols: Record<string, string> = { usd: '$', eur: '€', gbp: '£' }
-  const sym = symbols[currency.toLowerCase()]
-  if (sym) return `${sym}${Math.round(amount)}`
-  return formatCurrency(amount, currency)
-}

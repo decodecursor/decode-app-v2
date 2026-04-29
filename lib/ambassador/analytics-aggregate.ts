@@ -1,4 +1,5 @@
 import { buildChartPaths } from './chart-path'
+import { formatCurrencyText } from './currency-format'
 
 /**
  * Aggregation helpers for /api/ambassador/model/analytics. Extracted
@@ -159,9 +160,7 @@ function trendDirection(curr: number, prev: number | null): { trend: number; dir
 }
 
 function fmtMoney(n: number, currency: string): string {
-  const rounded = Math.round(n)
-  const withCommas = rounded.toLocaleString('en-US')
-  return `${currency === 'USD' ? '$' : currency + ' '}${withCommas}`
+  return formatCurrencyText('amount-with-code', currency, n)
 }
 
 function topN<T>(counts: Map<string, number>, n: number, project: (id: string, count: number, max: number) => T): T[] {

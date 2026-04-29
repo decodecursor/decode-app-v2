@@ -31,6 +31,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { formatCurrencyText } from '@/lib/ambassador/currency-format'
 
 // Same fire-and-forget shape as SquadRow's analytics fire (Slice 4D
 // `d5d1530`). target_id is the payment row id (uniquely identifies
@@ -121,7 +122,7 @@ function WallRowDisplay({ row, slug, isLast }: { row: WallRow; slug: string; isL
   const gifterIg = isAnonymous ? null : (wish?.gifter_instagram ?? null)
   const serviceLabel = wish?.service_name ?? ''
   const amount = typeof row.gross_amount === 'string' ? Number(row.gross_amount) : row.gross_amount
-  const amountLabel = formatWallAmount(amount, row.currency)
+  const amountLabel = formatCurrencyText('amount-with-code', row.currency, amount, { decimals: 'rounded' })
   const dateLabel = formatWallDate(row.created_at)
   const iconStroke = gifterIg ? '#e91e8c' : '#777'
   const igUrl = gifterIg ? `https://instagram.com/${gifterIg}` : null
@@ -177,15 +178,6 @@ function WallRowDisplay({ row, slug, isLast }: { row: WallRow; slug: string; isL
   )
 }
 
-// Wall-of-love amount formatter: whole numbers + thousand separators
-// per spec §4.4 (e.g. $500, $2,500). Falls through to plain "{N} CCY"
-// for currencies without a known symbol.
-function formatWallAmount(amount: number, currency: string): string {
-  const symbols: Record<string, string> = { usd: '$', eur: '€', gbp: '£' }
-  const sym = symbols[currency.toLowerCase()]
-  const whole = Math.round(amount).toLocaleString('en-US')
-  return sym ? `${sym}${whole}` : `${whole} ${currency.toUpperCase()}`
-}
 
 // Date formatter: "12 March 2026" per spec §4.4.
 function formatWallDate(iso: string): string {

@@ -18,7 +18,7 @@
 import { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
-import { formatCurrency } from '@/lib/ambassador/utils'
+import { formatCurrencyText } from '@/lib/ambassador/currency-format'
 import { useTurnstile } from '@/components/turnstile/TurnstileWidget'
 
 // Slice 7C bundle remediation A: PaymentModal (and its Stripe.js +
@@ -90,7 +90,7 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
   // Validation: pay enabled if anonymous OR name >= 2 chars (mockup line 489).
   const valid = anonymous || name.trim().length >= 2
 
-  const amountLabel = formatCurrency(wish.price, wish.currency)
+  const amountLabel = formatCurrencyText('amount-with-code', wish.currency, wish.price, { decimals: 'flex-0-2' })
 
   // Memo'd extras — stable identity across re-renders that don't change
   // the gifter inputs, so PaymentModalShell's PI-create effect doesn't
@@ -230,7 +230,7 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
               onChange={(e) => setName(capFirstName(e.target.value))}
               style={{
                 width: '100%', background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
-                padding: '14px 16px', fontSize: 14, color: '#fff', boxSizing: 'border-box',
+                padding: '14px 16px', fontSize: 16, color: '#fff', boxSizing: 'border-box',
                 transition: 'border-color 0.15s', marginBottom: 10,
               }}
             />
@@ -242,7 +242,7 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
               onChange={(e) => setIg(sanitizeIg(e.target.value))}
               style={{
                 width: '100%', background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
-                padding: '14px 16px', fontSize: 14, color: '#fff', boxSizing: 'border-box',
+                padding: '14px 16px', fontSize: 16, color: '#fff', boxSizing: 'border-box',
                 transition: 'border-color 0.15s', marginBottom: 10,
               }}
             />

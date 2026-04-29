@@ -1,6 +1,7 @@
 'use client'
 
 import { useCountUp } from '@/components/ambassador/useCountUp'
+import { CurrencyAmount } from '@/components/ambassador/CurrencyAmount'
 import type { StatementResponse } from '../types'
 
 /**
@@ -67,7 +68,7 @@ export default function HeroCard({ data, copied, onCopy }: {
             {animatedAmount}
           </div>
           <div style={{ fontSize: '11px', fontWeight: 600, color: '#666', letterSpacing: '0.8px' }}>
-            {data.currency}
+            <CurrencyAmount currency={data.currency} variant="code-only" />
           </div>
         </div>
 

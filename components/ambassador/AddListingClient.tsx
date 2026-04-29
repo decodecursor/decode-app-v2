@@ -31,11 +31,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AmbSubmitButton } from '@/components/ambassador/AmbSubmitButton'
 import BackArrow from '@/components/ambassador/BackArrow'
+import { CurrencyAmount } from '@/components/ambassador/CurrencyAmount'
 import { ImageCropper } from '@/components/ambassador/ImageCropper'
 import { createClient } from '@/utils/supabase/client'
 import {
   capFirst,
-  currencySymbol,
   priceFloorForCurrency,
   normalizeInstagram,
   buildAvatarPath,
@@ -44,6 +44,7 @@ import {
   validateVideoFile,
   PriceBox,
 } from '@/lib/ambassador/add-listing-helpers'
+import { formatCurrencyText } from '@/lib/ambassador/currency-format'
 
 type Category = { id: string; label: string; slug: string }
 
@@ -482,7 +483,7 @@ export default function AddListingClient({
   const p60n = parseInt(p60, 10) || 0
   const p90n = parseInt(p90, 10) || 0
   const floor = priceFloorForCurrency(currency)
-  const symbol = currencySymbol(currency)
+  const symbol = formatCurrencyText('symbol-only', currency)
 
   const perDay30 = p30n > 0 ? (p30n / 30).toFixed(2) : ''
   const perDay60 = p60n > 0 ? (p60n / 60).toFixed(2) : ''
@@ -1074,7 +1075,7 @@ export default function AddListingClient({
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <div style={{ ...SECTION_LABEL, marginBottom: 0 }}>Pricing</div>
-            <div style={{ fontSize: 11, color: '#666' }}>{currency.toUpperCase()} ({symbol})</div>
+            <div style={{ fontSize: 11, color: '#666' }}><CurrencyAmount currency={currency} variant="code-with-symbol" /></div>
           </div>
 
           <div style={{ display: 'flex', gap: 8 }}>

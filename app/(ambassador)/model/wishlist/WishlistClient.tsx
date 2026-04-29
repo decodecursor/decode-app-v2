@@ -38,6 +38,7 @@ import { useRouter } from 'next/navigation'
 import type { WishCardRow } from '@/lib/ambassador/wish-shape'
 import { DeleteWishModal } from '@/components/ambassador/DeleteWishModal'
 import BackArrow from '@/components/ambassador/BackArrow'
+import { CurrencyAmount } from '@/components/ambassador/CurrencyAmount'
 
 type Filter = 'all' | 'open' | 'gifted'
 
@@ -84,10 +85,6 @@ function formatGiftedDate(iso: string | null): string {
   const d = new Date(iso)
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December']
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
-}
-
-function formatMoney(w: WishCardRow): string {
-  return `${w.currency.toUpperCase()} ${w.price}`
 }
 
 function ShareIcon() {
@@ -343,7 +340,7 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
                         <IgIcon color={iconColor} />
                         <span style={{ fontSize: 11, fontWeight: 500, color: '#fff' }}>{g.first_name}</span>
                       </span>
-                      <span style={{ fontSize: 11, color: '#fff', fontWeight: 700 }}>{formatMoney(w)}</span>
+                      <span style={{ fontSize: 11, color: '#fff', fontWeight: 700 }}><CurrencyAmount currency={w.currency} amount={Number(w.price)} variant="amount-with-code" /></span>
                     </div>
                   </div>
                 )
@@ -394,7 +391,7 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
                   {/* Bottom row — days live | money */}
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: 11, color: '#777' }}>{days} days live</span>
-                    <span style={{ fontSize: 11, color: '#fff', fontWeight: 700 }}>{formatMoney(w)}</span>
+                    <span style={{ fontSize: 11, color: '#fff', fontWeight: 700 }}><CurrencyAmount currency={w.currency} amount={Number(w.price)} variant="amount-with-code" /></span>
                   </div>
                 </div>
               )

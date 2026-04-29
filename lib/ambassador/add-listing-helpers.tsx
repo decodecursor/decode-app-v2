@@ -42,15 +42,6 @@ export function capFirst(s: string): string {
   return first === s.charAt(0) ? s : first + s.slice(1)
 }
 
-export function currencySymbol(currency: string): string {
-  const code = currency.toUpperCase()
-  if (code === 'USD') return '$'
-  if (code === 'EUR') return '€'
-  if (code === 'GBP') return '£'
-  if (code === 'AED') return 'AED'
-  return code
-}
-
 export function videoExtForMime(mime: string): string {
   if (mime === 'video/mp4') return 'mp4'
   if (mime === 'video/quicktime') return 'mov'

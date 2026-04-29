@@ -1,6 +1,7 @@
 'use client'
 
 import { useCountUp } from '@/components/ambassador/useCountUp'
+import { CurrencyAmount } from '@/components/ambassador/CurrencyAmount'
 import type { NextPayoutSummary } from './types'
 
 /**
@@ -56,7 +57,7 @@ export default function NextPayoutCard({ next }: { next: NextPayoutSummary }) {
             color: '#666',
             letterSpacing: '0.8px',
           }}>
-            {next.currency}
+            <CurrencyAmount currency={next.currency} variant="code-only" />
           </div>
         </div>
         <div style={{ fontSize: '10px', color: '#777', marginTop: '4px' }}>
