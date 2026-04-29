@@ -125,8 +125,8 @@ export default function DashboardClient({
         <div style={{
           position: 'absolute',
           bottom: '11px',
-          left: '16px',
-          right: '16px',
+          left: 0,
+          right: 0,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'flex-end',
