@@ -10,7 +10,7 @@
 ## 1. Purpose
 
 Home screen after login. Three jobs:
-1. Show ambassador how her page is performing (total views, top click categories)
+1. Show ambassador how her page is performing (page visits, top listings by clicks)
 2. Let her take the two most common actions (add listing, add wish)
 3. Navigate to the four deeper surfaces (listings, wishlist, analytics, settings)
 
@@ -44,7 +44,7 @@ Home screen after login. Three jobs:
 
 1. ~~Status bar~~ — REMOVED (real device handles)
 2. Cover banner (110px) — user's cover photo + greeting + URL + 2 round action icons
-3. Stats row: Total views (left, 108px) + Top clicks (right, flex, 3 animated bars)
+3. Stats row: Page visits (left, 108px) + Top listings (right, flex, 3 animated bars)
 4. Primary actions: Add Listing (pink) + Add Wish (dark, pink text)
 5. Navigation cards: Listings · 1 expiring soon / Wishlist / Analytics / Settings
 
@@ -70,13 +70,13 @@ The system tracks two distinct interactions, both stored in the **single polymor
 | **View** | Someone visits the public page `welovedecode.com/{slug}` | `event_type = 'public_page_view'` |
 | **Click** | Someone taps a specific listing/link on the public page | `event_type IN ('listing_instagram_click','listing_media_click')` |
 
-Left card = **Total views** (page traffic). Right card = **Top clicks** (engagement per category — categorisation flows through `target_id → model_listings.category_id → model_categories.label`, with `model_listings.category_custom` as the fallback bucket name when `category_id IS NULL`).
+Left card = **Page visits** (page traffic). Right card = **Top listings** (engagement per category — categorisation flows through `target_id → model_listings.category_id → model_categories.label`, with `model_listings.category_custom` as the fallback bucket name when `category_id IS NULL`).
 
 ---
 
 ## 7. Stats Calculations
 
-### 7.1 Total views (left card)
+### 7.1 Page visits (left card)
 ```sql
 -- Total
 SELECT COUNT(*) FROM model_analytics_events
@@ -93,7 +93,7 @@ Subtitle: "+N this week" (when total > 0). When total = 0, replace with "Share y
 
 > Timezone note: there is no `users.timezone` column, so the week boundary is computed in UTC. Acceptable for v1; revisit if ambassadors in extreme timezones report wrong "this week" counts.
 
-### 7.2 Top clicks (right card)
+### 7.2 Top listings (right card)
 
 **Dynamic per user — no hardcoded categories.** Aggregated via the `get_top_click_categories(p_model_id, p_limit)` RPC, which JOINs through listings:
 
@@ -223,7 +223,7 @@ FROM model_profiles WHERE user_id = $auth_user_id;
 UPDATE model_profiles SET dashboard_first_seen_at = NOW()
   WHERE id = $profile_id AND dashboard_first_seen_at IS NULL;
 
--- Total views
+-- Page visits
 SELECT COUNT(*) FROM model_analytics_events
   WHERE model_id = $profile_id AND event_type = 'public_page_view';
 
@@ -260,7 +260,7 @@ Implement via standard mobile gesture — no custom JS needed if built as native
 
 | Scenario | Behavior |
 |---|---|
-| First visit, 0 views | "Sara, you're live! 🎉" / Total views: 0 / "Share your page to get started" |
+| First visit, 0 views | "Sara, you're live! 🎉" / Page visits: 0 / "Share your page to get started" |
 | 0 listings | Listings card shows just "Listings", no alert |
 | No cover photo | Pink gradient fallback `linear-gradient(135deg, #e91e8c, #ff6b9d)` |
 | Only 1–2 categories | Show 1–2 bar rows, card adjusts naturally |

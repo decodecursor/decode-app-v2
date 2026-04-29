@@ -1318,7 +1318,7 @@ Future slices: lock layout + spacing + modal-family width upfront. Don't write p
 - Added `dashboard_first_seen_at` for first-visit greeting
 - "Expiring soon" alert threshold = 7 days
 - Only Listings nav row shows alerts (Wishlist/Analytics/Settings = no alerts in V1)
-- "Top clicks" = combine `listing_instagram_click` + `listing_media_click` per category
+- "Top listings" = combine `listing_instagram_click` + `listing_media_click` per category
 
 **Slice 1.5 additions:**
 - Settings nav card shows `Settings · Email missing` pink hint when `auth.users.email IS NULL` (simple `!user.email` server-side check — no dismissal, no throttling, no login-count logic)

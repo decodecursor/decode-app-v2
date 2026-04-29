@@ -1103,7 +1103,7 @@ Additional Slice 5A items shipped (not on original Slice 5 checklist):
 - `/api/admin/payouts/[id]/mark-paid` — Admin marks as paid
 
 **Dashboard update:**
-- Show real analytics summary (top clicks, expiring soon)
+- Show real analytics summary (top listings, expiring soon)
 
 **✅ VERIFY before next slice:**
 - [ ] Analytics page shows page views, listing clicks, wish clicks (real data from Slices 4 + 5)

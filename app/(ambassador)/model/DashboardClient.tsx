@@ -242,7 +242,7 @@ export default function DashboardClient({
           flexDirection: 'column',
         }}>
           <div style={{ fontSize: '9px', color: '#777', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
-            Total views
+            Page visits
           </div>
           <div style={{ fontSize: '30px', fontWeight: 700, color: '#fff', lineHeight: 1, letterSpacing: '-0.5px' }}>
             {viewsTotal}
@@ -258,7 +258,7 @@ export default function DashboardClient({
           padding: '13px 15px',
         }}>
           <div style={{ fontSize: '9px', color: '#777', marginBottom: '9px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Top clicks
+            Top listings
           </div>
           {topClicks.length === 0 ? (
             <div style={{ fontSize: '12px', color: '#555', textAlign: 'center', paddingTop: '8px' }}>
