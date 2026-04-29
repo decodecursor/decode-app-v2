@@ -56,11 +56,16 @@ export function AmbSubmitButton({
         setPhase('success')
         setTimeout(() => {
           if (onDone) onDone()
-          setPhase('idle')
+          // Intentionally do NOT setPhase('idle') here.
+          // The consumer's onDone is responsible for navigation/unmount.
+          // If the component remains mounted (rare — e.g. consumer chose
+          // not to navigate), it stays in 'success' until next click would
+          // be re-enabled by a fresh idleLabel re-render. See §18.
         }, SUCCESS_HOLD_MS)
       } else {
+        // verb=delete or any verb with no success label: fire onDone immediately.
+        // No flash risk because there's no success-label transition to flicker out of.
         if (onDone) onDone()
-        setPhase('idle')
       }
     } catch {
       setPhase('idle')
