@@ -247,6 +247,7 @@ SELECT COUNT(*) FROM model_listings
 
 - Status bar (time + battery) removed
 - "Total clicks" → **"Total views"** (left card only; right stays "Top clicks")
+- "Total views" → **"Page visits"** (left); "Top clicks" → **"Top listings"** (right) — per partner decision 2026-04-29
 - Bar height 1.5px → 2px
 - Greeting toggle in mockup is preview-only — not in production
 
