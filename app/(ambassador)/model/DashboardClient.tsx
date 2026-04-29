@@ -364,7 +364,6 @@ export default function DashboardClient({
             </svg>
           )}
           label="Wishlist"
-          alert={openWishCount > 0 ? `${openWishCount} open` : null}
         />
         <NavCard
           onClick={() => router.push('/model/analytics')}
