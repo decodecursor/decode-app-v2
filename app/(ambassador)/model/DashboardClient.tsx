@@ -35,7 +35,6 @@ export default function DashboardClient({
   viewsThisWeek,
   topClicks,
   expiringCount,
-  openWishCount,
   settingsHint,
 }: {
   profile: Profile
@@ -44,7 +43,6 @@ export default function DashboardClient({
   viewsThisWeek: number
   topClicks: TopClick[]
   expiringCount: number
-  openWishCount: number
   /**
    * Pre-composed settings hint label per spec §6.2 stacking rules
    * (`Bank + Email missing`, `Bank missing`, `Email missing`, or null).

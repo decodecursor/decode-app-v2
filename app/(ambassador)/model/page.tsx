@@ -63,7 +63,6 @@ export default async function DashboardPage() {
     viewsThisWeekRes,
     topClicksRes,
     activeListingsRes,
-    openWishesRes,
     bankExistsRes,
   ] = await Promise.all([
     adminClient
@@ -83,15 +82,6 @@ export default async function DashboardPage() {
       .select('id, paid_until, free_trial_ends_at')
       .eq('model_id', profile.id)
       .in('status', ['active', 'free_trial']),
-    // Slice 5A: count open wishes (status='available') for the
-    // Wishlist nav-card alert. Mirrors the listings expiringCount
-    // pattern but uses total-open as the actionable signal since
-    // wishes have no expiry/renewal cycle.
-    adminClient
-      .from('model_wishes')
-      .select('id', { count: 'exact', head: true })
-      .eq('model_id', profile.id)
-      .eq('status', 'available'),
     // Slice 8: derive has_bank_account via EXISTS (locked Q2=A
     // path — JOIN/EXISTS at server-render time, no schema column,
     // no maintenance trigger). HEAD count is the cheapest probe;
@@ -108,8 +98,6 @@ export default async function DashboardPage() {
     const exp = l.paid_until ?? l.free_trial_ends_at
     return exp && new Date(exp).getTime() < sevenDaysFromNow
   }).length
-
-  const openWishCount = openWishesRes.count ?? 0
 
   // Slice 8: settings hint stacking per spec §6.2. Bank > email
   // priority. Both missing = "Bank + Email missing"; one missing =
@@ -132,7 +120,6 @@ export default async function DashboardPage() {
       viewsThisWeek={viewsThisWeekRes.count ?? 0}
       topClicks={(topClicksRes.data as Array<{ category: string; clicks: number }> | null) ?? []}
       expiringCount={expiringCount}
-      openWishCount={openWishCount}
       settingsHint={settingsHint}
     />
   )
