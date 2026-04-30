@@ -335,35 +335,15 @@ export default function ListingsClient({ listings: initialListings }: { listings
                         a different flow not in V1). Send-link page already wires
                         all 3 states by effective_status (Slice 3C 12ec72a). */}
                     {l.effective_status !== 'expired' && (
-                      l.effective_status === 'pending_payment' ? (
-                        <div
-                          onClick={() => router.push(`/model/listings/${l.id}/send-link`)}
-                          style={{
-                            width: 24, height: 24, borderRadius: '50%',
-                            border: '1.5px solid #e91e8c', background: 'transparent',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <svg
-                            width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                          >
-                            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-                            <polyline points="16 6 12 2 8 6" />
-                            <line x1="12" y1="2" x2="12" y2="15" />
-                          </svg>
-                        </div>
-                      ) : (
-                        <svg
-                          onClick={() => router.push(`/model/listings/${l.id}/send-link`)}
-                          width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={shareStroke(l)} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                          style={{ cursor: 'pointer' }}
-                        >
-                          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-                          <polyline points="16 6 12 2 8 6" />
-                          <line x1="12" y1="2" x2="12" y2="15" />
-                        </svg>
-                      )
+                      <svg
+                        onClick={() => router.push(`/model/listings/${l.id}/send-link`)}
+                        width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={shareStroke(l)} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                        <polyline points="16 6 12 2 8 6" />
+                        <line x1="12" y1="2" x2="12" y2="15" />
+                      </svg>
                     )}
                     {l.effective_status !== 'expired' && (
                       <svg
