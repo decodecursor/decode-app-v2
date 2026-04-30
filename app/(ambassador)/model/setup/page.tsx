@@ -554,14 +554,14 @@ export default function SetupPage() {
             <span
               style={{
                 padding: '14px 0 14px 16px',
-                fontSize: 13,
+                fontSize: 16,
                 color: '#666',
                 whiteSpace: 'nowrap',
                 flexShrink: 0,
                 cursor: 'text',
               }}
             >
-              welovedecode.com/
+              app.welovedecode.com/
             </span>
             <input
               id="setup-url"
@@ -645,8 +645,8 @@ export default function SetupPage() {
               style={{ marginLeft: 16, flexShrink: 0, display: 'inline-flex' }}
             >
               <svg
-                width="16"
-                height="16"
+                width="19"
+                height="19"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="#e91e8c"
@@ -697,8 +697,7 @@ export default function SetupPage() {
                     lineHeight: 1,
                   }}
                 >
-                  <span style={{ marginRight: 6 }}>·</span>
-                  <SymbolFor code={curr} />
+                  (<SymbolFor code={curr} />)
                 </span>
               )}
               <span style={{ marginLeft: 'auto', color: '#555' }}>
