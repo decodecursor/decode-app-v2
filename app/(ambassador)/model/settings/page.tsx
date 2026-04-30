@@ -466,7 +466,7 @@ export default function SettingsPage() {
                     textAlign: 'right',
                     direction: 'rtl',
                     unicodeBidi: 'plaintext',
-                    paddingRight: '1px',
+                    paddingRight: '4px',
                   }}>{userEmail}</span>
                   <Chevron />
                 </div>
@@ -542,10 +542,10 @@ export default function SettingsPage() {
         })}
       </div>
 
-      {/* Payout method (Slice 8) — slots between Login methods and
-          Preferences per settings_final_UI_Spec.md §3.2 + §4. State A
-          (no bank) shows a full-width pink CTA; State B (filled) shows
-          a single row matching the email/WhatsApp filled-row layout. */}
+      {/* Payout method + Currency — payout row (or add-bank CTA) plus
+          locked currency row that toasts on tap. Currency lives in the
+          same card to compress the settings stack; bank-flash animation
+          covers the whole card during Payout-save events. */}
       <div
         key={`bank-${bankFlashKey}`}
         style={{
@@ -556,7 +556,7 @@ export default function SettingsPage() {
         {bankAccount ? (
           <div
             onClick={() => { setBankModalMode('edit'); setShowBankModal(true) }}
-            style={{ ...rowStyle, cursor: 'pointer' }}
+            style={{ ...rowStyle, borderBottom: '1px solid #262626', cursor: 'pointer' }}
           >
             <span style={{ fontSize: 14, color: '#888', flexShrink: 0, lineHeight: 1.4 }}>
               Payout method
@@ -581,7 +581,7 @@ export default function SettingsPage() {
             </div>
           </div>
         ) : (
-          <div style={{ padding: 16 }}>
+          <div style={{ padding: 16, borderBottom: '1px solid #262626' }}>
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6, color: '#fff' }}>
               Payout method
             </div>
@@ -606,11 +606,10 @@ export default function SettingsPage() {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Preferences */}
-      <div style={cardStyle}>
-        <div style={{ ...rowStyle, borderBottom: '1px solid #262626' }}>
+        <div
+          style={{ ...rowStyle, cursor: 'pointer' }}
+          onClick={() => showToast("Currency can't be changed after setup")}
+        >
           <div>
             <span style={{ fontSize: 14, color: '#888' }}>Currency</span>
             <div style={{ fontSize: 10, color: '#888', marginTop: 3 }}>Can&apos;t be changed after setup</div>
@@ -621,8 +620,13 @@ export default function SettingsPage() {
             }}>
               <CurrencyAmount currency={currencyCode} variant="code-with-symbol" />
             </span>
+            <Chevron />
           </div>
         </div>
+      </div>
+
+      {/* Preferences (toggles) */}
+      <div style={cardStyle}>
         <ToggleRow
           label="Beauty Wishlist"
           description={profile.gifts_enabled ? 'Visible on your page' : 'Hidden from your page'}
