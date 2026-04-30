@@ -380,7 +380,7 @@ export default function ListingsClient({ listings: initialListings }: { listings
                     }}>{categoryText(l)}</span>
                     <span style={{ fontSize: 11, color: dim ? '#444' : '#777' }}>·</span>
                     <span style={{
-                      fontSize: 11,
+                      fontSize: 10,
                       color: dim ? '#444' : '#777',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
