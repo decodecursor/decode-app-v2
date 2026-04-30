@@ -9,8 +9,9 @@ import type { NextPayoutSummary } from './types'
  * 35-47: padding wrapper 0 20px 16px, inner card #1c1c1c bg / 14px
  * radius / 20px padding. Top row flex justify-between align-items
  * flex-start margin-bottom 14px: "Next payout" 11px #666 LEFT +
- * SCHEDULED badge RIGHT (#34d399 bg / borderRadius 20px / padding
- * 4px 10px / fontSize 9px/700 / color #000 / letterSpacing 0.3px).
+ * SCHEDULED badge RIGHT (#e91e8c bg / borderRadius 20px / padding
+ * 4px 10px / fontSize 9px/700 / color #000 / letterSpacing 0.3px /
+ * lineHeight 1 for vertical centering).
  * Amount row flex baseline gap 8px: 28px/700/-0.3px amount + 11px/
  * 600 #666 letterSpacing 0.8px currency. Date 10px #777 margin-top
  * 4px.
@@ -36,13 +37,14 @@ export default function NextPayoutCard({ next }: { next: NextPayoutSummary }) {
         }}>
           <div style={{ fontSize: '11px', color: '#666' }}>Next payout</div>
           <div style={{
-            background: '#34d399',
+            background: '#e91e8c',
             borderRadius: '20px',
             padding: '4px 10px',
             fontSize: '9px',
             fontWeight: 700,
             color: '#000',
             letterSpacing: '0.3px',
+            lineHeight: 1,
           }}>
             SCHEDULED
           </div>
