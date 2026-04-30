@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { COUNTRY_CODES, type CountryCode } from '@/lib/country-codes'
 import { POPULAR_IDS } from '@/lib/ambassador/phone-format'
+import BackArrow from '@/components/ambassador/BackArrow'
 
 export function CountryPicker({
   open,
@@ -20,7 +21,6 @@ export function CountryPicker({
   useEffect(() => {
     if (!open) return
     setSearch('')
-    setTimeout(() => searchInputRef.current?.focus(), 50)
   }, [open])
 
   useEffect(() => {
@@ -105,23 +105,7 @@ export function CountryPicker({
         gap: '14px',
         flexShrink: 0,
       }}>
-        <div
-          onClick={onClose}
-          style={{
-            cursor: 'pointer',
-            width: '32px',
-            height: '32px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginLeft: '-8px',
-          }}
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
-        </div>
+        <BackArrow onClick={onClose} />
         <div style={{ fontSize: '18px', fontWeight: 700 }}>Select country</div>
       </div>
 

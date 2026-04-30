@@ -28,12 +28,24 @@ import { useRouter } from 'next/navigation'
  * and the visual chrome is the ambassador-app shape; Terms + Privacy
  * import across the boundary the same way they import getBrandUrl.
  */
-export default function BackArrow({ fallbackHref }: { fallbackHref: string }) {
+export default function BackArrow({
+  fallbackHref = '/',
+  onClick,
+  disableHistory = false,
+}: {
+  fallbackHref?: string
+  onClick?: () => void
+  disableHistory?: boolean
+}) {
   const router = useRouter()
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
-    if (typeof window !== 'undefined' && window.history.length > 1) {
+    if (onClick) {
+      onClick()
+      return
+    }
+    if (!disableHistory && typeof window !== 'undefined' && window.history.length > 1) {
       window.history.back()
       return
     }

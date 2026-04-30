@@ -107,7 +107,7 @@ export default function TermsPage() {
       `}</style>
 
       <div style={{ padding: '60px 20px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <BackArrow fallbackHref={getBrandUrl()} />
+        <BackArrow fallbackHref={getBrandUrl()} disableHistory />
       </div>
 
       <div style={{ padding: '8px 22px 18px', textAlign: 'center' }}>
