@@ -6,11 +6,11 @@ interface Props {
   style?: CSSProperties
 }
 
-export function DirhamSymbol({ size = '1em', className, style }: Props) {
+export function DirhamSymbol({ size = '0.9em', className, style }: Props) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 344.84 299.91"
+      viewBox="0 -22 344.84 344.84"
       width={size}
       height={size}
       fill="currentColor"

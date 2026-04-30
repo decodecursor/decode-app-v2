@@ -454,7 +454,7 @@ export default function SettingsPage() {
                 style={{ ...rowStyle, ...rowBorder, cursor: 'pointer' }}
               >
                 <span style={{ fontSize: 14, color: '#888', flexShrink: 0 }}>Email</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0, justifyContent: 'flex-end', marginLeft: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0, justifyContent: 'flex-end', marginLeft: 12 }}>
                   <span style={{
                     fontSize: 14,
                     color: '#fff',
@@ -464,9 +464,6 @@ export default function SettingsPage() {
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                     textAlign: 'right',
-                    direction: 'rtl',
-                    unicodeBidi: 'plaintext',
-                    paddingRight: '4px',
                   }}>{userEmail}</span>
                   <Chevron />
                 </div>
