@@ -29,6 +29,7 @@ import {
 
 interface ListingMeta {
   id: string
+  created_at: string
   professional: { name: string } | null
 }
 
@@ -78,7 +79,7 @@ export async function GET() {
       .in('status', ['completed', 'refunded', 'partial_refund'])
       .returns<WishPayment[]>(),
     admin.from('model_listings')
-      .select('id, professional:model_professionals!model_listings_professional_id_fkey(name)')
+      .select('id, created_at, professional:model_professionals!model_listings_professional_id_fkey(name)')
       .eq('model_id', profileId)
       .returns<ListingMeta[]>(),
     admin.from('model_wishes')
@@ -90,8 +91,8 @@ export async function GET() {
   const events = eventsRes.data ?? []
   const listingPayments = listingsPaymentsRes.data ?? []
   const wishPayments = wishPaymentsRes.data ?? []
-  const listingNames = new Map(
-    (listingsMetaRes.data ?? []).map((l) => [l.id, l.professional?.name ?? 'Unknown']),
+  const listings = new Map(
+    (listingsMetaRes.data ?? []).map((l) => [l.id, { name: l.professional?.name ?? 'Unknown', created_at: l.created_at }]),
   )
   const wishNames = new Map((wishesMetaRes.data ?? []).map((w) => [w.id, w.service_name]))
 
@@ -118,7 +119,7 @@ export async function GET() {
 
   const out: Record<string, unknown> = {}
   for (const key of ['today', 'week', 'month', 'all'] as const satisfies RangeKey[]) {
-    out[key] = buildRange(key, ranges[key], events, listingPayments, wishPayments, listingNames, wishNames, currency)
+    out[key] = buildRange(key, ranges[key], events, listingPayments, wishPayments, listings, wishNames, currency)
   }
   return NextResponse.json(out)
 }

@@ -84,13 +84,6 @@ const X_LABELS: Record<RangeKey, string[]> = {
   all:   ['Jan', 'Apr', 'Jul', 'Oct', 'Now'],
 }
 
-const TOP_LISTING_META: Record<RangeKey, string> = {
-  today: 'Today',
-  week:  '7 days',
-  month: '30 days',
-  all:   'All time',
-}
-
 export function computeRanges(
   now: Date,
   profileCreatedAt: Date,
@@ -163,6 +156,34 @@ function fmtMoney(n: number, currency: string): string {
   return formatCurrencyText('amount-with-code', currency, n)
 }
 
+// Format a created_at timestamp into compact lifetime: "12d" / "3m 12d" / "1y 2m" / "1y 2m 5d".
+// < 1 month → "Nd"
+// < 1 year → "Nm Nd" (or "Nm" if days portion is 0)
+// ≥ 1 year → "Ny Nm Nd" (omit zero parts; if both months and days are 0, just "Ny")
+function formatLiveTime(createdAtIso: string | undefined): string {
+  if (!createdAtIso) return ''
+  const start = Date.parse(createdAtIso)
+  if (!Number.isFinite(start)) return ''
+  const now = Date.now()
+  const diffMs = Math.max(0, now - start)
+  const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  if (totalDays < 30) {
+    return `${totalDays}d`
+  }
+  // Approximate: 30 days per month, 365 days per year. Good enough for display.
+  const years = Math.floor(totalDays / 365)
+  const remAfterYears = totalDays - years * 365
+  const months = Math.floor(remAfterYears / 30)
+  const days = remAfterYears - months * 30
+  if (years === 0) {
+    return days === 0 ? `${months}m` : `${months}m ${days}d`
+  }
+  const parts: string[] = [`${years}y`]
+  if (months > 0) parts.push(`${months}m`)
+  if (days > 0) parts.push(`${days}d`)
+  return parts.join(' ')
+}
+
 function topN<T>(counts: Map<string, number>, n: number, project: (id: string, count: number, max: number) => T): T[] {
   if (counts.size === 0) return []
   const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, n)
@@ -185,7 +206,7 @@ export function buildRange(
   events: AnalyticsEvent[],
   listingPayments: ListingPayment[],
   wishPayments: WishPayment[],
-  listingNames: Map<string, string>,
+  listings: Map<string, { name: string; created_at: string }>,
   wishNames: Map<string, string>,
   currency: string,
 ): RangePayload {
@@ -235,7 +256,7 @@ export function buildRange(
     }
   }
   const topListings = topN(listingClickCounts, 3, (id, count, max) => ({
-    name: listingNames.get(id) ?? 'Unknown',
+    name: listings.get(id)?.name ?? 'Unknown',
     count,
     pct: max > 0 ? Math.round((count / max) * 100) : 0,
   }))
@@ -252,25 +273,33 @@ export function buildRange(
     pct: max > 0 ? Math.round((count / max) * 100) : 0,
   }))
 
-  const listingEarn = new Map<string, number>()
-  for (const p of listingsInRange) listingEarn.set(p.listing_id, (listingEarn.get(p.listing_id) ?? 0) + netAmount(p))
-  const topListingEntry = bestEntry(listingEarn)
+  // All-time #1 listing — walks the FULL listingPayments array, not the in-range slice.
+  // Range-independent on purpose: this is "your top earner ever," not "this period's leader."
+  const listingEarnAllTime = new Map<string, number>()
+  for (const p of listingPayments) listingEarnAllTime.set(p.listing_id, (listingEarnAllTime.get(p.listing_id) ?? 0) + netAmount(p))
+  const topListingEntry = bestEntry(listingEarnAllTime)
   const topListing = topListingEntry
     ? {
-        name: listingNames.get(topListingEntry[0]) ?? 'Unknown',
-        meta: TOP_LISTING_META[key],
+        name: listings.get(topListingEntry[0])?.name ?? 'Unknown',
+        meta: formatLiveTime(listings.get(topListingEntry[0])?.created_at),
         amount_formatted: fmtMoney(topListingEntry[1], currency),
       }
     : null
 
-  const gifterEarn = new Map<string, { total: number; count: number }>()
-  for (const p of wishesInRange) {
+  // All-time #1 gifter — walks the FULL wishPayments array, not the in-range slice.
+  // count increments only for non-refunded payments (matches the amount, which excludes refunds via netAmount).
+  const gifterEarnAllTime = new Map<string, { total: number; count: number }>()
+  for (const p of wishPayments) {
     if (p.gifter_is_anonymous) continue
     if (!p.gifter_name) continue
-    const prevAcc = gifterEarn.get(p.gifter_name) ?? { total: 0, count: 0 }
-    gifterEarn.set(p.gifter_name, { total: prevAcc.total + netAmount(p), count: prevAcc.count + 1 })
+    const isRefunded = p.status === 'refunded' || p.status === 'partial_refund'
+    const prevAcc = gifterEarnAllTime.get(p.gifter_name) ?? { total: 0, count: 0 }
+    gifterEarnAllTime.set(p.gifter_name, {
+      total: prevAcc.total + netAmount(p),
+      count: prevAcc.count + (isRefunded ? 0 : 1),
+    })
   }
-  const topGifterEntry = [...gifterEarn.entries()].sort((a, b) => b[1].total - a[1].total)[0]
+  const topGifterEntry = [...gifterEarnAllTime.entries()].sort((a, b) => b[1].total - a[1].total)[0]
   const topGifter = topGifterEntry
     ? {
         name: topGifterEntry[0],
