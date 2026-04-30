@@ -371,67 +371,65 @@ export default function SettingsPage() {
         borderRadius: 14,
         padding: '13px 14px',
         marginBottom: 12,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
         border: '1px solid #262626',
       }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, color: '#888', marginBottom: 3 }}>Your page</div>
-          <div style={{
-            fontSize: 13,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}>
-            <span style={{ color: '#666' }}>{APP_HOST}/</span>
-            <span style={{ color: '#fff', fontWeight: 500 }}>{slug}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <div style={{ fontSize: 13, color: '#888', lineHeight: 1.2 }}>Your page</div>
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            <button onClick={handleCopy} style={urlIconBtnStyle} title="Copy URL">
+              {copied && (
+                <span style={{
+                  position: 'absolute',
+                  top: -18,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  fontSize: 10,
+                  fontWeight: 500,
+                  color: '#34d399',
+                  letterSpacing: 0.3,
+                  whiteSpace: 'nowrap',
+                  pointerEvents: 'none',
+                }}>Copied!</span>
+              )}
+              {copied ? (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              ) : (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+              )}
+            </button>
+            <button onClick={openPublic} style={urlIconBtnStyle} title="View page">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setShowChangeUrl(true)}
+              style={urlIconBtnStyle}
+              title="Edit URL"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+            </button>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-          <button onClick={handleCopy} style={urlIconBtnStyle} title="Copy URL">
-            {copied && (
-              <span style={{
-                position: 'absolute',
-                top: -18,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                fontSize: 10,
-                fontWeight: 500,
-                color: '#34d399',
-                letterSpacing: 0.3,
-                whiteSpace: 'nowrap',
-                pointerEvents: 'none',
-              }}>Copied!</span>
-            )}
-            {copied ? (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            ) : (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" />
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-              </svg>
-            )}
-          </button>
-          <button onClick={openPublic} style={urlIconBtnStyle} title="View page">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15 3 21 3 21 9" />
-              <line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
-          </button>
-          <button
-            onClick={() => setShowChangeUrl(true)}
-            style={urlIconBtnStyle}
-            title="Edit URL"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-            </svg>
-          </button>
+        <div style={{
+          fontSize: 14,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          lineHeight: 1.3,
+        }}>
+          <span style={{ color: '#666' }}>{APP_HOST}/</span>
+          <span style={{ color: '#fff', fontWeight: 500 }}>{slug}</span>
         </div>
       </div>
 
