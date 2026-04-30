@@ -62,6 +62,11 @@ function daysWeight(row: ListingCardRow): number {
   return row.days_left <= 7 ? 600 : 400
 }
 
+function daysLeftLabel(row: ListingCardRow): string {
+  if (row.effective_status === 'pending_payment') return 'Goes live after payment'
+  return `${row.days_left} days left`
+}
+
 function shareStroke(row: ListingCardRow): string {
   if (row.effective_status === 'expired') return '#666'
   if (row.effective_status === 'pending_payment') return '#e91e8c'
@@ -428,7 +433,7 @@ export default function ListingsClient({ listings: initialListings }: { listings
                       color: daysColor(l),
                       fontWeight: daysWeight(l),
                     }}>
-                      {l.days_left} days left
+                      {daysLeftLabel(l)}
                     </span>
                     {until && (
                       <span style={{ fontSize: 10, color: '#777' }}>{until}</span>
