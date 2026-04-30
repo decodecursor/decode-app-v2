@@ -1,7 +1,8 @@
 'use client'
 
 import type { PublicListingRow } from '@/lib/public/slug-page-shape'
-import { categoryText, locationText } from '@/lib/public/slug-page-shape'
+import { categoryText } from '@/lib/public/slug-page-shape'
+import { formatLocation } from '@/lib/format-location'
 
 /**
  * A single listing row in the "My Beauty Squad" list. Three tap targets:
@@ -117,7 +118,7 @@ export function SquadRow({
             {listing.professional_name}
           </a>
         </div>
-        <div style={{ fontSize: 12, color: '#777' }}>{locationText(listing)}</div>
+        <div style={{ fontSize: 12, color: '#777' }}>{formatLocation(listing.professional_city, listing.professional_country)}</div>
       </div>
 
       {/* Play button — opens lightbox */}

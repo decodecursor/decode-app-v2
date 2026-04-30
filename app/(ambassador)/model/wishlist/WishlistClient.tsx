@@ -39,6 +39,7 @@ import type { WishCardRow } from '@/lib/ambassador/wish-shape'
 import { DeleteWishModal } from '@/components/ambassador/DeleteWishModal'
 import BackArrow from '@/components/ambassador/BackArrow'
 import { CurrencyAmount } from '@/components/ambassador/CurrencyAmount'
+import { formatLocation } from '@/lib/format-location'
 
 type Filter = 'all' | 'open' | 'gifted'
 
@@ -63,11 +64,6 @@ function matchesFilter(w: WishCardRow, filter: Filter): boolean {
   if (filter === 'all') return true
   if (filter === 'open') return w.effective_status === 'available'
   return isGifted(w)
-}
-
-function locationText(w: WishCardRow): string {
-  if (w.professional_city && w.professional_country) return `${w.professional_city}, ${w.professional_country}`
-  return w.professional_city ?? w.professional_country ?? ''
 }
 
 function daysLive(createdAt: string): number {
@@ -316,17 +312,20 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
                       <span style={{ fontSize: 10, color: '#777' }}>{formatGiftedDate(w.taken_at)}</span>
                     </div>
                     {/* Row 2 — service · location | Gifted pill */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 11, letterSpacing: 1, color: '#e91e8c', fontWeight: 700 }}>{w.service_name}</span>
-                        {locationText(w) && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                        <span style={{ fontSize: 11, letterSpacing: 1, color: '#e91e8c', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>{w.service_name}</span>
+                        {formatLocation(w.professional_city, w.professional_country) && (
                           <>
                             <span style={{ fontSize: 11, color: '#777' }}>·</span>
-                            <span style={{ fontSize: 10, color: '#777' }}>{locationText(w)}</span>
+                            <span style={{
+                              fontSize: 10, color: '#777',
+                              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0,
+                            }}>{formatLocation(w.professional_city, w.professional_country)}</span>
                           </>
                         )}
                       </div>
-                      <span style={{ fontSize: 11, letterSpacing: 1, color: '#34d399', fontWeight: 700 }}>Gifted</span>
+                      <span style={{ fontSize: 11, letterSpacing: 1, color: '#34d399', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>Gifted</span>
                     </div>
                     {/* Row 3 — IG icon + gifter name | money */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -366,17 +365,20 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
                     </div>
                   </div>
                   {/* Row 2 — service · location | Open pill */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontSize: 11, letterSpacing: 1, color: '#e91e8c', fontWeight: 700 }}>{w.service_name}</span>
-                      {locationText(w) && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                      <span style={{ fontSize: 11, letterSpacing: 1, color: '#e91e8c', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>{w.service_name}</span>
+                      {formatLocation(w.professional_city, w.professional_country) && (
                         <>
                           <span style={{ fontSize: 11, color: '#777' }}>·</span>
-                          <span style={{ fontSize: 10, color: '#777' }}>{locationText(w)}</span>
+                          <span style={{
+                            fontSize: 10, color: '#777',
+                            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0,
+                          }}>{formatLocation(w.professional_city, w.professional_country)}</span>
                         </>
                       )}
                     </div>
-                    <span style={{ fontSize: 11, letterSpacing: 1, color: '#e91e8c', fontWeight: 700 }}>Open</span>
+                    <span style={{ fontSize: 11, letterSpacing: 1, color: '#e91e8c', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>Open</span>
                   </div>
                   {/* Age progress bar — pink fill over dashed grey track */}
                   <div

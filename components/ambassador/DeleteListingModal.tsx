@@ -1,6 +1,7 @@
 'use client'
 
 import type { ListingCardRow } from '@/lib/ambassador/listing-shape'
+import { formatLocation } from '@/lib/format-location'
 
 /**
  * Single bottom-sheet modal, two variants keyed off `listing.removable`.
@@ -23,10 +24,7 @@ export function DeleteListingModal({
   if (!listing) return null
 
   const categoryText = listing.category_label ?? listing.category_custom ?? '—'
-  const locationText =
-    listing.city && listing.country
-      ? `${listing.city}, ${listing.country}`
-      : listing.city ?? listing.country ?? ''
+  const locationText = formatLocation(listing.city, listing.country)
 
   return (
     <div

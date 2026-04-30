@@ -22,6 +22,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { formatCurrencyText } from '@/lib/ambassador/currency-format'
+import { formatLocation } from '@/lib/format-location'
 
 type Receipt = {
   reference: string
@@ -169,9 +170,7 @@ function ReceiptView({ receipt }: { receipt: Receipt }) {
   const ambassadorPageUrl = receipt.ambassador?.slug ? `/${receipt.ambassador.slug}` : null
 
   // Wish "At" line: professional name + city/country if present.
-  const locationText = receipt.wish?.professional_city && receipt.wish?.professional_country
-    ? `${receipt.wish.professional_city}, ${receipt.wish.professional_country}`
-    : receipt.wish?.professional_city ?? receipt.wish?.professional_country ?? ''
+  const locationText = formatLocation(receipt.wish?.professional_city, receipt.wish?.professional_country)
   const atValue = receipt.wish?.professional_name
     ? (locationText ? `${receipt.wish.professional_name} · ${locationText}` : receipt.wish.professional_name)
     : (locationText || '—')

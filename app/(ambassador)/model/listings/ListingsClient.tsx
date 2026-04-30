@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { ListingCardRow } from '@/lib/ambassador/listing-shape'
 import { DeleteListingModal } from '@/components/ambassador/DeleteListingModal'
 import BackArrow from '@/components/ambassador/BackArrow'
+import { formatLocation } from '@/lib/format-location'
 
 type ToastPayload = { emoji?: string; message: string }
 
@@ -37,11 +38,6 @@ function emptyCopy(filter: Filter): string {
 
 function categoryText(row: ListingCardRow): string {
   return row.category_label ?? row.category_custom ?? '—'
-}
-
-function locationText(row: ListingCardRow): string {
-  if (row.city && row.country) return `${row.city}, ${row.country}`
-  return row.city ?? row.country ?? ''
 }
 
 function formatUntil(iso: string | null): string {
@@ -372,18 +368,32 @@ export default function ListingsClient({ listings: initialListings }: { listings
                   justifyContent: pill ? 'space-between' : 'flex-start',
                   gap: pill ? 0 : 6,
                   marginBottom: 10,
+                  minWidth: 0,
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0, overflow: 'hidden' }}>
                     <span style={{
                       fontSize: 10, letterSpacing: 1,
                       color: dim ? '#555' : '#e91e8c',
                       fontWeight: 700,
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
                     }}>{categoryText(l)}</span>
                     <span style={{ fontSize: 11, color: dim ? '#444' : '#777' }}>·</span>
-                    <span style={{ fontSize: 11, color: dim ? '#444' : '#777' }}>{locationText(l)}</span>
+                    <span style={{
+                      fontSize: 11,
+                      color: dim ? '#444' : '#777',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      minWidth: 0,
+                    }}>{formatLocation(l.city, l.country)}</span>
                   </div>
                   {pill && (
-                    <span style={{ fontSize: 10, letterSpacing: 1, color: pill.color, fontWeight: 700 }}>
+                    <span style={{
+                      fontSize: 10, letterSpacing: 1, color: pill.color, fontWeight: 700,
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                    }}>
                       {pill.label}
                     </span>
                   )}

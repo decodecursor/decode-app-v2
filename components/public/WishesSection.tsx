@@ -32,6 +32,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { formatCurrencyText } from '@/lib/ambassador/currency-format'
+import { formatLocation } from '@/lib/format-location'
 
 // Same fire-and-forget shape as SquadRow's analytics fire (Slice 4D
 // `d5d1530`). keepalive:true so the request survives the
@@ -120,9 +121,7 @@ function WishRowDisplay({ wish, slug, isLast }: {
 }) {
   const price = typeof wish.price === 'string' ? Number(wish.price) : wish.price
   const priceLabel = formatCurrencyText('amount-with-code', wish.currency, price, { decimals: 'rounded' })
-  const locationText = wish.professional_city && wish.professional_country
-    ? `${wish.professional_city}, ${wish.professional_country}`
-    : wish.professional_city ?? wish.professional_country ?? ''
+  const locationText = formatLocation(wish.professional_city, wish.professional_country)
 
   // Gift-it pill routes to /pay/{wish.payment_link_token} — same
   // dispatch that the WishCheckoutClient consumes (5C-3 wired the

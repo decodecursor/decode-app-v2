@@ -19,6 +19,7 @@ import { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { formatCurrencyText } from '@/lib/ambassador/currency-format'
+import { formatLocation } from '@/lib/format-location'
 import { useTurnstile } from '@/components/turnstile/TurnstileWidget'
 
 // Slice 7C bundle remediation A: PaymentModal (and its Stripe.js +
@@ -139,9 +140,7 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
     ? { backgroundImage: `url(${ambassador.cover_photo_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
     : { background: 'linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%)' }
 
-  const locationText = wish.professional_city && wish.professional_country
-    ? `${wish.professional_city}, ${wish.professional_country}`
-    : wish.professional_city ?? wish.professional_country ?? ''
+  const locationText = formatLocation(wish.professional_city, wish.professional_country)
   const proWithLocation = wish.professional_name
     ? (locationText ? `${wish.professional_name} · ${locationText}` : wish.professional_name)
     : (locationText || '—')

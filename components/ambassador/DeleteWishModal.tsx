@@ -1,6 +1,7 @@
 'use client'
 
 import type { WishCardRow } from '@/lib/ambassador/wish-shape'
+import { formatLocation } from '@/lib/format-location'
 
 /**
  * "Remove beauty wish?" bottom-sheet modal. Visual fidelity to
@@ -28,10 +29,7 @@ export function DeleteWishModal({
 }) {
   if (!wish) return null
 
-  const locationText =
-    wish.professional_city && wish.professional_country
-      ? `${wish.professional_city}, ${wish.professional_country}`
-      : wish.professional_city ?? wish.professional_country ?? ''
+  const locationText = formatLocation(wish.professional_city, wish.professional_country)
 
   // Days live computed client-side from created_at — same heuristic the
   // wishlist card uses so the modal preview matches the row visually.

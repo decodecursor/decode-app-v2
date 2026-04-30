@@ -1,7 +1,8 @@
 'use client'
 
 import type { PublicListingRow } from '@/lib/public/slug-page-shape'
-import { categoryText, locationText } from '@/lib/public/slug-page-shape'
+import { categoryText } from '@/lib/public/slug-page-shape'
+import { formatLocation } from '@/lib/format-location'
 
 /**
  * All the static chrome that sits above the lightbox media: top + bottom
@@ -218,7 +219,7 @@ export function LightboxChrome({
               {categoryText(listing)}
             </span>
             <span style={{ fontSize: 11, color: '#888' }}>·</span>
-            <span style={{ fontSize: 11, color: '#888' }}>{locationText(listing)}</span>
+            <span style={{ fontSize: 11, color: '#888' }}>{formatLocation(listing.professional_city, listing.professional_country)}</span>
           </div>
         </div>
       </a>

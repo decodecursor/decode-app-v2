@@ -113,14 +113,6 @@ export function toPublicListing(row: LiveListingJoinRow): PublicListingRow | nul
   }
 }
 
-// Build "Dubai, UAE" / "Dubai" / "UAE" / "" from the joined city+country.
-export function locationText(row: PublicListingRow): string {
-  if (row.professional_city && row.professional_country) {
-    return `${row.professional_city}, ${row.professional_country}`
-  }
-  return row.professional_city ?? row.professional_country ?? ''
-}
-
 // Category pill text — explicit label wins, custom text is the fallback.
 export function categoryText(row: PublicListingRow): string {
   return row.category_label ?? row.category_custom ?? ''
