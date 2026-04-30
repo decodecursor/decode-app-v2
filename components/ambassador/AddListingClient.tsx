@@ -1112,7 +1112,7 @@ export default function AddListingClient({
         }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 500, color: '#fff' }}>Free 30-day trial</div>
-            <div style={{ fontSize: 11, color: freeTrial ? '#38bdf8' : '#666', marginTop: 2 }}>Listing goes live immediately</div>
+            <div style={{ fontSize: 11, color: freeTrial ? '#e91e8c' : '#666', marginTop: 2 }}>Listing goes live immediately</div>
           </div>
           <div
             onClick={isEdit ? undefined : () => setFreeTrial((v) => !v)}
