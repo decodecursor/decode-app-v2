@@ -466,6 +466,7 @@ export default function SettingsPage() {
                     textAlign: 'right',
                     direction: 'rtl',
                     unicodeBidi: 'plaintext',
+                    paddingRight: '1px',
                   }}>{userEmail}</span>
                   <Chevron />
                 </div>
@@ -565,14 +566,14 @@ export default function SettingsPage() {
                 <div style={{
                   fontSize: 14,
                   color: '#fff',
-                  lineHeight: 1.4,
+                  lineHeight: 1,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                 }}>
                   {bankAccount.bank_name}
                 </div>
-                <div style={{ fontSize: 12, color: '#777', marginTop: 2 }}>
+                <div style={{ fontSize: 12, color: '#777', lineHeight: 1, marginTop: 3 }}>
                   •••• {bankAccount.iban_last4}
                 </div>
               </div>
@@ -614,16 +615,12 @@ export default function SettingsPage() {
             <span style={{ fontSize: 14, color: '#888' }}>Currency</span>
             <div style={{ fontSize: 10, color: '#888', marginTop: 3 }}>Can&apos;t be changed after setup</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{
               fontSize: 14, color: '#fff', lineHeight: 1, whiteSpace: 'nowrap',
             }}>
               <CurrencyAmount currency={currencyCode} variant="code-with-symbol" />
             </span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" style={{ display: 'block', flexShrink: 0 }}>
-              <rect x="3" y="11" width="18" height="11" rx="2" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-            </svg>
           </div>
         </div>
         <ToggleRow
