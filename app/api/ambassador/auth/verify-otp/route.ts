@@ -183,30 +183,75 @@ export async function POST(request: NextRequest) {
       userId = newUser.user.id
       console.log('[Ambassador OTP-Verify] Created new auth user with phone populated:', userId)
 
-      // Shadow row in public.users — required because model_profiles.user_id
-      // FKs to public.users(id), which has no auto-populate trigger from
-      // auth.users in this schema (app code owns it; see create-profile route).
+      // Shadow row in public.users. Defense-in-depth: if phone_number already
+      // exists on a different public.users row (auth.users.phone column was
+      // null but the mirror was populated — the divergent-state bug fixed in
+      // backfill 20260430_*), recover by collapsing onto the colliding user
+      // and deleting the auth row we just created. Without this, the session
+      // would mint for the new (profileless) row and route to /setup.
       // signup_method must be 'whatsapp' (CHECK constraint, not 'whatsapp_otp').
-      try {
-        const { error: shadowError } = await supabase
-          .from('users')
-          .insert({
-            id: userId,
-            email: internalEmail,
-            phone_number: phoneNumber,
-            user_name: `model_${userId.slice(0, 8)}`,
-            role: 'Model',
-            signup_method: 'whatsapp',
-            email_verified: false,
-            approval_status: 'approved',
-          })
-        if (shadowError) {
-          console.error('[Ambassador OTP-Verify] public.users shadow insert failed:', shadowError)
+      const { error: shadowError } = await supabase
+        .from('users')
+        .insert({
+          id: userId,
+          email: internalEmail,
+          phone_number: phoneNumber,
+          user_name: `model_${userId.slice(0, 8)}`,
+          role: 'Model',
+          signup_method: 'whatsapp',
+          email_verified: false,
+          approval_status: 'approved',
+        })
+
+      if (shadowError) {
+        const isPhoneCollision =
+          shadowError.code === '23505' &&
+          /phone_number/i.test(shadowError.message ?? '')
+
+        if (isPhoneCollision) {
+          console.warn(
+            '[Ambassador OTP-Verify] phone_number collision on shadow insert — collapsing onto existing user',
+          )
+
+          const { data: collidingShadow, error: lookupError } = await supabase
+            .from('users')
+            .select('id, email')
+            .eq('phone_number', phoneNumber)
+            .maybeSingle()
+
+          if (lookupError || !collidingShadow) {
+            console.error('[Ambassador OTP-Verify] collision lookup failed:', lookupError)
+            // Best-effort: delete the orphan auth row we just created so it
+            // doesn't accumulate as a phantom, then 500.
+            await supabase.auth.admin.deleteUser(userId).catch(() => {})
+            return NextResponse.json(
+              { error: 'Account state inconsistent. Please contact support.' },
+              { status: 500 }
+            )
+          }
+
+          // Delete the just-created phantom auth row before swapping target.
+          const { error: deleteError } = await supabase.auth.admin.deleteUser(userId)
+          if (deleteError) {
+            console.error('[Ambassador OTP-Verify] phantom delete failed:', deleteError)
+            // Continue anyway — the collapse is more important than the cleanup.
+          }
+
+          userId = collidingShadow.id
+          emailForLink = collidingShadow.email ?? internalEmail
+          console.log(
+            '[Ambassador OTP-Verify] Collapsed onto existing user:',
+            userId,
+            'emailForLink:',
+            emailForLink.endsWith('@auth.internal') ? 'synthetic' : 'real',
+          )
         } else {
-          console.log('[Ambassador OTP-Verify] public.users shadow row created for:', userId)
+          // Non-collision shadow failure — log and continue (callback's
+          // self-heal upsert will retry). Same fall-through as before.
+          console.error('[Ambassador OTP-Verify] public.users shadow insert failed:', shadowError)
         }
-      } catch (shadowErr) {
-        console.error('[Ambassador OTP-Verify] public.users shadow insert threw:', shadowErr)
+      } else {
+        console.log('[Ambassador OTP-Verify] public.users shadow row created for:', userId)
       }
     }
 
