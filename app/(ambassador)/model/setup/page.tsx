@@ -936,6 +936,8 @@ export default function SetupPage() {
 
       <style>{`
         @keyframes setup-spin { to { transform: rotate(360deg); } }
+        input::placeholder { color: #666; opacity: 1; }
+        input::-webkit-input-placeholder { color: #666; }
       `}</style>
     </div>
   )

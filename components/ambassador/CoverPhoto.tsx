@@ -126,7 +126,7 @@ export function CoverPhoto({
       onClick={handleBoxClick}
       style={{
         position: 'relative',
-        height: 120,
+        height: 240,
         borderRadius: 14,
         overflow: 'hidden',
         marginBottom: 16,
@@ -144,7 +144,7 @@ export function CoverPhoto({
         bottom: 0,
         left: 0,
         right: 0,
-        height: 50,
+        height: 120,
         background: 'linear-gradient(transparent,rgba(0,0,0,0.6))',
         pointerEvents: 'none',
       }} />
