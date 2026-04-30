@@ -87,7 +87,7 @@ export default function AmbassadorAuthPage() {
   }
 
   return (
-    <div style={{ position: 'relative', minHeight: '760px' }}>
+    <div style={{ position: 'relative', minHeight: '100dvh' }}>
       <div style={{ position: 'relative', minHeight: '760px' }}>
         <div style={{ padding: '126px 40px 24px', textAlign: 'center' }}>
           <div style={{
