@@ -56,6 +56,14 @@ export default function AmbassadorLayout({
           padding: 0 40px;
           bottom: calc(20px + env(safe-area-inset-bottom, 0px));
         }
+        @media (max-width: 450px) {
+          .amb-auth-fallback-link {
+            bottom: calc(54px + env(safe-area-inset-bottom, 0px) + 56px);
+          }
+          .amb-auth-legal-footer {
+            bottom: calc(20px + env(safe-area-inset-bottom, 0px) + 56px);
+          }
+        }
         /* Phase 7 internal-cluster top-padding carriers. Desktop
            preserves the locked 36px first-content gap; mobile
            (≤768px) reduces top to 20px (~16px reclaimed on
