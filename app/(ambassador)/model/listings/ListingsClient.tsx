@@ -48,7 +48,7 @@ function formatUntil(iso: string | null): string {
 }
 
 function daysColor(row: ListingCardRow): string {
-  if (row.effective_status === 'pending_payment') return '#e91e8c'
+  if (row.effective_status === 'pending_payment') return '#888'
   if (row.effective_status === 'expired') return '#555'
   if (row.days_left > 7) return '#777'
   if (row.effective_status === 'active') return '#e91e8c'
