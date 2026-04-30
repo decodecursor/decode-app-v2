@@ -57,7 +57,7 @@ function daysColor(row: ListingCardRow): string {
 }
 
 function daysWeight(row: ListingCardRow): number {
-  if (row.effective_status === 'pending_payment') return 600
+  if (row.effective_status === 'pending_payment') return 400
   if (row.effective_status === 'expired') return 400
   return row.days_left <= 7 ? 600 : 400
 }
