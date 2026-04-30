@@ -314,7 +314,7 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
                     {/* Row 2 — service · location | Gifted pill */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                        <span style={{ fontSize: 11, letterSpacing: 1, color: '#e91e8c', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>{w.service_name}</span>
+                        <span style={{ fontSize: 11, letterSpacing: 1, color: '#e91e8c', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>{w.service_name}</span>
                         {formatLocation(w.professional_city, w.professional_country) && (
                           <>
                             <span style={{ fontSize: 11, color: '#777' }}>·</span>
@@ -325,7 +325,7 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
                           </>
                         )}
                       </div>
-                      <span style={{ fontSize: 11, letterSpacing: 1, color: '#34d399', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>Gifted</span>
+                      <span style={{ fontSize: 11, letterSpacing: 1, color: '#34d399', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>Gifted</span>
                     </div>
                     {/* Row 3 — IG icon + gifter name | money */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -367,7 +367,7 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
                   {/* Row 2 — service · location | Open pill */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                      <span style={{ fontSize: 11, letterSpacing: 1, color: '#e91e8c', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>{w.service_name}</span>
+                      <span style={{ fontSize: 11, letterSpacing: 1, color: '#e91e8c', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>{w.service_name}</span>
                       {formatLocation(w.professional_city, w.professional_country) && (
                         <>
                           <span style={{ fontSize: 11, color: '#777' }}>·</span>
@@ -378,7 +378,7 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
                         </>
                       )}
                     </div>
-                    <span style={{ fontSize: 11, letterSpacing: 1, color: '#e91e8c', fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>Open</span>
+                    <span style={{ fontSize: 11, letterSpacing: 1, color: '#e91e8c', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>Open</span>
                   </div>
                   {/* Age progress bar — pink fill over dashed grey track */}
                   <div
