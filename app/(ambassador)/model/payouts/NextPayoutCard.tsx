@@ -1,7 +1,6 @@
 'use client'
 
 import { useCountUp } from '@/components/ambassador/useCountUp'
-import { CurrencyAmount } from '@/components/ambassador/CurrencyAmount'
 import type { NextPayoutSummary } from './types'
 
 /**
@@ -49,18 +48,8 @@ export default function NextPayoutCard({ next }: { next: NextPayoutSummary }) {
             SCHEDULED
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-          <div style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.3px', color: '#fff' }}>
-            {animatedAmount}
-          </div>
-          <div style={{
-            fontSize: '11px',
-            fontWeight: 600,
-            color: '#666',
-            letterSpacing: '0.8px',
-          }}>
-            <CurrencyAmount currency={next.currency} variant="code-only" />
-          </div>
+        <div style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.3px', color: '#fff' }}>
+          {animatedAmount}
         </div>
         <div style={{ fontSize: '10px', color: '#777', marginTop: '4px' }}>
           {next.scheduled_for_pretty}
