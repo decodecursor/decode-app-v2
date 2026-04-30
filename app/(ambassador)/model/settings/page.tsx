@@ -379,7 +379,7 @@ export default function SettingsPage() {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, color: '#888', marginBottom: 3 }}>Your page</div>
           <div style={{
-            fontSize: 12,
+            fontSize: 13,
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -466,6 +466,8 @@ export default function SettingsPage() {
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                     textAlign: 'right',
+                    direction: 'rtl',
+                    unicodeBidi: 'plaintext',
                   }}>{userEmail}</span>
                   <Chevron />
                 </div>
@@ -957,7 +959,8 @@ function EditableRow({
           <span style={{
             fontSize: 14,
             color: displayColor,
-            maxWidth: 170,
+            flex: 1,
+            minWidth: 0,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
