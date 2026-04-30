@@ -97,7 +97,7 @@ export default function AmbassadorAuthPage() {
             fontWeight: 700,
             marginBottom: '10px',
           }}>
-            SHOW YOUR BEAUTY SQUAD
+            BUILD YOUR BEAUTY SQUAD
           </div>
           <div style={{
             fontSize: '32px',
@@ -197,14 +197,14 @@ export default function AmbassadorAuthPage() {
             href="/terms"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ cursor: 'pointer', fontWeight: 700, color: '#555', textDecoration: 'none' }}
+            style={{ cursor: 'pointer', fontWeight: 700, color: '#666', textDecoration: 'none' }}
           >Terms</Link>{' '}
           and{' '}
           <Link
             href="/privacy"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ cursor: 'pointer', fontWeight: 700, color: '#555', textDecoration: 'none' }}
+            style={{ cursor: 'pointer', fontWeight: 700, color: '#666', textDecoration: 'none' }}
           >Privacy Policy</Link>
         </div>
       </div>

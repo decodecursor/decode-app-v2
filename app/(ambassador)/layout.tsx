@@ -51,17 +51,22 @@ export default function AmbassadorLayout({
           right: 0;
           text-align: center;
           font-size: 9px;
-          color: #555;
+          color: #666;
           line-height: 1.6;
           padding: 0 40px;
           bottom: calc(20px + env(safe-area-inset-bottom, 0px));
         }
         @media (max-width: 450px) {
           .amb-auth-fallback-link {
-            bottom: calc(54px + env(safe-area-inset-bottom, 0px) + 56px);
+            position: static;
+            margin-top: 32px;
+            bottom: auto;
           }
           .amb-auth-legal-footer {
-            bottom: calc(20px + env(safe-area-inset-bottom, 0px) + 56px);
+            position: static;
+            margin-top: 16px;
+            padding-bottom: 130px;
+            bottom: auto;
           }
         }
         /* Phase 7 internal-cluster top-padding carriers. Desktop
