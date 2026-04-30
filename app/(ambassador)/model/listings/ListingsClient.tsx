@@ -57,9 +57,9 @@ function daysColor(row: ListingCardRow): string {
 }
 
 function daysWeight(row: ListingCardRow): number {
-  if (row.effective_status === 'pending_payment') return 700
+  if (row.effective_status === 'pending_payment') return 600
   if (row.effective_status === 'expired') return 400
-  return row.days_left <= 7 ? 700 : 400
+  return row.days_left <= 7 ? 600 : 400
 }
 
 function shareStroke(row: ListingCardRow): string {
@@ -374,7 +374,7 @@ export default function ListingsClient({ listings: initialListings }: { listings
                     <span style={{
                       fontSize: 10, letterSpacing: 1,
                       color: dim ? '#555' : '#e91e8c',
-                      fontWeight: 700,
+                      fontWeight: 600,
                       whiteSpace: 'nowrap',
                       flexShrink: 0,
                     }}>{categoryText(l)}</span>
@@ -390,7 +390,7 @@ export default function ListingsClient({ listings: initialListings }: { listings
                   </div>
                   {pill && (
                     <span style={{
-                      fontSize: 10, letterSpacing: 1, color: pill.color, fontWeight: 700,
+                      fontSize: 10, letterSpacing: 1, color: pill.color, fontWeight: 600,
                       whiteSpace: 'nowrap',
                       flexShrink: 0,
                     }}>
