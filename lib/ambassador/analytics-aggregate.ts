@@ -167,21 +167,25 @@ function formatLiveTime(createdAtIso: string | undefined): string {
   const now = Date.now()
   const diffMs = Math.max(0, now - start)
   const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  let core: string
   if (totalDays < 30) {
-    return `${totalDays}d`
+    core = `${totalDays}d`
+  } else {
+    // Approximate: 30 days per month, 365 days per year. Good enough for display.
+    const years = Math.floor(totalDays / 365)
+    const remAfterYears = totalDays - years * 365
+    const months = Math.floor(remAfterYears / 30)
+    const days = remAfterYears - months * 30
+    if (years === 0) {
+      core = days === 0 ? `${months}m` : `${months}m ${days}d`
+    } else {
+      const parts: string[] = [`${years}y`]
+      if (months > 0) parts.push(`${months}m`)
+      if (days > 0) parts.push(`${days}d`)
+      core = parts.join(' ')
+    }
   }
-  // Approximate: 30 days per month, 365 days per year. Good enough for display.
-  const years = Math.floor(totalDays / 365)
-  const remAfterYears = totalDays - years * 365
-  const months = Math.floor(remAfterYears / 30)
-  const days = remAfterYears - months * 30
-  if (years === 0) {
-    return days === 0 ? `${months}m` : `${months}m ${days}d`
-  }
-  const parts: string[] = [`${years}y`]
-  if (months > 0) parts.push(`${months}m`)
-  if (days > 0) parts.push(`${days}d`)
-  return parts.join(' ')
+  return `${core} live`
 }
 
 function topN<T>(counts: Map<string, number>, n: number, project: (id: string, count: number, max: number) => T): T[] {
