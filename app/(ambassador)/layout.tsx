@@ -65,7 +65,7 @@ export default function AmbassadorLayout({
           .amb-auth-legal-footer {
             position: static;
             margin-top: 16px;
-            padding-bottom: 120px;
+            padding-bottom: 110px;
             bottom: auto;
           }
         }

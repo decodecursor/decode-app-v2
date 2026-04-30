@@ -101,7 +101,7 @@ export default function AmbassadorAuthEmailPage() {
           WeLoveDecode
         </div>
         <div style={{
-          width: '40px',
+          width: '50px',
           height: '1.5px',
           background: '#e91e8c',
           margin: '0 auto 48px',

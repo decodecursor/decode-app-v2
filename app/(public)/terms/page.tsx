@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import BackArrow from '@/components/ambassador/BackArrow'
-import { getBrandUrl } from '@/lib/brand-url'
 import TermsTabs from './TermsTabs'
 import GeneralSection from './sections/General'
 import ScheduleASection from './sections/ScheduleA'
@@ -107,7 +106,7 @@ export default function TermsPage() {
       `}</style>
 
       <div style={{ padding: '60px 20px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <BackArrow fallbackHref={getBrandUrl()} disableHistory />
+        <BackArrow fallbackHref="/model/auth" disableHistory />
       </div>
 
       <div style={{ padding: '8px 22px 18px', textAlign: 'center' }}>

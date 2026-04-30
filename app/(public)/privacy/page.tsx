@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import BackArrow from '@/components/ambassador/BackArrow'
-import { getBrandUrl } from '@/lib/brand-url'
 
 /**
  * Privacy Policy — public, SEO-indexable. UAE Federal Decree-Law
@@ -60,7 +59,7 @@ export default function PrivacyPage() {
       `}</style>
 
       <div style={{ padding: '60px 20px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <BackArrow fallbackHref={getBrandUrl()} disableHistory />
+        <BackArrow fallbackHref="/model/auth" disableHistory />
       </div>
 
       <div style={{ padding: '8px 22px 24px', textAlign: 'center' }}>
