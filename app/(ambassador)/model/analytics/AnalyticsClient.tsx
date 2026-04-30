@@ -5,7 +5,6 @@ import FilterTabs from './FilterTabs'
 import BackArrow from '@/components/ambassador/BackArrow'
 import EarningsChart from './EarningsChart'
 import BreakdownSection from './BreakdownSection'
-import NextPayoutSection from './NextPayoutSection'
 import FunnelTiles from './FunnelTiles'
 import ClicksColumns from './ClicksColumns'
 import type { AnalyticsResponse, RangeKey } from './types'
@@ -14,8 +13,8 @@ import type { AnalyticsResponse, RangeKey } from './types'
  * Client-side orchestrator for the Analytics page. Per spec §2.2:
  * single GET on mount, dataset swap on filter-tab tap (no network
  * call). Decomposed sub-components (Slice 6A polish restructure):
- * <FilterTabs>, <EarningsChart>, <BreakdownSection>, <NextPayoutSection>,
- * <FunnelTiles>, <ClicksColumns>.
+ * <FilterTabs>, <EarningsChart>, <BreakdownSection>, <FunnelTiles>,
+ * <ClicksColumns>.
  *
  * Phone-frame chrome (mockup `#anPage` line 6) wraps the sections:
  * 375px width, #000 bg, 2px #1a1a1a border, 24px radius,
@@ -92,7 +91,6 @@ export default function AnalyticsClient() {
           <div style={{ padding: '0 20px' }}>
             <EarningsChart data={data[active]} range={active} />
             <BreakdownSection data={data[active]} range={active} />
-            <NextPayoutSection />
             <FunnelTiles funnel={data[active].funnel} />
             <ClicksColumns data={data[active]} range={active} />
           </div>
