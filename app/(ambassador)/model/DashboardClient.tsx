@@ -134,7 +134,7 @@ export default function DashboardClient({
               fontSize: '19px',
               fontWeight: 700,
               letterSpacing: '-0.2px',
-              lineHeight: 0.95,
+              lineHeight: 0.9,
               color: '#fff',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
