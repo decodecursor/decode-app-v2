@@ -100,7 +100,7 @@ export function MediaLightbox({
         }}
       >
         {isVideo ? (
-          <LightboxVideo src={slides[0]} isMuted={isMuted} />
+          <LightboxVideo src={slides[0]} isMuted={isMuted} onUserUnmute={() => setIsMuted(false)} />
         ) : (
           <LightboxCarousel ref={carouselRef} slides={slides} onScroll={onCarouselScroll} />
         )}
