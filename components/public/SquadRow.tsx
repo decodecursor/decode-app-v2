@@ -69,10 +69,10 @@ export function SquadRow({
         onClick={onIgClick}
         aria-label={`Visit ${listing.professional_name} on Instagram`}
         style={{
-          width: 52,
-          height: 52,
+          width: 64,
+          height: 64,
           borderRadius: '50%',
-          padding: 2,
+          padding: 3,
           background: 'linear-gradient(45deg, #FEDA75 0%, #FA7E1E 25%, #D62976 50%, #962FBF 100%)',
           flexShrink: 0,
           boxSizing: 'border-box',
@@ -87,7 +87,7 @@ export function SquadRow({
             height: '100%',
             borderRadius: '50%',
             background: '#000',
-            border: '2px solid #1c1c1c',
+            border: '3px solid #1c1c1c',
             boxSizing: 'border-box',
             overflow: 'hidden',
             display: 'flex',
@@ -140,8 +140,8 @@ export function SquadRow({
         onClick={onMediaClick}
         style={{
           background: '#000',
-          width: 36,
-          height: 36,
+          width: 64,
+          height: 64,
           borderRadius: '50%',
           border: '1.5px solid #e91e8c',
           display: 'flex',
@@ -153,8 +153,8 @@ export function SquadRow({
         }}
       >
         <svg
-          width="18"
-          height="18"
+          width="24"
+          height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="#e91e8c"
