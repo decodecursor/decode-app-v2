@@ -116,12 +116,13 @@ export function SquadRow({
             letterSpacing: 1,
             color: '#e91e8c',
             fontWeight: 700,
-            marginBottom: 5,
+            lineHeight: 1.2,
+            marginBottom: 2,
           }}
         >
           {categoryText(listing)}
         </div>
-        <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 5 }}>
+        <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.2, marginBottom: 1 }}>
           <a
             href={igUrl}
             target="_blank"
@@ -132,7 +133,7 @@ export function SquadRow({
             {listing.professional_name}
           </a>
         </div>
-        <div style={{ fontSize: 12, color: '#777' }}>{formatLocation(listing.professional_city, listing.professional_country)}</div>
+        <div style={{ fontSize: 12, color: '#777', lineHeight: 1.2 }}>{formatLocation(listing.professional_city, listing.professional_country)}</div>
       </div>
 
       {/* Play button — opens lightbox */}
