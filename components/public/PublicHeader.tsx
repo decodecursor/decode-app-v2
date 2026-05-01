@@ -113,7 +113,7 @@ export function PublicHeader({
             fontSize: 30,
             fontWeight: 700,
             color: '#fff',
-            marginBottom: 2,
+            marginBottom: 0,
             letterSpacing: '-0.3px',
           }}
         >
