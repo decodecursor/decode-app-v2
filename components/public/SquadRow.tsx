@@ -72,26 +72,40 @@ export function SquadRow({
           width: 52,
           height: 52,
           borderRadius: '50%',
-          background: '#333',
+          padding: 2,
+          background: 'linear-gradient(45deg, #FEDA75 0%, #FA7E1E 25%, #D62976 50%, #962FBF 100%)',
           flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          boxSizing: 'border-box',
           cursor: 'pointer',
           textDecoration: 'none',
-          overflow: 'hidden',
+          display: 'block',
         }}
       >
-        {listing.professional_avatar_url ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={listing.professional_avatar_url}
-            alt=""
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-          />
-        ) : (
-          <span style={{ fontSize: 11, color: '#777' }}>Photo</span>
-        )}
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            borderRadius: '50%',
+            background: '#000',
+            border: '2px solid #1c1c1c',
+            boxSizing: 'border-box',
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {listing.professional_avatar_url ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={listing.professional_avatar_url}
+              alt=""
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+          ) : (
+            <span style={{ fontSize: 11, color: '#777' }}>Photo</span>
+          )}
+        </div>
       </a>
 
       {/* Category + name + location */}
