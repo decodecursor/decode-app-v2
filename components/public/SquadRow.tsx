@@ -116,12 +116,12 @@ export function SquadRow({
             letterSpacing: 1,
             color: '#e91e8c',
             fontWeight: 700,
-            marginBottom: 3,
+            marginBottom: 5,
           }}
         >
           {categoryText(listing)}
         </div>
-        <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 2 }}>
+        <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 5 }}>
           <a
             href={igUrl}
             target="_blank"
