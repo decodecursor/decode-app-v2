@@ -12,9 +12,10 @@ import { PublicFooter } from './PublicFooter'
 /**
  * Public page orchestrator. Renders cover + My Beauty Squad (listings)
  * + My Beauty Wishlist (Slice 5D, gated on profile.gifts_enabled) +
- * My Wall of Love (Slice 5D, gated on existence of completed payments)
- * + footer. Tapping a squad-row play button opens the MediaLightbox
- * for that listing.
+ * My Wall of Love (gated on profile.gifts_enabled — Slice 5D's
+ * "independent of toggle" decision SUPERSEDED; toggle now controls
+ * the whole gifting surface) + footer. Tapping a squad-row play
+ * button opens the MediaLightbox for that listing.
  *
  * Slice 4D: fires public_page_view analytics on mount + click events
  * on child interactions. Server dedupes via analyticsLimiter so
@@ -23,9 +24,11 @@ import { PublicFooter } from './PublicFooter'
  * Slice 5D: WishesSection + WallOfLoveSection both fetch via anon
  * supabase-js post-mount (Pattern 2 alignment). RLS policies on
  * model_wishes + model_wish_payments gate the reads server-side; the
- * gifts_enabled gate is enforced both at the RLS layer (wishes only
- * surface for gifts_enabled=true profiles) and at the parent render
- * gate here (instant section hiding when the toggle flips).
+ * gifts_enabled gate is enforced at the parent render gate here for
+ * both sections (instant hiding when the toggle flips). Wall-of-love
+ * RLS does NOT join on gifts_enabled today — client gate is UX-only,
+ * data preserved untouched in DB; tightening RLS is item 41-adjacent
+ * follow-up if needed.
  */
 export default function PublicPageClient({
   data,
@@ -104,11 +107,15 @@ export default function PublicPageClient({
         />
       )}
 
-      {/* Wall of Love — independent of gifts_enabled toggle. Once
-          gifts have been received, the wall persists even if the
-          ambassador later disables the wishlist. Section self-hides
-          on zero completed payments. */}
-      <WallOfLoveSection modelId={data.profile.id} slug={data.profile.slug} />
+      {/* Wall of Love — gated on gifts_enabled, mirroring WishesSection
+          above. Slice 5D's "independent of toggle" decision SUPERSEDED:
+          the toggle now controls the whole gifting surface (intake +
+          history). Data in model_wish_payments is preserved untouched;
+          re-enabling the toggle restores the wall instantly. Section
+          also self-hides on zero completed payments. */}
+      {data.profile.gifts_enabled && (
+        <WallOfLoveSection modelId={data.profile.id} slug={data.profile.slug} />
+      )}
 
       <PublicFooter />
 
