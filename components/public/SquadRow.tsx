@@ -140,8 +140,8 @@ export function SquadRow({
         onClick={onMediaClick}
         style={{
           background: '#000',
-          width: 64,
-          height: 64,
+          width: 56,
+          height: 56,
           borderRadius: '50%',
           border: '1.5px solid #e91e8c',
           display: 'flex',
@@ -153,8 +153,8 @@ export function SquadRow({
         }}
       >
         <svg
-          width="24"
-          height="24"
+          width="22"
+          height="22"
           viewBox="0 0 24 24"
           fill="none"
           stroke="#e91e8c"
