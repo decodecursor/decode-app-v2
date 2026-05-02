@@ -57,6 +57,22 @@ export default function AmbassadorLayout({
           bottom: calc(20px + env(safe-area-inset-bottom, 0px));
         }
         @media (max-width: 450px) {
+          /* Flex-push: wrapper is the direct parent of form + footers
+             on each auth page. min-height uses 100dvh (iOS-aware,
+             accounts for Safari chrome) with 100vh fallback for older
+             browsers. env(safe-area-inset-bottom) gives notched
+             devices breathing room and keeps the footer above the
+             iOS Safari toolbar (the 263b0c8 revert root cause). */
+          .amb-auth-page-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+          }
+          .amb-auth-form-container {
+            flex: 1 0 auto;
+          }
           .amb-auth-fallback-link {
             position: static;
             margin-top: 32px;
@@ -65,7 +81,7 @@ export default function AmbassadorLayout({
           .amb-auth-legal-footer {
             position: static;
             margin-top: 16px;
-            padding-bottom: 110px;
+            padding-bottom: 24px;
             bottom: auto;
           }
         }

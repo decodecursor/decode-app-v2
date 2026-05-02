@@ -88,8 +88,8 @@ export default function AmbassadorAuthPage() {
 
   return (
     <div style={{ position: 'relative', minHeight: '760px' }}>
-      <div style={{ position: 'relative', minHeight: '760px' }}>
-        <div style={{ padding: '126px 40px 24px', textAlign: 'center' }}>
+      <div className="amb-auth-page-wrapper" style={{ position: 'relative', minHeight: '760px' }}>
+        <div className="amb-auth-form-container" style={{ padding: '126px 40px 24px', textAlign: 'center' }}>
           <div style={{
             fontSize: '10px',
             letterSpacing: '3px',
