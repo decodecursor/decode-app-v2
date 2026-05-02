@@ -110,7 +110,7 @@ export function PublicHeader({
       >
         <div
           style={{
-            fontSize: 30,
+            fontSize: 34,
             fontWeight: 700,
             color: '#fff',
             marginBottom: 0,
@@ -120,7 +120,7 @@ export function PublicHeader({
           {displayName}
         </div>
         {profile.tagline && (
-          <div style={{ fontSize: 12, color: '#bbb' }}>{profile.tagline}</div>
+          <div style={{ fontSize: 13, color: '#bbb' }}>{profile.tagline}</div>
         )}
       </div>
     </div>

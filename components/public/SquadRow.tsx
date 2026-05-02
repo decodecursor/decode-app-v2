@@ -85,7 +85,7 @@ export function SquadRow({
           width: 72,
           height: 72,
           borderRadius: '50%',
-          padding: 4,
+          padding: 3,
           background: 'linear-gradient(45deg, #FEDA75 0%, #FA7E1E 25%, #D62976 50%, #962FBF 100%)',
           flexShrink: 0,
           boxSizing: 'border-box',
@@ -100,7 +100,7 @@ export function SquadRow({
             height: '100%',
             borderRadius: '50%',
             background: '#000',
-            border: '4px solid #1c1c1c',
+            border: '3px solid #1c1c1c',
             boxSizing: 'border-box',
             overflow: 'hidden',
             display: 'flex',
@@ -135,7 +135,7 @@ export function SquadRow({
         >
           {categoryText(listing)}
         </div>
-        <div style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.2, marginBottom: 1.5 }}>
+        <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.2, marginBottom: 1.5 }}>
           <a
             href={igUrl}
             target="_blank"
