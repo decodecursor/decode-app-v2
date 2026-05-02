@@ -20,6 +20,7 @@ import { formatCurrencyText } from '@/lib/ambassador/currency-format'
 import { PackagePicker } from './PackagePicker'
 import { UrlOverlay } from './UrlOverlay'
 import { useTurnstile } from '@/components/turnstile/TurnstileWidget'
+import { ShareButton } from '@/components/public/ShareButton'
 
 // Slice 7C bundle remediation A: PaymentModal (and its Stripe.js +
 // @stripe/react-stripe-js dependency tree) is dynamic-imported so the
@@ -70,7 +71,15 @@ export function CheckoutClient({ data, shareUrl }: Props) {
 
   const selectedPkg = data.packages.find((p) => p.days === selected) ?? data.packages[0]!
   const ambassadorName = ambassadorDisplayName(data.ambassador)
-  const displayUrl = shareUrl.replace(/^https?:\/\//, '')
+  // Display label = ambassador profile slug URL (e.g. app.welovedecode.com/{slug}),
+  // distinct from shareUrl which is the pay-token checkout link. UrlOverlay click
+  // already opens the slug page, so §13 invariant holds (display ↔ action match).
+  const appOrigin = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.welovedecode.com').replace(/\/$/, '')
+  const profileUrl = `${appOrigin}/${data.ambassador.slug}`
+  const displayUrl = profileUrl.replace(/^https?:\/\//, '')
+  // Share message — verbatim parity with SendPaymentLinkClient.tsx:217-220 so a
+  // gifter forwarding the pay link receives the same copy the ambassador sent.
+  const shareMessage = `Hello\n\nI've just added you to my Beauty Squad on WeLoveDecode🌸\n\nConfirm here to activate: ${shareUrl}`
 
   const coverPositionY = data.ambassador.cover_photo_position_y ?? 50
   const coverStyle: React.CSSProperties = data.ambassador.cover_photo_url
@@ -92,11 +101,28 @@ export function CheckoutClient({ data, shareUrl }: Props) {
       {/* Cover */}
       <div style={{ position: 'relative', height: 180, width: '100%', ...coverStyle }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 30%, #000 100%)' }} />
+        {/* Share button overlay, top-right — mirrors PublicHeader.tsx:46-60
+            positioning. Carries the SendPaymentLinkClient template via the
+            text prop so a gifter forwards with parity copy. */}
+        <div style={{
+          position: 'absolute',
+          top: 12, left: 0, right: 0,
+          padding: '0 20px',
+          display: 'flex', justifyContent: 'flex-end',
+          zIndex: 2,
+        }}>
+          <ShareButton
+            url={shareUrl}
+            title={`${ambassadorName} — WeLoveDecode`}
+            slug={data.ambassador.slug}
+            text={shareMessage}
+          />
+        </div>
       </div>
 
       {/* Header (overlaps cover) */}
       <div style={{ padding: '0 20px', marginTop: -40, position: 'relative', textAlign: 'center' }}>
-        <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.3px', marginBottom: 6 }}>{ambassadorName}</div>
+        <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.3px', marginBottom: 2 }}>{ambassadorName}</div>
         <div
           onClick={() => setOverlayOpen(true)}
           role="button"
@@ -122,7 +148,7 @@ export function CheckoutClient({ data, shareUrl }: Props) {
         <div style={{ background: '#1c1c1c', border: '1px solid #262626', borderRadius: 12, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <DetailRow label="Name" value={data.professional.name} />
           {data.professional.instagram_handle && (
-            <DetailRow label="Instagram" value={`@${data.professional.instagram_handle}`} />
+            <DetailRow label="Instagram" value={data.professional.instagram_handle} />
           )}
           {data.category_label && (
             <DetailRow label="Category" value={data.category_label} />

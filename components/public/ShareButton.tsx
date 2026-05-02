@@ -8,6 +8,12 @@ type Flash = 'idle' | 'shared' | 'copied' | 'failed'
  * Share button — top-right of the public page cover. navigator.share first
  * (mobile sheet), clipboard fallback (desktop), text flash on completion.
  *
+ * Optional `text` prop carries a message body (used by the checkout
+ * surface to forward the payment-link with the same template the
+ * ambassador uses in SendPaymentLinkClient). When present, fed to
+ * navigator.share's `text` field AND prepended to the clipboard
+ * fallback content. Public page consumer omits it — behavior unchanged.
+ *
  * Spec: public_page_final_UI_Spec.md §2.3.
  * Mockup: public_page_final.html sharePage() — same fallback chain.
  */
@@ -15,10 +21,12 @@ export function ShareButton({
   url,
   title,
   slug,
+  text,
 }: {
   url: string
   title: string
   slug: string
+  text?: string
 }) {
   const [flash, setFlash] = useState<Flash>('idle')
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -50,7 +58,9 @@ export function ShareButton({
     // would do under strict control-flow analysis).
     const nav = navigator
     if (typeof nav.share === 'function') {
-      nav.share({ title, url })
+      const shareData: ShareData = { title, url }
+      if (text) shareData.text = text
+      nav.share(shareData)
         .then(() => flashFor('shared'))
         .catch(() => {
           // User-cancelled share shouldn't flash anything; swallow silently.
@@ -58,7 +68,8 @@ export function ShareButton({
       return
     }
     if (nav.clipboard?.writeText) {
-      nav.clipboard.writeText(url)
+      const clipboardContent = text ? `${text}\n\n${url}` : url
+      nav.clipboard.writeText(clipboardContent)
         .then(() => flashFor('copied'))
         .catch(() => flashFor('failed'))
       return
