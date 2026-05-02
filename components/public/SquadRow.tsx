@@ -3,6 +3,7 @@
 import type { PublicListingRow } from '@/lib/public/slug-page-shape'
 import { categoryText } from '@/lib/public/slug-page-shape'
 import { formatLocation } from '@/lib/format-location'
+import { MediaOrb } from './MediaOrb'
 
 /**
  * A single listing row in the "My Beauty Squad" list. Three tap targets:
@@ -32,11 +33,19 @@ export function SquadRow({
   slug,
   isLast,
   onOpenMedia,
+  isOrbActive,
+  onOrbActivate,
+  onOrbDeactivate,
+  registerOrbRef,
 }: {
   listing: PublicListingRow
   slug: string
   isLast: boolean
   onOpenMedia: (listingId: string) => void
+  isOrbActive: boolean
+  onOrbActivate: () => void
+  onOrbDeactivate: () => void
+  registerOrbRef: (el: HTMLElement | null) => void
 }) {
   const igUrl = `https://instagram.com/${listing.professional_instagram}`
   const onIgClick = () => fireClick(slug, 'listing_instagram_click', listing.id)
@@ -136,35 +145,30 @@ export function SquadRow({
         <div style={{ fontSize: 12, color: '#777', lineHeight: 1.2 }}>{formatLocation(listing.professional_city, listing.professional_country)}</div>
       </div>
 
-      {/* Play button — opens lightbox */}
-      <div
-        onClick={onMediaClick}
-        style={{
-          background: '#000',
-          width: 56,
-          height: 56,
-          borderRadius: '50%',
-          border: '1.5px solid #e91e8c',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          cursor: 'pointer',
-          boxSizing: 'border-box',
-        }}
-      >
-        <svg
-          width="22"
-          height="22"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#e91e8c"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <polygon points="7 4 20 12 7 20 7 4" />
-        </svg>
+      {/* Media orb — inline video playback for video listings, lightbox
+          carousel for photo listings. data-orb-id keeps the page-level
+          IntersectionObserver tied back to the listing row. */}
+      <div ref={registerOrbRef} data-orb-id={listing.id} style={{ flexShrink: 0 }}>
+        <MediaOrb
+          videoUrl={listing.media_type === 'video' ? listing.video_url : null}
+          posterUrl={
+            listing.media_type === 'video'
+              ? listing.professional_avatar_url
+              : (listing.photo_url_1 ?? null)
+          }
+          hasPhotos={listing.media_type === 'photos' && !!listing.photo_url_1}
+          isActive={isOrbActive}
+          onTap={() => {
+            if (listing.media_type === 'video' && listing.video_url) {
+              fireClick(slug, 'listing_media_click', listing.id)
+              onOrbActivate()
+            } else if (listing.media_type === 'photos') {
+              onMediaClick()
+            }
+          }}
+          onScrollPause={onOrbDeactivate}
+          ariaLabel={`Play preview of ${listing.professional_name}`}
+        />
       </div>
     </div>
   )

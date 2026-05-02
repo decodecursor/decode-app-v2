@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PublicPageData } from '@/lib/public/slug-page-shape'
 import { PublicHeader } from './PublicHeader'
 import { SquadRow } from './SquadRow'
@@ -38,11 +38,60 @@ export default function PublicPageClient({
   shareUrl: string
 }) {
   const [openListingId, setOpenListingId] = useState<string | null>(null)
+  const [activeOrbId, setActiveOrbId] = useState<string | null>(null)
+  const orbRefs = useRef<Map<string, HTMLElement>>(new Map())
 
   const openListing = useMemo(
     () => data.listings.find((l) => l.id === openListingId) ?? null,
     [data.listings, openListingId],
   )
+
+  const onOrbActivate = useCallback((id: string) => setActiveOrbId(id), [])
+  const onOrbDeactivate = useCallback(() => setActiveOrbId(null), [])
+  const registerOrbRef = useCallback((id: string, el: HTMLElement | null) => {
+    if (el) orbRefs.current.set(id, el)
+    else orbRefs.current.delete(id)
+  }, [])
+
+  // Single-active scroll-driven autoplay. One IO instance for the whole
+  // page; on each fire, pick the entry whose center is closest to the
+  // viewport center and promote it to activeOrbId. rootMargin reduces
+  // the IO root to the central 50% strip — only "centered" rows fire.
+  // Re-bound on listings change so newly-mounted orbs join the watch.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        let bestId: string | null = null
+        let bestDistance = Infinity
+        const viewportCenter = window.innerHeight / 2
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue
+          const rect = entry.boundingClientRect
+          const elementCenter = rect.top + rect.height / 2
+          const distance = Math.abs(elementCenter - viewportCenter)
+          if (distance < bestDistance) {
+            bestDistance = distance
+            bestId = entry.target.getAttribute('data-orb-id')
+          }
+        }
+        if (bestId) {
+          setActiveOrbId(bestId)
+        } else {
+          // No orb intersects the central strip — pause everything.
+          const anyIntersecting = entries.some((e) => e.isIntersecting)
+          if (!anyIntersecting) setActiveOrbId(null)
+        }
+      },
+      {
+        threshold: [0, 0.5, 1],
+        rootMargin: '-25% 0px -25% 0px',
+      },
+    )
+
+    orbRefs.current.forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [data.listings])
 
   useEffect(() => {
     fetch('/api/analytics/track', {
@@ -92,6 +141,10 @@ export default function PublicPageClient({
               slug={data.profile.slug}
               isLast={i === data.listings.length - 1}
               onOpenMedia={setOpenListingId}
+              isOrbActive={activeOrbId === l.id}
+              onOrbActivate={() => onOrbActivate(l.id)}
+              onOrbDeactivate={onOrbDeactivate}
+              registerOrbRef={(el) => registerOrbRef(l.id, el)}
             />
           ))
         )}
