@@ -76,13 +76,14 @@ export function MediaOrb({
   }, [isActive, hasVideo, reducedMotion])
 
   const interactive = variant !== 'empty'
+  // Tap is unified across variants: always escalates to MediaLightbox via
+  // the parent's onTap. Inline play/pause is driven exclusively by the
+  // page-level IntersectionObserver via isActive. onScrollPause prop
+  // retained on the type for future re-introduction; flagged for cleanup.
+  void onScrollPause
   const handleTap = () => {
     if (!interactive) return
-    if (variant === 'playing') {
-      onScrollPause()
-    } else {
-      onTap()
-    }
+    onTap()
   }
 
   const baseStyle: React.CSSProperties = {

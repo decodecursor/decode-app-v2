@@ -47,6 +47,10 @@ export function SquadRow({
   onOrbDeactivate: () => void
   registerOrbRef: (el: HTMLElement | null) => void
 }) {
+  // onOrbActivate is retained on the type for future re-introduction.
+  // Hybrid orb mode (tap → lightbox, IO → inline play) doesn't need it.
+  // Flagged for cleanup.
+  void onOrbActivate
   const igUrl = `https://instagram.com/${listing.professional_instagram}`
   const onIgClick = () => fireClick(slug, 'listing_instagram_click', listing.id)
   const onMediaClick = () => {
@@ -158,14 +162,7 @@ export function SquadRow({
           }
           hasPhotos={listing.media_type === 'photos' && !!listing.photo_url_1}
           isActive={isOrbActive}
-          onTap={() => {
-            if (listing.media_type === 'video' && listing.video_url) {
-              fireClick(slug, 'listing_media_click', listing.id)
-              onOrbActivate()
-            } else if (listing.media_type === 'photos') {
-              onMediaClick()
-            }
-          }}
+          onTap={onMediaClick}
           onScrollPause={onOrbDeactivate}
           ariaLabel={`Play preview of ${listing.professional_name}`}
         />
