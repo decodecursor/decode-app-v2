@@ -68,7 +68,7 @@ export default function AmbassadorLayout({
             flex-direction: column;
             min-height: 100vh;
             min-height: 100dvh;
-            padding-bottom: env(safe-area-inset-bottom, 0px);
+            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
           }
           .amb-auth-form-container {
             flex: 1 0 auto;
