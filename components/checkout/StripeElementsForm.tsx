@@ -85,6 +85,7 @@ export function StripeElementsForm({
   const [walletState, setWalletState] = useState<WalletState>('unknown')
   const [error, setError] = useState<string | null>(null)
   const [processing, setProcessing] = useState(false)
+  const [cardBtnHover, setCardBtnHover] = useState(false)
 
   // Fallback — if ExpressCheckoutElement's onReady never fires
   // (network hiccup, SDK load failure), after 5s treat as no wallets
@@ -187,15 +188,19 @@ export function StripeElementsForm({
         <button
           type="button"
           onClick={() => setMode('card')}
+          onMouseEnter={() => setCardBtnHover(true)}
+          onMouseLeave={() => setCardBtnHover(false)}
           style={{
             width: '100%', padding: '14px', borderRadius: 10,
-            background: 'transparent', border: '1.5px solid #e91e8c',
-            color: '#e91e8c', fontSize: 14, fontWeight: 700,
+            background: 'transparent',
+            border: `1.5px solid ${cardBtnHover ? '#444' : '#2a2a2a'}`,
+            color: '#fff', fontSize: 14, fontWeight: 700,
             cursor: 'pointer', marginBottom: 10,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            transition: 'border-color 0.15s ease',
           }}
         >
-          <svg width="18" height="14" viewBox="0 0 24 16" fill="none" stroke="#e91e8c" strokeWidth="2" strokeLinecap="round"><rect x="1" y="1" width="22" height="14" rx="2" /><line x1="1" y1="6" x2="23" y2="6" /></svg>
+          <svg width="18" height="14" viewBox="0 0 24 16" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><rect x="1" y="1" width="22" height="14" rx="2" /><line x1="1" y1="6" x2="23" y2="6" /></svg>
           Pay by card
         </button>
       )}

@@ -232,29 +232,31 @@ export function PaymentModal({
           position: 'relative',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0 10px' }}>
-          <div style={{ width: 44, height: 4, borderRadius: 2, background: '#333' }} />
-        </div>
-
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={formProcessing}
+        {/* Drag handle — also acts as a close affordance (mockup
+            closeModal()). Sole top-of-modal close path now that the X
+            is gone, so it matters most during pi.status loading/error
+            when the form's Cancel button isn't yet rendered. */}
+        <div
+          onClick={() => { if (!formProcessing) onClose() }}
+          role="button"
           aria-label="Close"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && !formProcessing) {
+              e.preventDefault()
+              onClose()
+            }
+          }}
           style={{
-            position: 'absolute', top: 12, right: 14,
-            width: 28, height: 28, borderRadius: '50%',
-            background: '#1c1c1c', border: '1px solid #262626',
-            color: '#fff',
+            display: 'flex',
+            justifyContent: 'center',
+            padding: '8px 0 10px',
             cursor: formProcessing ? 'not-allowed' : 'pointer',
             opacity: formProcessing ? 0.5 : 1,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
+          <div style={{ width: 44, height: 4, borderRadius: 2, background: '#333' }} />
+        </div>
 
         <div style={{ textAlign: 'center', padding: '18px 0 14px' }}>
           <div style={{ fontSize: 32, fontWeight: 700, color: '#fff', letterSpacing: '-0.5px' }}>{amountLabel}</div>

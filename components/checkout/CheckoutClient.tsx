@@ -132,11 +132,13 @@ export function CheckoutClient({ data, shareUrl }: Props) {
         >
           {displayUrl}
         </div>
-        {data.ambassador.tagline && (
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#ccc', lineHeight: 1.4, maxWidth: 320, margin: '0 auto' }}>
-            {data.ambassador.tagline}
-          </div>
-        )}
+        {/* Action-oriented headline targeting the professional viewing
+            this checkout — replaces the ambassador's personal tagline
+            (which still shows on her public /{slug} page where the
+            audience is gifters/visitors, not professionals). */}
+        <div style={{ fontSize: 15, fontWeight: 600, color: '#ccc', lineHeight: 1.4, maxWidth: 320, margin: '0 auto' }}>
+          Get listed in {data.ambassador.first_name}&rsquo;s Beauty Squad
+        </div>
       </div>
 
       {/* Divider */}
