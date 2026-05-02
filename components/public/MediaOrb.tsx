@@ -87,8 +87,8 @@ export function MediaOrb({
   }
 
   const baseStyle: React.CSSProperties = {
-    width: 56,
-    height: 56,
+    width: 72,
+    height: 72,
     borderRadius: '50%',
     flexShrink: 0,
     position: 'relative',
@@ -152,7 +152,7 @@ export function MediaOrb({
 
 function PlayGlyph({ variant }: { variant: OrbVariant }) {
   const isEmpty = variant === 'empty'
-  const size = isEmpty ? 20 : 24
+  const size = isEmpty ? 24 : 28
   const fill = isEmpty ? '#777' : '#fff'
   return (
     <div

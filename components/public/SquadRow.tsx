@@ -82,10 +82,10 @@ export function SquadRow({
         onClick={onIgClick}
         aria-label={`Visit ${listing.professional_name} on Instagram`}
         style={{
-          width: 64,
-          height: 64,
+          width: 72,
+          height: 72,
           borderRadius: '50%',
-          padding: 3,
+          padding: 4,
           background: 'linear-gradient(45deg, #FEDA75 0%, #FA7E1E 25%, #D62976 50%, #962FBF 100%)',
           flexShrink: 0,
           boxSizing: 'border-box',
@@ -100,7 +100,7 @@ export function SquadRow({
             height: '100%',
             borderRadius: '50%',
             background: '#000',
-            border: '3px solid #1c1c1c',
+            border: '4px solid #1c1c1c',
             boxSizing: 'border-box',
             overflow: 'hidden',
             display: 'flex',
@@ -125,7 +125,7 @@ export function SquadRow({
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
-            fontSize: 11,
+            fontSize: 13,
             letterSpacing: 1,
             color: '#e91e8c',
             fontWeight: 700,
@@ -135,7 +135,7 @@ export function SquadRow({
         >
           {categoryText(listing)}
         </div>
-        <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.2, marginBottom: 1.5 }}>
+        <div style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.2, marginBottom: 1.5 }}>
           <a
             href={igUrl}
             target="_blank"
@@ -146,7 +146,7 @@ export function SquadRow({
             {listing.professional_name}
           </a>
         </div>
-        <div style={{ fontSize: 12, color: '#777', lineHeight: 1.2 }}>{formatLocation(listing.professional_city, listing.professional_country)}</div>
+        <div style={{ fontSize: 13, color: '#777', lineHeight: 1.2 }}>{formatLocation(listing.professional_city, listing.professional_country)}</div>
       </div>
 
       {/* Media orb — inline video playback for video listings, lightbox
