@@ -100,47 +100,52 @@ export function CheckoutClient({ data, shareUrl }: Props) {
       <div style={{ position: 'relative', height: 180, width: '100%', ...coverStyle }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 30%, #000 100%)' }} />
         {/* Top-left button cluster: public-page preview (always) + IG link
-            (conditional on data.ambassador.instagram_handle). Mirrors the
-            top-right share button visual (32px circle, blurred dark bg,
-            white SVG). Public-page button replaces the previously-rendered
-            URL line below the name — same UrlOverlay action target,
-            different affordance. */}
+            (conditional on data.ambassador.instagram_handle). Element
+            shape (div + role=button + onKeyDown) mirrors ShareButton
+            byte-for-byte so iOS Safari's user-agent <button> styling
+            doesn't drift the visual. */}
         <div style={{
           position: 'absolute',
           top: 12, left: 20,
           display: 'flex', gap: 8,
           zIndex: 2,
         }}>
-          <button
-            type="button"
+          <div
             onClick={() => setOverlayOpen(true)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOverlayOpen(true) } }}
             aria-label="Preview profile"
             style={{
+              position: 'relative',
               width: 32, height: 32, borderRadius: '50%',
               background: 'rgba(0,0,0,0.35)',
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)',
-              border: 'none', padding: 0, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer',
             }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="8" r="4" />
               <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
             </svg>
-          </button>
+          </div>
           {ambIg && (
-            <button
-              type="button"
+            <div
               onClick={() => window.open(`https://instagram.com/${ambIg}`, '_blank', 'noopener,noreferrer')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.open(`https://instagram.com/${ambIg}`, '_blank', 'noopener,noreferrer') } }}
               aria-label={`Open ${ambassadorName}'s Instagram`}
               style={{
+                position: 'relative',
                 width: 32, height: 32, borderRadius: '50%',
                 background: 'rgba(0,0,0,0.35)',
                 backdropFilter: 'blur(8px)',
                 WebkitBackdropFilter: 'blur(8px)',
-                border: 'none', padding: 0, cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer',
               }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -148,17 +153,16 @@ export function CheckoutClient({ data, shareUrl }: Props) {
                 <circle cx="12" cy="12" r="4" />
                 <circle cx="17.5" cy="6.5" r="0.5" fill="#fff" />
               </svg>
-            </button>
+            </div>
           )}
         </div>
-        {/* Share button overlay, top-right — mirrors PublicHeader.tsx:46-60
-            positioning. Carries the SendPaymentLinkClient template via the
-            text prop so a gifter forwards with parity copy. */}
+        {/* Share button, top-right. Wrapper sized to the button itself
+            (right:20 anchor only — NOT left:0+right:0 full-width with
+            flex-end, which would silently overlay the top-left cluster
+            and eat its clicks since both clusters sit at zIndex 2). */}
         <div style={{
           position: 'absolute',
-          top: 12, left: 0, right: 0,
-          padding: '0 20px',
-          display: 'flex', justifyContent: 'flex-end',
+          top: 12, right: 20,
           zIndex: 2,
         }}>
           <ShareButton
