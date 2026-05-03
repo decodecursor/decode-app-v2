@@ -257,7 +257,7 @@ export default function DashboardClient({
           borderRadius: '12px',
           padding: '13px 15px',
         }}>
-          <div style={{ fontSize: '9px', color: '#777', marginBottom: '9px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div style={{ fontSize: '9px', color: '#777', marginBottom: '3px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Top listings
           </div>
           {topClicks.length === 0 ? (
