@@ -53,7 +53,43 @@ export function DeckVideoPage({
 
     if (isCurrent && !reducedMotion) {
       setAutoplayBlocked(false)
-      v.play().catch(() => setAutoplayBlocked(true))
+
+      // play() may reject if readyState is too low (browser hasn't
+      // loaded enough metadata yet to begin playback). Retry once on
+      // 'canplay' before declaring autoplay blocked. iOS Safari hits
+      // this most often when a video page becomes current shortly
+      // after hydration — the mount + play() race loses on slow
+      // metadata fetches (e.g. videos without moov-at-start /
+      // faststart encoding).
+      let cancelled = false
+      let canplayHandler: (() => void) | null = null
+
+      const tryPlay = () => {
+        if (cancelled) return
+        v.play().catch(() => {
+          if (cancelled) return
+          if (v.readyState < 3 && !canplayHandler) {
+            // Not ready yet — wait for canplay and retry once.
+            canplayHandler = () => {
+              if (cancelled) return
+              v.play().catch(() => setAutoplayBlocked(true))
+            }
+            v.addEventListener('canplay', canplayHandler, { once: true })
+          } else {
+            // Ready but rejected anyway (autoplay policy / Low Power Mode).
+            setAutoplayBlocked(true)
+          }
+        })
+      }
+
+      tryPlay()
+
+      return () => {
+        cancelled = true
+        if (canplayHandler) {
+          v.removeEventListener('canplay', canplayHandler)
+        }
+      }
     } else {
       v.pause()
       v.currentTime = 0
