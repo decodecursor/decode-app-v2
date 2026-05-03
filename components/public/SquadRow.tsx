@@ -157,7 +157,7 @@ export function SquadRow({
           videoUrl={listing.media_type === 'video' ? listing.video_url : null}
           posterUrl={
             listing.media_type === 'video'
-              ? listing.professional_avatar_url
+              ? null
               : (listing.photo_url_1 ?? null)
           }
           hasPhotos={listing.media_type === 'photos' && !!listing.photo_url_1}

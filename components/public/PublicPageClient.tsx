@@ -67,17 +67,25 @@ export default function PublicPageClient({
     const HYSTERESIS_PX = 80    // ~80% of row stride; candidate must be this much closer to dethrone
 
     const observer = new IntersectionObserver(
-      (entries) => {
+      () => {
+        // entries argument is intentionally ignored — we re-measure all
+        // observed orbs on every fire, not just the ones whose threshold
+        // crossed. IO is the trigger; live DOM is the source of truth.
+        // Without this, partial-entries fires combined with the
+        // MAX_CENTER_DIST gate caused inline autoplay to never sustain
+        // (regression in 2cf04a2: most callbacks saw 1-2 stale entries
+        // and deactivated, even when a different orb was actually
+        // centered).
         const viewportCenter = window.innerHeight / 2
         const candidates: { id: string; distance: number }[] = []
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue
-          const id = entry.target.getAttribute('data-orb-id')
-          if (!id) continue
-          const rect = entry.boundingClientRect
+
+        orbRefs.current.forEach((el, id) => {
+          const rect = el.getBoundingClientRect()
+          // Skip orbs entirely off-screen (above or below viewport).
+          if (rect.bottom < 0 || rect.top > window.innerHeight) return
           const elementCenter = rect.top + rect.height / 2
           candidates.push({ id, distance: Math.abs(elementCenter - viewportCenter) })
-        }
+        })
 
         if (candidates.length === 0) {
           setActiveOrbId(null)

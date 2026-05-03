@@ -75,6 +75,32 @@ export function MediaOrb({
     }
   }, [isActive, hasVideo, reducedMotion])
 
+  // iOS Safari first-frame nudge. Without poster, a paused <video>
+  // renders a black box on iOS until play() runs at least once. Setting
+  // currentTime to a small non-zero value on loadedmetadata forces the
+  // browser to paint the first frame for the paused state.
+  useEffect(() => {
+    const v = videoRef.current
+    if (!v || !hasVideo) return
+
+    const onLoadedMetadata = () => {
+      try {
+        if (v.currentTime === 0) {
+          v.currentTime = 0.1
+        }
+      } catch {
+        // Some browsers throw if metadata isn't fully loaded; ignore.
+      }
+    }
+
+    v.addEventListener('loadedmetadata', onLoadedMetadata)
+    if (v.readyState >= 1) onLoadedMetadata()
+
+    return () => {
+      v.removeEventListener('loadedmetadata', onLoadedMetadata)
+    }
+  }, [videoUrl, hasVideo])
+
   const interactive = variant !== 'empty'
   // Tap is unified across variants: always escalates to MediaLightbox via
   // the parent's onTap. Inline play/pause is driven exclusively by the
