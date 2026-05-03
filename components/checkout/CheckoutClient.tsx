@@ -174,8 +174,13 @@ export function CheckoutClient({ data, shareUrl }: Props) {
         One-time payment · {selected} days visibility
       </div>
 
-      {/* Pay CTA */}
-      <div style={{ padding: '0 20px 28px' }}>
+      {/* Pay CTA — padding-bottom absorbs iOS Safari toolbar height
+          (~50px) + 30px breathing room + env(safe-area-inset-bottom)
+          for notched devices. Same pattern as the auth page mobile
+          fix in commit 33afd3e. Pay button is the page's bottom-most
+          flow element so this padding directly drives its viewport
+          clearance. */}
+      <div style={{ padding: '0 20px calc(env(safe-area-inset-bottom, 0px) + 80px)' }}>
         <button
           type="button"
           onClick={() => setModalOpen(true)}
