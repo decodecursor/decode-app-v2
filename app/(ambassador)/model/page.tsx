@@ -58,10 +58,23 @@ export default async function DashboardPage() {
   const day = now.getUTCDay() || 7
   const weekStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - day + 1))
 
+  // Top Listings: per-listing rows (category + professional name + clicks),
+  // direct query mirroring Slice 6A analytics-aggregate pattern (Principle E).
+  // Two parallel queries + JS aggregate replaces the legacy
+  // get_top_click_categories RPC, which produced category-only rows.
+  interface TopListingMeta {
+    id: string
+    created_at: string
+    category_custom: string | null
+    category: { label: string } | null
+    professional: { name: string } | null
+  }
+
   const [
     viewsTotalRes,
     viewsThisWeekRes,
-    topClicksRes,
+    topListingsMetaRes,
+    topClickEventsRes,
     activeListingsRes,
     bankExistsRes,
   ] = await Promise.all([
@@ -76,7 +89,17 @@ export default async function DashboardPage() {
       .eq('model_id', profile.id)
       .eq('event_type', 'public_page_view')
       .gte('created_at', weekStart.toISOString()),
-    adminClient.rpc('get_top_click_categories', { p_model_id: profile.id, p_limit: 3 }),
+    adminClient
+      .from('model_listings')
+      .select('id, created_at, category_custom, category:model_categories!model_listings_category_id_fkey(label), professional:model_professionals!model_listings_professional_id_fkey(name)')
+      .eq('model_id', profile.id)
+      .returns<TopListingMeta[]>(),
+    adminClient
+      .from('model_analytics_events')
+      .select('target_id')
+      .eq('model_id', profile.id)
+      .in('event_type', ['listing_instagram_click', 'listing_media_click'])
+      .not('target_id', 'is', null),
     adminClient
       .from('model_listings')
       .select('id, paid_until, free_trial_ends_at')
@@ -99,6 +122,24 @@ export default async function DashboardPage() {
     return exp && new Date(exp).getTime() < sevenDaysFromNow
   }).length
 
+  const clickCounts = new Map<string, number>()
+  for (const e of topClickEventsRes.data ?? []) {
+    if (!e.target_id) continue
+    clickCounts.set(e.target_id, (clickCounts.get(e.target_id) ?? 0) + 1)
+  }
+  const topClicks = (topListingsMetaRes.data ?? [])
+    .map((l) => ({
+      listing_id: l.id,
+      category: l.category?.label ?? l.category_custom ?? 'Other',
+      professional_name: l.professional?.name ?? 'Unknown',
+      clicks: clickCounts.get(l.id) ?? 0,
+      created_at: l.created_at,
+    }))
+    .filter((r) => r.clicks > 0)
+    .sort((a, b) => b.clicks - a.clicks || Date.parse(b.created_at) - Date.parse(a.created_at))
+    .slice(0, 3)
+    .map(({ created_at: _ca, ...row }) => row)
+
   // Slice 8: settings hint stacking per spec §6.2. Bank > email
   // priority. Both missing = "Bank + Email missing"; one missing =
   // single text; neither = null (no hint shown).
@@ -118,7 +159,7 @@ export default async function DashboardPage() {
       isFirstVisit={isFirstVisit}
       viewsTotal={viewsTotalRes.count ?? 0}
       viewsThisWeek={viewsThisWeekRes.count ?? 0}
-      topClicks={(topClicksRes.data as Array<{ category: string; clicks: number }> | null) ?? []}
+      topClicks={topClicks}
       expiringCount={expiringCount}
       settingsHint={settingsHint}
     />

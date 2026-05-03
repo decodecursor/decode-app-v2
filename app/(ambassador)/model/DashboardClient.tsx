@@ -24,7 +24,9 @@ interface Profile {
 }
 
 interface TopClick {
+  listing_id: string
   category: string
+  professional_name: string
   clicks: number
 }
 
@@ -267,10 +269,38 @@ export default function DashboardClient({
               const target = maxClicks === 0 ? 0 : Math.round((row.clicks / maxClicks) * 100)
               const size = barsLoaded ? `${target}% 100%, 100% 100%` : '0% 100%, 100% 100%'
               return (
-                <div key={`${row.category}-${i}`} style={{ marginBottom: i === topClicks.length - 1 ? 0 : '10px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '12px', color: '#fff' }}>{row.category}</span>
-                    <span style={{ fontSize: '11px', color: '#fff', fontWeight: 600 }}>{row.clicks}</span>
+                <div key={row.listing_id} style={{ marginBottom: i === topClicks.length - 1 ? 0 : '10px' }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'baseline',
+                    gap: '12px',
+                    marginBottom: '4px',
+                  }}>
+                    <span style={{
+                      minWidth: 0,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      <span style={{ fontSize: '12px', color: '#fff', fontWeight: 600 }}>
+                        {row.category}
+                      </span>
+                      <span style={{ fontSize: '10px', color: '#555', margin: '0 5px' }}>
+                        ·
+                      </span>
+                      <span style={{ fontSize: '10px', color: '#888' }}>
+                        {row.professional_name}
+                      </span>
+                    </span>
+                    <span style={{
+                      fontSize: '11px',
+                      color: '#fff',
+                      fontWeight: 600,
+                      flexShrink: 0,
+                    }}>
+                      {row.clicks}
+                    </span>
                   </div>
                   <div style={{
                     height: '2px',
