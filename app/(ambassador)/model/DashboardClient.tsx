@@ -275,7 +275,7 @@ export default function DashboardClient({
                     justifyContent: 'space-between',
                     alignItems: 'baseline',
                     gap: '12px',
-                    marginBottom: '4px',
+                    marginBottom: '3px',
                   }}>
                     <span style={{
                       minWidth: 0,
@@ -286,10 +286,10 @@ export default function DashboardClient({
                       <span style={{ fontSize: '12px', color: '#fff', fontWeight: 600 }}>
                         {row.category}
                       </span>
-                      <span style={{ fontSize: '10px', color: '#555', margin: '0 5px' }}>
+                      <span style={{ fontSize: '9px', color: '#666', margin: '0 5px' }}>
                         ·
                       </span>
-                      <span style={{ fontSize: '10px', color: '#888' }}>
+                      <span style={{ fontSize: '9px', color: '#888' }}>
                         {row.professional_name}
                       </span>
                     </span>
