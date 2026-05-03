@@ -55,33 +55,52 @@ export default function PublicPageClient({
 
   // Single-active scroll-driven autoplay. One IO instance for the whole
   // page; on each fire, pick the entry whose center is closest to the
-  // viewport center and promote it to activeOrbId. rootMargin reduces
-  // the IO root to the central 50% strip — only "centered" rows fire.
+  // viewport center AND within MAX_CENTER_DIST. Hysteresis prevents
+  // twitchy swaps on small scroll wobbles. rootMargin keeps the IO root
+  // to the central 50% strip for efficiency; the explicit distance gate
+  // is what enforces "actually centered" perception.
   // Re-bound on listings change so newly-mounted orbs join the watch.
   useEffect(() => {
     if (typeof window === 'undefined') return
+
+    const MAX_CENTER_DIST = 90  // ~90% of row stride (~101px)
+    const HYSTERESIS_PX = 80    // ~80% of row stride; candidate must be this much closer to dethrone
+
     const observer = new IntersectionObserver(
       (entries) => {
-        let bestId: string | null = null
-        let bestDistance = Infinity
         const viewportCenter = window.innerHeight / 2
+        const candidates: { id: string; distance: number }[] = []
         for (const entry of entries) {
           if (!entry.isIntersecting) continue
+          const id = entry.target.getAttribute('data-orb-id')
+          if (!id) continue
           const rect = entry.boundingClientRect
           const elementCenter = rect.top + rect.height / 2
-          const distance = Math.abs(elementCenter - viewportCenter)
-          if (distance < bestDistance) {
-            bestDistance = distance
-            bestId = entry.target.getAttribute('data-orb-id')
+          candidates.push({ id, distance: Math.abs(elementCenter - viewportCenter) })
+        }
+
+        if (candidates.length === 0) {
+          setActiveOrbId(null)
+          return
+        }
+
+        candidates.sort((a, b) => a.distance - b.distance)
+        const closest = candidates[0]
+
+        // Hysteresis: when an orb is currently active, in candidates, and
+        // still within MAX_CENTER_DIST, only dethrone if the closest
+        // candidate is materially better (≥HYSTERESIS_PX closer).
+        setActiveOrbId((current) => {
+          if (current) {
+            const active = candidates.find((c) => c.id === current)
+            if (active && active.distance <= MAX_CENTER_DIST) {
+              if (active.distance - closest.distance < HYSTERESIS_PX) {
+                return current  // sticky
+              }
+            }
           }
-        }
-        if (bestId) {
-          setActiveOrbId(bestId)
-        } else {
-          // No orb intersects the central strip — pause everything.
-          const anyIntersecting = entries.some((e) => e.isIntersecting)
-          if (!anyIntersecting) setActiveOrbId(null)
-        }
+          return closest.distance <= MAX_CENTER_DIST ? closest.id : null
+        })
       },
       {
         threshold: [0, 0.5, 1],
@@ -119,7 +138,7 @@ export default function PublicPageClient({
     >
       <PublicHeader profile={data.profile} shareUrl={shareUrl} />
 
-      <div style={{ padding: '20px 20px 8px' }}>
+      <div style={{ padding: '20px 20px 8px', paddingBottom: '50vh' }}>
         <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 14 }}>My Beauty Squad</div>
 
         {data.listings.length === 0 ? (
