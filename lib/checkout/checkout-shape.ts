@@ -32,6 +32,10 @@ export interface CheckoutAmbassador {
   tagline: string | null
   cover_photo_url: string | null
   cover_photo_position_y: number | null
+  // Sourced from public.users.instagram_handle via a separate fetch
+  // in app/pay/[token]/page.tsx — model_profiles has no FK to users
+  // so PostgREST can't embedded-join, hence the second-query path.
+  instagram_handle: string | null
 }
 
 export interface CheckoutData {
@@ -67,6 +71,7 @@ export interface CheckoutListingRow {
   model_categories: { label: string } | null
   profile: {
     id: string
+    user_id: string
     slug: string
     first_name: string
     last_name: string | null
@@ -84,7 +89,7 @@ export const CHECKOUT_LISTING_SELECT = `
   ),
   model_categories!model_listings_category_id_fkey ( label ),
   profile:model_profiles!model_listings_model_id_fkey (
-    id, slug, first_name, last_name, tagline,
+    id, user_id, slug, first_name, last_name, tagline,
     cover_photo_url, cover_photo_position_y
   )
 `
@@ -143,7 +148,10 @@ export function computePackages(row: CheckoutListingRow): CheckoutPackage[] {
   ]
 }
 
-export function toCheckoutData(row: CheckoutListingRow): CheckoutData | null {
+export function toCheckoutData(
+  row: CheckoutListingRow,
+  ambassadorInstagramHandle: string | null = null,
+): CheckoutData | null {
   const professional = row.model_professionals
   const profile = row.profile
   if (!professional || !profile) return null
@@ -170,6 +178,7 @@ export function toCheckoutData(row: CheckoutListingRow): CheckoutData | null {
       tagline: profile.tagline,
       cover_photo_url: profile.cover_photo_url,
       cover_photo_position_y: profile.cover_photo_position_y,
+      instagram_handle: ambassadorInstagramHandle,
     },
     professional: {
       name: professional.name,

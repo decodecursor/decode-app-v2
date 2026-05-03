@@ -71,12 +71,10 @@ export function CheckoutClient({ data, shareUrl }: Props) {
 
   const selectedPkg = data.packages.find((p) => p.days === selected) ?? data.packages[0]!
   const ambassadorName = ambassadorDisplayName(data.ambassador)
-  // Display label = ambassador profile slug URL (e.g. app.welovedecode.com/{slug}),
-  // distinct from shareUrl which is the pay-token checkout link. UrlOverlay click
-  // already opens the slug page, so §13 invariant holds (display ↔ action match).
-  const appOrigin = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.welovedecode.com').replace(/\/$/, '')
-  const profileUrl = `${appOrigin}/${data.ambassador.slug}`
-  const displayUrl = profileUrl.replace(/^https?:\/\//, '')
+  // Ambassador IG handle from public.users — null when not populated.
+  // Strip leading @ defensively (DB stores without; setup form sanitizes
+  // to bare username, but defense-in-depth for any direct edits).
+  const ambIg = data.ambassador.instagram_handle?.replace(/^@/, '') || null
   // Share message — verbatim parity with SendPaymentLinkClient.tsx:217-220 so a
   // gifter forwarding the pay link receives the same copy the ambassador sent.
   const shareMessage = `Hello\n\nI've just added you to my Beauty Squad on WeLoveDecode🌸\n\nConfirm here to activate: ${shareUrl}`
@@ -101,6 +99,58 @@ export function CheckoutClient({ data, shareUrl }: Props) {
       {/* Cover */}
       <div style={{ position: 'relative', height: 180, width: '100%', ...coverStyle }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 30%, #000 100%)' }} />
+        {/* Top-left button cluster: public-page preview (always) + IG link
+            (conditional on data.ambassador.instagram_handle). Mirrors the
+            top-right share button visual (32px circle, blurred dark bg,
+            white SVG). Public-page button replaces the previously-rendered
+            URL line below the name — same UrlOverlay action target,
+            different affordance. */}
+        <div style={{
+          position: 'absolute',
+          top: 12, left: 20,
+          display: 'flex', gap: 8,
+          zIndex: 2,
+        }}>
+          <button
+            type="button"
+            onClick={() => setOverlayOpen(true)}
+            aria-label="Preview profile"
+            style={{
+              width: 32, height: 32, borderRadius: '50%',
+              background: 'rgba(0,0,0,0.35)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              border: 'none', padding: 0, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
+            </svg>
+          </button>
+          {ambIg && (
+            <button
+              type="button"
+              onClick={() => window.open(`https://instagram.com/${ambIg}`, '_blank', 'noopener,noreferrer')}
+              aria-label={`Open ${ambassadorName}'s Instagram`}
+              style={{
+                width: 32, height: 32, borderRadius: '50%',
+                background: 'rgba(0,0,0,0.35)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                border: 'none', padding: 0, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" />
+                <circle cx="12" cy="12" r="4" />
+                <circle cx="17.5" cy="6.5" r="0.5" fill="#fff" />
+              </svg>
+            </button>
+          )}
+        </div>
         {/* Share button overlay, top-right — mirrors PublicHeader.tsx:46-60
             positioning. Carries the SendPaymentLinkClient template via the
             text prop so a gifter forwards with parity copy. */}
@@ -122,16 +172,7 @@ export function CheckoutClient({ data, shareUrl }: Props) {
 
       {/* Header (overlaps cover) */}
       <div style={{ padding: '0 20px', marginTop: -40, position: 'relative', textAlign: 'center' }}>
-        <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.3px', marginBottom: 2 }}>{ambassadorName}</div>
-        <div
-          onClick={() => setOverlayOpen(true)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOverlayOpen(true) } }}
-          style={{ fontSize: 11, color: '#888', textDecoration: 'underline', cursor: 'pointer', marginBottom: 12, display: 'inline-block' }}
-        >
-          {displayUrl}
-        </div>
+        <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.3px', marginBottom: 8 }}>{ambassadorName}</div>
         {/* Action-oriented headline targeting the professional viewing
             this checkout — replaces the ambassador's personal tagline
             (which still shows on her public /{slug} page where the

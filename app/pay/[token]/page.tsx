@@ -288,7 +288,21 @@ export default async function PayPage({ params }: { params: Promise<{ token: str
     // Try listings first (hot path — V1 traffic is dominantly listings).
     const row = await fetchListingByToken(token)
     if (row) {
-      const data = toCheckoutData(row)
+      // Ambassador IG handle lives on public.users (not model_profiles)
+      // and there's no FK between the two, so PostgREST can't embedded-
+      // join — separate fetch with the same admin client. Tolerated
+      // null on lookup failure; the IG button hides itself in CheckoutClient.
+      let ambassadorInstagramHandle: string | null = null
+      if (row.profile?.user_id) {
+        const admin = createServiceRoleClient()
+        const { data: ambUser } = await admin
+          .from('users')
+          .select('instagram_handle')
+          .eq('id', row.profile.user_id)
+          .maybeSingle<{ instagram_handle: string | null }>()
+        ambassadorInstagramHandle = ambUser?.instagram_handle ?? null
+      }
+      const data = toCheckoutData(row, ambassadorInstagramHandle)
       // Missing price/FK data → generic /expired (no ambassador
       // context to personalize a "Someone was faster" page).
       if (!data) redirect('/expired')
