@@ -709,6 +709,8 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 
     **Combined slice:** treat (a) + (b) as a single post-V1 security hardening slice. Both touch the same table + same legacy file; coordinated retrofit avoids two passes. Estimate ~1-1.5 days. Not V1-launch-blocking by partner Q1=D + Q6=B locks but worth scheduling soon after V1 ship.
 
+40. **`get_top_click_categories` RPC dead code (dashboard Top Listings redesign, 2026-05-03).** After dashboard Top Listings switched to a direct supabase-js query mirroring the Slice 6A `analytics-aggregate` per-listing pattern (commit `a4d6b31`), the RPC has zero callers in the repo (grep verified post-ship). Drop in a post-V1 hygiene slice. **Migration:** `DROP FUNCTION public.get_top_click_categories(uuid, int);`. Not V1-blocking. Pair with item 33 (legacy function tracking migrations) if that slice lands first — same hygiene category, same `supabase/migrations/` housekeeping pass.
+
 ### Slice 3 feature candidates (to be scoped separately, NOT to be conflated with hardening backlog)
 
 
