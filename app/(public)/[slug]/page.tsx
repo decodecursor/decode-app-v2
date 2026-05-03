@@ -44,8 +44,8 @@ export async function generateMetadata({
     return { title: 'WeLoveDecode' }
   }
   const displayName = `${profile.first_name} ${profile.last_name}`.trim()
-  const title = `${displayName} — WeLoveDecode`
-  const description = profile.tagline ?? `${displayName}'s Beauty Squad on WeLoveDecode.`
+  const title = displayName
+  const description = 'My Beauty Squad'
   const coverImages = profile.cover_photo_url ? [{ url: profile.cover_photo_url }] : undefined
   return {
     title,
