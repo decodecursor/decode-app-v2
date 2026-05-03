@@ -2372,11 +2372,11 @@ Standard professional practice for multi-feature platforms (cf. Stripe, Linear, 
 
 Every URL constructed in DECODE code must declare base intent. Four categories, no exceptions:
 
-1. **`NEXT_PUBLIC_BRAND_URL` via `getBrandUrl()`** — apex marketing destination only. Valid for terminal-page CTAs sending the user OUT of the app back to marketing (`/expired` CTA, `/not-found` CTA, public `/error.tsx` CTA, PublicFooter "Powered by WeLoveDecode" link, back-arrow fallback on /terms + /privacy). INVALID for any URL that touches a slug, token, or in-app route.
+1. **`NEXT_PUBLIC_BRAND_URL` via `getBrandUrl()`** — apex marketing destination only. Valid for terminal-page CTAs sending the user OUT of the app back to marketing (`/expired` CTA, `/not-found` CTA, public `/error.tsx` CTA, PublicFooter "Powered by WeLoveDecode" link). INVALID for any URL that touches a slug, token, or in-app route.
 
 2. **`NEXT_PUBLIC_APP_URL` (with `app.welovedecode.com` fallback)** — app subdomain. Valid for any URL containing `/{slug}`, `/pay/{token}`, `/listing/confirmation/{pi}`, `/wish/confirmation/{pi}` — share, copy, open, preview, WhatsApp pre-fill, receipt-link surfaces. **Display labels must match action URLs** — no aspirational apex-shape labels paired with subdomain-shape clipboard writes (honesty principle, locked during batch (c) URL-base sweep `2095654`).
 
-3. **Relative path (no host)** — in-app navigation only. `router.push`, `<Link href="/...">`, in-component clicks. Including malformed-param safety nets like `router.replace('/')` — those go to `getBrandUrl()` instead per category 1.
+3. **Relative path (no host)** — in-app navigation only. `router.push`, `<Link href="/...">`, in-component clicks. Including malformed-param safety nets like `router.replace('/')` — those go to `getBrandUrl()` instead per category 1. /terms and /privacy back-arrow now route to `/model/auth` (Category 3, in-app navigation) — partner-locked deviation 2026-04-30. Previously listed under Category 1 apex; reclassified because target="_blank" can be collapsed by mobile browsers, in which case `history.back()` lands on the wrong sibling page rather than apex. New shape: `<BackArrow fallbackHref="/model/auth" disableHistory />`.
 
 4. **Hardcoded `welovedecode.com` string literal** — must not exist in production code. Mockup HTML cleanup leftover. Replace per category 1 or 2 based on intent.
 
@@ -2470,6 +2470,82 @@ Diagnostic mistake to avoid (logged 2026-04-28):
 When a user reports "page shifts right on iOS keyboard open" or "I can push left and right after tapping field", the FIRST check is the focused input's font-size, not §16 scroll-into-view doctrine. §16 addresses a different failure class. Three commits were spent on §16-class fixes (interactive-widget, scroll-padding-top, touch-action, inner-wrapper overflowX) before the actual root cause (14px inputs) was diagnosed. The 30-second font-size check should precede any §16 reasoning.
 
 Reference: confirmed 2026-04-28 against AddListingClient.tsx — bumping INPUT_BASE 14→16 (commit 845794a) eliminated the symptom on Salon name, IG, City, Country, and customize-category inputs. Pricing inputs were immune because already 18px.
+
+---
+
+### §18 — Single-active media playback orchestrator (added 2026-04-30)
+
+**The pattern:** Multiple media elements on a page (video orbs, swipeable deck pages) where exactly ONE plays at a time, driven by viewport scroll position. Used by: public-page MediaOrb (`PublicPageClient.tsx`), Lightbox deck (`LightboxDeck.tsx`).
+
+**Mechanism:**
+1. Single page-level IntersectionObserver triggers the callback when any element crosses a threshold.
+2. On every fire, **re-measure ALL observed elements** via `orbRefs.forEach(el => el.getBoundingClientRect())` — do NOT consume `entries` directly. `entries` only contains elements whose threshold crossed since last fire; the others are missing. Live DOM measurement is the source of truth.
+3. Pick the element whose center is closest to viewport center, gated by `MAX_CENTER_DIST` (~90% of element stride). Beyond the gate → no element active.
+4. Hysteresis: once active, an element stays active until a candidate is `HYSTERESIS_PX` (~80% of stride) closer to center. Prevents twitchy swaps on small scrolls.
+5. Last-element reachability: the scrollable container needs `paddingBottom: 50vh` (or equivalent below-content space) so the last element can be scrolled into the central band before the page bottom.
+
+**Failure mode this prevents:** consuming `entries` only sees 1-2 stale elements per fire. With a `MAX_CENTER_DIST` gate, most callback fires evaluate non-qualifying entries → deactivate. Active state flickers off constantly. Symptom: inline autoplay never sustains. Fixed in commit `7015fa4`.
+
+**Threshold rationale:** numbers are tied to row stride, not arbitrary. For a 101px row stride: `MAX_CENTER_DIST = 90` (one-row-at-a-time qualification), `HYSTERESIS_PX = 80` (must scroll ~80% of a row to dethrone). Re-tune if stride changes materially.
+
+---
+
+### §19 — iOS Safari video autoplay mount-time race (added 2026-04-30)
+
+**The bug:** `<video>` element mounts → React assigns ref → useEffect calls `v.play()`. If the effect runs before metadata loads (common on freshly-hydrated pages, slow networks, or videos without `+faststart` movflag), `v.readyState === 0` and iOS Safari rejects `play()` with `NotAllowedError`/`AbortError`. The `.catch()` sets `autoplayBlocked = true` with no recovery path. User sees tap-to-play overlay despite a perfectly playable video.
+
+**Surfaces in:**
+- Lightbox deck pages with tight hydration windows (page just mounted + immediately becoming current)
+- First-load of inline orbs on slow networks
+- Videos without `+faststart` movflag (moov atom at end of file → metadata fetch requires full download)
+
+**The fix (canonical):** retry `play()` once on `canplay` event before declaring autoplay blocked.
+
+    const tryPlay = () => {
+      v.play().catch(() => {
+        if (cancelled) return
+        if (v.readyState < 3 && !canplayHandler) {
+          canplayHandler = () => v.play().catch(() => setAutoplayBlocked(true))
+          v.addEventListener('canplay', canplayHandler, { once: true })
+        } else {
+          setAutoplayBlocked(true)
+        }
+      })
+    }
+
+**First-frame poster nudge (related):** iOS Safari renders a black box for paused `<video>` elements until `play()` runs at least once. To show the actual first frame as the paused-state visual, set `currentTime = 0.1` on `loadedmetadata`:
+
+    v.addEventListener('loadedmetadata', () => {
+      if (v.currentTime === 0) v.currentTime = 0.1
+    }, { once: true })
+
+Both patterns ship in `components/public/MediaOrb.tsx` and `components/public/DeckVideoPage.tsx`. Reference: commit `7015fa4` (orb autoplay) and the deck video play-retry fix.
+
+**Data-side prevention:** require uploaded videos to have moov-at-start (`ffmpeg -movflags +faststart`). See pre-launch checklist item 11 — currently not enforced; partner manually re-encoded two seed videos as workaround.
+
+---
+
+### §20 — Supabase SQL Editor breaks PL/pgSQL `DO $$ ... $$` blocks (added 2026-04-30)
+
+**The bug:** Supabase Dashboard's SQL Editor performs a static-analysis pass on submitted SQL to inject "helpful" RLS policies on what it thinks are newly-created tables. PL/pgSQL local variable declarations (`DECLARE divergent_count int`) are misparsed as `CREATE TABLE` statements. Mid-block, the editor injects `ALTER TABLE divergent_count ENABLE ROW LEVEL SECURITY`, breaking the dollar-quoted string and producing a syntax error.
+
+**Diagnostic signature:**
+
+    ERROR:  42601: unterminated dollar-quoted string at or near "$$
+    DECLARE
+      divergent_count int;
+    ...
+    -- Added by Supabase: enable Row Level Security on newly created tables
+    ALTER TABLE divergent_count ENABLE ROW LEVEL SECURITY;
+
+**Workarounds:**
+1. **Apply via Supabase CLI** (`supabase db push` against a migration file). CLI doesn't run the auto-RLS injection.
+2. **Apply via `psql`** directly with a connection string. Same — no static-analysis layer.
+3. **Avoid `DO $$ ... $$` blocks in Dashboard apply.** Refactor pre-flight assertions into subqueries or expression-level checks instead of PL/pgSQL imperative blocks.
+
+**For future migrations with imperative logic:** default to CLI apply, not Dashboard. The Dashboard editor is fine for plain SQL (`SELECT`, `UPDATE`, `INSERT`, even `CREATE TABLE`) but fails predictably on PL/pgSQL constructs.
+
+Discovered 2026-04-30 while applying the divergent-phone backfill migration. Migration file in repo at `supabase/migrations/20260430_backfill_auth_phone_and_phantom_cleanup.sql` was correct; the bug was Dashboard-specific.
 
 ---
 

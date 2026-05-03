@@ -1248,6 +1248,27 @@ Both columns may be NULL at the same time momentarily during signup; exactly one
 
 **Mobile internal-cluster amendment (added 2026-04-28, this commit):** On viewports ≤768px, internal-cluster pages reduce top padding from 36 → 20 (saves ~16px of unused vertical space on phone-width viewports). Carrier shapes preserved per page (Settings 24 bottom, Setup 22 horiz, Dashboard margin not padding) — only the top dimension changes on mobile. Auth (150), terminal (200), receipt (60/200/200), legal (60) clusters mobile values remain post-V1. Implementation: `amb-internal-header`, `amb-internal-header-flush`, `amb-settings-header`, `amb-dashboard-cover`, and `amb-setup-tracker` classes on `app/(ambassador)/layout.tsx` `<style>` block, single source of truth.
 
+**Public page (`/{slug}`) deviations from `public_page_final_UI_Spec.md` §4.2 (locked 2026-04-30):**
+
+| Element | Spec said | Now ships | Source of truth |
+|---|---|---|---|
+| SquadRow listing avatar | Plain 52×52 #333 circle | 72×72 with IG gradient ring (4-stop palette `#FEDA75 → #FA7E1E → #D62976 → #962FBF` at 45°, 3px outer padding + 3px `#1c1c1c` inner border, 60×60 effective photo area) | `add_listing_final.html:605-616` (single source) |
+| SquadRow play affordance | 56×56 button → opens MediaLightbox | 72×72 inline media orb with scroll-driven autoplay (single-active rule); tap escalates to swipeable deck | `components/public/MediaOrb.tsx` + `components/public/LightboxDeck.tsx` |
+| MediaLightbox shape | Single-listing modal | TikTok-style vertical-swipe deck of all listings on the page (mixed video + photo). Photos use horizontal sub-swipe through `photo_url_1..3`. Mute persists across deck session, resets on close. | `components/public/LightboxDeck.tsx` |
+| Wish rows + PublicHeader avatar | Per spec | Unchanged from spec |  |
+
+**Circle-size ladder (codified 2026-04-30):** When sizing circular UI elements, reference this ladder to prevent ad-hoc drift:
+
+| Size | Use |
+|---|---|
+| 32 | Canonical BackArrow primitive |
+| 34 | CoverCameraButton, AmbSubmitButton icon variant |
+| 56 | Mid-CTA, lightbox autoplay-blocked overlay |
+| 64 | Reserved (pre-bump avatar; available for future medium hierarchy) |
+| 72 | SquadRow avatar + media orb (current) |
+
+Future circular elements pick from this ladder. Divergence requires explicit decision at slice-opening question block.
+
 Future slices: lock layout + spacing + modal-family width upfront. Don't write pages then audit drift.
 
 ---
@@ -1273,6 +1294,8 @@ Future slices: lock layout + spacing + modal-family width upfront. Don't write p
 - Tagline shown on public page below display name
 - Anonymous gifter → display "Anonymous", hide Instagram link
 - Wall of Love → all completed gifts, newest first, no limit
+- Listing media: video listings autoplay inline as user scrolls (single-active rule, see HANDOFF §18); tap any orb opens a swipeable TikTok-style deck of all listings (mixed video + photo). Photo listings inside the deck use horizontal sub-swipe through `photo_url_1..3`.
+- Mute persists across deck session: unmute once → all subsequent videos in the same lightbox session play unmuted. Closing + reopening resets to muted (browser autoplay policy floor).
 
 ## Page 2 — Public Media Lightbox (overlay)
 **File:** `public_media_lightbox_final.html`
@@ -1886,7 +1909,7 @@ updates it as entries are added or resolved.
 
 | # | Item | Current state | Required before launch | Added in slice |
 |---|------|---------------|------------------------|----------------|
-| 1 | `authPhoneLimiter` rate limit | 20/hr (loose for testing) | Reset to 3/hr | Slice 1 |
+| 1 | `authPhoneLimiter` rate limit | 20/hr (loose for testing) | Reset to 3/hr. Confirmed staying at 3/hr per partner 2026-04-30 (matches email limiter — 3/email/hr + 10/IP/hr). | Slice 1 |
 | 2 | Cloudflare Turnstile protection | (a) `/model/auth` (OTP + magic link): non-blocking mode — `verifyTurnstile` is called but fail-open on empty token (token-loading bug, deferred). Resend path also relies on rate limits (per-email + per-IP) as the bot-protection floor — **accepted risk** (Slice 1 Phase 1 review, 2026-04-19). (b) `/api/ambassador/model/setup`: NOT IMPLEMENTED — any logged-in user can automate profile creation. | (a) Flip auth routes to blocking verification (resend bypass acceptable). (b) Add client widget + server-side `verifyTurnstile` to the setup route. | Slice 1 |
 | 3 | Dashboard week-boundary timezone | UTC (no `users.timezone` column) | Acceptable for v1. Revisit if ambassadors in UTC±8 or beyond report wrong "this week" counts | Slice 1 |
 | 4 | iOS 26 Safari browser chrome color | Shows default blue instead of #000001 (themeColor in ambassador layout). Platform-level WebKit bug in iOS 26.0/26.1 affecting all websites using theme-color meta. Code is correct. | Monitor iOS 26.2 release (expected to ship WebKit fix). If not fixed there, accept as platform limitation. | Slice 1 |
@@ -1895,6 +1918,9 @@ updates it as entries are added or resolved.
 | 7 | AUTHKey WhatsApp UTILITY template for OTP | Dev environment uses UTILITY template (shared with Slice 0 OTP send) | Confirm Meta-approved template still in good standing at launch; fallback plan documented | Slice 1.5 |
 | 8 | FK cascade `auth.users` ↔ `public.users` | Unverified. `public.users` has no FK to `auth.users`, so `DELETE FROM auth.users` does NOT cascade to `public.users` and the row is left orphaned (15+ tables FK to `public.users`, so a stale row keeps domain data alive too). Mirror direction (delete public → auth) also undefined. Discovered during Slice 1.5 Phase A smoke testing while cleaning up failed signup test rows. | Verify required cascade direction(s) and either (a) add explicit FK `public.users.id REFERENCES auth.users(id) ON DELETE CASCADE`, or (b) implement an app-level "Delete profile" route that deletes both rows transactionally. Delete-profile UX relies on this working before launch. | Slice 1.5 |
 | 9 | Phone-dedupe scalability in verify-otp | `app/api/ambassador/auth/verify-otp/route.ts` finds the existing `auth.users` row via `admin.listUsers({ page: 1, perPage: 1000 })` and filters client-side by `phone`. Works today (small user base) but silently misses users 1001+ — reintroducing the phantom-row bug that commit `f3e886e` fixed. | Replace `listUsers({ perPage: 1000 })` with a `public.find_auth_user_by_phone(phone text) RETURNS TABLE(id uuid, email text)` SECURITY DEFINER RPC (indexed lookup, O(1)) when user count exceeds 500. | Slice 1.5 |
+| 10 | ~~Divergent `auth.users.phone` for email-first users who added WhatsApp~~ | **RESOLVED 2026-04-30** (commit `74aecb6` + migration applied via SQL Editor): backfill of `auth.users.phone` from `public.users.phone_number` for divergent rows + phantom-row cleanup + verify-otp MISS-branch defensive collapse on phone_number unique violation. Pre-flight: 1 divergent row (test user). | — | Pre-launch QA |
+| 11 | Video upload pipeline: enforce `+faststart` movflag | Currently no enforcement. Slow-loading videos (moov-at-end) can race autoplay on iOS Safari. Two seed videos (lashes.mp4, facial.mp4) hit this on /yannijohnson and were re-encoded manually. Code-side mitigation shipped (canplay retry on play() rejection in `DeckVideoPage.tsx`) but the underlying encoding issue persists for future uploads. | Add `+faststart` enforcement to the Add Listing video upload path (`/api/ambassador/model/listings/route.ts`) — either reject non-faststart uploads or transcode server-side. | Pre-launch QA |
+| 12 | Supabase SQL Editor auto-RLS injection breaks `DO $$ ... $$` blocks | Discovered 2026-04-30 while applying the divergent-phone backfill migration. Supabase SQL Editor mistakes PL/pgSQL local variables for table names and auto-injects `ALTER TABLE … ENABLE ROW LEVEL SECURITY` mid-statement, breaking the DO block. | For future migrations with PL/pgSQL: apply via Supabase CLI (`supabase db push`) or `psql` directly, NOT via the dashboard SQL Editor. Or avoid DO blocks for dashboard apply (use plain SQL with subqueries instead). | Pre-launch QA |
 
 **Format for new entries:** Item name, current state with reason, what
 "resolved" looks like, and which slice added the item. Append only;
