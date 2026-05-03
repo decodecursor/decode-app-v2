@@ -1,69 +1,49 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import type { PublicListingRow } from '@/lib/public/slug-page-shape'
-import { LightboxChrome } from './LightboxChrome'
-import { LightboxVideo } from './LightboxVideo'
-import { LightboxCarousel } from './LightboxCarousel'
+import { LightboxDeck } from './LightboxDeck'
 
 /**
- * Full-screen media overlay for a single listing. Thin orchestrator —
- * owns shared state (isMuted, activeIdx) and wires together the three
- * presentational children:
- *   - LightboxVideo (video media_type)
- *   - LightboxCarousel (photos media_type, 1-3 images)
- *   - LightboxChrome (scrims, close, mute, dots, info bar — always)
+ * Full-screen swipeable lightbox deck. Hosts <LightboxDeck> which
+ * presents all active listings as vertical scroll-snap pages (TikTok
+ * style). User taps an orb on /{slug}, deck opens at that listing's
+ * page and lets them swipe up/down through the rest.
  *
- * Keyboard: Esc closes, ←/→ nav slides (photos), M toggles mute (video).
- * Body scroll is locked for the lifetime of the overlay.
+ * Single-listing lightbox flow superseded by deck. Spec deviation vs.
+ * public_page_final_UI_Spec.md §4.2 — partner-locked 2026-04-30, flagged
+ * for PROJECT_STATE Phase 7 contract update at session close.
  *
- * Spec: public_media_lightbox_final_UI_Spec.md.
- * Analytics (lightbox_opened, instagram_click) deferred to Slice 4D.
+ * Body scroll lock + Esc-to-close live here; everything else (per-page
+ * chrome, mute toggle, photo carousel, virtualization) lives in
+ * LightboxDeck and its child page components.
  */
 export function MediaLightbox({
-  listing,
+  listings,
+  initialListingId,
   onClose,
 }: {
-  listing: PublicListingRow
+  listings: PublicListingRow[]
+  initialListingId: string | null
   onClose: () => void
 }) {
-  const slides = useMemo(() => {
-    if (listing.media_type === 'video' && listing.video_url) return [listing.video_url]
-    return [listing.photo_url_1, listing.photo_url_2, listing.photo_url_3].filter(Boolean) as string[]
-  }, [listing.media_type, listing.video_url, listing.photo_url_1, listing.photo_url_2, listing.photo_url_3])
+  // Filter to listings with displayable media. Mirrors what the public-
+  // page Squad section renders. The orb that opens the deck is itself
+  // tap-only when there's media, so this filter should match what's
+  // actually visible on the page.
+  const deckListings = useMemo(() => {
+    return listings.filter((l) => {
+      if (l.media_type === 'video') return !!l.video_url
+      if (l.media_type === 'photos') return !!l.photo_url_1
+      return false
+    })
+  }, [listings])
 
-  const isVideo = listing.media_type === 'video'
-  const [isMuted, setIsMuted] = useState(true)
-  const [activeIdx, setActiveIdx] = useState(0)
-  const carouselRef = useRef<HTMLDivElement | null>(null)
-
-  const jumpSlide = useCallback((i: number) => {
-    const c = carouselRef.current
-    if (!c) return
-    c.scrollTo({ left: i * c.offsetWidth, behavior: 'smooth' })
-  }, [])
-
-  const navSlide = useCallback((dir: -1 | 1) => {
-    const c = carouselRef.current
-    if (!c) return
-    const w = c.offsetWidth
-    const cur = Math.round(c.scrollLeft / w)
-    const next = Math.max(0, Math.min(slides.length - 1, cur + dir))
-    c.scrollTo({ left: next * w, behavior: 'smooth' })
-  }, [slides.length])
-
-  const onCarouselScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const c = e.currentTarget
-    setActiveIdx(Math.round(c.scrollLeft / c.offsetWidth))
-  }, [])
-
-  // Keyboard + body-scroll lock.
+  // Body scroll lock + Esc-to-close. Deck has its own swipe gestures
+  // so the lock prevents the page below from shifting underneath.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
-      else if (e.key === 'ArrowLeft') navSlide(-1)
-      else if (e.key === 'ArrowRight') navSlide(1)
-      else if (e.key === 'm' || e.key === 'M') setIsMuted((m) => !m)
     }
     document.addEventListener('keydown', onKey)
     const prev = document.body.style.overflow
@@ -72,50 +52,24 @@ export function MediaLightbox({
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = prev
     }
-  }, [onClose, navSlide])
+  }, [onClose])
+
+  if (deckListings.length === 0) return null
 
   return (
     <div
-      onClick={onClose}
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.95)',
+        background: '#000',
         zIndex: 100,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
       }}
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          position: 'relative',
-          width: '100%',
-          maxWidth: 500,
-          height: '100%',
-          background: '#000',
-          color: '#fff',
-          overflow: 'hidden',
-        }}
-      >
-        {isVideo ? (
-          <LightboxVideo src={slides[0]} isMuted={isMuted} onUserUnmute={() => setIsMuted(false)} />
-        ) : (
-          <LightboxCarousel ref={carouselRef} slides={slides} onScroll={onCarouselScroll} />
-        )}
-
-        <LightboxChrome
-          listing={listing}
-          isVideo={isVideo}
-          isMuted={isMuted}
-          onToggleMute={() => setIsMuted((m) => !m)}
-          onClose={onClose}
-          slidesCount={slides.length}
-          activeIdx={activeIdx}
-          onJumpSlide={jumpSlide}
-        />
-      </div>
+      <LightboxDeck
+        listings={deckListings}
+        initialListingId={initialListingId}
+        onClose={onClose}
+      />
     </div>
   )
 }

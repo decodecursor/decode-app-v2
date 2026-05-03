@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PublicPageData } from '@/lib/public/slug-page-shape'
 import { PublicHeader } from './PublicHeader'
 import { SquadRow } from './SquadRow'
@@ -40,11 +40,6 @@ export default function PublicPageClient({
   const [openListingId, setOpenListingId] = useState<string | null>(null)
   const [activeOrbId, setActiveOrbId] = useState<string | null>(null)
   const orbRefs = useRef<Map<string, HTMLElement>>(new Map())
-
-  const openListing = useMemo(
-    () => data.listings.find((l) => l.id === openListingId) ?? null,
-    [data.listings, openListingId],
-  )
 
   const onOrbActivate = useCallback((id: string) => setActiveOrbId(id), [])
   const onOrbDeactivate = useCallback(() => setActiveOrbId(null), [])
@@ -199,9 +194,10 @@ export default function PublicPageClient({
 
       <PublicFooter />
 
-      {openListing && (
+      {openListingId && (
         <MediaLightbox
-          listing={openListing}
+          listings={data.listings}
+          initialListingId={openListingId}
           onClose={() => setOpenListingId(null)}
         />
       )}

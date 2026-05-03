@@ -1,0 +1,182 @@
+'use client'
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { PublicListingRow } from '@/lib/public/slug-page-shape'
+import { DeckVideoPage } from './DeckVideoPage'
+import { DeckPhotoPage } from './DeckPhotoPage'
+
+/**
+ * Vertical scroll-snap deck of listing pages. One page per listing.
+ * Native CSS scroll-snap drives the swipe — no JS gesture handlers.
+ * IntersectionObserver tracks which page is centered to drive the
+ * single-active video play/pause rule (only the focused page's video
+ * plays).
+ *
+ * Virtualization: video pages within ±1 of currentIndex render their
+ * <video> element. Distant video pages render an empty placeholder so
+ * we don't fan out to N simultaneous video metadata fetches. Photo
+ * pages render full chrome at every distance — photo bytes are cheap
+ * enough to lazy-load via <img>.
+ *
+ * Mute is shared deck-wide: state lives here. Once the user unmutes
+ * any video, every subsequent video in this deck session plays
+ * unmuted. Resets to true on next mount.
+ */
+export function LightboxDeck({
+  listings,
+  initialListingId,
+  onClose,
+}: {
+  listings: PublicListingRow[]
+  initialListingId: string | null
+  onClose: () => void
+}) {
+  const initialIndex = useMemo(() => {
+    if (!initialListingId) return 0
+    const idx = listings.findIndex((l) => l.id === initialListingId)
+    return idx >= 0 ? idx : 0
+  }, [listings, initialListingId])
+
+  const [currentIndex, setCurrentIndex] = useState(initialIndex)
+  // Shared mute state — once user unmutes, all subsequent videos in
+  // this deck session play unmuted. Resets to true on deck unmount.
+  const [isMuted, setIsMuted] = useState(true)
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const pageRefs = useRef<Map<number, HTMLElement>>(new Map())
+
+  const onToggleMute = useCallback(() => {
+    setIsMuted((m) => !m)
+  }, [])
+
+  // Land on the tapped listing's page on mount. 'instant' avoids a
+  // visible scroll animation. Without this, the deck always starts at
+  // page 0 regardless of which orb opened it.
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    el.scrollTo({ top: el.clientHeight * initialIndex, behavior: 'instant' as ScrollBehavior })
+  }, [initialIndex])
+
+  const registerPageRef = useCallback((idx: number, el: HTMLElement | null) => {
+    if (el) pageRefs.current.set(idx, el)
+    else pageRefs.current.delete(idx)
+  }, [])
+
+  // IntersectionObserver picks the page with greatest visible overlap
+  // ratio. At scroll-snap settle exactly one page has ratio ~1; during
+  // swipe animation the picker tracks which page is becoming dominant.
+  // Mirrors the public-page MediaOrb orchestrator pattern (live DOM
+  // measurement on every fire, not stale entries — see 7015fa4).
+  useEffect(() => {
+    const root = containerRef.current
+    if (!root) return
+
+    const observer = new IntersectionObserver(
+      () => {
+        let bestIdx = 0
+        let bestRatio = -1
+        const rootRect = root.getBoundingClientRect()
+        pageRefs.current.forEach((el, idx) => {
+          const rect = el.getBoundingClientRect()
+          const overlap = Math.max(
+            0,
+            Math.min(rect.bottom, rootRect.bottom) - Math.max(rect.top, rootRect.top),
+          )
+          const ratio = overlap / rootRect.height
+          if (ratio > bestRatio) {
+            bestRatio = ratio
+            bestIdx = idx
+          }
+        })
+        setCurrentIndex(bestIdx)
+      },
+      {
+        root,
+        threshold: [0, 0.25, 0.5, 0.75, 1],
+      },
+    )
+
+    pageRefs.current.forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [listings])
+
+  return (
+    <div
+      ref={containerRef}
+      className="lb-deck"
+      style={{
+        position: 'absolute',
+        inset: 0,
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        scrollSnapType: 'y mandatory',
+        scrollbarWidth: 'none',
+        WebkitOverflowScrolling: 'touch',
+        touchAction: 'pan-y',
+      }}
+    >
+      {listings.map((listing, idx) => (
+        <div
+          key={listing.id}
+          ref={(el) => registerPageRef(idx, el)}
+          style={{
+            width: '100%',
+            height: '100%',
+            scrollSnapAlign: 'start',
+            scrollSnapStop: 'always',
+            flexShrink: 0,
+            position: 'relative',
+            background: '#000',
+          }}
+        >
+          {listing.media_type === 'video' ? (
+            <DeckVideoPage
+              listing={listing}
+              isCurrent={idx === currentIndex}
+              isHydrated={Math.abs(idx - currentIndex) <= 1}
+              isMuted={isMuted}
+              onToggleMute={onToggleMute}
+              onClose={onClose}
+            />
+          ) : (
+            <DeckPhotoPage listing={listing} onClose={onClose} />
+          )}
+        </div>
+      ))}
+
+      {/* Right-edge dot column (hidden if only 1 listing). Fixed-position
+          so it stays put as the deck scrolls. Pointer-events none — purely
+          informational, no tap-to-jump. */}
+      {listings.length > 1 && (
+        <div
+          style={{
+            position: 'fixed',
+            right: 16,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6,
+            zIndex: 5,
+            pointerEvents: 'none',
+          }}
+        >
+          {listings.map((_, i) => (
+            <div
+              key={i}
+              style={{
+                width: 3,
+                height: 3,
+                borderRadius: '50%',
+                background: i === currentIndex ? '#e91e8c' : '#444',
+                transition: 'background 0.2s',
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      <style>{`.lb-deck::-webkit-scrollbar{display:none}`}</style>
+    </div>
+  )
+}

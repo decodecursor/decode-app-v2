@@ -86,10 +86,13 @@ const nextConfig: NextConfig = {
       {
         source: '/(.*)',
         headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
+          // X-Frame-Options is the legacy clickjacking control —
+          // superseded by CSP frame-ancestors below. Removed because
+          // X-Frame-Options: DENY blocked legitimate same-origin
+          // framing (UrlOverlay's preview iframe of /{slug} from the
+          // checkout page) and frame-ancestors 'self' provides the
+          // same third-party-clickjacking protection without the
+          // same-origin collateral damage.
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
@@ -102,12 +105,14 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(self), microphone=(self), geolocation=()',
           },
-          // Add CSP for additional security
+          // Add CSP for additional security. frame-ancestors 'self'
+          // replaces X-Frame-Options DENY (modern equivalent — allows
+          // same-origin framing, blocks all third-party).
           {
             key: 'Content-Security-Policy',
             value: isDevelopment
-              ? "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: *;"
-              : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.stripe.com https://maps.googleapis.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.stripe.com https://*.crossmint.com https://challenges.cloudflare.com; frame-src 'self' https://js.stripe.com https://*.stripe.com https://challenges.cloudflare.com;",
+              ? "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: *; frame-ancestors 'self';"
+              : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.stripe.com https://maps.googleapis.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.stripe.com https://*.crossmint.com https://challenges.cloudflare.com; frame-src 'self' https://js.stripe.com https://*.stripe.com https://challenges.cloudflare.com; frame-ancestors 'self';",
           },
         ],
       },
