@@ -31,6 +31,7 @@
  */
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { ExpressCheckoutElement, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 
 type Mode = 'wallet' | 'card'
@@ -81,6 +82,7 @@ export function StripeElementsForm({
 }: Props) {
   const stripe = useStripe()
   const elements = useElements()
+  const router = useRouter()
   const [mode, setMode] = useState<Mode>('wallet')
   const [walletState, setWalletState] = useState<WalletState>('unknown')
   const [error, setError] = useState<string | null>(null)
@@ -138,6 +140,17 @@ export function StripeElementsForm({
   // for the Payment Element card path. Both call stripe.confirmPayment
   // with the shared `elements` instance — Stripe routes the submit to
   // whichever surface the user engaged.
+  //
+  // redirect:'if_required' means Stripe only navigates the parent window
+  // when external auth is needed (3DS challenge, bank redirect). The
+  // common card-success and wallet-success paths return the
+  // paymentIntent to us; we navigate to the confirmation page via
+  // Next.js client-side router.push (no full-page reload, no
+  // beforeunload event fired). Pre-fix default was redirect:'always',
+  // which collided with our beforeunload guard at line 110 — every
+  // successful Pay click prompted the browser's "Leave page?" dialog
+  // because Stripe's success-redirect was a top-level navigation.
+  // HANDOFF item 45.
   const confirm = async () => {
     if (!stripe || !elements || processing) return
     setError(null)
@@ -146,11 +159,21 @@ export function StripeElementsForm({
       const result = await stripe.confirmPayment({
         elements,
         confirmParams: { return_url: buildReturnUrl(paymentIntentId, returnPathBuilder) },
+        redirect: 'if_required',
       })
       if (result.error) {
         setError(result.error.message ?? 'Payment could not be completed. Try again.')
         setProcessing(false)
+        return
       }
+      // Success path with no external auth — Stripe returned the
+      // paymentIntent; navigate ourselves via Next.js client-side
+      // router. Path-only form so router.push stays in-SPA (no full
+      // page reload, no beforeunload). Intentionally do NOT clear
+      // `processing` here — the unmount on navigation handles it,
+      // and clearing would briefly re-enable the Pay button between
+      // navigation start and unmount.
+      router.push(returnPathBuilder(paymentIntentId))
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Payment could not be completed. Try again.'
       console.error('[StripeElementsForm] confirmPayment threw:', err)
