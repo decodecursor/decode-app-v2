@@ -30,12 +30,15 @@ import {
 interface ListingMeta {
   id: string
   created_at: string
+  category_custom: string | null
+  category: { label: string } | null
   professional: { name: string } | null
 }
 
 interface WishMeta {
   id: string
   service_name: string
+  professional_name: string | null
 }
 
 export async function GET() {
@@ -79,11 +82,11 @@ export async function GET() {
       .in('status', ['completed', 'refunded', 'partial_refund'])
       .returns<WishPayment[]>(),
     admin.from('model_listings')
-      .select('id, created_at, professional:model_professionals!model_listings_professional_id_fkey(name)')
+      .select('id, created_at, category_custom, category:model_categories!model_listings_category_id_fkey(label), professional:model_professionals!model_listings_professional_id_fkey(name)')
       .eq('model_id', profileId)
       .returns<ListingMeta[]>(),
     admin.from('model_wishes')
-      .select('id, service_name')
+      .select('id, service_name, professional_name')
       .eq('model_id', profileId)
       .returns<WishMeta[]>(),
   ])
@@ -92,9 +95,20 @@ export async function GET() {
   const listingPayments = listingsPaymentsRes.data ?? []
   const wishPayments = wishPaymentsRes.data ?? []
   const listings = new Map(
-    (listingsMetaRes.data ?? []).map((l) => [l.id, { name: l.professional?.name ?? 'Unknown', created_at: l.created_at }]),
+    (listingsMetaRes.data ?? []).map((l) => [l.id, {
+      name: l.professional?.name ?? 'Unknown',
+      // Mirror the dashboard's category fallback chain (lib/checkout/checkout-shape.ts toCheckoutData):
+      // joined model_categories.label takes precedence, then category_custom freeform, then 'Other'.
+      category: l.category?.label ?? l.category_custom ?? 'Other',
+      created_at: l.created_at,
+    }]),
   )
-  const wishNames = new Map((wishesMetaRes.data ?? []).map((w) => [w.id, w.service_name]))
+  const wishes = new Map(
+    (wishesMetaRes.data ?? []).map((w) => [w.id, {
+      service_name: w.service_name,
+      professional_name: w.professional_name,
+    }]),
+  )
 
   // Compute the earliest row across the 3 in-scope tables for the
   // "All" tab lower bound. Pure in-memory MIN over the arrays already
@@ -119,7 +133,7 @@ export async function GET() {
 
   const out: Record<string, unknown> = {}
   for (const key of ['today', 'week', 'month', 'all'] as const satisfies RangeKey[]) {
-    out[key] = buildRange(key, ranges[key], events, listingPayments, wishPayments, listings, wishNames, currency)
+    out[key] = buildRange(key, ranges[key], events, listingPayments, wishPayments, listings, wishes, currency)
   }
   return NextResponse.json(out)
 }

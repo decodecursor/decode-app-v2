@@ -32,8 +32,15 @@ export interface RangeData {
     wishes_formatted: string
   }
   funnel: { visits: FunnelMetric; clicks: FunnelMetric; gifts: FunnelMetric }
-  topListings: { name: string; count: number; pct: number }[]
-  topWishes: { name: string; count: number; pct: number }[]
+  // Unified row shape across both columns; renders the dashboard
+  // cat·pro format. Field semantics by column:
+  //   listings — category = model_categories.label ?? category_custom
+  //              ?? 'Other'; name = professional name (always set)
+  //   wishes   — category = wish.service_name; name = wish
+  //              .professional_name (nullable; renderer omits the
+  //              secondary span when null)
+  topListings: { category: string; name: string | null; count: number; pct: number }[]
+  topWishes: { category: string; name: string | null; count: number; pct: number }[]
   topListing: { name: string; meta: string; amount_formatted: string } | null
   topGifter: { name: string; meta: string; amount_formatted: string } | null
 }

@@ -68,8 +68,16 @@ export interface RangePayload {
     clicks: { value: number; trend: number; direction: Direction }
     gifts: { value: number; trend: number; direction: Direction }
   }
-  topListings: { name: string; count: number; pct: number }[]
-  topWishes: { name: string; count: number; pct: number }[]
+  // Unified row shape across both columns to render the dashboard's
+  // cat·pro format pixel-for-pixel. Field semantics by column:
+  //   listings — category = model_categories.label ?? category_custom
+  //              ?? 'Other'; name = professional name (always set)
+  //   wishes   — category = wish.service_name (always set; the topic);
+  //              name = wish.professional_name (nullable; many wishes
+  //              don't name a specific professional, so the secondary
+  //              span is omitted by the renderer when null)
+  topListings: { category: string; name: string | null; count: number; pct: number }[]
+  topWishes: { category: string; name: string | null; count: number; pct: number }[]
   topListing: { name: string; meta: string; amount_formatted: string } | null
   topGifter: { name: string; meta: string; amount_formatted: string } | null
 }
@@ -210,8 +218,8 @@ export function buildRange(
   events: AnalyticsEvent[],
   listingPayments: ListingPayment[],
   wishPayments: WishPayment[],
-  listings: Map<string, { name: string; created_at: string }>,
-  wishNames: Map<string, string>,
+  listings: Map<string, { name: string; category: string; created_at: string }>,
+  wishes: Map<string, { service_name: string; professional_name: string | null }>,
   currency: string,
 ): RangePayload {
   const r = pair.current
@@ -260,6 +268,7 @@ export function buildRange(
     }
   }
   const topListings = topN(listingClickCounts, 3, (id, count, max) => ({
+    category: listings.get(id)?.category ?? 'Other',
     name: listings.get(id)?.name ?? 'Unknown',
     count,
     pct: max > 0 ? Math.round((count / max) * 100) : 0,
@@ -272,7 +281,8 @@ export function buildRange(
     }
   }
   const topWishes = topN(wishClickCounts, 3, (id, count, max) => ({
-    name: wishNames.get(id) ?? 'Unknown',
+    category: wishes.get(id)?.service_name ?? 'Unknown',
+    name: wishes.get(id)?.professional_name ?? null,
     count,
     pct: max > 0 ? Math.round((count / max) * 100) : 0,
   }))
