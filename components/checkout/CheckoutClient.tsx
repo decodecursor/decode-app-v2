@@ -54,9 +54,14 @@ export function CheckoutClient({ data, shareUrl }: Props) {
   const [overlayOpen, setOverlayOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   // Turnstile lives on the checkout page (not the modal) so the token
-  // is already warm by the time the user taps Pay.
+  // is already warm by the time the user taps Pay. Cloudflare deprecated
+  // size:'invisible' (rejected at widget render with TurnstileError);
+  // mirroring the auth-page pattern — compact widget rendered into a
+  // display:none container (line below), with appearance:'interaction-only'
+  // ensuring Cloudflare suppresses the proactive widget UI and only
+  // surfaces a popup overlay if a managed challenge is required.
   const { token: turnstileToken, containerRef: turnstileContainerRef } =
-    useTurnstile({ size: 'invisible' })
+    useTurnstile({ size: 'compact', appearance: 'interaction-only', refreshExpired: 'auto' })
 
   // Pre-warm PaymentIntent — fires once Turnstile resolves a token and
   // re-fires on package change. Tagged with cacheKey so PaymentModalShell

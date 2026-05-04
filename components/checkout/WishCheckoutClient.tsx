@@ -85,8 +85,11 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
   const [ig, setIg] = useState('')
   const [anonymous, setAnonymous] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+  // Cloudflare deprecated size:'invisible' (TurnstileError on render);
+  // compact + interaction-only matches the auth-page pattern. Container
+  // is display:none below, so no widget UI ever shows.
   const { token: turnstileToken, containerRef: turnstileContainerRef } =
-    useTurnstile({ size: 'invisible' })
+    useTurnstile({ size: 'compact', appearance: 'interaction-only', refreshExpired: 'auto' })
 
   // Validation: pay enabled if anonymous OR name >= 2 chars (mockup line 489).
   const valid = anonymous || name.trim().length >= 2

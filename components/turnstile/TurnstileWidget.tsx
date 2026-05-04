@@ -10,15 +10,22 @@
  * site — duplicates were removed in the migration commit.
  *
  * Usage:
- *   const { token, reset, containerRef } = useTurnstile({ size: 'invisible' })
+ *   const { token, reset, containerRef } = useTurnstile({
+ *     size: 'compact', appearance: 'interaction-only', refreshExpired: 'auto'
+ *   })
  *   return <div ref={containerRef} style={{ display: 'none' }} />
  *
- * The widget runs invisibly when `size: 'invisible'` (checkout pattern)
- * or invisibly-with-fallback-to-compact when `size: 'compact'` +
- * `appearance: 'interaction-only'` (auth pattern). On expired or error
- * callbacks the token is cleared automatically; on a network or PI
- * failure the consumer should call `reset()` to force a fresh token
- * before retrying.
+ * Cloudflare's valid sizes are 'compact' | 'flexible' | 'normal'. The
+ * legacy 'invisible' value was deprecated and now throws TurnstileError
+ * on render — silent token = empty state for the whole session, which
+ * masquerades as a server-side fail-open in our verifyTurnstile helper.
+ * Both checkout flows + both auth flows now share the compact +
+ * interaction-only pattern: Cloudflare suppresses the proactive widget
+ * UI and surfaces a popup overlay only when a managed challenge is
+ * required. Container display:none on the checkout sites is an
+ * additional belt-and-suspenders hide. On expired/error callbacks the
+ * token is cleared automatically; on a network or PI failure the
+ * consumer should call `reset()` to force a fresh token before retrying.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -38,7 +45,7 @@ declare global {
 const SCRIPT_URL = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
 
 export interface UseTurnstileOptions {
-  size?: 'invisible' | 'compact' | 'normal'
+  size?: 'compact' | 'flexible' | 'normal'
   appearance?: 'interaction-only' | 'always' | 'execute'
   refreshExpired?: 'auto' | 'manual' | 'never'
 }
