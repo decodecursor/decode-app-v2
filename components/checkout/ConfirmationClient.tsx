@@ -172,7 +172,7 @@ function ReceiptView({ receipt }: { receipt: Receipt }) {
           value={formatCurrencyText('amount-with-code', receipt.currency, receipt.amount, { decimals: 'flex-0-2' })}
           sub={presentmentSubtitle}
         />
-        <ReceiptRow label="Date" value={formatDate(receipt.paid_at)} />
+        <ReceiptRow label="Purchase Date" value={formatDate(receipt.paid_at)} />
         <ReceiptRow label="Reference" value={receipt.reference} />
         {receipt.is_refunded && receipt.refund_amount != null && receipt.refunded_at && (
           <ReceiptRow
