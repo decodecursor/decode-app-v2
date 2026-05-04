@@ -173,14 +173,13 @@ export function CheckoutClient({ data, shareUrl }: Props) {
           />
         </div>
 
-        {/* Header — absolutely positioned inside the cover, anchored to
+        {/* Name — absolutely positioned inside the cover, anchored to
             bottom with 24px breathing room. Mirrors PublicHeader's
-            overlay rhythm (PublicHeader.tsx:101-110). Cluster footprint
-            ~58-79px (depending on tagline wrap) sits at y=98-119 from
-            top of the 180px cover, well clear of the top-chrome cluster
-            at y=[12, 44]. Color set explicitly on name to avoid relying
-            on inheritance from <main> through the absolutely-positioned
-            child. */}
+            overlay rhythm (PublicHeader.tsx:101-110). Single line of
+            ~29px sits at y=127 from top of the 180px cover, well clear
+            of the top-chrome cluster at y=[12, 44]. Color set
+            explicitly on the name (not inherited) since the absolutely-
+            positioned child sits over a dark cover gradient. */}
         <div style={{
           position: 'absolute',
           bottom: 24,
@@ -190,22 +189,33 @@ export function CheckoutClient({ data, shareUrl }: Props) {
           textAlign: 'center',
           zIndex: 2,
         }}>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#fff', letterSpacing: '-0.3px', marginBottom: 8 }}>{ambassadorName}</div>
-          {/* Action-oriented headline targeting the professional viewing
-              this checkout — replaces the ambassador's personal tagline
-              (which still shows on her public /{slug} page where the
-              audience is gifters/visitors, not professionals). */}
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#ccc', lineHeight: 1.4, maxWidth: 320, margin: '0 auto' }}>
-            Get listed in {data.ambassador.first_name}&rsquo;s Beauty Squad
-          </div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#fff', letterSpacing: '-0.3px' }}>{ambassadorName}</div>
+        </div>
+      </div>
+
+      {/* Tagline — sits in the black band between cover and divider
+          in normal flow (split out of the cover overlay so the cover
+          shows the name only, mirroring the public profile's name
+          treatment). Action-oriented headline targeting the
+          professional viewing this checkout — replaces the
+          ambassador's personal tagline (which still shows on her
+          public /{slug} page where the audience is gifters/visitors,
+          not professionals). */}
+      <div style={{ padding: '20px 20px 0', textAlign: 'center' }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: '#ccc', lineHeight: 1.4, maxWidth: 320, margin: '0 auto' }}>
+          Secure Your Spot in {data.ambassador.first_name}&rsquo;s Beauty Squad
         </div>
       </div>
 
       {/* Divider */}
       <div style={{ height: 1, background: '#1f1f1f', margin: '32px 20px' }} />
 
-      {/* "Your details" read-only card */}
-      <div style={{ padding: '0 20px', marginBottom: 28 }}>
+      {/* "Your details" read-only card.
+          marginBottom 32 (not 28) so the gap from this card's bottom
+          to the CHOOSE YOUR PACKAGE eyebrow matches the gap from the
+          divider to the YOUR DETAILS eyebrow (also 32px from divider
+          margin). Equalized eyebrow rhythm across both sections. */}
+      <div style={{ padding: '0 20px', marginBottom: 32 }}>
         <div style={{ fontSize: 10, letterSpacing: 1, color: '#777', fontWeight: 600, marginBottom: 10 }}>YOUR DETAILS</div>
         <div style={{ background: '#1c1c1c', border: '1px solid #262626', borderRadius: 12, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <DetailRow label="Name" value={data.professional.name} />
