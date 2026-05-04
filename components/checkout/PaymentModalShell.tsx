@@ -72,6 +72,15 @@ interface Props {
   // to /wish/taken). Receives the parsed body + HTTP status. Defaults
   // to undefined → shell behavior unchanged for listings.
   onPiCreateError?: (body: unknown, status: number) => void
+
+  // Optional pre-warmed PaymentIntent passed in by the parent.
+  // When provided AND its `cacheKey` matches the modal's own derived
+  // cacheKey (packageDays for listings, JSON-hashed bodyExtras
+  // otherwise), the shell skips its own mount-time PI-create and
+  // jumps straight to <Elements> — eliminating the 250-800ms PI-create
+  // wait from the click→Stripe-Elements path. Mismatched or absent
+  // intent → existing behavior (own POST on mount).
+  prewarmedIntent?: { clientSecret: string; paymentIntentId: string; cacheKey: string } | null
 }
 
 type PIState =
@@ -95,6 +104,7 @@ export function PaymentModal({
   chips,
   bodyExtras,
   onPiCreateError,
+  prewarmedIntent,
 }: Props) {
   // Stable ref to the latest onPiCreateError so the PI-create effect can
   // call it without depending on (and re-firing for) a fresh callback
@@ -125,6 +135,22 @@ export function PaymentModal({
 
   useEffect(() => {
     if (!isOpen) return
+    // Pre-warm fast path — parent fired the PI-create POST during
+    // page idle. If its cacheKey matches ours (same package), jump
+    // straight to ready and skip the mount-time POST. Mismatched
+    // package (user changed selection while pre-warm was for the
+    // old one) falls through to the local cache + fresh POST below;
+    // Stripe idempotency on (listing_id, package_days) means the
+    // server returns the same PI even if the parent's pre-warm and
+    // the modal's own POST race for the new package.
+    if (prewarmedIntent && prewarmedIntent.cacheKey === cacheKey) {
+      setPi({
+        status: 'ready',
+        clientSecret: prewarmedIntent.clientSecret,
+        paymentIntentId: prewarmedIntent.paymentIntentId,
+      })
+      return
+    }
     const cached = piCache.current.get(cacheKey)
     if (cached) {
       setPi({ status: 'ready', ...cached })
@@ -172,7 +198,7 @@ export function PaymentModal({
         setPi({ status: 'error', message: err?.message ?? 'Could not start payment' })
       })
     return () => { cancelled = true }
-  }, [isOpen, cacheKey, token, endpointPath, packageDays, bodyExtras])
+  }, [isOpen, cacheKey, token, endpointPath, packageDays, bodyExtras, prewarmedIntent])
 
   // H1: memoize Elements options against pi.clientSecret so a parent
   // re-render (e.g. turnstileToken state churn upstream) doesn't pass

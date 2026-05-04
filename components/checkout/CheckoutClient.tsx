@@ -12,7 +12,7 @@
  * is a cleaner variant without the share affordance.
  */
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import type { CheckoutData, PackageDays } from '@/lib/checkout/checkout-shape'
 import { ambassadorDisplayName } from '@/lib/checkout/checkout-shape'
@@ -57,6 +57,64 @@ export function CheckoutClient({ data, shareUrl }: Props) {
   // is already warm by the time the user taps Pay.
   const { token: turnstileToken, containerRef: turnstileContainerRef } =
     useTurnstile({ size: 'invisible' })
+
+  // Pre-warm PaymentIntent — fires once Turnstile resolves a token and
+  // re-fires on package change. Tagged with cacheKey so PaymentModalShell
+  // can match against its own cacheKey and skip the modal-open POST.
+  // Stripe idempotency on (listing_id, package_days) means re-firing for
+  // the same package (e.g. on Turnstile token refresh after ~5 min)
+  // returns the same PI — no duplicate Stripe charges, no fee leak.
+  const [prewarmedIntent, setPrewarmedIntent] = useState<
+    { clientSecret: string; paymentIntentId: string; cacheKey: string } | null
+  >(null)
+  // Clear stale intent the moment the user switches package, before the
+  // re-warm POST resolves. Prevents the modal from opening on a stale
+  // PI for the previous package during the brief re-warm window.
+  const lastPackageRef = useRef<PackageDays>(selected)
+  if (lastPackageRef.current !== selected && prewarmedIntent && prewarmedIntent.cacheKey !== String(selected)) {
+    // Clearing during render is the documented React pattern for
+    // derived state that must reset synchronously on a prop/state
+    // change (avoids one render with the stale value visible).
+    setPrewarmedIntent(null)
+    lastPackageRef.current = selected
+  }
+  useEffect(() => {
+    if (!turnstileToken) return
+    const cacheKey = String(selected)
+    const controller = new AbortController()
+    fetch('/api/checkout/listing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: data.payment_link_token,
+        package_days: selected,
+        turnstileToken,
+      }),
+      signal: controller.signal,
+    })
+      .then(async (res) => {
+        const body = await res.json().catch(() => ({}))
+        if (!res.ok || !body?.client_secret || !body?.payment_intent_id) {
+          throw new Error(body?.message ?? body?.error ?? `prewarm_failed_${res.status}`)
+        }
+        return body as { client_secret: string; payment_intent_id: string }
+      })
+      .then((body) => {
+        if (controller.signal.aborted) return
+        setPrewarmedIntent({
+          clientSecret: body.client_secret,
+          paymentIntentId: body.payment_intent_id,
+          cacheKey,
+        })
+      })
+      .catch((err) => {
+        if (err?.name === 'AbortError') return
+        // Pre-warm is best-effort. On failure, the modal's own
+        // PI-create on click is the fallback — same UX as today.
+        console.warn('[CheckoutClient] PI pre-warm failed:', err)
+      })
+    return () => controller.abort()
+  }, [turnstileToken, selected, data.payment_link_token])
 
   // Listings chip array — memoized on `selected` so the array reference
   // is stable across renders that don't change the package.
@@ -289,6 +347,7 @@ export function CheckoutClient({ data, shareUrl }: Props) {
         returnPathBuilder={(pi) => `/listing/confirmation/${pi}`}
         chips={listingsChips}
         bodyExtras={LISTINGS_EMPTY_EXTRAS}
+        prewarmedIntent={prewarmedIntent}
       />
 
       {/* Hidden Turnstile widget. Renders invisibly; token callback sets

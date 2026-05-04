@@ -44,8 +44,15 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="format-detection" content="telephone=no" />
-        {/* Preconnect to Stripe for faster SDK loading */}
+        {/* Preconnect to Stripe for faster SDK loading. Two variants —
+            unkeyed for the js.stripe.com script + iframe (no credentials),
+            crossOrigin="anonymous" for the credentialed XHRs Stripe Elements
+            fires to m.stripe.com / r.stripe.com (metrics + risk). Browsers
+            maintain separate connection pools per credential mode, so both
+            entries are needed for full reuse. Same dual-preconnect pattern
+            as the Google Fonts pair below. */}
         <link rel="preconnect" href="https://js.stripe.com" />
+        <link rel="preconnect" href="https://js.stripe.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://js.stripe.com" />
         {/* Inter font (legacy auctions/payment surfaces). Moved here
             from globals.css @import (Slice 7C 750ms render-blocking

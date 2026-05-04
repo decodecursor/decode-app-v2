@@ -98,10 +98,21 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Turnstile — fail-open on empty token per helper (widget didn't load).
-  // On genuine failure (Cloudflare says "not a human"), reject with 403.
+  // Turnstile verify + listing lookup are independent (Turnstile is a
+  // Cloudflare HTTP call, listing lookup is Supabase). Run in parallel
+  // to save 130-450ms on the cold path. Error-path order preserved
+  // (Turnstile 403 wins over not-found 404 if both fail).
   const turnstileStr = typeof turnstileToken === 'string' ? turnstileToken : ''
-  const isHuman = await verifyTurnstile(turnstileStr)
+  const admin = createServiceRoleClient()
+  const [isHuman, listingRes] = await Promise.all([
+    verifyTurnstile(turnstileStr),
+    admin
+      .from('model_listings')
+      .select('id, model_id, price_30, price_60, price_90, currency')
+      .eq('payment_link_token', token)
+      .maybeSingle<ListingRow>(),
+  ])
+
   if (!isHuman) {
     return NextResponse.json(
       { error: 'turnstile_failed', message: 'Verification failed. Please reload the page and try again.' },
@@ -109,18 +120,11 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const admin = createServiceRoleClient()
-
-  const { data: listing, error: lookupErr } = await admin
-    .from('model_listings')
-    .select('id, model_id, price_30, price_60, price_90, currency')
-    .eq('payment_link_token', token)
-    .maybeSingle<ListingRow>()
-
-  if (lookupErr) {
-    console.error('[Checkout] Listing lookup failed:', lookupErr)
+  if (listingRes.error) {
+    console.error('[Checkout] Listing lookup failed:', listingRes.error)
     return NextResponse.json({ error: 'lookup_failed' }, { status: 500 })
   }
+  const listing = listingRes.data
   if (!listing) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 })
   }
