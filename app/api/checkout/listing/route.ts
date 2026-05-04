@@ -151,7 +151,14 @@ export async function POST(request: NextRequest) {
         },
       },
       {
-        idempotencyKey: `listing_${listing.id}_${package_days}`,
+        // amountMinorUnits in the key so a price edit during a
+        // visitor's open session creates a fresh PI (the visitor
+        // pays whatever amount their pre-warm fired with) instead
+        // of colliding with the cached PI for the old amount —
+        // Stripe rejects same-key + different-params with HTTP 400.
+        // Stale-OK price UX per HANDOFF item 44 (industry norm:
+        // Stripe Checkout / Booking / Airbnb).
+        idempotencyKey: `listing_${listing.id}_${package_days}_${amountMinorUnits}`,
       },
     )
 
