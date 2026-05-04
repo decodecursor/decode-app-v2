@@ -172,17 +172,32 @@ export function CheckoutClient({ data, shareUrl }: Props) {
             text={shareMessage}
           />
         </div>
-      </div>
 
-      {/* Header (overlaps cover) */}
-      <div style={{ padding: '0 20px', marginTop: -40, position: 'relative', textAlign: 'center' }}>
-        <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.3px', marginBottom: 8 }}>{ambassadorName}</div>
-        {/* Action-oriented headline targeting the professional viewing
-            this checkout — replaces the ambassador's personal tagline
-            (which still shows on her public /{slug} page where the
-            audience is gifters/visitors, not professionals). */}
-        <div style={{ fontSize: 15, fontWeight: 600, color: '#ccc', lineHeight: 1.4, maxWidth: 320, margin: '0 auto' }}>
-          Get listed in {data.ambassador.first_name}&rsquo;s Beauty Squad
+        {/* Header — absolutely positioned inside the cover, anchored to
+            bottom with 24px breathing room. Mirrors PublicHeader's
+            overlay rhythm (PublicHeader.tsx:101-110). Cluster footprint
+            ~58-79px (depending on tagline wrap) sits at y=98-119 from
+            top of the 180px cover, well clear of the top-chrome cluster
+            at y=[12, 44]. Color set explicitly on name to avoid relying
+            on inheritance from <main> through the absolutely-positioned
+            child. */}
+        <div style={{
+          position: 'absolute',
+          bottom: 24,
+          left: 0,
+          right: 0,
+          padding: '0 20px',
+          textAlign: 'center',
+          zIndex: 2,
+        }}>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#fff', letterSpacing: '-0.3px', marginBottom: 8 }}>{ambassadorName}</div>
+          {/* Action-oriented headline targeting the professional viewing
+              this checkout — replaces the ambassador's personal tagline
+              (which still shows on her public /{slug} page where the
+              audience is gifters/visitors, not professionals). */}
+          <div style={{ fontSize: 15, fontWeight: 600, color: '#ccc', lineHeight: 1.4, maxWidth: 320, margin: '0 auto' }}>
+            Get listed in {data.ambassador.first_name}&rsquo;s Beauty Squad
+          </div>
         </div>
       </div>
 
