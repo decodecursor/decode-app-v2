@@ -33,8 +33,8 @@ export default function ClicksColumns({ data, range }: { data: RangeData; range:
   return (
     <div style={{ borderBottom: '1px solid #1f1f1f' }}>
       <div style={{ padding: '18px 0', display: 'flex', gap: '20px' }}>
-        <Column title="Top listings by clicks" rows={data.topListings} range={range} />
-        <Column title="Top wishes by clicks" rows={data.topWishes} range={range} />
+        <Column title="Top listings by clicks" rows={data.topListings} range={range} barFill="#e91e8c" />
+        <Column title="Top wishes by clicks" rows={data.topWishes} range={range} barFill="#34d399" />
       </div>
       <div style={{ padding: '18px 0', display: 'flex', gap: '20px', borderTop: '1px solid #1f1f1f' }}>
         <TopBlock label="#1 listing" topRow={data.topListing} emptyText="No listings yet" />
@@ -44,10 +44,11 @@ export default function ClicksColumns({ data, range }: { data: RangeData; range:
   )
 }
 
-function Column({ title, rows, range }: {
+function Column({ title, rows, range, barFill }: {
   title: string
   rows: { category: string; name: string | null; count: number; pct: number }[]
   range: RangeKey
+  barFill: string
 }) {
   return (
     <div style={{ flex: 1, minWidth: 0 }}>
@@ -57,7 +58,7 @@ function Column({ title, rows, range }: {
       {rows.length === 0 ? (
         <div style={{ fontSize: '11px', color: '#444' }}>No clicks yet</div>
       ) : (
-        rows.map((r, i) => <Row key={`${range}-${i}-${r.category}-${r.name ?? ''}`} row={r} />)
+        rows.map((r, i) => <Row key={`${range}-${i}-${r.category}-${r.name ?? ''}`} row={r} barFill={barFill} />)
       )}
     </div>
   )
@@ -88,8 +89,9 @@ function TopBlock({ label, topRow, emptyText }: {
   )
 }
 
-function Row({ row }: {
+function Row({ row, barFill }: {
   row: { category: string; name: string | null; count: number; pct: number }
+  barFill: string
 }) {
   // `name` is nullable for wishes that have no professional attached;
   // when absent we render just the primary label (no dot, no
@@ -154,7 +156,7 @@ function Row({ row }: {
           parent Column key includes range, forcing a fresh mount. */}
       <div style={{
         height: '2px',
-        backgroundImage: 'linear-gradient(#e91e8c,#e91e8c),linear-gradient(#3a3a3a,#3a3a3a)',
+        backgroundImage: `linear-gradient(${barFill},${barFill}),linear-gradient(#3a3a3a,#3a3a3a)`,
         backgroundRepeat: 'no-repeat',
         backgroundSize: barSize,
         transition: 'background-size 1500ms cubic-bezier(.2,.7,.2,1)',
