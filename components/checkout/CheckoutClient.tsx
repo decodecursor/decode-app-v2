@@ -19,7 +19,6 @@ import { ambassadorDisplayName } from '@/lib/checkout/checkout-shape'
 import { formatCurrencyText } from '@/lib/ambassador/currency-format'
 import { PackagePicker } from './PackagePicker'
 import { UrlOverlay } from './UrlOverlay'
-import { useTurnstile } from '@/components/turnstile/TurnstileWidget'
 import { ShareButton } from '@/components/public/ShareButton'
 
 // Slice 7C bundle remediation A: PaymentModal (and its Stripe.js +
@@ -53,22 +52,15 @@ export function CheckoutClient({ data, shareUrl }: Props) {
   const [selected, setSelected] = useState<PackageDays>(defaultPkg)
   const [overlayOpen, setOverlayOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
-  // Turnstile lives on the checkout page (not the modal) so the token
-  // is already warm by the time the user taps Pay. Cloudflare deprecated
-  // size:'invisible' (rejected at widget render with TurnstileError);
-  // mirroring the auth-page pattern — compact widget rendered into a
-  // display:none container (line below), with appearance:'interaction-only'
-  // ensuring Cloudflare suppresses the proactive widget UI and only
-  // surfaces a popup overlay if a managed challenge is required.
-  const { token: turnstileToken, containerRef: turnstileContainerRef } =
-    useTurnstile({ size: 'compact', appearance: 'interaction-only', refreshExpired: 'auto' })
 
-  // Pre-warm PaymentIntent — fires once Turnstile resolves a token and
-  // re-fires on package change. Tagged with cacheKey so PaymentModalShell
-  // can match against its own cacheKey and skip the modal-open POST.
-  // Stripe idempotency on (listing_id, package_days) means re-firing for
-  // the same package (e.g. on Turnstile token refresh after ~5 min)
-  // returns the same PI — no duplicate Stripe charges, no fee leak.
+  // Pre-warm PaymentIntent on mount + on package change. Tagged with
+  // cacheKey so PaymentModalShell can match against its own cacheKey and
+  // skip the modal-open POST. Stripe idempotency on (listing_id,
+  // package_days) means re-firing for the same package returns the same
+  // PI — no duplicate Stripe charges, no fee leak. Bot protection at
+  // this endpoint is provided by Upstash rate-limit (3/10min/IP) +
+  // Stripe Radar + idempotency key, NOT Turnstile (dropped from
+  // /api/checkout/* per Option D split — see HANDOFF item 43).
   const [prewarmedIntent, setPrewarmedIntent] = useState<
     { clientSecret: string; paymentIntentId: string; cacheKey: string } | null
   >(null)
@@ -84,7 +76,6 @@ export function CheckoutClient({ data, shareUrl }: Props) {
     lastPackageRef.current = selected
   }
   useEffect(() => {
-    if (!turnstileToken) return
     const cacheKey = String(selected)
     const controller = new AbortController()
     fetch('/api/checkout/listing', {
@@ -93,7 +84,6 @@ export function CheckoutClient({ data, shareUrl }: Props) {
       body: JSON.stringify({
         token: data.payment_link_token,
         package_days: selected,
-        turnstileToken,
       }),
       signal: controller.signal,
     })
@@ -119,7 +109,7 @@ export function CheckoutClient({ data, shareUrl }: Props) {
         console.warn('[CheckoutClient] PI pre-warm failed:', err)
       })
     return () => controller.abort()
-  }, [turnstileToken, selected, data.payment_link_token])
+  }, [selected, data.payment_link_token])
 
   // Listings chip array — memoized on `selected` so the array reference
   // is stable across renders that don't change the package.
@@ -346,7 +336,6 @@ export function CheckoutClient({ data, shareUrl }: Props) {
         packageDays={selected}
         amount={selectedPkg.total}
         currency={data.currency}
-        turnstileToken={turnstileToken}
         onClose={() => setModalOpen(false)}
         endpointPath="/api/checkout/listing"
         returnPathBuilder={(pi) => `/listing/confirmation/${pi}`}
@@ -354,12 +343,6 @@ export function CheckoutClient({ data, shareUrl }: Props) {
         bodyExtras={LISTINGS_EMPTY_EXTRAS}
         prewarmedIntent={prewarmedIntent}
       />
-
-      {/* Hidden Turnstile widget. Renders invisibly; token callback sets
-          state via the useTurnstile hook, which flows into the PI create
-          body when the user taps Pay. Container must exist on mount —
-          the hook captures the ref and calls turnstile.render on it. */}
-      <div ref={turnstileContainerRef} style={{ display: 'none' }} />
       </div>
     </main>
   )

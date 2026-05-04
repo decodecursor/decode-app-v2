@@ -4,28 +4,28 @@
  * Cloudflare Turnstile widget hook (Slice 5B-1, hardening item 22).
  *
  * Consolidates the script-load + widget-render + token-callback pattern
- * that two consumers (auth page + checkout client) were inlining
- * identically. Each consumer also declaration-merged the same
- * Window.turnstile interface; this file is now the single declaration
- * site — duplicates were removed in the migration commit.
+ * across auth-page consumers. Single declaration site for the
+ * Window.turnstile interface; each consumer used to inline the same
+ * pattern + duplicate the type.
  *
- * Usage:
+ * Usage (current consumers — both auth pages):
  *   const { token, reset, containerRef } = useTurnstile({
- *     size: 'compact', appearance: 'interaction-only', refreshExpired: 'auto'
+ *     size: 'compact', refreshExpired: 'auto'
  *   })
- *   return <div ref={containerRef} style={{ display: 'none' }} />
+ *   return <div ref={containerRef} style={{ display: 'flex', justifyContent: 'center' }} />
  *
  * Cloudflare's valid sizes are 'compact' | 'flexible' | 'normal'. The
- * legacy 'invisible' value was deprecated and now throws TurnstileError
- * on render — silent token = empty state for the whole session, which
- * masquerades as a server-side fail-open in our verifyTurnstile helper.
- * Both checkout flows + both auth flows now share the compact +
- * interaction-only pattern: Cloudflare suppresses the proactive widget
- * UI and surfaces a popup overlay only when a managed challenge is
- * required. Container display:none on the checkout sites is an
- * additional belt-and-suspenders hide. On expired/error callbacks the
- * token is cleared automatically; on a network or PI failure the
- * consumer should call `reset()` to force a fresh token before retrying.
+ * legacy 'invisible' value was deprecated. The widget renders visibly
+ * (compact = 150×140 with checkbox + Cloudflare wordmark) just above
+ * the auth page's submit button — see HANDOFF item 43 for the rationale
+ * (Turnstile dropped from /api/checkout/* in favor of rate-limit +
+ * Stripe Radar; auth pages keep visible Turnstile because credential
+ * stuffing + SMS-pump-fraud are real targets and the captcha-on-login
+ * UX is industry standard). Earlier interaction-only + display:none
+ * pattern deadlocked when Cloudflare's risk model wanted interaction.
+ * On expired/error callbacks the token is cleared automatically; on
+ * a network failure the consumer should call `reset()` to force a
+ * fresh token before retrying.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'

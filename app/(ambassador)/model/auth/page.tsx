@@ -26,7 +26,6 @@ export default function AmbassadorAuthPage() {
     containerRef: turnstileContainerRef,
   } = useTurnstile({
     size: 'compact',
-    appearance: 'interaction-only',
     refreshExpired: 'auto',
   })
 
@@ -171,6 +170,11 @@ export default function AmbassadorAuthPage() {
             />
           </div>
 
+          {/* Turnstile (compact, visible). Sits just above the submit
+              button so the verification flow reads top-to-bottom for
+              the user. */}
+          <div ref={turnstileContainerRef} style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }} />
+
           {/* WhatsApp button */}
           <AmbSubmitButton
             verb="send"
@@ -240,8 +244,6 @@ export default function AmbassadorAuthPage() {
           {toast.msg}
         </div>
       )}
-
-      <div ref={turnstileContainerRef} style={{ display: 'none' }} />
 
       <style>{`
         @keyframes drawLine { from { transform: scaleX(0); } to { transform: scaleX(1); } }

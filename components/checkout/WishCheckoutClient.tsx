@@ -20,7 +20,6 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { formatCurrencyText } from '@/lib/ambassador/currency-format'
 import { formatLocation } from '@/lib/format-location'
-import { useTurnstile } from '@/components/turnstile/TurnstileWidget'
 
 // Slice 7C bundle remediation A: PaymentModal (and its Stripe.js +
 // @stripe/react-stripe-js dependency tree) is dynamic-imported so the
@@ -85,11 +84,9 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
   const [ig, setIg] = useState('')
   const [anonymous, setAnonymous] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
-  // Cloudflare deprecated size:'invisible' (TurnstileError on render);
-  // compact + interaction-only matches the auth-page pattern. Container
-  // is display:none below, so no widget UI ever shows.
-  const { token: turnstileToken, containerRef: turnstileContainerRef } =
-    useTurnstile({ size: 'compact', appearance: 'interaction-only', refreshExpired: 'auto' })
+  // Bot protection on /api/checkout/wish: Upstash rate-limit
+  // (3/10min/IP) + Stripe Radar + claim-RPC race-free atomic lock.
+  // Turnstile dropped per Option D split (HANDOFF item 43).
 
   // Validation: pay enabled if anonymous OR name >= 2 chars (mockup line 489).
   const valid = anonymous || name.trim().length >= 2
@@ -313,9 +310,6 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
             Pay {amountLabel}
           </button>
         </div>
-
-        {/* Hidden Turnstile widget. Same pattern as listings checkout. */}
-        <div ref={turnstileContainerRef} style={{ display: 'none' }} />
       </div>
 
       <PaymentModal
@@ -323,7 +317,6 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
         token={wish.payment_link_token}
         amount={wish.price}
         currency={wish.currency}
-        turnstileToken={turnstileToken}
         onClose={() => setModalOpen(false)}
         endpointPath="/api/checkout/wish"
         returnPathBuilder={(pi) => `/wish/confirmation/${pi}`}

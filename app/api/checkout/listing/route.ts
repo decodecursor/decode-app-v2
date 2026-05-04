@@ -4,7 +4,6 @@ import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { isSupportedCurrency } from '@/lib/ambassador/currencies'
 import { toStripeAmount } from '@/lib/ambassador/utils'
 import { checkoutLimiter } from '@/lib/ambassador/rate-limit'
-import { verifyTurnstile } from '@/lib/ambassador/turnstile'
 import { getClientIp } from '@/lib/server/ip'
 
 /**
@@ -13,19 +12,19 @@ import { getClientIp } from '@/lib/server/ip'
  * Creates a Stripe PaymentIntent for a listing payment. Called from the
  * client-side checkout modal once the professional picks a package.
  *
- * Body: { token: string(8), package_days: 30 | 60 | 90, turnstileToken: string }
+ * Body: { token: string(8), package_days: 30 | 60 | 90 }
  *
  * Gating order (cheap → expensive):
  *   1. Body shape (token + package_days format) — synchronous, no I/O
  *   2. Upstash rate-limit by IP (checkoutLimiter: 3/10min) — single Redis call
- *   3. Turnstile verification — network call to Cloudflare siteverify
- *   4. DB listing lookup — service-role Supabase
- *   5. Stripe PaymentIntent create
+ *   3. DB listing lookup — service-role Supabase
+ *   4. Stripe PaymentIntent create
  *
- * Rate-limit before Turnstile so a flooder can't burn through our
- * Cloudflare siteverify budget. Turnstile verify is fail-open on empty
- * token by design (widget didn't load — real users shouldn't be
- * blocked by Cloudflare script failures) per lib/ambassador/turnstile.
+ * Bot defense stack (HANDOFF item 43, 2026-05-04 — Turnstile dropped
+ * from /api/checkout/* per Option D split): rate-limit (3/10min/IP)
+ * + (listing_id, package_days) idempotency at Stripe + Stripe Radar's
+ * automatic ML-based card-testing detection on confirm. The actual
+ * money gate is Stripe Radar + 3DS at confirm time, not PI-create.
  *
  * The token + package_days are the only client inputs we trust. Amount
  * is derived server-side from model_listings.price_{days} — NEVER from
@@ -57,7 +56,6 @@ function getStripe(): Stripe {
 type CheckoutRequest = {
   token?: unknown
   package_days?: unknown
-  turnstileToken?: unknown
 }
 
 type ListingRow = {
@@ -77,7 +75,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 })
   }
 
-  const { token, package_days, turnstileToken } = body
+  const { token, package_days } = body
   if (typeof token !== 'string' || token.length !== 8) {
     return NextResponse.json({ error: 'invalid_token' }, { status: 400 })
   }
@@ -85,9 +83,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'invalid_package' }, { status: 400 })
   }
 
-  // Rate-limit BEFORE Turnstile verify so flooders can't drain the
-  // Cloudflare siteverify budget. 3 attempts per IP per 10 minutes —
-  // covers retry-after-decline but blocks bot enumeration.
+  // Rate-limit by IP — first-line bot defense. 3 attempts per IP per
+  // 10 minutes covers retry-after-decline but blocks bot enumeration.
+  // Combined with (listing_id, package_days) idempotency on Stripe and
+  // Stripe Radar's automatic card-testing detection, this is the full
+  // defense stack for the PI-create endpoint per HANDOFF item 43
+  // (Turnstile dropped Option D split, 2026-05-04).
   const ip = getClientIp(request)
   const { success: rlOk, reset } = await checkoutLimiter.limit(ip)
   if (!rlOk) {
@@ -98,33 +99,17 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Turnstile verify + listing lookup are independent (Turnstile is a
-  // Cloudflare HTTP call, listing lookup is Supabase). Run in parallel
-  // to save 130-450ms on the cold path. Error-path order preserved
-  // (Turnstile 403 wins over not-found 404 if both fail).
-  const turnstileStr = typeof turnstileToken === 'string' ? turnstileToken : ''
   const admin = createServiceRoleClient()
-  const [isHuman, listingRes] = await Promise.all([
-    verifyTurnstile(turnstileStr),
-    admin
-      .from('model_listings')
-      .select('id, model_id, price_30, price_60, price_90, currency')
-      .eq('payment_link_token', token)
-      .maybeSingle<ListingRow>(),
-  ])
+  const { data: listing, error: lookupErr } = await admin
+    .from('model_listings')
+    .select('id, model_id, price_30, price_60, price_90, currency')
+    .eq('payment_link_token', token)
+    .maybeSingle<ListingRow>()
 
-  if (!isHuman) {
-    return NextResponse.json(
-      { error: 'turnstile_failed', message: 'Verification failed. Please reload the page and try again.' },
-      { status: 403 },
-    )
-  }
-
-  if (listingRes.error) {
-    console.error('[Checkout] Listing lookup failed:', listingRes.error)
+  if (lookupErr) {
+    console.error('[Checkout] Listing lookup failed:', lookupErr)
     return NextResponse.json({ error: 'lookup_failed' }, { status: 500 })
   }
-  const listing = listingRes.data
   if (!listing) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 })
   }

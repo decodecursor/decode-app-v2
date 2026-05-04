@@ -4,7 +4,6 @@ import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { isSupportedCurrency } from '@/lib/ambassador/currencies'
 import { toStripeAmount } from '@/lib/ambassador/utils'
 import { checkoutLimiter } from '@/lib/ambassador/rate-limit'
-import { verifyTurnstile } from '@/lib/ambassador/turnstile'
 import { getClientIp } from '@/lib/server/ip'
 
 /**
@@ -22,17 +21,20 @@ import { getClientIp } from '@/lib/server/ip'
  *   gifter_name: string         — required unless gifter_is_anonymous
  *   gifter_instagram?: string   — optional handle (no leading @)
  *   gifter_is_anonymous: boolean
- *   turnstileToken: string
  * }
  *
  * Gating order (cheap → expensive) — matches /api/checkout/listing:
  *   1. Body shape — synchronous, no I/O
  *   2. Upstash rate-limit by IP (checkoutLimiter: 3/10min)
- *   3. Turnstile verify (Cloudflare siteverify)
- *   4. DB wish lookup by payment_link_token — service-role
- *   5. Atomic claim via claim_wish_for_payment RPC
- *   6. Write gifter_* identity onto the (now claimed) wish row
- *   7. Stripe PaymentIntent create
+ *   3. DB wish lookup by payment_link_token — service-role
+ *   4. Atomic claim via claim_wish_for_payment RPC
+ *   5. Write gifter_* identity onto the (now claimed) wish row
+ *   6. Stripe PaymentIntent create
+ *
+ * Bot defense stack (HANDOFF item 43, 2026-05-04 — Turnstile dropped
+ * Option D split): rate-limit + Stripe Radar + claim RPC's race-free
+ * atomic lock + Stripe idempotency. Money gate is Radar + 3DS at
+ * confirm time, not PI-create.
  *
  * Race semantics: the RPC's `WHERE id=$1 AND status='available'` is
  * race-free at the DB level. Two concurrent claims for the same wish:
@@ -74,7 +76,6 @@ type WishCheckoutRequest = {
   gifter_name?: unknown
   gifter_instagram?: unknown
   gifter_is_anonymous?: unknown
-  turnstileToken?: unknown
 }
 
 type WishRow = {
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 })
   }
 
-  const { token, gifter_name, gifter_instagram, gifter_is_anonymous, turnstileToken } = body
+  const { token, gifter_name, gifter_instagram, gifter_is_anonymous } = body
 
   if (typeof token !== 'string' || !TOKEN_PATTERN.test(token)) {
     return NextResponse.json({ error: 'invalid_token' }, { status: 400 })
@@ -130,7 +131,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'gifter_name_required' }, { status: 400 })
   }
 
-  // Rate-limit BEFORE Turnstile verify — same precedence as listings.
+  // Rate-limit by IP — first-line bot defense (same as listings).
+  // 3 attempts per IP per 10 minutes. Combined with Stripe Radar +
+  // claim-RPC race-free atomic lock + (wish_id, expires_ms) idempotency,
+  // this is the full defense stack for /api/checkout/wish per HANDOFF
+  // item 43 (Turnstile dropped Option D split, 2026-05-04).
   const ip = getClientIp(request)
   const { success: rlOk, reset } = await checkoutLimiter.limit(ip)
   if (!rlOk) {
@@ -138,15 +143,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: 'rate_limited', message: 'Too many attempts. Please wait a few minutes before trying again.' },
       { status: 429, headers: { 'Retry-After': String(retryAfterSec) } },
-    )
-  }
-
-  const turnstileStr = typeof turnstileToken === 'string' ? turnstileToken : ''
-  const isHuman = await verifyTurnstile(turnstileStr)
-  if (!isHuman) {
-    return NextResponse.json(
-      { error: 'turnstile_failed', message: 'Verification failed. Please reload the page and try again.' },
-      { status: 403 },
     )
   }
 

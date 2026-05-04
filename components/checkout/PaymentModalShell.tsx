@@ -40,11 +40,6 @@ interface Props {
   packageDays?: PackageDays
   amount: number
   currency: string
-  // Turnstile token sourced from CheckoutClient (widget lives on the
-  // checkout page, not the modal, so the token is warm when the modal
-  // opens). Empty string is fine — the server-side verifyTurnstile
-  // helper fail-opens on empty per its documented behavior.
-  turnstileToken: string
   onClose: () => void
 
   // ----- Multi-flow parameterization (Slice 5B-3, hardening item 19) -----
@@ -62,8 +57,8 @@ interface Props {
   // from packageDays (current listings shape: One-time / No subscription /
   // {N}-day package). Wish-checkout will pass [{label: 'One gift'}].
   chips?: ReadonlyArray<{ label: string }>
-  // Extra fields merged into the PI-create POST body alongside `token`,
-  // optional `package_days`, and `turnstileToken`. Wish-checkout passes
+  // Extra fields merged into the PI-create POST body alongside `token`
+  // and optional `package_days`. Wish-checkout passes
   // { wish_id, gifter_name, gifter_instagram, gifter_is_anonymous }.
   bodyExtras?: Record<string, unknown>
   // Fired synchronously when the PI-create POST returns non-OK, BEFORE
@@ -98,7 +93,7 @@ const DEFAULT_ENDPOINT_PATH = '/api/checkout/listing'
 const DEFAULT_RETURN_PATH_BUILDER = (pi: string) => `/listing/confirmation/${pi}`
 
 export function PaymentModal({
-  isOpen, token, packageDays, amount, currency, turnstileToken, onClose,
+  isOpen, token, packageDays, amount, currency, onClose,
   endpointPath = DEFAULT_ENDPOINT_PATH,
   returnPathBuilder = DEFAULT_RETURN_PATH_BUILDER,
   chips,
@@ -124,14 +119,6 @@ export function PaymentModal({
   const piCache = useRef<Map<string, { clientSecret: string; paymentIntentId: string }>>(new Map())
   const cacheKey =
     packageDays !== undefined ? String(packageDays) : JSON.stringify(bodyExtras ?? {})
-  // H4: keep an always-fresh ref to the latest turnstileToken so the
-  // PI-create effect can read the current value at fetch time without
-  // listing the token in its deps. Listing it caused pointless re-runs
-  // every time Cloudflare rotated the token (default 30 min, plus
-  // expired/error callbacks), which thrashed the Elements options
-  // object and risked an in-flight payment getting reconciled mid-confirm.
-  const turnstileTokenRef = useRef(turnstileToken)
-  turnstileTokenRef.current = turnstileToken
 
   useEffect(() => {
     if (!isOpen) return
@@ -165,7 +152,6 @@ export function PaymentModal({
         token,
         ...(packageDays !== undefined ? { package_days: packageDays } : {}),
         ...(bodyExtras ?? {}),
-        turnstileToken: turnstileTokenRef.current,
       }),
     })
       .then(async (res) => {
@@ -201,13 +187,13 @@ export function PaymentModal({
   }, [isOpen, cacheKey, token, endpointPath, packageDays, bodyExtras, prewarmedIntent])
 
   // H1: memoize Elements options against pi.clientSecret so a parent
-  // re-render (e.g. turnstileToken state churn upstream) doesn't pass
-  // a new options object identity to <Elements>, which would trigger a
-  // Stripe-side reconciliation that's unsafe while a payment is in
-  // flight. Per Stripe React docs, options must be stable; clientSecret
-  // cannot change on a mounted Elements provider — combine with the
-  // explicit key={pi.clientSecret} below for safe transitions when the
-  // user switches packages and a fresh PI is created.
+  // re-render doesn't pass a new options object identity to <Elements>,
+  // which would trigger a Stripe-side reconciliation that's unsafe
+  // while a payment is in flight. Per Stripe React docs, options must
+  // be stable; clientSecret cannot change on a mounted Elements
+  // provider — combine with the explicit key={pi.clientSecret} below
+  // for safe transitions when the user switches packages and a fresh
+  // PI is created.
   const clientSecret = pi.status === 'ready' ? pi.clientSecret : null
   const elementsOptions = useMemo<StripeElementsOptions | null>(
     () => (clientSecret
