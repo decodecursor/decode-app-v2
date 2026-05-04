@@ -1,18 +1,14 @@
 'use client'
 
 /**
- * Terminal "someone was faster" page reached from /pay/[token] dispatch
- * when an already-paid listing is opened by a second/third colleague
- * sharing the link.
+ * Neutral fallback page reached from /pay/[token] dispatch when a
+ * listing is terminal (effective_status='expired'). Active listings
+ * within their paid window are renewal-payable per Phase 4 stacking,
+ * so this page only fires for date-rolled-over or raw 'expired' rows
+ * — defensive belt-and-suspenders, not the primary flow.
  *
- * Visual fidelity to `_features/ambassador/listing_paid_final.html`:
- * 22px bold title "Someone was faster!", 13px muted body, then a pink
- * full-width CTA "Go to {first_name}'s page" routing to /{slug}.
- *
- * Privacy rationale (mockup spec §3): person 3 must NOT be redirected
- * to person 1's receipt at /listing/confirmation/{pi_id} — that would
- * leak the first payer's reference + amount + date. This neutral page
- * shows no financial data; CTA returns to the ambassador's public page.
+ * 22px bold title, 13px muted body, then a pink full-width CTA
+ * "Go to {first_name}'s page" routing to /{slug}.
  *
  * URL params:
  *   slug:  ambassador slug — validated against /^[a-z0-9_.-]{1,30}$/i;
@@ -92,11 +88,12 @@ export function ListingPaidClient() {
     >
       <div style={{ width: '100%', maxWidth: 420, margin: '0 auto', minHeight: '100vh', padding: '200px 20px 24px', textAlign: 'center' }}>
         <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 10, letterSpacing: '-0.2px' }}>
-          Someone was faster!
+          This listing isn’t accepting payments
         </div>
         <div style={{ fontSize: 13, color: '#888', lineHeight: 1.6, marginBottom: 40 }}>
-          This listing has already been<br />
-          paid by someone else.
+          {resolved.first === 'their'
+            ? 'Visit their profile to see other listings, or check back later.'
+            : `Visit ${resolved.first}’s profile to see other listings, or check back later.`}
         </div>
         <a
           ref={btnRef}

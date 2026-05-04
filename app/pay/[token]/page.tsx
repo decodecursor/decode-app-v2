@@ -47,8 +47,12 @@ function getAppBase(): string {
 
 async function fetchListingByToken(token: string): Promise<CheckoutListingRow | null> {
   const admin = createServiceRoleClient()
+  // Read from model_listings_live so effective_status reflects date
+  // rollover (free_trial_ends_at / paid_until past now) immediately —
+  // raw status alone misses rows that haven't been swept by any cron.
+  // Mirrors send-link's view-based fetch.
   const { data, error } = await admin
-    .from('model_listings')
+    .from('model_listings_live')
     .select(CHECKOUT_LISTING_SELECT)
     .eq('payment_link_token', token)
     .maybeSingle<CheckoutListingRow>()
@@ -149,10 +153,11 @@ function buildWishTakenPath(ambassador: WishCheckoutAmbassador): string {
   return `/wish/taken?slug=${encodeURIComponent(ambassador.slug)}&first=${encodeURIComponent(ambassador.first_name)}`
 }
 
-// /listing/paid is the listings analogue of /wish/taken — shown to a
-// second/third colleague who clicks a shared payment link after the
-// listing was already paid. Privacy: never redirect to person 1's
-// /listing/confirmation/{pi_id} (would leak reference + amount + date).
+// /listing/paid is the neutral fallback for terminal listing tokens
+// (effective_status='expired'). Active/free_trial/pending_payment are
+// all payable now (renewal flow per Phase 4 stacking); only date-
+// rolled-over or raw 'expired' rows hit this redirect. Page CTA
+// returns to the ambassador's public profile.
 function buildListingPaidPath(ambassador: { slug: string; first_name: string }): string {
   return `/listing/paid?slug=${encodeURIComponent(ambassador.slug)}&first=${encodeURIComponent(ambassador.first_name)}`
 }
@@ -224,12 +229,6 @@ export async function generateMetadata({ params }: { params: Promise<{ token: st
     if (row) {
       const data = toCheckoutData(row)
       if (data) {
-        // Listing exists but already paid — render head metadata for
-        // the terminal "Someone was faster!" page that the dispatch
-        // will redirect into. Mirrors the wish-taken branch below.
-        if (data.already_paid) {
-          return { title: 'This listing has already been paid', robots: { index: false, follow: false } }
-        }
         const name = ambassadorDisplayName(data.ambassador)
         const title = `Join ${name}'s Beauty Squad`
         const description = data.ambassador.tagline ?? `Get listed on ${name}'s page`
@@ -304,13 +303,15 @@ export default async function PayPage({ params }: { params: Promise<{ token: str
       }
       const data = toCheckoutData(row, ambassadorInstagramHandle)
       // Missing price/FK data → generic /expired (no ambassador
-      // context to personalize a "Someone was faster" page).
+      // context to personalize a fallback page).
       if (!data) redirect('/expired')
-      // already_paid (race with another payer on a shared link) →
-      // ambassador-personalized /listing/paid (Slice 7A). Privacy:
-      // never redirect to person 1's /listing/confirmation/{pi_id} —
-      // that would leak the first payer's reference + amount + date.
-      if (data.already_paid) {
+      // is_unpayable === effective_status==='expired' (date-rolled
+      // free_trial / active or raw 'expired'). Renders the
+      // ambassador-personalized /listing/paid neutral fallback. Active
+      // listings within their paid window are renewal-payable per the
+      // S3 send-link UX — Phase 4 webhook stacking handles paid_until
+      // overlap.
+      if (data.is_unpayable) {
         redirect(buildListingPaidPath({
           slug: data.ambassador.slug,
           first_name: data.ambassador.first_name,

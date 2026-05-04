@@ -67,8 +67,6 @@ type ListingRow = {
   price_60: number | null
   price_90: number | null
   currency: string
-  status: 'free_trial' | 'pending_payment' | 'active' | 'expired'
-  paid_until: string | null
 }
 
 export async function POST(request: NextRequest) {
@@ -115,7 +113,7 @@ export async function POST(request: NextRequest) {
 
   const { data: listing, error: lookupErr } = await admin
     .from('model_listings')
-    .select('id, model_id, price_30, price_60, price_90, currency, status, paid_until')
+    .select('id, model_id, price_30, price_60, price_90, currency')
     .eq('payment_link_token', token)
     .maybeSingle<ListingRow>()
 
@@ -125,18 +123,6 @@ export async function POST(request: NextRequest) {
   }
   if (!listing) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 })
-  }
-
-  // Already-paid guard: active listing with a live paid_until is a
-  // second-payer race. UI (/pay/[token] server component) catches this
-  // before the modal opens; this is the server-side backstop.
-  // Audit locked decision #2 — surface expired-link page on this signal.
-  if (
-    listing.status === 'active' &&
-    listing.paid_until &&
-    new Date(listing.paid_until).getTime() > Date.now()
-  ) {
-    return NextResponse.json({ error: 'already_paid' }, { status: 409 })
   }
 
   // Derive amount server-side from the per-listing price the ambassador set.

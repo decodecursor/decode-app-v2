@@ -26,7 +26,7 @@ import { ListingPaidClient } from './ListingPaidClient'
  */
 
 export const metadata: Metadata = {
-  title: 'This listing has already been paid',
+  title: "This listing isn't accepting payments",
   robots: { index: false, follow: false },
 }
 

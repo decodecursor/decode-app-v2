@@ -43,14 +43,21 @@ export interface CheckoutData {
   payment_link_token: string
   currency: string
   category_label: string | null
-  already_paid: boolean
+  // True only when the listing is terminal (effective_status='expired').
+  // active / pending_payment / free_trial are all payable: pending → first
+  // payment, free_trial → upgrade, active → renewal (Phase 4 stacking).
+  is_unpayable: boolean
   ambassador: CheckoutAmbassador
   professional: CheckoutProfessional
   packages: CheckoutPackage[]
 }
 
 // PostgREST shape returned by the /pay/[token] server-component fetch.
-// Join hint uses the FK constraint name to match the 4A pattern.
+// Read from model_listings_live so effective_status reflects date
+// rollover (free_trial_ends_at / paid_until past now) without relying
+// on raw status alone. Join hints use FK constraint names — PostgREST
+// resolves them via the view's underlying table metadata (same pattern
+// as the send-link page query).
 export interface CheckoutListingRow {
   id: string
   model_id: string
@@ -59,8 +66,7 @@ export interface CheckoutListingRow {
   price_90: number | null
   currency: string
   payment_link_token: string
-  status: ListingStatus
-  paid_until: string | null
+  effective_status: ListingStatus
   category_custom: string | null
   model_professionals: {
     name: string
@@ -83,7 +89,7 @@ export interface CheckoutListingRow {
 
 export const CHECKOUT_LISTING_SELECT = `
   id, model_id, price_30, price_60, price_90, currency,
-  payment_link_token, status, paid_until, category_custom,
+  payment_link_token, effective_status, category_custom,
   model_professionals!model_listings_professional_id_fkey (
     name, instagram_handle, city, country
   ),
@@ -159,8 +165,7 @@ export function toCheckoutData(
   const packages = computePackages(row)
   if (packages.length === 0) return null
 
-  const paidUntilMs = row.paid_until ? new Date(row.paid_until).getTime() : 0
-  const already_paid = row.status === 'active' && paidUntilMs > Date.now()
+  const is_unpayable = row.effective_status === 'expired'
 
   const category_label = row.model_categories?.label ?? row.category_custom ?? null
 
@@ -169,7 +174,7 @@ export function toCheckoutData(
     payment_link_token: row.payment_link_token,
     currency: row.currency,
     category_label,
-    already_paid,
+    is_unpayable,
     ambassador: {
       id: profile.id,
       slug: profile.slug,
