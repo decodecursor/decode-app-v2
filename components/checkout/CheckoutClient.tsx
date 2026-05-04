@@ -229,7 +229,7 @@ export function CheckoutClient({ data, shareUrl }: Props) {
       </div>
 
       {/* Package picker */}
-      <div style={{ padding: '0 20px 10px' }}>
+      <div style={{ padding: '0 20px' }}>
         <div style={{ fontSize: 10, letterSpacing: 1, color: '#777', fontWeight: 600, marginBottom: 10 }}>CHOOSE YOUR PACKAGE</div>
       </div>
       <PackagePicker
