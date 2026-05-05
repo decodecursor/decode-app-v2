@@ -234,14 +234,14 @@ export function CheckoutClient({ data, shareUrl }: Props) {
             positioned child sits over a dark cover gradient. */}
         <div style={{
           position: 'absolute',
-          bottom: 24,
+          bottom: 15,
           left: 0,
           right: 0,
           padding: '0 20px',
           textAlign: 'center',
           zIndex: 2,
         }}>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#fff', letterSpacing: '-0.3px' }}>{ambassadorName}</div>
+          <div style={{ fontSize: 34, fontWeight: 700, color: '#fff', letterSpacing: '-0.3px' }}>{ambassadorName}</div>
         </div>
       </div>
 
@@ -253,8 +253,8 @@ export function CheckoutClient({ data, shareUrl }: Props) {
           ambassador's personal tagline (which still shows on her
           public /{slug} page where the audience is gifters/visitors,
           not professionals). */}
-      <div style={{ padding: '20px 20px 0', textAlign: 'center' }}>
-        <div style={{ fontSize: 15, fontWeight: 600, color: '#ccc', lineHeight: 1.4, maxWidth: 320, margin: '0 auto' }}>
+      <div style={{ padding: '0 20px 0', textAlign: 'center' }}>
+        <div style={{ fontSize: 14, fontWeight: 500, color: '#ccc', lineHeight: 1.4, maxWidth: 320, margin: '0 auto' }}>
           Secure Your Spot in {data.ambassador.first_name}&rsquo;s Beauty Squad
         </div>
       </div>
