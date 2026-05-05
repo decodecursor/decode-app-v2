@@ -188,7 +188,7 @@ Standard mobile gesture — re-runs page-load query.
 
 ## 12. Empty State
 
-- Copy: "No wishes yet. Add a beauty wish to show data here"
+- Copy: "No beauty wish yet. Add a beauty wish to show data here"
 - CTA: "Add wish" → `/wishlist/new`
 
 ---
