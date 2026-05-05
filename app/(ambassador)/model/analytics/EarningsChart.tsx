@@ -65,7 +65,7 @@ export default function EarningsChart({ data, range }: { data: RangeData; range:
         </svg>
       ) : (
         <div style={{ height: '48px', marginTop: '14px', display: 'flex', alignItems: 'center', color: '#444', fontSize: '11px' }}>
-          No earnings yet in this range
+          No earnings yet
         </div>
       )}
 
