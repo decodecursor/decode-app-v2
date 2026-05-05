@@ -178,7 +178,7 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
 
         {/* Hero */}
         <div style={{ padding: '0 20px 16px', textAlign: 'center', marginTop: -62, position: 'relative', zIndex: 1 }}>
-          <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.3px', marginBottom: 3 }}>
+          <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.3px', marginBottom: 3 }}>
             {ambassadorFullName}
           </div>
           <a
@@ -189,7 +189,7 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
           >
             {displayUrl}
           </a>
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#fff', marginTop: 10 }}>
+          <div style={{ fontSize: 14, fontWeight: 500, color: '#fff', marginTop: 10 }}>
             Make {ambassadorFirstName}&rsquo;s beauty wish come true
           </div>
         </div>
