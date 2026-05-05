@@ -98,7 +98,7 @@ export default async function DashboardPage() {
       .from('model_analytics_events')
       .select('target_id')
       .eq('model_id', profile.id)
-      .in('event_type', ['listing_instagram_click', 'listing_media_click'])
+      .in('event_type', ['listing_instagram_click', 'listing_media_click', 'squad_media_swipe_view'])
       .not('target_id', 'is', null),
     adminClient
       .from('model_listings')
