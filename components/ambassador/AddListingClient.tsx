@@ -1056,17 +1056,29 @@ export default function AddListingClient({
             >
               <video
                 ref={videoRef}
-                src={`${media.previewUrl}#t=0.1`}
+                src={media.previewUrl}
                 preload="metadata"
                 muted
                 playsInline
-                onLoadedMetadata={(e) => {
-                  // Belt-and-suspenders for browsers that ignore the
-                  // media fragment — force a seek to 0.1s so the first
-                  // frame paints instead of staying blank (iOS Safari +
-                  // some Android Chrome variants).
-                  if (e.currentTarget.currentTime === 0) {
-                    e.currentTarget.currentTime = 0.1
+                onLoadedMetadata={async (e) => {
+                  // Force first-frame paint via autoplay-then-pause —
+                  // muted + playsInline lets iOS Safari autoplay (which
+                  // loads actual pixel data, unlike preload="metadata"
+                  // alone). Pause immediately + seek to 0.1s leaves a
+                  // static first frame visible until the user taps. The
+                  // brief onPlay/onPause flicker on overlay state is an
+                  // accepted cosmetic trade-off vs blank-slot UX.
+                  // Earlier `#t=0.1` URL fragment approach (commit
+                  // 9ff1441) broke tap-to-play on blob: URLs because
+                  // some browsers strict-match the blob registry by
+                  // full URL string including fragment.
+                  const v = e.currentTarget
+                  try {
+                    await v.play()
+                    v.pause()
+                    v.currentTime = 0.1
+                  } catch {
+                    v.currentTime = 0.1
                   }
                 }}
                 onPlay={() => setVideoPlaying(true)}
