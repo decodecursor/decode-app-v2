@@ -60,19 +60,17 @@ export function MediaOrb({
     hasPhotos                                                  ? 'tappable-photos' :
                                                                  'empty'
 
-  // Drive video play/pause from isActive. Rewind on deactivate so the
-  // next centered-entry starts fresh per spec.
+  // Drive video play on isActive. Pause + rewind moved to cleanup so
+  // React fires it on isActive→false BEFORE the conditional render
+  // unmounts the <video> element (mount-on-active fix for iOS decoder
+  // ceiling — only one <video> alive at a time so iOS Safari doesn't
+  // exhaust its concurrent-decoder budget at ~4-6 elements).
   useEffect(() => {
     const v = videoRef.current
-    if (!v || !hasVideo) return
-
-    if (isActive && !reducedMotion) {
-      setAutoplayBlocked(false)
-      v.play().catch(() => setAutoplayBlocked(true))
-    } else {
-      v.pause()
-      v.currentTime = 0
-    }
+    if (!v || !hasVideo || !isActive || reducedMotion) return
+    setAutoplayBlocked(false)
+    v.play().catch(() => setAutoplayBlocked(true))
+    return () => { v.pause(); v.currentTime = 0 }
   }, [isActive, hasVideo, reducedMotion])
 
   // iOS Safari first-frame nudge. Without poster, a paused <video>
@@ -150,7 +148,7 @@ export function MediaOrb({
       tabIndex={interactive ? 0 : undefined}
       style={{ ...baseStyle, ...ringStyle }}
     >
-      {hasVideo && (
+      {hasVideo && isActive && (
         <video
           ref={videoRef}
           src={videoUrl ?? undefined}
@@ -159,6 +157,14 @@ export function MediaOrb({
           playsInline
           preload="metadata"
           poster={posterUrl ?? undefined}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
+      )}
+      {hasVideo && !isActive && posterUrl && (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={posterUrl}
+          alt=""
           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
         />
       )}
