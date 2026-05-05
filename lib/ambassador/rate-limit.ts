@@ -73,3 +73,14 @@ export const slugCheckLimiter = new Ratelimit({
   limiter: Ratelimit.slidingWindow(60, '1 m'),
   prefix: 'rl:slug:check',
 })
+
+/**
+ * City → country lookup (Add Listing form auto-fill): 60 per IP per minute.
+ * Same shape as slug-check (open onboarding endpoint, on-blur trigger).
+ * Separate prefix so dashboards can read each metric independently.
+ */
+export const lookupCountryLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(60, '1 m'),
+  prefix: 'rl:lookup:country',
+})

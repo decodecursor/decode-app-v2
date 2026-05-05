@@ -19,6 +19,15 @@ A modern payment platform for beauty professionals in the UAE, built with Next.j
 - **Authentication**: Supabase Auth
 - **Deployment**: Vercel
 
+## Data attribution
+
+City → country lookup data in `lib/cities/data.json` is derived from
+[GeoNames](https://www.geonames.org/) `cities15000` (cities with
+population ≥ 15,000), top 5,000 by population. Licensed under
+[CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/). Regenerate
+with `npm run build:cities` (downloads the latest dump and rebuilds
+the JSON; requires `python3` for ZIP extraction).
+
 ## Getting Started
 
 ### Prerequisites
