@@ -413,8 +413,8 @@ When 0 listings are visible:
 
 | Condition | Message | CTA |
 |---|---|---|
-| 0 listings overall | "No listings yet" | "Add your first listing" → `/listings/new` |
-| Filter active, 0 in that filter | Filter-specific: "No active listings" / "No trial listings" / etc. | "Add your first listing" → `/listings/new` |
+| 0 listings overall | "No listings yet" | "Add listing" → `/listings/new` |
+| Filter active, 0 in that filter | Filter-specific: "No active listings" / "No trial listings" / etc. | "Add listing" → `/listings/new` |
 
 Centered in the listings area, below the filter tabs.
 

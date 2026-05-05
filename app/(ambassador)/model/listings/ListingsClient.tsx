@@ -293,7 +293,7 @@ export default function ListingsClient({ listings: initialListings }: { listings
                 userSelect: 'none',
               }}
             >
-              Add your first listing
+              Add listing
             </div>
           </div>
         ) : (
