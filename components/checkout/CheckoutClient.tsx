@@ -12,7 +12,7 @@
  * is a cleaner variant without the share affordance.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import type { CheckoutData, PackageDays } from '@/lib/checkout/checkout-shape'
 import { ambassadorDisplayName } from '@/lib/checkout/checkout-shape'
@@ -20,6 +20,7 @@ import { formatCurrencyText } from '@/lib/ambassador/currency-format'
 import { PackagePicker } from './PackagePicker'
 import { UrlOverlay } from './UrlOverlay'
 import { ShareButton } from '@/components/public/ShareButton'
+import { PAYMENTS_ENABLED, BETA_TOAST_MESSAGE } from '@/lib/feature-flags'
 
 // Slice 7C bundle remediation A: PaymentModal (and its Stripe.js +
 // @stripe/react-stripe-js dependency tree) is dynamic-imported so the
@@ -52,6 +53,22 @@ export function CheckoutClient({ data, shareUrl }: Props) {
   const [selected, setSelected] = useState<PackageDays>(defaultPkg)
   const [overlayOpen, setOverlayOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+
+  // Pre-launch beta gate: when PAYMENTS_ENABLED=false, the Pay click
+  // shows a toast instead of opening the Stripe modal. Toast uses the
+  // canonical amb-toast-in/out animation (Slice 3A retrofit pattern);
+  // keyframes inlined below since /pay/[token] sits outside the
+  // (ambassador) route group where they're declared globally.
+  const [betaToast, setBetaToast] = useState<string | null>(null)
+  const [betaToastKey, setBetaToastKey] = useState(0)
+  const betaToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => { if (betaToastTimer.current) clearTimeout(betaToastTimer.current) }, [])
+  const showBetaToast = useCallback(() => {
+    setBetaToast(BETA_TOAST_MESSAGE)
+    setBetaToastKey((k) => k + 1)
+    if (betaToastTimer.current) clearTimeout(betaToastTimer.current)
+    betaToastTimer.current = setTimeout(() => setBetaToast(null), 5200)
+  }, [])
 
   // Pre-warm PaymentIntent on mount + on package change. Tagged with
   // cacheKey so PaymentModalShell can match against its own cacheKey and
@@ -305,7 +322,13 @@ export function CheckoutClient({ data, shareUrl }: Props) {
       <div style={{ padding: '0 20px calc(env(safe-area-inset-bottom, 0px) + 80px)' }}>
         <button
           type="button"
-          onClick={() => setModalOpen(true)}
+          onClick={() => {
+            if (!PAYMENTS_ENABLED) {
+              showBetaToast()
+              return
+            }
+            setModalOpen(true)
+          }}
           style={{
             width: '100%', padding: '16px', borderRadius: 12,
             background: '#e91e8c', border: 'none', color: '#fff',
@@ -342,6 +365,39 @@ export function CheckoutClient({ data, shareUrl }: Props) {
         bodyExtras={LISTINGS_EMPTY_EXTRAS}
         prewarmedIntent={prewarmedIntent}
       />
+
+      {/* Beta-gate toast (no-op when PAYMENTS_ENABLED=true). Keyframes
+          inlined for /pay/[token] which sits outside the (ambassador)
+          route group where amb-toast-in/out is normally declared. */}
+      {betaToast && (
+        <>
+          <style>{`
+            @keyframes amb-toast-in {
+              0%   { opacity: 0; transform: translate(-50%, 20px); }
+              100% { opacity: 1; transform: translate(-50%, 0); }
+            }
+            @keyframes amb-toast-out {
+              0%   { opacity: 1; transform: translate(-50%, 0); }
+              100% { opacity: 0; transform: translate(-50%, 20px); }
+            }
+          `}</style>
+          <div
+            key={betaToastKey}
+            style={{
+              position: 'fixed', top: 50, left: '50%',
+              transform: 'translateX(-50%)',
+              background: 'rgba(28,28,28,0.95)', border: '1px solid #333',
+              color: '#fff', fontSize: 12, padding: '10px 18px', borderRadius: 24,
+              zIndex: 150, whiteSpace: 'nowrap', pointerEvents: 'none',
+              animation:
+                'amb-toast-in 1200ms cubic-bezier(.2,.7,.2,1) forwards, ' +
+                'amb-toast-out 1200ms cubic-bezier(.5,.2,.8,.1) 4000ms forwards',
+            }}
+          >
+            {betaToast}
+          </div>
+        </>
+      )}
       </div>
     </main>
   )
