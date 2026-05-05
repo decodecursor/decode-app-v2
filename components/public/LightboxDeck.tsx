@@ -25,10 +25,12 @@ import { DeckPhotoPage } from './DeckPhotoPage'
 export function LightboxDeck({
   listings,
   initialListingId,
+  slug,
   onClose,
 }: {
   listings: PublicListingRow[]
   initialListingId: string | null
+  slug: string
   onClose: () => void
 }) {
   const initialIndex = useMemo(() => {
@@ -43,6 +45,10 @@ export function LightboxDeck({
   const [isMuted, setIsMuted] = useState(true)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const pageRefs = useRef<Map<number, HTMLElement>>(new Map())
+  // Skip the initial-mount currentIndex fire — the orb that opened the
+  // deck is the one whose squad_media_swipe_view event already counted
+  // on the public page. Only deck-internal swipes count here.
+  const swipeViewSkipFirstRef = useRef(true)
 
   const onToggleMute = useCallback(() => {
     setIsMuted((m) => !m)
@@ -99,6 +105,28 @@ export function LightboxDeck({
     pageRefs.current.forEach((el) => observer.observe(el))
     return () => observer.disconnect()
   }, [listings])
+
+  // squad_media_swipe_view — fires on deck-internal swipe to a new
+  // page. Initial mount lands on the orb that opened the deck (already
+  // counted on the public page) and is skipped via the ref above.
+  useEffect(() => {
+    if (swipeViewSkipFirstRef.current) {
+      swipeViewSkipFirstRef.current = false
+      return
+    }
+    const listing = listings[currentIndex]
+    if (!listing) return
+    fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_type: 'squad_media_swipe_view',
+        slug,
+        target_id: listing.id,
+      }),
+      keepalive: true,
+    }).catch(() => { /* fire-and-forget */ })
+  }, [currentIndex, listings, slug])
 
   return (
     <div

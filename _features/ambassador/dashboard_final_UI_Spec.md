@@ -68,7 +68,7 @@ The system tracks two distinct interactions, both stored in the **single polymor
 | Event | Definition | event_type filter |
 |---|---|---|
 | **View** | Someone visits the public page `welovedecode.com/{slug}` | `event_type = 'public_page_view'` |
-| **Click** | Someone taps a specific listing/link on the public page | `event_type IN ('listing_instagram_click','listing_media_click')` |
+| **Click** | Someone taps a specific listing/link on the public page | `event_type IN ('listing_instagram_click','listing_media_click','squad_media_swipe_view')` |
 
 Left card = **Page visits** (page traffic). Right card = **Top listings** (engagement per category — categorisation flows through `target_id → model_listings.category_id → model_categories.label`, with `model_listings.category_custom` as the fallback bucket name when `category_id IS NULL`).
 
@@ -104,7 +104,7 @@ FROM model_analytics_events e
 JOIN model_listings l ON l.id = e.target_id
 LEFT JOIN model_categories c ON c.id = l.category_id
 WHERE e.model_id = $profile_id
-  AND e.event_type IN ('listing_instagram_click','listing_media_click')
+  AND e.event_type IN ('listing_instagram_click','listing_media_click','squad_media_swipe_view')
   AND e.target_id IS NOT NULL
 GROUP BY 1
 ORDER BY clicks DESC

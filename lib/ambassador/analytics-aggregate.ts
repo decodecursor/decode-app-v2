@@ -15,6 +15,7 @@ import { formatCurrencyText } from './currency-format'
 const FUNNEL_CLICK_TYPES = new Set([
   'listing_instagram_click',
   'listing_media_click',
+  'squad_media_swipe_view',
   'wish_giftit_click',
   'wish_instagram_click',
 ])
@@ -263,7 +264,7 @@ export function buildRange(
 
   const listingClickCounts = new Map<string, number>()
   for (const e of events) {
-    if ((e.event_type === 'listing_instagram_click' || e.event_type === 'listing_media_click') && e.target_id && inRange(e.created_at, r)) {
+    if ((e.event_type === 'listing_instagram_click' || e.event_type === 'listing_media_click' || e.event_type === 'squad_media_swipe_view') && e.target_id && inRange(e.created_at, r)) {
       listingClickCounts.set(e.target_id, (listingClickCounts.get(e.target_id) ?? 0) + 1)
     }
   }

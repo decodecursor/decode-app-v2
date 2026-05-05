@@ -35,12 +35,12 @@ import {
  * from "dropped" — defense against targeted enumeration.
  */
 
-// Slice 5D extends to all 7 values in the DB CHECK enum. Wish-side
-// events were reserved in the schema (Slice 1) but only wired into the
-// allowlist here once the corresponding UI surfaces shipped (5D-1
-// rendered the wishes + Wall of Love sections; 5D-2 wires the click
-// handlers). Pattern 3 (single multi-event endpoint) doctrine —
-// extending the Set is the canonical way to opt-in new event types.
+// All 8 values in the DB CHECK enum. Pattern 3 (single multi-event
+// endpoint) doctrine — extending the Set is the canonical way to
+// opt-in new event types. squad_media_swipe_view (added with the
+// 24h-dedup sweep) covers two surfaces: SquadRow inline-orb scroll
+// activation on the public page, and LightboxDeck swipe-to-page on
+// the full-screen lightbox.
 const ALLOWED_EVENT_TYPES = new Set([
   'public_page_view',
   'listing_instagram_click',
@@ -49,7 +49,10 @@ const ALLOWED_EVENT_TYPES = new Set([
   'wish_giftit_click',
   'wish_instagram_click',
   'wall_of_love_instagram_click',
+  'squad_media_swipe_view',
 ])
+
+const DEDUP_WINDOW_MS = 24 * 60 * 60 * 1000
 
 type TrackRequest = {
   event_type?: unknown
@@ -121,10 +124,31 @@ export async function POST(request: NextRequest) {
     return silentOk(sessionId, sessionWasCreated)
   }
 
+  // 24h rolling dedup — same session_id + event_type + target_id
+  // (treating null as a distinct bucket per COALESCE semantics) within
+  // the last 24 hours collapses to a single insert. The 30s spam
+  // rate-limit above remains the cheap outer guard; this is the
+  // semantic per-visitor truthing layer.
+  const targetIdValue = typeof target_id === 'string' ? target_id : null
+  const dedupSince = new Date(Date.now() - DEDUP_WINDOW_MS).toISOString()
+  const dedupBase = admin
+    .from('model_analytics_events')
+    .select('id')
+    .eq('session_id', sessionId)
+    .eq('event_type', event_type)
+    .gt('created_at', dedupSince)
+    .limit(1)
+  const { data: existing } = await (
+    targetIdValue
+      ? dedupBase.eq('target_id', targetIdValue)
+      : dedupBase.is('target_id', null)
+  ).maybeSingle<{ id: string }>()
+  if (existing) return silentOk(sessionId, sessionWasCreated)
+
   const { error: insertErr } = await admin.from('model_analytics_events').insert({
     model_id: profile.id,
     event_type,
-    target_id: typeof target_id === 'string' ? target_id : null,
+    target_id: targetIdValue,
     ip_hash: hashIp(ip),
     session_id: sessionId,
     user_agent: userAgent ?? null,

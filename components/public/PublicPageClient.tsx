@@ -128,6 +128,24 @@ export default function PublicPageClient({
     }).catch(() => { /* fire-and-forget */ })
   }, [data.profile.slug])
 
+  // squad_media_swipe_view — fires when an inline orb becomes the
+  // single-active centered orb (scroll-driven autoplay). React's
+  // setState dedup means activeOrbId staying the same does not retrigger
+  // this effect; null transitions are skipped explicitly.
+  useEffect(() => {
+    if (!activeOrbId) return
+    fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_type: 'squad_media_swipe_view',
+        slug: data.profile.slug,
+        target_id: activeOrbId,
+      }),
+      keepalive: true,
+    }).catch(() => { /* fire-and-forget */ })
+  }, [activeOrbId, data.profile.slug])
+
   return (
     <div
       style={{
@@ -198,6 +216,7 @@ export default function PublicPageClient({
         <MediaLightbox
           listings={data.listings}
           initialListingId={openListingId}
+          slug={data.profile.slug}
           onClose={() => setOpenListingId(null)}
         />
       )}

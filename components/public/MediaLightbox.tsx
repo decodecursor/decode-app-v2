@@ -21,10 +21,12 @@ import { LightboxDeck } from './LightboxDeck'
 export function MediaLightbox({
   listings,
   initialListingId,
+  slug,
   onClose,
 }: {
   listings: PublicListingRow[]
   initialListingId: string | null
+  slug: string
   onClose: () => void
 }) {
   // Filter to listings with displayable media. Mirrors what the public-
@@ -68,6 +70,7 @@ export function MediaLightbox({
       <LightboxDeck
         listings={deckListings}
         initialListingId={initialListingId}
+        slug={slug}
         onClose={onClose}
       />
     </div>
