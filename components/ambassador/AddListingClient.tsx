@@ -31,7 +31,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AmbSubmitButton } from '@/components/ambassador/AmbSubmitButton'
 import BackArrow from '@/components/ambassador/BackArrow'
-import { CurrencyAmount } from '@/components/ambassador/CurrencyAmount'
 import { ImageCropper } from '@/components/ambassador/ImageCropper'
 import { createClient } from '@/utils/supabase/client'
 import {
@@ -1178,7 +1177,6 @@ export default function AddListingClient({
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <div style={{ ...SECTION_LABEL, marginBottom: 0 }}>Pricing</div>
-            <div style={{ fontSize: 11, color: '#666' }}><CurrencyAmount currency={currency} variant="code-with-symbol" /></div>
           </div>
 
           <div style={{ display: 'flex', gap: 8 }}>
