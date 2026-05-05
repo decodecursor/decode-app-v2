@@ -75,6 +75,7 @@ interface WishLookupRow {
   status: 'available' | 'taken'
   effective_status: 'available' | 'taken'
   profile: {
+    user_id: string
     slug: string
     first_name: string
     last_name: string | null
@@ -100,7 +101,7 @@ async function fetchWishByToken(token: string): Promise<WishDispatchResult> {
       professional_name, professional_city, professional_country,
       price, currency, status, effective_status,
       profile:model_profiles!model_wishes_model_id_fkey (
-        slug, first_name, last_name, cover_photo_url, tagline
+        user_id, slug, first_name, last_name, cover_photo_url, tagline
       )
     `)
     .eq('payment_link_token', token)
@@ -113,12 +114,27 @@ async function fetchWishByToken(token: string): Promise<WishDispatchResult> {
   if (!data) return { kind: 'not_found' }
   if (!data.profile) return { kind: 'not_found' }
 
+  // IG handle for the wish-cover button cluster — mirrors listings
+  // pattern (lines 294-303): instagram_handle lives on public.users
+  // (not model_profiles), so a separate fetch keyed off profile.user_id.
+  // Skip for non-available rows since the route redirects before render.
+  let instagramHandle: string | null = null
+  if (data.effective_status === 'available' && data.profile.user_id) {
+    const { data: ambUser } = await admin
+      .from('users')
+      .select('instagram_handle')
+      .eq('id', data.profile.user_id)
+      .maybeSingle<{ instagram_handle: string | null }>()
+    instagramHandle = ambUser?.instagram_handle ?? null
+  }
+
   const ambassador: WishCheckoutAmbassador = {
     slug: data.profile.slug,
     first_name: data.profile.first_name,
     last_name: data.profile.last_name,
     cover_photo_url: data.profile.cover_photo_url,
     tagline: data.profile.tagline,
+    instagram_handle: instagramHandle,
   }
 
   // Already gifted → terminal /wish/taken page rather than /expired
@@ -326,7 +342,7 @@ export default async function PayPage({ params }: { params: Promise<{ token: str
     // index, so a token can match at most one of the two.
     const wishResult = await fetchWishByToken(token)
     if (wishResult.kind === 'available') {
-      const shareUrl = `${getAppBase()}/${wishResult.ambassador.slug}`
+      const shareUrl = `${getAppBase()}/pay/${token}`
       return (
         <WishCheckoutClient
           wish={wishResult.wish}

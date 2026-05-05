@@ -15,11 +15,14 @@
  * routes to /wish/taken before the user sees the error message in the modal.
  */
 
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { formatCurrencyText } from '@/lib/ambassador/currency-format'
 import { formatLocation } from '@/lib/format-location'
+import { UrlOverlay } from './UrlOverlay'
+import { ShareButton } from '@/components/public/ShareButton'
+import { PAYMENTS_ENABLED, BETA_TOAST_MESSAGE } from '@/lib/feature-flags'
 
 // Slice 7C bundle remediation A: PaymentModal (and its Stripe.js +
 // @stripe/react-stripe-js dependency tree) is dynamic-imported so the
@@ -36,6 +39,7 @@ export interface WishCheckoutAmbassador {
   last_name: string | null
   cover_photo_url: string | null
   tagline: string | null
+  instagram_handle: string | null
 }
 
 export interface WishCheckoutWish {
@@ -78,12 +82,34 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
 
   const ambassadorFirstName = ambassador.first_name
   const ambassadorFullName = `${ambassador.first_name}${ambassador.last_name ? ' ' + ambassador.last_name : ''}`
-  const displayUrl = shareUrl.replace(/^https?:\/\//, '')
+  // Ambassador IG handle from public.users — null when not populated.
+  // Strip leading @ defensively (mirrors CheckoutClient.tsx:128-130).
+  const ambIg = ambassador.instagram_handle?.replace(/^@/, '') || null
+  // Wish-context share copy — third-person gifter-voice (gifter forwards
+  // wish pay link to other potential gifters). Diverges from listings
+  // ambassador-voice copy by design — same surface "function" (share the
+  // pay URL onward), wish-appropriate framing.
+  const shareMessage = `Hello!\n\nLooking for a gift idea for ${ambassadorFirstName}?\n\n${ambassadorFirstName} has a beauty wish on WeLoveDecode 🎁\n\n${shareUrl}`
 
   const [name, setName] = useState('')
   const [ig, setIg] = useState('')
   const [anonymous, setAnonymous] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+  const [overlayOpen, setOverlayOpen] = useState(false)
+
+  // Pre-launch beta gate: when PAYMENTS_ENABLED=false, the Pay click
+  // shows a toast instead of opening the Stripe modal. Mirrors
+  // CheckoutClient's gate; same canonical amb-toast-in/out pattern.
+  const [betaToast, setBetaToast] = useState<string | null>(null)
+  const [betaToastKey, setBetaToastKey] = useState(0)
+  const betaToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => { if (betaToastTimer.current) clearTimeout(betaToastTimer.current) }, [])
+  const showBetaToast = useCallback(() => {
+    setBetaToast(BETA_TOAST_MESSAGE)
+    setBetaToastKey((k) => k + 1)
+    if (betaToastTimer.current) clearTimeout(betaToastTimer.current)
+    betaToastTimer.current = setTimeout(() => setBetaToast(null), 5200)
+  }, [])
   // Bot protection on /api/checkout/wish: Upstash rate-limit
   // (3/10min/IP) + Stripe Radar + claim-RPC race-free atomic lock.
   // Turnstile dropped per Option D split (HANDOFF item 43).
@@ -174,6 +200,74 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
         <div style={{ position: 'relative', height: 180 }}>
           <div style={{ width: '100%', height: '100%', ...coverStyle }} />
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 120, background: 'linear-gradient(transparent, #000)', pointerEvents: 'none' }} />
+          {/* Top-left button cluster: public-page preview (always) + IG link
+              (conditional on ambassador.instagram_handle). Mirrors
+              CheckoutClient.tsx:154-210 byte-for-byte for parity. */}
+          <div style={{
+            position: 'absolute',
+            top: 12, left: 20,
+            display: 'flex', gap: 8,
+            zIndex: 2,
+          }}>
+            <div
+              onClick={() => setOverlayOpen(true)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOverlayOpen(true) } }}
+              aria-label="Preview profile"
+              style={{
+                position: 'relative',
+                width: 32, height: 32, borderRadius: '50%',
+                background: 'rgba(0,0,0,0.35)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
+              </svg>
+            </div>
+            {ambIg && (
+              <div
+                onClick={() => window.open(`https://instagram.com/${ambIg}`, '_blank', 'noopener,noreferrer')}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.open(`https://instagram.com/${ambIg}`, '_blank', 'noopener,noreferrer') } }}
+                aria-label={`Open ${ambassadorFullName}'s Instagram`}
+                style={{
+                  position: 'relative',
+                  width: 32, height: 32, borderRadius: '50%',
+                  background: 'rgba(0,0,0,0.35)',
+                  backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5" />
+                  <circle cx="12" cy="12" r="4" />
+                  <circle cx="17.5" cy="6.5" r="0.5" fill="#fff" />
+                </svg>
+              </div>
+            )}
+          </div>
+          {/* Share button, top-right. */}
+          <div style={{
+            position: 'absolute',
+            top: 12, right: 20,
+            zIndex: 2,
+          }}>
+            <ShareButton
+              url={shareUrl}
+              title={`${ambassadorFullName} — WeLoveDecode`}
+              slug={ambassador.slug}
+              text={shareMessage}
+            />
+          </div>
         </div>
 
         {/* Hero */}
@@ -181,14 +275,6 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
           <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.3px', marginBottom: 3 }}>
             {ambassadorFullName}
           </div>
-          <a
-            href={shareUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ fontSize: 11, color: '#555', textDecoration: 'underline', textDecorationColor: 'rgba(85,85,85,0.4)', textUnderlineOffset: 2, display: 'inline-block', cursor: 'pointer' }}
-          >
-            {displayUrl}
-          </a>
           <div style={{ fontSize: 14, fontWeight: 500, color: '#fff', marginTop: 10 }}>
             Make {ambassadorFirstName}&rsquo;s beauty wish come true
           </div>
@@ -295,7 +381,14 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
           </div>
           <button
             type="button"
-            onClick={() => { if (valid) setModalOpen(true) }}
+            onClick={() => {
+              if (!valid) return
+              if (!PAYMENTS_ENABLED) {
+                showBetaToast()
+                return
+              }
+              setModalOpen(true)
+            }}
             disabled={!valid}
             style={{
               width: '100%',
@@ -324,6 +417,48 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
         bodyExtras={bodyExtras}
         onPiCreateError={handlePiCreateError}
       />
+
+      {/* URL preview overlay — mirrors CheckoutClient.tsx:319-326. */}
+      <UrlOverlay
+        isOpen={overlayOpen}
+        slug={ambassador.slug}
+        ambassadorName={ambassadorFullName}
+        tagline={ambassador.tagline}
+        onClose={() => setOverlayOpen(false)}
+      />
+
+      {/* Beta-gate toast (no-op when PAYMENTS_ENABLED=true). Keyframes
+          inlined for /pay/[token] which sits outside the (ambassador)
+          route group where amb-toast-in/out is normally declared. */}
+      {betaToast && (
+        <>
+          <style>{`
+            @keyframes amb-toast-in {
+              0%   { opacity: 0; transform: translate(-50%, 20px); }
+              100% { opacity: 1; transform: translate(-50%, 0); }
+            }
+            @keyframes amb-toast-out {
+              0%   { opacity: 1; transform: translate(-50%, 0); }
+              100% { opacity: 0; transform: translate(-50%, 20px); }
+            }
+          `}</style>
+          <div
+            key={betaToastKey}
+            style={{
+              position: 'fixed', top: 50, left: '50%',
+              transform: 'translateX(-50%)',
+              background: 'rgba(28,28,28,0.95)', border: '1px solid #333',
+              color: '#fff', fontSize: 12, padding: '10px 18px', borderRadius: 24,
+              zIndex: 150, whiteSpace: 'nowrap', pointerEvents: 'none',
+              animation:
+                'amb-toast-in 1200ms cubic-bezier(.2,.7,.2,1) forwards, ' +
+                'amb-toast-out 1200ms cubic-bezier(.5,.2,.8,.1) 4000ms forwards',
+            }}
+          >
+            {betaToast}
+          </div>
+        </>
+      )}
     </main>
   )
 }
