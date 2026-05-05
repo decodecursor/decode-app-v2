@@ -132,9 +132,8 @@ export function CheckoutClient({ data, shareUrl }: Props) {
   // gifter forwarding the pay link receives the same copy the ambassador sent.
   const shareMessage = `Hello\n\nI've just added you to my Beauty Squad on WeLoveDecode🌸\n\nConfirm here to activate: ${shareUrl}`
 
-  const coverPositionY = data.ambassador.cover_photo_position_y ?? 50
   const coverStyle: React.CSSProperties = data.ambassador.cover_photo_url
-    ? { backgroundImage: `url(${data.ambassador.cover_photo_url})`, backgroundPosition: `center ${coverPositionY}%`, backgroundSize: 'cover' }
+    ? { backgroundImage: `url(${data.ambassador.cover_photo_url})`, backgroundPosition: 'center top', backgroundSize: 'cover' }
     : { background: 'linear-gradient(180deg, #2a2a2a 0%, #111 100%)' }
 
   return (

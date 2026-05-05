@@ -117,7 +117,7 @@ export default function DashboardClient({
         position: 'relative',
         height: '140px',
         background: profile.cover_photo_url
-          ? `url(${profile.cover_photo_url}) center ${profile.cover_photo_position_y}% / cover no-repeat`
+          ? `url(${profile.cover_photo_url}) center top / cover no-repeat`
           : 'linear-gradient(135deg, #e91e8c, #ff6b9d)',
       }}>
         {/* Fade */}

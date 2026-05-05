@@ -137,7 +137,7 @@ export function WishCheckoutClient({ wish, ambassador, shareUrl }: Props) {
   }
 
   const coverStyle: React.CSSProperties = ambassador.cover_photo_url
-    ? { backgroundImage: `url(${ambassador.cover_photo_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    ? { backgroundImage: `url(${ambassador.cover_photo_url})`, backgroundSize: 'cover', backgroundPosition: 'center top' }
     : { background: 'linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%)' }
 
   const locationText = formatLocation(wish.professional_city, wish.professional_country)
