@@ -58,6 +58,8 @@ Partner replies shorthand: `1b, 2c`.
 
 **Drive-mode default:** ship recommendations on obvious calls; don't pause for permission on surface-level choices. Probe-first per HANDOFF §15 for cross-cutting changes touching >5 files (audit-then-fix two-pass).
 
+**Ready signal:** chat's final sentence is `Ready for next job` when chat is fully idle — no in-flight 🟦 awaiting CC-2 paste-back, no Q&A awaiting partner reply. Distinguishes "drop a fresh task" from "we're still in the middle of something."
+
 **Partner preferences (carry across chats):**
 - Supabase Studio for SQL, not `psql` terminal.
 - Live spot-check over pre-commit diff review per Guardrail 13, except for security-adjacent / schema-RLS / Principle A/D/I work.
