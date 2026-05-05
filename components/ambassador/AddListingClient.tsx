@@ -164,6 +164,13 @@ export default function AddListingClient({
   const [name, setName] = useState(() => (isEdit && professional ? professional.name : ''))
   const [city, setCity] = useState(() => (isEdit && professional ? professional.city : ''))
   const [country, setCountry] = useState(() => (isEdit && professional ? professional.country : ''))
+  // City→country auto-fill state. countryAutoFilled tracks whether the
+  // current value of `country` was written by us (city blur lookup) vs.
+  // typed by the user — gates whether a future city blur is allowed to
+  // overwrite. countryFlashing drives the row-saved-flash keyframe on
+  // the Country input when an auto-fill lands.
+  const [countryAutoFilled, setCountryAutoFilled] = useState(false)
+  const [countryFlashing, setCountryFlashing] = useState(false)
   const [instagram, setInstagram] = useState(() => (isEdit && professional ? professional.instagram_handle : ''))
   const [category, setCategory] = useState<CategorySelection>(() => {
     if (isEdit && listing) {
@@ -254,6 +261,47 @@ export default function AddListingClient({
   // --- Hidden file inputs ---
   const avatarInputRef = useRef<HTMLInputElement | null>(null)
   const mediaInputRef = useRef<HTMLInputElement | null>(null)
+
+  // City→country lookup AbortController — aborts any in-flight request
+  // when a newer city-blur fires, preventing a stale response from
+  // overwriting a fresher value.
+  const lookupAbortRef = useRef<AbortController | null>(null)
+  const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => {
+    lookupAbortRef.current?.abort()
+    if (flashTimerRef.current) clearTimeout(flashTimerRef.current)
+  }, [])
+
+  const handleCityBlur = async () => {
+    if (professionalLocked) return
+    const trimmed = city.trim()
+    if (trimmed.length < 2) return
+    // Don't overwrite a country the user manually typed. Re-overwriting
+    // a previously auto-filled value is fine (countryAutoFilled = true).
+    if (country.trim() && !countryAutoFilled) return
+    lookupAbortRef.current?.abort()
+    const controller = new AbortController()
+    lookupAbortRef.current = controller
+    try {
+      const res = await fetch(`/api/ambassador/lookup-country?city=${encodeURIComponent(trimmed)}`, {
+        signal: controller.signal,
+      })
+      if (controller.signal.aborted) return
+      if (!res.ok) return
+      const data = await res.json().catch(() => null) as { country: string | null } | null
+      if (!data || !data.country) return
+      setCountry(data.country)
+      setCountryAutoFilled(true)
+      setCountryFlashing(true)
+      // 1200ms = row-saved-flash keyframe duration (defined in
+      // app/(ambassador)/layout.tsx, Slice 8 Q7).
+      if (flashTimerRef.current) clearTimeout(flashTimerRef.current)
+      flashTimerRef.current = setTimeout(() => setCountryFlashing(false), 1200)
+    } catch (err) {
+      if ((err as Error)?.name === 'AbortError') return
+      // Network/parse failure — silent. User can still type the country manually.
+    }
+  }
 
   // --- Close category dropdown on outside click ---
   const catRef = useRef<HTMLDivElement | null>(null)
@@ -914,6 +962,7 @@ export default function AddListingClient({
               placeholder="City"
               value={city}
               onChange={(e) => setCity(capFirst(e.target.value))}
+              onBlur={handleCityBlur}
               disabled={professionalLocked}
               style={{
                 ...INPUT_BASE, flex: 1, minWidth: 0,
@@ -925,12 +974,18 @@ export default function AddListingClient({
               type="text"
               placeholder="Country"
               value={country}
-              onChange={(e) => setCountry(capFirst(e.target.value))}
+              onChange={(e) => {
+                setCountry(capFirst(e.target.value))
+                // User-typed value is no longer "ours" — block re-overwrite
+                // by future city blurs.
+                setCountryAutoFilled(false)
+              }}
               disabled={professionalLocked}
               style={{
                 ...INPUT_BASE, flex: 1, minWidth: 0,
                 opacity: professionalLocked ? 0.6 : 1,
                 cursor: professionalLocked ? 'not-allowed' : 'text',
+                animation: countryFlashing ? 'row-saved-flash 1.2s ease' : undefined,
               }}
             />
           </div>
