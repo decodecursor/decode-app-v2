@@ -30,6 +30,50 @@ If a new chat (or Claude Code) needs to pick up:
 
 ---
 
+## Chat-partner protocol
+
+**Role:** chat Claude (browser) = thinking partner for CC-2 (Claude Code in terminal). Partner pastes CC-2 output → chat reconciles against PROJECT_STATE Phase 7 design contract + HANDOFF doctrine → locks decisions → generates 🟦 prompts when implementation is needed. Distinct from CC-2 itself, which is governed by Guardrails 1–13 in HANDOFF.md.
+
+**Default scope:** small design rectifications + ambassador feature + checkout (listings) surfaces. Desktop-only unless an item is iOS-specific by nature (e.g. §17 input 16px floor, §16 scroll-into-view pan, §19 autoplay mount race). Larger scope = explicit slice opening per Phase 8 workflow, not chat protocol.
+
+**Marker conventions:**
+- 🟦 PASTE TO CLAUDE CODE — formatted for CC-2 terminal
+- 🟨 PASTE TO YOUR TERMINAL — bash/shell (rare; partner prefers Supabase Studio for SQL)
+- ⬜ READ ONLY — quoted code, not for pasting
+
+**Q&A format when chat needs partner decisions:**
+
+```
+# N questions:
+
+### 1. <question>
+
+- Recommendation: <LETTER> — <one-line reason>
+- A) <option>
+- B) <option>
+- C) <option>
+```
+
+Partner replies shorthand: `1b, 2c`.
+
+**Drive-mode default:** ship recommendations on obvious calls; don't pause for permission on surface-level choices. Probe-first per HANDOFF §15 for cross-cutting changes touching >5 files (audit-then-fix two-pass).
+
+**Partner preferences (carry across chats):**
+- Supabase Studio for SQL, not `psql` terminal.
+- Live spot-check over pre-commit diff review per Guardrail 13, except for security-adjacent / schema-RLS / Principle A/D/I work.
+- iOS Safari + desktop Chrome are the primary smoke environments.
+
+**Carry-over mechanism:** the opening paragraph of PROJECT_STATE.md (above PHASE 1) IS the chat-boundary carry-over. Partner updates it at chat close; new chat reads it on open. No separate preamble paste required.
+
+**Start protocol for new chat:**
+1. Read PROJECT_STATE.md + CLAUDE_CODE_HANDOFF.md in full.
+2. Confirm scope in 1–2 lines.
+3. Stand by.
+
+Partner says "read attached docs, let's start" → chat goes.
+
+---
+
 ## Brand & terminology
 
 - **Brand name:** DECODE (NEVER use "WLD" — that was chat-only shorthand)
