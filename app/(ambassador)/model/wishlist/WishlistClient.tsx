@@ -143,6 +143,16 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Gated toast on arrival from /model/wishlist/new?gated=1
+  // (server-side redirect when gifts_enabled=false).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('gated') !== '1') return
+    showActionToast('Switch on Beauty Wishlist in Settings to add wishes')
+    window.history.replaceState({}, '', '/model/wishlist')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const showActionToast = (msg: string) => {
     setActionToast(msg)
     if (toastTimer.current) clearTimeout(toastTimer.current)

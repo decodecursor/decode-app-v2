@@ -56,7 +56,7 @@ export default async function AddWishPage() {
   }
 
   if (!profile.gifts_enabled) {
-    redirect('/model/wishlist')
+    redirect('/model/wishlist?gated=1')
   }
 
   const { data: categoriesData } = await admin
