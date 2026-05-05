@@ -22,15 +22,34 @@ import { useEffect, useRef, useState } from 'react'
  * orb has isActive={true} at any time. Reduced-motion preference forces
  * TAPPABLE for video state — user taps to play.
  *
- * iOS hardening reused from LightboxVideo: programmatic play() in effect
- * on isActive flip, .catch() to absorb autoplay rejections — orb falls
- * back to TAPPABLE-with-glyph if play() promise rejects (Low Power Mode,
- * other rejection cases).
- *
- * preload="metadata" — only fetches video metadata (~10KB) on page load,
- * full bytes only when active. Critical for performance with N listings.
+ * Architecture (partner-locked plan):
+ *   1. <video> always-mounted with src + preload="metadata". The
+ *      currentTime=0.1 nudge on loadedmetadata paints the real first
+ *      frame on iOS (otherwise paused <video> renders black).
+ *   2. Lazy-capture that first frame to a data URL via canvas
+ *      (crossOrigin="anonymous" required so the canvas isn't tainted;
+ *      Supabase Storage returns CORS headers). Set as
+ *      <video poster=...> so the visual persists when src is later
+ *      removed for decoder release. Cached at module scope keyed by
+ *      videoUrl — survives unmount/remount cycles within the session.
+ *   3. iOS Safari decoder release on inactive: pause() +
+ *      removeAttribute('src') + load(). Captured poster persists
+ *      visually because the poster attribute survives src removal.
+ *      On re-activation: setAttribute('src', videoUrl) + load() +
+ *      play(). Hold off the very first inactive-release until
+ *      capture settles — otherwise removing src too early prevents
+ *      seeked from ever firing.
+ *   4. Synthetic-placeholder fallback (gradient disk + centered play
+ *      glyph) only when capture fails (CORS, codec, timing). Per-orb;
+ *      doesn't crash the page.
  */
 type OrbVariant = 'playing' | 'tappable-video' | 'tappable-photos' | 'empty'
+
+// Module-level caches — persist across MediaOrb mount/unmount within
+// the page session so re-renders don't re-trigger metadata fetch +
+// frame capture for videos already settled.
+const posterCache = new Map<string, string>()
+const posterFailedSet = new Set<string>()
 
 export function MediaOrb({
   videoUrl,
@@ -51,6 +70,12 @@ export function MediaOrb({
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const [autoplayBlocked, setAutoplayBlocked] = useState(false)
+  const [capturedPoster, setCapturedPoster] = useState<string | null>(() =>
+    videoUrl ? (posterCache.get(videoUrl) ?? null) : null,
+  )
+  const [posterFailed, setPosterFailed] = useState<boolean>(() =>
+    videoUrl ? posterFailedSet.has(videoUrl) : false,
+  )
   const reducedMotion = usePrefersReducedMotion()
 
   const hasVideo = !!videoUrl
@@ -60,52 +85,83 @@ export function MediaOrb({
     hasPhotos                                                  ? 'tappable-photos' :
                                                                  'empty'
 
-  // Drive video play on isActive. Pause + rewind moved to cleanup so
-  // React fires it on isActive→false BEFORE the conditional render
-  // unmounts the <video> element (mount-on-active fix for iOS decoder
-  // ceiling — only one <video> alive at a time so iOS Safari doesn't
-  // exhaust its concurrent-decoder budget at ~4-6 elements).
+  // First-frame nudge + capture. After loadedmetadata, bump
+  // currentTime to 0.1 so iOS paints the real frame for the paused
+  // state. On the resulting `seeked` event, draw that frame to a
+  // canvas and set the data URL as the poster — so the visual
+  // persists when src is later removed for decoder release.
+  // Single-shot per videoUrl; cached at module scope.
   useEffect(() => {
     const v = videoRef.current
-    if (!v || !hasVideo || !isActive || reducedMotion) return
-    setAutoplayBlocked(false)
-    v.play().catch(() => setAutoplayBlocked(true))
-    // iOS Safari decoder release: pause() alone keeps the slot bound
-    // to the element. removeAttribute('src') + load() forces the
-    // element back to no-source state — the cue iOS uses to free the
-    // decoder so the next mounted orb can claim a slot.
-    return () => {
-      v.pause()
-      v.removeAttribute('src')
-      v.load()
-    }
-  }, [isActive, hasVideo, reducedMotion])
-
-  // iOS Safari first-frame nudge. Without poster, a paused <video>
-  // renders a black box on iOS until play() runs at least once. Setting
-  // currentTime to a small non-zero value on loadedmetadata forces the
-  // browser to paint the first frame for the paused state.
-  useEffect(() => {
-    const v = videoRef.current
-    if (!v || !hasVideo) return
+    if (!v || !hasVideo || !videoUrl) return
+    if (capturedPoster || posterFailed) return  // already settled
 
     const onLoadedMetadata = () => {
+      try { if (v.currentTime === 0) v.currentTime = 0.1 } catch { /* ignore */ }
+    }
+
+    const onSeeked = () => {
       try {
-        if (v.currentTime === 0) {
-          v.currentTime = 0.1
-        }
+        const canvas = document.createElement('canvas')
+        canvas.width = v.videoWidth || 72
+        canvas.height = v.videoHeight || 72
+        const ctx = canvas.getContext('2d')
+        if (!ctx) throw new Error('no-2d-ctx')
+        ctx.drawImage(v, 0, 0, canvas.width, canvas.height)
+        // toDataURL throws SecurityError if the canvas is tainted —
+        // i.e. the video loaded without sending CORS-style request,
+        // or the server didn't return ACAO. crossOrigin="anonymous"
+        // on the <video> below opts into CORS; Supabase returns
+        // headers. Caught + funneled to synthetic placeholder.
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.6)
+        posterCache.set(videoUrl, dataUrl)
+        setCapturedPoster(dataUrl)
       } catch {
-        // Some browsers throw if metadata isn't fully loaded; ignore.
+        posterFailedSet.add(videoUrl)
+        setPosterFailed(true)
+      } finally {
+        v.removeEventListener('seeked', onSeeked)
       }
     }
 
     v.addEventListener('loadedmetadata', onLoadedMetadata)
+    v.addEventListener('seeked', onSeeked)
     if (v.readyState >= 1) onLoadedMetadata()
 
     return () => {
       v.removeEventListener('loadedmetadata', onLoadedMetadata)
+      v.removeEventListener('seeked', onSeeked)
     }
-  }, [videoUrl, hasVideo])
+  }, [videoUrl, hasVideo, capturedPoster, posterFailed])
+
+  // Drive video play on isActive + decoder release on inactive. Hold
+  // off the first inactive-state release until capture settles —
+  // otherwise removing src too early prevents the seeked event from
+  // ever firing and capture is permanently broken for that orb.
+  useEffect(() => {
+    const v = videoRef.current
+    if (!v || !hasVideo) return
+    if (!isActive && !capturedPoster && !posterFailed) return
+
+    if (isActive && !reducedMotion) {
+      // Re-bind src if a previous inactive cycle removed it.
+      if (videoUrl && v.getAttribute('src') !== videoUrl) {
+        v.setAttribute('src', videoUrl)
+        v.load()
+      }
+      setAutoplayBlocked(false)
+      v.play().catch(() => setAutoplayBlocked(true))
+    } else {
+      // iOS Safari decoder release: pause() alone keeps the slot
+      // bound to the element. removeAttribute('src') + load()
+      // returns it to no-source state — the cue iOS uses to free
+      // the decoder. Captured poster persists visually because
+      // it's set on the <video poster=...> attribute, not on src.
+      v.pause()
+      v.removeAttribute('src')
+      v.load()
+    }
+  }, [isActive, hasVideo, reducedMotion, videoUrl, capturedPoster, posterFailed])
 
   const interactive = variant !== 'empty'
   // Tap is unified across variants: always escalates to MediaLightbox via
@@ -156,7 +212,7 @@ export function MediaOrb({
       tabIndex={interactive ? 0 : undefined}
       style={{ ...baseStyle, ...ringStyle }}
     >
-      {hasVideo && isActive && (
+      {hasVideo && (
         <video
           ref={videoRef}
           src={videoUrl ?? undefined}
@@ -164,19 +220,15 @@ export function MediaOrb({
           loop
           playsInline
           preload="metadata"
-          poster={posterUrl ?? undefined}
+          crossOrigin="anonymous"
+          poster={capturedPoster ?? undefined}
           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
         />
       )}
-      {hasVideo && !isActive && (
-        // Synthetic placeholder — there is no stored video_thumbnail_url
-        // on the listing payload (SquadRow passes posterUrl=null for
-        // video orbs). The previous always-mounted <video> served as
-        // its own poster via preload="metadata" first-frame paint;
-        // mount-on-active broke that. Until a real thumbnail field is
-        // shipped (HANDOFF item 34), inactive video orbs render a
-        // dark gradient disk with a centered play-triangle. PlayGlyph
-        // at bottom-right is suppressed below to avoid double-glyph.
+      {/* Synthetic-placeholder fallback — only when canvas capture
+          failed (CORS, codec, timing). Covers the orb so the user
+          never sees the video element's empty/black frame. */}
+      {hasVideo && !isActive && posterFailed && (
         <div
           style={{
             position: 'absolute',
