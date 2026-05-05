@@ -763,8 +763,6 @@ export default function SetupPage() {
         )}
       </div>
 
-      <div id="turnstile-container" style={{ display: 'none' }} />
-
       {showSheet && (
         <div
           onClick={(e) => {

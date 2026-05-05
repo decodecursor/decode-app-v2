@@ -35,9 +35,9 @@ const requiredEnvVars: EnvVar[] = [
   // Locked Slice 7A pre-flight Q5. Consumed via lib/brand-url.ts.
   { name: 'NEXT_PUBLIC_BRAND_URL', required: false, publicVar: true, description: 'Brand homepage URL for terminal-page CTAs (defaults to https://welovedecode.com/)' },
 
-  // Bot protection + rate limiting (Slice 4D commit 1)
-  { name: 'NEXT_PUBLIC_TURNSTILE_SITE_KEY', required: true, publicVar: true, description: 'Cloudflare Turnstile client-widget site key' },
-  { name: 'TURNSTILE_SECRET_KEY', required: true, description: 'Cloudflare Turnstile server-side siteverify secret' },
+  // Bot protection + rate limiting (Slice 4D commit 1; hCaptcha migration this commit)
+  { name: 'NEXT_PUBLIC_HCAPTCHA_SITE_KEY', required: true, publicVar: true, description: 'hCaptcha client-widget site key (invisible mode)' },
+  { name: 'HCAPTCHA_SECRET_KEY', required: true, description: 'hCaptcha server-side siteverify secret' },
   { name: 'UPSTASH_REDIS_REST_URL', required: true, description: 'Upstash Redis REST URL (rate-limit backend)' },
   { name: 'UPSTASH_REDIS_REST_TOKEN', required: true, description: 'Upstash Redis REST token' },
 

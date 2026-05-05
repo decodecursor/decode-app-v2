@@ -7,6 +7,7 @@ import { CountryPicker } from '@/components/ambassador/CountryPicker'
 import { OtpInput, type OtpInputHandle } from '@/components/ambassador/OtpInput'
 import { ProgressTracker } from '@/components/ambassador/ProgressTracker'
 import { AmbSubmitButton } from '@/components/ambassador/AmbSubmitButton'
+import { useHcaptcha } from '@/components/hcaptcha/HCaptchaWidget'
 
 type Step = 1 | 2 | 3
 
@@ -42,6 +43,18 @@ export function AddWhatsAppModal({
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [toast, setToast] = useState('')
   const [toastKey, setToastKey] = useState(0)
+
+  // hCaptcha invisible-mode: execute() triggers challenge before each
+  // send. NOTE: invisible challenge overlay portals to document.body,
+  // so it should render above this modal's z-index:100 chrome. If a
+  // future z-index conflict surfaces, surface as a separate concern —
+  // do not patch mid-commit.
+  const {
+    reset: resetHcaptcha,
+    execute: executeHcaptcha,
+    containerRef: hcaptchaContainerRef,
+    Widget: hcaptchaWidget,
+  } = useHcaptcha({ size: 'invisible' })
 
   useEffect(() => {
     if (!open) return
@@ -92,10 +105,17 @@ export function AddWhatsAppModal({
   }
 
   const sendOtp = async (phoneE164: string) => {
+    let hcaptchaToken: string
+    try {
+      hcaptchaToken = await executeHcaptcha()
+    } catch {
+      resetHcaptcha()
+      return { ok: false, error: 'Verification cancelled' }
+    }
     const res = await fetch('/api/ambassador/auth/send-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phoneNumber: phoneE164, turnstileToken: '' }),
+      body: JSON.stringify({ phoneNumber: phoneE164, hcaptchaToken }),
     })
     const data = await res.json().catch(() => ({}))
     return { ok: res.ok, error: data?.error as string | undefined }
@@ -493,6 +513,10 @@ export function AddWhatsAppModal({
         onClose={() => setShowPicker(false)}
         onSelect={selectCountry}
       />
+
+      {/* hCaptcha (invisible) — mounted at modal root so it persists
+          across the 3 modal steps. */}
+      <div ref={hcaptchaContainerRef}>{hcaptchaWidget}</div>
 
       <style>{`
         @keyframes ambassador-shake {

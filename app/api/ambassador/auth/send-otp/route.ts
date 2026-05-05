@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomInt } from 'crypto'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
 import { authkeyWhatsAppService } from '@/lib/services/AuthkeyWhatsAppService'
-import { verifyTurnstile } from '@/lib/ambassador/turnstile'
+import { verifyHcaptcha } from '@/lib/ambassador/hcaptcha'
 import { authPhoneLimiter, authIpLimiter } from '@/lib/ambassador/rate-limit'
 
 /**
@@ -14,7 +14,7 @@ import { authPhoneLimiter, authIpLimiter } from '@/lib/ambassador/rate-limit'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { phoneNumber, turnstileToken } = body
+    const { phoneNumber, hcaptchaToken } = body
 
     console.log('[Ambassador OTP] Step 0: Request received for:', phoneNumber?.substring(0, 7) + '****')
 
@@ -27,10 +27,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid phone number format' }, { status: 400 })
     }
 
-    // Turnstile bot protection (non-blocking: log but don't reject while widget is being validated)
-    const isHuman = await verifyTurnstile(turnstileToken || '')
+    // hCaptcha bot protection (globally fail-closed per locked decision 2A —
+    // empty token / hCaptcha rejection / network error all return 403).
+    const isHuman = await verifyHcaptcha(hcaptchaToken || '')
     if (!isHuman) {
-      console.warn('[Ambassador OTP] Turnstile failed — allowing request (non-blocking mode)')
+      return NextResponse.json({ error: 'Verification failed. Please try again.' }, { status: 403 })
     }
 
     // Rate limit: per-phone and per-IP

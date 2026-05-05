@@ -16,6 +16,7 @@
   "dependencies": {
     "@aws-sdk/client-scheduler": "^3.940.0",
     "@crossmint/client-sdk-react-ui": "^0.2.7",
+    "@hcaptcha/react-hcaptcha": "^2.0.2",
     "@headlessui/react": "^2.2.9",
     "@stripe/connect-js": "^3.3.25",
     "@stripe/react-stripe-js": "^3.8.1",

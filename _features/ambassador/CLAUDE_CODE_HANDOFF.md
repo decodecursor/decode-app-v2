@@ -272,7 +272,7 @@ Schema and infrastructure must exist before anything else because FKs interlock 
 - `/api/auth/send-magic-link` — POST (Turnstile-verified, rate-limited) to trigger Supabase magic link email
 
 **Bot protection:**
-- Cloudflare Turnstile on `/model/auth` page (invisible CAPTCHA) — prevents bots from spamming OTP/magic-link endpoints and draining AUTHKey credits
+- hCaptcha free tier (invisible mode, 99.9% Passive) on `/model/auth` page — prevents bots from spamming OTP/magic-link endpoints and draining AUTHKey credits. Migrated from Cloudflare Turnstile (see items 41/42/43 for the deprecation history that drove the swap).
 - Rate limit: max 3 OTP per phone per hour; max 10 OTP per IP per hour
 
 **Out of scope (will be added in later slices):**
@@ -715,7 +715,7 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 
 42. **Turnstile sitekey configuration drift (post-fix re-diagnosis, 2026-05-04).** Sitekey `0x4AAAAAAC-lNFt80UzI7Jsq` (provisioned Slice 4D, 2026-04-24) silently failed PAT challenge handshake on **all browsers** despite Cloudflare dashboard reporting "Managed" mode. Diagnosed via Chrome incognito Network tab on `/model/auth` + `/pay/{token}` showing 401s on `/cdn-cgi/challenge-platform/.../pat/`. Chrome console showed Trusted Types violations from inside Cloudflare's iframe (`compact?lang=auto:1`, `about:srcdoc:1`) — investigated as a possible CSP cause but ruled out: our top-level CSP contains no Trusted Types directives, and the violations fire against Cloudflare's own iframe-internal CSP (community-confirmed benign noise per srmdn.com/blog/cloudflare-turnstile-console-errors). Resolved by provisioning a fresh sitekey on **2026-05-04** + env-swap (`NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY`) on Vercel. **Zero repo code changes** — purely Cloudflare + Vercel dashboard work. Server-side `verifyTurnstile()` in `app/api/checkout/listing/route.ts` and equivalent in `/api/checkout/wish` + `/api/auth/*` fail-open on empty tokens — bot protection was effectively bypassed across all Turnstile-protected surfaces during the broken-sitekey window (~10+ days, exact start date not knowable from logs). Stripe confirm is the actual money gate; no real-money risk realized. **Open question for post-V1:** convert `verifyTurnstile` fail-open to fail-closed in production, OR add monitoring/alerting on empty-token rates above a threshold (e.g., >5% of `/api/checkout/*` traffic = paging signal). Either path would have surfaced this sitekey breakage in hours instead of days. Not V1-blocking. **Pair with item 41** (Turnstile init failure visibility) — same hardening surface, same observability gap, single follow-up slice can resolve both. **Superseded for /api/checkout/* by item 43 (Option D split: Turnstile dropped from checkout entirely).**
 
-43. **Checkout endpoint defense layers post-Turnstile drop (Option D split, 2026-05-04).** After items 41 + 42 surfaced that Turnstile + display:none container deadlocks when Cloudflare's risk model wants interaction, locked Option D split per partner audit: **Turnstile dropped from `/api/checkout/listing` + `/api/checkout/wish` entirely; kept on `/api/auth/*` with the widget rendered visibly** (compact 150×140 above the submit button). Shipped in `55d3d3c`. Defense layers now in place at the checkout endpoints:
+43. **Checkout endpoint defense layers post-Turnstile drop (Option D split, 2026-05-04).** After items 41 + 42 surfaced that Turnstile + display:none container deadlocks when Cloudflare's risk model wants interaction, locked Option D split per partner audit: **Turnstile dropped from `/api/checkout/listing` + `/api/checkout/wish` entirely; kept on `/api/auth/*` with the widget rendered visibly** (compact 150×140 above the submit button). Shipped in `55d3d3c`. (Update, post-item-46 hCaptcha migration: the auth-side captcha is now hCaptcha free tier in invisible mode — visible challenge only when hCaptcha's risk model flags the session. /api/checkout/* remains captcha-free per Option D.) Defense layers now in place at the checkout endpoints:
     1. **Upstash rate-limit:** 3 PI creates per IP per 10 min via `checkoutLimiter` (`lib/ambassador/rate-limit.ts:15`). First-line bot defense.
     2. **Stripe Radar:** ML-based card-testing detection on every `paymentIntents.create` — Stripe-default, no opt-out, automatic CAPTCHA injection on detected attacks per Stripe docs.
     3. **Stripe idempotency key:** `listing_${id}_${days}` (listings) / `wish_${id}_${expires_ms}` (wishes) — bot-driven repeat creates return the same PI, no enumeration value.
@@ -734,6 +734,10 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
     - **Error / network failure:** unchanged.
 
     Pair with item 44 — both address pre-launch issues that surfaced once the `2f09e3a` perf bundle + `55d3d3c` Turnstile removal made the confirm flow finally exercisable end-to-end. **Open question for post-V1:** instrument the rate of legitimate 3DS challenges. If 3DS becomes common in production, the brief `beforeunload`-during-3DS dialog could be disorienting; we'd consider scoping the guard more narrowly (e.g., only fire if >5s have passed without resolution, or skip it entirely once we trust Stripe's redirect machinery). Not V1-blocking.
+
+46. **Dormant Turnstile env vars + slice-7b-bundle-audit.md placeholder cleanup (post-hCaptcha migration, 2026-05-04).** After migrating auth-side bot protection from Cloudflare Turnstile to hCaptcha free tier (this commit), the old `NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY` env vars on Vercel (Production + Preview) were left in place intentionally as a revert safety net — if hCaptcha integration regresses in the first days post-launch, the previous Turnstile-flavored code can be restored from git history without re-provisioning Cloudflare. Same logic for `docs/slice-7b-bundle-audit.md:137,144` placeholder env-var values referencing the Turnstile names (left as-is because the bundle-audit re-run doc is still live; updating them would risk breaking the doc's standalone reproducibility for anyone re-running the audit before this commit fully bakes). **Cleanup:** delete both surfaces in a post-launch hygiene slice. Pair with item 39 (combined post-V1 security slice) + item 41 (Turnstile observability gap, now historical) if a combined slice lands. Not V1-blocking.
+
+    **Manual smoke-test (post-deploy):** open AddWhatsAppModal + ChangeWhatsAppModal in a production preview deploy, trigger a flagged hCaptcha challenge (use VPN/Tor exit node if normal traffic doesn't flag), confirm the puzzle overlay renders above the modal chrome at z-index. If it renders behind, file a follow-up commit; this commit is not blocked on z-index verification per locked plan §11.
 
 ### Slice 3 feature candidates (to be scoped separately, NOT to be conflated with hardening backlog)
 
@@ -888,7 +892,7 @@ Flags carried from Phase 2 milestone review (slice-close partner review):
 - Payment receipt (professional) — subject + body from HANDOFF §1895-1934, direct Resend (Principles B+C). Must be added to PHASE 1.7 Email Template Catalog before implementation.
 
 **Bot protection:**
-- Cloudflare Turnstile on checkout (invisible)
+- ~~Cloudflare Turnstile on checkout (invisible)~~ — dropped per HANDOFF item 43 (Option D split, 2026-05-04). Auth pages now use hCaptcha free tier (invisible mode); see HANDOFF item 17 history clause.
 - Upstash Redis rate limit on `/api/checkout/listing`
 
 **Out of scope:**
@@ -916,7 +920,7 @@ Flags carried from Phase 2 milestone review (slice-close partner review):
 4. **Public page V1 scope.** Listings section ONLY. No Wishlist rendered, no Wall of Love rendered. Wishlist visibility gets a user toggle in Settings (Slice 5 work). V1 = header + listings + lightbox + footer. Public page spec `public_page_final_UI_Spec.md` §4.3 (Wishlist) and §4.4 (Wall of Love) superseded for V1 in Slice 4A opening doc commit.
 5. **S2/S3 trial-conversion.** Option (a) from pre-flight input 1 — Stripe webhook owns the `is_free_trial` flip + price set on successful payment. PATCH route stays immutable around the flag. Draft pricing pre-payment is not supported in V1 — ambassador must set final prices before sending the link (matches current SendPaymentLinkClient behavior). Slice 4B+4C concern.
 6. **Permanent token supersession.** Checkout spec §6.3 still says "7-day link validity" — supersede in Slice 4B+4C prep doc commit. Slice 3C locked decision #1 (permanent token) wins.
-7. **Infra env vars.** `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` / `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` confirmed in Vercel. No Slice 0 install blockers.
+7. **Infra env vars.** `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` / `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` / `HCAPTCHA_SECRET_KEY` confirmed in Vercel. No Slice 0 install blockers. (Originally provisioned with `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY`; migrated to hCaptcha — see HANDOFF item 17 history + item 46.)
 8. **Notifications + email copy.** Deferred to final polish pass (post-4C). Not a Slice 4A or 4B+4C blocker; webhook writes the row, notification wiring is additive.
 
 **✅ VERIFY before next slice:**
@@ -1845,18 +1849,20 @@ This ensures expired locks are cleaned up before any wish data is read. Vercel c
 // Step 0: Clean up any expired locks first
 await supabaseAdmin.rpc('revert_expired_wish_locks');
 
-// Step 1: Verify Cloudflare Turnstile token (bot protection)
-const turnstileToken = req.body.turnstileToken;
-const turnstileResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+// Step 1: Verify hCaptcha token (bot protection)
+// NOTE: original spec used Cloudflare Turnstile; migrated to hCaptcha
+// after Cloudflare deprecated size:'invisible' (HANDOFF items 41/42/43).
+const hcaptchaToken = req.body.hcaptchaToken;
+const hcaptchaResponse = await fetch('https://api.hcaptcha.com/siteverify', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    secret: process.env.TURNSTILE_SECRET_KEY,
-    response: turnstileToken
-  })
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({
+    secret: process.env.HCAPTCHA_SECRET_KEY,
+    response: hcaptchaToken
+  }).toString()
 });
-const turnstileResult = await turnstileResponse.json();
-if (!turnstileResult.success) {
+const hcaptchaResult = await hcaptchaResponse.json();
+if (!hcaptchaResult.success) {
   return res.status(403).json({ error: 'Bot detected' });
 }
 
@@ -3098,8 +3104,8 @@ Add these to Vercel before deploying Slice 4 (first slice that uses them):
 | Variable | Purpose | How to get it |
 |---|---|---|
 | `STRIPE_AMBASSADOR_WEBHOOK_SECRET` | Signs the NEW webhook endpoint `/api/webhooks/ambassador-stripe` | Stripe Dashboard → Developers → Webhooks → Add endpoint → URL = `https://app.welovedecode.com/api/webhooks/ambassador-stripe` → select events (`payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refunded`) → copy signing secret |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Cloudflare Turnstile client-side widget | Cloudflare Dashboard → Turnstile → Add site (free) → copy site key |
-| `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile server-side verification | Same Cloudflare Turnstile page → copy secret key |
+| `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` | hCaptcha client-side widget (invisible mode) | hCaptcha Dashboard → Add site (free tier, 99.9% Passive) → copy site key |
+| `HCAPTCHA_SECRET_KEY` | hCaptcha server-side verification | Same hCaptcha site settings page → copy secret key |
 | `UPSTASH_REDIS_REST_URL` | Upstash Redis REST endpoint (rate limiting backend) | upstash.com → Create Redis database → Details → copy REST URL |
 | `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis auth token | Same Upstash database details page → copy REST token |
 | `RESEND_API_KEY` | Email delivery service for 3 custom templates | resend.com → sign up → verify `welovedecode.com` domain → API keys → create key |
@@ -3111,7 +3117,7 @@ Add these to Vercel before deploying Slice 4 (first slice that uses them):
 
 **Total new env vars: 10.** Everything else reuses legacy.
 
-**Deployment order:** Set up Turnstile + Upstash + Stripe webhook BEFORE Slice 4 (Resend is already deployed from Slice 1.5). AUTHKey template IDs can be added later (Slice 4 for listing paid; Slice 5 for wish gifted; Slice 7 for expiring reminders).
+**Deployment order:** Set up hCaptcha + Upstash + Stripe webhook BEFORE Slice 4 (Resend is already deployed from Slice 1.5). AUTHKey template IDs can be added later (Slice 4 for listing paid; Slice 5 for wish gifted; Slice 7 for expiring reminders). (Originally Turnstile; migrated — see HANDOFF item 17 history + item 46.)
 
 ### Where to reference them in code
 
@@ -3122,17 +3128,19 @@ event = stripe.webhooks.constructEvent(
   process.env.STRIPE_AMBASSADOR_WEBHOOK_SECRET!  // NEW — not STRIPE_WEBHOOK_SECRET
 );
 
-// Turnstile server-side verification
-const verifyResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+// hCaptcha server-side verification
+const verifyResponse = await fetch('https://api.hcaptcha.com/siteverify', {
   method: 'POST',
-  body: JSON.stringify({
-    secret: process.env.TURNSTILE_SECRET_KEY,
-    response: turnstileToken
-  })
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({
+    secret: process.env.HCAPTCHA_SECRET_KEY,
+    response: hcaptchaToken
+  }).toString()
 });
 
-// Turnstile client-side widget (React component)
-<Turnstile sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!} />
+// hCaptcha client-side widget (React component, invisible mode)
+import HCaptcha from '@hcaptcha/react-hcaptcha'
+<HCaptcha sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY!} size="invisible" />
 ```
 
 ---

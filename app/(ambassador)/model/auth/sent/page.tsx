@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ProgressTracker } from '@/components/ambassador/ProgressTracker'
+import { useHcaptcha } from '@/components/hcaptcha/HCaptchaWidget'
 
 type ResendPhase = 'idle' | 'sent' | 'cooldown'
 
@@ -14,6 +15,13 @@ function MagicLinkSentInner() {
   const [phase, setPhase] = useState<ResendPhase>('idle')
   const [cooldown, setCooldown] = useState(0)
   const [error, setError] = useState('')
+
+  const {
+    reset: resetHcaptcha,
+    execute: executeHcaptcha,
+    containerRef: hcaptchaContainerRef,
+    Widget: hcaptchaWidget,
+  } = useHcaptcha({ size: 'invisible' })
 
   useEffect(() => {
     const fromQuery = searchParams.get('email') || ''
@@ -46,11 +54,18 @@ function MagicLinkSentInner() {
 
   const handleResend = useCallback(async () => {
     if (phase !== 'idle' || !email) return
+    let hcaptchaToken: string
+    try {
+      hcaptchaToken = await executeHcaptcha()
+    } catch {
+      resetHcaptcha()
+      return
+    }
     try {
       const res = await fetch('/api/ambassador/auth/send-magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, turnstileToken: '' }),
+        body: JSON.stringify({ email, hcaptchaToken }),
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
@@ -65,7 +80,7 @@ function MagicLinkSentInner() {
     } catch {
       setError('Network error')
     }
-  }, [phase, email])
+  }, [phase, email, executeHcaptcha, resetHcaptcha])
 
   const resendLabel =
     phase === 'sent'
@@ -147,6 +162,10 @@ function MagicLinkSentInner() {
           {error}
         </div>
       )}
+
+      {/* hCaptcha (invisible). Mounted on mount; execute() triggers the
+          challenge inside handleResend before the send-magic-link POST. */}
+      <div ref={hcaptchaContainerRef}>{hcaptchaWidget}</div>
     </div>
   )
 }

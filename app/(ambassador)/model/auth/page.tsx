@@ -7,7 +7,7 @@ import { COUNTRY_CODES, type CountryCode } from '@/lib/country-codes'
 import { formatPhoneNumber } from '@/lib/ambassador/phone-format'
 import { CountryPicker } from '@/components/ambassador/CountryPicker'
 import { AmbSubmitButton } from '@/components/ambassador/AmbSubmitButton'
-import { useTurnstile } from '@/components/turnstile/TurnstileWidget'
+import { useHcaptcha } from '@/components/hcaptcha/HCaptchaWidget'
 
 type ToastState = { msg: string; success: boolean; id: number }
 
@@ -21,13 +21,11 @@ export default function AmbassadorAuthPage() {
   const [showPicker, setShowPicker] = useState(false)
   const [toast, setToast] = useState<ToastState | null>(null)
   const {
-    token: turnstileToken,
-    reset: resetTurnstile,
-    containerRef: turnstileContainerRef,
-  } = useTurnstile({
-    size: 'compact',
-    refreshExpired: 'auto',
-  })
+    reset: resetHcaptcha,
+    execute: executeHcaptcha,
+    containerRef: hcaptchaContainerRef,
+    Widget: hcaptchaWidget,
+  } = useHcaptcha({ size: 'invisible' })
 
   const phoneInputRef = useRef<HTMLInputElement | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -60,29 +58,39 @@ export default function AmbassadorAuthPage() {
       showToast('Enter a valid phone number', false)
       throw new Error('invalid phone')
     }
+    // Invisible hCaptcha: trigger challenge before fetch. Most sessions
+    // pass the 99.9% Passive risk model silently; flagged sessions get
+    // an interactive overlay. execute() rejects on user-cancel/expire/error.
+    let hcaptchaToken: string
+    try {
+      hcaptchaToken = await executeHcaptcha()
+    } catch {
+      resetHcaptcha()
+      throw new Error('captcha cancelled')
+    }
     const fullPhone = `${selectedCountry.code}${rawDigits}`
     let res: Response
     try {
       res = await fetch('/api/ambassador/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber: fullPhone, turnstileToken }),
+        body: JSON.stringify({ phoneNumber: fullPhone, hcaptchaToken }),
       })
     } catch (err) {
       console.error('[auth] WhatsApp send failed:', err)
       showToast('Network error. Please try again.', false)
-      resetTurnstile()
+      resetHcaptcha()
       throw err
     }
     const data = await res.json().catch(() => ({}))
     if (!res.ok) {
       showToast(data.error || 'Failed to send code', false)
-      resetTurnstile()
+      resetHcaptcha()
       throw new Error(data.error || 'send failed')
     }
     sessionStorage.setItem('ambassador_auth_phone', fullPhone)
     sessionStorage.setItem('ambassador_auth_country', selectedCountry.code)
-    resetTurnstile()
+    resetHcaptcha()
   }
 
   return (
@@ -170,10 +178,9 @@ export default function AmbassadorAuthPage() {
             />
           </div>
 
-          {/* Turnstile (compact, visible). Sits just above the submit
-              button so the verification flow reads top-to-bottom for
-              the user. */}
-          <div ref={turnstileContainerRef} style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }} />
+          {/* hCaptcha (invisible). No visible widget — challenge appears
+              only when hCaptcha's risk model flags the session. */}
+          <div ref={hcaptchaContainerRef}>{hcaptchaWidget}</div>
 
           {/* WhatsApp button */}
           <AmbSubmitButton

@@ -112,7 +112,7 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: isDevelopment
               ? "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: *; frame-ancestors 'self';"
-              : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.stripe.com https://maps.googleapis.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.stripe.com https://*.crossmint.com https://challenges.cloudflare.com; frame-src 'self' https://js.stripe.com https://*.stripe.com https://challenges.cloudflare.com; frame-ancestors 'self';",
+              : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.stripe.com https://maps.googleapis.com https://hcaptcha.com https://*.hcaptcha.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://hcaptcha.com https://*.hcaptcha.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.stripe.com https://*.crossmint.com https://hcaptcha.com https://*.hcaptcha.com; frame-src 'self' https://js.stripe.com https://*.stripe.com https://hcaptcha.com https://*.hcaptcha.com; frame-ancestors 'self';",
           },
         ],
       },

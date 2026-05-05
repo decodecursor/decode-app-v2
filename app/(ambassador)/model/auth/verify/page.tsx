@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ProgressTracker } from '@/components/ambassador/ProgressTracker'
 import { OtpInput, type OtpInputHandle } from '@/components/ambassador/OtpInput'
 import { AmbSubmitButton } from '@/components/ambassador/AmbSubmitButton'
+import { useHcaptcha } from '@/components/hcaptcha/HCaptchaWidget'
 
 type ResendPhase = 'idle' | 'sent' | 'cooldown'
 
@@ -25,6 +26,13 @@ export default function VerifyOTPPage() {
   const [resendCooldown, setResendCooldown] = useState(0)
 
   const otpRef = useRef<OtpInputHandle | null>(null)
+
+  const {
+    reset: resetHcaptcha,
+    execute: executeHcaptcha,
+    containerRef: hcaptchaContainerRef,
+    Widget: hcaptchaWidget,
+  } = useHcaptcha({ size: 'invisible' })
 
   useEffect(() => {
     const stored = sessionStorage.getItem('ambassador_auth_phone')
@@ -133,11 +141,18 @@ export default function VerifyOTPPage() {
 
   const handleResend = useCallback(async () => {
     if (resendPhase !== 'idle' || !phone) return
+    let hcaptchaToken: string
+    try {
+      hcaptchaToken = await executeHcaptcha()
+    } catch {
+      resetHcaptcha()
+      return
+    }
     try {
       const res = await fetch('/api/ambassador/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber: phone, turnstileToken: '' }),
+        body: JSON.stringify({ phoneNumber: phone, hcaptchaToken }),
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
@@ -154,7 +169,7 @@ export default function VerifyOTPPage() {
     } catch {
       setError('Network error')
     }
-  }, [resendPhase, phone])
+  }, [resendPhase, phone, executeHcaptcha, resetHcaptcha])
 
   const resendLabel =
     resendPhase === 'sent'
@@ -262,6 +277,10 @@ export default function VerifyOTPPage() {
           {error}
         </div>
       )}
+
+      {/* hCaptcha (invisible). Mounted on mount; execute() triggers the
+          challenge inside handleResend before the send-otp POST. */}
+      <div ref={hcaptchaContainerRef}>{hcaptchaWidget}</div>
 
       {toast && (
         <div

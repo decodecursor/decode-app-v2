@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
-import { verifyTurnstile } from '@/lib/ambassador/turnstile'
+import { verifyHcaptcha } from '@/lib/ambassador/hcaptcha'
 import { authEmailLimiter, authIpLimiter } from '@/lib/ambassador/rate-limit'
 import { maskEmail } from '@/lib/ambassador/log-utils'
 import { renderButtonEmail } from '@/lib/ambassador/email-templates'
@@ -18,7 +18,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, turnstileToken } = body
+    const { email, hcaptchaToken } = body
 
     // Validate email
     if (!email || typeof email !== 'string') {
@@ -32,8 +32,8 @@ export async function POST(request: NextRequest) {
 
     console.log('[Ambassador Magic Link] Send request for:', maskEmail(normalizedEmail))
 
-    // Turnstile bot protection
-    const isHuman = await verifyTurnstile(turnstileToken || '')
+    // hCaptcha bot protection (globally fail-closed per locked decision 2A).
+    const isHuman = await verifyHcaptcha(hcaptchaToken || '')
     if (!isHuman) {
       return NextResponse.json({ error: 'Verification failed. Please try again.' }, { status: 403 })
     }

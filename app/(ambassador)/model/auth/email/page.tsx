@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { AmbSubmitButton } from '@/components/ambassador/AmbSubmitButton'
-import { useTurnstile } from '@/components/turnstile/TurnstileWidget'
+import { useHcaptcha } from '@/components/hcaptcha/HCaptchaWidget'
 
 type ToastState = { msg: string; success: boolean; id: number }
 
@@ -25,13 +25,11 @@ export default function AmbassadorAuthEmailPage() {
   const [email, setEmail] = useState('')
   const [toast, setToast] = useState<ToastState | null>(null)
   const {
-    token: turnstileToken,
-    reset: resetTurnstile,
-    containerRef: turnstileContainerRef,
-  } = useTurnstile({
-    size: 'compact',
-    refreshExpired: 'auto',
-  })
+    reset: resetHcaptcha,
+    execute: executeHcaptcha,
+    containerRef: hcaptchaContainerRef,
+    Widget: hcaptchaWidget,
+  } = useHcaptcha({ size: 'invisible' })
 
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -55,28 +53,37 @@ export default function AmbassadorAuthEmailPage() {
       showToast('Enter a valid email', false)
       throw new Error('invalid email')
     }
+    // Invisible hCaptcha: trigger challenge before fetch (see auth/page.tsx
+    // for full posture rationale).
+    let hcaptchaToken: string
+    try {
+      hcaptchaToken = await executeHcaptcha()
+    } catch {
+      resetHcaptcha()
+      throw new Error('captcha cancelled')
+    }
     const normalized = email.toLowerCase().trim()
     let res: Response
     try {
       res = await fetch('/api/ambassador/auth/send-magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: normalized, turnstileToken }),
+        body: JSON.stringify({ email: normalized, hcaptchaToken }),
       })
     } catch (err) {
       console.error('[auth-email] magic link send failed:', err)
       showToast('Network error. Please try again.', false)
-      resetTurnstile()
+      resetHcaptcha()
       throw err
     }
     const data = await res.json().catch(() => ({}))
     if (!res.ok) {
       showToast(data.error || 'Failed to send link', false)
-      resetTurnstile()
+      resetHcaptcha()
       throw new Error(data.error || 'send failed')
     }
     sessionStorage.setItem('ambassador_auth_email', normalized)
-    resetTurnstile()
+    resetHcaptcha()
   }
 
   return (
@@ -133,10 +140,9 @@ export default function AmbassadorAuthEmailPage() {
           }}
         />
 
-        {/* Turnstile (compact, visible). Sits just above the submit
-            button so the verification flow reads top-to-bottom for
-            the user. */}
-        <div ref={turnstileContainerRef} style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }} />
+        {/* hCaptcha (invisible). No visible widget — challenge appears
+            only when hCaptcha's risk model flags the session. */}
+        <div ref={hcaptchaContainerRef}>{hcaptchaWidget}</div>
 
         <AmbSubmitButton
           verb="send"
