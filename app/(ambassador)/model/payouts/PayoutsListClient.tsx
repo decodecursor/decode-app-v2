@@ -24,8 +24,7 @@ import BackArrow from '@/components/ambassador/BackArrow'
  *
  * Empty state (decision ζ): when API returns is_empty=true, hide
  * both the next-payout card and the history card and show "No
- * payouts yet" + 11px subtitle "Your first payout appears here once
- * you earn your first commission".
+ * payouts yet" + 11px subtitle "Your first payout appears here".
  */
 export default function PayoutsListClient() {
   const [data, setData] = useState<PayoutsListResponse | null>(null)
@@ -101,7 +100,7 @@ function EmptyState() {
         No payouts yet
       </div>
       <div style={{ fontSize: '11px', color: '#777', lineHeight: 1.6, maxWidth: '260px', margin: '0 auto' }}>
-        Your first payout appears here once you earn your first commission
+        Your first payout appears here
       </div>
     </div>
   )
