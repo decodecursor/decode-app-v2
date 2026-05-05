@@ -20,7 +20,7 @@ export default async function WishlistPage() {
 
   const { data: profile } = await admin
     .from('model_profiles')
-    .select('id, is_suspended')
+    .select('id, is_suspended, gifts_enabled')
     .eq('user_id', user.id)
     .maybeSingle()
 
@@ -58,5 +58,5 @@ export default async function WishlistPage() {
 
   const wishes = (data ?? []).map(toWishCardRow)
 
-  return <WishlistClient wishes={wishes} />
+  return <WishlistClient wishes={wishes} giftsEnabled={profile.gifts_enabled} />
 }

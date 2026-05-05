@@ -112,7 +112,10 @@ function IgIcon({ color }: { color: string }) {
   )
 }
 
-export default function WishlistClient({ wishes: initialWishes }: { wishes: WishCardRow[] }) {
+const GATED_TOAST_COPY = 'Switch on Beauty Wishlist in Settings to add wishes'
+const GATED_TOAST_MS = 3600
+
+export default function WishlistClient({ wishes: initialWishes, giftsEnabled }: { wishes: WishCardRow[]; giftsEnabled: boolean }) {
   const router = useRouter()
   const [filter, setFilter] = useState<Filter>('all')
   const [wishes, setWishes] = useState<WishCardRow[]>(initialWishes)
@@ -148,15 +151,23 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('gated') !== '1') return
-    showActionToast('Switch on Beauty Wishlist in Settings to add wishes')
+    showActionToast(GATED_TOAST_COPY, GATED_TOAST_MS)
     window.history.replaceState({}, '', '/model/wishlist')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const showActionToast = (msg: string) => {
+  const showActionToast = (msg: string, durationMs: number = 1800) => {
     setActionToast(msg)
     if (toastTimer.current) clearTimeout(toastTimer.current)
-    toastTimer.current = setTimeout(() => setActionToast(null), 1800)
+    toastTimer.current = setTimeout(() => setActionToast(null), durationMs)
+  }
+
+  const handleAddWish = () => {
+    if (!giftsEnabled) {
+      showActionToast(GATED_TOAST_COPY, GATED_TOAST_MS)
+      return
+    }
+    router.push('/model/wishlist/new')
   }
 
   const refetchWishes = async () => {
@@ -236,7 +247,7 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
             <span style={{ fontSize: 20, fontWeight: 700 }}>Wishlist</span>
           </div>
           <div
-            onClick={() => router.push('/model/wishlist/new')}
+            onClick={handleAddWish}
             style={{
               padding: 6, background: 'transparent', border: 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -281,7 +292,7 @@ export default function WishlistClient({ wishes: initialWishes }: { wishes: Wish
                 Add your first beauty wish to show data here.
               </div>
               <div
-                onClick={() => router.push('/model/wishlist/new')}
+                onClick={handleAddWish}
                 style={{
                   background: '#e91e8c', borderRadius: 12, padding: '14px 28px',
                   fontSize: 14, fontWeight: 700, letterSpacing: '0.2px', cursor: 'pointer',

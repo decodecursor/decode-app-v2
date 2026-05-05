@@ -74,11 +74,19 @@ export default function DashboardClient({
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
   }, [])
 
-  const showToast = (msg: string) => {
+  const showToast = (msg: string, durationMs: number = 5200) => {
     setToast(msg)
     setToastKey((k) => k + 1)
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
-    toastTimerRef.current = setTimeout(() => setToast(null), 5200)
+    toastTimerRef.current = setTimeout(() => setToast(null), durationMs)
+  }
+
+  const handleAddWish = () => {
+    if (!profile.gifts_enabled) {
+      showToast('Switch on Beauty Wishlist in Settings to add wishes', 3600)
+      return
+    }
+    router.push('/model/wishlist/new')
   }
 
   const handleCopy = async () => {
@@ -346,7 +354,7 @@ export default function DashboardClient({
           Add Listing
         </button>
         <button
-          onClick={() => router.push('/model/wishlist/new')}
+          onClick={handleAddWish}
           style={{
             flex: 1,
             borderRadius: '12px',
