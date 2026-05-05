@@ -822,18 +822,14 @@ export default function AddListingClient({
                 style={{
                   width: 52, height: 52, borderRadius: '50%',
                   background: '#1c1c1c',
-                  border: avatarUrl
-                    ? '2px solid transparent'
-                    : '1.5px dashed #333',
+                  border: '2px solid transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   overflow: 'hidden', textAlign: 'center',
                   cursor: professionalLocked ? 'default' : 'pointer',
-                  backgroundImage: avatarUrl
-                    ? `linear-gradient(#000,#000), linear-gradient(45deg,#FEDA75 0%,#FA7E1E 25%,#D62976 50%,#962FBF 100%)`
-                    : undefined,
-                  backgroundOrigin: avatarUrl ? 'border-box' : undefined,
-                  backgroundClip: avatarUrl ? 'padding-box, border-box' : undefined,
-                  padding: avatarUrl ? 2 : 0,
+                  backgroundImage: `linear-gradient(#000,#000), linear-gradient(45deg,#FEDA75 0%,#FA7E1E 25%,#D62976 50%,#962FBF 100%)`,
+                  backgroundOrigin: 'border-box',
+                  backgroundClip: 'padding-box, border-box',
+                  padding: 2,
                 }}
               >
                 {uploadingAvatar ? (
@@ -845,11 +841,7 @@ export default function AddListingClient({
                     alt="avatar"
                     style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%', display: 'block' }}
                   />
-                ) : (
-                  <div style={{ fontSize: 8, color: '#666', lineHeight: 1.2, fontWeight: 500 }}>
-                    Profile<br />Image
-                  </div>
-                )}
+                ) : null}
               </div>
               {/* Remove button — only when avatar present and not locked */}
               {avatarUrl && !professionalLocked && !uploadingAvatar && (
@@ -866,21 +858,6 @@ export default function AddListingClient({
                   <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
                     <line x1="18" y1="6" x2="6" y2="18" />
                     <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </div>
-              )}
-              {!avatarUrl && !uploadingAvatar && (
-                <div style={{
-                  position: 'absolute', bottom: -2, right: -2,
-                  width: 20, height: 20, borderRadius: '50%',
-                  background: '#1c1c1c', border: '2px solid #1c1c1c',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  pointerEvents: 'none',
-                }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0z" fill="#e91e8c" />
-                    <path d="M12 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8z" fill="#e91e8c" />
-                    <circle cx="18.406" cy="5.594" r="1.44" fill="#e91e8c" />
                   </svg>
                 </div>
               )}
