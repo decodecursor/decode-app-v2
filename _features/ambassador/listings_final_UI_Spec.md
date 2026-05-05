@@ -227,7 +227,7 @@ Client does **no date math** — renders the string as received. The `+1 day` ru
 | Element | Spec |
 |---|---|
 | Title | "Remove listing?" (18px/700 white, centered) |
-| Body (two lines via `<br>`) | "This removes the listing from your page." / "The payment link will no longer be valid." (13px/400 `#888`, 1.5 line-height, centered) |
+| Body (two lines via `<br>`) | "This removes the listing from your page." / "Any payment link will no longer be valid." (13px/400 `#888`, 1.5 line-height, centered) |
 | Info card | Name (14px/500 white) · category (11px/400 `#e91e8c`) · location (11px/400 `#888`) |
 | Left button | **Keep** — `#262626` grey, 14px/600 white |
 | Right button | **Remove** — `#e91e8c` pink, 14px/600 white |

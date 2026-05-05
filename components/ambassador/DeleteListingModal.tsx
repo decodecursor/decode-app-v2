@@ -58,7 +58,7 @@ export function DeleteListingModal({
             </div>
             <div style={{ fontSize: 13, color: '#888', textAlign: 'center', marginBottom: 24, lineHeight: 1.5 }}>
               This removes the listing from your page.<br />
-              The payment link will no longer be valid.
+              Any payment link will no longer be valid.
             </div>
           </>
         ) : (
