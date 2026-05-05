@@ -1029,7 +1029,10 @@ export default function AddListingClient({
               background: '#1c1c1c', border: '1.5px dashed #333', borderRadius: 12, padding: 24,
               fontSize: 11, color: '#888',
             }}>
-              Uploading…
+              Uploading
+              <span className="amb-dot amb-dot-1">.</span>
+              <span className="amb-dot amb-dot-2">.</span>
+              <span className="amb-dot amb-dot-3">.</span>
             </div>
           )}
 
@@ -1053,10 +1056,19 @@ export default function AddListingClient({
             >
               <video
                 ref={videoRef}
-                src={media.previewUrl}
+                src={`${media.previewUrl}#t=0.1`}
                 preload="metadata"
                 muted
                 playsInline
+                onLoadedMetadata={(e) => {
+                  // Belt-and-suspenders for browsers that ignore the
+                  // media fragment — force a seek to 0.1s so the first
+                  // frame paints instead of staying blank (iOS Safari +
+                  // some Android Chrome variants).
+                  if (e.currentTarget.currentTime === 0) {
+                    e.currentTarget.currentTime = 0.1
+                  }
+                }}
                 onPlay={() => setVideoPlaying(true)}
                 onPause={() => setVideoPlaying(false)}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
