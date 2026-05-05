@@ -812,7 +812,7 @@ export default function AddListingClient({
           {isEdit ? 'Edit listing' : 'Add listing'}
         </div>
         <div style={{ fontSize: 11, color: '#888' }}>
-          {isEdit ? 'Update the details — photo, category, pricing' : 'Display your beauty professional on your page'}
+          {isEdit ? 'Update the details — category, media' : 'Display your beauty professional on your page'}
         </div>
       </div>
 
@@ -1027,6 +1027,7 @@ export default function AddListingClient({
                 onChange={(e) => onInstagramChange(e.target.value)}
                 onBlur={onInstagramBlur}
                 disabled={isEdit}
+                readOnly={isEdit}
                 style={{
                   flex: 1, minWidth: 0,
                   background: 'transparent', border: 'none', outline: 'none',
