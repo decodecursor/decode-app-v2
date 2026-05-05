@@ -332,7 +332,7 @@ function WishRow({ label, value, last }: { label: string; value: string; last?: 
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: last ? 0 : 8 }}>
       <span style={{ fontSize: 12, color: '#888' }}>{label}</span>
-      <span style={{ fontSize: 14, fontWeight: 500, textAlign: 'right', maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span style={{ fontSize: 13, fontWeight: 500, textAlign: 'right', maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {value}
       </span>
     </div>
