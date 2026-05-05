@@ -198,7 +198,7 @@ function PlayGlyph({ variant }: { variant: OrbVariant }) {
         fill={fill}
         stroke="none"
       >
-        <polygon points="7 4 20 12 7 20 7 4" />
+        <polygon points="7 4 20 12 7 20 7 4" stroke="#1c1c1c" strokeWidth="2" strokeLinejoin="round" />
       </svg>
     </div>
   )
