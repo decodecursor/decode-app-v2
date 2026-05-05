@@ -56,7 +56,7 @@ export function PublicHeader({
           zIndex: 2,
         }}
       >
-        <ShareButton url={shareUrl} title={displayName} slug={profile.slug} />
+        <ShareButton url={shareUrl} title={displayName} slug={profile.slug} text={`${displayName}'s Beauty Squad 🌸`} />
       </div>
 
       {/* Cover image — positioned with cover_photo_position_y (0-100)

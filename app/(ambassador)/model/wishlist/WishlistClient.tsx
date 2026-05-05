@@ -218,7 +218,7 @@ export default function WishlistClient({ wishes: initialWishes, giftsEnabled }: 
 
   const handleShare = (w: WishCardRow) => {
     const url = `https://${PAYMENT_BASE}/${w.payment_link_token}`
-    const message = `Looking for a gift idea for me? I’ve got a beauty wish ready 🎁 ${url}`
+    const message = `Hello!\n\nLooking for a gift idea for me?\n\nI’ve got a beauty wish on WeLoveDecode 🎁\n\n${url}`
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer')
   }
 

@@ -128,9 +128,9 @@ export function CheckoutClient({ data, shareUrl }: Props) {
   // Strip leading @ defensively (DB stores without; setup form sanitizes
   // to bare username, but defense-in-depth for any direct edits).
   const ambIg = data.ambassador.instagram_handle?.replace(/^@/, '') || null
-  // Share message — verbatim parity with SendPaymentLinkClient.tsx:217-220 so a
+  // Share message — verbatim parity with SendPaymentLinkClient.tsx:220-221 so a
   // gifter forwarding the pay link receives the same copy the ambassador sent.
-  const shareMessage = `Hello\n\nI've just added you to my Beauty Squad on WeLoveDecode🌸\n\nConfirm here to activate: ${shareUrl}`
+  const shareMessage = `Hello!\n\nI've added you to my Beauty Squad on WeLoveDecode🌸\n\nPlease click to open your checkout page.\n\n${shareUrl}`
 
   const coverStyle: React.CSSProperties = data.ambassador.cover_photo_url
     ? { backgroundImage: `url(${data.ambassador.cover_photo_url})`, backgroundPosition: 'center top', backgroundSize: 'cover' }
