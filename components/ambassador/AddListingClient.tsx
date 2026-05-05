@@ -779,9 +779,10 @@ export default function AddListingClient({
                   onChange={(e) => onCustomCategoryChange(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLInputElement).blur() } }}
                   style={{
+                    ...INPUT_BASE,
+                    width: 'auto',
                     flex: 1, minWidth: 0,
-                    background: 'transparent', border: 'none', outline: 'none',
-                    padding: '14px 16px', fontSize: 16, color: '#fff', fontFamily: 'inherit',
+                    background: 'transparent', border: 'none',
                   }}
                 />
                 {customCategoryText.trim().length >= 2 && (
