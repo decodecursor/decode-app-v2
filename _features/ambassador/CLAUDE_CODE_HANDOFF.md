@@ -2281,7 +2281,7 @@ pending (initial)
 RLS policies protect WHO can upload, but don't limit WHAT they upload. A malicious authenticated user could bypass our API and upload 500MB files directly via Supabase Storage API. Enforce limits at the bucket level:
 
 **Supabase Dashboard → Storage → model-media bucket → Configuration:**
-- **File size limit:** `15 MB` (enforced by Supabase itself — cannot be bypassed)
+- **File size limit:** `40 MB` (enforced by Supabase itself — cannot be bypassed)
 - **Allowed MIME types:** `image/jpeg, image/png, image/webp, video/mp4, video/quicktime, video/webm`
 
 These settings take effect immediately and apply to all uploads regardless of entry point. Pair with server-side MIME check for defense-in-depth.

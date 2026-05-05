@@ -8,7 +8,7 @@
  *     upload to model-media bucket under {uid}/professionals/avatars/.
  *   - Listing photo uploads (×1-3) via <ImageCropper mode="listing"> →
  *     client-side direct upload to {uid}/listings/photos/.
- *   - Video uploads with client-side validation (≤15s duration, ≤15MB
+ *   - Video uploads with client-side validation (≤15s duration, ≤40MB
  *     size, MP4/MOV/WebM MIME) → {uid}/listings/videos/. HEVC accepted
  *     silently per Phase 1 #13.
  *   - Instagram handle dedup on blur (when form has enough to attempt a

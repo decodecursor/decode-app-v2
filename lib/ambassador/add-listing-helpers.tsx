@@ -24,7 +24,7 @@
 const PRICE_FLOORS: Record<string, number> = { usd: 10, eur: 10, gbp: 10, aed: 50 }
 const DEFAULT_PRICE_FLOOR = 10
 
-const MAX_VIDEO_BYTES = 15 * 1024 * 1024
+const MAX_VIDEO_BYTES = 40 * 1024 * 1024
 const MAX_VIDEO_DURATION_S = 15
 const ALLOWED_VIDEO_MIMES = ['video/mp4', 'video/quicktime', 'video/webm']
 
@@ -81,7 +81,7 @@ export type VideoValidation = { ok: true } | { ok: false; error: string }
 export function validateVideoFile(file: File): Promise<VideoValidation> {
   return new Promise<VideoValidation>((resolve) => {
     if (file.size > MAX_VIDEO_BYTES) {
-      resolve({ ok: false, error: 'Video must be 15 MB or less' })
+      resolve({ ok: false, error: 'Video must be 40 MB or less' })
       return
     }
     if (!ALLOWED_VIDEO_MIMES.includes(file.type)) {
