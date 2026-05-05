@@ -113,7 +113,7 @@ export function validateVideoFile(file: File): Promise<VideoValidation> {
 // ---------------------------------------------------------------------------
 
 export function PriceBox({
-  days, value, onInput, onFocus, onBlur, perDay, symbol, bad, offPct,
+  days, value, onInput, onFocus, onBlur, perDay, symbol, bad, offPct, locked = false,
 }: {
   days: 30 | 60 | 90
   value: string
@@ -124,10 +124,11 @@ export function PriceBox({
   symbol: string
   bad: boolean
   offPct?: number | null
+  locked?: boolean
 }) {
   return (
     <div style={{ flex: 1, position: 'relative' }}>
-      {offPct != null && (
+      {offPct != null && !locked && (
         <div style={{
           display: 'block', position: 'absolute', top: -10, left: '50%',
           transform: 'translateX(-50%)', zIndex: 2,
@@ -138,10 +139,14 @@ export function PriceBox({
         </div>
       )}
       <div style={{
-        background: '#1c1c1c',
-        border: `1.5px solid ${bad ? '#e91e8c' : '#262626'}`,
+        position: 'relative',
+        background: locked ? '#141414' : '#1c1c1c',
+        border: locked
+          ? '1px solid #1c1c1c'
+          : `1.5px solid ${bad ? '#e91e8c' : '#262626'}`,
         borderRadius: 12, padding: 10, textAlign: 'center',
         transition: 'border-color 0.15s',
+        cursor: locked ? 'not-allowed' : undefined,
       }}>
         <div style={{ fontSize: 11, color: '#666', marginBottom: 6 }}>{days} days</div>
         <input
@@ -150,16 +155,28 @@ export function PriceBox({
           onChange={onInput}
           onFocus={onFocus}
           onBlur={onBlur}
+          disabled={locked}
           onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
           style={{
             width: '100%', background: 'transparent', border: 'none', outline: 'none',
-            fontSize: 18, fontWeight: 600, color: '#fff', textAlign: 'center',
+            fontSize: 18, fontWeight: 600,
+            color: locked ? '#666' : '#fff',
+            textAlign: 'center',
             fontFamily: 'inherit', padding: 0,
+            cursor: locked ? 'not-allowed' : 'text',
           }}
         />
         <div style={{ fontSize: 11, color: '#666', marginTop: 4, height: 13 }}>
           {perDay ? `${symbol}${perDay}/day` : ''}
         </div>
+        {locked && (
+          <svg
+            width="13" height="13" viewBox="0 0 24 24" fill="#777"
+            style={{ position: 'absolute', top: 6, right: 6, pointerEvents: 'none' }}
+          >
+            <path d="M18 8h-1V6c0-2.761-2.239-5-5-5S7 3.239 7 6v2H6c-1.105 0-2 .895-2 2v10c0 1.105.895 2 2 2h12c1.105 0 2-.895 2-2V10c0-1.105-.895-2-2-2zM9 6c0-1.654 1.346-3 3-3s3 1.346 3 3v2H9V6z" />
+          </svg>
+        )}
       </div>
     </div>
   )

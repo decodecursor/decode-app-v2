@@ -128,6 +128,60 @@ const INPUT_BASE: React.CSSProperties = {
   fontFamily: 'inherit',
 }
 
+// Canonical lock styling — replaces the prior opacity-0.6 + #888 pattern
+// for any field that can't be edited on the current row state. Used for
+// professional-level fields (always locked in edit mode) and pricing
+// (locked on live paid listings only). Server-side enforcement lives in
+// PATCH /api/ambassador/model/listings/[id] via getEditableKeys.
+const LOCKED_INPUT_STYLE: React.CSSProperties = {
+  width: '100%',
+  background: '#141414',
+  border: '1px solid #1c1c1c',
+  borderRadius: 12,
+  padding: '14px 38px 14px 16px',
+  fontSize: 16,
+  color: '#666',
+  outline: 'none',
+  boxSizing: 'border-box',
+  fontFamily: 'inherit',
+  cursor: 'not-allowed',
+}
+
+function LockIcon({ right = 14, size = 13 }: { right?: number; size?: number } = {}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="#777"
+      style={{
+        position: 'absolute',
+        right,
+        top: '50%',
+        transform: 'translateY(-50%)',
+        pointerEvents: 'none',
+      }}
+    >
+      <path d="M18 8h-1V6c0-2.761-2.239-5-5-5S7 3.239 7 6v2H6c-1.105 0-2 .895-2 2v10c0 1.105.895 2 2 2h12c1.105 0 2-.895 2-2V10c0-1.105-.895-2-2-2zM9 6c0-1.654 1.346-3 3-3s3 1.346 3 3v2H9V6z" />
+    </svg>
+  )
+}
+
+function LockedTextField({
+  value,
+  wrapperStyle,
+}: {
+  value: string
+  wrapperStyle?: React.CSSProperties
+}) {
+  return (
+    <div style={{ position: 'relative', ...wrapperStyle }}>
+      <input type="text" value={value} disabled readOnly style={LOCKED_INPUT_STYLE} />
+      <LockIcon />
+    </div>
+  )
+}
+
 const FOCUS_SCOPE_ID = 'add-listing-page'
 
 export default function AddListingClient({
@@ -139,6 +193,11 @@ export default function AddListingClient({
   professional,
 }: Props) {
   const isEdit = mode === 'edit'
+  // Live paid listings (status='active' && !is_free_trial) lock pricing
+  // in addition to the always-locked professional fields. Trial listings
+  // keep pricing editable per Slice 4D `aaf9977` (Send Payment Link).
+  // Mirrors PATCH /api/ambassador/model/listings/[id] getEditableKeys.
+  const isLiveLock = isEdit && !!listing && listing.status === 'active' && !listing.is_free_trial
   const router = useRouter()
   // Stable browser Supabase client — one per component mount.
   const supabase = useMemo(() => createClient(), [])
@@ -612,9 +671,14 @@ export default function AddListingClient({
         photo_url_1: media!.kind === 'photos' ? media!.urls[0] ?? null : null,
         photo_url_2: media!.kind === 'photos' ? media!.urls[1] ?? null : null,
         photo_url_3: media!.kind === 'photos' ? media!.urls[2] ?? null : null,
-        price_30: freeTrial ? null : p30n,
-        price_60: freeTrial ? null : p60n,
-        price_90: freeTrial ? null : p90n,
+      }
+      // Pricing omitted on live paid listings — server-side
+      // getEditableKeys would 400 on price_* keys. Trial / pending /
+      // expired keep the existing send-pricing path.
+      if (!isLiveLock) {
+        patchPayload.price_30 = freeTrial ? null : p30n
+        patchPayload.price_60 = freeTrial ? null : p60n
+        patchPayload.price_90 = freeTrial ? null : p90n
       }
       const patchRes = await fetch(`/api/ambassador/model/listings/${listing.id}`, {
         method: 'PATCH',
@@ -690,7 +754,7 @@ export default function AddListingClient({
     } else {
       router.push(`/model/listings/${listingData.listing.id}/send-link`)
     }
-  }, [isValid, freeTrial, pricingValid, professionalId, instagram, name, city, country, avatarUrl, category, media, p30n, p60n, p90n, showToast, router, isEdit, listing])
+  }, [isValid, freeTrial, pricingValid, professionalId, instagram, name, city, country, avatarUrl, category, media, p30n, p60n, p90n, showToast, router, isEdit, listing, isLiveLock])
 
   const onPriceInput = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const digitsOnly = e.target.value.replace(/[^0-9]/g, '')
@@ -717,7 +781,6 @@ export default function AddListingClient({
           transition: border-color 0.15s;
         }
         #${FOCUS_SCOPE_ID} input::placeholder { color: #666 !important; opacity: 1 }
-        #${FOCUS_SCOPE_ID} input:disabled { color: #888; }
       `}</style>
 
       {/* Hidden file inputs */}
@@ -853,22 +916,23 @@ export default function AddListingClient({
         <div style={{ marginBottom: 22 }}>
           <div style={SECTION_LABEL}>Professional</div>
 
-          <input
-            type="text"
-            placeholder="Salon, clinic or doctor name"
-            value={name}
-            onChange={(e) => setName(capFirst(e.target.value))}
-            disabled={professionalLocked}
-            style={{
-              ...INPUT_BASE,
-              marginBottom: 10,
-              opacity: professionalLocked ? 0.6 : 1,
-              cursor: professionalLocked ? 'not-allowed' : 'text',
-            }}
-          />
+          {professionalLocked ? (
+            <LockedTextField value={name} wrapperStyle={{ marginBottom: 10 }} />
+          ) : (
+            <input
+              type="text"
+              placeholder="Salon, clinic or doctor name"
+              value={name}
+              onChange={(e) => setName(capFirst(e.target.value))}
+              style={{ ...INPUT_BASE, marginBottom: 10 }}
+            />
+          )}
 
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
-            {/* Avatar tile — click opens picker. Shows image when uploaded. */}
+            {/* Avatar tile — click opens picker. Shows image when uploaded.
+                In edit mode the tile is visually locked (small padlock +
+                desaturation); the actual unlock-and-edit path is deferred
+                to a future slice. Tap is a no-op via openAvatarPicker. */}
             <div style={{ flexShrink: 0, position: 'relative' }}>
               <div
                 onClick={openAvatarPicker}
@@ -878,11 +942,13 @@ export default function AddListingClient({
                   border: '2px solid transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   overflow: 'hidden', textAlign: 'center',
-                  cursor: professionalLocked ? 'default' : 'pointer',
+                  cursor: professionalLocked ? 'not-allowed' : 'pointer',
                   backgroundImage: `linear-gradient(#1c1c1c,#1c1c1c), linear-gradient(#000,#000), linear-gradient(45deg,#FEDA75 0%,#FA7E1E 25%,#D62976 50%,#962FBF 100%)`,
                   backgroundOrigin: 'border-box',
                   backgroundClip: 'content-box, padding-box, border-box',
                   padding: 2,
+                  filter: isEdit ? 'grayscale(0.3)' : undefined,
+                  opacity: isEdit ? 0.7 : 1,
                 }}
               >
                 {uploadingAvatar ? (
@@ -918,21 +984,41 @@ export default function AddListingClient({
                   </svg>
                 </div>
               )}
+              {/* Lock badge — visual-only on edit; deferred actual edit flow */}
+              {isEdit && (
+                <div
+                  style={{
+                    position: 'absolute', bottom: -2, right: -2,
+                    width: 18, height: 18, borderRadius: '50%',
+                    background: '#000', border: '1px solid #1c1c1c',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="#777">
+                    <path d="M18 8h-1V6c0-2.761-2.239-5-5-5S7 3.239 7 6v2H6c-1.105 0-2 .895-2 2v10c0 1.105.895 2 2 2h12c1.105 0 2-.895 2-2V10c0-1.105-.895-2-2-2zM9 6c0-1.654 1.346-3 3-3s3 1.346 3 3v2H9V6z" />
+                  </svg>
+                </div>
+              )}
             </div>
 
-            {/* IG-username field — sits in the slot Category vacated. */}
+            {/* IG-username field — sits in the slot Category vacated.
+                Always locked in edit mode (IG handle is authoritative
+                identity per Slice 3C locked decision #2). */}
             <div className="al-fw" style={{
-              flex: 1, minWidth: 0,
-              background: '#1c1c1c', border: '1.5px solid #262626', borderRadius: 12,
-              padding: '0 16px', fontSize: 14, display: 'flex', alignItems: 'center',
+              flex: 1, minWidth: 0, position: 'relative',
+              background: isEdit ? '#141414' : '#1c1c1c',
+              border: isEdit ? '1px solid #1c1c1c' : '1.5px solid #262626',
+              borderRadius: 12,
+              padding: isEdit ? '0 38px 0 16px' : '0 16px',
+              fontSize: 14, display: 'flex', alignItems: 'center',
               gap: 10, height: 48, transition: 'border-color 0.15s',
-              opacity: isEdit ? 0.6 : 1,
               cursor: isEdit ? 'not-allowed' : 'text',
             }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0z" fill="#e91e8c" />
-                <path d="M12 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8z" fill="#e91e8c" />
-                <circle cx="18.406" cy="5.594" r="1.44" fill="#e91e8c" />
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0z" fill={isEdit ? '#777' : '#e91e8c'} />
+                <path d="M12 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8z" fill={isEdit ? '#777' : '#e91e8c'} />
+                <circle cx="18.406" cy="5.594" r="1.44" fill={isEdit ? '#777' : '#e91e8c'} />
               </svg>
               <input
                 type="text"
@@ -944,13 +1030,14 @@ export default function AddListingClient({
                 style={{
                   flex: 1, minWidth: 0,
                   background: 'transparent', border: 'none', outline: 'none',
-                  fontSize: 16, color: '#fff', fontFamily: 'inherit', padding: 0,
+                  fontSize: 16, color: isEdit ? '#666' : '#fff', fontFamily: 'inherit', padding: 0,
                   cursor: isEdit ? 'not-allowed' : 'text',
                 }}
               />
               {dedupInFlight && (
                 <span style={{ fontSize: 11, color: '#666', flexShrink: 0 }}>…</span>
               )}
+              {isEdit && <LockIcon />}
             </div>
           </div>
 
@@ -961,37 +1048,37 @@ export default function AddListingClient({
           )}
 
           <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-            <input
-              type="text"
-              placeholder="City"
-              value={city}
-              onChange={(e) => setCity(capFirst(e.target.value))}
-              onBlur={handleCityBlur}
-              disabled={professionalLocked}
-              style={{
-                ...INPUT_BASE, flex: 1, minWidth: 0,
-                opacity: professionalLocked ? 0.6 : 1,
-                cursor: professionalLocked ? 'not-allowed' : 'text',
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Country"
-              value={country}
-              onChange={(e) => {
-                setCountry(capFirst(e.target.value))
-                // User-typed value is no longer "ours" — block re-overwrite
-                // by future city blurs.
-                setCountryAutoFilled(false)
-              }}
-              disabled={professionalLocked}
-              style={{
-                ...INPUT_BASE, flex: 1, minWidth: 0,
-                opacity: professionalLocked ? 0.6 : 1,
-                cursor: professionalLocked ? 'not-allowed' : 'text',
-                animation: countryFlashing ? 'row-saved-flash 1.2s ease' : undefined,
-              }}
-            />
+            {professionalLocked ? (
+              <LockedTextField value={city} wrapperStyle={{ flex: 1, minWidth: 0 }} />
+            ) : (
+              <input
+                type="text"
+                placeholder="City"
+                value={city}
+                onChange={(e) => setCity(capFirst(e.target.value))}
+                onBlur={handleCityBlur}
+                style={{ ...INPUT_BASE, flex: 1, minWidth: 0 }}
+              />
+            )}
+            {professionalLocked ? (
+              <LockedTextField value={country} wrapperStyle={{ flex: 1, minWidth: 0 }} />
+            ) : (
+              <input
+                type="text"
+                placeholder="Country"
+                value={country}
+                onChange={(e) => {
+                  setCountry(capFirst(e.target.value))
+                  // User-typed value is no longer "ours" — block re-overwrite
+                  // by future city blurs.
+                  setCountryAutoFilled(false)
+                }}
+                style={{
+                  ...INPUT_BASE, flex: 1, minWidth: 0,
+                  animation: countryFlashing ? 'row-saved-flash 1.2s ease' : undefined,
+                }}
+              />
+            )}
           </div>
         </div>
 
@@ -1183,17 +1270,17 @@ export default function AddListingClient({
             <PriceBox
               days={30} value={p30} onInput={onPriceInput(setP30)}
               onFocus={() => setTouched30(false)} onBlur={() => setTouched30(true)}
-              perDay={perDay30} symbol={symbol} bad={box30Bad}
+              perDay={perDay30} symbol={symbol} bad={box30Bad} locked={isLiveLock}
             />
             <PriceBox
               days={60} value={p60} onInput={onPriceInput(setP60)}
               onFocus={() => setTouched60(false)} onBlur={() => setTouched60(true)}
-              perDay={perDay60} symbol={symbol} bad={box60Bad} offPct={off60}
+              perDay={perDay60} symbol={symbol} bad={box60Bad} offPct={off60} locked={isLiveLock}
             />
             <PriceBox
               days={90} value={p90} onInput={onPriceInput(setP90)}
               onFocus={() => setTouched90(false)} onBlur={() => setTouched90(true)}
-              perDay={perDay90} symbol={symbol} bad={box90Bad} offPct={off90}
+              perDay={perDay90} symbol={symbol} bad={box90Bad} offPct={off90} locked={isLiveLock}
             />
           </div>
 

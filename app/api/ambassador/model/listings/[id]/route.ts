@@ -86,10 +86,13 @@ export async function DELETE(
 //
 // Edit an existing listing. Owner-only (model_profiles.user_id = auth.uid()).
 //
-// Editable (per Slice 3C locked decision #2):
+// Editable (per Slice 3C locked decision #2 + live-pricing lock):
 //   - category_id / category_custom (XOR — exactly one)
 //   - media_type + media URLs (XOR — 'photos' or 'video', consistent urls)
-//   - price_30 / price_60 / price_90 (required for paid; must be null for trial)
+//   - price_30 / price_60 / price_90 — only on non-live rows. Live paid
+//     listings (status='active' && !is_free_trial) lock pricing; the
+//     unknown-key gate rejects price_* in body. Trial pricing stays
+//     writable per Slice 4D `aaf9977`.
 //
 // Rejected (non-editable fields; 400 if present in body):
 //   - professional_id (Principle A — IG handle is authoritative identity)
@@ -104,11 +107,24 @@ export async function DELETE(
 // all three required + currency floor + price_30 < price_60 < price_90.
 // ---------------------------------------------------------------------------
 
-const EDITABLE_KEYS = new Set([
+// Editable-set is row-state-aware. Live paid listings (status='active'
+// + !is_free_trial) lock pricing — only category + media may change.
+// Trial listings keep pricing writable per Slice 4D `aaf9977`
+// relaxation (Send Payment Link page persists ambassador-entered
+// prices). Other states (pending_payment, expired) keep the full set.
+const FULL_EDITABLE_KEYS = new Set([
   'category_id', 'category_custom',
   'media_type', 'photo_url_1', 'photo_url_2', 'photo_url_3', 'video_url',
   'price_30', 'price_60', 'price_90',
 ])
+const LIVE_EDITABLE_KEYS = new Set([
+  'category_id', 'category_custom',
+  'media_type', 'photo_url_1', 'photo_url_2', 'photo_url_3', 'video_url',
+])
+function getEditableKeys(row: { is_free_trial: boolean; status: string }): Set<string> {
+  if (row.status === 'active' && !row.is_free_trial) return LIVE_EDITABLE_KEYS
+  return FULL_EDITABLE_KEYS
+}
 
 const PRICE_FLOORS: Record<string, number> = { usd: 10, eur: 10, gbp: 10, aed: 50 }
 const DEFAULT_PRICE_FLOOR = 10
@@ -167,10 +183,10 @@ export async function PATCH(
     // is_free_trial drives the pricing-rule branch; currency drives the floor.
     const { data: existing, error: existingError } = await admin
       .from('model_listings')
-      .select('id, is_free_trial, currency')
+      .select('id, is_free_trial, currency, status')
       .eq('id', id)
       .eq('model_id', profile.id)
-      .maybeSingle<{ id: string; is_free_trial: boolean; currency: string }>()
+      .maybeSingle<{ id: string; is_free_trial: boolean; currency: string; status: string }>()
 
     if (existingError) {
       console.error('[Ambassador Listings] PATCH owner/existence lookup failed:', existingError)
@@ -186,8 +202,9 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
     }
 
+    const editableKeys = getEditableKeys(existing)
     for (const k of Object.keys(body)) {
-      if (!EDITABLE_KEYS.has(k)) {
+      if (!editableKeys.has(k)) {
         return NextResponse.json({ error: `Field not editable: ${k}` }, { status: 400 })
       }
     }
@@ -286,64 +303,78 @@ export async function PATCH(
     // Mixed/partial prices on a trial listing fall into the paid
     // validation branch below and reject with the same "all three
     // required" error a paid listing would.
+    // Pricing branch only runs when pricing is in the editable set
+    // (i.e. NOT a live paid listing — those lock pricing per the
+    // getEditableKeys gate above). On live listings price_* keys never
+    // reach the body (rejected at the unknown-key gate) and the
+    // existing prices are preserved by omitting them from UPDATE.
     let price_30: number | null = null
     let price_60: number | null = null
     let price_90: number | null = null
+    const pricingEditable = editableKeys.has('price_30')
 
-    const trialKeepsPricesNull = existing.is_free_trial
-      && body.price_30 == null
-      && body.price_60 == null
-      && body.price_90 == null
+    if (pricingEditable) {
+      const trialKeepsPricesNull = existing.is_free_trial
+        && body.price_30 == null
+        && body.price_60 == null
+        && body.price_90 == null
 
-    if (trialKeepsPricesNull) {
-      // Leave prices null. Ambassador editing other fields (media,
-      // category) on an unpriced trial listing.
-    } else {
-      // Paid listing OR trial-with-prices — same validation:
-      // all three required + currency floor + strict ordering.
-      const p30 = coercePrice(body.price_30)
-      const p60 = coercePrice(body.price_60)
-      const p90 = coercePrice(body.price_90)
-      if (!Number.isFinite(p30) || !Number.isFinite(p60) || !Number.isFinite(p90)
-          || p30 === null || p60 === null || p90 === null) {
-        return NextResponse.json(
-          { error: 'price_30, price_60, price_90 required when prices are provided' },
-          { status: 400 },
-        )
+      if (trialKeepsPricesNull) {
+        // Leave prices null. Ambassador editing other fields (media,
+        // category) on an unpriced trial listing.
+      } else {
+        // Paid listing OR trial-with-prices — same validation:
+        // all three required + currency floor + strict ordering.
+        const p30 = coercePrice(body.price_30)
+        const p60 = coercePrice(body.price_60)
+        const p90 = coercePrice(body.price_90)
+        if (!Number.isFinite(p30) || !Number.isFinite(p60) || !Number.isFinite(p90)
+            || p30 === null || p60 === null || p90 === null) {
+          return NextResponse.json(
+            { error: 'price_30, price_60, price_90 required when prices are provided' },
+            { status: 400 },
+          )
+        }
+        const floor = priceFloorForCurrency(existing.currency)
+        if (p30 < floor || p60 < floor || p90 < floor) {
+          return NextResponse.json(
+            { error: `Each price must be at least ${floor} ${existing.currency.toUpperCase()}` },
+            { status: 400 },
+          )
+        }
+        if (!(p30 < p60 && p60 < p90)) {
+          return NextResponse.json(
+            { error: 'Prices must satisfy price_30 < price_60 < price_90' },
+            { status: 400 },
+          )
+        }
+        price_30 = p30
+        price_60 = p60
+        price_90 = p90
       }
-      const floor = priceFloorForCurrency(existing.currency)
-      if (p30 < floor || p60 < floor || p90 < floor) {
-        return NextResponse.json(
-          { error: `Each price must be at least ${floor} ${existing.currency.toUpperCase()}` },
-          { status: 400 },
-        )
-      }
-      if (!(p30 < p60 && p60 < p90)) {
-        return NextResponse.json(
-          { error: 'Prices must satisfy price_30 < price_60 < price_90' },
-          { status: 400 },
-        )
-      }
-      price_30 = p30
-      price_60 = p60
-      price_90 = p90
     }
 
     // ---- UPDATE with double-check owner in WHERE ----
+    // Pricing fields are conditionally included — omitted on live
+    // paid listings so the existing values stay intact.
+    const updatePayload: Record<string, unknown> = {
+      category_id,
+      category_custom,
+      media_type,
+      video_url,
+      photo_url_1,
+      photo_url_2,
+      photo_url_3,
+    }
+    if (pricingEditable) {
+      updatePayload.price_30 = price_30
+      updatePayload.price_60 = price_60
+      updatePayload.price_90 = price_90
+    }
+
     const { data: updated, error: updateError } = await admin
       .from('model_listings')
-      .update({
-        category_id,
-        category_custom,
-        media_type,
-        video_url,
-        photo_url_1,
-        photo_url_2,
-        photo_url_3,
-        price_30,
-        price_60,
-        price_90,
-      })
+      .update(updatePayload)
       .eq('id', id)
       .eq('model_id', profile.id)
       .select('id, status, is_free_trial')
