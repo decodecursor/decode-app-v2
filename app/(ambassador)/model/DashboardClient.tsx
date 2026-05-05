@@ -256,13 +256,15 @@ export default function DashboardClient({
           background: '#1c1c1c',
           borderRadius: '12px',
           padding: '13px 15px',
+          display: 'flex',
+          flexDirection: 'column',
         }}>
           <div style={{ fontSize: '9px', color: '#777', marginBottom: '3px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Top listings
           </div>
           {topClicks.length === 0 ? (
-            <div style={{ fontSize: '12px', color: '#555', textAlign: 'center', paddingTop: '8px' }}>
-              No clicks yet
+            <div style={{ fontSize: '12px', color: '#fff', textAlign: 'left', marginTop: 'auto' }}>
+              Share your link for clicks
             </div>
           ) : (
             topClicks.map((row, i) => {
