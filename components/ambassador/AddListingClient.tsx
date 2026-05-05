@@ -841,7 +841,11 @@ export default function AddListingClient({
                     alt="avatar"
                     style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%', display: 'block' }}
                   />
-                ) : null}
+                ) : (
+                  <div style={{ fontSize: 8, color: '#666', lineHeight: 1.2, fontWeight: 500 }}>
+                    Profile<br />Image
+                  </div>
+                )}
               </div>
               {/* Remove button — only when avatar present and not locked */}
               {avatarUrl && !professionalLocked && !uploadingAvatar && (
