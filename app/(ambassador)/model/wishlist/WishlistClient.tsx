@@ -287,9 +287,9 @@ export default function WishlistClient({ wishes: initialWishes, giftsEnabled }: 
         <div style={{ padding: '0 20px', minHeight: 400 }}>
           {visible.length === 0 ? (
             <div style={{ padding: '80px 20px', textAlign: 'center' }}>
-              <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>No beauty wishes yet</div>
+              <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>No beauty wish yet</div>
               <div style={{ fontSize: 13, color: '#888', marginBottom: 24 }}>
-                Add your first beauty wish to show data here.
+                Add a beauty wish to show data here
               </div>
               <div
                 onClick={handleAddWish}
@@ -299,7 +299,7 @@ export default function WishlistClient({ wishes: initialWishes, giftsEnabled }: 
                   display: 'inline-block', color: '#fff',
                 }}
               >
-                Add beauty wish
+                Add wish
               </div>
             </div>
           ) : (
