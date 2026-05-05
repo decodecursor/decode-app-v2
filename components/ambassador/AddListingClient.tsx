@@ -827,9 +827,9 @@ export default function AddListingClient({
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   overflow: 'hidden', textAlign: 'center',
                   cursor: professionalLocked ? 'default' : 'pointer',
-                  backgroundImage: `linear-gradient(#000,#000), linear-gradient(45deg,#FEDA75 0%,#FA7E1E 25%,#D62976 50%,#962FBF 100%)`,
+                  backgroundImage: `linear-gradient(#1c1c1c,#1c1c1c), linear-gradient(#000,#000), linear-gradient(45deg,#FEDA75 0%,#FA7E1E 25%,#D62976 50%,#962FBF 100%)`,
                   backgroundOrigin: 'border-box',
-                  backgroundClip: 'padding-box, border-box',
+                  backgroundClip: 'content-box, padding-box, border-box',
                   padding: 2,
                 }}
               >
