@@ -216,6 +216,11 @@ export default function AddListingClient({
   const [avatarError, setAvatarError] = useState<string | null>(null)
 
   const [mediaCropperFile, setMediaCropperFile] = useState<File | null>(null)
+  // Video playback state for the post-upload slot. videoPlaying gates
+  // the centered play-button overlay; videoRef drives parent-tap → toggle
+  // play/pause without relying on the browser's native <video controls>.
+  const [videoPlaying, setVideoPlaying] = useState(false)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
   const [media, setMedia] = useState<Media>(() => {
     if (isEdit && listing) {
       if (listing.media_type === 'video' && listing.video_url) {
@@ -1029,14 +1034,51 @@ export default function AddListingClient({
           )}
 
           {media?.kind === 'video' && (
-            <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', background: '#1c1c1c', border: '1.5px solid #262626' }}>
+            <div
+              onClick={() => {
+                const v = videoRef.current
+                if (!v) return
+                if (v.paused) v.play().catch(() => { /* autoplay blocked or load error — silent */ })
+                else v.pause()
+              }}
+              style={{
+                position: 'relative',
+                height: 220,
+                borderRadius: 10,
+                overflow: 'hidden',
+                background: '#1c1c1c',
+                border: '1.5px solid #262626',
+                cursor: 'pointer',
+              }}
+            >
               <video
+                ref={videoRef}
                 src={media.previewUrl}
-                controls
-                style={{ width: '100%', height: 220, objectFit: 'cover', display: 'block' }}
+                preload="metadata"
+                muted
+                playsInline
+                onPlay={() => setVideoPlaying(true)}
+                onPause={() => setVideoPlaying(false)}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               />
+              {!videoPlaying && (
+                <div
+                  style={{
+                    position: 'absolute', top: '50%', left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 44, height: 44, borderRadius: '50%',
+                    background: 'rgba(0,0,0,0.55)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" style={{ marginLeft: 2 }}>
+                    <polygon points="6 4 20 12 6 20" />
+                  </svg>
+                </div>
+              )}
               <div
-                onClick={removeMediaVideo}
+                onClick={(e) => { e.stopPropagation(); removeMediaVideo() }}
                 style={{
                   position: 'absolute', top: 8, right: 8,
                   width: 26, height: 26, background: 'rgba(0,0,0,0.7)', borderRadius: '50%',
