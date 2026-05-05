@@ -263,8 +263,8 @@ export default function DashboardClient({
             Top listings
           </div>
           {topClicks.length === 0 ? (
-            <div style={{ fontSize: '12px', color: '#fff', textAlign: 'left', marginTop: 'auto' }}>
-              Share your link for clicks
+            <div style={{ fontSize: '9px', color: '#777', textAlign: 'left', marginTop: 'auto' }}>
+              Share your page<br />for clicks
             </div>
           ) : (
             topClicks.map((row, i) => {
