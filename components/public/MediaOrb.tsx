@@ -70,7 +70,15 @@ export function MediaOrb({
     if (!v || !hasVideo || !isActive || reducedMotion) return
     setAutoplayBlocked(false)
     v.play().catch(() => setAutoplayBlocked(true))
-    return () => { v.pause(); v.currentTime = 0 }
+    // iOS Safari decoder release: pause() alone keeps the slot bound
+    // to the element. removeAttribute('src') + load() forces the
+    // element back to no-source state — the cue iOS uses to free the
+    // decoder so the next mounted orb can claim a slot.
+    return () => {
+      v.pause()
+      v.removeAttribute('src')
+      v.load()
+    }
   }, [isActive, hasVideo, reducedMotion])
 
   // iOS Safari first-frame nudge. Without poster, a paused <video>
@@ -160,13 +168,29 @@ export function MediaOrb({
           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
         />
       )}
-      {hasVideo && !isActive && posterUrl && (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={posterUrl}
-          alt=""
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-        />
+      {hasVideo && !isActive && (
+        // Synthetic placeholder — there is no stored video_thumbnail_url
+        // on the listing payload (SquadRow passes posterUrl=null for
+        // video orbs). The previous always-mounted <video> served as
+        // its own poster via preload="metadata" first-frame paint;
+        // mount-on-active broke that. Until a real thumbnail field is
+        // shipped (HANDOFF item 34), inactive video orbs render a
+        // dark gradient disk with a centered play-triangle. PlayGlyph
+        // at bottom-right is suppressed below to avoid double-glyph.
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(135deg, #1c1c1c 0%, #0a0a0a 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff" stroke="#1c1c1c" strokeWidth="2" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))' }}>
+            <polygon points="7 4 20 12 7 20 7 4" />
+          </svg>
+        </div>
       )}
       {!hasVideo && hasPhotos && posterUrl && (
         /* eslint-disable-next-line @next/next/no-img-element */
@@ -177,7 +201,7 @@ export function MediaOrb({
         />
       )}
 
-      {variant !== 'playing' && <PlayGlyph variant={variant} />}
+      {variant !== 'playing' && (isActive || !hasVideo) && <PlayGlyph variant={variant} />}
     </div>
   )
 }
