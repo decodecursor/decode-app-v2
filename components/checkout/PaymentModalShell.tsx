@@ -197,7 +197,7 @@ export function PaymentModal({
   const clientSecret = pi.status === 'ready' ? pi.clientSecret : null
   const elementsOptions = useMemo<StripeElementsOptions | null>(
     () => (clientSecret
-      ? { clientSecret, appearance: { theme: 'night', variables: { colorPrimary: '#e91e8c' } } }
+      ? { clientSecret, appearance: { theme: 'night', variables: { colorPrimary: '#e91e8c', colorBackground: '#0f0f0f' } } }
       : null),
     [clientSecret],
   )
