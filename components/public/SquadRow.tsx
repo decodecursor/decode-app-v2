@@ -155,6 +155,11 @@ export function SquadRow({
       <div ref={registerOrbRef} data-orb-id={listing.id} style={{ flexShrink: 0 }}>
         <MediaOrb
           videoUrl={listing.media_type === 'video' ? listing.video_url : null}
+          videoThumbnailUrl={
+            listing.media_type === 'video'
+              ? (listing.video_thumbnail_url ?? null)
+              : null
+          }
           posterUrl={
             listing.media_type === 'video'
               ? null

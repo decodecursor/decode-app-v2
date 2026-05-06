@@ -17,6 +17,7 @@ export interface PublicListingRow {
   category_custom: string | null
   media_type: PublicListingMediaType | null
   video_url: string | null
+  video_thumbnail_url: string | null
   photo_url_1: string | null
   photo_url_2: string | null
   photo_url_3: string | null
@@ -60,7 +61,7 @@ export interface PublicPageData {
  */
 export const PUBLIC_LISTING_SELECT = `
   id, category_id, category_custom, media_type,
-  video_url, photo_url_1, photo_url_2, photo_url_3,
+  video_url, video_thumbnail_url, photo_url_1, photo_url_2, photo_url_3,
   effective_status, created_at,
   model_professionals!model_listings_professional_id_fkey (
     id, name, instagram_handle, city, country, avatar_photo_url
@@ -76,6 +77,7 @@ export interface LiveListingJoinRow {
   category_custom: string | null
   media_type: PublicListingMediaType | null
   video_url: string | null
+  video_thumbnail_url: string | null
   photo_url_1: string | null
   photo_url_2: string | null
   photo_url_3: string | null
@@ -101,6 +103,7 @@ export function toPublicListing(row: LiveListingJoinRow): PublicListingRow | nul
     category_custom: row.category_custom,
     media_type: row.media_type,
     video_url: row.video_url,
+    video_thumbnail_url: row.video_thumbnail_url,
     photo_url_1: row.photo_url_1,
     photo_url_2: row.photo_url_2,
     photo_url_3: row.photo_url_3,
