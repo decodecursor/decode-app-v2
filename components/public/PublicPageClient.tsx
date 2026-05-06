@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PublicPageData } from '@/lib/public/slug-page-shape'
 import { mediaPool } from '@/lib/public/media-pool'
+import { orbMediaPool } from '@/lib/public/orb-media-pool'
 import { PublicHeader } from './PublicHeader'
 import { SquadRow } from './SquadRow'
 import { WishesSection } from './WishesSection'
@@ -61,6 +62,17 @@ export default function PublicPageClient({
 
   const onOrbActivate = useCallback((id: string) => setActiveOrbId(id), [])
   const onOrbDeactivate = useCallback(() => setActiveOrbId(null), [])
+
+  // Detach the orb pool's <video> when no orb is active (e.g. user
+  // scrolled past all video orbs). Each MediaOrb's own effect handles
+  // ACTIVATING the pool; deactivation belongs here at the page level
+  // because no individual orb knows when the active id has gone null
+  // — only the orchestrator does. Active-orb-to-active-orb transitions
+  // don't need explicit deactivate; the next orb's activate() does an
+  // implicit removeChild from the prior parent.
+  useEffect(() => {
+    if (!activeOrbId) orbMediaPool.deactivate()
+  }, [activeOrbId])
   const registerOrbRef = useCallback((id: string, el: HTMLElement | null) => {
     if (el) orbRefs.current.set(id, el)
     else orbRefs.current.delete(id)
