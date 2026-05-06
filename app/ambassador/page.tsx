@@ -173,6 +173,7 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
   padding: 0 28px 60px;
   font-weight: 400;
 }
+.amb-landing-footer-strong { font-weight: 500; }
 
 .amb-landing-story-overlay {
   position: fixed;
@@ -352,7 +353,7 @@ export default function AmbassadorLandingPage() {
         </div>
 
         <div className="amb-landing-footer">
-          META interrupts. DECODE meets.<br />A page she chose to visit.
+          <span className="amb-landing-footer-strong">META interrupts. DECODE meets.</span><br />A page she chose to visit.
         </div>
       </main>
 
