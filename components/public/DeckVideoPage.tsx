@@ -5,113 +5,81 @@ import type { PublicListingRow } from '@/lib/public/slug-page-shape'
 import { LightboxChrome } from './LightboxChrome'
 
 /**
- * Video page within the lightbox deck. Mount-on-active: the <video>
- * element only exists in the DOM while this page is the current slide.
- * Non-current slides render <img src={video_thumbnail_url}> (or fall
- * back to the page's #000 background when the thumbnail URL is NULL).
+ * Video page within the lightbox deck. TikTok-style interaction model:
+ *  - <video> always mounts muted. iOS Safari never blocks or rate-limits
+ *    muted autoplay, so the play() promise effectively can't reject and
+ *    there's no "autoplay-blocked" affordance to surface.
+ *  - Tap toggles mute on the current video (no play/pause button). The
+ *    only way to stop playback is to close the lightbox.
+ *  - A small bottom-right indicator shows current mute state so tap is
+ *    visibly acknowledged (status feedback, not a control).
  *
- * Why mount-on-active and not eager-prefetch ±1: iOS Safari has a
- * hard ceiling on simultaneous video decoder slots (4-6 depending on
- * device). Yanni's deck has 6 video listings, so the previous
- * isHydrated=±1 window kept up to 3 <video> elements alive at once
- * and the last 2-3 swipes failed to start playback. Single-element
- * guarantee → no decoder pressure.
+ * Mount-on-active is preserved for the <video> element — exactly one
+ * decoder slot in use across the deck regardless of length. Persistent
+ * <img> base layer below the <video> kills any black flash on swipe.
  *
- * The trade-off is a brief load on swipe-to: poster (server-side
- * first frame) paints instantly, then metadata + first decoded frame
- * replace it once playback begins.
- *
- * Mute is controlled by parent (LightboxDeck) — shared across all
- * video pages in the same session, so unmuting one persists to the
- * next.
- *
- * Tap-anywhere on the video toggles mute (TikTok pattern). The mute
- * button in LightboxChrome's top-left also routes to onToggleMute.
- *
- * iOS hardening:
- *  - playsInline + muted=true on first play (browser autoplay policy)
- *  - .catch() on play() promise → autoplayBlocked=true → tap-to-play
- *    overlay (mirrors the previous LightboxVideo pattern — file deleted
- *    in this commit, behavior preserved here).
- *  - play() retry on canplay if readyState was too low at first
- *    attempt — common on iOS when video mounts and play() races
- *    metadata fetch on slower-encoded videos.
- *
- * Reduced-motion: skip play() entirely; force the tap-to-play overlay
- * so the user must opt-in. Deck navigation still works.
+ * Mute is local to each slide (not deck-wide) — by spec, every <video>
+ * mount is muted=true. State resets on each isCurrent flip so the
+ * indicator stays in sync with the freshly-mounted video element.
  */
 export function DeckVideoPage({
   listing,
   isCurrent,
-  isMuted,
-  onToggleMute,
   onClose,
 }: {
   listing: PublicListingRow
   isCurrent: boolean
-  isMuted: boolean
-  onToggleMute: () => void
   onClose: () => void
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null)
-  const [autoplayBlocked, setAutoplayBlocked] = useState(false)
-  const reducedMotion = usePrefersReducedMotion()
+  // Tracks the live <video>.muted property for the indicator. Initial
+  // value matches the hardcoded `muted` JSX attr below; reset whenever
+  // isCurrent flips so a freshly-mounted <video> (which is always muted)
+  // doesn't visually disagree with stale state from the prior visit.
+  const [muted, setMuted] = useState(true)
+
+  useEffect(() => {
+    if (isCurrent) setMuted(true)
+  }, [isCurrent])
 
   // Drive play when the <video> mounts (isCurrent flips true). Mount-
   // on-active means the element only exists in the DOM while focused;
   // unmount on swipe-away frees the iOS decoder slot automatically.
+  // Muted autoplay always succeeds on iOS, so no autoplay-blocked
+  // fallback. We still retry on canplay for the case where readyState
+  // is too low at the first play() attempt (videos without
+  // moov-at-start / faststart encoding).
   useEffect(() => {
     const v = videoRef.current
-    if (!v) return
-    if (!isCurrent) return
-    if (reducedMotion) {
-      setAutoplayBlocked(true)
-      return
-    }
-
-    setAutoplayBlocked(false)
+    if (!v || !isCurrent) return
 
     let cancelled = false
     let canplayHandler: (() => void) | null = null
 
-    const tryPlay = () => {
+    v.play().catch(() => {
       if (cancelled) return
-      v.play().catch(() => {
-        if (cancelled) return
-        if (v.readyState < 3 && !canplayHandler) {
-          canplayHandler = () => {
-            if (cancelled) return
-            v.play().catch(() => setAutoplayBlocked(true))
-          }
-          v.addEventListener('canplay', canplayHandler, { once: true })
-        } else {
-          setAutoplayBlocked(true)
+      if (v.readyState < 3) {
+        canplayHandler = () => {
+          if (cancelled) return
+          v.play().catch(() => { /* muted autoplay shouldn't reject */ })
         }
-      })
-    }
-
-    tryPlay()
+        v.addEventListener('canplay', canplayHandler, { once: true })
+      }
+    })
 
     return () => {
       cancelled = true
-      if (canplayHandler) {
-        v.removeEventListener('canplay', canplayHandler)
-      }
+      if (canplayHandler) v.removeEventListener('canplay', canplayHandler)
     }
-  }, [isCurrent, reducedMotion])
+  }, [isCurrent])
 
-  // Tap on the video → toggle mute (TikTok pattern).
-  // If currently autoplay-blocked, the same tap should attempt play().
+  // Tap → toggle mute on the current video. Updates state so the
+  // indicator (and LightboxChrome's mute control) re-renders.
   const onVideoTap = () => {
     const v = videoRef.current
     if (!v) return
-    if (autoplayBlocked) {
-      v.play()
-        .then(() => setAutoplayBlocked(false))
-        .catch(() => { /* leave overlay up */ })
-      return
-    }
-    onToggleMute()
+    v.muted = !v.muted
+    setMuted(v.muted)
   }
 
   return (
@@ -141,7 +109,7 @@ export function DeckVideoPage({
           src={listing.video_url}
           loop
           playsInline
-          muted={isMuted}
+          muted
           preload="auto"
           poster={listing.video_thumbnail_url ?? undefined}
           onClick={onVideoTap}
@@ -155,53 +123,13 @@ export function DeckVideoPage({
         />
       )}
 
-      {autoplayBlocked && isCurrent && (
-        <div
-          onClick={onVideoTap}
-          role="button"
-          aria-label="Play video"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault()
-              onVideoTap()
-            }
-          }}
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 56,
-            height: 56,
-            borderRadius: '50%',
-            border: '1.5px solid #e91e8c',
-            background: 'rgba(0,0,0,0.6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            boxSizing: 'border-box',
-            zIndex: 3,
-          }}
-        >
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="#fff"
-            stroke="none"
-          >
-            <polygon points="7 4 20 12 7 20 7 4" stroke="#1c1c1c" strokeWidth="2" strokeLinejoin="round" />
-          </svg>
-        </div>
-      )}
+      {isCurrent && <MuteIndicator muted={muted} />}
 
       <LightboxChrome
         listing={listing}
         isVideo={true}
-        isMuted={isMuted}
-        onToggleMute={onToggleMute}
+        isMuted={muted}
+        onToggleMute={onVideoTap}
         onClose={onClose}
         slidesCount={1}
         activeIdx={0}
@@ -211,15 +139,34 @@ export function DeckVideoPage({
   )
 }
 
-function usePrefersReducedMotion(): boolean {
-  const [pref, setPref] = useState(false)
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setPref(mq.matches)
-    const onChange = (e: MediaQueryListEvent) => setPref(e.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
-  return pref
+function MuteIndicator({ muted }: { muted: boolean }) {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: 'absolute',
+        bottom: 16,
+        right: 16,
+        width: 32,
+        height: 32,
+        borderRadius: '50%',
+        background: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 4,
+        pointerEvents: 'none',
+      }}
+    >
+      {muted ? (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff">
+          <path d="M3 9v6h4l5 5V4L7 9H3zm13.59 3l2.7-2.7-1.42-1.41L15.17 10.59 12.46 7.88l-1.41 1.41L13.76 12l-2.7 2.71 1.41 1.41 2.7-2.7 2.7 2.7 1.42-1.41L16.59 12z" />
+        </svg>
+      ) : (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff">
+          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+        </svg>
+      )}
+    </div>
+  )
 }

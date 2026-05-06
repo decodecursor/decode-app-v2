@@ -18,9 +18,9 @@ import { DeckPhotoPage } from './DeckPhotoPage'
  * 4-6 simultaneous decoder ceiling can't be hit no matter how long the
  * deck is.
  *
- * Mute is shared deck-wide: state lives here. Once the user unmutes
- * any video, every subsequent video in this deck session plays
- * unmuted. Resets to true on next mount.
+ * Mute is per-slide (TikTok-style tap-to-unmute) and lives inside
+ * DeckVideoPage. Every <video> mounts muted=true so iOS muted-autoplay
+ * never rejects.
  */
 export function LightboxDeck({
   listings,
@@ -40,19 +40,12 @@ export function LightboxDeck({
   }, [listings, initialListingId])
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex)
-  // Shared mute state — once user unmutes, all subsequent videos in
-  // this deck session play unmuted. Resets to true on deck unmount.
-  const [isMuted, setIsMuted] = useState(true)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const pageRefs = useRef<Map<number, HTMLElement>>(new Map())
   // Skip the initial-mount currentIndex fire — the orb that opened the
   // deck is the one whose squad_media_swipe_view event already counted
   // on the public page. Only deck-internal swipes count here.
   const swipeViewSkipFirstRef = useRef(true)
-
-  const onToggleMute = useCallback(() => {
-    setIsMuted((m) => !m)
-  }, [])
 
   // Land on the tapped listing's page on mount. 'instant' avoids a
   // visible scroll animation. Without this, the deck always starts at
@@ -161,8 +154,6 @@ export function LightboxDeck({
             <DeckVideoPage
               listing={listing}
               isCurrent={idx === currentIndex}
-              isMuted={isMuted}
-              onToggleMute={onToggleMute}
               onClose={onClose}
             />
           ) : (
