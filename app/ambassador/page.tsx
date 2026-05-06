@@ -381,8 +381,8 @@ export default function AmbassadorLandingPage() {
 
         <section className="amb-landing-section">
           <div className="amb-landing-media">
-            <video playsInline preload="metadata" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/whisper.png">
-              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/whisper.mp4#t=0.001" type="video/mp4" />
+            <video playsInline preload="none" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/whisper.png">
+              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/whisper.mp4" type="video/mp4" />
             </video>
           </div>
           <h2 className="amb-landing-block-title">The whisper, finally a page.</h2>
