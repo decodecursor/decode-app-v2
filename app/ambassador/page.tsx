@@ -20,13 +20,13 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
   margin: 0 auto;
   padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
 }
-.amb-landing-top-space { height: 56px; }
+.amb-landing-top-space { height: 32px; }
 
 .amb-landing-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 28px 76px;
+  padding: 8px 28px 95px;
 }
 .amb-landing-wordmark {
   font-family: 'Cormorant Garamond', Georgia, serif;
@@ -40,6 +40,7 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
   height: 26px;
   width: auto;
   display: block;
+  filter: brightness(0) invert(1);
 }
 .amb-landing-story-link {
   font-size: 12px;
@@ -133,7 +134,7 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
 .amb-landing-block-title {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
-  font-size: 32px;
+  font-size: 26px;
   line-height: 1.18;
   margin-bottom: 24px;
   font-weight: 400;
@@ -141,7 +142,7 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
   letter-spacing: -0.5px;
 }
 .amb-landing-block-body {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.65;
   color: #888;
 }
@@ -196,18 +197,18 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
   font-size: 21px;
   line-height: 1.4;
   color: #FFF;
-  margin-bottom: 48px;
+  margin-bottom: 24px;
   font-weight: 400;
   letter-spacing: -0.2px;
 }
-.amb-landing-story-beat-emphasis { font-weight: 500; }
+.amb-landing-story-beat-emphasis { font-weight: 700; }
 .amb-landing-story-quote {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
   font-size: 23px;
   line-height: 1.4;
   color: #FFF;
-  margin-bottom: 36px;
+  margin-bottom: 18px;
   font-weight: 400;
   letter-spacing: -0.2px;
 }
@@ -364,7 +365,8 @@ export default function AmbassadorLandingPage() {
         <div className="amb-landing-story-inner">
           <div className="amb-landing-top-space" />
           <nav className="amb-landing-nav">
-            <div className="amb-landing-wordmark">DECODE</div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="amb-landing-wordmark-logo" src="/logo.png" alt="DECODE" height={26} />
             <button
               className="amb-landing-close-link"
               type="button"
