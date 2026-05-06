@@ -302,12 +302,9 @@ export function LightboxDeck({
             <DeckVideoPage
               listing={listing}
               isCurrent={idx === currentIndex}
-              muted={muted}
-              onToggleMute={onToggleMute}
-              onClose={onClose}
             />
           ) : (
-            <DeckPhotoPage listing={listing} onClose={onClose} />
+            <DeckPhotoPage listing={listing} />
           )}
         </div>
       ))}
@@ -341,6 +338,77 @@ export function LightboxDeck({
               }}
             />
           ))}
+        </div>
+      )}
+
+      {/* Deck-level chrome: close (always) + mute (video slides only).
+          position:fixed locks them to the viewport so they don't drift
+          with the slide's scroll-snap movement during swipe — when
+          rendered per-slide, they translated along with the active
+          slide and looked laggy on iPhone. z:4 keeps them above the
+          pool host (z:3) and per-slide chrome scrim/info (z:1, z:2);
+          right-edge dot column at z:5 is the only thing higher and
+          doesn't overlap horizontally. */}
+      <div
+        onClick={(e) => {
+          e.stopPropagation()
+          onClose()
+        }}
+        role="button"
+        aria-label="Close lightbox"
+        style={{
+          position: 'fixed',
+          top: 54,
+          right: 18,
+          width: 32,
+          height: 32,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          zIndex: 4,
+        }}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </div>
+
+      {currentVideoSrc && (
+        <div
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleMute()
+          }}
+          role="button"
+          aria-label={muted ? 'Unmute video' : 'Mute video'}
+          style={{
+            position: 'fixed',
+            top: 54,
+            left: 18,
+            width: 32,
+            height: 32,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            zIndex: 4,
+          }}
+        >
+          {muted ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+              <line x1="23" y1="9" x2="17" y2="15" />
+              <line x1="17" y1="9" x2="23" y2="15" />
+            </svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+            </svg>
+          )}
         </div>
       )}
 

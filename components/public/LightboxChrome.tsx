@@ -5,33 +5,29 @@ import { categoryText } from '@/lib/public/slug-page-shape'
 import { formatLocation } from '@/lib/format-location'
 
 /**
- * All the static chrome that sits above the lightbox media: top + bottom
- * scrims, close button, mute button (video only), dot indicator row
- * (photos with ≥2 slides), and the bottom info bar (Instagram link).
+ * Per-slide chrome that rides with each lightbox page: top + bottom
+ * scrims, photo-dot indicator row (when slidesCount > 1), and the
+ * bottom info bar (Instagram link).
  *
- * Presentation only. Parent owns state (activeIdx, isMuted) and the
- * close / navigate handlers.
+ * Close + mute buttons used to live here per-slide; they're now
+ * rendered once at the LightboxDeck wrapper level with position:fixed
+ * so they stay viewport-locked during swipe (per-slide rendering meant
+ * they translated with the active slide's scroll-snap movement).
  *
  * Spec: public_media_lightbox_final_UI_Spec.md chrome + info bar.
  */
 export function LightboxChrome({
   listing,
-  isVideo,
-  isMuted,
-  onToggleMute,
-  onClose,
   slidesCount,
   activeIdx,
   onJumpSlide,
+  isVideo,
 }: {
   listing: PublicListingRow
-  isVideo: boolean
-  isMuted: boolean
-  onToggleMute: () => void
-  onClose: () => void
   slidesCount: number
   activeIdx: number
   onJumpSlide: (i: number) => void
+  isVideo: boolean
 }) {
   const igUrl = `https://instagram.com/${listing.professional_instagram}`
   const initials = listing.professional_name
@@ -68,67 +64,6 @@ export function LightboxChrome({
           zIndex: 1,
         }}
       />
-
-      {/* Mute — video only */}
-      {isVideo && (
-        <div
-          onClick={(e) => {
-            e.stopPropagation()
-            onToggleMute()
-          }}
-          style={{
-            position: 'absolute',
-            top: 54,
-            left: 18,
-            width: 32,
-            height: 32,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            zIndex: 4,
-          }}
-        >
-          {isMuted ? (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-              <line x1="23" y1="9" x2="17" y2="15" />
-              <line x1="17" y1="9" x2="23" y2="15" />
-            </svg>
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-              <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-            </svg>
-          )}
-        </div>
-      )}
-
-      {/* Close */}
-      <div
-        onClick={(e) => {
-          e.stopPropagation()
-          onClose()
-        }}
-        style={{
-          position: 'absolute',
-          top: 54,
-          right: 18,
-          width: 32,
-          height: 32,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          zIndex: 4,
-        }}
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      </div>
 
       {/* Dots — photos with ≥2 slides */}
       {!isVideo && slidesCount > 1 && (

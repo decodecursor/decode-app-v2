@@ -19,10 +19,8 @@ import { LightboxChrome } from './LightboxChrome'
  */
 export function DeckPhotoPage({
   listing,
-  onClose,
 }: {
   listing: PublicListingRow
-  onClose: () => void
 }) {
   const slides = [listing.photo_url_1, listing.photo_url_2, listing.photo_url_3].filter(
     (s): s is string => !!s,
@@ -54,9 +52,6 @@ export function DeckPhotoPage({
       <LightboxChrome
         listing={listing}
         isVideo={false}
-        isMuted={true}
-        onToggleMute={() => { /* no-op for photo */ }}
-        onClose={onClose}
         slidesCount={slides.length}
         activeIdx={activeIdx}
         onJumpSlide={onJumpSlide}
