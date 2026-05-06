@@ -99,7 +99,10 @@ export function LightboxChrome({
         </div>
       )}
 
-      {/* Info bar — Instagram link */}
+      {/* Info bar — Instagram link. z:4 keeps the avatar / name / IG /
+          category visible above the pool host (z:3) on video slides;
+          on photo slides the pool host is hidden so z:4 is moot but
+          consistent. */}
       <a
         href={igUrl}
         target="_blank"
@@ -111,7 +114,7 @@ export function LightboxChrome({
           left: 0,
           right: 0,
           padding: '0 18px 22px',
-          zIndex: 2,
+          zIndex: 4,
           display: 'flex',
           alignItems: 'center',
           gap: 11,

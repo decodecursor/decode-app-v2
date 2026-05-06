@@ -67,12 +67,29 @@ export function MediaLightbox({
         zIndex: 100,
       }}
     >
-      <LightboxDeck
-        listings={deckListings}
-        initialListingId={initialListingId}
-        slug={slug}
-        onClose={onClose}
-      />
+      {/* Constrained frame — matches the public page's 420px mobile-frame
+          width (PublicPageClient line 183). On desktop, the lightbox sits
+          centered as a phone-shaped column with the modal's #000 backdrop
+          extending to the viewport edges. On mobile (<=420px viewport)
+          this collapses to full-width and is visually identical to before. */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '100%',
+          maxWidth: 420,
+        }}
+      >
+        <LightboxDeck
+          listings={deckListings}
+          initialListingId={initialListingId}
+          slug={slug}
+          onClose={onClose}
+        />
+      </div>
     </div>
   )
 }

@@ -8,47 +8,38 @@ import { DeckPhotoPage } from './DeckPhotoPage'
 
 /**
  * Vertical scroll-snap deck of listing pages. One page per listing.
- * Native CSS scroll-snap drives the swipe — no JS gesture handlers.
- * IntersectionObserver tracks which page is centered.
+ * Native CSS scroll-snap drives the swipe — no JS gesture handlers on
+ * mobile. Mouse wheel on desktop is handled explicitly so each tick
+ * advances one slide instead of accumulating native scroll deltas.
+ *
+ * Layout:
+ *   - Outer wrapper (position:absolute, inset:0) fills the parent —
+ *     which is MediaLightbox's 420px constrained frame on desktop, or
+ *     the full viewport on mobile.
+ *   - Pool host + lb-deck (scroll container) are SIBLINGS inside the
+ *     wrapper, both position:absolute inset:0. Pool host stays put
+ *     while slides scroll inside lb-deck — same effect as the prior
+ *     position:fixed approach, but contained to the constrained frame
+ *     instead of leaking to the full viewport on desktop.
+ *   - Close + mute buttons + dot column are also wrapper children at
+ *     position:absolute, so they ride with the constrained frame
+ *     (left/right anchors land on the frame's edges, not the viewport's).
  *
  * Video playback is delegated to a singleton MediaPool (lib/public/
- * media-pool.ts) holding two pre-blessed <video> elements. PublicPage-
- * Client.onOpenMedia calls mediaPool.bless(...) inside the user's tap
- * handler — that's the iOS user-activation gesture. Both pool elements
- * receive a synchronous play() inside that gesture so they can later
- * play unmuted regardless of which slide the user swipes to.
+ * media-pool.ts) holding two pre-blessed <video> elements. Pool elements
+ * are appended to the pool host on mount and detached on unmount so
+ * blessing carries to the next lightbox open.
  *
- * On mount this component appends both pool <video> elements to its
- * own host div (z:0, behind chrome at z:1+). Slide pages render only
- * the persistent thumbnail <img> + LightboxChrome — they never own a
- * <video> themselves. On currentIndex change we route the visible
- * slide's video URL through mediaPool.setVisible(...) and preload the
- * next slide's URL on the inactive slot. On unmount we detach the
- * pool elements (without destroying them) so their blessing carries
- * to the next lightbox open.
- *
- * Z-stacking inside the deck wrapper (single stacking context):
+ * Z-stacking inside MediaLightbox's stacking context:
  *   - Slide thumbnail <img>     z:auto
  *   - LightboxChrome scrims     z:1
- *   - Info bar                  z:2
- *   - Pool <video> (host div)   z:3   ← above slide content + scrim/info,
- *                                       below mute/close + deck dots so
- *                                       the user can still close + toggle
- *                                       mute while video plays. Bumped
- *                                       from z:0 because iOS Safari was
- *                                       painting the pool host below the
- *                                       slide thumbnail (likely a
- *                                       -webkit-overflow-scrolling:touch
- *                                       compositing artifact on
- *                                       position:fixed children of the
- *                                       scroll container). Trade-off:
- *                                       info bar is hidden under the
- *                                       playing video — accepted per spec
- *                                       for full-bleed TikTok-style
- *                                       playback.
- *   - Mute / close buttons      z:4
- *   - MuteIndicator (slide)     z:4
- *   - Right-edge dot column     z:5
+ *   - Photo dot indicator       z:2
+ *   - Pool <video> (host div)   z:3
+ *   - Info bar (per slide)      z:4   ← above pool video so the avatar
+ *                                       / name / IG / category remain
+ *                                       visible during playback
+ *   - Close + mute buttons      z:4
+ *   - Right-edge deck dots      z:5
  */
 export function LightboxDeck({
   listings,
@@ -79,6 +70,7 @@ export function LightboxDeck({
       return next
     })
   }, [])
+  const wrapperRef = useRef<HTMLDivElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const poolHostRef = useRef<HTMLDivElement | null>(null)
   const pageRefs = useRef<Map<number, HTMLElement>>(new Map())
@@ -94,11 +86,9 @@ export function LightboxDeck({
   const currentVideoSrc =
     currentListing?.media_type === 'video' ? (currentListing.video_url ?? null) : null
 
-  // Append pool <video> elements to our host div on mount; detach on
+  // Append pool <video> elements to the host div on mount; detach on
   // unmount (without destroying — pool persists for the tab lifetime
-  // so blessing carries to the next lightbox open). Apply the same
-  // visual styling both elements share; per-element visibility is
-  // toggled in the currentIndex effect below.
+  // so blessing carries to the next lightbox open).
   useEffect(() => {
     const host = poolHostRef.current
     if (!host) return
@@ -130,8 +120,6 @@ export function LightboxDeck({
     return () => {
       a.removeEventListener('click', onTap)
       b.removeEventListener('click', onTap)
-      // Detach without destroying. Pause to free decoder slot when the
-      // lightbox is closed — pool elements outlive the lightbox.
       a.pause()
       b.pause()
       if (a.parentElement === host) host.removeChild(a)
@@ -186,6 +174,35 @@ export function LightboxDeck({
     pageRefs.current.forEach((el) => observer.observe(el))
     return () => observer.disconnect()
   }, [listings])
+
+  // Mouse wheel on desktop: advance one slide per tick. Native CSS
+  // scroll-snap responds to wheel but accumulates many small ticks
+  // before snapping, which feels wrong for a TikTok-style deck. We
+  // attach to the wrapper (parent of pool host + lb-deck) so wheel
+  // events that hit the playing pool video also bubble here. Scroll is
+  // applied programmatically on lb-deck.
+  useEffect(() => {
+    const wrapper = wrapperRef.current
+    const root = containerRef.current
+    if (!wrapper || !root) return
+
+    let lastWheelMs = 0
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) < 5) return
+      e.preventDefault()
+      const now = Date.now()
+      if (now - lastWheelMs < 350) return
+      lastWheelMs = now
+      const delta = e.deltaY > 0 ? 1 : -1
+      const newIdx = Math.max(0, Math.min(listings.length - 1, currentIndex + delta))
+      if (newIdx !== currentIndex) {
+        root.scrollTo({ top: root.clientHeight * newIdx, behavior: 'smooth' })
+      }
+    }
+
+    wrapper.addEventListener('wheel', onWheel, { passive: false })
+    return () => wrapper.removeEventListener('wheel', onWheel)
+  }, [currentIndex, listings.length])
 
   // Drive pool playback as currentIndex changes. setVisible routes the
   // current slide's URL to whichever slot already has it loaded
@@ -253,69 +270,71 @@ export function LightboxDeck({
   }, [currentIndex, listings, slug])
 
   return (
-    <div
-      ref={containerRef}
-      className="lb-deck"
-      style={{
-        position: 'absolute',
-        inset: 0,
-        overflowY: 'auto',
-        overflowX: 'hidden',
-        scrollSnapType: 'y mandatory',
-        scrollbarWidth: 'none',
-        WebkitOverflowScrolling: 'touch',
-        touchAction: 'pan-y',
-      }}
-    >
-      {/* Pool host — fixed-position container that the mediaPool's two
-          <video> elements get appended to. position:fixed so it stays
-          aligned to the lightbox region as slides scroll. z-index:3
-          places it above slide content (thumbnail at z:auto, scrim z:1,
-          info z:2) and below the close + mute buttons (z:4) and the
-          deck dot column (z:5) so essential controls remain tappable
-          on top of the playing video. */}
+    <div ref={wrapperRef} style={{ position: 'absolute', inset: 0 }}>
+      {/* Pool host — the mediaPool's two <video> elements get appended
+          here. position:absolute keeps it within the constrained frame
+          on desktop (was position:fixed before, which leaked to the
+          full viewport). z:3 sits above slide thumbnail (z:auto) and
+          per-slide chrome scrims (z:1) / photo dots (z:2). Info bar +
+          close + mute (all z:4) and the right-edge deck dots (z:5)
+          paint above. */}
       <div
         ref={poolHostRef}
         style={{
-          position: 'fixed',
+          position: 'absolute',
           inset: 0,
           zIndex: 3,
           pointerEvents: 'none',
         }}
       />
 
-      {listings.map((listing, idx) => (
-        <div
-          key={listing.id}
-          ref={(el) => registerPageRef(idx, el)}
-          style={{
-            width: '100%',
-            height: '100%',
-            scrollSnapAlign: 'start',
-            scrollSnapStop: 'always',
-            flexShrink: 0,
-            position: 'relative',
-            background: '#000',
-          }}
-        >
-          {listing.media_type === 'video' ? (
-            <DeckVideoPage
-              listing={listing}
-              isCurrent={idx === currentIndex}
-            />
-          ) : (
-            <DeckPhotoPage listing={listing} />
-          )}
-        </div>
-      ))}
+      <div
+        ref={containerRef}
+        className="lb-deck"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          scrollSnapType: 'y mandatory',
+          scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch',
+          touchAction: 'pan-y',
+        }}
+      >
+        {listings.map((listing, idx) => (
+          <div
+            key={listing.id}
+            ref={(el) => registerPageRef(idx, el)}
+            style={{
+              width: '100%',
+              height: '100%',
+              scrollSnapAlign: 'start',
+              scrollSnapStop: 'always',
+              flexShrink: 0,
+              position: 'relative',
+              background: '#000',
+            }}
+          >
+            {listing.media_type === 'video' ? (
+              <DeckVideoPage
+                listing={listing}
+                isCurrent={idx === currentIndex}
+              />
+            ) : (
+              <DeckPhotoPage listing={listing} />
+            )}
+          </div>
+        ))}
+      </div>
 
-      {/* Right-edge dot column (hidden if only 1 listing). Fixed-position
-          so it stays put as the deck scrolls. Pointer-events none — purely
-          informational, no tap-to-jump. */}
+      {/* Right-edge dot column (hidden if only 1 listing). Pure
+          informational, no tap-to-jump. position:absolute now (was
+          fixed) so it anchors to the constrained frame on desktop. */}
       {listings.length > 1 && (
         <div
           style={{
-            position: 'fixed',
+            position: 'absolute',
             right: 16,
             top: '50%',
             transform: 'translateY(-50%)',
@@ -342,13 +361,10 @@ export function LightboxDeck({
       )}
 
       {/* Deck-level chrome: close (always) + mute (video slides only).
-          position:fixed locks them to the viewport so they don't drift
-          with the slide's scroll-snap movement during swipe — when
-          rendered per-slide, they translated along with the active
-          slide and looked laggy on iPhone. z:4 keeps them above the
-          pool host (z:3) and per-slide chrome scrim/info (z:1, z:2);
-          right-edge dot column at z:5 is the only thing higher and
-          doesn't overlap horizontally. */}
+          position:absolute relative to the wrapper so the buttons sit
+          at the constrained-frame's top corners — not the viewport's
+          edges — on desktop. Per-slide drift is impossible because
+          they're outside lb-deck's scroll container. */}
       <div
         onClick={(e) => {
           e.stopPropagation()
@@ -357,7 +373,7 @@ export function LightboxDeck({
         role="button"
         aria-label="Close lightbox"
         style={{
-          position: 'fixed',
+          position: 'absolute',
           top: 54,
           right: 18,
           width: 32,
@@ -384,7 +400,7 @@ export function LightboxDeck({
           role="button"
           aria-label={muted ? 'Unmute video' : 'Mute video'}
           style={{
-            position: 'fixed',
+            position: 'absolute',
             top: 54,
             left: 18,
             width: 32,
