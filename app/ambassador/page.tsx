@@ -189,7 +189,7 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
 .amb-landing-story-overlay.amb-landing-active { transform: translateY(0); }
 .amb-landing-story-inner { max-width: 440px; margin: 0 auto; }
 .amb-landing-story-content {
-  padding: 32px 28px 80px;
+  padding: 0 28px 80px;
   text-align: center;
 }
 .amb-landing-story-beat {
@@ -206,7 +206,7 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
 .amb-landing-story-quote {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
-  font-size: 23px;
+  font-size: 21px;
   line-height: 1.4;
   color: #FFF;
   margin-bottom: 18px;
@@ -307,8 +307,8 @@ export default function AmbassadorLandingPage() {
 
         <section className="amb-landing-section">
           <div className="amb-landing-media">
-            <video playsInline preload="metadata" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/endorsement.jpg">
-              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/endorsement.mp4" type="video/mp4" />
+            <video playsInline preload="metadata" controls>
+              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/endorsement.mp4#t=0.001" type="video/mp4" />
             </video>
           </div>
           <h2 className="amb-landing-block-title">An endorsement. Not a tag.</h2>
@@ -336,8 +336,8 @@ export default function AmbassadorLandingPage() {
 
         <section className="amb-landing-section">
           <div className="amb-landing-media">
-            <video playsInline preload="metadata" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/whisper.jpg">
-              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/whisper.mp4" type="video/mp4" />
+            <video playsInline preload="metadata" controls>
+              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/whisper.mp4#t=0.001" type="video/mp4" />
             </video>
           </div>
           <h2 className="amb-landing-block-title">The whisper, finally a page.</h2>
@@ -353,7 +353,7 @@ export default function AmbassadorLandingPage() {
         </div>
 
         <div className="amb-landing-footer">
-          <span className="amb-landing-footer-strong">META interrupts. DECODE meets.</span><br />A page she chose to visit.
+          META interrupts. <span className="amb-landing-footer-strong">DECODE meets.</span><br />A page she chose to visit.
         </div>
       </main>
 
@@ -385,9 +385,7 @@ export default function AmbassadorLandingPage() {
               Passed between friends, sisters, mothers and daughters for generations.
             </p>
             <p className="amb-landing-story-quote">
-              &ldquo;The hairstylist &mdash; she&rsquo;s exceptional.&rdquo;
-            </p>
-            <p className="amb-landing-story-quote">
+              &ldquo;The hairstylist &mdash; she&rsquo;s exceptional.&rdquo;<br />
               &ldquo;The doctor &mdash; golden hands.&rdquo;
             </p>
             <p
