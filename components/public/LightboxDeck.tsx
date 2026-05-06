@@ -18,9 +18,10 @@ import { DeckPhotoPage } from './DeckPhotoPage'
  * 4-6 simultaneous decoder ceiling can't be hit no matter how long the
  * deck is.
  *
- * Mute is per-slide (TikTok-style tap-to-unmute) and lives inside
- * DeckVideoPage. Every <video> mounts muted=true so iOS muted-autoplay
- * never rejects.
+ * Mute state lives here (deck-wide) so a tap on slide 1 to unmute also
+ * unmutes slide 2 when the user swipes. Initial value is true so muted
+ * autoplay always succeeds on lightbox open. Tap on the current slide
+ * routes to onToggleMute and flips the shared state.
  */
 export function LightboxDeck({
   listings,
@@ -40,6 +41,11 @@ export function LightboxDeck({
   }, [listings, initialListingId])
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex)
+  // Deck-wide mute. Starts true so every <video> first-mounts muted
+  // (iOS muted autoplay never rejects). Tap on the current slide flips
+  // it for all subsequent slides — the user only has to unmute once.
+  const [muted, setMuted] = useState(true)
+  const onToggleMute = useCallback(() => setMuted((m) => !m), [])
   const containerRef = useRef<HTMLDivElement | null>(null)
   const pageRefs = useRef<Map<number, HTMLElement>>(new Map())
   // Skip the initial-mount currentIndex fire — the orb that opened the
@@ -154,6 +160,8 @@ export function LightboxDeck({
             <DeckVideoPage
               listing={listing}
               isCurrent={idx === currentIndex}
+              muted={muted}
+              onToggleMute={onToggleMute}
               onClose={onClose}
             />
           ) : (

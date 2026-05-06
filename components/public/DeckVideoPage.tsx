@@ -1,54 +1,49 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import type { PublicListingRow } from '@/lib/public/slug-page-shape'
 import { LightboxChrome } from './LightboxChrome'
 
 /**
  * Video page within the lightbox deck. TikTok-style interaction model:
- *  - <video> always mounts muted. iOS Safari never blocks or rate-limits
- *    muted autoplay, so the play() promise effectively can't reject and
- *    there's no "autoplay-blocked" affordance to surface.
- *  - Tap toggles mute on the current video (no play/pause button). The
- *    only way to stop playback is to close the lightbox.
- *  - A small bottom-right indicator shows current mute state so tap is
- *    visibly acknowledged (status feedback, not a control).
+ *  - <video muted={muted}> with `muted` lifted to LightboxDeck so the
+ *    user only has to unmute once for the whole session — subsequent
+ *    slide swipes inherit the choice.
+ *  - Tap toggles the deck-wide mute via onToggleMute. No play/pause
+ *    control. Closing the lightbox stops playback.
+ *  - Subtle bottom-right indicator shows current mute state.
  *
  * Mount-on-active is preserved for the <video> element — exactly one
  * decoder slot in use across the deck regardless of length. Persistent
  * <img> base layer below the <video> kills any black flash on swipe.
  *
- * Mute is local to each slide (not deck-wide) — by spec, every <video>
- * mount is muted=true. State resets on each isCurrent flip so the
- * indicator stays in sync with the freshly-mounted video element.
+ * iOS caveat: a fresh <video> element mounted with muted=false may have
+ * its play() promise rejected because there's no per-element user
+ * gesture, even though the user already unmuted on a prior slide. If
+ * that surfaces in real-world use we'll move to a single shared
+ * <video> element whose src swaps on swipe (fix attempt 2).
  */
 export function DeckVideoPage({
   listing,
   isCurrent,
+  muted,
+  onToggleMute,
   onClose,
 }: {
   listing: PublicListingRow
   isCurrent: boolean
+  muted: boolean
+  onToggleMute: () => void
   onClose: () => void
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null)
-  // Tracks the live <video>.muted property for the indicator. Initial
-  // value matches the hardcoded `muted` JSX attr below; reset whenever
-  // isCurrent flips so a freshly-mounted <video> (which is always muted)
-  // doesn't visually disagree with stale state from the prior visit.
-  const [muted, setMuted] = useState(true)
-
-  useEffect(() => {
-    if (isCurrent) setMuted(true)
-  }, [isCurrent])
 
   // Drive play when the <video> mounts (isCurrent flips true). Mount-
   // on-active means the element only exists in the DOM while focused;
   // unmount on swipe-away frees the iOS decoder slot automatically.
-  // Muted autoplay always succeeds on iOS, so no autoplay-blocked
-  // fallback. We still retry on canplay for the case where readyState
-  // is too low at the first play() attempt (videos without
-  // moov-at-start / faststart encoding).
+  // canplay retry covers the case where readyState is too low at the
+  // first play() attempt (videos without moov-at-start / faststart
+  // encoding).
   useEffect(() => {
     const v = videoRef.current
     if (!v || !isCurrent) return
@@ -61,7 +56,7 @@ export function DeckVideoPage({
       if (v.readyState < 3) {
         canplayHandler = () => {
           if (cancelled) return
-          v.play().catch(() => { /* muted autoplay shouldn't reject */ })
+          v.play().catch(() => { /* unmuted autoplay may reject — see header */ })
         }
         v.addEventListener('canplay', canplayHandler, { once: true })
       }
@@ -72,15 +67,6 @@ export function DeckVideoPage({
       if (canplayHandler) v.removeEventListener('canplay', canplayHandler)
     }
   }, [isCurrent])
-
-  // Tap → toggle mute on the current video. Updates state so the
-  // indicator (and LightboxChrome's mute control) re-renders.
-  const onVideoTap = () => {
-    const v = videoRef.current
-    if (!v) return
-    v.muted = !v.muted
-    setMuted(v.muted)
-  }
 
   return (
     <div style={{ position: 'absolute', inset: 0, background: '#000' }}>
@@ -109,10 +95,10 @@ export function DeckVideoPage({
           src={listing.video_url}
           loop
           playsInline
-          muted
+          muted={muted}
           preload="auto"
           poster={listing.video_thumbnail_url ?? undefined}
-          onClick={onVideoTap}
+          onClick={onToggleMute}
           style={{
             position: 'absolute',
             inset: 0,
@@ -129,7 +115,7 @@ export function DeckVideoPage({
         listing={listing}
         isVideo={true}
         isMuted={muted}
-        onToggleMute={onVideoTap}
+        onToggleMute={onToggleMute}
         onClose={onClose}
         slidesCount={1}
         activeIdx={0}
