@@ -26,7 +26,7 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 28px 95px;
+  padding: 8px 28px 110px;
 }
 .amb-landing-wordmark {
   font-family: 'Cormorant Garamond', Georgia, serif;
@@ -136,8 +136,8 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
   font-style: italic;
   font-size: 26px;
   line-height: 1.18;
-  margin-bottom: 24px;
-  font-weight: 400;
+  margin-bottom: 18px;
+  font-weight: 500;
   color: #FFF;
   letter-spacing: -0.5px;
 }
@@ -306,8 +306,8 @@ export default function AmbassadorLandingPage() {
 
         <section className="amb-landing-section">
           <div className="amb-landing-media">
-            <video playsInline preload="metadata" controls poster="/ambassador/videos/endorsement.jpg">
-              <source src="/ambassador/videos/endorsement.mp4" type="video/mp4" />
+            <video playsInline preload="metadata" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/endorsement.jpg">
+              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/endorsement.mp4" type="video/mp4" />
             </video>
           </div>
           <h2 className="amb-landing-block-title">An endorsement. Not a tag.</h2>
@@ -335,8 +335,8 @@ export default function AmbassadorLandingPage() {
 
         <section className="amb-landing-section">
           <div className="amb-landing-media">
-            <video playsInline preload="metadata" controls poster="/ambassador/videos/whisper.jpg">
-              <source src="/ambassador/videos/whisper.mp4" type="video/mp4" />
+            <video playsInline preload="metadata" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/whisper.jpg">
+              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/whisper.mp4" type="video/mp4" />
             </video>
           </div>
           <h2 className="amb-landing-block-title">The whisper, finally a page.</h2>
