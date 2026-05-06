@@ -110,25 +110,17 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
 }
 .amb-landing-media-pending {
   position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 14px;
-}
-.amb-landing-media-pending .amb-landing-pending-dot {
-  width: 6px;
-  height: 6px;
-  background: #555;
-  border-radius: 50%;
-}
-.amb-landing-media-pending .amb-landing-pending-label {
-  font-size: 11px;
-  letter-spacing: 3px;
+  top: 14px;
+  right: 14px;
+  background: #FFF;
+  color: #000;
+  padding: 7px 11px;
+  border-radius: 4px;
+  font-size: 9px;
+  letter-spacing: 2.4px;
   text-transform: uppercase;
-  color: #666;
   font-weight: 500;
+  z-index: 2;
 }
 
 .amb-landing-block-title {
@@ -173,7 +165,7 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
   padding: 0 28px 60px;
   font-weight: 400;
 }
-.amb-landing-footer-strong { font-weight: 500; }
+.amb-landing-footer-strong { font-weight: 600; }
 
 .amb-landing-story-overlay {
   position: fixed;
@@ -267,6 +259,43 @@ export default function AmbassadorLandingPage() {
     return () => document.removeEventListener('keydown', handler)
   }, [storyOpen, closeStory])
 
+  // Auto-hide native video controls 500ms after play; tap re-shows them.
+  // Pause always restores them.
+  useEffect(() => {
+    const videos = document.querySelectorAll<HTMLVideoElement>('.amb-landing-media video')
+    const cleanups: Array<() => void> = []
+    videos.forEach((video) => {
+      let hideTimer: ReturnType<typeof setTimeout> | null = null
+      const HIDE_DELAY = 500
+      const scheduleHide = () => {
+        if (hideTimer) clearTimeout(hideTimer)
+        hideTimer = setTimeout(() => {
+          if (!video.paused) video.removeAttribute('controls')
+        }, HIDE_DELAY)
+      }
+      const showControls = () => {
+        video.setAttribute('controls', '')
+        if (!video.paused) scheduleHide()
+      }
+      const onPause = () => {
+        if (hideTimer) clearTimeout(hideTimer)
+        video.setAttribute('controls', '')
+      }
+      video.addEventListener('play', scheduleHide)
+      video.addEventListener('pause', onPause)
+      video.addEventListener('click', showControls)
+      video.addEventListener('touchstart', showControls, { passive: true })
+      cleanups.push(() => {
+        if (hideTimer) clearTimeout(hideTimer)
+        video.removeEventListener('play', scheduleHide)
+        video.removeEventListener('pause', onPause)
+        video.removeEventListener('click', showControls)
+        video.removeEventListener('touchstart', showControls)
+      })
+    })
+    return () => cleanups.forEach((c) => c())
+  }, [])
+
   return (
     <div className="amb-landing-root">
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
@@ -283,7 +312,7 @@ export default function AmbassadorLandingPage() {
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500;1,700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500;1,600;1,700&display=swap"
       />
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
 
@@ -321,10 +350,7 @@ export default function AmbassadorLandingPage() {
 
         <section className="amb-landing-section">
           <div className="amb-landing-media" data-status="pending">
-            <div className="amb-landing-media-pending">
-              <span className="amb-landing-pending-dot" />
-              <span className="amb-landing-pending-label">Under production</span>
-            </div>
+            <div className="amb-landing-media-pending">Soon</div>
           </div>
           <h2 className="amb-landing-block-title">
             Today the loudest wins.<br />Let&rsquo;s change that.
@@ -395,7 +421,8 @@ export default function AmbassadorLandingPage() {
               Never ads. Always people. Always trust.
             </p>
             <p className="amb-landing-story-beat">
-              Whispers. Soft, but powerful &mdash; shaping choices from personal rituals to global runways.
+              Whispers.<br />
+              Soft, but powerful &mdash; shaping choices from personal rituals to global runways.
             </p>
             <div className="amb-landing-story-divider" />
             <p className="amb-landing-story-final">
