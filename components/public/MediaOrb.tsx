@@ -123,31 +123,23 @@ export function MediaOrb({
       tabIndex={interactive ? 0 : undefined}
       style={{ ...baseStyle, ...ringStyle }}
     >
-      {hasVideo && variant === 'playing' && (
-        <video
-          ref={videoRef}
-          src={videoUrl ?? undefined}
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          poster={videoThumbnailUrl ?? undefined}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-        />
-      )}
-      {hasVideo && variant !== 'playing' && videoThumbnailUrl && (
+      {/* Persistent base layer for video orbs: <img> (or the synthetic
+          gradient fallback when the thumbnail URL is NULL) stays mounted
+          whether active or not. The active <video> overlays it, so
+          there's never a frame between thumbnail unmount and video paint
+          where the container is empty — kills the black flash on
+          activation that the poster attribute alone couldn't fix
+          (poster paints once <video> mounts; the gap is in the React
+          reconciliation + browser reflow before that mount). */}
+      {hasVideo && videoThumbnailUrl && (
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
           src={videoThumbnailUrl}
           alt=""
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
         />
       )}
-      {/* Synthetic placeholder — videos with no cached thumbnail (NULL
-          before Phase 2b backfill, or future upload-time generation
-          failures). Gradient + centered triangle keeps the orb readable
-          as a video tile even without the first frame. */}
-      {hasVideo && variant !== 'playing' && !videoThumbnailUrl && (
+      {hasVideo && !videoThumbnailUrl && (
         <div
           style={{
             position: 'absolute',
@@ -162,6 +154,18 @@ export function MediaOrb({
             <polygon points="7 4 20 12 7 20 7 4" />
           </svg>
         </div>
+      )}
+      {hasVideo && variant === 'playing' && (
+        <video
+          ref={videoRef}
+          src={videoUrl ?? undefined}
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster={videoThumbnailUrl ?? undefined}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
       )}
       {!hasVideo && hasPhotos && posterUrl && (
         /* eslint-disable-next-line @next/next/no-img-element */

@@ -116,16 +116,15 @@ export function DeckVideoPage({
 
   return (
     <div style={{ position: 'absolute', inset: 0, background: '#000' }}>
-      {isCurrent && listing.video_url && (
-        <video
-          ref={videoRef}
-          src={listing.video_url}
-          loop
-          playsInline
-          muted={isMuted}
-          preload="auto"
-          poster={listing.video_thumbnail_url ?? undefined}
-          onClick={onVideoTap}
+      {/* Persistent base layer — <img> stays mounted whether this slide
+          is current or not. The active <video> overlays it on isCurrent,
+          so swiping to a slide can't reveal an empty/black moment
+          between <img> unmount and <video> mount. */}
+      {listing.video_thumbnail_url && (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={listing.video_thumbnail_url}
+          alt=""
           style={{
             position: 'absolute',
             inset: 0,
@@ -136,11 +135,16 @@ export function DeckVideoPage({
         />
       )}
 
-      {!isCurrent && listing.video_thumbnail_url && (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={listing.video_thumbnail_url}
-          alt=""
+      {isCurrent && listing.video_url && (
+        <video
+          ref={videoRef}
+          src={listing.video_url}
+          loop
+          playsInline
+          muted={isMuted}
+          preload="auto"
+          poster={listing.video_thumbnail_url ?? undefined}
+          onClick={onVideoTap}
           style={{
             position: 'absolute',
             inset: 0,
