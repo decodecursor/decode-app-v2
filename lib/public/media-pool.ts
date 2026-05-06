@@ -85,7 +85,18 @@ class MediaPool {
     // user-activation token. The .catch swallows any rejection
     // (e.g. play() rejected because src is still loading) — the
     // gesture is captured at invocation, not resolution.
-    void a.play().then(() => a.pause()).catch(() => { /* gesture captured */ })
+    //
+    // Slot A: leave PLAYING. A is the active slot for the slide that
+    // just opened the lightbox; pausing it here would race with
+    // setVisible's play() that fires immediately after, and on iOS
+    // Safari the bless's pause has been observed to serialize AFTER
+    // setVisible's play, freezing the first slide. Just kick off play
+    // and leave it running — setVisible's idempotent check below skips
+    // re-issuing play if A is already going.
+    //
+    // Slot B: standard play+pause (it's the preload buffer for slide 2,
+    // shouldn't be visibly playing at this point).
+    void a.play().catch(() => { /* gesture captured */ })
     void b.play().then(() => b.pause()).catch(() => { /* gesture captured */ })
   }
 
@@ -113,17 +124,26 @@ class MediaPool {
     const inactive = activeSlot === 'a' ? b : a
 
     // Pause the inactive slot — frees its decoder slot if iOS holds
-    // one. Active slot plays.
+    // one.
     inactive.pause()
-    void active.play().catch(() => { /* see canplay retry below */ })
 
-    // canplay retry — readyState may be too low at first attempt on
-    // newly-loaded src, especially on videos without faststart.
-    if (active.readyState < 3) {
-      const onCanplay = () => {
-        void active.play().catch(() => {})
+    // Idempotent play: if active is already playing (e.g. bless() left
+    // slot A running on lightbox open), don't re-issue play() — that
+    // would no-op visually but on iOS Safari has been observed to
+    // interact poorly with the bless's pending microtasks. Only call
+    // play() when the element is actually paused (e.g. after a src
+    // swap on swipe, where the new src starts paused).
+    if (active.paused) {
+      void active.play().catch(() => { /* see canplay retry below */ })
+
+      // canplay retry — readyState may be too low at first attempt on
+      // newly-loaded src, especially on videos without faststart.
+      if (active.readyState < 3) {
+        const onCanplay = () => {
+          void active.play().catch(() => {})
+        }
+        active.addEventListener('canplay', onCanplay, { once: true })
       }
-      active.addEventListener('canplay', onCanplay, { once: true })
     }
 
     return activeSlot
