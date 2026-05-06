@@ -119,8 +119,16 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
   font-size: 9px;
   letter-spacing: 2.4px;
   text-transform: uppercase;
-  font-weight: 500;
+  font-weight: 600;
   z-index: 2;
+}
+.amb-landing-media-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  position: absolute;
+  inset: 0;
 }
 
 .amb-landing-block-title {
@@ -331,7 +339,7 @@ export default function AmbassadorLandingPage() {
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500;1,600;1,700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500;1,600;1,700&family=Inter:wght@400;500;600&display=swap"
       />
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
 
@@ -369,6 +377,8 @@ export default function AmbassadorLandingPage() {
 
         <section className="amb-landing-section">
           <div className="amb-landing-media" data-status="pending">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="amb-landing-media-image" src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/loudest-wins.jpg" alt="" />
             <div className="amb-landing-media-pending">Soon</div>
           </div>
           <h2 className="amb-landing-block-title">
