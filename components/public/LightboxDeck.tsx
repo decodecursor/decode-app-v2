@@ -29,9 +29,23 @@ import { DeckPhotoPage } from './DeckPhotoPage'
  *
  * Z-stacking inside the deck wrapper (single stacking context):
  *   - Slide thumbnail <img>     z:auto
- *   - Pool <video> (host div)   z:0
  *   - LightboxChrome scrims     z:1
  *   - Info bar                  z:2
+ *   - Pool <video> (host div)   z:3   ← above slide content + scrim/info,
+ *                                       below mute/close + deck dots so
+ *                                       the user can still close + toggle
+ *                                       mute while video plays. Bumped
+ *                                       from z:0 because iOS Safari was
+ *                                       painting the pool host below the
+ *                                       slide thumbnail (likely a
+ *                                       -webkit-overflow-scrolling:touch
+ *                                       compositing artifact on
+ *                                       position:fixed children of the
+ *                                       scroll container). Trade-off:
+ *                                       info bar is hidden under the
+ *                                       playing video — accepted per spec
+ *                                       for full-bleed TikTok-style
+ *                                       playback.
  *   - Mute / close buttons      z:4
  *   - MuteIndicator (slide)     z:4
  *   - Right-edge dot column     z:5
@@ -255,15 +269,17 @@ export function LightboxDeck({
     >
       {/* Pool host — fixed-position container that the mediaPool's two
           <video> elements get appended to. position:fixed so it stays
-          aligned to the lightbox region as slides scroll. z-index:0
-          keeps it behind LightboxChrome (z:1+) so the close button,
-          mute control and info bar all remain tappable. */}
+          aligned to the lightbox region as slides scroll. z-index:3
+          places it above slide content (thumbnail at z:auto, scrim z:1,
+          info z:2) and below the close + mute buttons (z:4) and the
+          deck dot column (z:5) so essential controls remain tappable
+          on top of the playing video. */}
       <div
         ref={poolHostRef}
         style={{
           position: 'fixed',
           inset: 0,
-          zIndex: 0,
+          zIndex: 3,
           pointerEvents: 'none',
         }}
       />
