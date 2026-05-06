@@ -139,6 +139,19 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
   color: #888;
 }
 
+.amb-landing-example-link-wrap {
+  text-align: center;
+  padding: 0 28px 64px;
+}
+.amb-landing-example-link {
+  font-size: 12px;
+  color: #FFF;
+  letter-spacing: 0.6px;
+  text-decoration: none;
+  font-family: inherit;
+  padding: 12px 16px;
+  display: inline-block;
+}
 .amb-landing-cta-wrap { padding: 24px 28px 80px; }
 .amb-landing-cta {
   display: block;
@@ -259,38 +272,44 @@ export default function AmbassadorLandingPage() {
     return () => document.removeEventListener('keydown', handler)
   }, [storyOpen, closeStory])
 
-  // Auto-hide native video controls 500ms after play; tap re-shows them.
-  // Pause always restores them.
+  // Auto-hide native video controls. 500ms after play (quick hide once
+  // started). 3000ms after a user interaction (tap / drag the seek bar)
+  // so they have real time to use the controls. touchmove keeps controls
+  // visible while dragging. Pause always restores them.
   useEffect(() => {
     const videos = document.querySelectorAll<HTMLVideoElement>('.amb-landing-media video')
     const cleanups: Array<() => void> = []
     videos.forEach((video) => {
       let hideTimer: ReturnType<typeof setTimeout> | null = null
-      const HIDE_DELAY = 500
-      const scheduleHide = () => {
+      const INITIAL_HIDE_DELAY = 500
+      const INTERACTION_HIDE_DELAY = 3000
+      const scheduleHide = (delay: number) => {
         if (hideTimer) clearTimeout(hideTimer)
         hideTimer = setTimeout(() => {
           if (!video.paused) video.removeAttribute('controls')
-        }, HIDE_DELAY)
+        }, delay)
       }
-      const showControls = () => {
+      const onPlay = () => scheduleHide(INITIAL_HIDE_DELAY)
+      const showAndDelay = () => {
         video.setAttribute('controls', '')
-        if (!video.paused) scheduleHide()
+        if (!video.paused) scheduleHide(INTERACTION_HIDE_DELAY)
       }
       const onPause = () => {
         if (hideTimer) clearTimeout(hideTimer)
         video.setAttribute('controls', '')
       }
-      video.addEventListener('play', scheduleHide)
+      video.addEventListener('play', onPlay)
       video.addEventListener('pause', onPause)
-      video.addEventListener('click', showControls)
-      video.addEventListener('touchstart', showControls, { passive: true })
+      video.addEventListener('click', showAndDelay)
+      video.addEventListener('touchstart', showAndDelay, { passive: true })
+      video.addEventListener('touchmove', showAndDelay, { passive: true })
       cleanups.push(() => {
         if (hideTimer) clearTimeout(hideTimer)
-        video.removeEventListener('play', scheduleHide)
+        video.removeEventListener('play', onPlay)
         video.removeEventListener('pause', onPause)
-        video.removeEventListener('click', showControls)
-        video.removeEventListener('touchstart', showControls)
+        video.removeEventListener('click', showAndDelay)
+        video.removeEventListener('touchstart', showAndDelay)
+        video.removeEventListener('touchmove', showAndDelay)
       })
     })
     return () => cleanups.forEach((c) => c())
@@ -362,7 +381,7 @@ export default function AmbassadorLandingPage() {
 
         <section className="amb-landing-section">
           <div className="amb-landing-media">
-            <video playsInline preload="metadata" controls>
+            <video playsInline preload="metadata" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/whisper.png">
               <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/whisper.mp4#t=0.001" type="video/mp4" />
             </video>
           </div>
@@ -373,6 +392,10 @@ export default function AmbassadorLandingPage() {
             Now public. Now paid.
           </p>
         </section>
+
+        <div className="amb-landing-example-link-wrap">
+          <a className="amb-landing-example-link" href="https://app.welovedecode.com/yannijohnson">See her page →</a>
+        </div>
 
         <div className="amb-landing-cta-wrap">
           <Link className="amb-landing-cta" href="/model/auth">Become an Ambassador</Link>
