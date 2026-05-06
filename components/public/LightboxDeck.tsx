@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PublicListingRow } from '@/lib/public/slug-page-shape'
+import { categoryText } from '@/lib/public/slug-page-shape'
 import { mediaPool } from '@/lib/public/media-pool'
+import { formatLocation } from '@/lib/format-location'
 import { DeckVideoPage } from './DeckVideoPage'
 import { DeckPhotoPage } from './DeckPhotoPage'
 
@@ -271,23 +273,6 @@ export function LightboxDeck({
 
   return (
     <div ref={wrapperRef} style={{ position: 'absolute', inset: 0 }}>
-      {/* Pool host — the mediaPool's two <video> elements get appended
-          here. position:absolute keeps it within the constrained frame
-          on desktop (was position:fixed before, which leaked to the
-          full viewport). z:3 sits above slide thumbnail (z:auto) and
-          per-slide chrome scrims (z:1) / photo dots (z:2). Info bar +
-          close + mute (all z:4) and the right-edge deck dots (z:5)
-          paint above. */}
-      <div
-        ref={poolHostRef}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          zIndex: 3,
-          pointerEvents: 'none',
-        }}
-      />
-
       <div
         ref={containerRef}
         className="lb-deck"
@@ -302,6 +287,29 @@ export function LightboxDeck({
           touchAction: 'pan-y',
         }}
       >
+        {/* Pool host — first child of the scroll container so the pool
+            <video> elements have lb-deck as a DOM ancestor. Touch on a
+            visible pool video routes vertical scroll to lb-deck (the
+            nearest scrollable ancestor) — this is what makes mobile
+            swipe work. position:fixed on the host means it stays put
+            visually while slides scroll inside lb-deck; its containing
+            block resolves to MediaLightbox's constrained frame
+            (ConstrainedFrame's `transform` makes it the containing
+            block for descendant fixed elements per CSS spec), so the
+            pool fills the 420px column on desktop and the full
+            viewport on mobile. z:3 sits above slide thumbnails
+            (z:auto) and chrome scrims (z:1); info bar + close + mute
+            (all z:4) and the deck dot column (z:5) paint above. */}
+        <div
+          ref={poolHostRef}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 3,
+            pointerEvents: 'none',
+          }}
+        />
+
         {listings.map((listing, idx) => (
           <div
             key={listing.id}
@@ -327,6 +335,15 @@ export function LightboxDeck({
           </div>
         ))}
       </div>
+
+      {/* Deck-level info bar — Instagram link with avatar / name /
+          category / location. Reads currentListing so it updates on
+          swipe; rendered at the wrapper level (NOT inside per-slide
+          chrome) because iOS Safari's overflow-scrolling compositing
+          layer hides per-slide z:4 elements behind the pool video on
+          mobile (visible on desktop, missing on mobile pre-fix).
+          Outside the scroll container, no compositing-layer issue. */}
+      {currentListing && <DeckInfoBar listing={currentListing} />}
 
       {/* Right-edge dot column (hidden if only 1 listing). Pure
           informational, no tap-to-jump. position:absolute now (was
@@ -430,5 +447,75 @@ export function LightboxDeck({
 
       <style>{`.lb-deck::-webkit-scrollbar{display:none}`}</style>
     </div>
+  )
+}
+
+function DeckInfoBar({ listing }: { listing: PublicListingRow }) {
+  const igUrl = `https://instagram.com/${listing.professional_instagram}`
+  const initials = listing.professional_name
+    .split(/\s+/)
+    .map((w) => w.charAt(0).toUpperCase())
+    .slice(0, 2)
+    .join('')
+
+  return (
+    <a
+      href={igUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        padding: '0 18px 22px',
+        zIndex: 4,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 11,
+        textDecoration: 'none',
+        color: 'inherit',
+      }}
+    >
+      <div
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: '50%',
+          border: '1.5px solid #e91e8c',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          background: '#000',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
+        }}
+      >
+        {listing.professional_avatar_url ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={listing.professional_avatar_url}
+            alt=""
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
+          <span style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>{initials}</span>
+        )}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>
+          {listing.professional_name}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
+          <span style={{ fontSize: 11, color: '#e91e8c', fontWeight: 600 }}>
+            {categoryText(listing)}
+          </span>
+          <span style={{ fontSize: 11, color: '#888' }}>·</span>
+          <span style={{ fontSize: 11, color: '#888' }}>{formatLocation(listing.professional_city, listing.professional_country)}</span>
+        </div>
+      </div>
+    </a>
   )
 }

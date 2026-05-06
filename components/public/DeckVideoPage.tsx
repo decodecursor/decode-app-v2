@@ -47,7 +47,6 @@ export function DeckVideoPage({
       )}
 
       <LightboxChrome
-        listing={listing}
         isVideo={true}
         slidesCount={1}
         activeIdx={0}

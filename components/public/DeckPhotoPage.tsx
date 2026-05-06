@@ -50,7 +50,6 @@ export function DeckPhotoPage({
     >
       <LightboxCarousel ref={carouselRef} slides={slides} onScroll={onCarouselScroll} />
       <LightboxChrome
-        listing={listing}
         isVideo={false}
         slidesCount={slides.length}
         activeIdx={activeIdx}
