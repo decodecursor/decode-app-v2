@@ -157,31 +157,31 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   margin: 0 auto;
 }
 .pro-landing-trust-stack-eyebrow {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 3.6px;
   text-transform: uppercase;
   color: #888;
-  margin: 36px 0;
+  margin: 36px 0 32px;
   font-weight: 500;
 }
 .pro-landing-trust-stack-pillars {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
-  font-size: 22px;
+  font-size: 30px;
   line-height: 1.5;
   color: #FFF;
-  margin-bottom: 32px;
-  font-weight: 400;
+  margin-bottom: 28px;
+  font-weight: 500;
   letter-spacing: -0.2px;
 }
 .pro-landing-trust-stack-closer {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
   color: #888;
   margin-bottom: 36px;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .pro-landing-example-link-wrap {
@@ -389,14 +389,13 @@ export default function ProfessionalLandingPage() {
         </nav>
 
         <section className="pro-landing-section">
-          <div className="pro-landing-eyebrow">Ambassador</div>
+          <div className="pro-landing-eyebrow">Ambassador For Beauty Professionals</div>
           <h1 className="pro-landing-hero">
-            Listed by<br />women who<br />already love<br />you.
+            Get recommended<br />by women who<br />already love you.
           </h1>
           <p className="pro-landing-sub">
             Real customers replace ads.<br />
-            Real recommendations replace influencers.<br />
-            Real conversion data replace guesswork.
+            Real recommendations replace influencers.
           </p>
         </section>
 
@@ -410,9 +409,7 @@ export default function ProfessionalLandingPage() {
             She is a real customer.<br />She vouches with her name.
           </h2>
           <p className="pro-landing-block-body">
-            An endorsement, not a tag.<br />
-            Chosen by her. Listed by her.<br />
-            Approved by her.
+            Remove the budget battle on social media and let loyalty shine.
           </p>
         </section>
 
@@ -424,7 +421,7 @@ export default function ProfessionalLandingPage() {
           </div>
           <h2 className="pro-landing-block-title">1 day vs 90 days.</h2>
           <p className="pro-landing-block-body">
-            An influencer story is gone tomorrow. A listing stays live for up to ninety days. Same audience. Different math.<br />
+            An influencer story is gone tomorrow. A listing stays live for up to 90 days. Same audience. Different math.<br />
             Renewable in one click.
           </p>
         </section>
@@ -436,7 +433,7 @@ export default function ProfessionalLandingPage() {
             </video>
           </div>
           <h2 className="pro-landing-block-title">
-            You didn&rsquo;t train 15 years<br />to film TikToks.<br />Return to your craft.
+            You didn&rsquo;t train 15 years to film TikToks.<br />Return to your craft.
           </h2>
           <p className="pro-landing-block-body">
             The right Ambassadors can outperform an entire marketing team. Stay lean, stay efficient &mdash; manage it all in a few clicks.
@@ -450,7 +447,7 @@ export default function ProfessionalLandingPage() {
             Personal endorsement.<br />Crowd reviews.<br />Live demand.
           </div>
           <div className="pro-landing-trust-stack-closer">
-            Not on Meta. Not on Google.<br />Only here.
+            Not on Meta. Not on Google. Not on TikTok.<br />Only here.
           </div>
           <div className="pro-landing-trust-stack-divider" />
         </section>
