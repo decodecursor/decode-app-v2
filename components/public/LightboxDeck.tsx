@@ -2,26 +2,39 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PublicListingRow } from '@/lib/public/slug-page-shape'
+import { mediaPool } from '@/lib/public/media-pool'
 import { DeckVideoPage } from './DeckVideoPage'
 import { DeckPhotoPage } from './DeckPhotoPage'
 
 /**
  * Vertical scroll-snap deck of listing pages. One page per listing.
  * Native CSS scroll-snap drives the swipe — no JS gesture handlers.
- * IntersectionObserver tracks which page is centered to drive the
- * single-active video play/pause rule (only the focused page's video
- * plays).
+ * IntersectionObserver tracks which page is centered.
  *
- * Mount-on-active: each DeckVideoPage mounts its <video> element only
- * while it's the current slide; non-current slides render the cached
- * server-side thumbnail. Single decoder element guarantee — iOS Safari's
- * 4-6 simultaneous decoder ceiling can't be hit no matter how long the
- * deck is.
+ * Video playback is delegated to a singleton MediaPool (lib/public/
+ * media-pool.ts) holding two pre-blessed <video> elements. PublicPage-
+ * Client.onOpenMedia calls mediaPool.bless(...) inside the user's tap
+ * handler — that's the iOS user-activation gesture. Both pool elements
+ * receive a synchronous play() inside that gesture so they can later
+ * play unmuted regardless of which slide the user swipes to.
  *
- * Mute state lives here (deck-wide) so a tap on slide 1 to unmute also
- * unmutes slide 2 when the user swipes. Initial value is true so muted
- * autoplay always succeeds on lightbox open. Tap on the current slide
- * routes to onToggleMute and flips the shared state.
+ * On mount this component appends both pool <video> elements to its
+ * own host div (z:0, behind chrome at z:1+). Slide pages render only
+ * the persistent thumbnail <img> + LightboxChrome — they never own a
+ * <video> themselves. On currentIndex change we route the visible
+ * slide's video URL through mediaPool.setVisible(...) and preload the
+ * next slide's URL on the inactive slot. On unmount we detach the
+ * pool elements (without destroying them) so their blessing carries
+ * to the next lightbox open.
+ *
+ * Z-stacking inside the deck wrapper (single stacking context):
+ *   - Slide thumbnail <img>     z:auto
+ *   - Pool <video> (host div)   z:0
+ *   - LightboxChrome scrims     z:1
+ *   - Info bar                  z:2
+ *   - Mute / close buttons      z:4
+ *   - MuteIndicator (slide)     z:4
+ *   - Right-edge dot column     z:5
  */
 export function LightboxDeck({
   listings,
@@ -41,17 +54,79 @@ export function LightboxDeck({
   }, [listings, initialListingId])
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex)
-  // Deck-wide mute. Starts true so every <video> first-mounts muted
-  // (iOS muted autoplay never rejects). Tap on the current slide flips
-  // it for all subsequent slides — the user only has to unmute once.
+  // Deck-wide mute. Starts true so muted autoplay always succeeds on
+  // open. Tap on the visible video flips it; pool.setMuted syncs both
+  // elements so subsequent src swaps inherit the user's choice.
   const [muted, setMuted] = useState(true)
-  const onToggleMute = useCallback(() => setMuted((m) => !m), [])
+  const onToggleMute = useCallback(() => {
+    setMuted((m) => {
+      const next = !m
+      mediaPool.setMuted(next)
+      return next
+    })
+  }, [])
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const poolHostRef = useRef<HTMLDivElement | null>(null)
   const pageRefs = useRef<Map<number, HTMLElement>>(new Map())
+  // Track which pool slot ('a' or 'b') currently holds the visible
+  // video so we know which one to preload-next on.
+  const activeSlotRef = useRef<'a' | 'b'>('a')
   // Skip the initial-mount currentIndex fire — the orb that opened the
   // deck is the one whose squad_media_swipe_view event already counted
   // on the public page. Only deck-internal swipes count here.
   const swipeViewSkipFirstRef = useRef(true)
+
+  const currentListing = listings[currentIndex]
+  const currentVideoSrc =
+    currentListing?.media_type === 'video' ? (currentListing.video_url ?? null) : null
+
+  // Append pool <video> elements to our host div on mount; detach on
+  // unmount (without destroying — pool persists for the tab lifetime
+  // so blessing carries to the next lightbox open). Apply the same
+  // visual styling both elements share; per-element visibility is
+  // toggled in the currentIndex effect below.
+  useEffect(() => {
+    const host = poolHostRef.current
+    if (!host) return
+    const { a, b } = mediaPool.ensureElements()
+
+    const baseStyle = (el: HTMLVideoElement, visible: boolean) => {
+      el.style.position = 'absolute'
+      el.style.inset = '0'
+      el.style.width = '100%'
+      el.style.height = '100%'
+      el.style.objectFit = 'cover'
+      el.style.background = '#000'
+      el.style.visibility = visible ? 'visible' : 'hidden'
+      el.style.pointerEvents = visible ? 'auto' : 'none'
+    }
+    baseStyle(a, true)
+    baseStyle(b, false)
+
+    a.muted = muted
+    b.muted = muted
+
+    const onTap = () => onToggleMute()
+    a.addEventListener('click', onTap)
+    b.addEventListener('click', onTap)
+
+    host.appendChild(a)
+    host.appendChild(b)
+
+    return () => {
+      a.removeEventListener('click', onTap)
+      b.removeEventListener('click', onTap)
+      // Detach without destroying. Pause to free decoder slot when the
+      // lightbox is closed — pool elements outlive the lightbox.
+      a.pause()
+      b.pause()
+      if (a.parentElement === host) host.removeChild(a)
+      if (b.parentElement === host) host.removeChild(b)
+    }
+    // muted/onToggleMute intentionally outside deps — element setup is
+    // mount-once; later mute changes are pushed via mediaPool.setMuted.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Land on the tapped listing's page on mount. 'instant' avoids a
   // visible scroll animation. Without this, the deck always starts at
@@ -67,11 +142,7 @@ export function LightboxDeck({
     else pageRefs.current.delete(idx)
   }, [])
 
-  // IntersectionObserver picks the page with greatest visible overlap
-  // ratio. At scroll-snap settle exactly one page has ratio ~1; during
-  // swipe animation the picker tracks which page is becoming dominant.
-  // Mirrors the public-page MediaOrb orchestrator pattern (live DOM
-  // measurement on every fire, not stale entries — see 7015fa4).
+  // IntersectionObserver picks the page with greatest visible overlap.
   useEffect(() => {
     const root = containerRef.current
     if (!root) return
@@ -95,15 +166,55 @@ export function LightboxDeck({
         })
         setCurrentIndex(bestIdx)
       },
-      {
-        root,
-        threshold: [0, 0.25, 0.5, 0.75, 1],
-      },
+      { root, threshold: [0, 0.25, 0.5, 0.75, 1] },
     )
 
     pageRefs.current.forEach((el) => observer.observe(el))
     return () => observer.disconnect()
   }, [listings])
+
+  // Drive pool playback as currentIndex changes. setVisible routes the
+  // current slide's URL to whichever slot already has it loaded
+  // (rotating the active slot for instant playback) or loads it on the
+  // preferred slot. The other slot then preloads the next slide's URL
+  // ahead of the user's swipe.
+  useEffect(() => {
+    const a = mediaPool.getElement('a')
+    const b = mediaPool.getElement('b')
+    if (!a || !b) return
+
+    if (!currentVideoSrc) {
+      // Photo slide. Hide both pool elements; DeckPhotoPage owns the
+      // visual. pauseAll frees decoder slots while user views photos.
+      a.style.visibility = 'hidden'
+      a.style.pointerEvents = 'none'
+      b.style.visibility = 'hidden'
+      b.style.pointerEvents = 'none'
+      mediaPool.pauseAll()
+      return
+    }
+
+    // Set visible on the slot that has currentVideoSrc loaded already
+    // (preloaded from a prior swipe), or fall back to the slot opposite
+    // the previously-active one.
+    const preferredSlot: 'a' | 'b' = activeSlotRef.current === 'a' ? 'b' : 'a'
+    const activeSlot = mediaPool.setVisible(currentVideoSrc, preferredSlot)
+    activeSlotRef.current = activeSlot
+
+    const activeEl = activeSlot === 'a' ? a : b
+    const inactiveEl = activeSlot === 'a' ? b : a
+    activeEl.style.visibility = 'visible'
+    activeEl.style.pointerEvents = 'auto'
+    inactiveEl.style.visibility = 'hidden'
+    inactiveEl.style.pointerEvents = 'none'
+
+    // Preload the next listing's video on the inactive slot so the next
+    // swipe is instant. Skip if next is a photo or out of range.
+    const next = listings[currentIndex + 1]
+    if (next?.media_type === 'video' && next.video_url) {
+      mediaPool.preload(activeSlot === 'a' ? 'b' : 'a', next.video_url)
+    }
+  }, [currentVideoSrc, currentIndex, listings])
 
   // squad_media_swipe_view — fires on deck-internal swipe to a new
   // page. Initial mount lands on the orb that opened the deck (already
@@ -142,6 +253,21 @@ export function LightboxDeck({
         touchAction: 'pan-y',
       }}
     >
+      {/* Pool host — fixed-position container that the mediaPool's two
+          <video> elements get appended to. position:fixed so it stays
+          aligned to the lightbox region as slides scroll. z-index:0
+          keeps it behind LightboxChrome (z:1+) so the close button,
+          mute control and info bar all remain tappable. */}
+      <div
+        ref={poolHostRef}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}
+      />
+
       {listings.map((listing, idx) => (
         <div
           key={listing.id}

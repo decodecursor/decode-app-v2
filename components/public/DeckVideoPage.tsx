@@ -1,27 +1,21 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
 import type { PublicListingRow } from '@/lib/public/slug-page-shape'
 import { LightboxChrome } from './LightboxChrome'
 
 /**
- * Video page within the lightbox deck. TikTok-style interaction model:
- *  - <video muted={muted}> with `muted` lifted to LightboxDeck so the
- *    user only has to unmute once for the whole session — subsequent
- *    slide swipes inherit the choice.
- *  - Tap toggles the deck-wide mute via onToggleMute. No play/pause
- *    control. Closing the lightbox stops playback.
- *  - Subtle bottom-right indicator shows current mute state.
+ * Video page within the lightbox deck. Renders only the slide visual
+ * (persistent thumbnail <img> as base layer + LightboxChrome + bottom-
+ * right MuteIndicator). The actual <video> element is owned by
+ * LightboxDeck via the singleton media pool — one of the two pool
+ * elements is positioned over the active slide and src-swapped on
+ * swipe, so element identity (and the iOS user-activation gesture)
+ * persists for the entire lightbox session.
  *
- * Mount-on-active is preserved for the <video> element — exactly one
- * decoder slot in use across the deck regardless of length. Persistent
- * <img> base layer below the <video> kills any black flash on swipe.
- *
- * iOS caveat: a fresh <video> element mounted with muted=false may have
- * its play() promise rejected because there's no per-element user
- * gesture, even though the user already unmuted on a prior slide. If
- * that surfaces in real-world use we'll move to a single shared
- * <video> element whose src swaps on swipe (fix attempt 2).
+ * Mute state and toggle handler are passed in from LightboxDeck so the
+ * chrome mute button reflects the deck-wide state. Tapping anywhere on
+ * the slide region falls through to the pool video's click listener
+ * (registered in LightboxDeck), which routes to the same handler.
  */
 export function DeckVideoPage({
   listing,
@@ -36,69 +30,13 @@ export function DeckVideoPage({
   onToggleMute: () => void
   onClose: () => void
 }) {
-  const videoRef = useRef<HTMLVideoElement | null>(null)
-
-  // Drive play when the <video> mounts (isCurrent flips true). Mount-
-  // on-active means the element only exists in the DOM while focused;
-  // unmount on swipe-away frees the iOS decoder slot automatically.
-  // canplay retry covers the case where readyState is too low at the
-  // first play() attempt (videos without moov-at-start / faststart
-  // encoding).
-  useEffect(() => {
-    const v = videoRef.current
-    if (!v || !isCurrent) return
-
-    let cancelled = false
-    let canplayHandler: (() => void) | null = null
-
-    v.play().catch(() => {
-      if (cancelled) return
-      if (v.readyState < 3) {
-        canplayHandler = () => {
-          if (cancelled) return
-          v.play().catch(() => { /* unmuted autoplay may reject — see header */ })
-        }
-        v.addEventListener('canplay', canplayHandler, { once: true })
-      }
-    })
-
-    return () => {
-      cancelled = true
-      if (canplayHandler) v.removeEventListener('canplay', canplayHandler)
-    }
-  }, [isCurrent])
-
   return (
     <div style={{ position: 'absolute', inset: 0, background: '#000' }}>
-      {/* Persistent base layer — <img> stays mounted whether this slide
-          is current or not. The active <video> overlays it on isCurrent,
-          so swiping to a slide can't reveal an empty/black moment
-          between <img> unmount and <video> mount. */}
       {listing.video_thumbnail_url && (
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
           src={listing.video_thumbnail_url}
           alt=""
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-          }}
-        />
-      )}
-
-      {isCurrent && listing.video_url && (
-        <video
-          ref={videoRef}
-          src={listing.video_url}
-          loop
-          playsInline
-          muted={muted}
-          preload="auto"
-          poster={listing.video_thumbnail_url ?? undefined}
-          onClick={onToggleMute}
           style={{
             position: 'absolute',
             inset: 0,

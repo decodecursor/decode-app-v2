@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PublicPageData } from '@/lib/public/slug-page-shape'
+import { mediaPool } from '@/lib/public/media-pool'
 import { PublicHeader } from './PublicHeader'
 import { SquadRow } from './SquadRow'
 import { WishesSection } from './WishesSection'
@@ -40,6 +41,23 @@ export default function PublicPageClient({
   const [openListingId, setOpenListingId] = useState<string | null>(null)
   const [activeOrbId, setActiveOrbId] = useState<string | null>(null)
   const orbRefs = useRef<Map<string, HTMLElement>>(new Map())
+
+  // Lightbox open handler. Crucial: bless the media pool synchronously
+  // inside this user-gesture call stack. iOS Safari only registers a
+  // <video> as user-activated when play() fires inside the same task as
+  // the user's tap — defer it (Promise.then, setTimeout, even async/await
+  // before the play() call) and the gesture token is gone, leaving the
+  // pool elements unable to autoplay unmuted on later src swaps.
+  const onOpenMedia = useCallback(
+    (listingId: string) => {
+      const listing = data.listings.find((l) => l.id === listingId)
+      const initialSrc =
+        listing?.media_type === 'video' ? listing.video_url : null
+      if (initialSrc) mediaPool.bless(initialSrc)
+      setOpenListingId(listingId)
+    },
+    [data.listings],
+  )
 
   const onOrbActivate = useCallback((id: string) => setActiveOrbId(id), [])
   const onOrbDeactivate = useCallback(() => setActiveOrbId(null), [])
@@ -180,7 +198,7 @@ export default function PublicPageClient({
               listing={l}
               slug={data.profile.slug}
               isLast={i === data.listings.length - 1}
-              onOpenMedia={setOpenListingId}
+              onOpenMedia={onOpenMedia}
               isOrbActive={activeOrbId === l.id}
               onOrbActivate={() => onOrbActivate(l.id)}
               onOrbDeactivate={onOrbDeactivate}
