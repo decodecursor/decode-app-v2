@@ -741,6 +741,20 @@ Slice 1.5 closed on 2026-04-20 — all items pass.
 
 47. **Setup-route captcha never shipped (carved out from PROJECT_STATE hardening item 2 closure, 2026-05-04).** PROJECT_STATE hardening table item 2 originally bundled two sub-actions: (a) flip auth routes to blocking captcha verification; (b) add client widget + server-side captcha to `/api/ambassador/model/setup`. The hCaptcha migration commit `102a206` shipped (a) — auth routes are now globally fail-closed via `verifyHcaptcha`. Sub-action (b) was never shipped on Turnstile and is not delivered by the hCaptcha migration either. Threat model: any logged-in user can automate profile creation by hitting `/api/ambassador/model/setup` directly — bypasses the UI but session is still real, so attacker cost is non-zero (must complete OTP/magic-link first to acquire the session, both of which ARE captcha-gated post-`102a206`). **Open question for post-V1:** is the residual abuse vector worth the implementation cost? Two reads: (i) low — setup is a one-shot per account and the attacker already paid for a real session; rate-limit on `/api/ambassador/model/setup` (currently absent) would be the cheaper mitigation. (ii) higher — automated profile creation could pollute Instagram-handle dedup or seed spam ambassador profiles for downstream phishing. Partner call. Pair with item 39 (combined post-V1 security slice) if a combined slice lands. Not V1-blocking.
 
+48. **Video stack post-V1 hardening (Phase 2 video stack landing, 2026-05-06).** Architecture shipped in commits `1eb1fcd..a567210` per HANDOFF §21 (Server-Side Thumbnails + Media Pool with Blessing). Verified live on iPhone Safari + desktop Chrome only; remainder logged here for post-launch:
+
+    (a) **Unify the two pools.** `lib/public/media-pool.ts` (lightbox, 2-element + bless) and `lib/public/orb-media-pool.ts` (orb, 1-element + appendChild) share substantial structure (singleton class, op queue per element, `ensureElement()` lazy create, src-swap helpers). Refactor to one library parameterized by config (element count, blessing on/off, activation strategy `setVisible` vs `appendChild`). Estimate ~half-day. Risk: low — both pools have stable APIs and are exercised by the same iPhone test paths. Don't conflate with feature work.
+
+    (b) **Central z-stack constants file.** Magic numbers (1, 2, 3, 4, 5) currently scattered across `LightboxDeck.tsx`, `LightboxChrome.tsx`, `MediaOrb.tsx`, the inline `DeckInfoBar` in `LightboxDeck.tsx`, and the deck-level chrome buttons. A regression on any one breaks the layered behavior (bumped pool host z:0 → z:3 in `456f2c5` after iOS painted it below the slide thumbnail; restored z:4 to info bar in `2480468` because z:2 was hidden behind pool host). Extract to `lib/public/lightbox-z.ts` exporting named constants — `Z_SLIDE_AUTO`, `Z_SCRIM`, `Z_DOTS`, `Z_POOL_HOST`, `Z_INFO_BAR_AND_BUTTONS`, `Z_DECK_DOTS`. One source of truth; future regressions easier to diagnose.
+
+    (c) **Cross-browser test matrix.** V1 verified iPhone Safari + desktop Chrome only. Untested: Android Chrome (different muted-autoplay policy + decoder-cap behavior), older iOS ≤15 (gesture-token semantics changed across versions per WebKit blog), iPad Safari (multitasking compositing nuances), desktop Firefox + Safari (different scroll-snap-mandatory behavior + `WebkitOverflowScrolling` no-op). Each surface should run the same iPhone test path: orb autoplay sequence + tap-to-open lightbox + slide-1 plays immediately + tap-to-unmute persists across swipe + close-and-reopen.
+
+    (d) **Dead code sweep.** Synthetic placeholder fallbacks for null `video_thumbnail_url` (gradient + centered triangle, in `MediaOrb.tsx` + `DeckVideoPage.tsx` previously) — Phase 2b backfill is complete and the upload pipeline (item (f)) will prevent NULL going forward, so the fallback path is no longer reachable. Also any `crossOrigin="anonymous"` / canvas-capture / module-level `posterCache` remnants from earlier iterations (Phase 1's pre-Media-Pool implementation). Audit before removing — some may still be referenced by photo orb fallbacks.
+
+    (e) **Unit tests for pool edge cases.** Currently zero coverage. Targets: rapid scroll (10+ activations within op-queue settle window) — pool element should land on the last requested src without intermediate flashing; lightbox close-and-reopen — bless re-runs on the new gesture and slot B's silent placeholder is re-blessed; mixed-media adjacency — swipe video → photo → video keeps slot A's blessing valid for the third slide; src-already-loaded reuse — `setVisible(sameSrc, anySlot)` must not call `play()` if already playing (the bless flow race fix in `0bc1f8a`); photo slide pool hide — `visibility: hidden` + `pointer-events: none` lets DeckPhotoPage's content + tap targets stay reachable. These are jsdom-incompatible (HTMLVideoElement is a stub there), so a Playwright headless suite against `/yannijohnson` is the practical path.
+
+    (f) **Capture-on-upload pipeline.** New video listings currently land in production with `video_thumbnail_url IS NULL` — Phase 2b backfill is one-shot, no automation. Add an upload-time hook that reads the first frame of the freshly-uploaded `.mp4` (server-side via fluent-ffmpeg in a Vercel function or Supabase Edge Function), uploads the JPG to `<professional_id>/listings/thumbnails/<listing_id>.jpg`, and writes the URL into `model_listings.video_thumbnail_url` in the same transaction as the listing insert. Until this lands, every new video listing must run through the manual ffmpeg + Studio-upload procedure documented during Phase 2b. **Action surface:** `app/api/ambassador/model/listings/route.ts` (add-listing POST) — the natural insert point.
+
 ### Slice 3 feature candidates (to be scoped separately, NOT to be conflated with hardening backlog)
 
 
@@ -2580,6 +2594,69 @@ Both patterns ship in `components/public/MediaOrb.tsx` and `components/public/De
 **For future migrations with imperative logic:** default to CLI apply, not Dashboard. The Dashboard editor is fine for plain SQL (`SELECT`, `UPDATE`, `INSERT`, even `CREATE TABLE`) but fails predictably on PL/pgSQL constructs.
 
 Discovered 2026-04-30 while applying the divergent-phone backfill migration. Migration file in repo at `supabase/migrations/20260430_backfill_auth_phone_and_phantom_cleanup.sql` was correct; the bug was Dashboard-specific.
+
+---
+
+### §21 — Video Stack — Server-Side Thumbnails + Media Pool with Blessing (AMP/Shihn pattern) (added 2026-05-06)
+
+**The two iOS Safari constraints driving the architecture:**
+
+1. **Audio gesture is per-`<video>`-element, not per-page.** Every fresh `<video>` element needs its own user gesture before iOS will allow unmuted autoplay. Lifting React state, sharing a `muted` prop, or starting playback muted then programmatically unmuting on a different element — none of that satisfies the policy. Confirmed by direct iPhone testing across multiple session-1 fix attempts (commits `46f43fa` lifted-state and `29efca3` single-shared-video — both reverted). WebKit policy: <https://webkit.org/blog/6784/new-video-policies-for-ios/>.
+2. **iOS Safari caps simultaneous video decoders at ~4-6** (WebKit Bug 162366 / 4-6 depending on device class). Beyond the cap, `play()` silently rejects on the next `<video>` mount. Yanni's 6-video deck regularly tripped this when the lightbox virtualization kept ±1 neighbors mounted (3 simultaneous decoders + reuse-after-unmount lag pushed past the ceiling).
+
+**The architectural answer (3 layers):**
+
+1. **Server-side thumbnails.** New `model_listings.video_thumbnail_url` column. ffmpeg-extracted first frame (per listing) stored in Supabase Storage at `model-media/<professional_id>/listings/thumbnails/<listing_id>.jpg`. Inactive video states render `<img src={video_thumbnail_url}>` — no `<video>` element, no decoder slot, no canvas-capture, no CORS shenanigans, no first-frame-paint nudge needed. Initial 6-listing backfill done via local ffmpeg-static + manual Studio upload (Phase 2b session, 2026-05-06).
+2. **Media Pool.** Persistent `<video>` element(s) created via `document.createElement` and reused across slides via `src` swap. Single-element pool for orbs (1 decoder slot), 2-element pool for lightbox (1 visible + 1 preload spare). Pool elements outlive React mount/unmount cycles (singleton at module scope) so element identity — and the iOS audio gesture — persists for the tab session.
+3. **Blessing (lightbox only).** Synchronous `play()` on each pool element inside the user-gesture call stack that opens the lightbox. iOS captures user-activation per element at the moment of `play()` invocation; pool elements become "user-cleared" for unmuted playback for the rest of the tab session. The `.then(() => pause())` chain runs in a later microtask — irrelevant to gesture capture, but slot B's pause is needed to keep the silent placeholder hidden. **Slot A is left playing on bless** (commit `0bc1f8a` fix): pausing A in microtask raced with `setVisible`'s subsequent `play()` and froze slide 1 on iOS.
+
+**Pool topology:**
+
+| Surface | File | Element count | Blessing? | Activation trigger |
+|---|---|---|---|---|
+| Public-page orbs | `lib/public/orb-media-pool.ts` | 1 | No (muted autoplay allowed by WebKit policy without gesture) | Scroll-driven via §18 single-active orchestrator → `pool.activate(orbContainer, src)` `appendChild`-rotates the element into the active orb's DOM container |
+| Lightbox deck | `lib/public/media-pool.ts` | 2 (slot A visible, slot B preload) | Yes (every lightbox open) | `currentIndex` change → `pool.setVisible(currentSrc, preferredSlot)` rotates the active slot to whichever element has `currentSrc` already loaded (instant playback on swipe); other slot preloads `listings[currentIndex+1].video_url` |
+
+**Operation queue per pool element.** Sequential `Promise` chain (`el.opQueue = el.opQueue.then(...)`). Prevents `load()` from interrupting an in-flight `play()` on rapid scroll/swipe — a known iOS rejection path. Pattern adapted from AMP's media-pool.
+
+**Critical timing rule (lightbox).** `mediaPool.bless(firstVideoSrc)` MUST run synchronously in the **same call stack** as the user's tap-to-open gesture. Any async work before `bless()` invalidates the gesture token: `Promise.then`, `await`, `setTimeout`, even React state-update + `useEffect`-on-mount in concurrent mode. Canonical entry point: `PublicPageClient.onOpenMedia` calls `mediaPool.bless(...)` BEFORE `setOpenListingId(...)`. Don't intermediate.
+
+**Z-stack hierarchy (single MediaLightbox stacking context):**
+
+| Layer | z-index | Notes |
+|---|---|---|
+| Slide thumbnail `<img>` | auto | persistent base layer, never unmounts |
+| Chrome scrims | 1 | top + bottom gradients |
+| Photo dot indicator | 2 | photos with ≥2 slides |
+| Pool host (playing video) | 3 | `position: fixed`, containing block resolves to the constrained frame's transform |
+| DeckInfoBar (avatar/name/IG/category) | 4 | deck-level, outside per-slide compositing layer |
+| Close + mute buttons | 4 | deck-level, viewport-locked |
+| Right-edge deck dots | 5 | deck-level pagination |
+
+**Touch coexistence on mobile.** Pool host lives INSIDE `lb-deck` (the scroll container) so the pool `<video>` has `lb-deck` as a DOM ancestor — touch on the playing video routes vertical scroll to the nearest scrollable ancestor (= `lb-deck`) and scroll-snap works. Move pool host OUT of `lb-deck` and mobile swipe dies (commit `2480468` regression, fixed in `a567210`).
+
+**Constrained desktop frame.** `MediaLightbox` wraps the deck in a 420px-max centered column (matches `PublicPageClient` mobile-frame width). The constraining div uses `transform: translateX(-50%)` for centering — this `transform` makes the constrained frame the containing block for descendant `position: fixed` elements (CSS spec). Pool host with `position: fixed; inset: 0` therefore fills the 420px column on desktop, full viewport on mobile. No code-level breakpoint check needed.
+
+**iOS Safari `-webkit-overflow-scrolling: touch` compositing layer caveat.** Per-slide z-stacked descendants (info bar, etc.) don't reliably render above siblings inside the scroll container's compositing layer on mobile, even when z-index spec says they should — visible on desktop, hidden on mobile. Lift such elements OUT of the scroll container to the deck wrapper level. `DeckInfoBar` reads `currentListing` and re-renders on swipe; outside `lb-deck`, the iOS bug doesn't apply (commit `a567210`).
+
+**File map:**
+
+- `lib/public/media-pool.ts` — lightbox 2-element pool + `bless()` API
+- `lib/public/orb-media-pool.ts` — orb 1-element pool + `appendChild`-style API
+- `components/public/MediaOrb.tsx` — uses orb-media-pool; persistent `<img>` thumbnail + variant-driven activation
+- `components/public/LightboxDeck.tsx` — uses media-pool; owns chrome layout (close, mute, dot column) + `DeckInfoBar` + wheel handler for desktop slide-per-tick
+- `components/public/MediaLightbox.tsx` — modal frame + 420px constrained frame
+- `components/public/DeckVideoPage.tsx` — per-slide rendering: persistent thumbnail `<img>` only (no `<video>`)
+- `components/public/DeckPhotoPage.tsx` — photo carousel, untouched by video stack
+- `components/public/LightboxChrome.tsx` — slim per-slide chrome: scrims + photo dots
+- `public/silent.mp4` — ~2KB silent placeholder (1s black 2x2, ffmpeg `lavfi -i color=...`) used to bless slot B without playing audible content
+
+**Source references:**
+
+- AMP media-pool: <https://github.com/ampproject/amphtml/blob/master/extensions/amp-story/1.0/media-pool.js>
+- pshihn/media-pool (framework-independent): <https://github.com/pshihn/media-pool>
+- WebKit `<video>` policies for iOS: <https://webkit.org/blog/6784/new-video-policies-for-ios/>
+- Bitmovin autoplay policies (Safari 14): <https://bitmovin.com/autoplay-policies-safari-14-chrome-64/>
 
 ---
 
