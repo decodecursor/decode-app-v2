@@ -5,10 +5,21 @@ import type { PublicListingRow } from '@/lib/public/slug-page-shape'
 import { LightboxChrome } from './LightboxChrome'
 
 /**
- * Video page within the lightbox deck. Mounts a full-screen <video>
- * when isHydrated (current ± 1 within the deck) so distant pages
- * don't fan out to N simultaneous metadata fetches. Plays only when
- * isCurrent (single-active rule across the deck).
+ * Video page within the lightbox deck. Mount-on-active: the <video>
+ * element only exists in the DOM while this page is the current slide.
+ * Non-current slides render <img src={video_thumbnail_url}> (or fall
+ * back to the page's #000 background when the thumbnail URL is NULL).
+ *
+ * Why mount-on-active and not eager-prefetch ±1: iOS Safari has a
+ * hard ceiling on simultaneous video decoder slots (4-6 depending on
+ * device). Yanni's deck has 6 video listings, so the previous
+ * isHydrated=±1 window kept up to 3 <video> elements alive at once
+ * and the last 2-3 swipes failed to start playback. Single-element
+ * guarantee → no decoder pressure.
+ *
+ * The trade-off is a brief load on swipe-to: poster (server-side
+ * first frame) paints instantly, then metadata + first decoded frame
+ * replace it once playback begins.
  *
  * Mute is controlled by parent (LightboxDeck) — shared across all
  * video pages in the same session, so unmuting one persists to the
@@ -22,6 +33,9 @@ import { LightboxChrome } from './LightboxChrome'
  *  - .catch() on play() promise → autoplayBlocked=true → tap-to-play
  *    overlay (mirrors the previous LightboxVideo pattern — file deleted
  *    in this commit, behavior preserved here).
+ *  - play() retry on canplay if readyState was too low at first
+ *    attempt — common on iOS when video mounts and play() races
+ *    metadata fetch on slower-encoded videos.
  *
  * Reduced-motion: skip play() entirely; force the tap-to-play overlay
  * so the user must opt-in. Deck navigation still works.
@@ -29,14 +43,12 @@ import { LightboxChrome } from './LightboxChrome'
 export function DeckVideoPage({
   listing,
   isCurrent,
-  isHydrated,
   isMuted,
   onToggleMute,
   onClose,
 }: {
   listing: PublicListingRow
   isCurrent: boolean
-  isHydrated: boolean
   isMuted: boolean
   onToggleMute: () => void
   onClose: () => void
@@ -45,61 +57,48 @@ export function DeckVideoPage({
   const [autoplayBlocked, setAutoplayBlocked] = useState(false)
   const reducedMotion = usePrefersReducedMotion()
 
-  // Drive play/pause from isCurrent. Only the focused page's video
-  // plays; the rest pause + rewind so the next focus starts fresh.
+  // Drive play when the <video> mounts (isCurrent flips true). Mount-
+  // on-active means the element only exists in the DOM while focused;
+  // unmount on swipe-away frees the iOS decoder slot automatically.
   useEffect(() => {
     const v = videoRef.current
     if (!v) return
+    if (!isCurrent) return
+    if (reducedMotion) {
+      setAutoplayBlocked(true)
+      return
+    }
 
-    if (isCurrent && !reducedMotion) {
-      setAutoplayBlocked(false)
+    setAutoplayBlocked(false)
 
-      // play() may reject if readyState is too low (browser hasn't
-      // loaded enough metadata yet to begin playback). Retry once on
-      // 'canplay' before declaring autoplay blocked. iOS Safari hits
-      // this most often when a video page becomes current shortly
-      // after hydration — the mount + play() race loses on slow
-      // metadata fetches (e.g. videos without moov-at-start /
-      // faststart encoding).
-      let cancelled = false
-      let canplayHandler: (() => void) | null = null
+    let cancelled = false
+    let canplayHandler: (() => void) | null = null
 
-      const tryPlay = () => {
+    const tryPlay = () => {
+      if (cancelled) return
+      v.play().catch(() => {
         if (cancelled) return
-        v.play().catch(() => {
-          if (cancelled) return
-          if (v.readyState < 3 && !canplayHandler) {
-            // Not ready yet — wait for canplay and retry once.
-            canplayHandler = () => {
-              if (cancelled) return
-              v.play().catch(() => setAutoplayBlocked(true))
-            }
-            v.addEventListener('canplay', canplayHandler, { once: true })
-          } else {
-            // Ready but rejected anyway (autoplay policy / Low Power Mode).
-            setAutoplayBlocked(true)
+        if (v.readyState < 3 && !canplayHandler) {
+          canplayHandler = () => {
+            if (cancelled) return
+            v.play().catch(() => setAutoplayBlocked(true))
           }
-        })
-      }
-
-      tryPlay()
-
-      return () => {
-        cancelled = true
-        if (canplayHandler) {
-          v.removeEventListener('canplay', canplayHandler)
+          v.addEventListener('canplay', canplayHandler, { once: true })
+        } else {
+          setAutoplayBlocked(true)
         }
-      }
-    } else {
-      v.pause()
-      v.currentTime = 0
-      // Reduced-motion: surface the tap-to-play overlay so the user
-      // can still play on demand.
-      if (reducedMotion && isCurrent) {
-        setAutoplayBlocked(true)
+      })
+    }
+
+    tryPlay()
+
+    return () => {
+      cancelled = true
+      if (canplayHandler) {
+        v.removeEventListener('canplay', canplayHandler)
       }
     }
-  }, [isCurrent, isHydrated, reducedMotion])
+  }, [isCurrent, reducedMotion])
 
   // Tap on the video → toggle mute (TikTok pattern).
   // If currently autoplay-blocked, the same tap should attempt play().
@@ -117,15 +116,31 @@ export function DeckVideoPage({
 
   return (
     <div style={{ position: 'absolute', inset: 0, background: '#000' }}>
-      {isHydrated && listing.video_url && (
+      {isCurrent && listing.video_url && (
         <video
           ref={videoRef}
           src={listing.video_url}
           loop
           playsInline
           muted={isMuted}
-          preload={isCurrent ? 'auto' : 'metadata'}
+          preload="auto"
+          poster={listing.video_thumbnail_url ?? undefined}
           onClick={onVideoTap}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+          }}
+        />
+      )}
+
+      {!isCurrent && listing.video_thumbnail_url && (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={listing.video_thumbnail_url}
+          alt=""
           style={{
             position: 'absolute',
             inset: 0,

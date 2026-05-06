@@ -131,6 +131,7 @@ export function MediaOrb({
           loop
           playsInline
           preload="metadata"
+          poster={videoThumbnailUrl ?? undefined}
           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
         />
       )}

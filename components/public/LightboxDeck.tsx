@@ -12,11 +12,11 @@ import { DeckPhotoPage } from './DeckPhotoPage'
  * single-active video play/pause rule (only the focused page's video
  * plays).
  *
- * Virtualization: video pages within ±1 of currentIndex render their
- * <video> element. Distant video pages render an empty placeholder so
- * we don't fan out to N simultaneous video metadata fetches. Photo
- * pages render full chrome at every distance — photo bytes are cheap
- * enough to lazy-load via <img>.
+ * Mount-on-active: each DeckVideoPage mounts its <video> element only
+ * while it's the current slide; non-current slides render the cached
+ * server-side thumbnail. Single decoder element guarantee — iOS Safari's
+ * 4-6 simultaneous decoder ceiling can't be hit no matter how long the
+ * deck is.
  *
  * Mute is shared deck-wide: state lives here. Once the user unmutes
  * any video, every subsequent video in this deck session plays
@@ -161,7 +161,6 @@ export function LightboxDeck({
             <DeckVideoPage
               listing={listing}
               isCurrent={idx === currentIndex}
-              isHydrated={Math.abs(idx - currentIndex) <= 1}
               isMuted={isMuted}
               onToggleMute={onToggleMute}
               onClose={onClose}
