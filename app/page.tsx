@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 const STYLES = `
 .gate-root, .gate-root * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -13,6 +13,7 @@ body.gate-body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
+body.overlay-open { overflow: hidden; }
 
 .gate {
   max-width: 440px;
@@ -22,10 +23,28 @@ body.gate-body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  opacity: 0;
-  transition: opacity 0.5s ease;
+  position: relative;
 }
-.gate.visible { opacity: 1; }
+
+.gate-trigger {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 28px);
+  right: 28px;
+  font-size: 12px;
+  color: #FFF;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 0.6px;
+  padding: 8px;
+  margin: -8px;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+}
+.gate-trigger:hover { opacity: 1; }
+.gate-trigger:active { opacity: 0.6; }
 
 .gate-logo-wrap {
   margin-top: 96px;
@@ -70,24 +89,25 @@ body.gate-body {
   inset: 0;
   background: #000;
   z-index: 50;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: env(safe-area-inset-top) 32px env(safe-area-inset-bottom);
-  opacity: 0;
-  transition: opacity 0.6s ease;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
   pointer-events: none;
-  visibility: hidden;
 }
 .founder-overlay.shown {
-  opacity: 1;
+  transform: translateY(0);
   pointer-events: auto;
-  visibility: visible;
+}
+.founder-inner {
+  max-width: 440px;
+  margin: 0 auto;
+  position: relative;
 }
 .founder-close {
   position: absolute;
-  top: calc(env(safe-area-inset-top) + 22px);
+  top: 22px;
   right: 24px;
   font-size: 28px;
   color: #FFF;
@@ -98,13 +118,22 @@ body.gate-body {
   padding: 8px 12px;
   font-weight: 300;
   font-family: inherit;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
+  z-index: 2;
 }
-.founder-close:hover { opacity: 1; }
+.founder-logo-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 32px 28px 80px;
+}
+.founder-logo {
+  height: 26px;
+  width: auto;
+  display: block;
+  filter: brightness(0) invert(1);
+}
 .founder-content {
   text-align: center;
-  max-width: 360px;
+  padding: 0 32px 80px;
 }
 .founder-line {
   font-family: 'Cormorant Garamond', Georgia, serif;
@@ -119,30 +148,16 @@ body.gate-body {
 .founder-line.cta {
   font-weight: 500;
   margin-top: 8px;
-  margin-bottom: 36px;
+  margin-bottom: 48px;
 }
 .founder-signature {
   display: block;
   margin: 0 auto;
-  height: 56px;
+  height: 280px;
   width: auto;
-  max-width: 220px;
+  max-width: 100%;
   object-fit: contain;
 }
-.founder-continue {
-  position: absolute;
-  bottom: calc(env(safe-area-inset-bottom) + 32px);
-  left: 0;
-  right: 0;
-  text-align: center;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
-  cursor: pointer;
-  letter-spacing: 0.6px;
-  padding: 12px;
-  transition: color 0.2s ease;
-}
-.founder-continue:hover { color: #FFF; }
 
 .bloom {
   position: fixed;
@@ -174,7 +189,6 @@ body.gate-body {
 
 export default function ChoiceGate() {
   const [founderShown, setFounderShown] = useState(false)
-  const [gateVisible, setGateVisible] = useState(false)
   const [bloomActive, setBloomActive] = useState(false)
 
   // Pure black background scoped to this route — flip classes on
@@ -186,36 +200,19 @@ export default function ChoiceGate() {
     return () => {
       document.documentElement.classList.remove('gate-html')
       document.body.classList.remove('gate-body')
+      document.body.classList.remove('overlay-open')
     }
   }, [])
 
-  // Auto-close timer for the founder overlay (8s if user hasn't dismissed).
-  const autoCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const openFounder = useCallback(() => {
+    setFounderShown(true)
+    document.body.classList.add('overlay-open')
+  }, [])
 
   const dismissFounder = useCallback(() => {
-    if (autoCloseTimerRef.current) {
-      clearTimeout(autoCloseTimerRef.current)
-      autoCloseTimerRef.current = null
-    }
     setFounderShown(false)
-    setTimeout(() => setGateVisible(true), 400)
+    document.body.classList.remove('overlay-open')
   }, [])
-
-  // Launch-phase behaviour: always show the founder note, regardless of
-  // prior visits. Auto-dismisses after 8s if the user does nothing.
-  useEffect(() => {
-    const t = setTimeout(() => {
-      setFounderShown(true)
-      autoCloseTimerRef.current = setTimeout(dismissFounder, 8000)
-    }, 150)
-    return () => {
-      clearTimeout(t)
-      if (autoCloseTimerRef.current) {
-        clearTimeout(autoCloseTimerRef.current)
-        autoCloseTimerRef.current = null
-      }
-    }
-  }, [dismissFounder])
 
   useEffect(() => {
     if (!founderShown) return
@@ -250,14 +247,21 @@ export default function ChoiceGate() {
       />
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
 
-      <main className={`gate${gateVisible ? ' visible' : ''}`}>
+      <main className="gate">
+        <button
+          className="gate-trigger"
+          type="button"
+          onClick={openFounder}
+        >
+          A note from us →
+        </button>
         <div className="gate-logo-wrap">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="gate-logo" src="/logo.png" alt="DECODE" />
         </div>
         <div className="gate-actions">
           {/* Hard nav (window.location.href) on click is intentional —
-              the bloom-then-navigate sequence requires the full ~1.6s
+              the bloom-then-navigate sequence requires the full ~1.1s
               ceremony and a full page load, not a Next.js client
               transition. */}
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
@@ -285,40 +289,33 @@ export default function ChoiceGate() {
         className={`founder-overlay${founderShown ? ' shown' : ''}`}
         role="dialog"
         aria-label="A note from the founder"
+        aria-hidden={!founderShown}
       >
-        <button
-          className="founder-close"
-          type="button"
-          aria-label="Close"
-          onClick={dismissFounder}
-        >
-          ×
-        </button>
-        <div className="founder-content">
-          <p className="founder-line">The beauty industry is broken.</p>
-          <p className="founder-line">Trust is at an all-time low.</p>
-          <p className="founder-line">We put our heart and soul into crafting tools to fix what has been lost.</p>
-          <p className="founder-line cta">Come build it with us.</p>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            className="founder-signature"
-            src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/founder/Signature_no%20line.png"
-            alt="Sila"
-          />
-        </div>
-        <div
-          className="founder-continue"
-          role="button"
-          tabIndex={0}
-          onClick={dismissFounder}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault()
-              dismissFounder()
-            }
-          }}
-        >
-          Continue ↓
+        <div className="founder-inner">
+          <button
+            className="founder-close"
+            type="button"
+            aria-label="Close"
+            onClick={dismissFounder}
+          >
+            ×
+          </button>
+          <div className="founder-logo-wrap">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="founder-logo" src="/logo.png" alt="DECODE" />
+          </div>
+          <div className="founder-content">
+            <p className="founder-line">The beauty industry is broken.</p>
+            <p className="founder-line">Trust is at an all-time low.</p>
+            <p className="founder-line">We put our heart and soul into crafting tools to fix what has been lost.</p>
+            <p className="founder-line cta">Come build it with us.</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              className="founder-signature"
+              src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/founder/Signature_no%20line.png"
+              alt="Sila"
+            />
+          </div>
         </div>
       </div>
 
