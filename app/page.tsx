@@ -43,28 +43,29 @@ body.gate-body {
 .gate-actions {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
   width: 100%;
-  padding-bottom: 80px;
+  padding-bottom: 140px;
+  align-items: stretch;
 }
-.gate-btn {
+.gate-link {
   display: block;
+  width: 100%;
   background: transparent;
   color: #FFF;
-  border: 1px solid #FFF;
-  padding: 22px;
+  border: none;
+  padding: 22px 20px;
   text-align: center;
-  border-radius: 10px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 0.5px;
   text-decoration: none;
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.25s ease;
+  transition: opacity 0.2s ease;
 }
-.gate-btn:hover { background: rgba(255, 255, 255, 0.06); }
-.gate-btn:active { background: rgba(255, 255, 255, 0.1); }
+.gate-link:hover { opacity: 0.65; }
+.gate-link:active { opacity: 0.5; }
 
 .founder-overlay {
   position: fixed;
@@ -151,7 +152,7 @@ body.gate-body {
   z-index: 100;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.55s ease;
+  transition: opacity 0.5s ease;
   background: #000;
   display: flex;
   align-items: center;
@@ -225,9 +226,13 @@ export default function ChoiceGate() {
     e.preventDefault()
     const target = e.currentTarget.getAttribute('data-target') || ''
     setBloomActive(true)
+    // 500ms fade in + 600ms hold, then fade out (500ms) before nav.
     setTimeout(() => {
-      window.location.href = target
-    }, 700)
+      setBloomActive(false)
+      setTimeout(() => {
+        window.location.href = target
+      }, 500)
+    }, 1100)
   }
 
   return (
@@ -250,25 +255,26 @@ export default function ChoiceGate() {
         </div>
         <div className="gate-actions">
           {/* Hard nav (window.location.href) on click is intentional —
-              the bloom-then-navigate sequence requires a 700ms delay
-              and a full page load, not a Next.js client transition. */}
+              the bloom-then-navigate sequence requires the full ~1.6s
+              ceremony and a full page load, not a Next.js client
+              transition. */}
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
-            className="gate-btn"
+            className="gate-link"
             href="/ambassador"
             data-target="/ambassador"
             onClick={handleGateClick}
           >
-            I&apos;m an Ambassador
+            I&apos;m an Ambassador →
           </a>
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
-            className="gate-btn"
+            className="gate-link"
             href="/professional"
             data-target="/professional"
             onClick={handleGateClick}
           >
-            I&apos;m a Beauty Professional
+            I&apos;m a Beauty Professional →
           </a>
         </div>
       </main>
