@@ -1,8 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-
-const FOUNDER_SEEN_KEY = 'decode_founder_seen_v1'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const STYLES = `
 .gate-root, .gate-root * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -45,7 +43,7 @@ body.gate-body {
   flex-direction: column;
   gap: 8px;
   width: 100%;
-  padding-bottom: 140px;
+  padding-bottom: 160px;
   align-items: stretch;
 }
 .gate-link {
@@ -163,10 +161,10 @@ body.gate-body {
   opacity: 1;
 }
 .bloom-img {
-  width: 130%;
-  height: 130%;
-  object-fit: cover;
-  transform: scale(1.08);
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scale(1.04);
   transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .bloom.active .bloom-img {
@@ -191,27 +189,33 @@ export default function ChoiceGate() {
     }
   }, [])
 
-  // First-visit decision: show founder note unless localStorage flag is set.
-  useEffect(() => {
-    let alreadySeen = false
-    try {
-      alreadySeen = !!localStorage.getItem(FOUNDER_SEEN_KEY)
-    } catch {}
-    if (alreadySeen) {
-      setGateVisible(true)
-      return
-    }
-    const t = setTimeout(() => setFounderShown(true), 150)
-    return () => clearTimeout(t)
-  }, [])
+  // Auto-close timer for the founder overlay (8s if user hasn't dismissed).
+  const autoCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const dismissFounder = useCallback(() => {
+    if (autoCloseTimerRef.current) {
+      clearTimeout(autoCloseTimerRef.current)
+      autoCloseTimerRef.current = null
+    }
     setFounderShown(false)
-    try {
-      localStorage.setItem(FOUNDER_SEEN_KEY, '1')
-    } catch {}
     setTimeout(() => setGateVisible(true), 400)
   }, [])
+
+  // Launch-phase behaviour: always show the founder note, regardless of
+  // prior visits. Auto-dismisses after 8s if the user does nothing.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setFounderShown(true)
+      autoCloseTimerRef.current = setTimeout(dismissFounder, 8000)
+    }, 150)
+    return () => {
+      clearTimeout(t)
+      if (autoCloseTimerRef.current) {
+        clearTimeout(autoCloseTimerRef.current)
+        autoCloseTimerRef.current = null
+      }
+    }
+  }, [dismissFounder])
 
   useEffect(() => {
     if (!founderShown) return
@@ -226,12 +230,10 @@ export default function ChoiceGate() {
     e.preventDefault()
     const target = e.currentTarget.getAttribute('data-target') || ''
     setBloomActive(true)
-    // 500ms fade in + 600ms hold, then fade out (500ms) before nav.
+    // Bloom stays up through navigation — no fade-out, so the gate
+    // never flashes back into view between transitions.
     setTimeout(() => {
-      setBloomActive(false)
-      setTimeout(() => {
-        window.location.href = target
-      }, 500)
+      window.location.href = target
     }, 1100)
   }
 
