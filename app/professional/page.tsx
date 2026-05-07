@@ -74,6 +74,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   color: #888;
   margin-bottom: 34px;
   font-weight: 500;
+  line-height: 1.6;
 }
 .pro-landing-hero {
   font-family: 'Cormorant Garamond', Georgia, serif;
@@ -394,7 +395,7 @@ export default function ProfessionalLandingPage() {
             Get recommended<br />by women who<br />already love you.
           </h1>
           <p className="pro-landing-sub">
-            Real customers replace ads.<br />
+            Real clients replace ads.<br />
             Real recommendations replace influencers.
           </p>
         </section>
@@ -409,7 +410,7 @@ export default function ProfessionalLandingPage() {
             She is a real client.<br />She vouches with her name.
           </h2>
           <p className="pro-landing-block-body">
-            Remove the budget battle on social media and let loyalty shine. Taking word of mouth to another level.
+            End the budget battle on social media and let loyalty lead. Let&rsquo;s take word of mouth to another level.
           </p>
         </section>
 
@@ -432,7 +433,7 @@ export default function ProfessionalLandingPage() {
             </video>
           </div>
           <h2 className="pro-landing-block-title">
-            You didn&rsquo;t train 9 years to film TikToks.<br />Return to your craft.
+            You didn&rsquo;t train 15 years to film TikToks. Return to your craft.
           </h2>
           <p className="pro-landing-block-body">
             The right Ambassadors can outperform an entire marketing team. Stay lean, stay efficient &mdash; manage it all in a few clicks.
