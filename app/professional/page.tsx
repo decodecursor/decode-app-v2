@@ -78,7 +78,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 .pro-landing-hero {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
-  font-size: 62px;
+  font-size: 56px;
   line-height: 1.0;
   margin-bottom: 44px;
   font-weight: 400;
@@ -389,7 +389,7 @@ export default function ProfessionalLandingPage() {
         </nav>
 
         <section className="pro-landing-section">
-          <div className="pro-landing-eyebrow">Ambassador For Beauty Professionals</div>
+          <div className="pro-landing-eyebrow">Ambassador<br />For Beauty Professionals</div>
           <h1 className="pro-landing-hero">
             Get recommended<br />by women who<br />already love you.
           </h1>
@@ -406,10 +406,10 @@ export default function ProfessionalLandingPage() {
             </video>
           </div>
           <h2 className="pro-landing-block-title">
-            She is a real customer.<br />She vouches with her name.
+            She is a real client.<br />She vouches with her name.
           </h2>
           <p className="pro-landing-block-body">
-            Remove the budget battle on social media and let loyalty shine.
+            Remove the budget battle on social media and let loyalty shine. Taking word of mouth to another level.
           </p>
         </section>
 
@@ -421,8 +421,7 @@ export default function ProfessionalLandingPage() {
           </div>
           <h2 className="pro-landing-block-title">1 day vs 90 days.</h2>
           <p className="pro-landing-block-body">
-            An influencer story is gone tomorrow. A listing stays live for up to 90 days. Same audience. Different math.<br />
-            Renewable in one click.
+            An influencer story is gone tomorrow. A listing stays live for up to 90 days. Same audience. Different math. Renewable in one click.
           </p>
         </section>
 
@@ -433,7 +432,7 @@ export default function ProfessionalLandingPage() {
             </video>
           </div>
           <h2 className="pro-landing-block-title">
-            You didn&rsquo;t train 15 years to film TikToks.<br />Return to your craft.
+            You didn&rsquo;t train 9 years to film TikToks.<br />Return to your craft.
           </h2>
           <p className="pro-landing-block-body">
             The right Ambassadors can outperform an entire marketing team. Stay lean, stay efficient &mdash; manage it all in a few clicks.
@@ -447,7 +446,7 @@ export default function ProfessionalLandingPage() {
             Personal endorsement.<br />Crowd reviews.<br />Live demand.
           </div>
           <div className="pro-landing-trust-stack-closer">
-            Not on Meta. Not on Google. Not on TikTok.<br />Only here.
+            The combination is unique.<br />Not on Meta. Not on Google. Not on TikTok.<br />Only here.
           </div>
           <div className="pro-landing-trust-stack-divider" />
         </section>
@@ -457,7 +456,7 @@ export default function ProfessionalLandingPage() {
         </div>
 
         <div className="pro-landing-cta-wrap">
-          <a className="pro-landing-cta" href="https://wa.me/971554275547">Speak to the founder</a>
+          <a className="pro-landing-cta" href="https://wa.me/971554275547">Let&rsquo;s Chat on WhatsApp</a>
         </div>
 
         <div className="pro-landing-footer">
