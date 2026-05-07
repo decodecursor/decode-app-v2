@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const STYLES = `
 .gate-root, .gate-root * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -105,10 +105,22 @@ body.overlay-open { overflow: hidden; }
   margin: 0 auto;
   position: relative;
 }
+.founder-nav {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32px 28px 80px;
+  width: 100%;
+}
+.founder-logo {
+  height: 26px;
+  width: auto;
+  display: block;
+  filter: brightness(0) invert(1);
+  margin-right: auto;
+}
 .founder-close {
-  position: absolute;
-  top: 22px;
-  right: 24px;
   font-size: 28px;
   color: #FFF;
   background: none;
@@ -116,20 +128,9 @@ body.overlay-open { overflow: hidden; }
   cursor: pointer;
   line-height: 0.8;
   padding: 8px 12px;
+  margin: -8px -12px -8px auto;
   font-weight: 300;
   font-family: inherit;
-  z-index: 2;
-}
-.founder-logo-wrap {
-  display: flex;
-  justify-content: center;
-  padding: 32px 28px 80px;
-}
-.founder-logo {
-  height: 26px;
-  width: auto;
-  display: block;
-  filter: brightness(0) invert(1);
 }
 .founder-content {
   text-align: center;
@@ -146,9 +147,9 @@ body.overlay-open { overflow: hidden; }
   letter-spacing: -0.2px;
 }
 .founder-line.cta {
-  font-weight: 500;
+  font-weight: 600;
   margin-top: 8px;
-  margin-bottom: 48px;
+  margin-bottom: 24px;
 }
 .founder-signature {
   display: block;
@@ -176,9 +177,9 @@ body.overlay-open { overflow: hidden; }
   opacity: 1;
 }
 .bloom-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  width: 130%;
+  height: 130%;
+  object-fit: cover;
   transform: scale(1.04);
   transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -204,9 +205,12 @@ export default function ChoiceGate() {
     }
   }, [])
 
+  const founderOverlayRef = useRef<HTMLDivElement | null>(null)
+
   const openFounder = useCallback(() => {
     setFounderShown(true)
     document.body.classList.add('overlay-open')
+    if (founderOverlayRef.current) founderOverlayRef.current.scrollTop = 0
   }, [])
 
   const dismissFounder = useCallback(() => {
@@ -286,24 +290,25 @@ export default function ChoiceGate() {
       </main>
 
       <div
+        ref={founderOverlayRef}
         className={`founder-overlay${founderShown ? ' shown' : ''}`}
         role="dialog"
         aria-label="A note from the founder"
         aria-hidden={!founderShown}
       >
         <div className="founder-inner">
-          <button
-            className="founder-close"
-            type="button"
-            aria-label="Close"
-            onClick={dismissFounder}
-          >
-            ×
-          </button>
-          <div className="founder-logo-wrap">
+          <nav className="founder-nav">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="founder-logo" src="/logo.png" alt="DECODE" />
-          </div>
+            <button
+              className="founder-close"
+              type="button"
+              aria-label="Close"
+              onClick={dismissFounder}
+            >
+              ×
+            </button>
+          </nav>
           <div className="founder-content">
             <p className="founder-line">The beauty industry is broken.</p>
             <p className="founder-line">Trust is at an all-time low.</p>
