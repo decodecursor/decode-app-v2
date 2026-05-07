@@ -39,19 +39,18 @@ body.overlay-open { overflow: hidden; }
   letter-spacing: 0.6px;
   padding: 8px;
   margin: -8px;
-  opacity: 0.85;
   transition: opacity 0.2s ease;
   z-index: 10;
 }
-.gate-trigger:hover { opacity: 1; }
-.gate-trigger:active { opacity: 0.6; }
+.gate-trigger:hover { opacity: 0.7; }
+.gate-trigger:active { opacity: 0.5; }
 
 .gate-logo-wrap {
-  margin-top: 96px;
+  margin-top: 94px;
   margin-bottom: auto;
 }
 .gate-logo {
-  height: 32px;
+  height: 38px;
   width: auto;
   display: block;
   filter: brightness(0) invert(1);
