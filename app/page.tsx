@@ -154,10 +154,11 @@ body.overlay-open { overflow: hidden; }
 .founder-signature {
   display: block;
   margin: 0 auto;
-  height: 280px;
-  width: auto;
-  max-width: 100%;
-  object-fit: contain;
+  width: 100%;
+  max-width: 380px;
+  height: 100px;
+  object-fit: cover;
+  object-position: center center;
 }
 
 .bloom {
@@ -226,6 +227,21 @@ export default function ChoiceGate() {
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [founderShown, dismissFounder])
+
+  // Browser back from /ambassador or /professional restores this page
+  // from the BFCache with the bloom (and possibly the founder overlay)
+  // still in their last-rendered active state — visitors land on a
+  // frozen pattern with no way to navigate. Reset every overlay on
+  // pageshow so the gate is always clean on (re-)entry.
+  useEffect(() => {
+    const handlePageShow = () => {
+      setBloomActive(false)
+      setFounderShown(false)
+      document.body.classList.remove('overlay-open')
+    }
+    window.addEventListener('pageshow', handlePageShow)
+    return () => window.removeEventListener('pageshow', handlePageShow)
+  }, [])
 
   const handleGateClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
