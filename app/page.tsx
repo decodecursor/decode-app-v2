@@ -34,9 +34,9 @@ body.overlay-open { overflow: hidden; }
   padding: 14px 24px;
   font-size: 14px;
   font-weight: 500;
-  color: #FFF;
-  background: #1c1c1c;
-  border: none;
+  color: #1c1c1c;
+  background: #fff;
+  border: 1.5px solid #1c1c1c;
   border-radius: 9999px;
   cursor: pointer;
   font-family: inherit;
@@ -48,8 +48,8 @@ body.overlay-open { overflow: hidden; }
   z-index: 10;
   opacity: 0;
   transform: translateY(12px);
-  transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
-              transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 1200ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 1200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 .gate-trigger.is-visible {
   opacity: 1;
@@ -84,14 +84,14 @@ body.overlay-open { overflow: hidden; }
   gap: 7px;
   width: 100%;
   height: 56px;
-  background: #1c1c1c;
-  color: #FFF;
-  border: none;
+  background: #fff;
+  color: #1c1c1c;
+  border: 1.5px solid #1c1c1c;
   border-radius: 9999px;
   padding: 18px 32px;
   text-align: center;
   font-size: 17px;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.2px;
   text-decoration: none;
   font-family: inherit;
