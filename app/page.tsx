@@ -79,7 +79,7 @@ body.overlay-open { overflow: hidden; }
   height: 56px;
   background: #fff;
   color: #1c1c1c;
-  border: 1.5px solid #1c1c1c;
+  border: 1.5px solid transparent;
   border-radius: 9999px;
   padding: 18px 32px;
   text-align: center;
