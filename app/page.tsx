@@ -4,11 +4,11 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 const STYLES = `
 .gate-root, .gate-root * { box-sizing: border-box; margin: 0; padding: 0; }
-html.gate-html, body.gate-body { background: #000; height: 100%; }
+html.gate-html, body.gate-body { background: #fff; height: 100%; }
 body.gate-body {
   font-family: 'Inter', -apple-system, system-ui, sans-serif;
   min-height: 100vh;
-  color: #FFF;
+  color: #1c1c1c;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -31,7 +31,7 @@ body.overlay-open { overflow: hidden; }
   top: calc(env(safe-area-inset-top) + 28px);
   right: 28px;
   font-size: 12px;
-  color: #FFF;
+  color: #1c1c1c;
   background: none;
   border: none;
   cursor: pointer;
@@ -53,7 +53,7 @@ body.overlay-open { overflow: hidden; }
   height: 38px;
   width: auto;
   display: block;
-  filter: brightness(0) invert(1);
+  filter: brightness(0);
 }
 
 .gate-actions {
@@ -68,7 +68,7 @@ body.overlay-open { overflow: hidden; }
   display: block;
   width: 100%;
   background: transparent;
-  color: #FFF;
+  color: #1c1c1c;
   border: none;
   padding: 22px 20px;
   text-align: center;
@@ -86,7 +86,7 @@ body.overlay-open { overflow: hidden; }
 .founder-overlay {
   position: fixed;
   inset: 0;
-  background: #000;
+  background: #fff;
   z-index: 50;
   transform: translateY(100%);
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -116,12 +116,12 @@ body.overlay-open { overflow: hidden; }
   height: 26px;
   width: auto;
   display: block;
-  filter: brightness(0) invert(1);
+  filter: brightness(0);
   margin-right: auto;
 }
 .founder-close {
   font-size: 28px;
-  color: #FFF;
+  color: #1c1c1c;
   background: none;
   border: none;
   cursor: pointer;
@@ -140,7 +140,7 @@ body.overlay-open { overflow: hidden; }
   font-style: italic;
   font-size: 21px;
   line-height: 1.45;
-  color: #FFF;
+  color: #1c1c1c;
   margin-bottom: 20px;
   font-weight: 400;
   letter-spacing: -0.2px;
@@ -272,7 +272,7 @@ export default function ChoiceGate() {
           type="button"
           onClick={openFounder}
         >
-          A note from us →
+          A note for you →
         </button>
         <div className="gate-logo-wrap">
           {/* eslint-disable-next-line @next/next/no-img-element */}
