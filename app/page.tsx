@@ -30,20 +30,32 @@ body.overlay-open { overflow: hidden; }
   position: absolute;
   top: calc(env(safe-area-inset-top) + 28px);
   right: 28px;
-  font-size: 12px;
-  color: #1c1c1c;
-  background: none;
+  height: 48px;
+  padding: 14px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #FFF;
+  background: #1c1c1c;
   border: none;
+  border-radius: 9999px;
   cursor: pointer;
   font-family: inherit;
-  letter-spacing: 0.6px;
-  padding: 8px;
-  margin: -8px;
-  transition: opacity 0.2s ease;
+  letter-spacing: 0.4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   z-index: 10;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-.gate-trigger:hover { opacity: 0.7; }
-.gate-trigger:active { opacity: 0.5; }
+.gate-trigger.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.gate-trigger:active { opacity: 0.85; }
 
 .gate-logo-wrap {
   margin-top: 94px;
@@ -59,34 +71,38 @@ body.overlay-open { overflow: hidden; }
 .gate-actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 14px;
   width: 100%;
+  max-width: 380px;
   padding-bottom: 160px;
   align-items: stretch;
 }
 .gate-link {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   width: 100%;
-  background: transparent;
-  color: #1c1c1c;
+  height: 56px;
+  background: #1c1c1c;
+  color: #FFF;
   border: none;
-  padding: 22px 20px;
+  border-radius: 9999px;
+  padding: 18px 32px;
   text-align: center;
-  font-size: 14px;
-  font-weight: 400;
-  letter-spacing: 0.5px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
   text-decoration: none;
   font-family: inherit;
   cursor: pointer;
-  transition: opacity 0.2s ease;
 }
-.gate-link:hover { opacity: 0.65; }
-.gate-link:active { opacity: 0.5; }
+.gate-link:active { opacity: 0.85; }
 
 .founder-overlay {
   position: fixed;
   inset: 0;
-  background: #fff;
+  background: #000;
   z-index: 50;
   transform: translateY(100%);
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -116,12 +132,12 @@ body.overlay-open { overflow: hidden; }
   height: 26px;
   width: auto;
   display: block;
-  filter: brightness(0);
+  filter: brightness(0) invert(1);
   margin-right: auto;
 }
 .founder-close {
   font-size: 28px;
-  color: #1c1c1c;
+  color: #FFF;
   background: none;
   border: none;
   cursor: pointer;
@@ -140,7 +156,7 @@ body.overlay-open { overflow: hidden; }
   font-style: italic;
   font-size: 21px;
   line-height: 1.45;
-  color: #1c1c1c;
+  color: #FFF;
   margin-bottom: 20px;
   font-weight: 400;
   letter-spacing: -0.2px;
@@ -191,10 +207,16 @@ body.overlay-open { overflow: hidden; }
 export default function ChoiceGate() {
   const [founderShown, setFounderShown] = useState(false)
   const [bloomActive, setBloomActive] = useState(false)
+  const [triggerVisible, setTriggerVisible] = useState(false)
 
-  // Pure black background scoped to this route — flip classes on
-  // <html>/<body> on mount and remove them on unmount so the rest of
-  // the app keeps its own chrome.
+  useEffect(() => {
+    const t = setTimeout(() => setTriggerVisible(true), 2000)
+    return () => clearTimeout(t)
+  }, [])
+
+  // Light theme scoped to this route — flip classes on <html>/<body>
+  // on mount and remove them on unmount so the rest of the app keeps
+  // its own chrome.
   useEffect(() => {
     document.documentElement.classList.add('gate-html')
     document.body.classList.add('gate-body')
@@ -268,11 +290,12 @@ export default function ChoiceGate() {
 
       <main className="gate">
         <button
-          className="gate-trigger"
+          className={`gate-trigger${triggerVisible ? ' is-visible' : ''}`}
           type="button"
           onClick={openFounder}
         >
-          A note for you →
+          <span>A note for you</span>
+          <span aria-hidden="true">→</span>
         </button>
         <div className="gate-logo-wrap">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -290,7 +313,8 @@ export default function ChoiceGate() {
             data-target="/ambassador"
             onClick={handleGateClick}
           >
-            I&apos;m an Ambassador →
+            <span>I&apos;m an Ambassador</span>
+            <span aria-hidden="true">→</span>
           </a>
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
@@ -299,7 +323,8 @@ export default function ChoiceGate() {
             data-target="/professional"
             onClick={handleGateClick}
           >
-            I&apos;m a Beauty Professional →
+            <span>I&apos;m a Beauty Professional</span>
+            <span aria-hidden="true">→</span>
           </a>
         </div>
       </main>
