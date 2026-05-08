@@ -30,21 +30,15 @@ body.overlay-open { overflow: hidden; }
   position: absolute;
   top: calc(env(safe-area-inset-top) + 28px);
   right: 28px;
-  height: 48px;
-  padding: 14px 24px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 12px;
   color: #1c1c1c;
-  background: #fff;
-  border: 1.5px solid #1c1c1c;
-  border-radius: 9999px;
+  letter-spacing: 0.6px;
   cursor: pointer;
+  background: none;
+  border: none;
   font-family: inherit;
-  letter-spacing: 0.4px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+  padding: 8px;
+  margin: -8px;
   z-index: 10;
   opacity: 0;
   transform: translateY(12px);
@@ -55,7 +49,6 @@ body.overlay-open { overflow: hidden; }
   opacity: 1;
   transform: translateY(0);
 }
-.gate-trigger:active { opacity: 0.85; }
 
 .gate-logo-wrap {
   margin-top: 94px;
@@ -294,8 +287,7 @@ export default function ChoiceGate() {
           type="button"
           onClick={openFounder}
         >
-          <span>A note for you</span>
-          <span aria-hidden="true">→</span>
+          A note for you →
         </button>
         <div className="gate-logo-wrap">
           {/* eslint-disable-next-line @next/next/no-img-element */}
