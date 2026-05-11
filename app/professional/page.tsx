@@ -395,7 +395,7 @@ export default function ProfessionalLandingPage() {
             Get recommended<br />by women who<br />love your work.
           </h1>
           <p className="pro-landing-sub">
-            Turn your clients into ambassadors.<br />
+            Turn your clients into Ambassadors.<br />
             Real clients replace ads.<br />
             Real recommendations replace influencers.
           </p>
