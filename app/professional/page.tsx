@@ -392,7 +392,7 @@ export default function ProfessionalLandingPage() {
         <section className="pro-landing-section">
           <div className="pro-landing-eyebrow">Ambassador<br />For Beauty Professionals</div>
           <h1 className="pro-landing-hero">
-            Get recommended<br />by women who<br />already love you.
+            Get recommended<br />by women who<br />love your work.
           </h1>
           <p className="pro-landing-sub">
             Turn your clients into ambassadors.<br />
