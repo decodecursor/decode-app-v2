@@ -40,7 +40,7 @@ If a new chat (or Claude Code) needs to pick up:
 
 **Marker conventions:**
 - 🟦 PASTE TO CLAUDE CODE — formatted for CC-2 terminal
-- 🟨 PASTE TO YOUR TERMINAL — bash/shell (rare; partner prefers Supabase Studio for SQL)
+- 🟩 FOR YOU TO COPY — Supabase SQL Editor, Vercel env vars, anything you paste into a web UI yourself.
 - ⬜ READ ONLY — quoted code, not for pasting
 
 **Q&A format when chat needs partner decisions:**
