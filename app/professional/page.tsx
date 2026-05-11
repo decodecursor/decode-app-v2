@@ -395,6 +395,7 @@ export default function ProfessionalLandingPage() {
             Get recommended<br />by women who<br />already love you.
           </h1>
           <p className="pro-landing-sub">
+            Turn your clients into ambassadors.<br />
             Real clients replace ads.<br />
             Real recommendations replace influencers.
           </p>
@@ -410,7 +411,7 @@ export default function ProfessionalLandingPage() {
             She is a real client.<br />She vouches with her name.
           </h2>
           <p className="pro-landing-block-body">
-            End the budget battle on social media and let loyalty lead. Let&rsquo;s take word of mouth to another level.
+            End the budget battle on social media and let trust work for you. Let&rsquo;s take word-of-mouth to another level.
           </p>
         </section>
 
@@ -422,7 +423,7 @@ export default function ProfessionalLandingPage() {
           </div>
           <h2 className="pro-landing-block-title">1 day vs 90 days.</h2>
           <p className="pro-landing-block-body">
-            An influencer story is gone tomorrow. A listing stays live for up to 90 days. Same audience. Different math. Renewable in one click.
+            An influencer story is gone tomorrow. An Ambassador listing stays live for up to 90 days. Same audience. Different math. Renewable in two clicks.
           </p>
         </section>
 
@@ -436,7 +437,7 @@ export default function ProfessionalLandingPage() {
             You didn&rsquo;t train 15 years to film TikToks. Return to your craft.
           </h2>
           <p className="pro-landing-block-body">
-            The right Ambassadors can outperform an entire marketing team. Stay lean, stay efficient &mdash; manage it all in a few clicks.
+            A few Ambassadors can outperform an entire marketing team. Stay lean, stay efficient &mdash; manage it all in a few clicks.
           </p>
         </section>
 
@@ -447,7 +448,7 @@ export default function ProfessionalLandingPage() {
             Personal endorsement.<br />Crowd reviews.<br />Live demand.
           </div>
           <div className="pro-landing-trust-stack-closer">
-            The combination is unique.<br />Not on Meta. Not on Google. Not on TikTok.<br />Only here.
+            Together, they drive human decisions.<br />Not on Meta. Not on Google. Not on TikTok.<br />Only here.
           </div>
           <div className="pro-landing-trust-stack-divider" />
         </section>
