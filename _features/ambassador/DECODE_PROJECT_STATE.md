@@ -1293,6 +1293,7 @@ Both columns may be NULL at the same time momentarily during signup; exactly one
 | BackArrow primitive | 32px circle, `#1c1c1c` bg, `#262626` 1px border, chevron stroke-width 3 | `components/ambassador/BackArrow.tsx`, single source of truth |
 | Ambassador modal width | **maxWidth 420** | All `components/ambassador/*Modal.tsx` |
 | Mobile values | Internal cluster top padding 20px (mobile-only amendment, this commit). Other clusters post-V1. | Internal cluster only |
+| Splash / intro screens | Exempt from frame-border removal rule. Splashes are transition visuals, not page architecture, and may use phone-frame mockups intentionally. | Currently used on: / → /professional bloom transition |
 
 **Mobile internal-cluster amendment (added 2026-04-28, this commit):** On viewports ≤768px, internal-cluster pages reduce top padding from 36 → 20 (saves ~16px of unused vertical space on phone-width viewports). Carrier shapes preserved per page (Settings 24 bottom, Setup 22 horiz, Dashboard margin not padding) — only the top dimension changes on mobile. Auth (150), terminal (200), receipt (60/200/200), legal (60) clusters mobile values remain post-V1. Implementation: `amb-internal-header`, `amb-internal-header-flush`, `amb-settings-header`, `amb-dashboard-cover`, and `amb-setup-tracker` classes on `app/(ambassador)/layout.tsx` `<style>` block, single source of truth.
 

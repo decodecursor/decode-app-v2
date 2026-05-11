@@ -175,7 +175,6 @@ body.overlay-open { overflow: hidden; }
   z-index: 100;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.5s ease;
   background: #000;
   display: flex;
   align-items: center;
@@ -183,17 +182,45 @@ body.overlay-open { overflow: hidden; }
   overflow: hidden;
 }
 .bloom.active {
-  opacity: 1;
+  animation: bloom-fade 1100ms forwards;
+  pointer-events: auto;
 }
-.bloom-img {
-  width: 130%;
-  height: 130%;
-  object-fit: cover;
-  transform: scale(1.04);
-  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+@keyframes bloom-fade {
+  0%    { opacity: 0; }
+  45.4% { opacity: 1; }
+  100%  { opacity: 1; }
 }
-.bloom.active .bloom-img {
-  transform: scale(1);
+.bloom-phone {
+  height: 72vh;
+  max-height: 600px;
+  max-width: 320px;
+  width: auto;
+  aspect-ratio: 9 / 19;
+  background: #0c0c0e;
+  border: 1px solid #222;
+  border-radius: 32px;
+  position: relative;
+  flex: 0 0 auto;
+}
+.bloom-phone-screen {
+  position: absolute;
+  inset: 5px;
+  border-radius: 26px;
+  overflow: hidden;
+  background-image: url('/Pattern.jpeg');
+  background-size: cover;
+  background-position: center;
+}
+.bloom-phone-island {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  margin-left: -23px;
+  width: 46px;
+  height: 14px;
+  background: #000;
+  border-radius: 9999px;
+  z-index: 2;
 }
 `
 
@@ -357,12 +384,10 @@ export default function ChoiceGate() {
       </div>
 
       <div className={`bloom${bloomActive ? ' active' : ''}`} aria-hidden="true">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          className="bloom-img"
-          src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/brand/DECODE%20Pattern_4k.jpeg"
-          alt=""
-        />
+        <div className="bloom-phone">
+          <div className="bloom-phone-screen" />
+          <div className="bloom-phone-island" />
+        </div>
       </div>
     </div>
   )
