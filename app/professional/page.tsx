@@ -403,8 +403,8 @@ export default function ProfessionalLandingPage() {
 
         <section className="pro-landing-section">
           <div className="pro-landing-media">
-            <video playsInline preload="metadata" controls>
-              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/endorsement.mp4#t=0.001" type="video/mp4" />
+            <video playsInline preload="none" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_3_Golden_hands_no_budget_RAW_480_FINAL.png">
+              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_3_Golden_hands_no_budget_RAW_480_FINAL.mp4" type="video/mp4" />
             </video>
           </div>
           <h2 className="pro-landing-block-title">
@@ -416,10 +416,10 @@ export default function ProfessionalLandingPage() {
         </section>
 
         <section className="pro-landing-section">
-          <div className="pro-landing-media" data-status="pending">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="pro-landing-media-image" src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/loudest-wins.jpg" alt="" />
-            <div className="pro-landing-media-pending">Soon</div>
+          <div className="pro-landing-media">
+            <video playsInline preload="none" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_1_big_billions_vs_zero_RAW_720_FINAL_new.png">
+              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_1_big_billions_vs_zero_RAW_720_FINAL_new.mp4" type="video/mp4" />
+            </video>
           </div>
           <h2 className="pro-landing-block-title">1 day vs 90 days.</h2>
           <p className="pro-landing-block-body">
@@ -429,8 +429,8 @@ export default function ProfessionalLandingPage() {
 
         <section className="pro-landing-section">
           <div className="pro-landing-media">
-            <video playsInline preload="none" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/whisper.png">
-              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/whisper.mp4" type="video/mp4" />
+            <video playsInline preload="none" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_4_Return_to_your_craft_RAW_720_FINAL.png">
+              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_4_Return_to_your_craft_RAW_720_FINAL.mp4" type="video/mp4" />
             </video>
           </div>
           <h2 className="pro-landing-block-title">
