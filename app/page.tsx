@@ -182,12 +182,12 @@ body.overlay-open { overflow: hidden; }
   overflow: hidden;
 }
 .bloom.active {
-  animation: bloom-fade 1100ms forwards;
+  animation: bloom-fade 1500ms forwards;
   pointer-events: auto;
 }
 @keyframes bloom-fade {
   0%    { opacity: 0; }
-  45.4% { opacity: 1; }
+  33.3% { opacity: 1; }
   100%  { opacity: 1; }
 }
 .bloom-phone {
@@ -292,7 +292,7 @@ export default function ChoiceGate() {
     // never flashes back into view between transitions.
     setTimeout(() => {
       window.location.href = target
-    }, 1100)
+    }, 1500)
   }
 
   return (
