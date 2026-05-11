@@ -74,7 +74,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   color: #888;
   margin-bottom: 34px;
   font-weight: 500;
-  line-height: 1.6;
+  line-height: 2.0;
 }
 .pro-landing-hero {
   font-family: 'Cormorant Garamond', Georgia, serif;
