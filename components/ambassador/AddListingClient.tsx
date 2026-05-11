@@ -874,7 +874,12 @@ export default function AddListingClient({
                 border: '1.5px solid #262626',
                 borderRadius: 12,
                 padding: '14px 16px',
-                fontSize: 14,
+                // Matches INPUT_BASE.fontSize (16) so the selected value
+                // and placeholder render at the same size as adjacent
+                // <input> fields (Salon name, City, Country). Inputs got
+                // bumped 14→16 in 845794a to disable iOS auto-zoom; this
+                // div was missed because it's not an input.
+                fontSize: 16,
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
@@ -1005,7 +1010,7 @@ export default function AddListingClient({
                     style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%', display: 'block' }}
                   />
                 ) : (
-                  <div style={{ fontSize: 9, color: '#aaa', lineHeight: 1.2, fontWeight: 600 }}>
+                  <div style={{ fontSize: 9, color: '#666', lineHeight: 1.2, fontWeight: 600 }}>
                     Add<br />photo
                   </div>
                 )}
