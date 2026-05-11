@@ -103,6 +103,15 @@ type ToastPayload = { emoji?: string; message: string }
 const MODEL_MEDIA_BUCKET = 'model-media'
 const TOAST_LIFECYCLE_MS = 5200
 
+// Title-case every word as the user types — covers professional name,
+// city, and country. Replaces the prior capFirst-only behavior, which
+// only uppercased the first letter ("united arab emirates" stayed
+// "United arab emirates"). capFirst is kept for the custom-category
+// field (single-letter convention is fine there).
+function titleCase(s: string): string {
+  return s.replace(/(^|\s)\S/g, (m) => m.toUpperCase())
+}
+
 // --- Styling constants (kept local, match canonical ambassador forms) ---
 
 const SECTION_LABEL: React.CSSProperties = {
@@ -594,9 +603,13 @@ export default function AddListingClient({
     }
   }
 
-  // User is editing IG post-lock → unlock and clear the resolved id
+  // User is editing IG post-lock → unlock and clear the resolved id.
+  // Strip a leading @ explicitly (covers paste of "@handle"); the
+  // invalid-char regex below would also drop it, but spelling the @ rule
+  // out keeps the intent visible. Case is preserved exactly as typed —
+  // IG handles are conventionally lowercase but mixed-case is allowed.
   const onInstagramChange = (v: string) => {
-    const next = v.replace(/[^a-zA-Z0-9._]/g, '')
+    const next = v.replace(/^@+/, '').replace(/[^a-zA-Z0-9._]/g, '')
     setInstagram(next)
     if (professionalLocked) {
       setProfessionalLocked(false)
@@ -954,7 +967,7 @@ export default function AddListingClient({
               type="text"
               placeholder="Salon, clinic or doctor name"
               value={name}
-              onChange={(e) => setName(capFirst(e.target.value))}
+              onChange={(e) => setName(titleCase(e.target.value))}
               style={{ ...INPUT_BASE, marginBottom: 10 }}
             />
           )}
@@ -993,7 +1006,7 @@ export default function AddListingClient({
                   />
                 ) : (
                   <div style={{ fontSize: 9, color: '#aaa', lineHeight: 1.2, fontWeight: 600 }}>
-                    Add photo
+                    Add<br />photo
                   </div>
                 )}
               </div>
@@ -1083,6 +1096,9 @@ export default function AddListingClient({
                 onBlur={onInstagramBlur}
                 disabled={isEdit}
                 readOnly={isEdit}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 style={{
                   flex: 1, minWidth: 0,
                   background: 'transparent', border: 'none', outline: 'none',
@@ -1111,7 +1127,7 @@ export default function AddListingClient({
                 type="text"
                 placeholder="City"
                 value={city}
-                onChange={(e) => setCity(capFirst(e.target.value))}
+                onChange={(e) => setCity(titleCase(e.target.value))}
                 onBlur={handleCityBlur}
                 style={{ ...INPUT_BASE, flex: 1, minWidth: 0 }}
               />
@@ -1124,7 +1140,7 @@ export default function AddListingClient({
                 placeholder="Country"
                 value={country}
                 onChange={(e) => {
-                  setCountry(capFirst(e.target.value))
+                  setCountry(titleCase(e.target.value))
                   // User-typed value is no longer "ours" — block re-overwrite
                   // by future city blurs.
                   setCountryAutoFilled(false)
