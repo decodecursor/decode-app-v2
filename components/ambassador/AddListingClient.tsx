@@ -321,6 +321,22 @@ export default function AddListingClient({
     toastTimer.current = setTimeout(() => setToast(null), TOAST_LIFECYCLE_MS)
   }, [])
 
+  // Avatar-blocker toast — distinct chrome (two-line card, bottom-anchored)
+  // from the canonical pill toast above. Fires when the user taps the CTA
+  // while the avatar is the sole missing field. Reuses amb-toast-in/out
+  // keyframes (centered, slide-up).
+  const [avatarToastVisible, setAvatarToastVisible] = useState(false)
+  const [avatarToastKey, setAvatarToastKey] = useState(0)
+  const avatarToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => { if (avatarToastTimer.current) clearTimeout(avatarToastTimer.current) }, [])
+  const fireAvatarToast = useCallback(() => {
+    setAvatarToastVisible(true)
+    setAvatarToastKey((k) => k + 1)
+    if (avatarToastTimer.current) clearTimeout(avatarToastTimer.current)
+    // 1200ms in + 4000ms hold + 1200ms out = 6400ms (small buffer)
+    avatarToastTimer.current = setTimeout(() => setAvatarToastVisible(false), 6500)
+  }, [])
+
   // --- Hidden file inputs ---
   const avatarInputRef = useRef<HTMLInputElement | null>(null)
   const mediaInputRef = useRef<HTMLInputElement | null>(null)
@@ -631,17 +647,24 @@ export default function AddListingClient({
   }, [min30, min60, min90, err30, err60, err90, p60, p90, symbol, floor])
 
   // --- Form validity ---
+  // Split avatar from the rest so we can derive `avatarIsTheOnlyBlocker`
+  // for the empty-circle pulse + tap-aware CTA toast (Slice — avatar
+  // affordance). pricingValid already short-circuits on freeTrial, so
+  // the derived blocker is trial-path aware without extra branching.
   const pricingValid = freeTrial || (
     p30n >= floor && p60n >= floor && p90n >= floor && p30n < p60n && p60n < p90n
   )
   const categoryValid = !!category && (category.type === 'id' || category.text.trim().length >= 2)
-  const allUploadsDone = !!avatarUrl && !!media && !uploadingAvatar && !uploadingMedia
+  const avatarPresent = !!avatarUrl && !uploadingAvatar
+  const mediaDone = !!media && !uploadingMedia
   const textFieldsValid =
     name.trim().length >= 2 &&
     city.trim().length >= 2 &&
     country.trim().length >= 2 &&
     instagram.trim().length >= 1
-  const isValid = textFieldsValid && categoryValid && allUploadsDone && pricingValid
+  const allOtherRequiredFieldsValid = textFieldsValid && categoryValid && mediaDone && pricingValid
+  const avatarIsTheOnlyBlocker = allOtherRequiredFieldsValid && !avatarPresent && !professionalLocked && !isEdit
+  const isValid = allOtherRequiredFieldsValid && avatarPresent
   const isUploading = uploadingAvatar || uploadingMedia
   const submitIdleLabel = isUploading
     ? 'Uploading…'
@@ -781,6 +804,14 @@ export default function AddListingClient({
           transition: border-color 0.15s;
         }
         #${FOCUS_SCOPE_ID} input::placeholder { color: #666 !important; opacity: 1 }
+        @keyframes badge-pulse {
+          0%, 100% { transform: scale(1);    opacity: 1;    }
+          50%      { transform: scale(1.18); opacity: 0.78; }
+        }
+        #${FOCUS_SCOPE_ID} .ad-plus-badge.pulsing {
+          animation: badge-pulse 1.8s ease-in-out infinite;
+          transform-origin: center center;
+        }
       `}</style>
 
       {/* Hidden file inputs */}
@@ -961,11 +992,33 @@ export default function AddListingClient({
                     style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%', display: 'block' }}
                   />
                 ) : (
-                  <div style={{ fontSize: 8, color: '#666', lineHeight: 1.2, fontWeight: 500 }}>
-                    Profile<br />Image
+                  <div style={{ fontSize: 9, color: '#aaa', lineHeight: 1.2, fontWeight: 600 }}>
+                    Add photo
                   </div>
                 )}
               </div>
+              {/* "+" affordance badge — empty-state add-mode only. Pulses
+                  when the avatar is the SOLE remaining blocker so the user
+                  gets a directed visual cue at the moment it matters.
+                  pointer-events: none lets the parent circle's onClick
+                  open the file picker. */}
+              {!avatarUrl && !uploadingAvatar && !isEdit && !professionalLocked && (
+                <div
+                  className={`ad-plus-badge${avatarIsTheOnlyBlocker ? ' pulsing' : ''}`}
+                  style={{
+                    position: 'absolute', bottom: -1, right: -1,
+                    width: 24, height: 24, borderRadius: '50%',
+                    background: '#e91e8c', border: '1.5px solid #000',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                </div>
+              )}
               {/* Remove button — only when avatar present and not locked */}
               {avatarUrl && !professionalLocked && !uploadingAvatar && (
                 <div
@@ -1322,13 +1375,21 @@ export default function AddListingClient({
         </div>
 
         {/* ================== CREATE LISTING ================== */}
-        <AmbSubmitButton
-          verb="save"
-          variant="solid"
-          idleLabel={submitIdleLabel}
-          disabled={!isValid}
-          onSubmit={handleSubmit}
-        />
+        {/* Wrapper catches taps on the disabled CTA when the avatar is
+            the sole blocker. AmbSubmitButton's internal click handler
+            returns early when disabled but does not stopPropagation, so
+            the tap bubbles up here. avatarIsTheOnlyBlocker is mutually
+            exclusive with isValid (isValid requires avatarPresent), so
+            the toast never fires on a successful submit path. */}
+        <div onClick={() => { if (avatarIsTheOnlyBlocker) fireAvatarToast() }}>
+          <AmbSubmitButton
+            verb="save"
+            variant="solid"
+            idleLabel={submitIdleLabel}
+            disabled={!isValid}
+            onSubmit={handleSubmit}
+          />
+        </div>
       </div>
 
       {/* Cropper mounts — portaled internally */}
@@ -1347,6 +1408,44 @@ export default function AddListingClient({
           onCropComplete={onMediaCropComplete}
           onCancel={onMediaCropCancel}
         />
+      )}
+
+      {/* Avatar-blocker toast — distinct two-line card chrome
+          (listings_final.html .delete-toast pattern), bottom-anchored
+          so it stays visible at the CTA scroll position. Reuses
+          amb-toast-in/out keyframes (centered, slide from below).
+          Width-constrained to the 420px form container so it doesn't
+          span full-viewport on tablets/desktop. */}
+      {avatarToastVisible && (
+        <div
+          key={avatarToastKey}
+          style={{
+            position: 'fixed',
+            bottom: 12,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 'calc(100% - 12px)',
+            maxWidth: 408,
+            background: '#0c0c0c',
+            borderRadius: 12,
+            padding: 14,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            boxShadow: '0 4px 8px rgba(0,0,0,0.6)',
+            zIndex: 100,
+            pointerEvents: 'none',
+            animation:
+              'amb-toast-in 1200ms cubic-bezier(.2,.7,.2,1) forwards, ' +
+              'amb-toast-out 1200ms cubic-bezier(.5,.2,.8,.1) 4000ms forwards',
+          }}
+        >
+          <span style={{ fontSize: 22, lineHeight: 1 }}>📷</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 2 }}>Almost there</div>
+            <div style={{ fontSize: 11, color: '#999' }}>Tap the circle to add the professional&apos;s photo</div>
+          </div>
+        </div>
       )}
 
       {/* Toast — canonical amb-toast-in/out animation (Slice 3A retrofit pattern) */}
