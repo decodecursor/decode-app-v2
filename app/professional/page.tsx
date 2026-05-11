@@ -178,7 +178,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 .pro-landing-trust-stack-closer {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.5;
   color: #888;
   margin-bottom: 36px;
