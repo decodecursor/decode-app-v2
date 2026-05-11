@@ -997,14 +997,16 @@ export default function AddListingClient({
                   </div>
                 )}
               </div>
-              {/* "+" affordance badge — empty-state add-mode only. Pulses
-                  when the avatar is the SOLE remaining blocker so the user
-                  gets a directed visual cue at the moment it matters.
-                  pointer-events: none lets the parent circle's onClick
-                  open the file picker. */}
-              {!avatarUrl && !uploadingAvatar && !isEdit && !professionalLocked && (
+              {/* "+" affordance badge — only appears once the avatar is
+                  the SOLE remaining blocker. Acts as a directed "now is
+                  the moment" cue, not a persistent empty-state marker.
+                  avatarIsTheOnlyBlocker already guards on !avatarPresent,
+                  !professionalLocked, !isEdit, and allOtherRequiredFieldsValid,
+                  so no outer guards needed. pointer-events: none lets the
+                  parent circle's onClick open the file picker. */}
+              {avatarIsTheOnlyBlocker && (
                 <div
-                  className={`ad-plus-badge${avatarIsTheOnlyBlocker ? ' pulsing' : ''}`}
+                  className="ad-plus-badge pulsing"
                   style={{
                     position: 'absolute', bottom: -1, right: -1,
                     width: 24, height: 24, borderRadius: '50%',
