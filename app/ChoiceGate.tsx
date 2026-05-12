@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 const STYLES = `
 .gate-root, .gate-root * { box-sizing: border-box; margin: 0; padding: 0; }
-html.gate-html, body.gate-body { background: #000; height: 100%; }
+html.gate-html, body.gate-body { background: #fff; height: 100%; }
 body.gate-body {
   font-family: 'Inter', -apple-system, system-ui, sans-serif;
   min-height: 100vh;
