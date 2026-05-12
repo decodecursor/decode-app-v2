@@ -147,6 +147,45 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
   color: #888;
 }
 
+.amb-landing-trust-stack {
+  padding: 24px 28px 80px;
+  text-align: center;
+}
+.amb-landing-trust-stack-divider {
+  width: 32px;
+  height: 0.5px;
+  background: #444;
+  margin: 0 auto;
+}
+.amb-landing-trust-stack-eyebrow {
+  font-size: 12px;
+  letter-spacing: 3.6px;
+  text-transform: uppercase;
+  color: #888;
+  margin: 36px 0 32px;
+  font-weight: 500;
+}
+.amb-landing-trust-stack-pillars {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 30px;
+  line-height: 1.5;
+  color: #FFF;
+  margin-bottom: 28px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+}
+.amb-landing-trust-stack-closer {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.5;
+  color: #888;
+  margin-bottom: 36px;
+  font-weight: 500;
+}
+.amb-landing-trust-stack-closer-strong { font-weight: 700; }
+
 .amb-landing-example-link-wrap {
   text-align: center;
   padding: 0 28px 64px;
@@ -373,9 +412,7 @@ export default function AmbassadorLandingPage() {
           </div>
           <h2 className="amb-landing-block-title">An endorsement. Not a tag.</h2>
           <p className="amb-landing-block-body">
-            She is a real customer. She vouches with her name.<br />
-            Endorse your beauty professionals. Get paid upfront.<br />
-            Renew in two clicks.
+            She is a real customer. She vouches with her name. Endorse your beauty professionals. Get paid upfront. Renew in two clicks.
           </p>
         </section>
 
@@ -403,6 +440,18 @@ export default function AmbassadorLandingPage() {
             The DMs you&rsquo;ve answered a hundred times.<br />
             Now public. Now paid.
           </p>
+        </section>
+
+        <section className="amb-landing-trust-stack">
+          <div className="amb-landing-trust-stack-divider" />
+          <div className="amb-landing-trust-stack-eyebrow">The Trust Stack</div>
+          <div className="amb-landing-trust-stack-pillars">
+            Personal endorsement.<br />Crowd reviews.<br />Live demand.
+          </div>
+          <div className="amb-landing-trust-stack-closer">
+            Together, they drive human decisions.<br /><span className="amb-landing-trust-stack-closer-strong">Not on Meta. Not on Google. Not on TikTok.</span><br />Only here.
+          </div>
+          <div className="amb-landing-trust-stack-divider" />
         </section>
 
         <div className="amb-landing-example-link-wrap">
