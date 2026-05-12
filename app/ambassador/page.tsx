@@ -415,7 +415,7 @@ export default function AmbassadorLandingPage() {
             Find her<br />beauty pros.<br />Endorse yours.
           </h1>
           <p className="amb-landing-sub">
-            Endorse the craftspeople you trust.<br />
+            Endorse the beauty professionals you trust.<br />
             Public recommendations. Now paid.<br />
             We finally pay women to be real.
           </p>
@@ -429,7 +429,7 @@ export default function AmbassadorLandingPage() {
           </div>
           <h2 className="amb-landing-block-title">An endorsement. Not a tag.</h2>
           <p className="amb-landing-block-body">
-            She is a real customer. She vouches with her name. Endorse your beauty professionals. Get paid upfront. Renew in two clicks.
+            She is a real client. She vouches with her name. Endorse your beauty professionals. Get paid upfront. Renew in two clicks.
           </p>
         </section>
 
@@ -453,7 +453,7 @@ export default function AmbassadorLandingPage() {
               <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/endorsement.mp4" type="video/mp4" />
             </video>
           </div>
-          <h2 className="amb-landing-block-title">The biggest budget and the loudest wins on social.</h2>
+          <h2 className="amb-landing-block-title">On social, the biggest budget and the loudest usually win.</h2>
           <p className="amb-landing-block-body">
             Small craftspeople with golden hands lose. The algorithm doesn&rsquo;t see craft. DECODE pays the women who do.
           </p>
