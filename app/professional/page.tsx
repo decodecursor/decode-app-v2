@@ -418,8 +418,8 @@ export default function ProfessionalLandingPage() {
 
         <section className="pro-landing-section">
           <div className="pro-landing-media">
-            <video playsInline preload="none" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_1_big_billions_vs_zero_RAW_720_FINAL_new.png">
-              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_1_big_billions_vs_zero_RAW_720_FINAL_new.mp4" type="video/mp4" />
+            <video playsInline preload="none" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_5_Every_ninety_days_RAW_720_FINAL.png">
+              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_5_Every_ninety_days_RAW_720_FINAL.mp4" type="video/mp4" />
             </video>
           </div>
           <h2 className="pro-landing-block-title">1 day vs 90 days.</h2>
