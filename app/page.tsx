@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 const STYLES = `
 .gate-root, .gate-root * { box-sizing: border-box; margin: 0; padding: 0; }
-html.gate-html, body.gate-body { background: #fff; height: 100%; }
+html.gate-html, body.gate-body { background: #000; height: 100%; }
 body.gate-body {
   font-family: 'Inter', -apple-system, system-ui, sans-serif;
   min-height: 100vh;
@@ -24,6 +24,7 @@ body.overlay-open { overflow: hidden; }
   flex-direction: column;
   align-items: center;
   position: relative;
+  background: #fff;
 }
 
 .gate-trigger {
@@ -155,16 +156,16 @@ body.overlay-open { overflow: hidden; }
   letter-spacing: -0.2px;
 }
 .founder-line.cta {
-  font-weight: 600;
+  font-weight: 700;
   margin-top: 8px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 .founder-signature {
   display: block;
   margin: 0 auto;
   width: 100%;
-  max-width: 380px;
-  height: 100px;
+  max-width: 340px;
+  height: 90px;
   object-fit: cover;
   object-position: center center;
 }
@@ -372,7 +373,7 @@ export default function ChoiceGate() {
             <p className="founder-line">The beauty industry is broken.</p>
             <p className="founder-line">Trust is at an all-time low.</p>
             <p className="founder-line">We put our heart and soul into crafting tools to fix what has been lost.</p>
-            <p className="founder-line cta">Come build it with us.</p>
+            <p className="founder-line cta">Come fix it with us.</p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               className="founder-signature"
