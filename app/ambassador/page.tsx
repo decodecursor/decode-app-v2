@@ -356,9 +356,13 @@ export default function AmbassadorLandingPage() {
         <section className="amb-landing-section">
           <div className="amb-landing-eyebrow">Ambassador</div>
           <h1 className="amb-landing-hero">
-            Find her<br />beauty squad.<br />Show yours.
+            Find her<br />beauty pros.<br />Endorse yours.
           </h1>
-          <p className="amb-landing-sub">We finally pay women to be real.</p>
+          <p className="amb-landing-sub">
+            Endorse the craftspeople you trust.<br />
+            Public recommendations. Now paid.<br />
+            We finally pay women to be real.
+          </p>
         </section>
 
         <section className="amb-landing-section">
@@ -370,7 +374,7 @@ export default function AmbassadorLandingPage() {
           <h2 className="amb-landing-block-title">An endorsement. Not a tag.</h2>
           <p className="amb-landing-block-body">
             She is a real customer. She vouches with her name.<br />
-            List your beauty pro once. Get paid upfront.<br />
+            Endorse your beauty professionals. Get paid upfront.<br />
             Renew in two clicks.
           </p>
         </section>
@@ -381,11 +385,9 @@ export default function AmbassadorLandingPage() {
             <img className="amb-landing-media-image" src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/loudest-wins.jpg" alt="" />
             <div className="amb-landing-media-pending">Soon</div>
           </div>
-          <h2 className="amb-landing-block-title">
-            Today the loudest wins.<br />Let&rsquo;s change that.
-          </h2>
+          <h2 className="amb-landing-block-title">The biggest budget and the loudest wins on social.</h2>
           <p className="amb-landing-block-body">
-            The biggest budget and the loudest wins on social. Small craftspeople with golden hands lose. We change that &mdash; and pay you to join the movement.
+            Small craftspeople with golden hands lose. The algorithm doesn&rsquo;t see craft. DECODE pays the women who do.
           </p>
         </section>
 
