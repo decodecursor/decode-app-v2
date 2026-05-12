@@ -222,7 +222,7 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
   line-height: 1.5;
   color: #888;
   text-align: center;
-  padding: 0 28px 60px;
+  padding: 0 28px 10px;
   font-weight: 400;
 }
 .amb-landing-footer-strong { font-weight: 600; }
