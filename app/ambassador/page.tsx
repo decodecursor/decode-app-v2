@@ -423,25 +423,13 @@ export default function AmbassadorLandingPage() {
 
         <section className="amb-landing-section">
           <div className="amb-landing-media">
-            <video playsInline preload="metadata" controls>
-              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/endorsement.mp4#t=0.001" type="video/mp4" />
+            <video playsInline preload="none" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_6_Real_by_design_RAW_720_FINAL.png">
+              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_6_Real_by_design_RAW_720_FINAL.mp4" type="video/mp4" />
             </video>
           </div>
           <h2 className="amb-landing-block-title">An endorsement. Not a tag.</h2>
           <p className="amb-landing-block-body">
             She is a real customer. She vouches with her name. Endorse your beauty professionals. Get paid upfront. Renew in two clicks.
-          </p>
-        </section>
-
-        <section className="amb-landing-section">
-          <div className="amb-landing-media" data-status="pending">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="amb-landing-media-image" src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/loudest-wins.jpg" alt="" />
-            <div className="amb-landing-media-pending">Soon</div>
-          </div>
-          <h2 className="amb-landing-block-title">The biggest budget and the loudest wins on social.</h2>
-          <p className="amb-landing-block-body">
-            Small craftspeople with golden hands lose. The algorithm doesn&rsquo;t see craft. DECODE pays the women who do.
           </p>
         </section>
 
@@ -456,6 +444,18 @@ export default function AmbassadorLandingPage() {
             The hairdresser. The doctor. The aesthetician.<br />
             The DMs you&rsquo;ve answered a hundred times.<br />
             Now public. Now paid.
+          </p>
+        </section>
+
+        <section className="amb-landing-section">
+          <div className="amb-landing-media">
+            <video playsInline preload="none" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/endorsement.jpg">
+              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/endorsement.mp4" type="video/mp4" />
+            </video>
+          </div>
+          <h2 className="amb-landing-block-title">The biggest budget and the loudest wins on social.</h2>
+          <p className="amb-landing-block-body">
+            Small craftspeople with golden hands lose. The algorithm doesn&rsquo;t see craft. DECODE pays the women who do.
           </p>
         </section>
 
