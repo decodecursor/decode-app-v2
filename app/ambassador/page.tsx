@@ -449,7 +449,7 @@ export default function AmbassadorLandingPage() {
 
         <section className="amb-landing-section">
           <div className="amb-landing-media">
-            <video playsInline preload="none" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/endorsement.jpg">
+            <video playsInline preload="none" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_2_Best%20Hairdresser%20in%20Town%20for%20the%204th%20time_RAW_480_FINAL.png">
               <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/endorsement.mp4" type="video/mp4" />
             </video>
           </div>
