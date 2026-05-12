@@ -88,7 +88,7 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
 }
 .amb-landing-sub {
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
   color: #888;
   font-weight: 400;
 }

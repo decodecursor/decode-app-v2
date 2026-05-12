@@ -88,7 +88,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 }
 .pro-landing-sub {
   font-size: 14px;
-  line-height: 1.65;
+  line-height: 1.6;
   color: #888;
   font-weight: 400;
 }
