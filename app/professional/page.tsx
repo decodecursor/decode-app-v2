@@ -184,7 +184,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   margin-bottom: 36px;
   font-weight: 500;
 }
-.pro-landing-trust-stack-closer-strong { font-weight: 600; }
+.pro-landing-trust-stack-closer-strong { font-weight: 700; }
 
 .pro-landing-example-link-wrap {
   text-align: center;
