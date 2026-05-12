@@ -184,6 +184,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   margin-bottom: 36px;
   font-weight: 500;
 }
+.pro-landing-trust-stack-closer-strong { font-weight: 600; }
 
 .pro-landing-example-link-wrap {
   text-align: center;
@@ -448,7 +449,7 @@ export default function ProfessionalLandingPage() {
             Personal endorsement.<br />Crowd reviews.<br />Live demand.
           </div>
           <div className="pro-landing-trust-stack-closer">
-            Together, they drive human decisions.<br />Not on Meta. Not on Google. Not on TikTok.<br />Only here.
+            Together, they drive human decisions.<br /><span className="pro-landing-trust-stack-closer-strong">Not on Meta. Not on Google. Not on TikTok.</span><br />Only here.
           </div>
           <div className="pro-landing-trust-stack-divider" />
         </section>
