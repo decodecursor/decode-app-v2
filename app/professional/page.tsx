@@ -282,6 +282,23 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   background: #444;
   margin: 0 auto 56px;
 }
+
+@keyframes pro-cta-arrow-nudge {
+  0%   { transform: translateX(0);   animation-timing-function: ease-out; }
+  7.5% { transform: translateX(6px); animation-timing-function: ease-in; }
+  15%  { transform: translateX(0); }
+  100% { transform: translateX(0); }
+}
+.pro-cta-arrow-nudge {
+  display: inline-block;
+  transform-origin: center;
+  animation: pro-cta-arrow-nudge 4s linear infinite;
+  animation-delay: 1.5s;
+}
+a:hover .pro-cta-arrow-nudge { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .pro-cta-arrow-nudge { animation: none; }
+}
 `
 
 export default function ProfessionalLandingPage() {
@@ -455,7 +472,7 @@ export default function ProfessionalLandingPage() {
         </section>
 
         <div className="pro-landing-example-link-wrap">
-          <a className="pro-landing-example-link" href="https://app.welovedecode.com/yannijohnson">See her page →</a>
+          <a className="pro-landing-example-link" href="https://app.welovedecode.com/yannijohnson">See her page <span className="pro-cta-arrow-nudge">→</span></a>
         </div>
 
         <div className="pro-landing-cta-wrap">

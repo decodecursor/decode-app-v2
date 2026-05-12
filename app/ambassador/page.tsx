@@ -282,6 +282,23 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
   background: #444;
   margin: 0 auto 56px;
 }
+
+@keyframes amb-cta-arrow-nudge {
+  0%   { transform: translateX(0);   animation-timing-function: ease-out; }
+  7.5% { transform: translateX(6px); animation-timing-function: ease-in; }
+  15%  { transform: translateX(0); }
+  100% { transform: translateX(0); }
+}
+.amb-cta-arrow-nudge {
+  display: inline-block;
+  transform-origin: center;
+  animation: amb-cta-arrow-nudge 4s linear infinite;
+  animation-delay: 1.5s;
+}
+a:hover .amb-cta-arrow-nudge { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .amb-cta-arrow-nudge { animation: none; }
+}
 `
 
 export default function AmbassadorLandingPage() {
@@ -455,7 +472,7 @@ export default function AmbassadorLandingPage() {
         </section>
 
         <div className="amb-landing-example-link-wrap">
-          <a className="amb-landing-example-link" href="https://app.welovedecode.com/yannijohnson">See her page →</a>
+          <a className="amb-landing-example-link" href="https://app.welovedecode.com/yannijohnson">See her page <span className="amb-cta-arrow-nudge">→</span></a>
         </div>
 
         <div className="amb-landing-cta-wrap">
