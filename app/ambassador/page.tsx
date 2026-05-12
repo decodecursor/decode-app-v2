@@ -227,6 +227,24 @@ body.amb-landing-overlay-open { overflow: hidden; height: 100vh; }
 }
 .amb-landing-footer-strong { font-weight: 600; }
 
+.amb-social-icons {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 2.5rem;
+  padding-bottom: 60px;
+}
+.amb-social-icons a {
+  color: #666;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 220ms ease;
+  text-decoration: none;
+}
+.amb-social-icons a:hover { color: #ffffff; }
+.amb-social-icons svg { width: 22px; height: 22px; }
+
 .amb-landing-story-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -481,6 +499,27 @@ export default function AmbassadorLandingPage() {
 
         <div className="amb-landing-footer">
           META interrupts. <span className="amb-landing-footer-strong">DECODE meets.</span><br />A page she chose to visit.
+        </div>
+
+        <div className="amb-social-icons">
+          <a href="https://www.instagram.com/welovedecode" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 8a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4l0 -8" />
+              <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+              <path d="M16.5 7.5v.01" />
+            </svg>
+          </a>
+          <a href="https://www.tiktok.com/@welovedecode" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 7.917v4.034a9.948 9.948 0 0 1 -5 -1.951v4.5a6.5 6.5 0 1 1 -8 -6.326v4.326a2.5 2.5 0 1 0 4 2v-11.5h4.083a6.005 6.005 0 0 0 4.917 4.917" />
+            </svg>
+          </a>
+          <a href="https://www.youtube.com/@welovedecode" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 8a4 4 0 0 1 4 -4h12a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-12a4 4 0 0 1 -4 -4v-8" />
+              <path d="M10 9l5 3l-5 3l0 -6" />
+            </svg>
+          </a>
         </div>
       </main>
 
