@@ -403,15 +403,15 @@ export default function ProfessionalLandingPage() {
 
         <section className="pro-landing-section">
           <div className="pro-landing-media">
-            <video playsInline preload="none" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_3_Golden_hands_no_budget_RAW_480_FINAL.png">
-              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_3_Golden_hands_no_budget_RAW_480_FINAL.mp4" type="video/mp4" />
+            <video playsInline preload="none" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_4_Return_to_your_craft_RAW_720_FINAL.png">
+              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_4_Return_to_your_craft_RAW_720_FINAL.mp4" type="video/mp4" />
             </video>
           </div>
           <h2 className="pro-landing-block-title">
-            She is a real client.<br />She vouches with her name.
+            You didn&rsquo;t train 15 years to film TikToks. Return to your craft.
           </h2>
           <p className="pro-landing-block-body">
-            End the budget battle on social media and let trust work for you. Let&rsquo;s take word-of-mouth to another level.
+            A few Ambassadors can outperform an entire marketing team. Stay lean, stay efficient &mdash; manage it all in a few clicks.
           </p>
         </section>
 
@@ -429,15 +429,15 @@ export default function ProfessionalLandingPage() {
 
         <section className="pro-landing-section">
           <div className="pro-landing-media">
-            <video playsInline preload="none" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_4_Return_to_your_craft_RAW_720_FINAL.png">
-              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_4_Return_to_your_craft_RAW_720_FINAL.mp4" type="video/mp4" />
+            <video playsInline preload="none" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_3_Golden_hands_no_budget_RAW_480_FINAL.png">
+              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_3_Golden_hands_no_budget_RAW_480_FINAL.mp4" type="video/mp4" />
             </video>
           </div>
           <h2 className="pro-landing-block-title">
-            You didn&rsquo;t train 15 years to film TikToks. Return to your craft.
+            She is a real client.<br />She vouches with her name.
           </h2>
           <p className="pro-landing-block-body">
-            A few Ambassadors can outperform an entire marketing team. Stay lean, stay efficient &mdash; manage it all in a few clicks.
+            End the budget battle on social media and let trust work for you. Let&rsquo;s take word-of-mouth to another level.
           </p>
         </section>
 
