@@ -267,12 +267,12 @@ export default function AmbassadorProgramPage() {
 
         <section className="amb-program-section-intro">
           <div className="amb-program-eyebrow">Ambassador Program</div>
-          <h1 className="amb-program-hero">The Summary.</h1>
+          <h1 className="amb-program-hero">The Summary</h1>
           <p className="amb-program-sub">What you get. What you give.</p>
         </section>
 
         <section className="amb-program-section">
-          <h2 className="amb-program-section-title">How it works.</h2>
+          <h2 className="amb-program-section-title">How it works</h2>
           <div className="amb-program-bullet-list">
             <div className="amb-program-bullet-item">&middot; We agree on professional and service.</div>
             <div className="amb-program-bullet-item">&middot; You try the service (free).</div>
@@ -286,7 +286,7 @@ export default function AmbassadorProgramPage() {
         <div className="amb-program-section-divider" />
 
         <section className="amb-program-section">
-          <h2 className="amb-program-section-title">What you get.</h2>
+          <h2 className="amb-program-section-title">What you get</h2>
           <div className="amb-program-bullet-list">
             <div className="amb-program-bullet-item">&middot; Free service.</div>
             <div className="amb-program-bullet-item">&middot; AED XX for 90 days.</div>
@@ -298,7 +298,7 @@ export default function AmbassadorProgramPage() {
         <div className="amb-program-section-divider" />
 
         <section className="amb-program-section">
-          <h2 className="amb-program-section-title">What you give.</h2>
+          <h2 className="amb-program-section-title">What you give</h2>
           <div className="amb-program-bullet-list">
             <div className="amb-program-bullet-item">&middot; One 15 sec before/after video for 90 days.</div>
             <div className="amb-program-bullet-item">&middot; Publish video on your DECODE page.</div>
@@ -310,7 +310,7 @@ export default function AmbassadorProgramPage() {
         <div className="amb-program-section-divider" />
 
         <section className="amb-program-section">
-          <h2 className="amb-program-section-title">Your content. Your rules.</h2>
+          <h2 className="amb-program-section-title">Your content &mdash; Your rules</h2>
           <div className="amb-program-bullet-list">
             <div className="amb-program-bullet-item">&middot; You own your content.</div>
             <div className="amb-program-bullet-item">&middot; DECODE will never use your content.</div>
