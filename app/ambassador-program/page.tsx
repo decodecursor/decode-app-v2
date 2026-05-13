@@ -127,6 +127,7 @@ body.amb-program-overlay-open { overflow: hidden; height: 100vh; }
   font-size: 12px;
   color: #FFF;
   line-height: 1.8;
+  margin-bottom: 20px;
 }
 .amb-program-footer-contact a {
   color: #FFF;
@@ -138,7 +139,6 @@ body.amb-program-overlay-open { overflow: hidden; height: 100vh; }
   display: flex;
   justify-content: center;
   gap: 14px;
-  margin-top: 2.5rem;
   padding-bottom: 60px;
 }
 .amb-program-social-icons a {
@@ -274,10 +274,11 @@ export default function AmbassadorProgramPage() {
         <section className="amb-program-section">
           <h2 className="amb-program-section-title">How it works</h2>
           <div className="amb-program-bullet-list">
-            <div className="amb-program-bullet-item">&middot; We agree on professional and service.</div>
+            <div className="amb-program-bullet-item">&middot; We agree on the professional and service.</div>
             <div className="amb-program-bullet-item">&middot; You try the service (free).</div>
-            <div className="amb-program-bullet-item">&middot; You create your DECODE page.</div>
-            <div className="amb-program-bullet-item">&middot; You upload a before/after video.</div>
+            <div className="amb-program-bullet-item">&middot; Create your DECODE page online.</div>
+            <div className="amb-program-bullet-item">&middot; Upload a before/after video.</div>
+            <div className="amb-program-bullet-item">&middot; Add page to your social bio or Linktree.</div>
             <div className="amb-program-bullet-item">&middot; You get paid.</div>
             <div className="amb-program-bullet-item">&middot; Listing stays live for 90 days.</div>
           </div>
