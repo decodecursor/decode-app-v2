@@ -318,7 +318,7 @@ export default function AmbassadorProgramPage() {
           <h2 className="amb-program-section-title">What you do</h2>
           <div className="amb-program-bullet-list">
             <div className="amb-program-bullet-item">&middot; Create your DECODE page online.</div>
-            <div className="amb-program-bullet-item">&middot; Record and upload one before/after video (15s).</div>
+            <div className="amb-program-bullet-item">&middot; Record &amp; upload one before/after video (15s).</div>
             <div className="amb-program-bullet-item">&middot; Add page link to your social bio or Linktree.</div>
             <div className="amb-program-bullet-item">&middot; No monthly content required.</div>
             <div className="amb-program-bullet-item">&middot; No posts on your socials required.</div>
