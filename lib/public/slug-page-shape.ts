@@ -39,11 +39,10 @@ export interface PublicProfile {
   tagline: string | null
   cover_photo_url: string | null
   cover_photo_position_y: number | null
-  // Slice 5D: gates the WishesSection on the public page. The Wall
-  // of Love section is gated on the existence of completed payments
-  // instead — once an ambassador has received any gift, the wall
-  // shows even if she later disabled the wishlist (the gift history
-  // is hers regardless).
+  // Slice 5D: gates both the WishesSection and the WallOfLoveSection on
+  // the public page — PublicPageClient renders each only when this is
+  // true. Within that gate the WallOfLoveSection also hides itself when
+  // there are zero completed gifts.
   gifts_enabled: boolean
 }
 

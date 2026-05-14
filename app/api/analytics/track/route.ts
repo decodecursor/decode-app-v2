@@ -50,6 +50,9 @@ const ALLOWED_EVENT_TYPES = new Set([
   'wish_instagram_click',
   'wall_of_love_instagram_click',
   'squad_media_swipe_view',
+  'listing_modal_open',
+  'listing_whatsapp_badge_click',
+  'listing_whatsapp_modal_click',
 ])
 
 const DEDUP_WINDOW_MS = 24 * 60 * 60 * 1000

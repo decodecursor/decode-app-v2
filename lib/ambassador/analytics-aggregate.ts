@@ -17,7 +17,6 @@ const FUNNEL_CLICK_TYPES = new Set([
   'listing_media_click',
   'squad_media_swipe_view',
   'wish_giftit_click',
-  'wish_instagram_click',
 ])
 
 export interface AnalyticsEvent {
@@ -277,7 +276,7 @@ export function buildRange(
 
   const wishClickCounts = new Map<string, number>()
   for (const e of events) {
-    if ((e.event_type === 'wish_giftit_click' || e.event_type === 'wish_instagram_click') && e.target_id && inRange(e.created_at, r)) {
+    if (e.event_type === 'wish_giftit_click' && e.target_id && inRange(e.created_at, r)) {
       wishClickCounts.set(e.target_id, (wishClickCounts.get(e.target_id) ?? 0) + 1)
     }
   }

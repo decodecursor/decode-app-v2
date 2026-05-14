@@ -49,6 +49,12 @@ const requiredEnvVars: EnvVar[] = [
 
   // Cron Jobs
   { name: 'CRON_SECRET', required: false, description: 'Secret for authenticating cron requests' },
+
+  // Trust Stack (Chunk 1 — registered as optional so deploys don't break
+  // before the partner pastes them into Vercel). Become required when
+  // first consumed by the Chunk 2 google-places / gemini-summary helpers.
+  { name: 'GOOGLE_PLACES_API_KEY', required: false, description: 'Google Places API (New) key — Trust Stack salon rating/review lookups' },
+  { name: 'GEMINI_API_KEY', required: false, description: 'Gemini 1.5 Flash API key — Trust Stack AI review summaries' },
 ]
 
 // Prefix patterns for Stripe key format + mode detection (hardening

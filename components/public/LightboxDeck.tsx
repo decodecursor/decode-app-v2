@@ -343,7 +343,7 @@ export function LightboxDeck({
           layer hides per-slide z:4 elements behind the pool video on
           mobile (visible on desktop, missing on mobile pre-fix).
           Outside the scroll container, no compositing-layer issue. */}
-      {currentListing && <DeckInfoBar listing={currentListing} />}
+      {currentListing && <DeckInfoBar listing={currentListing} slug={slug} />}
 
       {/* Right-edge dot column (hidden if only 1 listing). Pure
           informational, no tap-to-jump. position:absolute now (was
@@ -450,7 +450,7 @@ export function LightboxDeck({
   )
 }
 
-function DeckInfoBar({ listing }: { listing: PublicListingRow }) {
+function DeckInfoBar({ listing, slug }: { listing: PublicListingRow; slug: string }) {
   const igUrl = `https://instagram.com/${listing.professional_instagram}`
   const initials = listing.professional_name
     .split(/\s+/)
@@ -463,7 +463,19 @@ function DeckInfoBar({ listing }: { listing: PublicListingRow }) {
       href={igUrl}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation()
+        fetch('/api/analytics/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event_type: 'listing_instagram_click',
+            slug,
+            target_id: listing.id,
+          }),
+          keepalive: true,
+        }).catch(() => { /* fire-and-forget */ })
+      }}
       style={{
         position: 'absolute',
         bottom: 0,

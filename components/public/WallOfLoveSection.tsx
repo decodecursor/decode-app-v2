@@ -19,11 +19,10 @@
  * the FK + the "Public read wishes for published profiles with gifts
  * enabled" policy on model_wishes.
  *
- * Gating: section appears whenever the ambassador has any completed
- * wish payments — independent of the gifts_enabled toggle. The wall
- * is gift HISTORY (hers regardless of whether she's accepting new
- * gifts today). Hidden entirely when there are zero completed gifts
- * (mockup spec §3.3 — section "hidden entirely" on 0 gifts).
+ * Gating: the parent (PublicPageClient) only renders this section when
+ * profile.gifts_enabled is true — same gate as WishesSection. Within
+ * that gate, the section also hides itself entirely when there are zero
+ * completed gifts (mockup spec §3.3 — "hidden entirely" on 0 gifts).
  *
  * Pattern 2 alignment: client-side fetch post-mount. Click events
  * (gifter Instagram taps) wire up in 5D-2.
