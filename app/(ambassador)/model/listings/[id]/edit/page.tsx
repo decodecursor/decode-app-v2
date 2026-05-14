@@ -12,6 +12,10 @@ type Professional = {
   city: string
   country: string
   avatar_photo_url: string
+  created_by: string
+  google_place_id: string | null
+  whatsapp_number: string | null
+  google_places_cache: { displayName?: { text?: string } } | null
 }
 
 type ListingPrefill = {
@@ -84,7 +88,7 @@ export default async function EditListingPage({
   const { data: row } = await admin
     .from('model_listings')
     .select(
-      'id, is_free_trial, status, category_id, category_custom, media_type, video_url, photo_url_1, photo_url_2, photo_url_3, price_30, price_60, price_90, model_professionals!model_listings_professional_id_fkey ( id, instagram_handle, name, city, country, avatar_photo_url )',
+      'id, is_free_trial, status, category_id, category_custom, media_type, video_url, photo_url_1, photo_url_2, photo_url_3, price_30, price_60, price_90, model_professionals!model_listings_professional_id_fkey ( id, instagram_handle, name, city, country, avatar_photo_url, created_by, google_place_id, whatsapp_number, google_places_cache )',
     )
     .eq('id', id)
     .eq('model_id', profile.id)

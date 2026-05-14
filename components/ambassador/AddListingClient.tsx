@@ -44,6 +44,8 @@ import {
   PriceBox,
 } from '@/lib/ambassador/add-listing-helpers'
 import { formatCurrencyText } from '@/lib/ambassador/currency-format'
+import { isValidE164 } from '@/lib/ambassador/validators'
+import PlacesAutocompleteInput from '@/components/ambassador/PlacesAutocompleteInput'
 
 type Category = { id: string; label: string; slug: string }
 
@@ -58,6 +60,10 @@ type Professional = {
   city: string
   country: string
   avatar_photo_url: string
+  created_by: string
+  google_place_id: string | null
+  whatsapp_number: string | null
+  google_places_cache: { displayName?: { text?: string } } | null
 }
 
 type ListingPrefill = {
@@ -273,6 +279,42 @@ export default function AddListingClient({
   // is_free_trial is immutable in edit mode (locked decision #2). Prefill
   // matches the existing row; toggle is disabled below.
   const [freeTrial, setFreeTrial] = useState(() => (isEdit && listing ? listing.is_free_trial : false))
+
+  // --- Trust Stack fields (google_place_id + whatsapp_number) ---
+  // These live on model_professionals. Their lock rule is OWNER-based, NOT
+  // status-based (see `trustStackLocked` below): the professional's creator
+  // can always edit them regardless of listing status (Q-edit-scope=A), and
+  // anyone else sees them locked. This is deliberately asymmetric with
+  // name/IG/city/country, which are locked for the whole professional block
+  // in edit mode. Two lock rules coexist on the same edit form.
+  const [placeId, setPlaceId] = useState<string | null>(() =>
+    isEdit && professional ? professional.google_place_id : null,
+  )
+  const [placeLabel, setPlaceLabel] = useState<string | null>(() =>
+    isEdit && professional ? (professional.google_places_cache?.displayName?.text ?? null) : null,
+  )
+  const [whatsapp, setWhatsapp] = useState(() =>
+    isEdit && professional ? (professional.whatsapp_number ?? '') : '',
+  )
+  const [whatsappTouched, setWhatsappTouched] = useState(false)
+  // Set when the edit-mode professionals PATCH fails AFTER the listings
+  // PATCH already landed — surfaces the partial-save state to the user.
+  const [trustStackPatchError, setTrustStackPatchError] = useState<string | null>(null)
+  // Stored form of the WhatsApp number — stripped of spaces/dashes. The
+  // input may display spaces; only this stripped E.164 value is persisted.
+  const whatsappStripped = whatsapp.replace(/[\s-]/g, '')
+
+  // Resync Trust Stack state from props when the professional prop changes.
+  // The only thing that changes it mid-session is router.refresh() after a
+  // failed professionals PATCH (see handleSubmit) — this pulls the UI back
+  // in line with server reality. On initial mount it's a no-op (same values
+  // the lazy initializers already set).
+  useEffect(() => {
+    if (!isEdit || !professional) return
+    setPlaceId(professional.google_place_id)
+    setPlaceLabel(professional.google_places_cache?.displayName?.text ?? null)
+    setWhatsapp(professional.whatsapp_number ?? '')
+  }, [isEdit, professional])
 
   // --- Upload state ---
   const [avatarCropperFile, setAvatarCropperFile] = useState<File | null>(null)
@@ -581,15 +623,32 @@ export default function AddListingClient({
         }),
       })
       if (!res.ok) return // 400 on missing fields for new row — defer to submit
-      const data = await res.json() as { professional: { id: string; name: string; city: string; country: string; avatar_photo_url: string }; created: boolean }
+      const data = await res.json() as {
+        professional: {
+          id: string
+          name: string
+          city: string
+          country: string
+          avatar_photo_url: string
+          google_place_id: string | null
+          whatsapp_number: string | null
+          google_places_cache: { displayName?: { text?: string } } | null
+        }
+        created: boolean
+      }
       if (!data.created) {
-        // Existing professional — auto-swap and lock
+        // Existing professional — auto-swap and lock. Trust Stack fields
+        // come from the matched row too; they render locked because
+        // professionalLocked drives trustStackLocked in create mode.
         setName(data.professional.name)
         setCity(data.professional.city)
         setCountry(data.professional.country)
         setAvatarUrl(data.professional.avatar_photo_url)
         setProfessionalId(data.professional.id)
         setProfessionalLocked(true)
+        setPlaceId(data.professional.google_place_id)
+        setPlaceLabel(data.professional.google_places_cache?.displayName?.text ?? null)
+        setWhatsapp(data.professional.whatsapp_number ?? '')
         showToast({ emoji: '🔄', message: `Using existing ${data.professional.name}` })
       } else {
         // Server created a new row from what we had. Capture the id.
@@ -677,7 +736,22 @@ export default function AddListingClient({
     instagram.trim().length >= 1
   const allOtherRequiredFieldsValid = textFieldsValid && categoryValid && mediaDone && pricingValid
   const avatarIsTheOnlyBlocker = allOtherRequiredFieldsValid && !avatarPresent && !professionalLocked && !isEdit
-  const isValid = allOtherRequiredFieldsValid && avatarPresent
+
+  // Trust Stack field lock — OWNER-based, not status-based (see the state
+  // block above for the asymmetry rationale).
+  //   edit mode   → editable only by the professional's creator
+  //   create mode → mirrors professionalLocked (a dedup-match locks them,
+  //                 same as name/city/country)
+  // While userId is still resolving on mount, edit mode treats the fields
+  // as locked — the safe default.
+  const trustStackLocked = isEdit
+    ? (!professional || professional.created_by !== userId)
+    : professionalLocked
+  // WhatsApp is optional; only a non-empty, malformed value blocks submit.
+  const whatsappBlocksSubmit = whatsappStripped !== '' && !isValidE164(whatsappStripped)
+  const whatsappError = whatsappTouched && whatsappBlocksSubmit
+
+  const isValid = allOtherRequiredFieldsValid && avatarPresent && !whatsappBlocksSubmit
   const isUploading = uploadingAvatar || uploadingMedia
   const submitIdleLabel = isUploading
     ? 'Uploading…'
@@ -685,6 +759,10 @@ export default function AddListingClient({
 
   // ---- Submit handler ----
   const handleSubmit = useCallback(async () => {
+    // Force-show the WhatsApp error on a never-blurred invalid value, and
+    // clear any stale partial-save error from a previous attempt.
+    setWhatsappTouched(true)
+    setTrustStackPatchError(null)
     if (!isValid) throw new Error('form invalid')
 
     // Force validation on all pricing fields (catches never-blurred paths)
@@ -725,6 +803,31 @@ export default function AddListingClient({
         showToast({ emoji: '📡', message: 'Couldn’t reach server. Try again.' })
         throw new Error('listings PATCH failed')
       }
+
+      // --- Trust Stack fields — second request, sequential ---
+      // Only the professional's creator can write these; non-creators see
+      // them locked, so the PATCH is skipped. If the listings PATCH above
+      // succeeded but this one fails, the listing changes have already
+      // landed — sync the form back to server state via router.refresh(),
+      // surface the partial-save error, and do NOT show success / redirect.
+      if (!trustStackLocked && professional) {
+        const profRes = await fetch(`/api/ambassador/model/professionals/${professional.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            google_place_id: placeId,
+            whatsapp_number: whatsappStripped || null,
+          }),
+        })
+        if (!profRes.ok) {
+          setTrustStackPatchError(
+            'Listing saved, but the Trust Stack fields didn’t — please retry.',
+          )
+          router.refresh()
+          throw new Error('professionals PATCH failed')
+        }
+      }
+
       router.push(`/model/listings?updated=${listing.id}`)
       return
     }
@@ -742,6 +845,8 @@ export default function AddListingClient({
           city,
           country,
           avatar_photo_url: avatarUrl,
+          google_place_id: placeId,
+          whatsapp_number: whatsappStripped || null,
         }),
       })
       if (!res.ok) {
@@ -751,6 +856,22 @@ export default function AddListingClient({
       const data = await res.json() as { professional: { id: string }; created: boolean }
       pid = data.professional.id
       setProfessionalId(pid)
+    } else if (!professionalLocked && (placeId !== null || whatsappStripped !== '')) {
+      // The professional was pre-created by the blur-dedup probe (a fresh
+      // row this user owns — !professionalLocked rules out a dedup-MATCH),
+      // possibly before the Trust Stack fields were filled. Sync them now.
+      const syncRes = await fetch(`/api/ambassador/model/professionals/${pid}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          google_place_id: placeId,
+          whatsapp_number: whatsappStripped || null,
+        }),
+      })
+      if (!syncRes.ok) {
+        showToast({ emoji: '📡', message: 'Couldn’t save the Trust Stack fields. Try again.' })
+        throw new Error('professionals PATCH (create-sync) failed')
+      }
     }
 
     // 2. Build listing payload
@@ -790,7 +911,7 @@ export default function AddListingClient({
     } else {
       router.push(`/model/listings/${listingData.listing.id}/send-link`)
     }
-  }, [isValid, freeTrial, pricingValid, professionalId, instagram, name, city, country, avatarUrl, category, media, p30n, p60n, p90n, showToast, router, isEdit, listing, isLiveLock])
+  }, [isValid, freeTrial, pricingValid, professionalId, professionalLocked, instagram, name, city, country, avatarUrl, category, media, p30n, p60n, p90n, showToast, router, isEdit, listing, isLiveLock, placeId, whatsappStripped, trustStackLocked, professional])
 
   const onPriceInput = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const digitsOnly = e.target.value.replace(/[^0-9]/g, '')
@@ -1157,6 +1278,51 @@ export default function AddListingClient({
               />
             )}
           </div>
+
+          {/* --- Trust Stack: Google listing + WhatsApp (model_professionals) ---
+              These two fields use the OWNER-based trustStackLocked rule, NOT
+              the status-based lock that governs name/IG/city/country above.
+              Creator → editable regardless of listing status; anyone else →
+              LockedTextField. Asymmetry is intentional (Q-edit-scope=A). */}
+          <div style={{ ...SECTION_LABEL, marginBottom: 6 }}>Google listing</div>
+          {trustStackLocked ? (
+            <LockedTextField
+              value={placeLabel ?? (placeId ? 'Place selected' : 'Not set')}
+              wrapperStyle={{ marginBottom: 10 }}
+            />
+          ) : (
+            <div style={{ marginBottom: 10 }}>
+              <PlacesAutocompleteInput
+                value={placeId}
+                displayLabel={placeLabel}
+                onChange={(pid, label) => { setPlaceId(pid); setPlaceLabel(label) }}
+              />
+            </div>
+          )}
+
+          <div style={{ ...SECTION_LABEL, marginBottom: 6 }}>WhatsApp number</div>
+          {trustStackLocked ? (
+            <LockedTextField value={whatsapp || 'Not set'} />
+          ) : (
+            <input
+              type="tel"
+              placeholder="+971 50 123 4567"
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+              onBlur={() => setWhatsappTouched(true)}
+              style={INPUT_BASE}
+            />
+          )}
+          {whatsappError && (
+            <div style={{ fontSize: 11, color: '#ef4444', marginTop: 6, paddingLeft: 4 }}>
+              Enter a number with country code, e.g. +971 50 123 4567
+            </div>
+          )}
+          {trustStackPatchError && (
+            <div style={{ fontSize: 11, color: '#ef4444', marginTop: 8, paddingLeft: 4 }}>
+              {trustStackPatchError}
+            </div>
+          )}
         </div>
 
         {/* ================== MEDIA ================== */}

@@ -50,11 +50,16 @@ const requiredEnvVars: EnvVar[] = [
   // Cron Jobs
   { name: 'CRON_SECRET', required: false, description: 'Secret for authenticating cron requests' },
 
-  // Trust Stack (Chunk 1 — registered as optional so deploys don't break
-  // before the partner pastes them into Vercel). Become required when
-  // first consumed by the Chunk 2 google-places / gemini-summary helpers.
-  { name: 'GOOGLE_PLACES_API_KEY', required: false, description: 'Google Places API (New) key — Trust Stack salon rating/review lookups' },
-  { name: 'GEMINI_API_KEY', required: false, description: 'Gemini 1.5 Flash API key — Trust Stack AI review summaries' },
+  // Trust Stack (registered optional so deploys don't break before the
+  // partner pastes the values into Vercel).
+  // Server-side (Places Details, Gemini) reads GOOGLE_PLACES_API_KEY /
+  // GEMINI_API_KEY. Client-side (the Place Autocomplete widget on the
+  // add-listing form) reads NEXT_PUBLIC_GOOGLE_PLACES_API_KEY. Partner can
+  // use the same value with combined application restrictions, OR a
+  // separate client-restricted key.
+  { name: 'GOOGLE_PLACES_API_KEY', required: false, description: 'Google Places API (New) key — Trust Stack salon rating/review lookups (server-side)' },
+  { name: 'GEMINI_API_KEY', required: false, description: 'Gemini 1.5 Flash API key — Trust Stack AI review summaries (server-side)' },
+  { name: 'NEXT_PUBLIC_GOOGLE_PLACES_API_KEY', required: false, publicVar: true, description: 'Google Places API key for the client-side Place Autocomplete widget on the add-listing form' },
 ]
 
 // Prefix patterns for Stripe key format + mode detection (hardening

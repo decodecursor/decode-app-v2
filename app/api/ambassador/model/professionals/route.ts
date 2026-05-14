@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { createServiceRoleClient } from '@/utils/supabase/service-role'
-import { isValidInstagramHandle } from '@/lib/ambassador/validators'
+import {
+  isValidInstagramHandle,
+  isValidE164,
+  isValidGooglePlaceId,
+} from '@/lib/ambassador/validators'
 import { extractCoverObjectPath } from '@/lib/ambassador/storage'
 
 /**
@@ -41,10 +45,13 @@ type Professional = {
   created_by: string
   created_at: string
   updated_at: string
+  google_place_id: string | null
+  whatsapp_number: string | null
+  google_places_cache: Record<string, unknown> | null
 }
 
 const PROFESSIONAL_COLS =
-  'id, instagram_handle, name, city, country, avatar_photo_url, created_by, created_at, updated_at'
+  'id, instagram_handle, name, city, country, avatar_photo_url, created_by, created_at, updated_at, google_place_id, whatsapp_number, google_places_cache'
 
 export async function POST(request: NextRequest) {
   try {
@@ -131,6 +138,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // ---- Trust Stack fields — optional, shape-validated when present ----
+    // Both are nullable on model_professionals; absent/null means "not set".
+    let google_place_id: string | null = null
+    if (body.google_place_id != null) {
+      if (typeof body.google_place_id !== 'string' || !isValidGooglePlaceId(body.google_place_id.trim())) {
+        return NextResponse.json({ error: 'Invalid google_place_id' }, { status: 400 })
+      }
+      google_place_id = body.google_place_id.trim()
+    }
+    let whatsapp_number: string | null = null
+    if (body.whatsapp_number != null) {
+      if (typeof body.whatsapp_number !== 'string' || !isValidE164(body.whatsapp_number.trim())) {
+        return NextResponse.json({ error: 'Invalid whatsapp_number' }, { status: 400 })
+      }
+      whatsapp_number = body.whatsapp_number.trim()
+    }
+
     // ---- INSERT — race-safe via 23505 catch ----
     const { data: created, error: insertError } = await admin
       .from('model_professionals')
@@ -141,6 +165,8 @@ export async function POST(request: NextRequest) {
         country,
         avatar_photo_url,
         created_by: user.id,
+        google_place_id,
+        whatsapp_number,
       })
       .select(PROFESSIONAL_COLS)
       .single<Professional>()
