@@ -306,7 +306,7 @@ export default function AmbassadorProgramPage() {
           <h2 className="amb-program-section-title">What you get</h2>
           <div className="amb-program-bullet-list">
             <div className="amb-program-bullet-item">&middot; Free service.</div>
-            <div className="amb-program-bullet-item">&middot; AED XX for 90 days.</div>
+            <div className="amb-program-bullet-item">&middot; AED XX for the 90 days.</div>
             <div className="amb-program-bullet-item">&middot; Payment cycle is each Wednesday.</div>
             <div className="amb-program-bullet-item">&middot; Vetted salons, clinics and doctors.</div>
           </div>
@@ -317,9 +317,10 @@ export default function AmbassadorProgramPage() {
         <section className="amb-program-section">
           <h2 className="amb-program-section-title">What you do</h2>
           <div className="amb-program-bullet-list">
-            <div className="amb-program-bullet-item">&middot; One 15 sec before/after video for 90 days.</div>
-            <div className="amb-program-bullet-item">&middot; Publish video on your DECODE page.</div>
-            <div className="amb-program-bullet-item">&middot; No monthly content.</div>
+            <div className="amb-program-bullet-item">&middot; Create your DECODE page online.</div>
+            <div className="amb-program-bullet-item">&middot; Record and upload one before/after video (15s).</div>
+            <div className="amb-program-bullet-item">&middot; Add page link to your social bio or Linktree.</div>
+            <div className="amb-program-bullet-item">&middot; No monthly content required.</div>
             <div className="amb-program-bullet-item">&middot; No posts on your socials required.</div>
           </div>
         </section>
@@ -342,8 +343,8 @@ export default function AmbassadorProgramPage() {
           <h2 className="amb-program-section-title">Keep going</h2>
           <div className="amb-program-bullet-list">
             <div className="amb-program-bullet-item">&middot; Renew after 90 days &mdash; only if you want.</div>
-            <div className="amb-program-bullet-item">&middot; Same professional, new 90 days, new payment.</div>
-            <div className="amb-program-bullet-item">&middot; Add other professionals. More listings, more income.</div>
+            <div className="amb-program-bullet-item">&middot; Same pro, new 90 days, new payment.</div>
+            <div className="amb-program-bullet-item">&middot; Add other pros. More listings, more income.</div>
             <div className="amb-program-bullet-item">&middot; Earn continuously &mdash; month after month.</div>
             <div className="amb-program-bullet-item">&middot; No agency. No middleman.</div>
           </div>
