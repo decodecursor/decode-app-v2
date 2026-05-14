@@ -119,6 +119,22 @@ body.amb-program-overlay-open { overflow: hidden; height: 100vh; }
   margin: 0 auto 80px;
 }
 
+.amb-program-cta-wrap { padding: 24px 28px 80px; }
+.amb-program-cta {
+  display: block;
+  background: #FFF;
+  color: #000;
+  padding: 22px;
+  text-align: center;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  font-family: inherit;
+}
+.amb-program-cta:hover { background: #F0F0F0; }
+
 .amb-program-footer {
   text-align: center;
   padding: 24px 28px 0;
@@ -268,7 +284,7 @@ export default function AmbassadorProgramPage() {
         <section className="amb-program-section-intro">
           <div className="amb-program-eyebrow">Ambassador Program</div>
           <h1 className="amb-program-hero">The Summary</h1>
-          <p className="amb-program-sub">What you get. What you give.</p>
+          <p className="amb-program-sub">What you get. What you do.</p>
         </section>
 
         <section className="amb-program-section">
@@ -277,10 +293,10 @@ export default function AmbassadorProgramPage() {
             <div className="amb-program-bullet-item">&middot; We agree on the professional and service.</div>
             <div className="amb-program-bullet-item">&middot; You try the service (free).</div>
             <div className="amb-program-bullet-item">&middot; Create your DECODE page online.</div>
-            <div className="amb-program-bullet-item">&middot; Upload a before/after video.</div>
-            <div className="amb-program-bullet-item">&middot; Add page to your social bio or Linktree.</div>
-            <div className="amb-program-bullet-item">&middot; You get paid.</div>
-            <div className="amb-program-bullet-item">&middot; Listing stays live for 90 days.</div>
+            <div className="amb-program-bullet-item">&middot; Record and upload a before/after video.</div>
+            <div className="amb-program-bullet-item">&middot; Add page link to your social bio or Linktree.</div>
+            <div className="amb-program-bullet-item">&middot; You get paid for the 90 days.</div>
+            <div className="amb-program-bullet-item">&middot; Keep page link in your bio for 90 days.</div>
           </div>
         </section>
 
@@ -299,7 +315,7 @@ export default function AmbassadorProgramPage() {
         <div className="amb-program-section-divider" />
 
         <section className="amb-program-section">
-          <h2 className="amb-program-section-title">What you give</h2>
+          <h2 className="amb-program-section-title">What you do</h2>
           <div className="amb-program-bullet-list">
             <div className="amb-program-bullet-item">&middot; One 15 sec before/after video for 90 days.</div>
             <div className="amb-program-bullet-item">&middot; Publish video on your DECODE page.</div>
@@ -319,6 +335,23 @@ export default function AmbassadorProgramPage() {
             <div className="amb-program-bullet-item">&middot; You handle your advertising compliance.</div>
           </div>
         </section>
+
+        <div className="amb-program-section-divider" />
+
+        <section className="amb-program-section">
+          <h2 className="amb-program-section-title">Keep going</h2>
+          <div className="amb-program-bullet-list">
+            <div className="amb-program-bullet-item">&middot; Renew after 90 days &mdash; only if you want.</div>
+            <div className="amb-program-bullet-item">&middot; Same professional, new 90 days, new payment.</div>
+            <div className="amb-program-bullet-item">&middot; Add other professionals. More listings, more income.</div>
+            <div className="amb-program-bullet-item">&middot; Earn continuously &mdash; month after month.</div>
+            <div className="amb-program-bullet-item">&middot; No agency. No middleman.</div>
+          </div>
+        </section>
+
+        <div className="amb-program-cta-wrap">
+          <a className="amb-program-cta" href="https://app.welovedecode.com/yannijohnson">See an Ambassador page →</a>
+        </div>
 
         <div className="amb-program-footer">
           <div className="amb-program-footer-contact">
