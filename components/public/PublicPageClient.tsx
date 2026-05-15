@@ -9,6 +9,7 @@ import { SquadRow } from './SquadRow'
 import { WishesSection } from './WishesSection'
 import { WallOfLoveSection } from './WallOfLoveSection'
 import { MediaLightbox } from './MediaLightbox'
+import { ProInfoModal } from './ProInfoModal'
 import { PublicFooter } from './PublicFooter'
 
 /**
@@ -41,10 +42,12 @@ export default function PublicPageClient({
 }) {
   const [openListingId, setOpenListingId] = useState<string | null>(null)
   const [activeOrbId, setActiveOrbId] = useState<string | null>(null)
-  // Trust Stack Chunk 4 stub: state holder for the Pro Info modal trigger.
-  // The setter is wired into SquadRow's middle-region tap target; this
-  // chunk renders nothing on change (Chunk 5 mounts <ProInfoModal />).
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // Trust Stack Chunk 5: state holder for the Pro Info modal trigger.
+  // The setter is wired into SquadRow's middle-region tap target;
+  // <ProInfoModal /> mounts when this is non-null. Focus return on
+  // close is handled inside ProInfoModal via document.activeElement
+  // capture — the SquadRow trigger is role="button" tabIndex={0} so
+  // it's a valid restore target.
   const [proInfoModalListingId, setProInfoModalListingId] =
     useState<string | null>(null)
   const orbRefs = useRef<Map<string, HTMLElement>>(new Map())
@@ -69,15 +72,11 @@ export default function PublicPageClient({
   const onOrbActivate = useCallback((id: string) => setActiveOrbId(id), [])
   const onOrbDeactivate = useCallback(() => setActiveOrbId(null), [])
 
-  // Pro Info modal trigger. Stub this chunk: stores the listing id and
-  // logs in dev so the click can be smoke-tested. Chunk 5 replaces the
-  // log with the actual modal mount + listing_modal_open analytics fire.
+  // Pro Info modal trigger. Synchronous setState only (spec §13 Safety
+  // Rule 1 — no async, no mediaPool touch). listing_modal_open analytics
+  // fires inside <ProInfoModal /> on mount, guarded against double-fire.
   const onOpenInfo = useCallback((listingId: string) => {
     setProInfoModalListingId(listingId)
-    if (process.env.NODE_ENV !== 'production') {
-      // eslint-disable-next-line no-console
-      console.log('[trust-stack] Pro Info modal trigger', listingId)
-    }
   }, [])
 
   // Detach the orb pool's <video> when no orb is active (e.g. user
@@ -268,6 +267,22 @@ export default function PublicPageClient({
           onClose={() => setOpenListingId(null)}
         />
       )}
+
+      {/* Trust Stack Pro Info modal. Mounts on SquadRow middle-region tap;
+          unmounts via internal close-animation phase (the modal flips a
+          local `closing` flag, plays the slide-down + backdrop-fade-out,
+          then calls onClose after 200ms — matches spec §11.2). */}
+      {proInfoModalListingId && (() => {
+        const target = data.listings.find((l) => l.id === proInfoModalListingId)
+        if (!target) return null
+        return (
+          <ProInfoModal
+            listing={target}
+            slug={data.profile.slug}
+            onClose={() => setProInfoModalListingId(null)}
+          />
+        )
+      })()}
     </div>
   )
 }

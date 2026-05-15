@@ -42,14 +42,83 @@ export default function PublicLayout({
         fontFamily: 'system-ui, -apple-system, sans-serif',
       }}
     >
-      {/* Trust Stack: WhatsApp badge pulse ring keyframe. Used by
-          SquadRow's ::before pseudo-element when messaged_30d ≥ 10.
-          Spec decode_trust_stack_ui_spec §11.4. */}
+      {/* Trust Stack: WhatsApp badge pulse ring keyframe + Pro Info
+          modal open/close animation keyframes and hover/active CSS.
+          Spec decode_trust_stack_ui_spec §11 (animations) + §8 (modal
+          surfaces). Component-scoped CSS for ProInfoModal lives here
+          because inline styles can't express :hover / :active, and the
+          modal is the only consumer of these class names. */}
       <style>{`
         @keyframes decode-pulse {
           0%   { transform: scale(0.85); opacity: 0.6; }
           70%  { transform: scale(1.4);  opacity: 0;   }
           100% { transform: scale(1.4);  opacity: 0;   }
+        }
+        @keyframes decode-modal-backdrop-in {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        @keyframes decode-modal-backdrop-out {
+          from { opacity: 1; }
+          to   { opacity: 0; }
+        }
+        @keyframes decode-modal-slide-in {
+          from { transform: translateY(20px); opacity: 0; }
+          to   { transform: translateY(0);    opacity: 1; }
+        }
+        @keyframes decode-modal-slide-out {
+          from { transform: translateY(0);    opacity: 1; }
+          to   { transform: translateY(20px); opacity: 0; }
+        }
+        .decode-modal-backdrop {
+          animation: decode-modal-backdrop-in 200ms ease-out 0ms both;
+        }
+        .decode-modal-backdrop--closing {
+          animation: decode-modal-backdrop-out 150ms ease-in 50ms both;
+        }
+        .decode-modal {
+          animation: decode-modal-slide-in 200ms ease-out 50ms both;
+        }
+        .decode-modal--closing {
+          animation: decode-modal-slide-out 150ms ease-in 0ms both;
+        }
+        .decode-modal__d-fill {
+          transition: width 1500ms cubic-bezier(0.215, 0.61, 0.355, 1);
+        }
+        .decode-modal__quick-btn:hover {
+          background: rgba(255, 255, 255, 0.06);
+        }
+        .decode-modal__quick-btn:active {
+          filter: brightness(0.95);
+        }
+        .decode-modal__btn-primary:hover {
+          filter: brightness(1.08);
+        }
+        .decode-modal__btn-primary:active {
+          filter: brightness(0.95);
+        }
+        .decode-modal__btn-primary:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        .decode-modal__cancel:hover {
+          color: #ddd;
+        }
+        .decode-modal__cancel:active {
+          color: #aaa;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .decode-modal-backdrop,
+          .decode-modal-backdrop--closing {
+            animation: decode-modal-backdrop-in 100ms ease-out both;
+          }
+          .decode-modal,
+          .decode-modal--closing {
+            animation: decode-modal-backdrop-in 100ms ease-out both;
+          }
+          .decode-modal__d-fill {
+            transition: none;
+          }
         }
       `}</style>
       {children}

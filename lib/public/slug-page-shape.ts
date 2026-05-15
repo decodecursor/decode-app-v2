@@ -12,13 +12,19 @@
 export type PublicListingMediaType = 'video' | 'photos'
 
 // JSONB shape of model_professionals.google_places_cache. Loose because
-// Google omits fields when underlying data is missing; the only ones the
-// Trust row reads are rating + userRatingCount.
+// Google omits fields when underlying data is missing. Chunk 4 reads
+// rating + userRatingCount; Chunk 5 (Pro Info modal) additionally reads
+// websiteUri, googleMapsUri, internationalPhoneNumber, editorialSummary
+// for the quick-action row. Named here for type-safety on the modal call
+// sites; remaining fields (reviews[], displayName, id) flow through the
+// index signature.
 export interface PublicPlacesCache {
   rating?: number
   userRatingCount?: number
-  // Other Place Details fields are present (reviews, websiteUri, etc.)
-  // but ignored at this layer — the Pro Info modal in Chunk 5 reads them.
+  websiteUri?: string
+  googleMapsUri?: string
+  internationalPhoneNumber?: string
+  editorialSummary?: { text?: string; languageCode?: string }
   [key: string]: unknown
 }
 
@@ -47,6 +53,13 @@ export interface PublicListingRow {
   review_count: number | null
   messaged_30d: number
   last_msg_at: string | null
+  // Trust Stack Chunk 5 — Pro Info modal payload. The select projection
+  // already queried these (PUBLIC_LISTING_SELECT below); Chunk 4 dropped
+  // them at toPublicListing(). Chunk 5 surfaces them so the modal can
+  // render the quick-action row + AI summary without a second fetch.
+  google_places_cache: PublicPlacesCache | null
+  review_summary_gemini: string | null
+  review_summary_custom: string | null
 }
 
 export interface PublicProfile {
@@ -160,6 +173,9 @@ export function toPublicListing(row: LiveListingJoinRow): PublicListingRow | nul
     review_count: placesReviewCount,
     messaged_30d: 0,
     last_msg_at: null,
+    google_places_cache: prof.google_places_cache,
+    review_summary_gemini: prof.review_summary_gemini,
+    review_summary_custom: prof.review_summary_custom,
   }
 }
 
