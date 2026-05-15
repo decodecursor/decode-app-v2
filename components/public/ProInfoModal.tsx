@@ -202,7 +202,6 @@ export function ProInfoModal({
 
   // ---- Style tokens (mirror :root in decode_pro_info_modal.html) ----
   const PINK = '#e91e8c'
-  const PINK_SOFT = 'rgba(233, 30, 140, 0.08)'
   const BG = '#0a0a0a'
   const CARD_BG = 'rgba(255, 255, 255, 0.04)'
   const CARD_BORDER = '#2a2a2a'
@@ -211,7 +210,6 @@ export function ProInfoModal({
   const TXT_TERTIARY = '#555555'
   const TXT_SOFT = '#ddd'
   const TXT_MUTED = '#aaa'
-  const DIVIDER = '#1f1f1f'
 
   return (
     <div
@@ -226,9 +224,7 @@ export function ProInfoModal({
         background: 'rgba(0, 0, 0, 0.6)',
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'flex-start',
-        padding: '32px 16px',
-        overflowY: 'auto',
+        alignItems: 'flex-end',
       }}
     >
       <div
@@ -239,10 +235,12 @@ export function ProInfoModal({
         className={closing ? 'decode-modal decode-modal--closing' : 'decode-modal'}
         style={{
           background: BG,
-          borderRadius: 24,
+          borderRadius: '24px 24px 0 0',
           maxWidth: 380,
           width: '100%',
-          overflow: 'hidden',
+          maxHeight: '90vh',
+          overflowX: 'hidden',
+          overflowY: 'auto',
           color: TXT_PRIMARY,
         }}
       >
@@ -251,8 +249,6 @@ export function ProInfoModal({
           style={{
             padding: '24px 16px 22px',
             textAlign: 'center',
-            background: `linear-gradient(180deg, ${PINK_SOFT}, transparent)`,
-            borderBottom: `0.5px solid ${DIVIDER}`,
           }}
         >
           {category && (
@@ -375,7 +371,6 @@ export function ProInfoModal({
               gridTemplateColumns: `repeat(${visibleQuickButtons}, 1fr)`,
               gap: 8,
               padding: '14px 16px',
-              borderBottom: `0.5px solid ${DIVIDER}`,
             }}
           >
             {websiteUri && (

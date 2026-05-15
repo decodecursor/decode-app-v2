@@ -1,11 +1,14 @@
 /**
  * Gemini review summariser + 7d cache
  *
- * Model: gemini-1.5-flash — the fastest/cheapest tier; a 1–3 sentence review
- * summary is a low-complexity task that does not need a larger model.
+ * Model: gemini-2.5-flash — the fastest/cheapest current tier; a 1–3 sentence
+ * review summary is a low-complexity task that does not need a larger model.
+ * (The earlier gemini-1.5-flash was shut down by Google in 2025 and now 404s
+ * on every call; gemini-2.0-flash is also on a deprecation path. 2.5-flash is
+ * the long-lived replacement.)
  * Endpoint:
  *   POST https://generativelanguage.googleapis.com/v1beta/models/
- *        gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}
+ *        gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}
  * Request body shape: { contents: [{ parts: [{ text: prompt }] }] }
  *
  * Cache: the generated summary is stored on
@@ -29,7 +32,7 @@ import { logger } from '@/lib/logger'
 type ServiceRoleClient = ReturnType<typeof createServiceRoleClient>
 
 const GEMINI_ENDPOINT =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000
 
 type PlaceReviewInput = { rating: number; text: string }
@@ -137,7 +140,8 @@ export async function getSummaryForProfessional(
       void generateSummaryFromGemini(displayName, placeReviews)
         .then((fresh) => writeSummaryCache(supabase, professionalId, fresh))
         .catch((err) => {
-          logger.warn('[gemini-summary] background refresh failed', professionalId, err)
+          const message = err instanceof Error ? err.message : String(err)
+          logger.error('[gemini-summary] background refresh failed', { professionalId, error: message })
         })
     }
     return cache
@@ -153,7 +157,8 @@ export async function getSummaryForProfessional(
     await writeSummaryCache(supabase, professionalId, fresh)
     return fresh
   } catch (err) {
-    logger.warn('[gemini-summary] cold-path generation failed', professionalId, err)
+    const message = err instanceof Error ? err.message : String(err)
+    logger.error('[gemini-summary] cold-path generation failed', { professionalId, error: message })
     return null
   }
 }

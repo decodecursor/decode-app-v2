@@ -63,12 +63,12 @@ export default function PublicLayout({
           to   { opacity: 0; }
         }
         @keyframes decode-modal-slide-in {
-          from { transform: translateY(20px); opacity: 0; }
+          from { transform: translateY(100%); opacity: 0; }
           to   { transform: translateY(0);    opacity: 1; }
         }
         @keyframes decode-modal-slide-out {
           from { transform: translateY(0);    opacity: 1; }
-          to   { transform: translateY(20px); opacity: 0; }
+          to   { transform: translateY(100%); opacity: 0; }
         }
         .decode-modal-backdrop {
           animation: decode-modal-backdrop-in 200ms ease-out 0ms both;
