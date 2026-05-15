@@ -35,12 +35,15 @@ import {
  * from "dropped" — defense against targeted enumeration.
  */
 
-// All 8 values in the DB CHECK enum. Pattern 3 (single multi-event
-// endpoint) doctrine — extending the Set is the canonical way to
-// opt-in new event types. squad_media_swipe_view (added with the
-// 24h-dedup sweep) covers two surfaces: SquadRow inline-orb scroll
-// activation on the public page, and LightboxDeck swipe-to-page on
-// the full-screen lightbox.
+// All 12 values in the DB CHECK enum (lockstepped with the
+// model_analytics_events_event_type_check constraint). Pattern 3
+// (single multi-event endpoint) doctrine — extending the Set is
+// the canonical way to opt-in new event types.
+//   - squad_media_swipe_view (24h-dedup sweep) covers two surfaces:
+//     SquadRow inline-orb scroll activation on the public page, and
+//     LightboxDeck swipe-to-page on the full-screen lightbox.
+//   - ambassador_instagram_click fires from the top-left IG button
+//     on the public page (mirrors the top-right share button).
 const ALLOWED_EVENT_TYPES = new Set([
   'public_page_view',
   'listing_instagram_click',
@@ -53,6 +56,7 @@ const ALLOWED_EVENT_TYPES = new Set([
   'listing_modal_open',
   'listing_whatsapp_badge_click',
   'listing_whatsapp_modal_click',
+  'ambassador_instagram_click',
 ])
 
 const DEDUP_WINDOW_MS = 24 * 60 * 60 * 1000

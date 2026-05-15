@@ -75,6 +75,11 @@ export interface PublicProfile {
   // true. Within that gate the WallOfLoveSection also hides itself when
   // there are zero completed gifts.
   gifts_enabled: boolean
+  // Ambassador's Instagram handle — lives on public.users (not
+  // model_profiles). Joined in fetchProfile(). Null when the
+  // ambassador hasn't set one; the top-left IG button on the public
+  // page hides entirely in that case.
+  instagram_handle: string | null
 }
 
 export interface PublicPageData {

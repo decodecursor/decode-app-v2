@@ -33,16 +33,25 @@ type ProfileRow = PublicProfile & {
   is_suspended: boolean
 }
 
+// Joined shape returned by PostgREST — the embedded users() select
+// nests instagram_handle under .users. fetchProfile flattens it onto
+// the row so the rest of the page reads a single shape.
+type RawProfileRow = Omit<ProfileRow, 'instagram_handle'> & {
+  users: { instagram_handle: string | null } | null
+}
+
 async function fetchProfile(slug: string): Promise<ProfileRow | null> {
   const admin = createServiceRoleClient()
   const { data } = await admin
     .from('model_profiles')
     .select(
-      'id, slug, first_name, last_name, tagline, cover_photo_url, cover_photo_position_y, gifts_enabled, is_published, is_suspended',
+      'id, slug, first_name, last_name, tagline, cover_photo_url, cover_photo_position_y, gifts_enabled, is_published, is_suspended, users!model_profiles_user_id_fkey ( instagram_handle )',
     )
     .eq('slug', slug)
-    .maybeSingle<ProfileRow>()
-  return data ?? null
+    .maybeSingle<RawProfileRow>()
+  if (!data) return null
+  const { users, ...rest } = data
+  return { ...rest, instagram_handle: users?.instagram_handle ?? null }
 }
 
 export async function generateMetadata({
@@ -229,6 +238,7 @@ export default async function PublicSlugPage({
           cover_photo_url: profile.cover_photo_url,
           cover_photo_position_y: profile.cover_photo_position_y,
           gifts_enabled: profile.gifts_enabled,
+          instagram_handle: profile.instagram_handle,
         },
         listings,
       }}

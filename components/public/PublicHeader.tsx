@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import type { PublicProfile } from '@/lib/public/slug-page-shape'
 import { ShareButton } from './ShareButton'
+import { AmbassadorInstagramButton } from './AmbassadorInstagramButton'
 
 /**
  * Cover + ambassador name + tagline, with the share button overlaid
@@ -42,6 +43,26 @@ export function PublicHeader({
 
   return (
     <div style={{ position: 'relative', height: 300, background: '#222', overflow: 'hidden' }}>
+      {/* Ambassador Instagram button, top-left. Independent wrapper from
+          the share button — additive, won't shift the share button when
+          the ambassador has no IG handle (the inner component returns
+          null in that case, leaving an empty 32×32 wrapper that doesn't
+          affect layout because the share-button wrapper is absolutely
+          positioned and self-anchored to the right edge). */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 12,
+          left: 20,
+          zIndex: 2,
+        }}
+      >
+        <AmbassadorInstagramButton
+          instagramHandle={profile.instagram_handle}
+          slug={profile.slug}
+          ambassadorName={displayName}
+        />
+      </div>
       {/* Share button, top-right */}
       <div
         style={{
