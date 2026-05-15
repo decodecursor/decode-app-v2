@@ -11,6 +11,17 @@
 
 export type PublicListingMediaType = 'video' | 'photos'
 
+// JSONB shape of model_professionals.google_places_cache. Loose because
+// Google omits fields when underlying data is missing; the only ones the
+// Trust row reads are rating + userRatingCount.
+export interface PublicPlacesCache {
+  rating?: number
+  userRatingCount?: number
+  // Other Place Details fields are present (reviews, websiteUri, etc.)
+  // but ignored at this layer — the Pro Info modal in Chunk 5 reads them.
+  [key: string]: unknown
+}
+
 export interface PublicListingRow {
   id: string
   category_label: string | null
@@ -29,6 +40,13 @@ export interface PublicListingRow {
   professional_city: string | null
   professional_country: string | null
   professional_avatar_url: string | null
+  // Trust Stack additions (Chunk 4). All nullable — graceful degradation
+  // when Places hasn't been linked or messaged_30d is below the threshold.
+  whatsapp_number: string | null
+  rating: number | null
+  review_count: number | null
+  messaged_30d: number
+  last_msg_at: string | null
 }
 
 export interface PublicProfile {
@@ -57,13 +75,23 @@ export interface PublicPageData {
  * rows even when the background expiry job hasn't run yet.
  *
  * Join hint uses the canonical FK name (matches 3A GET, 3C PATCH).
+ *
+ * Chunk 4 adds the Trust Stack columns on the embedded professional
+ * projection: google_place_id + the cache pair drive Places refresh; the
+ * Gemini summary pair + review_summary_custom are read by the Chunk 5
+ * Pro Info modal but are projected here so a single fetch round-trips
+ * all the data the page needs (modal mount in Chunk 5 reads from the
+ * already-hydrated listing object — no second fetch).
  */
 export const PUBLIC_LISTING_SELECT = `
   id, category_id, category_custom, media_type,
   video_url, video_thumbnail_url, photo_url_1, photo_url_2, photo_url_3,
   effective_status, created_at,
   model_professionals!model_listings_professional_id_fkey (
-    id, name, instagram_handle, city, country, avatar_photo_url
+    id, name, instagram_handle, city, country, avatar_photo_url,
+    google_place_id, whatsapp_number,
+    google_places_cache, google_places_cached_at,
+    review_summary_gemini, review_summary_generated_at, review_summary_custom
   ),
   model_categories!model_listings_category_id_fkey ( label )
 `
@@ -89,6 +117,13 @@ export interface LiveListingJoinRow {
     city: string | null
     country: string | null
     avatar_photo_url: string | null
+    google_place_id: string | null
+    whatsapp_number: string | null
+    google_places_cache: PublicPlacesCache | null
+    google_places_cached_at: string | null
+    review_summary_gemini: string | null
+    review_summary_generated_at: string | null
+    review_summary_custom: string | null
   } | null
   model_categories: { label: string } | null
 }
@@ -96,6 +131,14 @@ export interface LiveListingJoinRow {
 export function toPublicListing(row: LiveListingJoinRow): PublicListingRow | null {
   const prof = row.model_professionals
   if (!prof) return null
+  const placesRating =
+    typeof prof.google_places_cache?.rating === 'number'
+      ? prof.google_places_cache.rating
+      : null
+  const placesReviewCount =
+    typeof prof.google_places_cache?.userRatingCount === 'number'
+      ? prof.google_places_cache.userRatingCount
+      : null
   return {
     id: row.id,
     category_label: row.model_categories?.label ?? null,
@@ -112,6 +155,11 @@ export function toPublicListing(row: LiveListingJoinRow): PublicListingRow | nul
     professional_city: prof.city,
     professional_country: prof.country,
     professional_avatar_url: prof.avatar_photo_url,
+    whatsapp_number: prof.whatsapp_number,
+    rating: placesRating,
+    review_count: placesReviewCount,
+    messaged_30d: 0,
+    last_msg_at: null,
   }
 }
 

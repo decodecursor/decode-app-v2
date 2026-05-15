@@ -42,6 +42,16 @@ export default function PublicLayout({
         fontFamily: 'system-ui, -apple-system, sans-serif',
       }}
     >
+      {/* Trust Stack: WhatsApp badge pulse ring keyframe. Used by
+          SquadRow's ::before pseudo-element when messaged_30d ≥ 10.
+          Spec decode_trust_stack_ui_spec §11.4. */}
+      <style>{`
+        @keyframes decode-pulse {
+          0%   { transform: scale(0.85); opacity: 0.6; }
+          70%  { transform: scale(1.4);  opacity: 0;   }
+          100% { transform: scale(1.4);  opacity: 0;   }
+        }
+      `}</style>
       {children}
     </main>
   )

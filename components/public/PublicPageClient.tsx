@@ -41,6 +41,12 @@ export default function PublicPageClient({
 }) {
   const [openListingId, setOpenListingId] = useState<string | null>(null)
   const [activeOrbId, setActiveOrbId] = useState<string | null>(null)
+  // Trust Stack Chunk 4 stub: state holder for the Pro Info modal trigger.
+  // The setter is wired into SquadRow's middle-region tap target; this
+  // chunk renders nothing on change (Chunk 5 mounts <ProInfoModal />).
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [proInfoModalListingId, setProInfoModalListingId] =
+    useState<string | null>(null)
   const orbRefs = useRef<Map<string, HTMLElement>>(new Map())
 
   // Lightbox open handler. Crucial: bless the media pool synchronously
@@ -62,6 +68,17 @@ export default function PublicPageClient({
 
   const onOrbActivate = useCallback((id: string) => setActiveOrbId(id), [])
   const onOrbDeactivate = useCallback(() => setActiveOrbId(null), [])
+
+  // Pro Info modal trigger. Stub this chunk: stores the listing id and
+  // logs in dev so the click can be smoke-tested. Chunk 5 replaces the
+  // log with the actual modal mount + listing_modal_open analytics fire.
+  const onOpenInfo = useCallback((listingId: string) => {
+    setProInfoModalListingId(listingId)
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.log('[trust-stack] Pro Info modal trigger', listingId)
+    }
+  }, [])
 
   // Detach the orb pool's <video> when no orb is active (e.g. user
   // scrolled past all video orbs). Each MediaOrb's own effect handles
@@ -211,6 +228,7 @@ export default function PublicPageClient({
               slug={data.profile.slug}
               isLast={i === data.listings.length - 1}
               onOpenMedia={onOpenMedia}
+              onOpenInfo={onOpenInfo}
               isOrbActive={activeOrbId === l.id}
               onOrbActivate={() => onOrbActivate(l.id)}
               onOrbDeactivate={onOrbDeactivate}
