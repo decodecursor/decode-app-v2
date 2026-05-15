@@ -442,7 +442,7 @@ export function ProInfoModal({
                 fontStyle: 'italic',
                 fontSize: 16,
                 color: TXT_PRIMARY,
-                lineHeight: 1.5,
+                lineHeight: 1.2,
                 margin: '0 0 10px 0',
                 letterSpacing: '0.01em',
               }}
