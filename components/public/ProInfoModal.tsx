@@ -440,7 +440,7 @@ export function ProInfoModal({
               style={{
                 fontFamily: 'Georgia, "Times New Roman", serif',
                 fontStyle: 'italic',
-                fontSize: 16,
+                fontSize: 14,
                 color: TXT_PRIMARY,
                 lineHeight: 1.2,
                 margin: '0 0 10px 0',
