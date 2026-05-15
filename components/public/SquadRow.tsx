@@ -9,9 +9,8 @@ import { MediaOrb } from './MediaOrb'
 /**
  * A single listing row in the "My Beauty Squad" list. Tap targets:
  *   - professional avatar → Instagram (fires listing_instagram_click)
- *   - professional name → Instagram (fires listing_instagram_click)
  *   - WhatsApp badge → opens wa.me (fires listing_whatsapp_badge_click) — Trust Stack Chunk 4
- *   - middle body region → opens Pro Info modal — Trust Stack Chunk 4 stub (Chunk 5 wires mount)
+ *   - middle body region (category + name + city + trust row) → opens Pro Info modal — Trust Stack Chunk 4
  *   - play-button circle → opens the media lightbox (fires listing_media_click)
  *
  * Spec: public_page_final_UI_Spec.md §4.2 + decode_trust_stack_ui_spec.docx §7.
@@ -245,12 +244,11 @@ export function SquadRow({
         )}
       </div>
 
-      {/* Category + name + location + trust row. The middle region
-          doubles as the Pro Info modal trigger — synchronous setState
-          only (spec §13 Safety Rule 1: no async work, no mediaPool
-          touch). The name link is preserved as a nested <a> so the
-          IG behavior is unchanged; clicking the name navigates IG,
-          clicking elsewhere in the region opens the modal. */}
+      {/* Category + name + location + trust row. The whole region is
+          the Pro Info modal trigger — synchronous setState only (spec
+          §13 Safety Rule 1: no async work, no mediaPool touch). The
+          name is a plain <span>: IG navigation is reserved for the
+          avatar anchor so the region stays a single uniform tap zone. */}
       <div
         onClick={onInfoClick}
         role="button"
@@ -277,20 +275,7 @@ export function SquadRow({
           {categoryText(listing)}
         </div>
         <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.2, marginBottom: 1.5 }}>
-          <a
-            href={igUrl}
-            target="_blank"
-            rel="noopener"
-            onClick={(e) => {
-              // Don't bubble to the modal-trigger region. The IG nav
-              // is the explicit affordance of the name link.
-              e.stopPropagation()
-              onIgClick()
-            }}
-            style={{ color: '#fff', textDecoration: 'none' }}
-          >
-            {listing.professional_name}
-          </a>
+          <span style={{ color: '#fff' }}>{listing.professional_name}</span>
         </div>
         <div style={{ fontSize: 13, color: '#777', lineHeight: 1.2 }}>{formatLocation(listing.professional_city, listing.professional_country)}</div>
 
