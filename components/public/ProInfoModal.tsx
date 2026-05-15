@@ -427,7 +427,7 @@ export function ProInfoModal({
                 color: TXT_SECONDARY,
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
-                margin: '0 0 12px 0',
+                margin: '0 0 4px 0',
               }}
             >
               AI summary of reviews
@@ -439,7 +439,7 @@ export function ProInfoModal({
                 fontSize: 14,
                 color: TXT_PRIMARY,
                 lineHeight: 1.5,
-                margin: '0 0 10px 0',
+                margin: '0 0 4px 0',
                 letterSpacing: '0.01em',
               }}
             >
