@@ -295,7 +295,7 @@ export function SquadRow({
           >
             {hasRating && (
               <span style={{ flexShrink: 0 }}>
-                ★ {listing.rating!.toFixed(1)} · {listing.review_count ?? 0} reviews
+                ★ {listing.rating!.toFixed(1)} ({listing.review_count ?? 0})
               </span>
             )}
             {showSeparator && (
@@ -327,7 +327,7 @@ export function SquadRow({
                   <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
                 </svg>
                 {showMessagedCount
-                  ? `${listing.messaged_30d} messaged in 30d`
+                  ? `${listing.messaged_30d} in 30d`
                   : `Last msg ${lastMsgLabel}`}
               </span>
             )}
