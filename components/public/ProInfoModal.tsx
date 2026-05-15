@@ -259,7 +259,7 @@ export function ProInfoModal({
                 fontWeight: 700,
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
-                margin: '0 0 6px 0',
+                margin: '0 0 4px 0',
               }}
             >
               {category}
@@ -271,7 +271,7 @@ export function ProInfoModal({
               fontSize: 20,
               color: TXT_PRIMARY,
               fontWeight: 500,
-              margin: '0 0 4px 0',
+              margin: '0 0 3px 0',
               lineHeight: 1.2,
             }}
           >
@@ -442,7 +442,7 @@ export function ProInfoModal({
                 fontStyle: 'italic',
                 fontSize: 14,
                 color: TXT_PRIMARY,
-                lineHeight: 1.2,
+                lineHeight: 1.5,
                 margin: '0 0 10px 0',
                 letterSpacing: '0.01em',
               }}
