@@ -277,7 +277,7 @@ export function SquadRow({
         <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.2, marginBottom: 1.5 }}>
           <span style={{ color: '#fff' }}>{listing.professional_name}</span>
         </div>
-        <div style={{ fontSize: 13, color: '#777', lineHeight: 1.2 }}>{formatLocation(listing.professional_city, listing.professional_country)}</div>
+        <div style={{ fontSize: 12, color: '#777', lineHeight: 1.2 }}>{formatLocation(listing.professional_city, listing.professional_country)}</div>
 
         {showTrustRow && (
           <div
@@ -299,14 +299,14 @@ export function SquadRow({
               </span>
             )}
             {showSeparator && (
-              <span style={{ color: '#555', margin: '0 5px', flexShrink: 0 }}>·</span>
+              <span style={{ color: '#fff', margin: '0 5px', flexShrink: 0 }}>·</span>
             )}
             {showMessagedSegment && (
               <span
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: 4,
+                  gap: 2,
                   flexShrink: 0,
                 }}
               >
