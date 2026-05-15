@@ -247,7 +247,7 @@ export function ProInfoModal({
         {/* SECTION 1 — HERO */}
         <header
           style={{
-            padding: '24px 16px 22px',
+            padding: '24px 16px 10px',
             textAlign: 'center',
           }}
         >
@@ -424,7 +424,7 @@ export function ProInfoModal({
 
         {/* SECTION 3 — AI SUMMARY */}
         {showSummary && (
-          <section style={{ padding: '22px 20px 20px' }}>
+          <section style={{ padding: '10px 20px 20px' }}>
             <p
               style={{
                 fontSize: 10,
