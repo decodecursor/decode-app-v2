@@ -203,7 +203,6 @@ export function ProInfoModal({
   // ---- Style tokens (mirror :root in decode_pro_info_modal.html) ----
   const PINK = '#e91e8c'
   const BG = '#0a0a0a'
-  const CARD_BG = 'rgba(255, 255, 255, 0.04)'
   const CARD_BORDER = '#2a2a2a'
   const TXT_PRIMARY = '#ffffff'
   const TXT_SECONDARY = '#888888'
@@ -385,7 +384,6 @@ export function ProInfoModal({
                   </>
                 }
                 pink={PINK}
-                cardBg={CARD_BG}
                 cardBorder={CARD_BORDER}
                 soft={TXT_SOFT}
               />
@@ -401,7 +399,6 @@ export function ProInfoModal({
                   </>
                 }
                 pink={PINK}
-                cardBg={CARD_BG}
                 cardBorder={CARD_BORDER}
                 soft={TXT_SOFT}
               />
@@ -414,7 +411,6 @@ export function ProInfoModal({
                   <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                 }
                 pink={PINK}
-                cardBg={CARD_BG}
                 cardBorder={CARD_BORDER}
                 soft={TXT_SOFT}
               />
@@ -619,7 +615,6 @@ function QuickButton({
   label,
   icon,
   pink,
-  cardBg,
   cardBorder,
   soft,
 }: {
@@ -627,7 +622,6 @@ function QuickButton({
   label: string
   icon: React.ReactNode
   pink: string
-  cardBg: string
   cardBorder: string
   soft: string
 }) {
@@ -645,9 +639,9 @@ function QuickButton({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 8,
-        padding: '14px 0',
-        background: cardBg,
+        gap: 4,
+        padding: '8px 0',
+        background: '#0a0a0a',
         border: `0.5px solid ${cardBorder}`,
         borderRadius: 12,
         cursor: 'pointer',

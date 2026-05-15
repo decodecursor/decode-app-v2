@@ -86,7 +86,7 @@ export default function PublicLayout({
           transition: width 1500ms cubic-bezier(0.215, 0.61, 0.355, 1);
         }
         .decode-modal__quick-btn:hover {
-          background: rgba(255, 255, 255, 0.06);
+          background: rgba(255, 255, 255, 0.03);
         }
         .decode-modal__quick-btn:active {
           filter: brightness(0.95);
