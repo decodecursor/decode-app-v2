@@ -114,12 +114,12 @@ export async function DELETE(
 // prices). Other states (pending_payment, expired) keep the full set.
 const FULL_EDITABLE_KEYS = new Set([
   'category_id', 'category_custom',
-  'media_type', 'photo_url_1', 'photo_url_2', 'photo_url_3', 'video_url',
+  'media_type', 'photo_url_1', 'photo_url_2', 'photo_url_3', 'video_url', 'video_thumbnail_url',
   'price_30', 'price_60', 'price_90',
 ])
 const LIVE_EDITABLE_KEYS = new Set([
   'category_id', 'category_custom',
-  'media_type', 'photo_url_1', 'photo_url_2', 'photo_url_3', 'video_url',
+  'media_type', 'photo_url_1', 'photo_url_2', 'photo_url_3', 'video_url', 'video_thumbnail_url',
 ])
 function getEditableKeys(row: { is_free_trial: boolean; status: string }): Set<string> {
   if (row.status === 'active' && !row.is_free_trial) return LIVE_EDITABLE_KEYS
@@ -236,6 +236,7 @@ export async function PATCH(
     const media_type = body.media_type as MediaType
 
     let video_url: string | null = null
+    let video_thumbnail_url: string | null = null
     let photo_url_1: string | null = null
     let photo_url_2: string | null = null
     let photo_url_3: string | null = null
@@ -252,6 +253,22 @@ export async function PATCH(
         )
       }
       video_url = v
+      // video_thumbnail_url is optional — client-side extraction may
+      // fail silently. When present, validate ownership the same way
+      // as video_url.
+      if (body.video_thumbnail_url != null) {
+        if (typeof body.video_thumbnail_url !== 'string' || !body.video_thumbnail_url.trim()) {
+          return NextResponse.json({ error: 'video_thumbnail_url must be a string when provided' }, { status: 400 })
+        }
+        const t = body.video_thumbnail_url.trim()
+        if (!ownsModelMediaUrl(t, user.id)) {
+          return NextResponse.json(
+            { error: 'video_thumbnail_url must point to caller-owned model-media storage' },
+            { status: 400 },
+          )
+        }
+        video_thumbnail_url = t
+      }
       // photo_url_* must be null on the video path (matches CHECK constraint).
       if (body.photo_url_1 != null || body.photo_url_2 != null || body.photo_url_3 != null) {
         return NextResponse.json(
@@ -284,6 +301,12 @@ export async function PATCH(
       if (body.video_url != null) {
         return NextResponse.json(
           { error: 'video_url must be null when media_type=photos' },
+          { status: 400 },
+        )
+      }
+      if (body.video_thumbnail_url != null) {
+        return NextResponse.json(
+          { error: 'video_thumbnail_url must be null when media_type=photos' },
           { status: 400 },
         )
       }
@@ -362,6 +385,7 @@ export async function PATCH(
       category_custom,
       media_type,
       video_url,
+      video_thumbnail_url,
       photo_url_1,
       photo_url_2,
       photo_url_3,

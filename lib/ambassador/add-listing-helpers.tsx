@@ -68,6 +68,9 @@ export function buildListingPhotoPath(userId: string): string {
 export function buildListingVideoPath(userId: string, mime: string): string {
   return `${userId}/listings/videos/${crypto.randomUUID()}.${videoExtForMime(mime)}`
 }
+export function buildListingThumbPath(userId: string): string {
+  return `${userId}/listings/thumbs/${crypto.randomUUID()}.jpg`
+}
 
 // ---------------------------------------------------------------------------
 // Video validation — probes duration via a hidden <video preload="metadata">.

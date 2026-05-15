@@ -175,6 +175,7 @@ export async function POST(request: NextRequest) {
     const media_type = body.media_type as MediaType
 
     let video_url: string | null = null
+    let video_thumbnail_url: string | null = null
     let photo_url_1: string | null = null
     let photo_url_2: string | null = null
     let photo_url_3: string | null = null
@@ -191,6 +192,23 @@ export async function POST(request: NextRequest) {
         )
       }
       video_url = v
+      // video_thumbnail_url is optional — client-side extraction may
+      // fail silently, falling back to null. The orb's null-fallback
+      // render handles that case. When present, validate ownership
+      // the same way as video_url (same bucket, same RLS scope).
+      if (body.video_thumbnail_url != null) {
+        if (typeof body.video_thumbnail_url !== 'string' || !body.video_thumbnail_url.trim()) {
+          return NextResponse.json({ error: 'video_thumbnail_url must be a string when provided' }, { status: 400 })
+        }
+        const t = body.video_thumbnail_url.trim()
+        if (!ownsModelMediaUrl(t, user.id)) {
+          return NextResponse.json(
+            { error: 'video_thumbnail_url must point to caller-owned model-media storage' },
+            { status: 400 },
+          )
+        }
+        video_thumbnail_url = t
+      }
     } else {
       const photos = Array.isArray(body.photo_urls) ? body.photo_urls : null
       if (!photos || photos.length < 1 || photos.length > 3) {
@@ -272,6 +290,7 @@ export async function POST(request: NextRequest) {
           category_custom,
           media_type,
           video_url,
+          video_thumbnail_url,
           photo_url_1,
           photo_url_2,
           photo_url_3,

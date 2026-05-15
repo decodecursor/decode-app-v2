@@ -40,9 +40,11 @@ import {
   buildAvatarPath,
   buildListingPhotoPath,
   buildListingVideoPath,
+  buildListingThumbPath,
   validateVideoFile,
   PriceBox,
 } from '@/lib/ambassador/add-listing-helpers'
+import { extractVideoThumbnail } from '@/lib/ambassador/video-thumbnail'
 import { formatCurrencyText } from '@/lib/ambassador/currency-format'
 import { isValidE164 } from '@/lib/ambassador/validators'
 import PlacesAutocompleteInput from '@/components/ambassador/PlacesAutocompleteInput'
@@ -74,6 +76,7 @@ type ListingPrefill = {
   category_custom: string | null
   media_type: 'video' | 'photos' | null
   video_url: string | null
+  video_thumbnail_url: string | null
   photo_url_1: string | null
   photo_url_2: string | null
   photo_url_3: string | null
@@ -347,6 +350,14 @@ export default function AddListingClient({
   })
   const [uploadingMedia, setUploadingMedia] = useState(false)
   const [mediaError, setMediaError] = useState<string | null>(null)
+  // Tracked separately from `media` so the discriminated union stays
+  // unchanged. Populated by the parallel extractor in onMediaFilePicked;
+  // seeded from listing.video_thumbnail_url in edit mode. Null is fine
+  // — the public-page orb renders the dark-gradient + play-arrow
+  // fallback when this is missing.
+  const [videoThumbnailUrl, setVideoThumbnailUrl] = useState<string | null>(() =>
+    isEdit && listing?.media_type === 'video' ? listing.video_thumbnail_url : null,
+  )
 
   // --- Dedup state ---
   // In create mode, professionalId + professionalLocked are set by the
@@ -545,10 +556,22 @@ export default function AddListingClient({
         return
       }
       try {
-        const path = buildListingVideoPath(userId, file.type)
-        const url = await uploadBlob(file, path, file.type)
+        const videoPath = buildListingVideoPath(userId, file.type)
+        // Thumbnail extraction + upload runs in parallel with the
+        // video upload. Extraction failure NEVER blocks the form —
+        // the orb's null-thumbnail fallback renders fine; we just
+        // log and fall back to video_thumbnail_url = null.
+        const videoUploadPromise = uploadBlob(file, videoPath, file.type)
+        const thumbnailPromise = extractVideoThumbnail(file)
+          .then((blob) => uploadBlob(blob, buildListingThumbPath(userId), 'image/jpeg'))
+          .catch((err) => {
+            console.warn('[AddListing] Thumbnail extraction failed:', err)
+            return null
+          })
+        const [url, thumbUrl] = await Promise.all([videoUploadPromise, thumbnailPromise])
         const previewUrl = URL.createObjectURL(file)
         setMedia({ kind: 'video', url, previewUrl })
+        setVideoThumbnailUrl(thumbUrl)
       } catch (err) {
         console.error('[AddListing] Video upload failed:', err)
         setMediaError('Upload failed. Try again.')
@@ -593,6 +616,7 @@ export default function AddListingClient({
       if (prev?.kind === 'video') URL.revokeObjectURL(prev.previewUrl)
       return null
     })
+    setVideoThumbnailUrl(null)
   }
 
   // ---- Instagram dedup on blur ----
@@ -782,6 +806,7 @@ export default function AddListingClient({
         category_custom: category?.type === 'custom' ? category.text : null,
         media_type: media!.kind === 'photos' ? 'photos' : 'video',
         video_url: media!.kind === 'video' ? media!.url : null,
+        video_thumbnail_url: media!.kind === 'video' ? videoThumbnailUrl : null,
         photo_url_1: media!.kind === 'photos' ? media!.urls[0] ?? null : null,
         photo_url_2: media!.kind === 'photos' ? media!.urls[1] ?? null : null,
         photo_url_3: media!.kind === 'photos' ? media!.urls[2] ?? null : null,
@@ -881,6 +906,7 @@ export default function AddListingClient({
       category_custom: category?.type === 'custom' ? category.text : null,
       media_type: media!.kind === 'photos' ? 'photos' : 'video',
       video_url: media!.kind === 'video' ? media!.url : null,
+      video_thumbnail_url: media!.kind === 'video' ? videoThumbnailUrl : null,
       photo_urls: media!.kind === 'photos' ? media!.urls : null,
       is_free_trial: freeTrial,
     }
@@ -911,7 +937,7 @@ export default function AddListingClient({
     } else {
       router.push(`/model/listings/${listingData.listing.id}/send-link`)
     }
-  }, [isValid, freeTrial, pricingValid, professionalId, professionalLocked, instagram, name, city, country, avatarUrl, category, media, p30n, p60n, p90n, showToast, router, isEdit, listing, isLiveLock, placeId, whatsappStripped, trustStackLocked, professional])
+  }, [isValid, freeTrial, pricingValid, professionalId, professionalLocked, instagram, name, city, country, avatarUrl, category, media, videoThumbnailUrl, p30n, p60n, p90n, showToast, router, isEdit, listing, isLiveLock, placeId, whatsappStripped, trustStackLocked, professional])
 
   const onPriceInput = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const digitsOnly = e.target.value.replace(/[^0-9]/g, '')
