@@ -601,8 +601,8 @@ function DistributionRow({
 }
 
 const QUICK_ICON_STYLE: CSSProperties = {
-  width: 18,
-  height: 18,
+  width: 16,
+  height: 16,
   stroke: '#e91e8c',
   strokeWidth: 2,
   fill: 'none',
