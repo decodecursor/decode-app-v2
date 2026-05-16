@@ -179,7 +179,19 @@ export function ProInfoModal({
   )
 
   const websiteUri = places?.websiteUri ?? null
-  const mapsUri = places?.googleMapsUri ?? null
+  // Google Places returns googleMapsUri as a legacy
+  // maps.google.com/?cid=<num>&g_mp=<telemetry> URL, which iOS Safari
+  // hands to the Maps app inconsistently (prompts or opens in-browser
+  // instead of direct app launch). Build Google's documented
+  // cross-platform universal-link instead — recognized by iOS Universal
+  // Links and the recommended app launcher per Google's docs.
+  // Fallback: the legacy googleMapsUri if either piece is missing.
+  const placeId = places?.id ?? null
+  const displayName = places?.displayName?.text ?? null
+  const mapsUri =
+    placeId && displayName
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayName)}&query_place_id=${encodeURIComponent(placeId)}`
+      : (places?.googleMapsUri ?? null)
   // Google Places returns formatted numbers like "+971 50 123 4567".
   // tel: URIs reject the embedded spaces on some Android dialers
   // (iOS forgives them) — strip everything except + and digits.

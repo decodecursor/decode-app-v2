@@ -19,6 +19,13 @@ export type PublicListingMediaType = 'video' | 'photos'
 // sites; remaining fields (reviews[], displayName, id) flow through the
 // index signature.
 export interface PublicPlacesCache {
+  // Google Place ID (ChIJ...) — equals model_professionals.google_place_id.
+  // Used to build the documented Google Maps universal link in the Pro
+  // Info modal (search/?api=1&query=…&query_place_id=…).
+  id?: string
+  // Place display name — paired with `id` to satisfy the universal-link
+  // contract (both query + query_place_id required).
+  displayName?: { text?: string; languageCode?: string }
   rating?: number
   userRatingCount?: number
   websiteUri?: string
