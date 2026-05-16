@@ -43,10 +43,10 @@ Home screen after login. Three jobs:
 ## 4. Layout
 
 1. ~~Status bar~~ — REMOVED (real device handles)
-2. Cover banner (110px) — user's cover photo + greeting + URL + 2 round action icons
-3. Stats row: Page visits (left, 108px) + Top listings (right, flex, 3 animated bars)
+2. Cover banner (140px) — user's cover photo + greeting + URL + 2 round action icons (post-`ccd5a52` polish, 2026-04-27 — bumped from 110px, softer 3-stop gradient, tighter heading-URL gap)
+3. Stats row: Page visits (left, 108px) + Top listings (right, flex, up to 3 animated per-listing bars)
 4. Primary actions: Add Listing (pink) + Add Wish (dark, pink text)
-5. Navigation cards: Listings · 1 expiring soon / Wishlist / Analytics / Settings
+5. Navigation cards: Listings · 1 expiring soon / Wishlist / Analytics / Settings (optional hint — see §12.1)
 
 **No logout on this page.** Logout lives inside `/settings`.
 
@@ -63,14 +63,16 @@ Home screen after login. Three jobs:
 
 ## 6. Two Distinct Event Types
 
-The system tracks two distinct interactions, both stored in the **single polymorphic `model_analytics_events` table**, distinguished by `event_type`:
+The system tracks two distinct interactions, both stored in the **single polymorphic `model_analytics_events` table**, distinguished by `event_type`. The full CHECK enum (12 values post-Trust-Stack + ambassador IG button) is canonical in `public_page_final_UI_Spec.md` §2.5 / §5.1 — this dashboard surface only consumes a subset:
 
 | Event | Definition | event_type filter |
 |---|---|---|
 | **View** | Someone visits the public page `welovedecode.com/{slug}` | `event_type = 'public_page_view'` |
-| **Click** | Someone taps a specific listing/link on the public page | `event_type IN ('listing_instagram_click','listing_media_click','squad_media_swipe_view')` |
+| **Click** (Top listings aggregation) | Someone taps an Instagram link, a media orb, or swipes the squad-media lightbox on a listing | `event_type IN ('listing_instagram_click','listing_media_click','squad_media_swipe_view')` |
 
-Left card = **Page visits** (page traffic). Right card = **Top listings** (engagement per category — categorisation flows through `target_id → model_listings.category_id → model_categories.label`, with `model_listings.category_custom` as the fallback bucket name when `category_id IS NULL`).
+Left card = **Page visits** (page traffic). Right card = **Top listings** (per-listing engagement — each row identifies a specific listing by `category · professional_name`, with `clicks` bar derived from the click-event filter above). Per-listing rows replaced the earlier per-category aggregation in commit `a4d6b31` (Slice 6A pattern alignment).
+
+> **⚠ KNOWN GAP — Top Listings undercounts post-Trust-Stack engagement.** The click filter intentionally excludes the three Trust Stack high-intent events (`listing_modal_open`, `listing_whatsapp_badge_click`, `listing_whatsapp_modal_click`). A follower can open the Pro Info detail modal and message the salon on WhatsApp without ever firing `listing_instagram_click` / `listing_media_click` — so the bar values systematically under-represent real listing engagement. Tracked as a backlog item (own slice: DB migration + behavior change; equal-weight for V1 with weighting deferred). **Not yet changed in the dashboard query or in the legacy `get_top_click_categories` RPC** — see PROJECT_STATE hardening backlog.
 
 ---
 
@@ -95,23 +97,35 @@ Subtitle: "+N this week" (when total > 0). When total = 0, replace with "Share y
 
 ### 7.2 Top listings (right card)
 
-**Dynamic per user — no hardcoded categories.** Aggregated via the `get_top_click_categories(p_model_id, p_limit)` RPC, which JOINs through listings:
+**Per-listing rows, dynamic per user — no hardcoded categories.** Each row identifies a specific listing as `{category} · {professional_name}` with a right-aligned click count and an animated bar.
+
+**Live implementation (current):** server-rendered via a direct supabase-js query in `app/(ambassador)/model/page.tsx`. Two parallel queries (listing metadata + click events) followed by a JS aggregation — pattern mirrors the Slice 6A `analytics-aggregate` per-listing approach (Principle E), shipped in commit `a4d6b31`. Pseudocode:
 
 ```sql
-SELECT COALESCE(c.label, l.category_custom, 'Other') AS category,
-       COUNT(*)::bigint AS clicks
-FROM model_analytics_events e
-JOIN model_listings l ON l.id = e.target_id
-LEFT JOIN model_categories c ON c.id = l.category_id
-WHERE e.model_id = $profile_id
-  AND e.event_type IN ('listing_instagram_click','listing_media_click','squad_media_swipe_view')
-  AND e.target_id IS NOT NULL
-GROUP BY 1
-ORDER BY clicks DESC
-LIMIT 3;
+-- 1. Listing metadata (with category label + professional name via FK joins)
+SELECT id, created_at, category_custom,
+       category:model_categories(label),
+       professional:model_professionals(name)
+FROM model_listings
+WHERE model_id = $profile_id;
+
+-- 2. Click events for this ambassador (any listing)
+SELECT target_id FROM model_analytics_events
+WHERE model_id = $profile_id
+  AND event_type IN ('listing_instagram_click','listing_media_click','squad_media_swipe_view')
+  AND target_id IS NOT NULL;
+
+-- 3. JS-side: COUNT(target_id) per listing, JOIN to metadata,
+--    filter clicks > 0, sort clicks DESC then created_at DESC (tiebreak), LIMIT 3.
 ```
 
-Bar fill %: `(category_clicks / max_category_clicks) * 100` — top category always 100%, others relative.
+Row shape: `{ listing_id, category, professional_name, clicks }`. Category falls back through `model_categories.label → model_listings.category_custom → 'Other'`.
+
+Bar fill %: `(row.clicks / max(clicks)) * 100` — top listing always 100%, others relative.
+
+> **⚠ Legacy RPC retained but unused.** `public.get_top_click_categories(p_model_id, p_limit)` still exists in the live database with this verbatim filter — `event_type IN ('listing_instagram_click','listing_media_click')` (only two values; no `squad_media_swipe_view`, no Trust Stack events) — and produces per-category rows. It has **zero callers in the repo** post-`a4d6b31` and is logged for deletion in a post-V1 hygiene slice (PROJECT_STATE hardening backlog). Documented here so the discrepancy between RPC filter (2 values, per-category) and the live dashboard query (3 values, per-listing) does not cause confusion.
+
+> **⚠ KNOWN GAP (same as §6).** The live dashboard query's click filter excludes `listing_modal_open`, `listing_whatsapp_badge_click`, and `listing_whatsapp_modal_click`, so Trust Stack-driven engagement (modal opens + WhatsApp messages) is invisible to this ranking. Tracked, not yet changed — see PROJECT_STATE hardening backlog.
 
 ---
 
@@ -162,13 +176,35 @@ All open as new pages (not modals).
 | Listings | `/listings` | Shows "N expiring soon" alert when any active/free-trial listing's `COALESCE(paid_until, free_trial_ends_at) < now() + 7 days` |
 | Wishlist | `/wishlist` | — |
 | Analytics | `/analytics` | Existing page |
-| Settings | `/settings` | Existing page (contains logout) |
+| Settings | `/settings` | Existing page (contains logout). May show a missing-data hint (see §12.1) |
 
 ### Layout details
 - Icon ↔ label gap: **10px**
 - Label: 14px / 600 white
 - Alert: 11px / 400 pink, baseline-aligned with label
 - Dot separator: 3×3 grey, optical-centered
+
+### 12.1 Settings nav-card hint (Slice 8)
+
+The Settings nav card carries a single-line **pink hint** when the ambassador is missing payout-side or identity-side data the platform needs for V1. Hint and alert share the same `11px / 400 #e91e8c` styling as the Listings-card "N expiring soon" alert — baseline-aligned with the label, dot-separated.
+
+**Stacking priority (bank > email, both missing collapses to a single label):**
+
+| Bank state | Email state | Hint |
+|---|---|---|
+| Missing | Missing | "Bank + Email missing" |
+| Missing | Present | "Bank missing" |
+| Present | Missing | "Email missing" |
+| Present | Present | (no hint) |
+
+**Derivation (server-side, page load):** computed in `app/(ambassador)/model/page.tsx` and passed as `settingsHint` prop to `DashboardClient`.
+
+- `bankMissing` — `EXISTS` probe on `user_bank_accounts WHERE user_id = $auth_user_id AND is_primary = true` (HEAD count query). Slice 8 locked Q2=A pattern: no schema column, no maintenance trigger — derived at server-render time.
+- `emailMissing` — `!user.email || isInternalEmail(user.email)`. Internal-email check filters synthetic/legacy `@welovedecode.internal` addresses created by the Slice 1 phantom-cleanup path; those count as "no real email" for hint purposes.
+
+Returned hint values: `'Bank + Email missing' | 'Bank missing' | 'Email missing' | null`.
+
+**Rendering:** when `settingsHint !== null`, render the hint after a dot separator on the Settings nav card row, identically to the Listings card's expiring-soon alert pattern.
 
 ---
 
@@ -201,8 +237,8 @@ All open as new pages (not modals).
 
 | Action | Trigger |
 |---|---|
-| Page load | Fetch greeting flag, cover URL, slug, view counts, top click categories, expiring count |
-| Page load (first ever visit) | Immediately set `users.first_dashboard_seen_at = NOW()` |
+| Page load | Fetch greeting flag, cover URL, slug, view counts, top per-listing clicks, expiring count, settings-hint sources (bank/email) |
+| Page load (first ever visit) | Immediately set `model_profiles.dashboard_first_seen_at = NOW()` (see §3 / §14 — column lives on `model_profiles`, NOT `users`) |
 | Pull-to-refresh | Re-run all fetch queries |
 | Copy icon tap | Frontend only (`navigator.clipboard.writeText`) |
 
@@ -213,7 +249,9 @@ All open as new pages (not modals).
 ### Supabase queries
 
 ```sql
--- Profile fields all live on model_profiles (NOT users)
+-- Profile fields all live on model_profiles (NOT users).
+-- cover_photo_position_y controls vertical framing of the cover image
+-- (passed to DashboardClient and applied as background-position-y).
 SELECT id, slug, first_name, last_name, cover_photo_url,
        cover_photo_position_y, gifts_enabled, is_published, is_suspended,
        dashboard_first_seen_at
@@ -233,8 +271,21 @@ SELECT COUNT(*) FROM model_analytics_events
   AND event_type = 'public_page_view'
   AND created_at >= date_trunc('week', NOW() AT TIME ZONE 'UTC');
 
--- Top 3 click categories (via RPC — see §7.2)
-SELECT * FROM get_top_click_categories($profile_id, 3);
+-- Top listings (direct query — see §7.2 for full shape)
+-- NOTE: the legacy get_top_click_categories RPC is dead code post-a4d6b31;
+-- it still exists in the DB (filter: 'listing_instagram_click','listing_media_click')
+-- but is not called by the dashboard. Drop in post-V1 hygiene slice.
+SELECT id, created_at, category_custom,
+       category:model_categories(label),
+       professional:model_professionals(name)
+FROM model_listings WHERE model_id = $profile_id;
+
+SELECT target_id FROM model_analytics_events
+  WHERE model_id = $profile_id
+  AND event_type IN ('listing_instagram_click','listing_media_click','squad_media_swipe_view')
+  AND target_id IS NOT NULL;
+-- JS aggregate: count per target_id → JOIN to metadata → clicks > 0 → sort
+-- clicks DESC, created_at DESC tiebreak → LIMIT 3.
 
 -- Expiring-soon count (active/free-trial listings expiring within 7d)
 SELECT COUNT(*) FROM model_listings
@@ -272,3 +323,8 @@ Implement via standard mobile gesture — no custom JS needed if built as native
 
 - `dashboard_final.html` — interactive mockup
 - `dashboard_final_UI_Spec.md` — this document
+
+**Cross-references:**
+
+- `public_page_final_UI_Spec.md` — canonical for the public ambassador page, including the full `model_analytics_events.event_type` enum, the Pro Info modal (introduced by the Trust Stack slice, final state commit `24a6505`), the ambassador IG button, and native same-tab link rationale. The dashboard never restates Pro Info modal styling — defer to that doc.
+- `DECODE_PROJECT_STATE.md` — canonical schema (Table 8 `model_analytics_events` post-Trust-Stack enum) and the hardening backlog item that tracks the Top-listings Trust-Stack-events gap (§6 / §7.2 callouts above).
