@@ -185,6 +185,21 @@ export function ProInfoModal({
     return () => clearTimeout(t)
   }, [])
 
+  // Block native vertical scroll only while a drag is in flight. React's
+  // onTouchMove is passive (no preventDefault), so we attach a non-passive
+  // listener via addEventListener. Until draggingRef flips true, taps fall
+  // through to buttons normally; once a drag is committed, preventDefault
+  // keeps the browser from claiming the gesture and firing pointercancel.
+  useEffect(() => {
+    const modal = modalRef.current
+    if (!modal) return
+    const handler = (e: TouchEvent) => {
+      if (draggingRef.current) e.preventDefault()
+    }
+    modal.addEventListener('touchmove', handler, { passive: false })
+    return () => modal.removeEventListener('touchmove', handler)
+  }, [])
+
   const onBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) requestClose()
   }
@@ -287,7 +302,10 @@ export function ProInfoModal({
 
   const websiteUri = places?.websiteUri ?? null
   const mapsUri = places?.googleMapsUri ?? null
-  const phone = places?.internationalPhoneNumber ?? null
+  // Google Places returns formatted numbers like "+971 50 123 4567".
+  // tel: URIs reject the embedded spaces on some Android dialers
+  // (iOS forgives them) — strip everything except + and digits.
+  const phone = places?.internationalPhoneNumber?.replace(/[^0-9+]/g, '') || null
   const visibleQuickButtons =
     (websiteUri ? 1 : 0) + (mapsUri ? 1 : 0) + (phone ? 1 : 0)
   const showQuickRow = visibleQuickButtons > 0
