@@ -71,7 +71,6 @@ export function ProInfoModal({
   onClose: () => void
 }) {
   const modalRef = useRef<HTMLDivElement>(null)
-  const heroRef = useRef<HTMLDivElement>(null)
   const firedOpenRef = useRef(false)
   const [closing, setClosing] = useState(false)
   const [barsGrown, setBarsGrown] = useState(false)
@@ -192,17 +191,18 @@ export function ProInfoModal({
 
   // --- Drag-to-dismiss handlers ---
   //
-  // Init binds to the hero region only (drag handle, eyebrow, name, city,
-  // rating column) — touching the AI summary / quick buttons / WhatsApp
-  // button / Cancel button must not start a drag. Pointer capture moves
-  // to the modal element so move/up still fire even if the finger leaves
-  // the hero mid-drag. touch-action:none on the hero prevents the browser
-  // from claiming the gesture as a vertical scroll while we own it.
-  const onHeroPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+  // Init binds to the modal itself — drag down anywhere except the
+  // interactive buttons (Website / Maps / Phone / Send WhatsApp /
+  // Cancel) which keep their tap behavior. Pointer capture latches
+  // onto the modal so move/up still fire even if the finger leaves
+  // it mid-drag. touch-action:none on the modal prevents the browser
+  // from claiming a downward gesture as native scroll while we own
+  // it; the modal's overflow-y:auto safety net for tiny screens
+  // still works for mouse-wheel input.
+  const onModalPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (closing || snapping) return
-    // Don't initiate from interactive descendants (none today, but
-    // future-proof so adding a tappable element to the hero doesn't
-    // silently break it).
+    // Tap on a button or link → let the button handle it. We don't
+    // capture the pointer, so the click event still fires normally.
     if ((e.target as HTMLElement).closest('button, a, input, select, textarea')) return
     dragStartYRef.current = e.clientY
     dragOffsetRef.current = 0
@@ -343,6 +343,7 @@ export function ProInfoModal({
         aria-modal="true"
         aria-labelledby="modal-name"
         className={closing ? 'decode-modal decode-modal--closing' : 'decode-modal'}
+        onPointerDown={onModalPointerDown}
         onPointerMove={onModalPointerMove}
         onPointerUp={onModalPointerUp}
         onPointerCancel={onModalPointerCancel}
@@ -355,31 +356,26 @@ export function ProInfoModal({
           overflowX: 'hidden',
           overflowY: 'auto',
           color: TXT_PRIMARY,
+          touchAction: 'none',
           transform: dragActive ? `translateY(${dragOffset}px)` : undefined,
           transition: snapping ? `transform ${DRAG_SNAP_MS}ms ease-out` : 'none',
           willChange: dragActive ? 'transform' : undefined,
         }}
       >
-        {/* DRAG HANDLE + HERO — pointer-down here initiates the
-            swipe-to-dismiss gesture. touch-action:none lets us own
-            vertical movement instead of yielding it to native scroll
-            (the modal itself is overflow:auto, but the hero is its
-            top, so there's nothing above it to scroll up to anyway). */}
+        {/* DRAG HANDLE — purely decorative cue. Drag-to-dismiss
+            initiates from anywhere on the modal (handled on the
+            modal container above); the buttons handle their own
+            taps. */}
         <div
-          ref={heroRef}
-          onPointerDown={onHeroPointerDown}
-          style={{ touchAction: 'none' }}
-        >
-          <div
-            aria-hidden="true"
-            style={{
-              width: 36,
-              height: 5,
-              background: 'rgba(255, 255, 255, 0.3)',
-              borderRadius: 999,
-              margin: '8px auto 0',
-            }}
-          />
+          aria-hidden="true"
+          style={{
+            width: 36,
+            height: 5,
+            background: 'rgba(255, 255, 255, 0.3)',
+            borderRadius: 999,
+            margin: '8px auto 0',
+          }}
+        />
         {/* SECTION 1 — HERO */}
         <header
           style={{
@@ -498,7 +494,6 @@ export function ProInfoModal({
             </div>
           )}
         </header>
-        </div>
 
         {/* SECTION 2 — QUICK ACTION ROW */}
         {showQuickRow && (
