@@ -195,10 +195,11 @@ export function ProInfoModal({
   // interactive buttons (Website / Maps / Phone / Send WhatsApp /
   // Cancel) which keep their tap behavior. Pointer capture latches
   // onto the modal so move/up still fire even if the finger leaves
-  // it mid-drag. touch-action:none on the modal prevents the browser
-  // from claiming a downward gesture as native scroll while we own
-  // it; the modal's overflow-y:auto safety net for tiny screens
-  // still works for mouse-wheel input.
+  // it mid-drag. We deliberately do NOT set touch-action:none on
+  // the modal — pairing it with bubbling pointer handlers blocks
+  // click delivery on touch devices (iOS Safari especially), and
+  // since the modal isn't scrollable in normal use, the browser
+  // doesn't try to claim a downward gesture as native scroll.
   const onModalPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (closing || snapping) return
     // Tap on a button or link → let the button handle it. We don't
@@ -356,7 +357,6 @@ export function ProInfoModal({
           overflowX: 'hidden',
           overflowY: 'auto',
           color: TXT_PRIMARY,
-          touchAction: 'none',
           transform: dragActive ? `translateY(${dragOffset}px)` : undefined,
           transition: snapping ? `transform ${DRAG_SNAP_MS}ms ease-out` : 'none',
           willChange: dragActive ? 'transform' : undefined,
