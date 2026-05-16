@@ -88,6 +88,11 @@ export function ProInfoModal({
   const dragStartYRef = useRef<number | null>(null)
   const dragOffsetRef = useRef(0)
   const modalHeightRef = useRef(0)
+  // True for the duration of a single touch gesture that started on an
+  // interactive child (button/anchor/etc). Used to make the non-passive
+  // touchmove listener a complete no-op for those gestures so iOS's
+  // user-activation chain stays clean for tel: navigation.
+  const gestureOnInteractiveRef = useRef(false)
   const reducedMotion = useMemo(() => prefersReducedMotion(), [])
 
   const requestClose = useCallback(() => {
@@ -186,18 +191,39 @@ export function ProInfoModal({
   }, [])
 
   // Block native vertical scroll only while a drag is in flight. React's
-  // onTouchMove is passive (no preventDefault), so we attach a non-passive
-  // listener via addEventListener. Until draggingRef flips true, taps fall
-  // through to buttons normally; once a drag is committed, preventDefault
-  // keeps the browser from claiming the gesture and firing pointercancel.
+  // onTouchMove is passive (no preventDefault), so we attach non-passive
+  // listeners via addEventListener.
+  //
+  // Critical: gestures that start on an interactive child (button /
+  // anchor / etc.) must be a complete no-op here — no preventDefault,
+  // no drag math. Otherwise iOS Safari treats the resulting tap as
+  // tainted and blocks tel: navigation with "This website has been
+  // blocked from automatically starting a call". We track that via
+  // touchstart on the modal, and reset on touchend/touchcancel.
   useEffect(() => {
     const modal = modalRef.current
     if (!modal) return
-    const handler = (e: TouchEvent) => {
+    const onTouchStart = (e: TouchEvent) => {
+      const t = e.target as HTMLElement | null
+      gestureOnInteractiveRef.current = !!t?.closest('button, a, input, select, textarea')
+    }
+    const onTouchMove = (e: TouchEvent) => {
+      if (gestureOnInteractiveRef.current) return
       if (draggingRef.current) e.preventDefault()
     }
-    modal.addEventListener('touchmove', handler, { passive: false })
-    return () => modal.removeEventListener('touchmove', handler)
+    const onTouchEnd = () => {
+      gestureOnInteractiveRef.current = false
+    }
+    modal.addEventListener('touchstart', onTouchStart, { passive: true })
+    modal.addEventListener('touchmove', onTouchMove, { passive: false })
+    modal.addEventListener('touchend', onTouchEnd, { passive: true })
+    modal.addEventListener('touchcancel', onTouchEnd, { passive: true })
+    return () => {
+      modal.removeEventListener('touchstart', onTouchStart)
+      modal.removeEventListener('touchmove', onTouchMove)
+      modal.removeEventListener('touchend', onTouchEnd)
+      modal.removeEventListener('touchcancel', onTouchEnd)
+    }
   }, [])
 
   const onBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
@@ -640,6 +666,7 @@ export function ProInfoModal({
                 letterSpacing: 0.2,
                 cursor: 'pointer',
                 fontFamily: 'inherit',
+                touchAction: 'manipulation',
               }}
             >
               Send WhatsApp
@@ -668,6 +695,7 @@ export function ProInfoModal({
               border: 'none',
               padding: 0,
               fontFamily: 'inherit',
+              touchAction: 'manipulation',
             }}
           >
             Cancel
@@ -786,6 +814,7 @@ function QuickButton({
         textDecoration: 'none',
         fontFamily: 'inherit',
         transition: 'filter 0.15s, background 0.15s',
+        touchAction: 'manipulation',
       }}
     >
       <svg viewBox="0 0 24 24" aria-hidden="true" style={{ ...QUICK_ICON_STYLE, stroke: pink }}>
