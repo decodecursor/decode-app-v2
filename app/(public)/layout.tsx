@@ -42,45 +42,17 @@ export default function PublicLayout({
         fontFamily: 'system-ui, -apple-system, sans-serif',
       }}
     >
-      {/* Trust Stack: WhatsApp badge pulse ring keyframe + Pro Info
-          modal open/close animation keyframes and hover/active CSS.
-          Spec decode_trust_stack_ui_spec §11 (animations) + §8 (modal
-          surfaces). Component-scoped CSS for ProInfoModal lives here
-          because inline styles can't express :hover / :active, and the
-          modal is the only consumer of these class names. */}
+      {/* Trust Stack — SquadRow WhatsApp-badge pulse keyframe + the
+          Pro Info modal's per-element hover/active rules (inline styles
+          can't express :hover/:active). The backdrop/slide keyframes
+          and .decode-modal[--closing] / .decode-modal-backdrop[--closing]
+          classes were removed when ProInfoModal moved to vaul (vaul
+          owns open/close + drag animations natively). */}
       <style>{`
         @keyframes decode-pulse {
           0%   { transform: scale(0.85); opacity: 0.6; }
           70%  { transform: scale(1.4);  opacity: 0;   }
           100% { transform: scale(1.4);  opacity: 0;   }
-        }
-        @keyframes decode-modal-backdrop-in {
-          from { opacity: 0; }
-          to   { opacity: 1; }
-        }
-        @keyframes decode-modal-backdrop-out {
-          from { opacity: 1; }
-          to   { opacity: 0; }
-        }
-        @keyframes decode-modal-slide-in {
-          from { transform: translateY(100%); opacity: 0; }
-          to   { transform: translateY(0);    opacity: 1; }
-        }
-        @keyframes decode-modal-slide-out {
-          from { transform: translateY(0);    opacity: 1; }
-          to   { transform: translateY(100%); opacity: 0; }
-        }
-        .decode-modal-backdrop {
-          animation: decode-modal-backdrop-in 200ms ease-out 0ms both;
-        }
-        .decode-modal-backdrop--closing {
-          animation: decode-modal-backdrop-out 150ms ease-in 50ms both;
-        }
-        .decode-modal {
-          animation: decode-modal-slide-in 200ms ease-out 50ms both;
-        }
-        .decode-modal--closing {
-          animation: decode-modal-slide-out 150ms ease-in 0ms both;
         }
         .decode-modal__d-fill {
           transition: width 1500ms cubic-bezier(0.215, 0.61, 0.355, 1);
@@ -108,14 +80,6 @@ export default function PublicLayout({
           color: #aaa;
         }
         @media (prefers-reduced-motion: reduce) {
-          .decode-modal-backdrop,
-          .decode-modal-backdrop--closing {
-            animation: decode-modal-backdrop-in 100ms ease-out both;
-          }
-          .decode-modal,
-          .decode-modal--closing {
-            animation: decode-modal-backdrop-in 100ms ease-out both;
-          }
           .decode-modal__d-fill {
             transition: none;
           }
