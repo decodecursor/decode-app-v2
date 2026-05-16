@@ -268,21 +268,18 @@ export default function PublicPageClient({
         />
       )}
 
-      {/* Trust Stack Pro Info modal. Mounts on SquadRow middle-region tap;
-          unmounts via internal close-animation phase (the modal flips a
-          local `closing` flag, plays the slide-down + backdrop-fade-out,
-          then calls onClose after 200ms — matches spec §11.2). */}
-      {proInfoModalListingId && (() => {
-        const target = data.listings.find((l) => l.id === proInfoModalListingId)
-        if (!target) return null
-        return (
-          <ProInfoModal
-            listing={target}
-            slug={data.profile.slug}
-            onClose={() => setProInfoModalListingId(null)}
-          />
-        )
-      })()}
+      {/* Trust Stack Pro Info modal — vaul-backed drawer. ALWAYS mounted
+          (conditional mount would clip vaul's exit animation when the
+          listing flips to null on close); visibility is the `open` prop.
+          Listing is found-or-null; ProInfoModal also guards on it. */}
+      <ProInfoModal
+        open={proInfoModalListingId !== null}
+        listing={
+          data.listings.find((l) => l.id === proInfoModalListingId) ?? null
+        }
+        slug={data.profile.slug}
+        onClose={() => setProInfoModalListingId(null)}
+      />
     </div>
   )
 }
