@@ -1,39 +1,29 @@
 'use client'
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
   type CSSProperties,
+  type MouseEvent,
 } from 'react'
-import { Drawer } from 'vaul'
 import type { PublicListingRow } from '@/lib/public/slug-page-shape'
 import { categoryText } from '@/lib/public/slug-page-shape'
 import { formatLocation } from '@/lib/format-location'
 import { estimateRatingHistogram } from '@/lib/public/distribution-estimate'
 
 /**
- * Pro Info modal — Trust Stack Chunk 5 surface, vaul Drawer with
- * `modal={false}` PLUS a manual document.body pointer-events reset.
+ * Pro Info modal — greenfield surface for Trust Stack Chunk 5. Opens when
+ * the SquadRow middle region is tapped (handler wired in Chunk 4). Reads
+ * pre-hydrated data off the listing row — no second fetch. Six sections,
+ * line-by-line from decode_pro_info_modal.html per spec §8.
  *
- * Why both belts and braces:
- *   - modal={false} disables vaul's body inert/pointer-events lock at
- *     open time (so a state desync can't lock the body in the first
- *     place).
- *   - The body-pointer-events reset effect handles vaul#492 / #534 /
- *     #509: in the controlled-Drawer + modal={false} + externally-set
- *     `open` config, vaul's internal useControllableState still
- *     occasionally leaves document.body{pointer-events:none} stuck on
- *     close, making the entire page unclickable except higher-stacking
- *     layers (e.g. MediaLightbox). The effect explicitly clears it on
- *     every close transition AND on unmount, so the body lock can
- *     never persist past a close.
- *
- * Body is rendered UNCONDITIONALLY inside Drawer.Content (no inner
- * conditional mount based on `listing`). Optional-chaining everywhere
- * keeps the null case safe. The prior conditional-mount pattern
- * desynced vaul's tree and contributed to the freeze (e371bab).
+ * Render path is purely visual: SVG icons + text + CSS-only distribution
+ * bars. Zero <video> elements; the modal does not interact with the orb
+ * pool or any media architecture (§13 Safety Rule 3 — orb video keeps
+ * playing under the backdrop). Synchronous open handler, no async work.
  */
 
 type ModalEvent = 'listing_modal_open' | 'listing_whatsapp_modal_click'
@@ -47,8 +37,15 @@ function fireModalEvent(slug: string, event_type: ModalEvent, target_id: string)
   }).catch(() => { /* fire-and-forget */ })
 }
 
-// Distribution-bar grow trigger delay. Fires after the drawer's
-// slide-in settles so the bars animate into their final widths.
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
+// Close-animation duration upper bound — backdrop fade-out 150ms + 50ms
+// stagger. Matches §11.2.
+const CLOSE_ANIMATION_MS = 200
+
+// Distribution-bar grow trigger delay. Mirrors §11.3 — fires after the
+// modal open animation lands (~50ms stagger + 200ms slide = 250ms).
 const BARS_GROW_DELAY_MS = 250
 
 function prefersReducedMotion(): boolean {
@@ -57,121 +54,166 @@ function prefersReducedMotion(): boolean {
 }
 
 export function ProInfoModal({
-  open,
   listing,
   slug,
   onClose,
 }: {
-  open: boolean
-  listing: PublicListingRow | null
+  listing: PublicListingRow
   slug: string
   onClose: () => void
 }) {
-  // vaul#492/#534/#509 workaround — explicit body cleanup on close
-  // and unmount. Without this, the controlled+modal=false+external-
-  // open path leaves document.body{pointer-events:none} stuck, which
-  // blanks out every tap on the page except higher-z lightboxes.
-  //
-  // We also clear body.position + body.top defensively (vaul#318/#39
-  // family); no other surface in the app sets those today, so an
-  // empty-string reset is either a no-op or unwinds a vaul leftover.
-  // body.overflow is INTENTIONALLY left alone — MediaLightbox /
-  // MobilePaymentSheet / VideoModal / users-dashboard own it for
-  // their own scroll locks, and we'd yank theirs by clearing it.
-  useEffect(() => {
-    if (!open) {
-      document.body.style.pointerEvents = ''
-      document.body.style.position = ''
-      document.body.style.top = ''
-    }
-    return () => {
-      document.body.style.pointerEvents = ''
-      document.body.style.position = ''
-      document.body.style.top = ''
-    }
-  }, [open])
-
-  // listing_modal_open — fire once each time (open, listing.id) goes
-  // false→true. Keyed on listing.id so switching listings without an
-  // intermediate close still re-fires; reset on close so the next
-  // open fires again.
-  const firedForListingRef = useRef<string | null>(null)
-  useEffect(() => {
-    if (!open || !listing) {
-      firedForListingRef.current = null
-      return
-    }
-    if (firedForListingRef.current === listing.id) return
-    firedForListingRef.current = listing.id
-    fireModalEvent(slug, 'listing_modal_open', listing.id)
-  }, [open, listing, slug])
-
-  // Distribution bars grow — runs each open, resets each close.
+  const modalRef = useRef<HTMLDivElement>(null)
+  const firedOpenRef = useRef(false)
+  const [closing, setClosing] = useState(false)
   const [barsGrown, setBarsGrown] = useState(false)
+
+  const requestClose = useCallback(() => {
+    setClosing((c) => {
+      if (c) return c
+      setTimeout(() => onClose(), CLOSE_ANIMATION_MS)
+      return true
+    })
+  }, [onClose])
+
+  // listing_modal_open — fire EXACTLY once per modal open. The useRef guard
+  // covers React StrictMode's double-mount in dev and any incidental
+  // re-render. Server dedupe via analyticsLimiter is belt-and-suspenders.
   useEffect(() => {
-    if (!open) {
-      setBarsGrown(false)
-      return
+    if (firedOpenRef.current) return
+    firedOpenRef.current = true
+    fireModalEvent(slug, 'listing_modal_open', listing.id)
+  }, [slug, listing.id])
+
+  // Body scroll lock with iOS scroll-position preservation. The
+  // position:fixed + top:-scrollY trick keeps the underlying page from
+  // snapping to top on iOS Safari (overflow:hidden alone leaks the scroll
+  // there). The width:100% guard prevents the body from collapsing to
+  // intrinsic content width while fixed.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const scrollY = window.scrollY
+    const prev = {
+      overflow: document.body.style.overflow,
+      position: document.body.style.position,
+      top: document.body.style.top,
+      width: document.body.style.width,
     }
+    document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
+    return () => {
+      document.body.style.overflow = prev.overflow
+      document.body.style.position = prev.position
+      document.body.style.top = prev.top
+      document.body.style.width = prev.width
+      window.scrollTo(0, scrollY)
+    }
+  }, [])
+
+  // Focus management: capture the trigger element on mount, focus the
+  // first focusable inside the modal, restore focus on unmount. Trap Tab
+  // cycling inside the modal; Escape closes.
+  useEffect(() => {
+    const previouslyFocused = document.activeElement as HTMLElement | null
+    const focusables = modalRef.current
+      ? Array.from(modalRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
+      : []
+    focusables[0]?.focus()
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        requestClose()
+        return
+      }
+      if (e.key === 'Tab' && modalRef.current) {
+        const current = Array.from(
+          modalRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+        )
+        if (current.length === 0) return
+        const first = current[0]
+        const last = current[current.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      previouslyFocused?.focus?.()
+    }
+  }, [requestClose])
+
+  // Distribution-bar grow trigger. Reduced-motion: render at final width
+  // from the start (no delay flash). Standard: 250ms post-mount the
+  // state flips, CSS transition handles the 1500ms ease-out cubic.
+  useEffect(() => {
     if (prefersReducedMotion()) {
       setBarsGrown(true)
       return
     }
     const t = setTimeout(() => setBarsGrown(true), BARS_GROW_DELAY_MS)
     return () => clearTimeout(t)
-  }, [open])
+  }, [])
 
-  // ---- Derived view state — all null-safe so the body renders
-  // unconditionally without crashing when listing is null. ----
-  const category = listing ? categoryText(listing) : ''
-  const cityLine = listing
-    ? formatLocation(listing.professional_city, listing.professional_country)
-    : null
-  const places = listing?.google_places_cache
-  const reviewCount = listing?.review_count ?? 0
+  const onBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) requestClose()
+  }
+
+  // Derived view state
+  const category = categoryText(listing)
+  const cityLine = formatLocation(listing.professional_city, listing.professional_country)
+  const places = listing.google_places_cache
+  const reviewCount = listing.review_count ?? 0
   const hasRating =
-    !!listing &&
-    typeof listing.rating === 'number' &&
-    listing.rating > 0 &&
-    reviewCount > 0
+    typeof listing.rating === 'number' && listing.rating > 0 && reviewCount > 0
   const histogram = useMemo(
-    () =>
-      listing && hasRating
-        ? estimateRatingHistogram(listing.rating, reviewCount)
-        : null,
-    [listing, hasRating, reviewCount],
+    () => (hasRating ? estimateRatingHistogram(listing.rating, reviewCount) : null),
+    [hasRating, listing.rating, reviewCount],
   )
 
   const websiteUri = places?.websiteUri ?? null
   // Google Places returns googleMapsUri as a legacy
-  // maps.google.com/?cid=<num>&g_mp=<telemetry> URL — iOS hands it to
-  // Maps inconsistently. Build Google's documented universal-link
-  // instead, falling back to the legacy URL if either piece is gone.
+  // maps.google.com/?cid=<num>&g_mp=<telemetry> URL, which iOS Safari
+  // hands to the Maps app inconsistently (prompts or opens in-browser
+  // instead of direct app launch). Build Google's documented
+  // cross-platform universal-link instead — recognized by iOS Universal
+  // Links and the recommended app launcher per Google's docs.
+  // Fallback: the legacy googleMapsUri if either piece is missing.
   const placeId = places?.id ?? null
   const displayName = places?.displayName?.text ?? null
   const mapsUri =
     placeId && displayName
       ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayName)}&query_place_id=${encodeURIComponent(placeId)}`
       : (places?.googleMapsUri ?? null)
-  // Strip non-tel chars — some Android dialers reject embedded spaces
-  // (iOS forgives them).
+  // Google Places returns formatted numbers like "+971 50 123 4567".
+  // tel: URIs reject the embedded spaces on some Android dialers
+  // (iOS forgives them) — strip everything except + and digits.
   const phone = places?.internationalPhoneNumber?.replace(/[^0-9+]/g, '') || null
   const visibleQuickButtons =
     (websiteUri ? 1 : 0) + (mapsUri ? 1 : 0) + (phone ? 1 : 0)
   const showQuickRow = visibleQuickButtons > 0
 
-  const customTrim = listing?.review_summary_custom?.trim() || null
-  const geminiTrim = listing?.review_summary_gemini?.trim() || null
+  const customTrim = listing.review_summary_custom?.trim() || null
+  const geminiTrim = listing.review_summary_gemini?.trim() || null
   const summary = customTrim ?? geminiTrim
   const showSummary = !!summary
   const showGeminiDisclosure = !customTrim && !!geminiTrim
 
-  const showDemand = (listing?.messaged_30d ?? 0) > 0
-  const showSendWhatsapp = !!listing?.whatsapp_number
-  const waDigits = listing?.whatsapp_number?.replace(/[^0-9]/g, '') ?? ''
+  const showDemand = listing.messaged_30d > 0
+  const showSendWhatsapp = !!listing.whatsapp_number
 
-  // ---- Style tokens ----
+  const waDigits = listing.whatsapp_number?.replace(/[^0-9]/g, '') ?? ''
+
+  // ---- Style tokens (mirror :root in decode_pro_info_modal.html) ----
   const PINK = '#e91e8c'
+  const BG = '#0a0a0a'
   const CARD_BORDER = '#2a2a2a'
   const TXT_PRIMARY = '#ffffff'
   const TXT_SECONDARY = '#888888'
@@ -180,355 +222,346 @@ export function ProInfoModal({
   const TXT_MUTED = '#aaa'
 
   return (
-    <Drawer.Root
-      open={open}
-      onOpenChange={(o) => {
-        if (!o) onClose()
+    <div
+      onClick={onBackdropClick}
+      className={
+        closing ? 'decode-modal-backdrop decode-modal-backdrop--closing' : 'decode-modal-backdrop'
+      }
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 100,
+        background: 'rgba(0, 0, 0, 0.6)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'flex-end',
       }}
-      modal={false}
-      dismissible
     >
-      <Drawer.Portal>
-        <Drawer.Overlay
-          onClick={onClose}
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-name"
+        className={closing ? 'decode-modal decode-modal--closing' : 'decode-modal'}
+        style={{
+          background: BG,
+          borderRadius: '24px 24px 0 0',
+          maxWidth: 420,
+          width: '100%',
+          maxHeight: '90vh',
+          overflowX: 'hidden',
+          overflowY: 'auto',
+          color: TXT_PRIMARY,
+        }}
+      >
+        {/* SECTION 1 — HERO */}
+        <header
           style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 100,
-            background: 'rgba(0, 0, 0, 0.6)',
-          }}
-        />
-        <Drawer.Content
-          style={{
-            background: '#0a0a0a',
-            borderRadius: '24px 24px 0 0',
-            // vaul applies position:fixed bottom:0 left:0 right:0;
-            // margin:0 auto + maxWidth centers without colliding with
-            // vaul's transform-based drag math.
-            margin: '0 auto',
-            maxWidth: 420,
-            width: '100%',
-            maxHeight: '90vh',
-            overflowX: 'hidden',
-            overflowY: 'auto',
-            color: TXT_PRIMARY,
-            outline: 'none',
-            zIndex: 101,
+            padding: '24px 16px 10px',
+            textAlign: 'center',
           }}
         >
-          {/* vaul's accessible drag handle */}
-          <Drawer.Handle />
-
-          {/* SECTION 1 — HERO */}
-          <header
+          {category && (
+            <p
+              style={{
+                fontSize: 11,
+                color: PINK,
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                margin: '0 0 4px 0',
+              }}
+            >
+              {category}
+            </p>
+          )}
+          <h2
+            id="modal-name"
             style={{
-              padding: '24px 16px 10px',
-              textAlign: 'center',
+              fontSize: 20,
+              color: TXT_PRIMARY,
+              fontWeight: 500,
+              margin: '0 0 3px 0',
+              lineHeight: 1.2,
             }}
           >
-            {category && (
-              <p
-                style={{
-                  fontSize: 11,
-                  color: PINK,
-                  fontWeight: 700,
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  margin: '0 0 4px 0',
-                }}
-              >
-                {category}
-              </p>
-            )}
-            {/* Drawer.Title satisfies Radix a11y. Always rendered so
-                vaul's component tree stays stable across listing
-                transitions; text falls back to '' when null. */}
-            <Drawer.Title asChild>
-              <h2
-                style={{
-                  fontSize: 20,
-                  color: TXT_PRIMARY,
-                  fontWeight: 500,
-                  margin: '0 0 3px 0',
-                  lineHeight: 1.2,
-                }}
-              >
-                {listing?.professional_name ?? ''}
-              </h2>
-            </Drawer.Title>
-            {cityLine && (
-              <p style={{ fontSize: 12, color: TXT_SECONDARY, margin: '0 0 22px 0' }}>
-                {cityLine}
-              </p>
-            )}
+            {listing.professional_name}
+          </h2>
+          {cityLine && (
+            <p style={{ fontSize: 12, color: TXT_SECONDARY, margin: '0 0 22px 0' }}>
+              {cityLine}
+            </p>
+          )}
 
-            {hasRating && histogram && listing && (
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr 1fr',
-                  gap: 8,
-                }}
-              >
-                {/* Rating column */}
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    textAlign: 'center',
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 40,
-                      color: TXT_PRIMARY,
-                      fontWeight: 300,
-                      lineHeight: 1,
-                      marginBottom: 4,
-                      letterSpacing: -1,
-                    }}
-                  >
-                    {listing.rating!.toFixed(1)}
-                  </div>
-                  <div
-                    aria-label={`${listing.rating!.toFixed(1)} out of 5 stars`}
-                    style={{
-                      color: TXT_PRIMARY,
-                      fontSize: 13,
-                      letterSpacing: 1.5,
-                      marginBottom: 4,
-                    }}
-                  >
-                    ★★★★★
-                  </div>
-                  <div style={{ fontSize: 10, color: TXT_SECONDARY, lineHeight: 1.3 }}>
-                    {reviewCount} Google
-                    <br />
-                    reviews
-                  </div>
-                </div>
-
-                {/* Distribution bars: 5 rows, 5★ → 1★ top-to-bottom */}
-                <div
-                  role="list"
-                  aria-label="Star rating distribution"
-                  style={{
-                    gridColumn: '2 / 4',
-                    display: 'grid',
-                    gridTemplateColumns: 'auto 1fr auto',
-                    gap: '4px 8px',
-                    alignItems: 'center',
-                  }}
-                >
-                  {[4, 3, 2, 1, 0].map((idx) => {
-                    const count = histogram[idx]
-                    const pct = reviewCount > 0 ? (count / reviewCount) * 100 : 0
-                    return (
-                      <DistributionRow
-                        key={idx}
-                        star={idx + 1}
-                        count={count}
-                        widthPct={barsGrown ? pct : 0}
-                        textMuted={TXT_MUTED}
-                        textSecondary={TXT_SECONDARY}
-                        pink={PINK}
-                      />
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </header>
-
-          {/* SECTION 2 — QUICK ACTION ROW */}
-          {showQuickRow && (
+          {hasRating && histogram && (
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: `repeat(${visibleQuickButtons}, 1fr)`,
+                gridTemplateColumns: '1fr 1fr 1fr',
                 gap: 8,
-                padding: '14px 16px',
               }}
             >
-              {websiteUri && (
-                <QuickButton
-                  href={websiteUri}
-                  label="Website"
-                  icon={
-                    <>
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="2" y1="12" x2="22" y2="12" />
-                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                    </>
-                  }
-                  pink={PINK}
-                  cardBorder={CARD_BORDER}
-                  soft={TXT_SOFT}
-                />
-              )}
-              {mapsUri && (
-                <QuickButton
-                  href={mapsUri}
-                  label="Google Maps"
-                  icon={
-                    <>
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                      <circle cx="12" cy="10" r="3" />
-                    </>
-                  }
-                  pink={PINK}
-                  cardBorder={CARD_BORDER}
-                  soft={TXT_SOFT}
-                />
-              )}
-              {phone && (
-                <QuickButton
-                  href={`tel:${phone}`}
-                  label="Phone"
-                  icon={
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                  }
-                  pink={PINK}
-                  cardBorder={CARD_BORDER}
-                  soft={TXT_SOFT}
-                />
-              )}
+              {/* Rating column */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 40,
+                    color: TXT_PRIMARY,
+                    fontWeight: 300,
+                    lineHeight: 1,
+                    marginBottom: 4,
+                    letterSpacing: -1,
+                  }}
+                >
+                  {listing.rating!.toFixed(1)}
+                </div>
+                <div
+                  aria-label={`${listing.rating!.toFixed(1)} out of 5 stars`}
+                  style={{
+                    color: TXT_PRIMARY,
+                    fontSize: 13,
+                    letterSpacing: 1.5,
+                    marginBottom: 4,
+                  }}
+                >
+                  ★★★★★
+                </div>
+                <div style={{ fontSize: 10, color: TXT_SECONDARY, lineHeight: 1.3 }}>
+                  {reviewCount} Google
+                  <br />
+                  reviews
+                </div>
+              </div>
+
+              {/* Distribution bars: 5 rows, 5★ → 1★ top-to-bottom */}
+              <div
+                role="list"
+                aria-label="Star rating distribution"
+                style={{
+                  gridColumn: '2 / 4',
+                  display: 'grid',
+                  gridTemplateColumns: 'auto 1fr auto',
+                  gap: '4px 8px',
+                  alignItems: 'center',
+                }}
+              >
+                {[4, 3, 2, 1, 0].map((idx) => {
+                  const count = histogram[idx]
+                  const pct = reviewCount > 0 ? (count / reviewCount) * 100 : 0
+                  return (
+                    <DistributionRow
+                      key={idx}
+                      star={idx + 1}
+                      count={count}
+                      widthPct={barsGrown ? pct : 0}
+                      textMuted={TXT_MUTED}
+                      textSecondary={TXT_SECONDARY}
+                      pink={PINK}
+                    />
+                  )
+                })}
+              </div>
             </div>
           )}
+        </header>
 
-          {/* SECTION 3 — AI SUMMARY */}
-          {showSummary && (
-            <section style={{ padding: '10px 20px 20px' }}>
+        {/* SECTION 2 — QUICK ACTION ROW */}
+        {showQuickRow && (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: `repeat(${visibleQuickButtons}, 1fr)`,
+              gap: 8,
+              padding: '14px 16px',
+            }}
+          >
+            {websiteUri && (
+              <QuickButton
+                href={websiteUri}
+                label="Website"
+                icon={
+                  <>
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="2" y1="12" x2="22" y2="12" />
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                  </>
+                }
+                pink={PINK}
+                cardBorder={CARD_BORDER}
+                soft={TXT_SOFT}
+              />
+            )}
+            {mapsUri && (
+              <QuickButton
+                href={mapsUri}
+                label="Google Maps"
+                icon={
+                  <>
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </>
+                }
+                pink={PINK}
+                cardBorder={CARD_BORDER}
+                soft={TXT_SOFT}
+              />
+            )}
+            {phone && (
+              <QuickButton
+                href={`tel:${phone}`}
+                label="Phone"
+                icon={
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                }
+                pink={PINK}
+                cardBorder={CARD_BORDER}
+                soft={TXT_SOFT}
+              />
+            )}
+          </div>
+        )}
+
+        {/* SECTION 3 — AI SUMMARY */}
+        {showSummary && (
+          <section style={{ padding: '10px 20px 20px' }}>
+            <p
+              style={{
+                fontSize: 10,
+                color: TXT_SECONDARY,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                margin: '0 0 4px 0',
+              }}
+            >
+              AI summary of reviews
+            </p>
+            <p
+              style={{
+                fontFamily: 'Georgia, "Times New Roman", serif',
+                fontStyle: 'italic',
+                fontSize: 14,
+                color: TXT_PRIMARY,
+                lineHeight: 1.5,
+                margin: '0 0 4px 0',
+                letterSpacing: '0.01em',
+              }}
+            >
+              {`“${summary}”`}
+            </p>
+            {showGeminiDisclosure && (
               <p
                 style={{
                   fontSize: 10,
-                  color: TXT_SECONDARY,
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  margin: '0 0 4px 0',
+                  color: TXT_TERTIARY,
+                  margin: 0,
+                  fontStyle: 'normal',
+                  fontFamily: 'inherit',
                 }}
               >
-                AI summary of reviews
+                Summarized with Gemini
               </p>
-              <p
-                style={{
-                  fontFamily: 'Georgia, "Times New Roman", serif',
-                  fontStyle: 'italic',
-                  fontSize: 14,
-                  color: TXT_PRIMARY,
-                  lineHeight: 1.5,
-                  margin: '0 0 4px 0',
-                  letterSpacing: '0.01em',
-                }}
-              >
-                {`“${summary}”`}
-              </p>
-              {showGeminiDisclosure && (
-                <p
-                  style={{
-                    fontSize: 10,
-                    color: TXT_TERTIARY,
-                    margin: 0,
-                    fontStyle: 'normal',
-                    fontFamily: 'inherit',
-                  }}
-                >
-                  Summarized with Gemini
-                </p>
-              )}
-            </section>
-          )}
+            )}
+          </section>
+        )}
 
-          {/* SECTION 4 — DEMAND LINE */}
-          {showDemand && listing && (
-            <p
+        {/* SECTION 4 — DEMAND LINE */}
+        {showDemand && (
+          <p
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0 20px 14px',
+              fontSize: 11,
+              color: PINK,
+              fontWeight: 500,
+              textAlign: 'center',
+              margin: 0,
+            }}
+          >
+            {listing.messaged_30d} people messaged in the last 30 days
+          </p>
+        )}
+
+        {/* SECTION 5 — SEND WHATSAPP — native <a href> with no target so
+            wa.me hands off to the WhatsApp app on iOS. Previously this
+            was a <button onClick=window.open(_blank)> which (a) bypassed
+            the WhatsApp Universal Link handoff and (b) tripped the iOS
+            26.0.1 post-_blank interactivity-loss bug — same root cause
+            as the Maps/Phone fix in 3e8a3e7. onClick fires analytics
+            only (keepalive:true survives the navigation); we do NOT
+            preventDefault so the native nav proceeds. Edge case: if
+            waDigits is empty, href is omitted — analytics still fire,
+            no navigation (matches prior behavior). */}
+        {showSendWhatsapp && (
+          <div style={{ padding: '0 20px 8px' }}>
+            <a
+              href={waDigits ? `https://wa.me/${waDigits}` : undefined}
+              onClick={() =>
+                fireModalEvent(slug, 'listing_whatsapp_modal_click', listing.id)
+              }
+              className="decode-modal__btn-primary"
+              aria-label={`Send WhatsApp message to ${listing.professional_name}`}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '0 20px 14px',
-                fontSize: 11,
-                color: PINK,
-                fontWeight: 500,
-                textAlign: 'center',
-                margin: 0,
+                width: '100%',
+                padding: '16px 0',
+                background: PINK,
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: 12,
+                fontSize: 15,
+                fontWeight: 700,
+                letterSpacing: 0.2,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                textDecoration: 'none',
+                boxSizing: 'border-box',
               }}
             >
-              {listing.messaged_30d} people messaged in the last 30 days
-            </p>
-          )}
+              Send WhatsApp
+            </a>
+          </div>
+        )}
 
-          {/* SECTION 5 — SEND WHATSAPP — native <a href> with no
-              target so wa.me hands off to the WhatsApp app on iOS. */}
-          {showSendWhatsapp && listing && (
-            <div style={{ padding: '0 20px 8px' }}>
-              <a
-                href={waDigits ? `https://wa.me/${waDigits}` : undefined}
-                onClick={() =>
-                  fireModalEvent(
-                    slug,
-                    'listing_whatsapp_modal_click',
-                    listing.id,
-                  )
-                }
-                className="decode-modal__btn-primary"
-                aria-label={`Send WhatsApp message to ${listing.professional_name}`}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '100%',
-                  padding: '16px 0',
-                  background: PINK,
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: 12,
-                  fontSize: 15,
-                  fontWeight: 700,
-                  letterSpacing: 0.2,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  textDecoration: 'none',
-                  boxSizing: 'border-box',
-                }}
-              >
-                Send WhatsApp
-              </a>
-            </div>
-          )}
-
-          {/* SECTION 6 — CANCEL — onClose triggers the same path as
-              overlay tap and Escape. */}
-          <div
+        {/* SECTION 6 — CANCEL */}
+        <div
+          style={{
+            padding: '14px 20px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <button
+            type="button"
+            onClick={requestClose}
+            className="decode-modal__cancel"
             style={{
-              padding: '14px 20px 18px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              color: TXT_SECONDARY,
+              fontSize: 13,
+              cursor: 'pointer',
+              background: 'transparent',
+              border: 'none',
+              padding: 0,
+              fontFamily: 'inherit',
             }}
           >
-            <button
-              type="button"
-              onClick={onClose}
-              className="decode-modal__cancel"
-              style={{
-                color: TXT_SECONDARY,
-                fontSize: 13,
-                cursor: 'pointer',
-                background: 'transparent',
-                border: 'none',
-                padding: 0,
-                fontFamily: 'inherit',
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.Root>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -616,9 +649,15 @@ function QuickButton({
   cardBorder: string
   soft: string
 }) {
-  // Native same-tab <a href> — no target. _blank bypasses iOS
-  // Universal Link handoff and trips the iOS 26.0.1 post-_blank
-  // interactivity-loss bug (fixed in 3e8a3e7).
+  // All three quick-actions navigate same-tab: tel: launches the dialer,
+  // the Maps universal link hands off to the Maps app, Website opens
+  // in-tab (back button returns). target="_blank" was actively harmful:
+  // (1) it bypasses iOS Universal Link handoff so the Maps tap opens
+  //     in-browser/prompts instead of launching the app (Adjust docs);
+  // (2) iOS 26.0.1 Safari has a documented bug where a page loses
+  //     interactivity for all subsequent taps after the first
+  //     target="_blank" tap, which froze the modal post-tap.
+  // rel="noopener" is only meaningful with target="_blank" — dropped too.
   return (
     <a
       href={href}
