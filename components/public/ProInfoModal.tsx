@@ -640,14 +640,18 @@ function QuickButton({
   cardBorder: string
   soft: string
 }) {
-  // tel: stays in-tab (matches mockup which omits target on tel:). External
-  // links open in a new tab + noopener for security parity with SquadRow.
-  const isTel = href.startsWith('tel:')
+  // All three quick-actions navigate same-tab: tel: launches the dialer,
+  // the Maps universal link hands off to the Maps app, Website opens
+  // in-tab (back button returns). target="_blank" was actively harmful:
+  // (1) it bypasses iOS Universal Link handoff so the Maps tap opens
+  //     in-browser/prompts instead of launching the app (Adjust docs);
+  // (2) iOS 26.0.1 Safari has a documented bug where a page loses
+  //     interactivity for all subsequent taps after the first
+  //     target="_blank" tap, which froze the modal post-tap.
+  // rel="noopener" is only meaningful with target="_blank" — dropped too.
   return (
     <a
       href={href}
-      target={isTel ? undefined : '_blank'}
-      rel={isTel ? undefined : 'noopener'}
       className="decode-modal__quick-btn"
       style={{
         display: 'flex',
