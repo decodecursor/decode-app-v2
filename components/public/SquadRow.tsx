@@ -108,13 +108,18 @@ export function SquadRow({
   }
 
   // Trust row segment selection — graceful degradation per spec §10.
-  // Messaged segment: prefer the ≥10 count over the relative-time fallback;
-  // hide both (and the separator) when neither applies.
+  // Demand segment cascade (priority order):
+  //   1. messaged_30d ≥ 10              → "{N} in 30d"     + pulse
+  //   2. messaged_30d ≥ 1 & last≤7d     → "Last msg Xd ago"
+  //   3. messaged_30d = 0               → "New"            (always-on; hardening item 49)
+  //   (else — 1-9 with stale last_msg)  → hidden
+  // Pulse stays exclusive to state 1.
   const hasRating = typeof listing.rating === 'number' && listing.rating > 0
   const showMessagedCount = listing.messaged_30d >= MESSAGED_THRESHOLD
   const lastMsgLabel = showMessagedCount ? null : formatLastMsgAgo(listing.last_msg_at)
   const showLastMsg = !!lastMsgLabel
-  const showMessagedSegment = showMessagedCount || showLastMsg
+  const showNewState = listing.messaged_30d === 0
+  const showMessagedSegment = showMessagedCount || showLastMsg || showNewState
   const showSeparator = hasRating && showMessagedSegment
   const showTrustRow = hasRating || showMessagedSegment
   const pulseActive = showMessagedCount
@@ -324,7 +329,9 @@ export function SquadRow({
                 </svg>
                 {showMessagedCount
                   ? `${listing.messaged_30d} in 30d`
-                  : `Last msg ${lastMsgLabel}`}
+                  : showLastMsg
+                    ? `Last msg ${lastMsgLabel}`
+                    : 'New'}
               </span>
             )}
           </div>
