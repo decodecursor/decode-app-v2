@@ -362,24 +362,10 @@ export function ProInfoModal({
           willChange: dragActive ? 'transform' : undefined,
         }}
       >
-        {/* DRAG HANDLE — purely decorative cue. Drag-to-dismiss
-            initiates from anywhere on the modal (handled on the
-            modal container above); the buttons handle their own
-            taps. */}
-        <div
-          aria-hidden="true"
-          style={{
-            width: 36,
-            height: 5,
-            background: 'rgba(255, 255, 255, 0.3)',
-            borderRadius: 999,
-            margin: '8px auto 0',
-          }}
-        />
         {/* SECTION 1 — HERO */}
         <header
           style={{
-            padding: '11px 16px 10px',
+            padding: '24px 16px 10px',
             textAlign: 'center',
           }}
         >
