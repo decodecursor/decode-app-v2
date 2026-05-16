@@ -68,12 +68,7 @@ export function PublicHeader({
         style={{
           position: 'absolute',
           top: 12,
-          left: 0,
-          right: 0,
-          padding: '0 20px',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
+          right: 20,
           zIndex: 2,
         }}
       >
