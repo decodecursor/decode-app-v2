@@ -210,10 +210,6 @@ export function ProInfoModal({
   const showSendWhatsapp = !!listing.whatsapp_number
 
   const waDigits = listing.whatsapp_number?.replace(/[^0-9]/g, '') ?? ''
-  const onSendWhatsappClick = () => {
-    fireModalEvent(slug, 'listing_whatsapp_modal_click', listing.id)
-    if (waDigits) window.open(`https://wa.me/${waDigits}`, '_blank', 'noopener')
-  }
 
   // ---- Style tokens (mirror :root in decode_pro_info_modal.html) ----
   const PINK = '#e91e8c'
@@ -495,12 +491,23 @@ export function ProInfoModal({
           </p>
         )}
 
-        {/* SECTION 5 — SEND WHATSAPP */}
+        {/* SECTION 5 — SEND WHATSAPP — native <a href> with no target so
+            wa.me hands off to the WhatsApp app on iOS. Previously this
+            was a <button onClick=window.open(_blank)> which (a) bypassed
+            the WhatsApp Universal Link handoff and (b) tripped the iOS
+            26.0.1 post-_blank interactivity-loss bug — same root cause
+            as the Maps/Phone fix in 3e8a3e7. onClick fires analytics
+            only (keepalive:true survives the navigation); we do NOT
+            preventDefault so the native nav proceeds. Edge case: if
+            waDigits is empty, href is omitted — analytics still fire,
+            no navigation (matches prior behavior). */}
         {showSendWhatsapp && (
           <div style={{ padding: '0 20px 8px' }}>
-            <button
-              type="button"
-              onClick={onSendWhatsappClick}
+            <a
+              href={waDigits ? `https://wa.me/${waDigits}` : undefined}
+              onClick={() =>
+                fireModalEvent(slug, 'listing_whatsapp_modal_click', listing.id)
+              }
               className="decode-modal__btn-primary"
               aria-label={`Send WhatsApp message to ${listing.professional_name}`}
               style={{
@@ -518,10 +525,12 @@ export function ProInfoModal({
                 letterSpacing: 0.2,
                 cursor: 'pointer',
                 fontFamily: 'inherit',
+                textDecoration: 'none',
+                boxSizing: 'border-box',
               }}
             >
               Send WhatsApp
-            </button>
+            </a>
           </div>
         )}
 

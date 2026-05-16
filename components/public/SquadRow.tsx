@@ -99,12 +99,15 @@ export function SquadRow({
   // WhatsApp badge tap. stopPropagation FIRST per spec §13 Safety Rule 2
   // (the badge sits inside the av-wrap; today no parent onClick exists,
   // but the rule is belt-and-suspenders so future parent handlers can't
-  // accidentally fire the IG link or open the modal).
+  // accidentally fire the IG link or open the modal). NO preventDefault —
+  // native <a> nav must proceed so wa.me hands to the WhatsApp app on
+  // iOS (window.open(_blank) bypassed the Universal Link handoff and
+  // tripped the iOS 26.0.1 post-_blank interactivity-loss bug — same
+  // root cause as the modal Maps/Phone fix in 3e8a3e7).
   const waDigits = listing.whatsapp_number?.replace(/[^0-9]/g, '') ?? ''
-  const onWhatsappClick = (e: MouseEvent<HTMLButtonElement>) => {
+  const onWhatsappClick = (e: MouseEvent<HTMLAnchorElement>) => {
     e.stopPropagation()
     fireClick(slug, 'listing_whatsapp_badge_click', listing.id)
-    if (waDigits) window.open(`https://wa.me/${waDigits}`, '_blank', 'noopener')
   }
 
   // Trust row segment selection — graceful degradation per spec §10.
@@ -193,8 +196,8 @@ export function SquadRow({
             sibling <span>; the parent uses overflow:visible so the pulse
             can scale past the badge bounds. */}
         {listing.whatsapp_number && (
-          <button
-            type="button"
+          <a
+            href={waDigits ? `https://wa.me/${waDigits}` : undefined}
             onClick={onWhatsappClick}
             aria-label={`Message ${listing.professional_name} on WhatsApp`}
             style={{
@@ -213,6 +216,7 @@ export function SquadRow({
               justifyContent: 'center',
               overflow: 'visible',
               boxSizing: 'border-box',
+              textDecoration: 'none',
             }}
           >
             {pulseActive && (
@@ -245,7 +249,7 @@ export function SquadRow({
               <path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21" />
               <path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1" />
             </svg>
-          </button>
+          </a>
         )}
       </div>
 
