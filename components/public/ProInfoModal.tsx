@@ -8,8 +8,6 @@ import {
   useState,
   type CSSProperties,
   type MouseEvent,
-  type PointerEvent as ReactPointerEvent,
-  type TouchEvent as ReactTouchEvent,
 } from 'react'
 import type { PublicListingRow } from '@/lib/public/slug-page-shape'
 import { categoryText } from '@/lib/public/slug-page-shape'
@@ -50,13 +48,6 @@ const CLOSE_ANIMATION_MS = 200
 // modal open animation lands (~50ms stagger + 200ms slide = 250ms).
 const BARS_GROW_DELAY_MS = 250
 
-// Swipe-to-dismiss thresholds. Either condition closes: absolute distance
-// past 100px, OR relative distance past 25% of modal height. Snap-back
-// transition matches the open/close keyframe rhythm (200ms ease-out).
-const DRAG_CLOSE_PX = 100
-const DRAG_CLOSE_RATIO = 0.25
-const DRAG_SNAP_MS = 200
-
 function prefersReducedMotion(): boolean {
   if (typeof window === 'undefined') return false
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
@@ -75,31 +66,6 @@ export function ProInfoModal({
   const firedOpenRef = useRef(false)
   const [closing, setClosing] = useState(false)
   const [barsGrown, setBarsGrown] = useState(false)
-
-  // Drag-to-dismiss state. dragOffset drives both the modal's translateY
-  // and the backdrop opacity. snapping = post-release transition mode:
-  // 'back' (snap-back to 0) or 'close' (slide off, then unmount).
-  // dragOffsetRef shadows state so onPointerUp reads the final value
-  // synchronously (state from the last onPointerMove may not be flushed
-  // by the time pointer-up runs). modalHeightRef is captured at
-  // pointer-down so threshold math stays stable mid-drag.
-  const [dragOffset, setDragOffset] = useState(0)
-  const [snapping, setSnapping] = useState<'back' | 'close' | null>(null)
-  const draggingRef = useRef(false)
-  const dragStartYRef = useRef<number | null>(null)
-  const dragOffsetRef = useRef(0)
-  const modalHeightRef = useRef(0)
-  // Holds the non-passive touchmove listener while a drag is in flight.
-  // The listener is attached imperatively on touchstart over a
-  // non-interactive area and removed on touchend/touchcancel — it must
-  // NOT live on the modal for its whole lifetime. iOS Safari rewrites
-  // its touch-dispatch model the moment any non-passive touchmove
-  // listener is registered, which breaks the synchronous user-gesture
-  // → tel: chain iOS requires for privileged schemes. Keeping the
-  // listener ephemeral means a tap on the Phone anchor never triggers
-  // that rewrite.
-  const dragMoveListenerRef = useRef<((e: TouchEvent) => void) | null>(null)
-  const reducedMotion = useMemo(() => prefersReducedMotion(), [])
 
   const requestClose = useCallback(() => {
     setClosing((c) => {
@@ -196,129 +162,9 @@ export function ProInfoModal({
     return () => clearTimeout(t)
   }, [])
 
-  // Detach the ephemeral non-passive touchmove listener (if attached).
-  // Idempotent — safe to call from any gesture-end path.
-  const detachDragMoveListener = useCallback(() => {
-    const handler = dragMoveListenerRef.current
-    if (!handler) return
-    modalRef.current?.removeEventListener('touchmove', handler)
-    dragMoveListenerRef.current = null
-  }, [])
-
-  // Component-unmount safety net — if the modal unmounts mid-drag (e.g.,
-  // close fires before touchend lands), the listener still needs to go
-  // so it doesn't leak past the element.
-  useEffect(() => detachDragMoveListener, [detachDragMoveListener])
-
   const onBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) requestClose()
   }
-
-  // --- Drag-to-dismiss handlers ---
-  //
-  // Init binds to the modal itself — drag down anywhere except the
-  // interactive buttons (Website / Maps / Phone / Send WhatsApp /
-  // Cancel) which keep their tap behavior. Pointer capture latches
-  // onto the modal so move/up still fire even if the finger leaves
-  // it mid-drag. We deliberately do NOT set touch-action:none on
-  // the modal — pairing it with bubbling pointer handlers blocks
-  // click delivery on touch devices (iOS Safari especially), and
-  // since the modal isn't scrollable in normal use, the browser
-  // doesn't try to claim a downward gesture as native scroll.
-  const onModalPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (closing || snapping) return
-    // Tap on a button or link → let the button handle it. We don't
-    // capture the pointer, so the click event still fires normally.
-    if ((e.target as HTMLElement).closest('button, a, input, select, textarea')) return
-    dragStartYRef.current = e.clientY
-    dragOffsetRef.current = 0
-    modalHeightRef.current = modalRef.current?.offsetHeight ?? 0
-    draggingRef.current = true
-    modalRef.current?.setPointerCapture(e.pointerId)
-  }
-
-  const onModalPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!draggingRef.current || dragStartYRef.current == null) return
-    const delta = e.clientY - dragStartYRef.current
-    const next = delta > 0 ? delta : 0
-    dragOffsetRef.current = next
-    setDragOffset(next)
-  }
-
-  const endDrag = (e: ReactPointerEvent<HTMLDivElement>, cancelled: boolean) => {
-    if (!draggingRef.current) return
-    draggingRef.current = false
-    if (modalRef.current?.hasPointerCapture?.(e.pointerId)) {
-      modalRef.current.releasePointerCapture(e.pointerId)
-    }
-    const offset = dragOffsetRef.current
-    const h = modalHeightRef.current
-    dragStartYRef.current = null
-
-    const shouldClose =
-      !cancelled && (offset > DRAG_CLOSE_PX || (h > 0 && offset > h * DRAG_CLOSE_RATIO))
-
-    if (shouldClose) {
-      if (reducedMotion) {
-        onClose()
-        return
-      }
-      // Drive a one-shot transform transition off-screen. We bypass the
-      // existing keyframe-based close path (setClosing) because that
-      // animates from translateY(0) — re-snapping the modal back to rest
-      // before sliding down would look broken when the user already
-      // dragged it partway.
-      setSnapping('close')
-      dragOffsetRef.current = window.innerHeight
-      setDragOffset(window.innerHeight)
-      setTimeout(() => onClose(), DRAG_SNAP_MS)
-      return
-    }
-
-    if (reducedMotion) {
-      dragOffsetRef.current = 0
-      setDragOffset(0)
-      return
-    }
-    setSnapping('back')
-    dragOffsetRef.current = 0
-    setDragOffset(0)
-    setTimeout(() => setSnapping(null), DRAG_SNAP_MS)
-  }
-
-  const onModalPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => endDrag(e, false)
-  const onModalPointerCancel = (e: ReactPointerEvent<HTMLDivElement>) => endDrag(e, true)
-
-  // Touch handlers — manage the EPHEMERAL non-passive touchmove
-  // listener. React's onTouchStart/onTouchEnd are passive; we use them
-  // only to attach/detach the imperative non-passive listener.
-  //
-  // Tap on an interactive child (button/anchor) returns immediately
-  // with no listener attached — iOS sees a pristine user gesture and
-  // tel:/wa.me/etc navigation proceeds normally.
-  const onModalTouchStart = (e: ReactTouchEvent<HTMLDivElement>) => {
-    if (closing || snapping) return
-    if ((e.target as HTMLElement).closest('button, a, input, select, textarea')) return
-    detachDragMoveListener()
-    const modal = modalRef.current
-    if (!modal) return
-    const handler = (ev: TouchEvent) => {
-      if (draggingRef.current) ev.preventDefault()
-    }
-    modal.addEventListener('touchmove', handler, { passive: false })
-    dragMoveListenerRef.current = handler
-  }
-
-  const onModalTouchEndOrCancel = () => detachDragMoveListener()
-
-  // Modal transform + backdrop opacity derived from dragOffset. While
-  // idle (no drag, no snap), leave both unset so the CSS keyframes
-  // (open + close) own the visual. During drag or snap, inline styles
-  // override.
-  const dragActive = draggingRef.current || snapping !== null
-  const modalH = modalHeightRef.current || 1
-  const backdropFade = Math.max(0, 1 - dragOffset / modalH)
-  const backdropAlpha = dragActive ? 0.6 * backdropFade : 0.6
 
   // Derived view state
   const category = categoryText(listing)
@@ -377,12 +223,7 @@ export function ProInfoModal({
         position: 'fixed',
         inset: 0,
         zIndex: 100,
-        background: `rgba(0, 0, 0, ${backdropAlpha})`,
-        // Inline opacity transition is only present mid-snap; during
-        // active drag we leave it 'none' so every pointer-move repaints
-        // immediately. Idle/open uses the keyframe class — no inline
-        // background change to transition from.
-        transition: snapping ? `background ${DRAG_SNAP_MS}ms ease-out` : 'none',
+        background: 'rgba(0, 0, 0, 0.6)',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'flex-end',
@@ -394,13 +235,6 @@ export function ProInfoModal({
         aria-modal="true"
         aria-labelledby="modal-name"
         className={closing ? 'decode-modal decode-modal--closing' : 'decode-modal'}
-        onPointerDown={onModalPointerDown}
-        onPointerMove={onModalPointerMove}
-        onPointerUp={onModalPointerUp}
-        onPointerCancel={onModalPointerCancel}
-        onTouchStart={onModalTouchStart}
-        onTouchEnd={onModalTouchEndOrCancel}
-        onTouchCancel={onModalTouchEndOrCancel}
         style={{
           background: BG,
           borderRadius: '24px 24px 0 0',
@@ -410,9 +244,6 @@ export function ProInfoModal({
           overflowX: 'hidden',
           overflowY: 'auto',
           color: TXT_PRIMARY,
-          transform: dragActive ? `translateY(${dragOffset}px)` : undefined,
-          transition: snapping ? `transform ${DRAG_SNAP_MS}ms ease-out` : 'none',
-          willChange: dragActive ? 'transform' : undefined,
         }}
       >
         {/* SECTION 1 — HERO */}
@@ -675,7 +506,6 @@ export function ProInfoModal({
                 letterSpacing: 0.2,
                 cursor: 'pointer',
                 fontFamily: 'inherit',
-                touchAction: 'manipulation',
               }}
             >
               Send WhatsApp
@@ -704,7 +534,6 @@ export function ProInfoModal({
               border: 'none',
               padding: 0,
               fontFamily: 'inherit',
-              touchAction: 'manipulation',
             }}
           >
             Cancel
@@ -823,7 +652,6 @@ function QuickButton({
         textDecoration: 'none',
         fontFamily: 'inherit',
         transition: 'filter 0.15s, background 0.15s',
-        touchAction: 'manipulation',
       }}
     >
       <svg viewBox="0 0 24 24" aria-hidden="true" style={{ ...QUICK_ICON_STYLE, stroke: pink }}>
