@@ -8,6 +8,7 @@ import {
   useState,
   type CSSProperties,
   type MouseEvent,
+  type PointerEvent as ReactPointerEvent,
 } from 'react'
 import type { PublicListingRow } from '@/lib/public/slug-page-shape'
 import { categoryText } from '@/lib/public/slug-page-shape'
@@ -48,6 +49,13 @@ const CLOSE_ANIMATION_MS = 200
 // modal open animation lands (~50ms stagger + 200ms slide = 250ms).
 const BARS_GROW_DELAY_MS = 250
 
+// Swipe-to-dismiss thresholds. Either condition closes: absolute distance
+// past 100px, OR relative distance past 25% of modal height. Snap-back
+// transition matches the open/close keyframe rhythm (200ms ease-out).
+const DRAG_CLOSE_PX = 100
+const DRAG_CLOSE_RATIO = 0.25
+const DRAG_SNAP_MS = 200
+
 function prefersReducedMotion(): boolean {
   if (typeof window === 'undefined') return false
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
@@ -63,9 +71,25 @@ export function ProInfoModal({
   onClose: () => void
 }) {
   const modalRef = useRef<HTMLDivElement>(null)
+  const heroRef = useRef<HTMLDivElement>(null)
   const firedOpenRef = useRef(false)
   const [closing, setClosing] = useState(false)
   const [barsGrown, setBarsGrown] = useState(false)
+
+  // Drag-to-dismiss state. dragOffset drives both the modal's translateY
+  // and the backdrop opacity. snapping = post-release transition mode:
+  // 'back' (snap-back to 0) or 'close' (slide off, then unmount).
+  // dragOffsetRef shadows state so onPointerUp reads the final value
+  // synchronously (state from the last onPointerMove may not be flushed
+  // by the time pointer-up runs). modalHeightRef is captured at
+  // pointer-down so threshold math stays stable mid-drag.
+  const [dragOffset, setDragOffset] = useState(0)
+  const [snapping, setSnapping] = useState<'back' | 'close' | null>(null)
+  const draggingRef = useRef(false)
+  const dragStartYRef = useRef<number | null>(null)
+  const dragOffsetRef = useRef(0)
+  const modalHeightRef = useRef(0)
+  const reducedMotion = useMemo(() => prefersReducedMotion(), [])
 
   const requestClose = useCallback(() => {
     setClosing((c) => {
@@ -166,6 +190,88 @@ export function ProInfoModal({
     if (e.target === e.currentTarget) requestClose()
   }
 
+  // --- Drag-to-dismiss handlers ---
+  //
+  // Init binds to the hero region only (drag handle, eyebrow, name, city,
+  // rating column) — touching the AI summary / quick buttons / WhatsApp
+  // button / Cancel button must not start a drag. Pointer capture moves
+  // to the modal element so move/up still fire even if the finger leaves
+  // the hero mid-drag. touch-action:none on the hero prevents the browser
+  // from claiming the gesture as a vertical scroll while we own it.
+  const onHeroPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (closing || snapping) return
+    // Don't initiate from interactive descendants (none today, but
+    // future-proof so adding a tappable element to the hero doesn't
+    // silently break it).
+    if ((e.target as HTMLElement).closest('button, a, input, select, textarea')) return
+    dragStartYRef.current = e.clientY
+    dragOffsetRef.current = 0
+    modalHeightRef.current = modalRef.current?.offsetHeight ?? 0
+    draggingRef.current = true
+    modalRef.current?.setPointerCapture(e.pointerId)
+  }
+
+  const onModalPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!draggingRef.current || dragStartYRef.current == null) return
+    const delta = e.clientY - dragStartYRef.current
+    const next = delta > 0 ? delta : 0
+    dragOffsetRef.current = next
+    setDragOffset(next)
+  }
+
+  const endDrag = (e: ReactPointerEvent<HTMLDivElement>, cancelled: boolean) => {
+    if (!draggingRef.current) return
+    draggingRef.current = false
+    if (modalRef.current?.hasPointerCapture?.(e.pointerId)) {
+      modalRef.current.releasePointerCapture(e.pointerId)
+    }
+    const offset = dragOffsetRef.current
+    const h = modalHeightRef.current
+    dragStartYRef.current = null
+
+    const shouldClose =
+      !cancelled && (offset > DRAG_CLOSE_PX || (h > 0 && offset > h * DRAG_CLOSE_RATIO))
+
+    if (shouldClose) {
+      if (reducedMotion) {
+        onClose()
+        return
+      }
+      // Drive a one-shot transform transition off-screen. We bypass the
+      // existing keyframe-based close path (setClosing) because that
+      // animates from translateY(0) — re-snapping the modal back to rest
+      // before sliding down would look broken when the user already
+      // dragged it partway.
+      setSnapping('close')
+      dragOffsetRef.current = window.innerHeight
+      setDragOffset(window.innerHeight)
+      setTimeout(() => onClose(), DRAG_SNAP_MS)
+      return
+    }
+
+    if (reducedMotion) {
+      dragOffsetRef.current = 0
+      setDragOffset(0)
+      return
+    }
+    setSnapping('back')
+    dragOffsetRef.current = 0
+    setDragOffset(0)
+    setTimeout(() => setSnapping(null), DRAG_SNAP_MS)
+  }
+
+  const onModalPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => endDrag(e, false)
+  const onModalPointerCancel = (e: ReactPointerEvent<HTMLDivElement>) => endDrag(e, true)
+
+  // Modal transform + backdrop opacity derived from dragOffset. While
+  // idle (no drag, no snap), leave both unset so the CSS keyframes
+  // (open + close) own the visual. During drag or snap, inline styles
+  // override.
+  const dragActive = draggingRef.current || snapping !== null
+  const modalH = modalHeightRef.current || 1
+  const backdropFade = Math.max(0, 1 - dragOffset / modalH)
+  const backdropAlpha = dragActive ? 0.6 * backdropFade : 0.6
+
   // Derived view state
   const category = categoryText(listing)
   const cityLine = formatLocation(listing.professional_city, listing.professional_country)
@@ -220,7 +326,12 @@ export function ProInfoModal({
         position: 'fixed',
         inset: 0,
         zIndex: 100,
-        background: 'rgba(0, 0, 0, 0.6)',
+        background: `rgba(0, 0, 0, ${backdropAlpha})`,
+        // Inline opacity transition is only present mid-snap; during
+        // active drag we leave it 'none' so every pointer-move repaints
+        // immediately. Idle/open uses the keyframe class — no inline
+        // background change to transition from.
+        transition: snapping ? `background ${DRAG_SNAP_MS}ms ease-out` : 'none',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'flex-end',
@@ -232,21 +343,47 @@ export function ProInfoModal({
         aria-modal="true"
         aria-labelledby="modal-name"
         className={closing ? 'decode-modal decode-modal--closing' : 'decode-modal'}
+        onPointerMove={onModalPointerMove}
+        onPointerUp={onModalPointerUp}
+        onPointerCancel={onModalPointerCancel}
         style={{
           background: BG,
           borderRadius: '24px 24px 0 0',
-          maxWidth: 380,
+          maxWidth: 420,
           width: '100%',
           maxHeight: '90vh',
           overflowX: 'hidden',
           overflowY: 'auto',
           color: TXT_PRIMARY,
+          transform: dragActive ? `translateY(${dragOffset}px)` : undefined,
+          transition: snapping ? `transform ${DRAG_SNAP_MS}ms ease-out` : 'none',
+          willChange: dragActive ? 'transform' : undefined,
         }}
       >
+        {/* DRAG HANDLE + HERO — pointer-down here initiates the
+            swipe-to-dismiss gesture. touch-action:none lets us own
+            vertical movement instead of yielding it to native scroll
+            (the modal itself is overflow:auto, but the hero is its
+            top, so there's nothing above it to scroll up to anyway). */}
+        <div
+          ref={heroRef}
+          onPointerDown={onHeroPointerDown}
+          style={{ touchAction: 'none' }}
+        >
+          <div
+            aria-hidden="true"
+            style={{
+              width: 36,
+              height: 5,
+              background: 'rgba(255, 255, 255, 0.3)',
+              borderRadius: 999,
+              margin: '8px auto 0',
+            }}
+          />
         {/* SECTION 1 — HERO */}
         <header
           style={{
-            padding: '24px 16px 10px',
+            padding: '11px 16px 10px',
             textAlign: 'center',
           }}
         >
@@ -361,6 +498,7 @@ export function ProInfoModal({
             </div>
           )}
         </header>
+        </div>
 
         {/* SECTION 2 — QUICK ACTION ROW */}
         {showQuickRow && (
