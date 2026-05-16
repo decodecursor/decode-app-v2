@@ -2059,7 +2059,62 @@ The original Trust Stack closeout list bundled a separate "New" demand-badge 60-
 
 ## Trust Stack closeout — pre-V1 cleanup reminders
 
-- **Synthetic analytics on Yanni's listings.** Seeded `listing_whatsapp_badge_click` + `listing_whatsapp_modal_click` rows on Yanni's listings (used for end-to-end smoke testing the demand row text + the `messaged_30d ≥ 10` WhatsApp-badge pulse) still need a cleanup `DELETE` before V1 sign-off. The pulse demonstration and the "N in 30d" copy were verified live; the seed rows now bias real analytics. Pair with pre-launch checklist item 1 reset.
+- ~~**Synthetic analytics on Yanni's listings.** Seeded `listing_whatsapp_badge_click` + `listing_whatsapp_modal_click` rows on Yanni's listings (used for end-to-end smoke testing the demand row text + the `messaged_30d ≥ 10` WhatsApp-badge pulse) still need a cleanup `DELETE` before V1 sign-off. The pulse demonstration and the "N in 30d" copy were verified live; the seed rows now bias real analytics. Pair with pre-launch checklist item 1 reset.~~ **CLOSED 2026-05-16:** synthetic WhatsApp analytics events on Yanni's listings (`model_id 84f2c536…`) purged pre-launch; analytics now real-only.
+
+---
+
+## Trust Stack slice — closeout retro (2026-05-16, final state `24a6505`)
+
+### Shipped
+
+- **Trust row** on squad cards: Google rating + review count + 3 demand states (`💬 New` / `💬 Last msg Xd ago` / `💬 {N} in 30d`) with WhatsApp-badge pulse at `messaged_30d ≥ 10`.
+- **Pro Info modal**: rating column + J-curve distribution estimate + Gemini `gemini-2.5-flash` review summary + Website / Google Maps / Phone quick actions + demand line + Send WhatsApp.
+- **Ambassador IG button** (top-left of cover, mirrors share button top-right).
+- **Client-side video thumbnails** for squad media orbs.
+- **All public-page outbound links converted to native same-tab `<a href>`** (no `target`, no `window.open`) for `tel:` / `wa.me` / Maps universal-link handoff to iOS apps.
+
+### What went well
+
+- Schema / API / modal chunks landed cleanly via the **additive-surgery + canonical-first** doctrine — the migration was authored once, the API shape was settled once, and the modal was built against both without re-litigating either.
+- The iOS link-handoff root cause was diagnosed **evidence-first**, not by trial-and-error: `target="_blank"` (and `window.open(..., '_blank')`) breaks `tel:` and universal-link (Maps / WhatsApp) handoff on iOS Safari, and additionally trips an iOS 26 page-interactivity-loss bug. Fixed in `3e8a3e7` + `c32abcd` by converting all quick-action and WhatsApp surfaces to plain `<a href>` with no `target`.
+
+### Swipe-to-dismiss post-mortem (dropped for V1 — hardening item 54)
+
+Attempted 4x; standard Cancel / backdrop / Escape close shipped. Failure surface:
+
+- **Attempt 1 (×3 iterations):** hand-rolled touch handlers broke the `tel:` user-activation chain — a non-passive `touchmove` listener taints iOS's user-activation, so Phone stopped dialing.
+- **Attempts 2–4 (vaul library):** failed in our exact configuration — a controlled drawer with `modal={false}` whose `open` is set externally (not via `<Drawer.Trigger>`). Documented bug: vaul's `useControllableState` never resets `document.body{pointer-events:none}`, leaving the entire page unclickable (vaul issues **#492 / #534 / #509**). Switching to `modal={true}` instead froze the screen via a stuck body inert-lock.
+- **Library-switch dead-end:** shadcn-ui issue **#8507** independently confirms vaul Drawer is unreliable for iOS pointer isolation, with Radix Sheet as the documented alternative — but Radix has no built-in drag, which reintroduces the hand-rolled-drag problem.
+
+**Net:** under our constraint set (controlled-open-from-elsewhere + `tel:` / universal-link buttons inside the sheet + no test harness except blind iPhone production deploys) no path delivered drag-to-dismiss without breaking either the conversion buttons or the whole page.
+
+**Lesson:** a polish gesture is not worth repeatedly destabilising a core conversion surface. Revisit only with real on-device debugging tooling (iPhone in DevTools, not blind Production deploys), or drop permanently. **Not a launch blocker.** See item 54.
+
+### Process lesson — doc drift
+
+The doc-reconciliation pass at slice close surfaced two distinct categories of drift that the slice itself did not catch:
+
+- **(a) Live prod bug.** The `ambassador_instagram_click` enum value shipped in code (`app/api/analytics/track/route.ts:47` ALLOWED_EVENT_TYPES) and in the repo's migration file (`supabase/migrations/20260515152624_ambassador_ig_event.sql`), but the migration was **never applied to the remote DB** — every cover-IG tap was failing the CHECK constraint silently in production until it was fixed via Supabase SQL Editor.
+- **(b) Spec fiction.** The canonical `public_page_final_UI_Spec.md` §5.1 had an invented `model_professionals` column DDL (separate `google_rating`, `google_review_count`, `google_maps_uri`, `website_uri`, `phone_number`, `ai_review_summary` columns) that **did not match the live `jsonb`-cache migration** (`google_places_cache jsonb` + `google_places_cached_at` + `review_summary_gemini` + `review_summary_generated_at`). The API response shape derives those fields from the cache at runtime; the spec was written from memory of an earlier design, not from the migration.
+
+**Lesson:** specs must be reconciled against **live migrations + the live DB** as source of truth, **not authored from memory**. Verify migration-**applied** state on remote, not just migration-**checked-in** state. The pattern that catches both: a slice-close doc pass that reads (1) the migration file, (2) the live `pg_get_constraintdef` / `information_schema.columns`, (3) the spec — in that order — before touching any prose.
+
+### Cleanup completed
+
+- Synthetic WhatsApp analytics events on Yanni's listings (`model_id 84f2c536…`) **purged pre-launch**; analytics now real-only. (See "pre-V1 cleanup reminders" section above — marked closed.)
+
+### Open hardening backlog (items 50–55)
+
+Full entries in the "Trust Stack post-V1 hardening additions" section above. One-line summary:
+
+- **50** — `types/database.ts` stale (regen after the pending IG-event migration applies remotely).
+- **51** — `lib/env-validation.ts` lint.
+- **52** — Migrate `PlacesAutocompleteInput` → `PlaceAutocompleteElement` (Google deprecated the JS class).
+- **53** — Tighten Maps API key HTTP referrer restrictions (Google Cloud Console).
+- **54** — Pro Info modal swipe-close revisit (only with real on-device tooling, or drop permanently).
+- **55** — Top-listings undercount: `get_top_click_categories` / live dashboard query excludes the 3 Trust Stack high-intent events (`listing_modal_open`, `listing_whatsapp_badge_click`, `listing_whatsapp_modal_click`); own slice + DB migration + behavior change.
+
+**Cross-ref:** "New" demand-badge 60-day `created_at` window → HANDOFF.md item 49 (already covered there; not duplicated here).
 
 ---
 
