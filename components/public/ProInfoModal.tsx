@@ -9,6 +9,7 @@ import {
   type CSSProperties,
   type MouseEvent,
   type PointerEvent as ReactPointerEvent,
+  type TouchEvent as ReactTouchEvent,
 } from 'react'
 import type { PublicListingRow } from '@/lib/public/slug-page-shape'
 import { categoryText } from '@/lib/public/slug-page-shape'
@@ -88,11 +89,16 @@ export function ProInfoModal({
   const dragStartYRef = useRef<number | null>(null)
   const dragOffsetRef = useRef(0)
   const modalHeightRef = useRef(0)
-  // True for the duration of a single touch gesture that started on an
-  // interactive child (button/anchor/etc). Used to make the non-passive
-  // touchmove listener a complete no-op for those gestures so iOS's
-  // user-activation chain stays clean for tel: navigation.
-  const gestureOnInteractiveRef = useRef(false)
+  // Holds the non-passive touchmove listener while a drag is in flight.
+  // The listener is attached imperatively on touchstart over a
+  // non-interactive area and removed on touchend/touchcancel — it must
+  // NOT live on the modal for its whole lifetime. iOS Safari rewrites
+  // its touch-dispatch model the moment any non-passive touchmove
+  // listener is registered, which breaks the synchronous user-gesture
+  // → tel: chain iOS requires for privileged schemes. Keeping the
+  // listener ephemeral means a tap on the Phone anchor never triggers
+  // that rewrite.
+  const dragMoveListenerRef = useRef<((e: TouchEvent) => void) | null>(null)
   const reducedMotion = useMemo(() => prefersReducedMotion(), [])
 
   const requestClose = useCallback(() => {
@@ -190,41 +196,19 @@ export function ProInfoModal({
     return () => clearTimeout(t)
   }, [])
 
-  // Block native vertical scroll only while a drag is in flight. React's
-  // onTouchMove is passive (no preventDefault), so we attach non-passive
-  // listeners via addEventListener.
-  //
-  // Critical: gestures that start on an interactive child (button /
-  // anchor / etc.) must be a complete no-op here — no preventDefault,
-  // no drag math. Otherwise iOS Safari treats the resulting tap as
-  // tainted and blocks tel: navigation with "This website has been
-  // blocked from automatically starting a call". We track that via
-  // touchstart on the modal, and reset on touchend/touchcancel.
-  useEffect(() => {
-    const modal = modalRef.current
-    if (!modal) return
-    const onTouchStart = (e: TouchEvent) => {
-      const t = e.target as HTMLElement | null
-      gestureOnInteractiveRef.current = !!t?.closest('button, a, input, select, textarea')
-    }
-    const onTouchMove = (e: TouchEvent) => {
-      if (gestureOnInteractiveRef.current) return
-      if (draggingRef.current) e.preventDefault()
-    }
-    const onTouchEnd = () => {
-      gestureOnInteractiveRef.current = false
-    }
-    modal.addEventListener('touchstart', onTouchStart, { passive: true })
-    modal.addEventListener('touchmove', onTouchMove, { passive: false })
-    modal.addEventListener('touchend', onTouchEnd, { passive: true })
-    modal.addEventListener('touchcancel', onTouchEnd, { passive: true })
-    return () => {
-      modal.removeEventListener('touchstart', onTouchStart)
-      modal.removeEventListener('touchmove', onTouchMove)
-      modal.removeEventListener('touchend', onTouchEnd)
-      modal.removeEventListener('touchcancel', onTouchEnd)
-    }
+  // Detach the ephemeral non-passive touchmove listener (if attached).
+  // Idempotent — safe to call from any gesture-end path.
+  const detachDragMoveListener = useCallback(() => {
+    const handler = dragMoveListenerRef.current
+    if (!handler) return
+    modalRef.current?.removeEventListener('touchmove', handler)
+    dragMoveListenerRef.current = null
   }, [])
+
+  // Component-unmount safety net — if the modal unmounts mid-drag (e.g.,
+  // close fires before touchend lands), the listener still needs to go
+  // so it doesn't leak past the element.
+  useEffect(() => detachDragMoveListener, [detachDragMoveListener])
 
   const onBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) requestClose()
@@ -304,6 +288,28 @@ export function ProInfoModal({
 
   const onModalPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => endDrag(e, false)
   const onModalPointerCancel = (e: ReactPointerEvent<HTMLDivElement>) => endDrag(e, true)
+
+  // Touch handlers — manage the EPHEMERAL non-passive touchmove
+  // listener. React's onTouchStart/onTouchEnd are passive; we use them
+  // only to attach/detach the imperative non-passive listener.
+  //
+  // Tap on an interactive child (button/anchor) returns immediately
+  // with no listener attached — iOS sees a pristine user gesture and
+  // tel:/wa.me/etc navigation proceeds normally.
+  const onModalTouchStart = (e: ReactTouchEvent<HTMLDivElement>) => {
+    if (closing || snapping) return
+    if ((e.target as HTMLElement).closest('button, a, input, select, textarea')) return
+    detachDragMoveListener()
+    const modal = modalRef.current
+    if (!modal) return
+    const handler = (ev: TouchEvent) => {
+      if (draggingRef.current) ev.preventDefault()
+    }
+    modal.addEventListener('touchmove', handler, { passive: false })
+    dragMoveListenerRef.current = handler
+  }
+
+  const onModalTouchEndOrCancel = () => detachDragMoveListener()
 
   // Modal transform + backdrop opacity derived from dragOffset. While
   // idle (no drag, no snap), leave both unset so the CSS keyframes
@@ -392,6 +398,9 @@ export function ProInfoModal({
         onPointerMove={onModalPointerMove}
         onPointerUp={onModalPointerUp}
         onPointerCancel={onModalPointerCancel}
+        onTouchStart={onModalTouchStart}
+        onTouchEnd={onModalTouchEndOrCancel}
+        onTouchCancel={onModalTouchEndOrCancel}
         style={{
           background: BG,
           borderRadius: '24px 24px 0 0',
