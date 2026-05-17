@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<!--
+  DECODE — Discovery Package (salon comparison page)
+  DEPLOY AS STATIC PUBLIC ROUTE:  app.welovedecode.com/discovery-package
+  Pattern mirrors the live /ambassador-program page (no auth, no data,
+  do NOT wire into codebase logic). Host on Netlify/Vercel for a test link.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#000000">
+<title>DECODE — The real cost of being seen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500;1,600;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#000; color:#fff; font-family:'Inter',-apple-system,system-ui,sans-serif; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+  .wrap { max-width:780px; margin:0 auto; padding:64px 24px 96px; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:80px; }
+  .topbar img { height:26px; width:auto; display:block; }
+  .topbar a { color:#fff; text-decoration:none; font-size:14px; font-weight:700; }
+  .sitefoot { text-align:center; margin-top:80px; padding-top:8px; }
+  .sitefoot .q { font-size:15px; color:#CCC; margin-bottom:28px; }
+  .sitefoot .q a { color:#fff; font-weight:700; text-decoration:none; }
+  .sitefoot .socials { display:flex; gap:26px; justify-content:center; align-items:center; }
+  .sitefoot .socials a { color:#777; display:inline-flex; }
+  .sitefoot .socials svg { width:22px; height:22px; }
+  .hero { text-align:center; margin-bottom:104px; }
+  .kicker { font-size:11px; letter-spacing:3.6px; text-transform:uppercase; color:#888; font-weight:500; margin-bottom:34px; }
+  .h1 { font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-size:48px; line-height:1.05; font-weight:400; letter-spacing:-1.4px; margin-bottom:28px; color:#fff; }
+  .lead { font-size:14px; color:#888; line-height:1.65; max-width:480px; margin:0 auto; font-weight:400; }
+  .sec { margin-bottom:128px; }
+  .secdiv { width:32px; height:0.5px; background:#444; margin:0 auto 128px; }
+  .seclabel { font-size:11px; letter-spacing:3.6px; text-transform:uppercase; color:#888; font-weight:500; margin-bottom:6px; }
+  .sectitle { font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-size:26px; line-height:1.18; font-weight:500; letter-spacing:-0.4px; margin-bottom:24px; color:#fff; }
+  .sectitle.paired { margin-bottom:4px; }
+  .subt { font-size:13px; color:#888; font-weight:500; letter-spacing:1.5px; margin-bottom:28px; }
+  .group { display:flex; gap:14px; }
+  .card { flex:1; min-width:0; padding:20px 22px; background:#1a1a1a; border:1px solid #1f1f1f; border-radius:14px; }
+  .card.dec { }
+  .card.bar { }
+  .card.pre { }
+  .crow1 { margin-bottom:2px; }
+  .cname { font-size:12px; font-weight:300; font-style:italic; display:block; }
+  .cname b { font-size:16px; font-weight:700; font-style:normal; }
+  .csub { font-size:12px; color:#888; display:block; margin-top:2px; margin-bottom:14px; }
+  .r { display:flex; justify-content:space-between; gap:10px; font-size:13px; color:#CCC; padding:7px 0; }
+  .r.b { padding:7px 0 0; border-top:1px solid #262626; }
+  .v { color:#fff; font-weight:700; white-space:nowrap; }
+  .v.dec { color:#5BA3E0; font-size:13px; }
+  .v.bar { color:#E8895C; font-size:13px; }
+  .v.pre { color:#E07A7A; font-size:13px; }
+  .chart { margin-top:26px; }
+  .brow { display:flex; align-items:center; margin-bottom:14px; }
+  .blab { width:90px; font-size:12px; color:#CCC; text-align:right; padding-right:14px; flex-shrink:0; }
+  .btrack { flex:1; height:26px; background:#1c1c1c; border-radius:3px; overflow:hidden; }
+  .bfill { height:100%; border-radius:3px; }
+  .axis { display:flex; justify-content:space-between; margin-left:104px; margin-top:8px; }
+  .tick { font-size:11px; color:#888; }
+  .foot { font-size:12px; color:#777; margin-top:22px; line-height:1.7; }
+  .final { border:1px solid #1f1f1f; border-radius:14px; background:#0a0a0a; padding:38px 24px; text-align:center; margin-top:0; margin-bottom:128px; }
+  .fkick { font-size:11px; letter-spacing:3.6px; text-transform:uppercase; color:#888; font-weight:500; margin-bottom:18px; }
+  .fbig { font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-size:32px; font-weight:500; letter-spacing:-0.4px; margin-bottom:14px; }
+  .fbig .g { color:#5BA3E0; } .fbig .rd { color:#E07A7A; } .fbig .x { color:#888; font-weight:400; font-size:22px; }
+  .fsub { font-size:13px; color:#888; margin-bottom:22px; }
+  .fsub .m { color:#777; }
+  .fwin { font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-size:28px; font-weight:600; color:#5BA3E0; }
+  .cta { text-align:center; margin-top:52px; }
+  .cta a { display:block; max-width:460px; margin:0 auto; color:#000; background:#fff; text-decoration:none; padding:20px 38px; border-radius:14px; font-size:16px; font-weight:700; }
+  .tablescroll { position:relative; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .tableinner { min-width:560px; }
+  @media (max-width:560px){
+    .group{flex-direction:column;}
+    .h1{font-size:27px;}
+    .lead{font-size:14px;}
+    .fbig{font-size:24px;}
+    .fbig .x{font-size:18px;}
+    .blab{width:64px;}
+    .axis{margin-left:78px;}
+    .wrap{padding:40px 18px 70px;}
+    .sec{margin-bottom:80px;}
+    .hero{margin-bottom:64px;}
+    .final{margin-bottom:80px; padding:30px 18px;}
+    .tablescroll{ -webkit-mask-image:linear-gradient(to right,#000 92%,transparent); mask-image:linear-gradient(to right,#000 92%,transparent); }
+  }
+  .rotehint{ display:none; }
+  @media (max-width:560px) and (orientation:portrait){
+    .rotehint{
+      display:flex; align-items:center; gap:5px;
+      position:fixed; left:50%; top:12px; transform:translateX(-50%);
+      background:#fff; color:#000; padding:6px 11px; border-radius:999px;
+      font-size:9px; font-weight:600; letter-spacing:0.2px; white-space:nowrap;
+      z-index:200; pointer-events:none;
+      opacity:0; animation:rotepulse 7s ease-in-out infinite;
+    }
+    .rotehint svg{ width:11px; height:11px; }
+    .rotehint.gone{ animation:none; opacity:0; }
+  }
+  @keyframes rotepulse{ 0%{opacity:0} 14%{opacity:1} 28%{opacity:1} 42%{opacity:0} 100%{opacity:0} }
+</style>
+</head>
+<body>
+<div class="rotehint" id="rotehint">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/></svg>
+  <span>Rotate for best view</span>
+</div>
+<script>
+(function(){
+  var h=document.getElementById('rotehint');
+  function kill(){ if(h){ h.classList.add('gone'); window.removeEventListener('scroll',onScroll); } }
+  function onScroll(){ if(window.scrollY>40) kill(); }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  setTimeout(kill,15000);
+})();
+</script>
+<div class="wrap">
+
+  <div class="topbar">
+    <img src="https://app.welovedecode.com/logo.png" alt="DECODE">
+    <a href="https://app.welovedecode.com/ambassador-program">The story →</a>
+  </div>
+
+  <div class="hero">
+    <div class="kicker">DISCOVERY PACKAGE</div>
+    <div class="h1">The real cost of being seen</div>
+    <div class="lead">Decode, compared with Dubai's leading micro-influencer agency and real influencer cost. Real quotes, not estimates.</div>
+  </div>
+
+  <div class="sec">
+    <div class="sectitle paired">Proof</div>
+    <div class="subt">industry data</div>
+    <div style="display:flex; gap:14px;">
+      <div style="flex:1; border:1px solid #1f1f1f; border-radius:14px; background:#0a0a0a; padding:28px 20px; text-align:center;">
+        <div style="font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-size:44px; font-weight:600; color:#fff; line-height:1;">2&ndash;3&times;</div>
+        <div style="font-size:13px; color:#CCC; margin-top:14px; line-height:1.65;">more visitors of small creators become paying customers than of big names</div>
+        <div style="font-size:10px; color:#777; margin-top:12px; line-height:1.6;">&#42;Digital Applied, Stack Influence (2026 reports)</div>
+      </div>
+      <div style="flex:1; border:1px solid #1f1f1f; border-radius:14px; background:#0a0a0a; padding:28px 20px; text-align:center;">
+        <div style="font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-size:44px; font-weight:600; color:#fff; line-height:1;">88%</div>
+        <div style="font-size:13px; color:#CCC; margin-top:14px; line-height:1.65;">trust recommendations from people they know above all other forms of marketing</div>
+        <div style="font-size:10px; color:#777; margin-top:12px; line-height:1.6;">&#42;Nielsen, Global Trust in Advertising 2021 (56 countries)</div>
+      </div>
+    </div>
+    <div style="text-align:center; font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-size:40px; font-weight:600; color:#5BA3E0; margin-top:26px; padding-top:22px; border-top:1px solid #1f1f1f;">Trust fills chairs</div>
+  </div>
+
+
+  <div class="sec">
+    <div class="sectitle paired">Data</div>
+    <div class="subt">live, on your phone</div>
+    <div class="tablescroll"><div class="tableinner">
+    <div style="border:1px solid #1f1f1f; border-radius:14px; overflow:hidden;">
+      <div style="display:flex; padding:9px 18px; background:#0a0a0a; border-bottom:1px solid #1f1f1f; font-size:13px; color:#CCC; font-weight:700;">
+        <div style="flex:2.2;">Metric</div>
+        <div style="flex:1.3; text-align:center;">Decode</div>
+        <div style="flex:1.3; text-align:center;">Agency</div>
+        <div style="flex:1.3; text-align:center;">Influencer</div>
+      </div>
+      <div class="trow" data-m="Data availability" data-dt="Real-time, online" data-dk="g" data-at="Upon request" data-ak="r" data-it="Upon request" data-ik="r"></div>
+      <div style="padding:8px 18px 4px; font-size:11px; letter-spacing:2px; color:#888; font-weight:700; border-top:1px solid #1f1f1f;">VANITY METRICS</div>
+      <div class="drow" data-m="Impressions" data-d="1" data-a="1" data-i="1"></div>
+      <div class="drow" data-m="Video views" data-d="1" data-a="1" data-i="1"></div>
+      <div class="drow" data-m="IG profile views" data-d="1" data-a="1" data-i="0"></div>
+      <div style="padding:8px 18px 4px; font-size:11px; letter-spacing:2px; color:#888; font-weight:700; border-top:1px solid #1f1f1f;">REAL CUSTOMER ACTIONS</div>
+      <div class="drow" data-m="WhatsApp conversations started" data-d="1" data-a="0" data-i="0"></div>
+      <div class="drow" data-m="Phone calls" data-d="1" data-a="0" data-i="0"></div>
+      <div class="drow" data-m="Website views" data-d="1" data-a="0" data-i="0"></div>
+      <div class="drow" data-m="Google Maps views" data-d="1" data-a="0" data-i="0"></div>
+      <div class="drow" data-m="Google reviews views" data-d="1" data-a="0" data-i="0" data-last="1"></div>
+    </div>
+    </div></div>
+  </div>
+
+
+  <div class="sec">
+    <div class="sectitle paired">Influencer comparison</div>
+    <div class="subt">1 day</div>
+    <div class="group">
+      <div class="card dec">
+        <div class="crow1"><span class="cname"><b>Decode</b> Barter</span><span class="csub">IG reel + listing, live 90 days</span></div>
+        <div class="r"><span>Total job payment</span><span class="v">AED 1,200</span></div>
+        <div class="r b"><span>1 day cost</span><span class="v dec">AED 13</span></div>
+      </div>
+      <div class="card bar">
+        <div class="crow1"><span class="cname"><b>Influencer A</b> Barter</span><span class="csub">IG reel only, live 3 days</span></div>
+        <div class="r"><span>Total job payment</span><span class="v">AED 2,936</span></div>
+        <div class="r b"><span>1 day cost</span><span class="v bar">AED 979</span></div>
+      </div>
+      <div class="card pre">
+        <div class="crow1"><span class="cname"><b>Influencer B</b> Barter</span><span class="csub">IG reel only, live 3 days</span></div>
+        <div class="r"><span>Total job payment</span><span class="v">AED 3,670</span></div>
+        <div class="r b"><span>1 day cost</span><span class="v pre">AED 1,223</span></div>
+      </div>
+    </div>
+    <div class="chart">
+      <div class="brow"><div class="blab">Decode</div><div class="btrack"><div class="bfill" style="width:1%;background:#3B82C4;"></div></div></div>
+      <div class="brow"><div class="blab">Influencer A</div><div class="btrack"><div class="bfill" style="width:75.3%;background:#D85A30;"></div></div></div>
+      <div class="brow"><div class="blab">Influencer B</div><div class="btrack"><div class="bfill" style="width:94.1%;background:#B23A36;"></div></div></div>
+      <div class="axis"><span class="tick">AED 0</span><span class="tick">325</span><span class="tick">650</span><span class="tick">975</span><span class="tick">1,300</span></div>
+    </div>
+    <div class="foot"></div>
+  </div>
+
+  <div class="sec">
+    <div class="sectitle paired">Agency comparison</div>
+    <div class="subt">90 days</div>
+    <div class="group">
+      <div class="card dec">
+        <div class="crow1"><span class="cname"><b>Decode</b> Barter</span><span class="csub">IG reel + listing, live 90 days</span></div>
+        <div class="r"><span>1x ambassador</span><span class="v">AED 1,200</span></div>
+        <div class="r b"><span>5x ambassadors</span><span class="v dec">AED 6,000</span></div>
+      </div>
+      <div class="card bar">
+        <div class="crow1"><span class="cname"><b>Starfish</b> Barter</span><span class="csub">IG stories only, live 1 day</span></div>
+        <div class="r"><span>1x influencer</span><span class="v">AED 6,000</span></div>
+        <div class="r b"><span>5x influencers</span><span class="v bar">AED 30,000</span></div>
+      </div>
+      <div class="card pre">
+        <div class="crow1"><span class="cname"><b>Starfish</b> Premium</span><span class="csub">IG reel + stories, live 3 days</span></div>
+        <div class="r"><span>1x influencer</span><span class="v">AED 25,440</span></div>
+        <div class="r b"><span>5x influencers</span><span class="v pre">AED 127,200</span></div>
+      </div>
+    </div>
+    <div class="chart">
+      <div class="brow"><div class="blab">Decode (5x)</div><div class="btrack"><div class="bfill" style="width:4.6%;background:#3B82C4;"></div></div></div>
+      <div class="brow"><div class="blab">Starfish (5x)</div><div class="btrack"><div class="bfill" style="width:23.1%;background:#D85A30;"></div></div></div>
+      <div class="brow"><div class="blab">Starfish (5x)</div><div class="btrack"><div class="bfill" style="width:97.8%;background:#B23A36;"></div></div></div>
+      <div class="axis"><span class="tick">AED 0</span><span class="tick">40,000</span><span class="tick">80,000</span><span class="tick">120,000</span></div>
+    </div>
+    <div class="foot"></div>
+  </div>
+
+  <div class="final">
+    <div class="fkick">3 MONTHS · 5 PEOPLE</div>
+    <div style="display:flex; align-items:center; justify-content:center;">
+      <div style="flex:1; text-align:center;">
+        <div style="font-size:13px; color:#CCC; margin-bottom:8px;">Decode</div>
+        <div style="font-size:26px; font-weight:700; color:#5BA3E0; margin-bottom:14px;">AED 6,000</div>
+        <div style="font-size:13px; color:#CCC; line-height:1.9;">90 days live</div>
+      </div>
+      <div style="flex:0 0 52px; text-align:center; font-size:15px; font-weight:700; color:#888;">VS</div>
+      <div style="flex:1; text-align:center;">
+        <div style="font-size:13px; color:#CCC; margin-bottom:8px;">Agency</div>
+        <div style="font-size:26px; font-weight:700; color:#E07A7A; margin-bottom:14px;">AED 127,200</div>
+        <div style="font-size:13px; color:#CCC; line-height:1.9;">9 days live</div>
+      </div>
+    </div>
+    <div style="text-align:center; font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-size:40px; font-weight:600; color:#5BA3E0; margin-top:26px; padding-top:22px; border-top:1px solid #1f1f1f;">21× cheaper</div>
+  </div>
+
+  <div class="sec">
+    <div class="sectitle paired">Renewal</div>
+    <div class="subt">after 90 days</div>
+    <div style="display:flex; gap:14px;">
+      <div style="flex:1; border:1px solid #1f1f1f; border-radius:14px; background:#0a0a0a; padding:24px 20px; text-align:center;">
+        <div style="font-size:13px; color:#CCC; margin-bottom:10px;">First 90 days</div>
+        <div style="font-size:26px; font-weight:700; color:#CCC;">AED 1,200</div>
+        <div style="font-size:12px; color:#888; margin-top:6px;">per ambassador</div>
+        <div style="border-top:1px solid #1f1f1f; margin-top:16px; padding-top:14px; font-size:20px; font-weight:700; color:#CCC;">AED 6,000</div>
+        <div style="font-size:12px; color:#888; margin-top:4px;">5 ambassadors</div>
+      </div>
+      <div style="flex:1; border:1px solid #1f1f1f; border-radius:14px; background:#0a0a0a; padding:24px 20px; text-align:center;">
+        <div style="font-size:13px; color:#5BA3E0; margin-bottom:10px;">Renewal for 90 days</div>
+        <div style="font-size:26px; font-weight:700; color:#5BA3E0;">AED 750</div>
+        <div style="font-size:12px; color:#888; margin-top:6px;">per ambassador</div>
+        <div style="border-top:1px solid #1f1f1f; margin-top:16px; padding-top:14px; font-size:20px; font-weight:700; color:#5BA3E0;">AED 3,750</div>
+        <div style="font-size:12px; color:#888; margin-top:4px;">5 ambassadors</div>
+      </div>
+    </div>
+    <div style="text-align:center; font-size:14px; color:#CCC; margin-top:20px; line-height:1.7;">
+      No setup at renewal — that's why the renewal cost drops.
+    </div>
+    <div style="text-align:center; font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-size:40px; font-weight:600; color:#5BA3E0; line-height:1.15; margin-top:18px;">Renew in 2 clicks</div>
+  </div>
+
+  <div class="sec">
+    <div class="sectitle paired">Trust Stack</div>
+    <div class="subt">only here on Decode</div>
+    <div style="text-align:center; border:1px solid #1f1f1f; border-radius:14px; background:#0a0a0a; padding:44px 24px;">
+      <div style="font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-weight:600; color:#fff; font-size:32px; line-height:1.25;">Personal endorsement</div>
+      <div style="font-size:12px; color:#777; margin-top:4px;">real ambassador recommendations</div>
+      <div style="font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-weight:600; color:#fff; font-size:32px; line-height:1.25; margin-top:22px;">Crowd reviews</div>
+      <div style="font-size:12px; color:#777; margin-top:4px;">real Google reviews</div>
+      <div style="font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-weight:600; color:#fff; font-size:32px; line-height:1.25; margin-top:22px;">Live demand</div>
+      <div style="font-size:12px; color:#777; margin-top:4px;">real WhatsApp messages sent</div>
+      <div style="width:36px; height:1px; background:#262626; margin:34px auto 30px;"></div>
+      <div style="font-size:14px; color:#CCC; line-height:1.85; max-width:440px; margin:0 auto;">
+        An ad gets a &ldquo;looks nice&rdquo; &mdash; then they&rsquo;re gone, because checking you out is effort. Here the proof is already in front of them. No gap between wanting and booking.
+      </div>
+      <div style="font-size:14px; color:#CCC; line-height:1.8; margin-top:16px;">
+        Not on Meta. Not on Google. Not on TikTok.
+      </div>
+      <div style="font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-size:40px; font-weight:600; color:#5BA3E0; margin-top:24px; line-height:1.25;">Research, decision and booking &mdash; on the spot</div>
+    </div>
+  </div>
+
+  <div class="cta">
+    <a href="https://wa.me/971554275547">Start with Ambassadors →</a>
+  </div>
+
+  <div class="sitefoot">
+    <div class="q">Questions? <a href="https://wa.me/971554275547">WhatsApp us →</a></div>
+    <div class="socials">
+      <a href="https://www.instagram.com/welovedecode" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+      <a href="https://www.tiktok.com/@welovedecode" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c.3 2.1 1.6 3.6 3.5 3.9v2.4c-1.4.1-2.7-.3-3.9-1.1v6.7c0 3.4-2.6 5.6-5.6 5.6-2.8 0-5.1-2-5.1-4.9 0-3 2.4-5 5.3-4.8v2.5c-.4-.1-.8-.2-1.2-.1-1.3.1-2.2 1.1-2.1 2.5.1 1.3 1.1 2.2 2.4 2.1 1.4-.1 2.3-1.1 2.3-2.6V3h2.9z"/></svg></a>
+      <a href="https://www.youtube.com/@welovedecode" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="3"/><path d="M11 9.5l4 2.5-4 2.5z" fill="currentColor" stroke="none"/></svg></a>
+    </div>
+  </div>
+
+</div>
+<script>
+(function(){
+  var GREEN='#3FB950', RED='#E5534B';
+  function mark(v){ return v=='1' ? '<span style="color:'+GREEN+';font-size:19px;font-weight:700;">\u2713</span>' : '<span style="color:'+RED+';font-size:18px;font-weight:700;">\u2715</span>'; }
+  document.querySelectorAll('.drow').forEach(function(r){
+    var last=r.getAttribute('data-last');
+    r.style.cssText='display:flex;align-items:center;padding:7px 18px;font-size:14px;'+(last?'':'border-bottom:1px solid #161616;');
+    r.innerHTML='<div style="flex:2.2;color:#fff;">'+r.getAttribute('data-m')+'</div>'+
+      '<div style="flex:1.3;text-align:center;">'+mark(r.getAttribute('data-d'))+'</div>'+
+      '<div style="flex:1.3;text-align:center;">'+mark(r.getAttribute('data-a'))+'</div>'+
+      '<div style="flex:1.3;text-align:center;">'+mark(r.getAttribute('data-i'))+'</div>';
+  });
+  document.querySelectorAll('.trow').forEach(function(r){
+    function pill(t,k){ var c=k=='g'?GREEN:RED; return '<span style="color:'+c+';font-size:13px;font-weight:500;">'+t+'</span>'; }
+    r.style.cssText='display:flex;align-items:center;padding:9px 18px;font-size:14px;background:#0d0d0d;';
+    r.innerHTML='<div style="flex:2.2;color:#fff;">'+r.getAttribute('data-m')+'</div>'+
+      '<div style="flex:1.3;text-align:center;">'+pill(r.getAttribute('data-dt'),r.getAttribute('data-dk'))+'</div>'+
+      '<div style="flex:1.3;text-align:center;">'+pill(r.getAttribute('data-at'),r.getAttribute('data-ak'))+'</div>'+
+      '<div style="flex:1.3;text-align:center;">'+pill(r.getAttribute('data-it'),r.getAttribute('data-ik'))+'</div>';
+  });
+})();
+</script>
+</body>
+</html>

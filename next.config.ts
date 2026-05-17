@@ -200,6 +200,10 @@ const nextConfig: NextConfig = {
         source: '/metrics',
         destination: '/api/metrics',
       },
+      {
+        source: '/discovery-package',
+        destination: '/discovery-package.html',
+      },
     ];
   },
 
