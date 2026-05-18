@@ -1,15 +1,23 @@
 <div style="display:flex;justify-content:center;padding:1.5rem 0;background:var(--color-background-secondary);border-radius:var(--border-radius-lg)">
-<div style="width:375px;background:#000;border-radius:24px;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#fff;border:2px solid #1a1a1a;overflow-x:hidden">
+<div style="width:375px;background:#000;border-radius:24px;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#fff;border:2px solid #1a1a1a;overflow-x:hidden;position:relative" id="phoneFrame">
 
 <!-- ==================================================== -->
 <!-- COVER                                                 -->
 <!-- ==================================================== -->
 <div style="position:relative;height:300px;background:#222">
-<div style="position:absolute;top:12px;left:0;right:0;padding:0 20px;display:flex;justify-content:flex-end;align-items:center;z-index:2">
+<div style="position:absolute;top:12px;left:0;right:0;padding:0 20px;display:flex;justify-content:space-between;align-items:center;z-index:2">
+
+<!-- Ambassador Instagram button (top-left) — mirrors share button, opens ambassador's own IG -->
+<a href="https://instagram.com/sarajohnson" target="_blank" rel="noopener" onclick="trackClick('ambassador_instagram_click',{slug:'sarajohnson'})" style="position:relative;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.35);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="#fff"/></svg>
+</a>
+
+<!-- Share button (top-right) -->
 <div onclick="sharePage()" style="position:relative;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.35);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;cursor:pointer">
 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
 <div id="shareConfirm" style="position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);font-size:11px;font-weight:600;color:#4ade80;opacity:0;transition:opacity 0.2s;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,0.6);white-space:nowrap">Copied!</div>
 </div>
+
 </div>
 <div style="width:100%;height:100%;background:linear-gradient(180deg, #777 0%, #333 40%, #222 70%, #000 100%);display:flex;align-items:center;justify-content:center">
 <span style="font-size:15px;color:#777;letter-spacing:2px">COVER PHOTO</span>
@@ -17,7 +25,7 @@
 <div style="position:absolute;bottom:0;left:0;right:0;height:120px;background:linear-gradient(transparent, #000)"></div>
 <div style="position:absolute;bottom:24px;left:0;right:0;text-align:center;z-index:2">
 <div style="font-size:30px;font-weight:700;color:#fff;margin-bottom:6px;letter-spacing:-0.3px">Sara Johnson</div>
-<div id="tagline" style="font-size:12px;color:#777">write your customized tag line here</div>
+<div id="tagline" style="font-size:12px;color:#777">Your shortcut to flawless</div>
 </div>
 </div>
 
@@ -26,54 +34,7 @@
 <!-- ==================================================== -->
 <div style="padding:20px 20px 8px">
 <div style="font-size:20px;font-weight:700;margin-bottom:14px">My Beauty Squad</div>
-
-<div style="padding:14px 0;border-top:1px solid #1a1a1a;display:flex;gap:14px;align-items:center">
-<a href="https://instagram.com/salondeluxe" target="_blank" rel="noopener" onclick="trackClick('listing_instagram',{listing_slug:'salondeluxe'})" style="width:52px;height:52px;border-radius:50%;background:#333;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#777;cursor:pointer;text-decoration:none">Photo</a>
-<div style="flex:1;min-width:0">
-<div style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700;margin-bottom:3px">Hair</div>
-<div style="font-size:15px;font-weight:600;margin-bottom:2px"><a href="https://instagram.com/salondeluxe" target="_blank" rel="noopener" onclick="trackClick('listing_instagram',{listing_slug:'salondeluxe'})" style="color:#fff;text-decoration:none">Salon de Luxe</a></div>
-<div style="font-size:12px;color:#777">Dubai, UAE</div>
-</div>
-<div onclick="openMedia('salondeluxe')" style="background:#000;width:36px;height:36px;border-radius:50%;border:1.5px solid #e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;box-sizing:border-box">
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="7 4 20 12 7 20 7 4"/></svg>
-</div>
-</div>
-
-<div style="padding:14px 0;border-top:1px solid #1a1a1a;display:flex;gap:14px;align-items:center">
-<a href="https://instagram.com/drgabrielpaez" target="_blank" rel="noopener" onclick="trackClick('listing_instagram',{listing_slug:'drgabrielpaez'})" style="width:52px;height:52px;border-radius:50%;background:#333;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#777;cursor:pointer;text-decoration:none">Photo</a>
-<div style="flex:1;min-width:0">
-<div style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700;margin-bottom:3px">Nose</div>
-<div style="font-size:15px;font-weight:600;margin-bottom:2px"><a href="https://instagram.com/drgabrielpaez" target="_blank" rel="noopener" onclick="trackClick('listing_instagram',{listing_slug:'drgabrielpaez'})" style="color:#fff;text-decoration:none">Dr. Gabriel Paez</a></div>
-<div style="font-size:12px;color:#777">Bogota, Colombia</div>
-</div>
-<div onclick="openMedia('drgabrielpaez')" style="background:#000;width:36px;height:36px;border-radius:50%;border:1.5px solid #e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;box-sizing:border-box">
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="7 4 20 12 7 20 7 4"/></svg>
-</div>
-</div>
-
-<div style="padding:14px 0;border-top:1px solid #1a1a1a;display:flex;gap:14px;align-items:center">
-<a href="https://instagram.com/lashsalon" target="_blank" rel="noopener" onclick="trackClick('listing_instagram',{listing_slug:'lashsalon'})" style="width:52px;height:52px;border-radius:50%;background:#333;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#777;cursor:pointer;text-decoration:none">Photo</a>
-<div style="flex:1;min-width:0">
-<div style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700;margin-bottom:3px">Nails</div>
-<div style="font-size:15px;font-weight:600;margin-bottom:2px"><a href="https://instagram.com/lashsalon" target="_blank" rel="noopener" onclick="trackClick('listing_instagram',{listing_slug:'lashsalon'})" style="color:#fff;text-decoration:none">Lash Salon</a></div>
-<div style="font-size:12px;color:#777">Abu Dhabi, UAE</div>
-</div>
-<div onclick="openMedia('lashsalon')" style="background:#000;width:36px;height:36px;border-radius:50%;border:1.5px solid #e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;box-sizing:border-box">
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="7 4 20 12 7 20 7 4"/></svg>
-</div>
-</div>
-
-<div style="padding:14px 0;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a;display:flex;gap:14px;align-items:center">
-<a href="https://instagram.com/smiledental" target="_blank" rel="noopener" onclick="trackClick('listing_instagram',{listing_slug:'smiledental'})" style="width:52px;height:52px;border-radius:50%;background:#333;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#777;cursor:pointer;text-decoration:none">Photo</a>
-<div style="flex:1;min-width:0">
-<div style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700;margin-bottom:3px">Veneers</div>
-<div style="font-size:15px;font-weight:600;margin-bottom:2px"><a href="https://instagram.com/smiledental" target="_blank" rel="noopener" onclick="trackClick('listing_instagram',{listing_slug:'smiledental'})" style="color:#fff;text-decoration:none">Smile Dental Studio</a></div>
-<div style="font-size:12px;color:#777">Istanbul, Turkey</div>
-</div>
-<div onclick="openMedia('smiledental')" style="background:#000;width:36px;height:36px;border-radius:50%;border:1.5px solid #e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;box-sizing:border-box">
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="7 4 20 12 7 20 7 4"/></svg>
-</div>
-</div>
+<div id="squadList"></div>
 </div>
 
 <!-- ==================================================== -->
@@ -85,8 +46,8 @@
 <div style="padding:14px 0;border-top:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center">
 <div style="flex:1;min-width:0;padding-right:14px">
 <div style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700;margin-bottom:3px">Hair</div>
-<div style="font-size:15px;font-weight:600;margin-bottom:2px"><a href="https://instagram.com/salondeluxe" target="_blank" rel="noopener" onclick="trackClick('wish_instagram',{wish_slug:'salondeluxe'})" style="color:#fff;text-decoration:none">Salon de Luxe</a></div>
-<div style="font-size:12px;color:#777">Dubai, UAE</div>
+<div style="font-size:15px;font-weight:600;margin-bottom:2px;color:#fff">Boujie Ladies Salon</div>
+<div style="font-size:12px;color:#777">Abu Dhabi, UAE</div>
 </div>
 <div onclick="openCheckout('hair')" style="border:1.5px solid #e91e8c;border-radius:18px;padding:10px 18px;text-align:center;background:transparent;flex-shrink:0;line-height:1.2;cursor:pointer">
 <div style="font-size:15px;color:#e91e8c;font-weight:600">$300</div>
@@ -97,15 +58,14 @@
 <div style="padding:14px 0;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center">
 <div style="flex:1;min-width:0;padding-right:14px">
 <div style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700;margin-bottom:3px">Nails</div>
-<div style="font-size:15px;font-weight:600;margin-bottom:2px"><a href="https://instagram.com/lashsalon" target="_blank" rel="noopener" onclick="trackClick('wish_instagram',{wish_slug:'lashsalon'})" style="color:#fff;text-decoration:none">Lash Salon</a></div>
-<div style="font-size:12px;color:#777">Abu Dhabi, UAE</div>
+<div style="font-size:15px;font-weight:600;margin-bottom:2px;color:#fff">Velvet Beauty Bar</div>
+<div style="font-size:12px;color:#777">Dubai, UAE</div>
 </div>
 <div onclick="openCheckout('nails')" style="border:1.5px solid #e91e8c;border-radius:18px;padding:10px 18px;text-align:center;background:transparent;flex-shrink:0;line-height:1.2;cursor:pointer">
 <div style="font-size:15px;color:#e91e8c;font-weight:600">$80</div>
 <div style="font-size:12px;color:#fff;font-weight:600;margin-top:1px">Gift it</div>
 </div>
 </div>
-
 
 </div>
 
@@ -114,7 +74,6 @@
 <!-- ==================================================== -->
 <div style="padding:24px 20px 24px">
 <div style="font-size:20px;font-weight:700;margin-bottom:14px">My Wall of Love <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-left:2px"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
-
 <div id="wallList"></div>
 </div>
 
@@ -122,74 +81,449 @@
 <a href="https://welovedecode.com" style="font-size:12px;color:#777;text-decoration:none">Powered by WeLoveDecode</a>
 </div>
 
+<!-- ==================================================== -->
+<!-- PRO INFO MODAL (Trust Stack) — sibling-mounted overlay -->
+<!-- Opens from squad middle-column tap. Closes via Cancel  -->
+<!-- / backdrop tap / Escape. No swipe-close (V1 decision).  -->
+<!-- ==================================================== -->
+<div id="proModalBackdrop" onclick="onModalBackdrop(event)" style="display:none;position:absolute;inset:0;z-index:100;background:rgba(0,0,0,0.6);align-items:flex-end;justify-content:center">
+  <div id="proModalSheet" role="dialog" aria-modal="true" aria-labelledby="pmName" style="background:#0a0a0a;border-radius:24px 24px 0 0;max-width:420px;width:100%;max-height:90vh;overflow-x:hidden;overflow-y:auto;color:#fff;transform:translateY(100%);transition:transform 0.2s ease-out">
+
+    <!-- HERO -->
+    <div style="padding:24px 16px 10px;text-align:center">
+      <div id="pmCategory" style="font-size:11px;font-weight:700;color:#e91e8c;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 4px"></div>
+      <h2 id="pmName" style="font-size:20px;font-weight:500;color:#fff;margin:0 0 3px;line-height:1.2"></h2>
+      <div id="pmCity" style="font-size:12px;color:#888;margin:0 0 22px"></div>
+
+      <div id="pmRatingGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:center">
+        <!-- rating column -->
+        <div style="text-align:center">
+          <div id="pmRatingNum" style="font-size:40px;font-weight:300;line-height:1;margin-bottom:4px;letter-spacing:-1px"></div>
+          <div id="pmStars" style="font-size:13px;color:#fff;letter-spacing:1.5px;margin-bottom:4px"></div>
+          <div id="pmReviewCount" style="font-size:10px;color:#888;line-height:1.3"></div>
+        </div>
+        <!-- 5-bar distribution (J-curve estimate) -->
+        <div id="pmDist" role="list" aria-label="Star rating distribution" style="grid-column:2/4;display:grid;grid-template-columns:auto 1fr auto;gap:4px 8px;align-items:center"></div>
+      </div>
+    </div>
+
+    <!-- QUICK ACTION ROW -->
+    <div id="pmQuickRow" style="padding:14px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+
+    <!-- AI SUMMARY -->
+    <div id="pmSummaryWrap" style="padding:10px 20px 20px">
+      <div style="font-size:10px;color:#888;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 4px">AI Summary of Reviews</div>
+      <div id="pmSummary" style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:14px;color:#fff;line-height:1.5;letter-spacing:0.01em;margin:0 0 4px;text-align:justify;-webkit-hyphens:auto;hyphens:auto"></div>
+      <div style="font-size:10px;color:#555;font-style:normal;font-family:inherit">Summarized with Gemini</div>
+    </div>
+
+    <!-- DEMAND LINE -->
+    <div id="pmDemand" style="padding:0 20px 14px;font-size:11px;color:#e91e8c;font-weight:500;text-align:center"></div>
+
+    <!-- SEND WHATSAPP -->
+    <div id="pmWaWrap" style="padding:0 20px 8px">
+      <a id="pmWaBtn" href="#" onclick="onModalWhatsapp(event)" style="display:block;text-align:center;background:#e91e8c;color:#fff;border-radius:12px;padding:16px 0;font-size:15px;font-weight:700;letter-spacing:0.2px;text-decoration:none">Send WhatsApp</a>
+    </div>
+
+    <!-- CANCEL -->
+    <div style="padding:14px 20px 18px;text-align:center">
+      <button onclick="closeProModal()" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;font-family:inherit">Cancel</button>
+    </div>
+
+  </div>
+</div>
 
 <script>
 /* ============================================================
    PUBLIC PAGE — WeLoveDecode ambassador public profile
    URL: welovedecode.com/{slug}     Access: public, no auth
 
-   CLICK TRACKING
-   ---------------------------------------------------------------------
-   Every interaction routes through trackClick() which fires a
-   POST /api/public/track-click with { slug, click_type, listing_id|wish_id|gifter_id }.
-   Server inserts into click_events. Fire-and-forget, errors ignored.
+   TRUST STACK (final V1) — what changed vs the pre-Trust-Stack page:
+     • Squad row avatar (large left circle) → professional Instagram
+     • NEW WhatsApp badge (small green, overlapping avatar) → wa.me
+       (native same-tab <a href>, NO target — iOS app-handoff)
+       with a pulse ring when messaged_30d >= 10
+     • NEW trust row under the city: "★ 4.8 (595) · 💬 47 in 30d"
+       three demand states (see renderTrustRow)
+     • Squad row MIDDLE COLUMN (category + name + city + trust row)
+       → opens the Pro Info modal (NOT Instagram — that moved to
+       the avatar only)
+     • Squad row media orb (right) → media lightbox (separate spec)
+     • NEW Pro Info modal: rating + 5-bar distribution + AI review
+       summary (Gemini) + Website/Maps/Phone quick actions +
+       demand line + Send WhatsApp. Closes via Cancel / backdrop /
+       Escape. NO swipe-to-dismiss (dropped for V1 — see UI spec).
+     • NEW ambassador Instagram button top-left of cover (mirrors
+       the share button), opens the ambassador's own IG.
 
-   click_type enum values used on this page:
-     listing_media           — squad play button → opens lightbox
-     listing_instagram       — squad photo / name → opens IG in new tab
-     wish_checkout           — "Gift it" pill → opens checkout
-     wish_instagram          — wish name → opens IG in new tab
-     walloflove_gifter_instagram — wall of love name → opens IG (not shown
-                              on Sara's analytics yet; stored for later)
-
-   VIEW TRACKING
+   CLICK / EVENT TRACKING
    ---------------------------------------------------------------------
-   Server-side on page render:
-     1. Read cookie 'wld_visitor'
-     2. If missing → set with max-age=86400 (24h), value = UUID
-     3. Check view_events for (user_id=slug-owner, visitor_id) in last 24h
-     4. If no row → insert new view_event
-     5. Otherwise → skip (dedupe)
-   This filters out the ambassador's own views (authenticated users where
-   auth.user_id === slug-owner are never tracked).
+   All interactions route through trackClick() → POST /api/analytics/track
+   with { event_type, slug, target_id? }, keepalive:true, fire-and-forget.
+
+   event_type values used on this page (model_analytics_events CHECK enum):
+     public_page_view              server-side on render (not shown here)
+     public_page_share_click       share button (top-right)
+     ambassador_instagram_click    ambassador IG button (top-left)
+     listing_instagram_click       squad avatar tap → professional IG
+     listing_media_click           squad media orb → lightbox
+     listing_modal_open            squad middle column → Pro Info modal
+     listing_whatsapp_badge_click  squad WhatsApp badge → wa.me
+     listing_whatsapp_modal_click  modal Send WhatsApp → wa.me
+     wish_giftit_click             wishlist "Gift it" pill → checkout
+     wall_of_love_instagram_click  wall of love gifter name → IG
+
+   VIEW TRACKING (server-side on render — Pattern 2/3 doctrine)
+     PublicPageClient fires public_page_view on mount; server does bot
+     filter, IP+event rate-limit, ambassador self-view skip, session
+     cookie (wld_visitor, 30-day), insert into model_analytics_events.
 ============================================================ */
+
+var PAGE_SLUG = 'sarajohnson';
 
 /* PRODUCTION:
    function trackClick(type, meta){
-     fetch('/api/public/track-click', {
-       method: 'POST',
-       headers: { 'Content-Type': 'application/json' },
-       body: JSON.stringify({ slug: PAGE_SLUG, click_type: type, ...meta }),
-       keepalive: true
+     fetch('/api/analytics/track', {
+       method:'POST',
+       headers:{ 'Content-Type':'application/json' },
+       body: JSON.stringify({ event_type:type, slug:PAGE_SLUG, target_id:(meta&&meta.target_id) }),
+       keepalive:true
      }).catch(function(){});
-   }
-*/
+   } */
 function trackClick(type, meta){
-  /* MOCKUP: just log. In production, fires fetch (see comment above). */
-  console.log('[track-click]', type, meta || {});
+  /* MOCKUP: log only. Production fires the keepalive fetch above. */
+  console.log('[track]', type, meta || {});
 }
 
 /* ============================================================
-   SQUAD — photo + name tap (listing_instagram via anchor)
-   PLAY button → openMedia() → lightbox + listing_media click
+   SQUAD DATA — production renders from GET /api/public/{slug}.
+   Each listing carries Trust Stack fields (rating, review_count,
+   distribution[], summary, messaged_30d, last_msg_days,
+   whatsapp, website, maps_url, phone) sourced from the cached
+   Google Places (New) response + Gemini summary + the
+   messaged_30d aggregate. Degraded fields are null.
+============================================================ */
+var squad = [
+  {
+    id:'sousmile', category:'Veneers', name:'SouSmile', city:'Sao Paulo, Brazil',
+    ig:'sousmile',
+    rating:4.8, review_count:595, distribution:[465,111,19,0,0],
+    summary:"Customers consistently praise SouSmile's professional staff, modern facilities, and positive treatment outcomes. However, some reviews indicate inconsistent customer service, citing issues with appointment punctuality, communication responsiveness, and particularly the handling of medical errors.",
+    messaged_30d:47, last_msg_days:null,
+    whatsapp:'5511999990001', website:'https://sousmile.com', maps_url:'https://www.google.com/maps/search/?api=1&query=SouSmile&query_place_id=ChIJm6dtw41ZzpQR-r4gBlqDe64', phone:'+551130000000'
+  },
+  {
+    id:'boujie', category:'Hair', name:'Boujie Ladies Salon', city:'Abu Dhabi, UAE',
+    ig:'boujieladies',
+    rating:4.9, review_count:530, distribution:[470,48,9,2,1],
+    summary:"Reviewers highlight Boujie Ladies Salon for skilled stylists, a relaxing atmosphere, and consistently strong colour work. A minority note longer-than-expected wait times during peak weekends.",
+    messaged_30d:73, last_msg_days:null,
+    whatsapp:'971565205151', website:'https://boujieladies.ae', maps_url:'https://www.google.com/maps/search/?api=1&query=Boujie+Ladies+Salon&query_place_id=ChIJWZhA0w94ZkcRja0sIQlD3Cg', phone:'+97125550000'
+  },
+  {
+    id:'lashes', category:'Lashes', name:'Lashes Studio', city:'Dubai, UAE',
+    ig:'lashesstudio',
+    rating:4.9, review_count:106, distribution:[90,16,0,0,0],
+    summary:"Many customers consistently praise Carla for her professionalism, skill, and ability to achieve natural-looking, beautiful results for eyebrows and lashes. However, one customer reported a negative experience after being assigned an inexperienced trainee without prior notification, which resulted in a lengthy and unsatisfactory service.",
+    messaged_30d:23, last_msg_days:null,
+    whatsapp:'971501234567', website:'https://lashesstudio.ae', maps_url:'https://www.google.com/maps/search/?api=1&query=Lashes+Studio&query_place_id=ChIJe7t4XcCUC0cR_jpKXWiQHdo', phone:'+97143330000'
+  },
+  {
+    id:'velvet', category:'Nails', name:'Velvet Beauty Bar', city:'Dubai, UAE',
+    ig:'velvetbeautybar',
+    rating:4.9, review_count:530, distribution:[480,40,8,1,1],
+    summary:"Guests describe Velvet Beauty Bar as meticulous and hygienic, with long-lasting manicures and a warm team. A few mention the space gets busy and booking ahead is advisable.",
+    messaged_30d:8, last_msg_days:3,
+    whatsapp:'971559876543', website:null, maps_url:'https://www.google.com/maps/search/?api=1&query=Velvet+Beauty+Bar&query_place_id=ChIJ7YfCKAXNFAARAun7rUoz3ns', phone:'+97144440000'
+  },
+  {
+    id:'silkbrows', category:'Brows', name:'Silk Brows', city:'Dubai, UAE',
+    ig:'silkbrows',
+    rating:5.0, review_count:117, distribution:[112,5,0,0,0],
+    summary:"Clients repeatedly commend Silk Brows for precise brow shaping, a gentle approach, and natural results that last. No recurring complaints surface across recent reviews.",
+    messaged_30d:17, last_msg_days:null,
+    whatsapp:'971567778888', website:'https://silkbrows.ae', maps_url:'https://www.google.com/maps/search/?api=1&query=Silk+Brows&query_place_id=ChIJZQEMNGJgLxMR7R0X6u5K-go', phone:'+97145550000'
+  },
+  {
+    id:'glow', category:'Facial', name:'Glow Studio', city:'Dubai, UAE',
+    ig:'glowstudio',
+    rating:4.8, review_count:320, distribution:[250,55,12,2,1],
+    summary:"Visitors appreciate Glow Studio's results-driven facials and knowledgeable therapists. Some note premium pricing relative to nearby options.",
+    messaged_30d:0, last_msg_days:null,
+    whatsapp:'971560001111', website:'https://glowstudio.ae', maps_url:'https://www.google.com/maps/search/?api=1&query=Glow+Studio&query_place_id=ChIJ0YfCKAXNFAARAun7rUoz3AB', phone:'+97146660000'
+  }
+];
+
+var squadById = {};
+squad.forEach(function(s){ squadById[s.id] = s; });
+
+/* ============================================================
+   TRUST ROW — three demand states (V1 locked, Q12):
+     messaged_30d >= 10   →  "💬 {N} in 30d"  + pulse on WA badge
+     1..9                  →  "💬 Last msg {X}d ago"  (no pulse)
+     0                     →  "💬 New"  (always-on for V1 launch)
+   Rating segment hides entirely when rating is null/<=0.
+   Both glyphs (★ and chat) render filled white, same weight.
+============================================================ */
+function chatIcon(){
+  return '<svg width="12" height="12" viewBox="0 0 24 24" fill="#fff" aria-hidden="true" style="vertical-align:-1px;margin-right:3px"><path d="M20 2H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>';
+}
+function renderTrustRow(s){
+  var parts = [];
+  if (s.rating && s.rating > 0 && s.review_count > 0) {
+    parts.push('<span style="color:#fff">★</span> ' + s.rating.toFixed(1) + ' (' + s.review_count + ')');
+  }
+  var demand = '';
+  if (s.messaged_30d >= 10) {
+    demand = chatIcon() + s.messaged_30d + ' in 30d';
+  } else if (s.messaged_30d >= 1) {
+    demand = chatIcon() + 'Last msg ' + (s.last_msg_days || 1) + 'd ago';
+  } else {
+    demand = chatIcon() + 'New';
+  }
+  parts.push(demand);
+  return parts.join('<span style="color:#555;margin:0 6px">·</span>');
+}
+
+/* ============================================================
+   SQUAD RENDER — tap routing (V1 locked):
+     avatar (large left)        → professional Instagram
+     WhatsApp badge (overlay)   → wa.me (stopPropagation; native
+                                  same-tab <a>, no target)
+     middle column (all of it)  → Pro Info modal
+     media orb (right)          → media lightbox
+============================================================ */
+function renderSquad(){
+  var list = document.getElementById('squadList');
+  list.innerHTML = squad.map(function(s, i){
+    var isLast = (i === squad.length - 1);
+    var border = isLast
+      ? 'border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a'
+      : 'border-top:1px solid #1a1a1a';
+    var pulse = (s.messaged_30d >= 10)
+      ? 'box-shadow:0 0 0 0 rgba(37,211,102,0.5);animation:wa-pulse 2.4s ease-out infinite;'
+      : '';
+    var badge = s.whatsapp
+      ? '<a href="https://wa.me/' + s.whatsapp + '" onclick="onBadge(event,\'' + s.id + '\')" aria-label="WhatsApp" style="position:absolute;right:-2px;bottom:-2px;width:26px;height:26px;border-radius:50%;background:#25d366;border:2px solid #000;display:flex;align-items:center;justify-content:center;text-decoration:none;' + pulse + '">' +
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm0 18.15h-.01c-1.52 0-3.01-.41-4.31-1.18l-.31-.18-3.2.84.85-3.12-.2-.32a8.21 8.21 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.82c0 4.54-3.7 8.23-8.24 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.16-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43-.14-.01-.31-.01-.48-.01-.17 0-.43.06-.66.31-.23.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.25 3.74.59.26 1.06.41 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.1-.22-.16-.47-.28z"/></svg>' +
+        '</a>'
+      : '';
+    return (
+      '<div style="padding:14px 0;' + border + ';display:flex;gap:14px;align-items:center">' +
+
+        /* avatar (large) → IG, with WhatsApp badge overlay */
+        '<div style="position:relative;flex-shrink:0">' +
+          '<a href="https://instagram.com/' + s.ig + '" target="_blank" rel="noopener" onclick="trackClick(\'listing_instagram_click\',{target_id:\'' + s.id + '\'})" ' +
+             'style="display:flex;width:72px;height:72px;border-radius:50%;background:#333;align-items:center;justify-content:center;font-size:11px;color:#777;text-decoration:none;box-sizing:border-box;border:2px solid #e91e8c">Photo</a>' +
+          badge +
+        '</div>' +
+
+        /* middle column → Pro Info modal */
+        '<div onclick="openProModal(\'' + s.id + '\')" role="button" tabindex="0" ' +
+             'onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openProModal(\'' + s.id + '\')}" ' +
+             'aria-label="Open ' + s.name + ' details" style="flex:1;min-width:0;cursor:pointer">' +
+          '<div style="font-size:11px;letter-spacing:1px;color:#e91e8c;font-weight:700;margin-bottom:3px">' + s.category + '</div>' +
+          '<div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:2px">' + s.name + '</div>' +
+          '<div style="font-size:12px;color:#777;margin-bottom:4px">' + s.city + '</div>' +
+          '<div style="font-size:13px;color:#ddd;display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;overflow:hidden">' + renderTrustRow(s) + '</div>' +
+        '</div>' +
+
+        /* media orb → lightbox */
+        '<div onclick="openMedia(\'' + s.id + '\')" style="background:#000;width:44px;height:44px;border-radius:50%;border:1.5px solid #e91e8c;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;box-sizing:border-box">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="7 4 20 12 7 20 7 4"/></svg>' +
+        '</div>' +
+
+      '</div>'
+    );
+  }).join('');
+}
+
+/* WhatsApp badge — stops propagation so the middle-column modal
+   handler does NOT also fire. Native <a> navigates same-tab. */
+function onBadge(e, id){
+  e.stopPropagation();
+  trackClick('listing_whatsapp_badge_click', { target_id:id });
+  /* native <a href="https://wa.me/..."> proceeds (no target) */
+}
+
+/* ============================================================
+   PRO INFO MODAL
+============================================================ */
+var modalOpenFiredFor = null;
+
+function starString(rating){
+  var full = Math.round(rating);
+  var s = '';
+  for (var i=0;i<5;i++){ s += (i<full ? '★' : '☆'); }
+  return s;
+}
+
+function openProModal(id){
+  var s = squadById[id];
+  if (!s) return;
+
+  document.getElementById('pmCategory').textContent = s.category;
+  document.getElementById('pmName').textContent = s.name;
+  document.getElementById('pmCity').textContent = s.city;
+
+  /* rating column + 5-bar distribution — hidden if no Places rating */
+  var grid = document.getElementById('pmRatingGrid');
+  if (s.rating && s.rating > 0 && s.review_count > 0){
+    grid.style.display = 'grid';
+    document.getElementById('pmRatingNum').textContent = s.rating.toFixed(1);
+    document.getElementById('pmStars').textContent = starString(s.rating);
+    document.getElementById('pmReviewCount').innerHTML = s.review_count + ' Google<br>reviews';
+    var max = Math.max.apply(null, s.distribution) || 1;
+    document.getElementById('pmDist').innerHTML = s.distribution.map(function(c, idx){
+      var starNum = 5 - idx;
+      var pct = Math.round((c / max) * 100);
+      return (
+        '<div style="font-size:10px;color:#aaa;text-align:right">' + starNum + '</div>' +
+        '<div style="height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden">' +
+          '<div class="pm-d-fill" style="height:100%;background:#e91e8c;border-radius:2px;width:0%" data-pct="' + pct + '"></div>' +
+        '</div>' +
+        '<div style="font-size:10px;color:#888;font-variant-numeric:tabular-nums;min-width:24px;text-align:right">' + c + '</div>'
+      );
+    }).join('');
+  } else {
+    grid.style.display = 'none';
+  }
+
+  /* quick action row — only buttons whose data exists; native <a>, no target */
+  var q = [];
+  if (s.website) q.push(quickBtn(s.website, 'Website', '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>'));
+  if (s.maps_url) q.push(quickBtn(s.maps_url, 'Google Maps', '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>'));
+  if (s.phone) q.push(quickBtn('tel:' + s.phone, 'Phone', '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.94.36 1.86.7 2.73a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.35-1.35a2 2 0 0 1 2.11-.45c.87.34 1.79.57 2.73.7A2 2 0 0 1 22 16.92z"/>'));
+  var qr = document.getElementById('pmQuickRow');
+  if (q.length){
+    qr.style.display = 'grid';
+    qr.style.gridTemplateColumns = 'repeat(' + q.length + ',1fr)';
+    qr.innerHTML = q.join('');
+  } else {
+    qr.style.display = 'none';
+  }
+
+  /* AI summary — hidden if none */
+  var sw = document.getElementById('pmSummaryWrap');
+  if (s.summary && s.summary.trim()){
+    sw.style.display = 'block';
+    document.getElementById('pmSummary').textContent = '“' + s.summary.trim() + '”';
+  } else {
+    sw.style.display = 'none';
+  }
+
+  /* demand line — hidden if 0 messaged */
+  var dl = document.getElementById('pmDemand');
+  if (s.messaged_30d > 0){
+    dl.style.display = 'block';
+    dl.textContent = s.messaged_30d + ' people messaged in the last 30 days';
+  } else {
+    dl.style.display = 'none';
+  }
+
+  /* Send WhatsApp — hidden if no number */
+  var ww = document.getElementById('pmWaWrap');
+  var wb = document.getElementById('pmWaBtn');
+  if (s.whatsapp){
+    ww.style.display = 'block';
+    wb.setAttribute('href', 'https://wa.me/' + s.whatsapp);
+    wb.dataset.id = s.id;
+  } else {
+    ww.style.display = 'none';
+  }
+
+  /* open: backdrop + slide-up. listing_modal_open once per open. */
+  var bd = document.getElementById('proModalBackdrop');
+  bd.style.display = 'flex';
+  var sheet = document.getElementById('proModalSheet');
+  /* force reflow then animate in */
+  void sheet.offsetWidth;
+  sheet.style.transform = 'translateY(0)';
+  setTimeout(function(){
+    document.querySelectorAll('#pmDist .pm-d-fill').forEach(function(el){
+      el.style.transition = 'width 1500ms cubic-bezier(0.215,0.61,0.355,1)';
+      el.style.width = el.getAttribute('data-pct') + '%';
+    });
+  }, 60);
+
+  if (modalOpenFiredFor !== id){
+    modalOpenFiredFor = id;
+    trackClick('listing_modal_open', { target_id:id });
+  }
+}
+
+function quickBtn(href, label, iconPaths){
+  var isTel = href.indexOf('tel:') === 0;
+  var attrs = isTel ? '' : ' target="_blank" rel="noopener"';
+  /* NOTE: production renders these with NO target attribute at all
+     (same-tab) so iOS hands tel:/maps universal links to the app.
+     The mockup keeps target=_blank only so the demo opens visibly. */
+  return (
+    '<a href="' + href + '"' + attrs + ' style="background:#0a0a0a;border:0.5px solid #2a2a2a;border-radius:12px;padding:8px 0;display:flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none">' +
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + iconPaths + '</svg>' +
+      '<span style="font-size:11px;color:#ddd">' + label + '</span>' +
+    '</a>'
+  );
+}
+
+function onModalWhatsapp(e){
+  var id = document.getElementById('pmWaBtn').dataset.id;
+  trackClick('listing_whatsapp_modal_click', { target_id:id });
+  /* MOCKUP: prevent the # navigation; production is a real wa.me
+     <a href> with NO target (same-tab) and no preventDefault. */
+  e.preventDefault();
+  console.log('[wa] open https://wa.me/ for', id);
+}
+
+function closeProModal(){
+  var sheet = document.getElementById('proModalSheet');
+  sheet.style.transform = 'translateY(100%)';
+  setTimeout(function(){
+    document.getElementById('proModalBackdrop').style.display = 'none';
+    modalOpenFiredFor = null;
+    document.querySelectorAll('#pmDist .pm-d-fill').forEach(function(el){
+      el.style.transition = 'none';
+      el.style.width = '0%';
+    });
+  }, 200);
+}
+
+/* backdrop tap closes (only when the backdrop itself is the target) */
+function onModalBackdrop(e){
+  if (e.target === e.currentTarget) closeProModal();
+}
+
+/* Escape closes */
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape' &&
+      document.getElementById('proModalBackdrop').style.display === 'flex'){
+    closeProModal();
+  }
+});
+
+/* ============================================================
+   MEDIA LIGHTBOX — squad media orb (separate spec)
 ============================================================ */
 function openMedia(listingId){
-  trackClick('listing_media', { listing_id: listingId });
-  /* PROD: open media lightbox for this listing (separate spec) */
+  trackClick('listing_media_click', { target_id:listingId });
+  /* PROD: open media lightbox overlay for this listing */
+  console.log('[media] lightbox for', listingId);
 }
 
 /* ============================================================
    WISHLIST — "Gift it" pill → checkout
 ============================================================ */
 function openCheckout(wishId){
-  trackClick('wish_checkout', { wish_id: wishId });
+  trackClick('wish_giftit_click', { target_id:wishId });
   /* PROD: window.location.href = '/gift/' + wishId; */
+  console.log('[checkout]', wishId);
 }
 
 /* ============================================================
-   SHARE button (top-right) — native share → fallback to clipboard
+   SHARE button (top-right) — native share → clipboard fallback
 ============================================================ */
 function sharePage(){
+  trackClick('public_page_share_click', {});
   var url = 'https://welovedecode.com/sarajohnson';
   var title = 'Sara Johnson — WeLoveDecode';
   function flashConfirm(text){
@@ -199,11 +533,10 @@ function sharePage(){
     clearTimeout(el._timer);
     el._timer = setTimeout(function(){ el.style.opacity = '0'; }, 1800);
   }
-  if (navigator.share) {
-    navigator.share({ title: title, url: url })
-      .then(function(){ flashConfirm('Shared!'); })
-      .catch(function(){});
-  } else if (navigator.clipboard && navigator.clipboard.writeText) {
+  if (navigator.share){
+    navigator.share({ title:title, url:url })
+      .then(function(){ flashConfirm('Shared!'); }).catch(function(){});
+  } else if (navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(url)
       .then(function(){ flashConfirm('Copied!'); })
       .catch(function(){ flashConfirm('Copy failed'); });
@@ -214,33 +547,26 @@ function sharePage(){
 
 /* ============================================================
    WALL OF LOVE — render all gifts, no pagination
-   Gifter IG tap → walloflove_gifter_instagram click event
 ============================================================ */
 var gifts = [
-  { name:'Ahmed Khalil',  ig:'ahmedkhalil', date:'12 March 2026',     cat:'Fillers', amount:500  },
+  { name:'Ahmed Khalil',  ig:'ahmedkhalil', date:'12 March 2026',     cat:'Veneers', amount:1200 },
   { name:'Anonymous',     ig:null,          date:'24 February 2026',  cat:'Hair',    amount:300  },
   { name:'Noor Hassan',   ig:'noorhassan',  date:'8 February 2026',   cat:'Nails',   amount:80   },
-  { name:'Ahmed Khalil',  ig:'ahmedkhalil', date:'15 January 2026',   cat:'Hair',    amount:300  },
-  { name:'Layla Mansour', ig:'laylam',      date:'2 January 2026',    cat:'Veneers', amount:1200 },
-  { name:'Anonymous',     ig:null,          date:'18 December 2025',  cat:'Hair',    amount:300  },
-  { name:'Yasmin Farouk', ig:'yasminf',     date:'10 December 2025',  cat:'Nose',    amount:2500 },
-  { name:'Omar Saleh',    ig:'omarsaleh',   date:'1 December 2025',   cat:'Fillers', amount:500  }
+  { name:'Layla Mansour', ig:'laylam',      date:'2 January 2026',    cat:'Lashes',  amount:250  },
+  { name:'Anonymous',     ig:null,          date:'18 December 2025',  cat:'Brows',   amount:150  },
+  { name:'Yasmin Farouk', ig:'yasminf',     date:'10 December 2025',  cat:'Facial',  amount:400  }
 ];
-
-function formatAmount(n){
-  return '$' + n.toLocaleString('en-US');
-}
-
+function formatAmount(n){ return '$' + n.toLocaleString('en-US'); }
 function renderWall(){
   var list = document.getElementById('wallList');
   list.innerHTML = gifts.map(function(g, i){
-    var isLast  = (i === gifts.length - 1);
-    var border  = isLast
+    var isLast = (i === gifts.length - 1);
+    var border = isLast
       ? 'border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a'
       : 'border-top:1px solid #1a1a1a';
-    var stroke  = g.ig ? '#e91e8c' : '#777';
-    var nameEl  = g.ig
-      ? '<a href="https://instagram.com/' + g.ig + '" target="_blank" rel="noopener" onclick="trackClick(\'walloflove_gifter_instagram\',{gifter_ig:\'' + g.ig + '\'})" style="color:#fff;text-decoration:none;font-size:15px;font-weight:600">' + g.name + '</a>'
+    var stroke = g.ig ? '#e91e8c' : '#777';
+    var nameEl = g.ig
+      ? '<a href="https://instagram.com/' + g.ig + '" target="_blank" rel="noopener" onclick="trackClick(\'wall_of_love_instagram_click\',{target_id:\'' + g.ig + '\'})" style="color:#fff;text-decoration:none;font-size:15px;font-weight:600">' + g.name + '</a>'
       : '<div style="font-size:15px;font-weight:600">' + g.name + '</div>';
     return (
       '<div style="padding:12px 0;' + border + ';display:flex;justify-content:space-between;align-items:center">' +
@@ -257,11 +583,14 @@ function renderWall(){
   }).join('');
 }
 
-/* ============================================================
-   FOOTER — "Powered by WeLoveDecode" link
-============================================================ */
-/* Anchor tag handles it natively, no JS needed */
+/* keyframes for the WhatsApp badge pulse (messaged_30d >= 10) */
+(function(){
+  var st = document.createElement('style');
+  st.textContent = '@keyframes wa-pulse{0%{box-shadow:0 0 0 0 rgba(37,211,102,0.5)}70%{box-shadow:0 0 0 10px rgba(37,211,102,0)}100%{box-shadow:0 0 0 0 rgba(37,211,102,0)}}';
+  document.head.appendChild(st);
+})();
 
+renderSquad();
 renderWall();
 </script>
 </div>

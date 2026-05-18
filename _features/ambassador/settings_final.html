@@ -34,10 +34,10 @@ input{border:none!important}
 </div>
 
 <!-- URL -->
-<div style="background:#1c1c1c;border-radius:14px;padding:13px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;border:1px solid #262626">
+<div style="background:#1c1c1c;border-radius:14px;padding:13px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;border:1px solid #262626">
 <div style="flex:1;min-width:0">
 <div style="font-size:14px;color:#888;margin-bottom:3px">Your page</div>
-<div style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="color:#666">welovedecode.com/</span><span id="urlSlug" style="color:#fff;font-weight:500">sarajohnson</span></div>
+<div style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="color:#666">app.welovedecode.com/</span><span id="urlSlug" style="color:#fff;font-weight:500">sarajohnson</span></div>
 </div>
 <div style="display:flex;gap:6px;flex-shrink:0">
 <div id="copyBtn" style="width:28px;height:28px;border-radius:50%;background:#111;border:1px solid #333;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative" onclick="copyUrl()" title="Copy URL">
@@ -62,16 +62,37 @@ input{border:none!important}
 <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="openPhoneModal()"><span style="font-size:14px;color:#888">WhatsApp</span><div style="display:flex;align-items:center;gap:6px"><span id="phoneVal" style="font-size:14px">+971 50 123 4567</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
 </div>
 
+<!-- Payout method -->
+<div id="bankCard" style="background:#1c1c1c;border-radius:14px;overflow:hidden;margin-bottom:12px">
+<div id="bankEmpty" style="padding:16px">
+<div style="font-size:14px;font-weight:600;margin-bottom:6px">Payout method</div>
+<div style="font-size:12px;color:#777;margin-bottom:14px">Add your bank to receive payouts</div>
+<div onclick="openBankModal(false)" style="background:#e91e8c;border-radius:12px;padding:14px;text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:#fff">Add bank account</div>
+</div>
+<div id="bankFilled" style="display:none">
+<div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start;cursor:pointer" onclick="openBankModal(true)">
+<span style="font-size:14px;color:#888;line-height:1.4">Payout method</span>
+<div style="display:flex;align-items:flex-start;gap:6px">
+<div style="text-align:right">
+<div id="bankNameDisplay" style="font-size:14px;color:#fff;line-height:1.4">Emirates NBD</div>
+<div id="bankIbanDisplay" style="font-size:12px;color:#777;margin-top:2px">•••• 4821</div>
+</div>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" style="margin-top:2px;flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
+</div>
+</div>
+</div>
+</div>
+
 <!-- Preferences -->
 <div style="background:#1c1c1c;border-radius:14px;overflow:hidden;margin-bottom:12px">
-<div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #262626"><div><span style="font-size:14px;color:#888">Currency</span><div style="font-size:10px;color:#888;margin-top:3px">Can't be changed after setup</div></div><div style="display:flex;align-items:center;gap:6px;margin-top:8px"><span style="font-size:14px;color:#fff;line-height:1;white-space:nowrap">AED (<svg width="11" height="10" viewBox="0 0 344.84 299.91" fill="#fff" style="vertical-align:-1px;margin:0 1px"><path d="M342.14,140.96l2.7,2.54v-7.72c0-17-11.92-30.84-26.56-30.84h-23.41C278.49,36.7,222.69,0,139.68,0c-52.86,0-59.65,0-109.71,0,0,0,15.03,12.63,15.03,52.4v52.58h-27.68c-5.38,0-10.43-2.08-14.61-6.01l-2.7-2.54v7.72c0,17.01,11.92,30.84,26.56,30.84h18.44s0,29.99,0,29.99h-27.68c-5.38,0-10.43-2.07-14.61-6.01l-2.7-2.54v7.71c0,17,11.92,30.82,26.56,30.82h18.44s0,54.89,0,54.89c0,38.65-15.03,50.06-15.03,50.06h109.71c85.62,0,139.64-36.96,155.38-104.98h32.46c5.38,0,10.43,2.07,14.61,6l2.7,2.54v-7.71c0-17-11.92-30.83-26.56-30.83h-18.9c.32-4.88.49-9.87.49-15s-.18-10.11-.51-14.99h28.17c5.37,0,10.43,2.07,14.61,6.01ZM89.96,15.01h45.86c61.7,0,97.44,27.33,108.1,89.94l-153.96.02V15.01ZM136.21,284.93h-46.26v-89.98l153.87-.02c-9.97,56.66-42.07,88.38-107.61,90ZM247.34,149.96c0,5.13-.11,10.13-.34,14.99l-157.04.02v-29.99l157.05-.02c.22,4.84.33,9.83.33,15Z"/></svg>)</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" style="display:block;flex-shrink:0"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div></div>
+<div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #262626"><div><span style="font-size:14px;color:#888">Currency</span><div style="font-size:10px;color:#888;margin-top:3px">Can't be changed after setup</div></div><span style="font-size:14px;color:#fff;line-height:1;white-space:nowrap">AED (<svg width="11" height="10" viewBox="0 0 344.84 299.91" fill="#fff" style="vertical-align:-1px;margin:0 1px"><path d="M342.14,140.96l2.7,2.54v-7.72c0-17-11.92-30.84-26.56-30.84h-23.41C278.49,36.7,222.69,0,139.68,0c-52.86,0-59.65,0-109.71,0,0,0,15.03,12.63,15.03,52.4v52.58h-27.68c-5.38,0-10.43-2.08-14.61-6.01l-2.7-2.54v7.72c0,17.01,11.92,30.84,26.56,30.84h18.44s0,29.99,0,29.99h-27.68c-5.38,0-10.43-2.07-14.61-6.01l-2.7-2.54v7.71c0,17,11.92,30.82,26.56,30.82h18.44s0,54.89,0,54.89c0,38.65-15.03,50.06-15.03,50.06h109.71c85.62,0,139.64-36.96,155.38-104.98h32.46c5.38,0,10.43,2.07,14.61,6l2.7,2.54v-7.71c0-17-11.92-30.83-26.56-30.83h-18.9c.32-4.88.49-9.87.49-15s-.18-10.11-.51-14.99h28.17c5.37,0,10.43,2.07,14.61,6.01ZM89.96,15.01h45.86c61.7,0,97.44,27.33,108.1,89.94l-153.96.02V15.01ZM136.21,284.93h-46.26v-89.98l153.87-.02c-9.97,56.66-42.07,88.38-107.61,90ZM247.34,149.96c0,5.13-.11,10.13-.34,14.99l-157.04.02v-29.99l157.05-.02c.22,4.84.33,9.83.33,15Z"/></svg>)</span></div>
 <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #262626"><div><span style="font-size:14px;color:#888">Beauty Wishlist</span><div id="ws" style="font-size:10px;color:#e91e8c;margin-top:3px">Hidden from your page</div></div><div id="wishlistToggle" data-on="false" style="width:44px;height:24px;background:#333;border-radius:12px;position:relative;cursor:pointer" onclick="toggleWishlist()"><div style="width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s"></div></div></div>
 <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center"><div><span style="font-size:14px;color:#888">Page live</span><div id="ps" style="font-size:10px;color:#e91e8c;margin-top:3px">Your page is visible</div></div><div id="pageLiveToggle" data-live="true" style="width:44px;height:24px;background:#e91e8c;border-radius:12px;position:relative;cursor:pointer" onclick="togglePageLive()"><div style="width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;left:22px;transition:left 0.2s"></div></div></div>
 </div>
 
 <!-- Account -->
 <div style="background:#1c1c1c;border-radius:14px;overflow:hidden;margin-bottom:12px">
-<div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #262626;cursor:pointer" onclick="doLogout()"><span style="font-size:14px;color:#888">Log out</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+<div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #262626;cursor:pointer" onclick="doLogout()"><span style="font-size:14px;color:#888">Logout</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
 <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="openDeleteModal()"><span style="font-size:14px;color:#888">Delete profile</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
 </div>
 </div>
@@ -91,7 +112,7 @@ input{border:none!important}
 <div id="um_status" style="font-size:10px;color:#4ade80">Available</div>
 </div>
 <div id="um_box" style="background:#111;border-radius:10px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;gap:2px;border:1px solid #333;transition:border-color 0.2s">
-<span style="font-size:14px;color:#555">welovedecode.com/</span>
+<span style="font-size:14px;color:#555">app.welovedecode.com/</span>
 <input id="um_input" type="text" value="sarajohnson" oninput="umCheck()" autocomplete="off" style="flex:1;min-width:0;background:transparent;font-size:15px;color:#fff;font-weight:500;caret-color:#e91e8c;padding:0">
 <svg id="um_icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>
 </div>
@@ -102,7 +123,7 @@ input{border:none!important}
 </div>
 <div id="um_step2" style="display:none">
 <div style="text-align:center;margin-bottom:8px"><div style="font-size:18px;font-weight:700">Change your URL?</div></div>
-<div style="text-align:center;margin-bottom:20px"><div style="font-size:11px;color:#888;line-height:1.5">Your new URL will be <span id="um_newSlugPreview" style="color:#fff;font-weight:600">welovedecode.com/...</span></div></div>
+<div style="text-align:center;margin-bottom:20px"><div style="font-size:11px;color:#888;line-height:1.5">Your new URL will be <span id="um_newSlugPreview" style="color:#fff;font-weight:600">app.welovedecode.com/...</span></div></div>
 <div style="background:#111;border-radius:10px;padding:16px;margin-bottom:24px">
 <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:12px;color:#ef4444">&#10006;</span><span style="font-size:13px;color:#888">Your current URL will stop working</span></div>
 <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:12px;color:#ef4444">&#10006;</span><span style="font-size:13px;color:#888">Payment links already shared will break</span></div>
@@ -353,6 +374,48 @@ input{border:none!important}
 </div>
 </div>
 
+<!-- Bank Modal (1-step: form → save) -->
+<div id="bm" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);align-items:flex-end;justify-content:center;z-index:10">
+<div style="background:#1c1c1c;border-radius:20px 20px 0 0;width:100%;padding:24px 20px 32px">
+<div style="width:40px;height:4px;background:#444;border-radius:2px;margin:0 auto 24px"></div>
+
+<div id="bm_title" style="font-size:18px;font-weight:700;text-align:center;margin-bottom:8px">Add bank account</div>
+<div style="font-size:13px;color:#888;text-align:center;margin-bottom:20px">Your payouts will be sent to this account.</div>
+
+<div style="margin-bottom:10px">
+<div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;padding:0 4px;font-weight:600">Bank name</div>
+<div id="bm_bankBox" style="background:#111;border-radius:10px;padding:14px 16px;border:1px solid #333;transition:border-color 0.2s">
+<input id="bm_bank" type="text" placeholder="Emirates NBD" style="width:100%;background:transparent;font-size:14px;color:#fff;caret-color:#e91e8c" onfocus="document.getElementById('bm_bankBox').style.borderColor='#e91e8c'" onblur="document.getElementById('bm_bankBox').style.borderColor='#333'" oninput="bmValidate()">
+</div>
+</div>
+
+<div style="margin-bottom:10px">
+<div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;padding:0 4px;font-weight:600">Beneficiary name</div>
+<div id="bm_benBox" style="background:#111;border-radius:10px;padding:14px 16px;border:1px solid #333;transition:border-color 0.2s">
+<input id="bm_ben" type="text" placeholder="Full legal name on the account" style="width:100%;background:transparent;font-size:14px;color:#fff;caret-color:#e91e8c" onfocus="document.getElementById('bm_benBox').style.borderColor='#e91e8c'" onblur="document.getElementById('bm_benBox').style.borderColor='#333'" oninput="bmValidate()">
+</div>
+</div>
+
+<div style="margin-bottom:10px">
+<div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;padding:0 4px;font-weight:600">IBAN</div>
+<div id="bm_ibanBox" style="background:#111;border-radius:10px;padding:14px 16px;border:1px solid #333;transition:border-color 0.2s">
+<input id="bm_iban" type="text" placeholder="AE070331234567890123456" style="width:100%;background:transparent;font-size:14px;color:#fff;caret-color:#e91e8c;letter-spacing:0.5px" onfocus="document.getElementById('bm_ibanBox').style.borderColor='#e91e8c'" onblur="document.getElementById('bm_ibanBox').style.borderColor='#333'" oninput="bmValidate()" autocapitalize="characters">
+</div>
+<div id="bm_ibanErr" class="field-error" style="padding:0 4px"></div>
+</div>
+
+<div style="margin-bottom:20px">
+<div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;padding:0 4px;font-weight:600">SWIFT / BIC <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
+<div id="bm_swiftBox" style="background:#111;border-radius:10px;padding:14px 16px;border:1px solid #333;transition:border-color 0.2s">
+<input id="bm_swift" type="text" placeholder="ABORAEADXXX" style="width:100%;background:transparent;font-size:14px;color:#fff;caret-color:#e91e8c;letter-spacing:0.5px" onfocus="document.getElementById('bm_swiftBox').style.borderColor='#e91e8c'" onblur="document.getElementById('bm_swiftBox').style.borderColor='#333'" autocapitalize="characters">
+</div>
+</div>
+
+<div id="bm_save" onclick="bmSave()" style="background:#333;color:#666;border-radius:12px;padding:14px;text-align:center;font-size:14px;font-weight:600;cursor:not-allowed;margin-bottom:10px;transition:background 0.2s,color 0.2s">Add bank account</div>
+<div style="text-align:center;font-size:14px;color:#888;cursor:pointer;padding:8px" onclick="closeBankModal()">Cancel</div>
+</div>
+</div>
+
 </div>
 
 <script>
@@ -367,7 +430,8 @@ const mockUser = {
   phone: '+971501234567',
   is_public: true,
   wishlist_public: false,
-  has_active_paid_listings: true // toggle to false to allow hiding page
+  has_active_paid_listings: true, // toggle to false to allow hiding page
+  bank: null // set to { bank_name, beneficiary_name, iban_last4, swift_code } to show filled state
 };
 
 // Nav
@@ -389,7 +453,7 @@ function flashRow(row){
 // Copy URL — visible "Copied!" text label
 function copyUrl(){
   const slug=document.getElementById('urlSlug').textContent;
-  const url='https://welovedecode.com/'+slug;
+  const url='https://app.welovedecode.com/'+slug;
   try{
     if(navigator.clipboard) navigator.clipboard.writeText(url).catch(()=>{});
   }catch(e){}
@@ -417,8 +481,8 @@ function copyUrl(){
 // View page
 function openPublicPage(){
   const slug=document.getElementById('urlSlug').textContent;
-  showToast('→ welovedecode.com/'+slug);
-  // Production: window.location.href = 'https://welovedecode.com/'+slug;
+  showToast('→ app.welovedecode.com/'+slug);
+  // Production: window.location.href = 'https://app.welovedecode.com/'+slug;
 }
 
 // URL Edit Modal — 3 step
@@ -463,7 +527,7 @@ function umGoToStep2(){
   const v=document.getElementById('um_input').value.trim().toLowerCase();
   const save=document.getElementById('um_save');
   if(save.style.cursor==='not-allowed')return;
-  document.getElementById('um_newSlugPreview').textContent='welovedecode.com/'+v;
+  document.getElementById('um_newSlugPreview').textContent='app.welovedecode.com/'+v;
   document.getElementById('um_step1').style.display='none';
   document.getElementById('um_step2').style.display='block';
 }
@@ -1212,5 +1276,146 @@ function stopCoverDrag(e){
   document.removeEventListener('mouseup',stopCoverDrag);
   document.removeEventListener('touchend',stopCoverDrag);
 }
+// Bank modal
+var bmIsEdit = false;
+
+function openBankModal(isEdit){
+  bmIsEdit = isEdit;
+  var modal = document.getElementById('bm');
+  var title = document.getElementById('bm_title');
+  var saveBtn = document.getElementById('bm_save');
+
+  if(isEdit){
+    title.textContent = 'Update bank account';
+    saveBtn.textContent = 'Update';
+    // Pre-fill name + beneficiary, IBAN stays empty (security — re-entry required)
+    document.getElementById('bm_bank').value = mockUser.bank ? mockUser.bank.bank_name : '';
+    document.getElementById('bm_ben').value = mockUser.bank ? mockUser.bank.beneficiary_name : '';
+    document.getElementById('bm_iban').value = '';
+    document.getElementById('bm_iban').placeholder = 'Re-enter IBAN to change';
+    document.getElementById('bm_swift').value = mockUser.bank && mockUser.bank.swift_code ? mockUser.bank.swift_code : '';
+  } else {
+    title.textContent = 'Add bank account';
+    saveBtn.textContent = 'Add bank account';
+    document.getElementById('bm_bank').value = '';
+    document.getElementById('bm_ben').value = '';
+    document.getElementById('bm_iban').value = '';
+    document.getElementById('bm_iban').placeholder = 'AE070331234567890123456';
+    document.getElementById('bm_swift').value = '';
+  }
+
+  document.getElementById('bm_ibanErr').style.display = 'none';
+  bmValidate();
+  modal.style.display = 'flex';
+  setTimeout(function(){ document.getElementById('bm_bank').focus(); }, 100);
+}
+
+function closeBankModal(){
+  document.getElementById('bm').style.display = 'none';
+}
+
+// Backdrop tap to close
+document.getElementById('bm').addEventListener('click', function(e){
+  if(e.target === this) closeBankModal();
+});
+
+function bmValidate(){
+  var bank = document.getElementById('bm_bank').value.trim();
+  var ben  = document.getElementById('bm_ben').value.trim();
+  var iban = document.getElementById('bm_iban').value.trim().replace(/\s/g,'');
+  var btn  = document.getElementById('bm_save');
+  var errEl = document.getElementById('bm_ibanErr');
+
+  // IBAN basic format: 2 letters + 2 digits + up to 30 alphanumeric
+  var ibanValid = /^[A-Z]{2}\d{2}[A-Z0-9]{4,30}$/i.test(iban);
+
+  if(iban.length > 0 && !ibanValid){
+    errEl.textContent = 'Invalid IBAN format';
+    errEl.style.display = 'block';
+  } else {
+    errEl.style.display = 'none';
+  }
+
+  // Enable save when required fields are filled
+  var canSave = bank.length > 0 && ben.length > 0;
+  if(bmIsEdit){
+    // In edit mode: save if name/ben changed, even without new IBAN
+    canSave = canSave && (iban.length === 0 || ibanValid);
+  } else {
+    // In add mode: all three required
+    canSave = canSave && iban.length > 0 && ibanValid;
+  }
+
+  if(canSave){
+    btn.style.background = '#e91e8c';
+    btn.style.color = '#fff';
+    btn.style.cursor = 'pointer';
+    btn.dataset.enabled = 'true';
+  } else {
+    btn.style.background = '#333';
+    btn.style.color = '#666';
+    btn.style.cursor = 'not-allowed';
+    btn.dataset.enabled = 'false';
+  }
+}
+
+function bmSave(){
+  var btn = document.getElementById('bm_save');
+  if(btn.dataset.enabled !== 'true') return;
+
+  var bank = document.getElementById('bm_bank').value.trim();
+  var ben  = document.getElementById('bm_ben').value.trim();
+  var iban = document.getElementById('bm_iban').value.trim().replace(/\s/g,'');
+  var swift = document.getElementById('bm_swift').value.trim();
+
+  var origText = btn.textContent;
+  btn.textContent = 'Saving…';
+  btn.style.background = '#333';
+  btn.style.color = '#888';
+  btn.style.cursor = 'not-allowed';
+
+  /* PRODUCTION:
+     const method = bmIsEdit ? 'PATCH' : 'POST';
+     fetch('/api/ambassador/bank-account', {
+       method: method,
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({ bank_name: bank, beneficiary_name: ben, iban_number: iban || undefined, swift_code: swift || undefined })
+     }).then(r => r.json()).then(data => { ... });
+  */
+
+  setTimeout(function(){
+    // Update mock state
+    var last4 = iban.length >= 4 ? iban.slice(-4) : (mockUser.bank ? mockUser.bank.iban_last4 : '????');
+    mockUser.bank = { bank_name: bank, beneficiary_name: ben, iban_last4: last4, swift_code: swift || null };
+
+    // Update card display
+    document.getElementById('bankNameDisplay').textContent = bank;
+    document.getElementById('bankIbanDisplay').textContent = '•••• ' + last4;
+    document.getElementById('bankEmpty').style.display = 'none';
+    document.getElementById('bankFilled').style.display = 'block';
+
+    // Flash the card
+    var card = document.getElementById('bankCard');
+    card.classList.add('row-saved-flash');
+    setTimeout(function(){ card.classList.remove('row-saved-flash'); }, 1200);
+
+    closeBankModal();
+    showToast('Bank saved ✓');
+  }, 800);
+}
+
+// Init bank card state from mockUser
+(function(){
+  if(mockUser.bank){
+    document.getElementById('bankNameDisplay').textContent = mockUser.bank.bank_name;
+    document.getElementById('bankIbanDisplay').textContent = '•••• ' + mockUser.bank.iban_last4;
+    document.getElementById('bankEmpty').style.display = 'none';
+    document.getElementById('bankFilled').style.display = 'block';
+  } else {
+    document.getElementById('bankEmpty').style.display = 'block';
+    document.getElementById('bankFilled').style.display = 'none';
+  }
+})();
+
 </script>
 </body></html>

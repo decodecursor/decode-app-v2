@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Settings · Login methods card — final</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 40px 20px;
+    background: #0a0a0a;
+    font-family: system-ui, -apple-system, sans-serif;
+    color: #fff;
+  }
+  h1 {
+    text-align: center;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: -0.5px;
+    margin: 0 0 8px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #888;
+    font-size: 12px;
+    margin-bottom: 28px;
+  }
+  h2 {
+    font-size: 10px;
+    color: #888;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin: 0 0 14px;
+    text-align: center;
+  }
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+    align-items: center;
+  }
+  .group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .note {
+    font-size: 11px;
+    color: #666;
+    text-align: center;
+    line-height: 1.5;
+    font-style: italic;
+    max-width: 380px;
+  }
+  .frame {
+    width: 340px;
+    background: #000;
+    padding: 18px;
+    border-radius: 20px;
+    border: 2px solid #1a1a1a;
+  }
+  .card {
+    background: #1c1c1c;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .card-row {
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
+  .card-row + .card-row {
+    border-top: 1px solid #262626;
+  }
+  .row-key {
+    font-size: 14px;
+    color: #888;
+  }
+  .row-value {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .row-value-text {
+    font-size: 14px;
+    color: #fff;
+  }
+  .row-value-add {
+    font-size: 14px;
+    color: #e91e8c;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<h1>Settings · Login methods card</h1>
+<div class="subtitle">Option B · No section label · 3 user states</div>
+
+<div class="stack">
+
+  <!-- State 1 -->
+  <div class="group">
+    <h2>State 1 · WhatsApp-primary (most common)</h2>
+    <div class="frame">
+      <div class="card">
+        <div class="card-row">
+          <span class="row-key">WhatsApp</span>
+          <div class="row-value">
+            <span class="row-value-text">+971 50 123 4567</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+        <div class="card-row">
+          <span class="row-key">Email</span>
+          <div class="row-value">
+            <span class="row-value-add">Add email</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="note">Tap Email row → opens Add email modal (new flow). Tap WhatsApp row → opens Change WhatsApp modal (existing).</div>
+  </div>
+
+  <!-- State 2 -->
+  <div class="group">
+    <h2>State 2 · Email-primary (fallback user)</h2>
+    <div class="frame">
+      <div class="card">
+        <div class="card-row">
+          <span class="row-key">Email</span>
+          <div class="row-value">
+            <span class="row-value-text">sara@email.com</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+        <div class="card-row">
+          <span class="row-key">WhatsApp</span>
+          <div class="row-value">
+            <span class="row-value-add">Add WhatsApp</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="note">Row order flips: Email first (their primary), WhatsApp shows Add action. Tap WhatsApp → opens Add WhatsApp modal (new flow). Tap Email → opens Change email modal (existing).</div>
+  </div>
+
+  <!-- State 3 -->
+  <div class="group">
+    <h2>State 3 · Both linked (power user)</h2>
+    <div class="frame">
+      <div class="card">
+        <div class="card-row">
+          <span class="row-key">WhatsApp</span>
+          <div class="row-value">
+            <span class="row-value-text">+971 50 123 4567</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+        <div class="card-row">
+          <span class="row-key">Email</span>
+          <div class="row-value">
+            <span class="row-value-text">sara@email.com</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="note">Identical to today's settings. Both rows tap into existing Change modals.</div>
+  </div>
+
+</div>
+
+</body>
+</html>

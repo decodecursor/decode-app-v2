@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DECODE Discovery Package — Locked Design Spec</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500;1,600;1,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#000;color:#fff;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:860px;margin:0 auto;padding:56px 28px 96px;}
+  h1{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:38px;font-weight:500;letter-spacing:-1px;margin-bottom:6px;}
+  .sub{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#888;margin-bottom:8px;}
+  .warn{font-size:13px;color:#E07A7A;border:1px solid #3a2020;background:#160d0d;border-radius:10px;padding:14px 16px;line-height:1.6;margin:28px 0 56px;}
+  h2{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;font-weight:500;margin:54px 0 18px;border-top:1px solid #1f1f1f;padding-top:30px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  td,th{text-align:left;padding:9px 12px;border-bottom:1px solid #161616;vertical-align:top;}
+  th{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#888;font-weight:600;}
+  td.k{color:#CCC;white-space:nowrap;}
+  td.v{color:#fff;font-weight:600;}
+  td.n{color:#777;}
+  .sw{display:inline-block;width:13px;height:13px;border-radius:3px;vertical-align:middle;margin-right:8px;border:1px solid #2a2a2a;}
+  .chip{display:inline-block;font-family:'Cormorant Garamond',serif;font-style:italic;color:#5BA3E0;font-weight:600;}
+  .flow{font-size:14px;color:#CCC;line-height:2.1;}
+  .flow b{color:#fff;font-style:italic;font-family:'Cormorant Garamond',serif;font-weight:600;}
+  .flow .p{color:#5BA3E0;font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:600;}
+  .note{font-size:12px;color:#777;line-height:1.7;margin-top:14px;}
+  code{background:#141414;border:1px solid #222;border-radius:4px;padding:1px 6px;font-size:12px;color:#CCC;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="sub">DECODE · Discovery Package</div>
+  <h1>Locked design spec</h1>
+  <div class="note">Reference for <code>decode-vs-starfish.html</code> — the signed-off salon comparison page. This document records what is fixed so it cannot drift in future edits.</div>
+
+  <div class="warn"><b>This page is locked.</b> Every size, color, number, and section position below was decided deliberately. Do not alter without an explicit instruction tied to a specific element. When in doubt, change nothing.</div>
+
+  <h2>Type scale</h2>
+  <table>
+    <tr><th>Element</th><th>Font</th><th>Size</th><th>Notes</th></tr>
+    <tr><td class="k">Hero H1</td><td class="v">Cormorant Garamond italic</td><td class="v">48px / 27px mobile</td><td class="n">no full stop</td></tr>
+    <tr><td class="k">Section title (.sectitle)</td><td class="v">Cormorant Garamond italic</td><td class="v">26px</td><td class="n">DECODE spec; was 30px, reduced</td></tr>
+    <tr><td class="k">Eyebrow / subhead (.subt)</td><td class="v">Inter 500</td><td class="v">13px</td><td class="n">1.5px tracking, NOT uppercase, color #888</td></tr>
+    <tr><td class="k">Blue punchlines</td><td class="v">Cormorant Garamond italic</td><td class="v">40px</td><td class="n">color #5BA3E0; the recurring closer</td></tr>
+    <tr><td class="k">Card stat numbers</td><td class="v">Cormorant Garamond italic</td><td class="v">44px</td><td class="n">white #fff (industry data = neutral)</td></tr>
+    <tr><td class="k">Card row text (.r/.v)</td><td class="v">Inter</td><td class="v">13px</td><td class="n">values white-space:nowrap (no broken numbers)</td></tr>
+    <tr><td class="k">Source lines</td><td class="v">Inter</td><td class="v">10px</td><td class="n">color #777, prefixed with *</td></tr>
+  </table>
+
+  <h2>Color system</h2>
+  <table>
+    <tr><th>Token</th><th>Hex</th><th>Use</th></tr>
+    <tr><td class="k"><span class="sw" style="background:#5BA3E0"></span>Decode blue</td><td class="v">#5BA3E0</td><td class="n">DECODE's side, punchlines, positive values</td></tr>
+    <tr><td class="k"><span class="sw" style="background:#E8895C"></span>Orange</td><td class="v">#E8895C / #D85A30</td><td class="n">Influencer A / mid comparison</td></tr>
+    <tr><td class="k"><span class="sw" style="background:#E07A7A"></span>Red</td><td class="v">#E07A7A / #B23A36</td><td class="n">Agency / highest cost / ✕ marks</td></tr>
+    <tr><td class="k"><span class="sw" style="background:#3FB950"></span>Green</td><td class="v">#3FB950</td><td class="n">✓ marks, "Real-time, online"</td></tr>
+    <tr><td class="k"><span class="sw" style="background:#CCCCCC"></span>Grey 1</td><td class="v">#CCC</td><td class="n">readable body text</td></tr>
+    <tr><td class="k"><span class="sw" style="background:#888888"></span>Grey 2</td><td class="v">#888</td><td class="n">eyebrows, sublabels</td></tr>
+    <tr><td class="k"><span class="sw" style="background:#777777"></span>Grey 3</td><td class="v">#777</td><td class="n">muted notes, icons, sources</td></tr>
+    <tr><td class="n" colspan="3">3-grey system only — no other greys permitted.</td></tr>
+  </table>
+
+  <h2>Section order (locked — value before price)</h2>
+  <div class="flow">
+    Hero<br>
+    → <b>Proof</b> &nbsp;<span class="n">industry data · 2–3× · 88% Nielsen</span> → <span class="p">Trust fills chairs</span><br>
+    → <b>Data</b> &nbsp;<span class="n">live, on your phone</span><br>
+    → <b>Influencer comparison</b> &nbsp;<span class="n">1 day cost row</span><br>
+    → <b>Agency comparison</b><br>
+    → <span class="n">kill-shot (belongs to comparison / money)</span> → <span class="p">21× cheaper</span><br>
+    → <b>Renewal</b> → <span class="p">Renew in 2 clicks</span><br>
+    → <b>Trust Stack</b> → <span class="p">Research, decision and booking — on the spot</span><br>
+    → CTA <span class="n">"Start with Ambassadors →"</span> → footer
+  </div>
+  <div class="note">Rationale: establish desire (Proof, Data) before revealing price (comparisons, 21×), then remove friction (Renewal), then differentiate (Trust Stack). The kill-shot has no title by design — it is the payoff of the agency comparison, not its own section.</div>
+
+  <h2>Locked business numbers</h2>
+  <table>
+    <tr><th>Item</th><th>Value</th></tr>
+    <tr><td class="k">Per ambassador, first 90 days</td><td class="v">AED 1,200</td></tr>
+    <tr><td class="k">5 ambassadors, first 90 days</td><td class="v">AED 6,000</td></tr>
+    <tr><td class="k">Per ambassador, renewal /90 days</td><td class="v">AED 750</td></tr>
+    <tr><td class="k">5 ambassadors, renewal</td><td class="v">AED 3,750</td></tr>
+    <tr><td class="k">Influencer A — total / per day</td><td class="v">AED 2,936 / 979</td></tr>
+    <tr><td class="k">Influencer B — total / per day</td><td class="v">AED 3,670 / 1,223</td></tr>
+    <tr><td class="k">Decode 1-day cost</td><td class="v">AED 13</td></tr>
+    <tr><td class="k">Agency 5-pack premium /90 days</td><td class="v">AED 127,200</td></tr>
+    <tr><td class="k">Headline contrast</td><td class="v">21× cheaper · 6,000 vs 127,200</td></tr>
+    <tr><td class="n" colspan="2">Never expose internal cost splits or future ambassador tiers on this page.</td></tr>
+  </table>
+
+  <h2>Sourced claims (do not alter wording)</h2>
+  <table>
+    <tr><th>Claim</th><th>Source line</th></tr>
+    <tr><td class="k">2–3× more visitors of small creators become paying customers than of big names</td><td class="n">*Digital Applied, Stack Influence (2026 reports)</td></tr>
+    <tr><td class="k">88% trust recommendations from people they know above all other forms of marketing</td><td class="n">*Nielsen, Global Trust in Advertising 2021 (56 countries) — verbatim finding, current figure</td></tr>
+  </table>
+
+  <h2>Deployment</h2>
+  <table>
+    <tr><td class="k">Route</td><td class="v">app.welovedecode.com/discovery-package</td></tr>
+    <tr><td class="k">Pattern</td><td class="n">static public route, mirrors /ambassador-program — no auth, no data, no codebase wiring</td></tr>
+    <tr><td class="k">Deliverable</td><td class="n">decode-vs-starfish.html served byte-for-byte; see CC-DEPLOY-PROMPT.md</td></tr>
+    <tr><td class="k">Expected non-bugs</td><td class="n">logo 404s offline; rotate-pill on mobile portrait; table side-scrolls on narrow phones</td></tr>
+  </table>
+
+</div>
+</body>
+</html>

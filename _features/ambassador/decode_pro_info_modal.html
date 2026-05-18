@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DECODE — PRO Info Modal Component (Final)</title>
+
+<!--
+====================================================================
+DECODE PRO INFO MODAL — FINAL PRODUCTION SPEC
+====================================================================
+Component:   .decode-modal
+Trigger:     Tap on .decode-listing-card__main
+Width:       380px max, fluid below
+Background:  #0a0a0a — dark theme
+Brand pink:  #e91e8c (matches checkout/auth flows)
+
+Sections (top to bottom):
+  1. Hero (pink-tinted gradient bg)
+       - Category, name, city
+       - Rating block (left col) + 5-star distribution bars (right cols)
+  2. Quick action row (3 buttons): Website, Google Maps, Phone
+       - Pink-stroked icons, NO circle background
+  3. AI summary (serif italic pull-quote + Gemini disclosure)
+  4. Demand line (pink, centered, no icon)
+  5. Primary action: Send WhatsApp
+       - Pink #e91e8c, 12px border-radius, white text, weight 700
+       - Matches the .payNowBtn style from checkout flow
+  6. Cancel (plain grey text, no border, no background)
+
+Graceful degradation:
+  - Missing reviewSummary    -> hide section 3
+  - Missing reviews array    -> hide distribution bars
+  - Missing websiteUri       -> hide Website button (row becomes 2 cols)
+  - Missing phone            -> hide Phone button
+  - Missing googleMapsUri    -> hide Google Maps button
+  - 0 reviews                -> hide rating block + distribution + AI summary
+  - No google_place_id       -> show only category, name, city, demand, WhatsApp
+====================================================================
+-->
+
+<style>
+  :root {
+    --decode-pink: #e91e8c;
+    --decode-pink-soft: rgba(233, 30, 140, 0.08);
+    --decode-modal-bg: #0a0a0a;
+    --decode-card-bg: rgba(255, 255, 255, 0.04);
+    --decode-card-border: #2a2a2a;
+    --decode-text-primary: #ffffff;
+    --decode-text-secondary: #888888;
+    --decode-text-tertiary: #555555;
+    --decode-text-soft: #ddd;
+    --decode-text-muted: #aaa;
+    --decode-divider: #1f1f1f;
+  }
+
+  body {
+    background: #1a1a1a;
+    margin: 0;
+    padding: 32px 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .decode-modal-backdrop {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 32px 16px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  /* MODAL CONTAINER */
+  .decode-modal {
+    background: var(--decode-modal-bg);
+    border-radius: 24px;
+    max-width: 380px;
+    width: 100%;
+    overflow: hidden;
+    color: var(--decode-text-primary);
+  }
+
+  /* SECTION 1 - HERO */
+  .decode-modal__hero {
+    padding: 24px 16px 22px;
+    text-align: center;
+    background: linear-gradient(180deg, var(--decode-pink-soft), transparent);
+    border-bottom: 0.5px solid var(--decode-divider);
+  }
+
+  .decode-modal__category {
+    font-size: 11px;
+    color: var(--decode-pink);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 6px 0;
+  }
+
+  .decode-modal__name {
+    font-size: 20px;
+    color: var(--decode-text-primary);
+    font-weight: 500;
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+  }
+
+  .decode-modal__city {
+    font-size: 12px;
+    color: var(--decode-text-secondary);
+    margin: 0 0 22px 0;
+  }
+
+  .decode-modal__hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  .decode-modal__rating-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .decode-modal__rating-num {
+    font-size: 40px;
+    color: var(--decode-text-primary);
+    font-weight: 300;
+    line-height: 1;
+    margin-bottom: 4px;
+    letter-spacing: -1px;
+  }
+
+  .decode-modal__rating-stars {
+    color: var(--decode-text-primary);
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
+  }
+
+  .decode-modal__rating-meta {
+    font-size: 10px;
+    color: var(--decode-text-secondary);
+    line-height: 1.3;
+  }
+
+  .decode-modal__distribution {
+    grid-column: 2 / 4;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 4px 8px;
+    align-items: center;
+  }
+
+  .decode-modal__d-label {
+    font-size: 10px;
+    color: var(--decode-text-muted);
+    text-align: right;
+  }
+
+  .decode-modal__d-bar {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .decode-modal__d-fill {
+    height: 100%;
+    background: var(--decode-pink);
+    border-radius: 2px;
+  }
+
+  .decode-modal__d-count {
+    font-size: 10px;
+    color: var(--decode-text-secondary);
+    font-variant-numeric: tabular-nums;
+    min-width: 24px;
+    text-align: right;
+  }
+
+  /* SECTION 2 - QUICK ACTION ROW */
+  .decode-modal__quick-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 14px 16px;
+    border-bottom: 0.5px solid var(--decode-divider);
+  }
+
+  .decode-modal__quick-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 0;
+    background: var(--decode-card-bg);
+    border: 0.5px solid var(--decode-card-border);
+    border-radius: 12px;
+    cursor: pointer;
+    color: inherit;
+    text-decoration: none;
+    font-family: inherit;
+    transition: filter 0.15s, background 0.15s;
+  }
+
+  .decode-modal__quick-btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .decode-modal__quick-btn:active {
+    filter: brightness(0.95);
+  }
+
+  .decode-modal__qb-icon {
+    width: 18px;
+    height: 18px;
+    stroke: var(--decode-pink);
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .decode-modal__qb-label {
+    font-size: 11px;
+    color: var(--decode-text-soft);
+    font-weight: 500;
+  }
+
+  /* SECTION 3 - AI SUMMARY */
+  .decode-modal__content {
+    padding: 22px 20px 20px;
+  }
+
+  .decode-modal__section-label {
+    font-size: 10px;
+    color: var(--decode-text-secondary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 12px 0;
+  }
+
+  .decode-modal__ai-summary {
+    font-family: Georgia, "Times New Roman", serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--decode-text-primary);
+    line-height: 1.5;
+    margin: 0 0 10px 0;
+    letter-spacing: 0.01em;
+  }
+
+  .decode-modal__gemini {
+    font-size: 10px;
+    color: var(--decode-text-tertiary);
+    margin: 0;
+    font-style: normal;
+    font-family: inherit;
+  }
+
+  /* SECTION 4 - DEMAND LINE */
+  .decode-modal__demand-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px 14px;
+    font-size: 11px;
+    color: var(--decode-pink);
+    font-weight: 500;
+    text-align: center;
+  }
+
+  /* SECTION 5 - PRIMARY ACTION */
+  .decode-modal__actions {
+    padding: 0 20px 8px;
+  }
+
+  .decode-modal__btn-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 16px 0;
+    background: var(--decode-pink);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: filter 0.15s, opacity 0.15s;
+  }
+
+  .decode-modal__btn-primary:hover {
+    filter: brightness(1.08);
+  }
+
+  .decode-modal__btn-primary:active {
+    filter: brightness(0.95);
+  }
+
+  .decode-modal__btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* SECTION 6 - CANCEL */
+  .decode-modal__cancel-area {
+    padding: 14px 20px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .decode-modal__cancel {
+    color: var(--decode-text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    transition: color 0.15s;
+  }
+
+  .decode-modal__cancel:hover {
+    color: var(--decode-text-soft);
+  }
+</style>
+</head>
+<body>
+
+<div class="decode-modal-backdrop">
+  <div class="decode-modal" role="dialog" aria-labelledby="modal-name" aria-modal="true">
+
+    <header class="decode-modal__hero">
+      <p class="decode-modal__category">Lashes</p>
+      <h2 class="decode-modal__name" id="modal-name">Oasis Beauty Lounge</h2>
+      <p class="decode-modal__city">Abu Dhabi, UAE</p>
+
+      <div class="decode-modal__hero-grid">
+        <div class="decode-modal__rating-col">
+          <div class="decode-modal__rating-num">4.7</div>
+          <div class="decode-modal__rating-stars" aria-label="4.7 out of 5 stars">★★★★★</div>
+          <div class="decode-modal__rating-meta">156 Google<br/>reviews</div>
+        </div>
+
+        <div class="decode-modal__distribution" role="list" aria-label="Star rating distribution">
+          <span class="decode-modal__d-label">5</span>
+          <div class="decode-modal__d-bar"><div class="decode-modal__d-fill" style="width: 78%;"></div></div>
+          <span class="decode-modal__d-count">122</span>
+          <span class="decode-modal__d-label">4</span>
+          <div class="decode-modal__d-bar"><div class="decode-modal__d-fill" style="width: 14%;"></div></div>
+          <span class="decode-modal__d-count">22</span>
+          <span class="decode-modal__d-label">3</span>
+          <div class="decode-modal__d-bar"><div class="decode-modal__d-fill" style="width: 4%;"></div></div>
+          <span class="decode-modal__d-count">7</span>
+          <span class="decode-modal__d-label">2</span>
+          <div class="decode-modal__d-bar"><div class="decode-modal__d-fill" style="width: 2%;"></div></div>
+          <span class="decode-modal__d-count">3</span>
+          <span class="decode-modal__d-label">1</span>
+          <div class="decode-modal__d-bar"><div class="decode-modal__d-fill" style="width: 1%;"></div></div>
+          <span class="decode-modal__d-count">2</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="decode-modal__quick-row">
+      <a class="decode-modal__quick-btn" href="https://oasisbeauty.ae" target="_blank" rel="noopener">
+        <svg class="decode-modal__qb-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span class="decode-modal__qb-label">Website</span>
+      </a>
+
+      <a class="decode-modal__quick-btn" href="https://maps.google.com/?cid=12345" target="_blank" rel="noopener">
+        <svg class="decode-modal__qb-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        <span class="decode-modal__qb-label">Google Maps</span>
+      </a>
+
+      <a class="decode-modal__quick-btn" href="tel:+971255501433">
+        <svg class="decode-modal__qb-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+        <span class="decode-modal__qb-label">Phone</span>
+      </a>
+    </div>
+
+    <section class="decode-modal__content">
+      <p class="decode-modal__section-label">AI summary of reviews</p>
+      <p class="decode-modal__ai-summary">"Customers praise the relaxing atmosphere and skilled lash technicians, with many highlighting the long-lasting results and attention to detail. Some mention longer waits during peak weekends."</p>
+      <p class="decode-modal__gemini">Summarized with Gemini</p>
+    </section>
+
+    <p class="decode-modal__demand-line">47 people messaged in the last 30 days</p>
+
+    <div class="decode-modal__actions">
+      <button class="decode-modal__btn-primary"
+              data-listing-id="LIST_004"
+              data-source="modal"
+              aria-label="Send WhatsApp message to Oasis Beauty Lounge">
+        Send WhatsApp
+      </button>
+    </div>
+
+    <div class="decode-modal__cancel-area">
+      <button class="decode-modal__cancel" type="button">Cancel</button>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

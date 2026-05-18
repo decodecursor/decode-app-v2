@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>DECODE — Ambassador Program</title>
+<meta name="description" content="Simple. Fair. Made for you. The DECODE Ambassador Program — how it works, what you get, what we handle.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500;1,600;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #000; }
+body {
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  min-height: 100vh;
+  color: #FFF;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body.overlay-open { overflow: hidden; height: 100vh; }
+
+.page {
+  max-width: 440px;
+  margin: 0 auto;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+.top-space { height: 32px; }
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 28px 110px;
+}
+.wordmark-logo {
+  height: 26px;
+  width: auto;
+  display: block;
+  filter: brightness(0) invert(1);
+}
+.story-link {
+  font-size: 12px;
+  color: #FFF;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  padding: 8px;
+  margin: -8px;
+}
+.close-link {
+  font-size: 28px;
+  color: #FFF;
+  cursor: pointer;
+  line-height: 0.8;
+  padding: 8px 12px;
+  margin: -8px -12px;
+  font-weight: 300;
+  background: none;
+  border: none;
+  font-family: inherit;
+}
+
+.section { padding: 0 28px 80px; text-align: center; }
+.section-intro { padding: 0 28px 96px; text-align: center; }
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 3.6px;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 34px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+.hero {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 56px;
+  line-height: 1.0;
+  margin-bottom: 36px;
+  font-weight: 400;
+  letter-spacing: -1.6px;
+  color: #FFF;
+}
+.sub {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #888;
+  font-weight: 400;
+}
+
+.section-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 26px;
+  line-height: 1.18;
+  margin-bottom: 22px;
+  font-weight: 500;
+  color: #FFF;
+  letter-spacing: -0.4px;
+}
+
+.flow-list {
+  text-align: left;
+  padding: 0 8px;
+}
+.flow-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  align-items: flex-start;
+}
+.flow-item:last-child {
+  margin-bottom: 0;
+}
+.flow-number {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 20px;
+  color: #FFF;
+  line-height: 1.4;
+  font-weight: 400;
+}
+.flow-body {
+  font-size: 14px;
+  color: #CCC;
+  line-height: 1.55;
+  font-weight: 400;
+}
+.flow-sub {
+  display: block;
+  color: #777;
+  font-size: 12px;
+  margin-top: 2px;
+  padding-left: 14px;
+}
+
+.payment {
+  padding: 24px 28px 80px;
+  text-align: center;
+}
+.payment-divider {
+  width: 32px;
+  height: 0.5px;
+  background: #444;
+  margin: 0 auto;
+}
+.payment-eyebrow {
+  font-size: 12px;
+  letter-spacing: 3.6px;
+  text-transform: uppercase;
+  color: #888;
+  margin: 36px 0 28px;
+  font-weight: 500;
+}
+.payment-amount {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 30px;
+  line-height: 1.3;
+  color: #FFF;
+  margin-bottom: 16px;
+  font-weight: 500;
+  letter-spacing: -0.3px;
+}
+.payment-note {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #888;
+  margin-bottom: 36px;
+  font-weight: 400;
+}
+
+.bullet-list {
+  text-align: left;
+  padding: 0 8px;
+}
+.bullet-item {
+  font-size: 14px;
+  color: #CCC;
+  line-height: 1.7;
+  margin-bottom: 4px;
+  font-weight: 400;
+}
+.bullet-item:last-child {
+  margin-bottom: 0;
+}
+
+.section-divider {
+  width: 32px;
+  height: 0.5px;
+  background: #444;
+  margin: 0 auto 80px;
+}
+
+.footer {
+  text-align: center;
+  padding: 24px 28px 60px;
+}
+.footer-contact {
+  font-size: 12px;
+  color: #FFF;
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+.footer-contact a {
+  color: #FFF;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.story-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #000;
+  z-index: 100;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+.story-overlay.active { transform: translateY(0); }
+.story-inner { max-width: 440px; margin: 0 auto; }
+.story-content {
+  padding: 0 28px 80px;
+  text-align: center;
+}
+.story-beat {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 21px;
+  line-height: 1.4;
+  color: #FFF;
+  margin-bottom: 24px;
+  font-weight: 400;
+  letter-spacing: -0.2px;
+}
+.story-beat-emphasis { font-weight: 700; }
+.story-quote {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 21px;
+  line-height: 1.4;
+  color: #FFF;
+  margin-bottom: 18px;
+  font-weight: 400;
+  letter-spacing: -0.2px;
+}
+.story-final {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 25px;
+  line-height: 1.32;
+  color: #FFF;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  font-weight: 500;
+  letter-spacing: -0.4px;
+}
+.story-divider {
+  width: 32px;
+  height: 0.5px;
+  background: #444;
+  margin: 0 auto 56px;
+}
+</style>
+</head>
+<body>
+
+<main class="page">
+  <div class="top-space"></div>
+  <nav class="nav">
+    <img class="wordmark-logo" src="/logo.png" alt="DECODE" height="26" />
+    <button class="story-link" type="button" id="open-story">The story &rarr;</button>
+  </nav>
+
+  <section class="section-intro">
+    <div class="eyebrow">Ambassador Program</div>
+    <h1 class="hero">The Summary.</h1>
+    <p class="sub">What you get. What you give.</p>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">How it works.</h2>
+    <div class="bullet-list">
+      <div class="bullet-item">&middot; We agree on professional and service.</div>
+      <div class="bullet-item">&middot; You try the service (free).</div>
+      <div class="bullet-item">&middot; You create your DECODE page.</div>
+      <div class="bullet-item">&middot; You upload a before/after video.</div>
+      <div class="bullet-item">&middot; You get paid.</div>
+      <div class="bullet-item">&middot; Listing stays live for 90 days.</div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <section class="section">
+    <h2 class="section-title">What you get.</h2>
+    <div class="bullet-list">
+      <div class="bullet-item">&middot; Free service.</div>
+      <div class="bullet-item">&middot; AED XX for 90 days.</div>
+      <div class="bullet-item">&middot; Payment cycle is each Wednesday.</div>
+      <div class="bullet-item">&middot; Vetted salons, clinics and doctors.</div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <section class="section">
+    <h2 class="section-title">What you give.</h2>
+    <div class="bullet-list">
+      <div class="bullet-item">&middot; One 15 sec before/after video for 90 days.</div>
+      <div class="bullet-item">&middot; Publish video on your DECODE page.</div>
+      <div class="bullet-item">&middot; No monthly content.</div>
+      <div class="bullet-item">&middot; No posts on your socials required.</div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <section class="section">
+    <h2 class="section-title">Your content. Your rules.</h2>
+    <div class="bullet-list">
+      <div class="bullet-item">&middot; You own your content.</div>
+      <div class="bullet-item">&middot; DECODE will never use your content.</div>
+      <div class="bullet-item">&middot; Professional will never use your content.</div>
+      <div class="bullet-item">&middot; You handle your advertising compliance.</div>
+    </div>
+  </section>
+
+  <div class="footer">
+    <div class="footer-contact">Questions? <a href="https://wa.me/971554275547">WhatsApp us &rarr;</a></div>
+    <!-- SOCIAL ICONS: CC to insert the same social-icons block used in /ambassador and /professional footers -->
+  </div>
+</main>
+
+<div class="story-overlay" id="story-overlay" aria-hidden="true" role="dialog" aria-label="The story behind DECODE">
+  <div class="story-inner">
+    <div class="top-space"></div>
+    <nav class="nav">
+      <img class="wordmark-logo" src="/logo.png" alt="DECODE" height="26" />
+      <button class="close-link" type="button" id="close-story" aria-label="Close">&times;</button>
+    </nav>
+    <div class="story-content">
+      <p class="story-beat">The most trusted beauty knowledge has always been shared in private.</p>
+      <p class="story-beat">Passed between friends, sisters, mothers and daughters for generations.</p>
+      <p class="story-quote">&ldquo;The hairstylist &mdash; she&rsquo;s exceptional.&rdquo;<br>&ldquo;The doctor &mdash; golden hands.&rdquo;</p>
+      <p class="story-beat story-beat-emphasis" style="margin-top: 16px;">Never ads. Always people. Always trust.</p>
+      <p class="story-beat">Whispers.<br>Soft, but powerful &mdash; shaping choices from personal rituals to global runways.</p>
+      <div class="story-divider"></div>
+      <p class="story-final">DECODE Ambassador reveals what was never meant to be public.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const storyOverlay = document.getElementById('story-overlay');
+  const openBtn = document.getElementById('open-story');
+  const closeBtn = document.getElementById('close-story');
+
+  function openStory() {
+    storyOverlay.classList.add('active');
+    storyOverlay.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('overlay-open');
+    storyOverlay.scrollTop = 0;
+  }
+  function closeStory() {
+    storyOverlay.classList.remove('active');
+    storyOverlay.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('overlay-open');
+  }
+
+  openBtn.addEventListener('click', openStory);
+  closeBtn.addEventListener('click', closeStory);
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && storyOverlay.classList.contains('active')) closeStory();
+  });
+</script>
+
+</body>
+</html>
