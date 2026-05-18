@@ -337,7 +337,7 @@
 <script>
 (function(){
   var GREEN='#3FB950', RED='#E5534B';
-  function mark(v){ return v=='1' ? '<span style="color:'+GREEN+';font-size:19px;font-weight:700;">\u2713</span>' : '<span style="color:'+RED+';font-size:18px;font-weight:700;">\u2715</span>'; }
+  function mark(v){ return v=='1' ? '<span style="color:'+GREEN+';font-size:19px;font-weight:700;">\u2713</span>' : '<span style="color:'+RED+';font-size:19px;font-weight:700;">\u2715</span>'; }
   document.querySelectorAll('.drow').forEach(function(r){
     var last=r.getAttribute('data-last');
     r.style.cssText='display:flex;align-items:center;padding:7px 18px;font-size:14px;'+(last?'':'border-bottom:1px solid #161616;');
