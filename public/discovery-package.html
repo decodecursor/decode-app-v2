@@ -57,10 +57,12 @@
   .blab { width:90px; font-size:12px; color:#CCC; text-align:right; padding-right:14px; flex-shrink:0; }
   .btrack { flex:1; height:26px; background:#1c1c1c; border-radius:3px; overflow:hidden; }
   .bfill { height:100%; border-radius:3px; }
-  .axis { display:flex; justify-content:space-between; margin-left:104px; margin-top:8px; }
-  .tick { font-size:11px; color:#888; flex:1; text-align:center; }
-  .axis .tick:first-child { text-align:left; }
-  .axis .tick:last-child { text-align:right; }
+  .axis { position:relative; height:14px; margin-left:90px; margin-top:8px; }
+  .tick { position:absolute; font-size:11px; color:#888; transform:translateX(-50%); }
+  .tick:first-child { left:0; transform:none; }
+  .tick:last-child { left:auto; right:0; transform:none; }
+  .axis5 .tick:nth-child(2){left:25%} .axis5 .tick:nth-child(3){left:50%} .axis5 .tick:nth-child(4){left:75%}
+  .axis4 .tick:nth-child(2){left:33.33%} .axis4 .tick:nth-child(3){left:66.67%}
   .foot { font-size:12px; color:#777; margin-top:22px; line-height:1.7; }
   .final { padding:38px 0; text-align:center; margin-top:0; margin-bottom:128px; }
   .fkick { font-size:10px; letter-spacing:3.6px; text-transform:uppercase; color:#888; font-weight:400; margin-bottom:18px; }
@@ -80,7 +82,7 @@
     .fbig{font-size:24px;}
     .fbig .x{font-size:18px;}
     .blab{width:64px;}
-    .axis{margin-left:78px;}
+    .axis{margin-left:64px;}
     .wrap{padding:40px 18px 70px;}
     .sec{margin-bottom:80px;}
     .hero{margin-bottom:64px;}
@@ -213,7 +215,7 @@
       <div class="brow"><div class="blab">Decode</div><div class="btrack"><div class="bfill" style="width:1%;background:#3B82C4;"></div></div></div>
       <div class="brow"><div class="blab">Influencer A</div><div class="btrack"><div class="bfill" style="width:75.3%;background:#D85A30;"></div></div></div>
       <div class="brow"><div class="blab">Influencer B</div><div class="btrack"><div class="bfill" style="width:94.1%;background:#B23A36;"></div></div></div>
-      <div class="axis"><span class="tick">0</span><span class="tick">325</span><span class="tick">650</span><span class="tick">975</span><span class="tick">1,300</span></div>
+      <div class="axis axis5"><span class="tick">0</span><span class="tick">325</span><span class="tick">650</span><span class="tick">975</span><span class="tick">1,300</span></div>
     </div>
     <div class="foot"></div>
   </div>
@@ -242,7 +244,7 @@
       <div class="brow"><div class="blab">Decode (5x)</div><div class="btrack"><div class="bfill" style="width:4.6%;background:#3B82C4;"></div></div></div>
       <div class="brow"><div class="blab">Agency (5x)</div><div class="btrack"><div class="bfill" style="width:23.1%;background:#D85A30;"></div></div></div>
       <div class="brow"><div class="blab">Agency (5x)</div><div class="btrack"><div class="bfill" style="width:97.8%;background:#B23A36;"></div></div></div>
-      <div class="axis"><span class="tick">0</span><span class="tick">40,000</span><span class="tick">80,000</span><span class="tick">120,000</span></div>
+      <div class="axis axis4"><span class="tick">0</span><span class="tick">40,000</span><span class="tick">80,000</span><span class="tick">120,000</span></div>
     </div>
     <div class="foot"></div>
   </div>
@@ -287,7 +289,7 @@
     <div style="text-align:center; font-size:14px; color:#CCC; margin-top:20px; line-height:1.7;">
       No setup at renewal — that's why the renewal cost drops.
     </div>
-    <div style="text-align:center; font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-size:40px; font-weight:600; color:#5BA3E0; line-height:1.15; margin-top:18px;">Renew in 2 clicks</div>
+    <div style="text-align:center; font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-size:40px; font-weight:600; color:#5BA3E0; line-height:1.15; margin-top:18px;">Renew and pay in 2 clicks</div>
   </div>
 
   <div class="sec">
