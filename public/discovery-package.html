@@ -99,6 +99,31 @@
     .final{margin-bottom:80px; padding:30px 0;}
     .tablescroll{ -webkit-mask-image:linear-gradient(to right,#000 92%,transparent); mask-image:linear-gradient(to right,#000 92%,transparent); }
   }
+  .ren-grid { display:grid; grid-template-columns:auto 1fr 1fr; column-gap:14px; margin-top:8px; }
+  .ren-h { padding:6px 0 14px; text-align:center; }
+  .ren-h-main { font-size:13px; color:#CCC; margin-bottom:4px; font-weight:500; }
+  .ren-h-sub { font-size:11px; color:#888; letter-spacing:0.3px; }
+  .ren-blue { color:#5BA3E0; }
+  .ren-lab { display:flex; align-items:center; justify-content:flex-start; padding-right:18px; font-size:12px; color:#888; border-top:0.5px solid #1f1f1f; white-space:nowrap; }
+  .ren-val { display:flex; align-items:center; justify-content:center; text-align:center; color:#fff; border-top:0.5px solid #1f1f1f; }
+  .ren-lab-big, .ren-val-big { min-height:72px; }
+  .ren-lab-sm, .ren-val-sm { min-height:46px; }
+  .ren-val-big { font-size:26px; font-weight:500; }
+  .ren-val-sm { font-size:15px; color:#CCC; font-weight:400; }
+  .ren-foot { text-align:center; margin-top:38px; }
+  .ren-foot-1 { font-size:14px; color:#888; line-height:1.7; }
+  .ren-foot-2 { font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-size:30px; font-weight:500; color:#5BA3E0; line-height:1.2; margin-top:18px; letter-spacing:-0.3px; }
+  @media (max-width:560px){
+    .ren-grid { column-gap:8px; }
+    .ren-lab { padding-right:10px; font-size:11px; }
+    .ren-val-big { font-size:20px; }
+    .ren-val-sm { font-size:13px; }
+    .ren-lab-big, .ren-val-big { min-height:60px; }
+    .ren-lab-sm, .ren-val-sm { min-height:40px; }
+    .ren-h-main { font-size:12px; }
+    .ren-h-sub { font-size:10px; }
+    .ren-foot-2 { font-size:24px; }
+  }
   .rotehint{ display:none; }
   @media (max-width:560px) and (orientation:portrait){
     .rotehint{
@@ -284,29 +309,34 @@
 
   <div class="sec">
     <div class="sectitle paired">Renewal</div>
-    <div class="subt">after 90 days</div>
-    <div style="display:flex; gap:14px;">
-      <div style="flex:1; padding:20px 12px; text-align:center;">
-        <div style="font-size:13px; color:#CCC; margin-bottom:10px;">First 90 days</div>
-        <div style="font-size:26px; font-weight:700; color:#CCC;">AED 1,200</div>
-        <div style="font-size:12px; color:#888; margin-top:6px;">per ambassador</div>
-        <div style="font-size:13px; font-weight:500; color:#CCC; margin-top:6px;">AED 13 per day</div>
-        <div style="border-top:1px solid #1f1f1f; margin-top:23px; padding-top:14px; font-size:20px; font-weight:700; color:#CCC;">AED 6,000</div>
-        <div style="font-size:12px; color:#888; margin-top:4px;">5 ambassadors</div>
+    <div class="subt">optional, after 90 days</div>
+    <div class="ren-grid">
+      <div class="ren-h"></div>
+      <div class="ren-h">
+        <div class="ren-h-main">First 90 days</div>
+        <div class="ren-h-sub">per ambassador</div>
       </div>
-      <div style="flex:1; padding:20px 12px; text-align:center;">
-        <div style="font-size:13px; color:#5BA3E0; margin-bottom:10px;">Renewal for 90 days</div>
-        <div style="font-size:26px; font-weight:700; color:#5BA3E0;">AED 750</div>
-        <div style="font-size:12px; color:#888; margin-top:6px;">per ambassador</div>
-        <div style="font-size:13px; font-weight:500; color:#5BA3E0; margin-top:6px;">AED 8 per day</div>
-        <div style="border-top:1px solid #1f1f1f; margin-top:23px; padding-top:14px; font-size:20px; font-weight:700; color:#5BA3E0;">AED 3,750</div>
-        <div style="font-size:12px; color:#888; margin-top:4px;">5 ambassadors</div>
+      <div class="ren-h">
+        <div class="ren-h-main ren-blue">Renewal 90 days</div>
+        <div class="ren-h-sub">per ambassador</div>
       </div>
+
+      <div class="ren-lab ren-lab-big">90 days</div>
+      <div class="ren-val ren-val-big">AED 1,200</div>
+      <div class="ren-val ren-val-big ren-blue">AED 750</div>
+
+      <div class="ren-lab ren-lab-sm">30 days</div>
+      <div class="ren-val ren-val-sm">AED 400</div>
+      <div class="ren-val ren-val-sm ren-blue">AED 250</div>
+
+      <div class="ren-lab ren-lab-sm">per day</div>
+      <div class="ren-val ren-val-sm">AED 13</div>
+      <div class="ren-val ren-val-sm ren-blue">AED 8</div>
     </div>
-    <div style="text-align:center; font-size:14px; color:#CCC; margin-top:20px; line-height:1.7;">
-      No setup at renewal — that’s why the renewal cost is lower.
+    <div class="ren-foot">
+      <div class="ren-foot-1">No setup at renewal — that’s why the renewal fees are lower.</div>
+      <div class="ren-foot-2">Renew and pay in 2 clicks</div>
     </div>
-    <div style="text-align:center; font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-size:40px; font-weight:600; color:#5BA3E0; line-height:1.15; margin-top:18px;">Renew and pay in 2 clicks</div>
   </div>
 
   <div class="sec">
