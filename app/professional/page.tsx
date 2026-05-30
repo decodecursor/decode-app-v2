@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const STYLES = `
 .pro-landing-root, .pro-landing-root * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -317,7 +317,69 @@ a:hover .pro-cta-arrow-nudge { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
   .pro-cta-arrow-nudge { animation: none; }
 }
+
+.decode-video { position:relative; width:100%; max-width:560px; margin:clamp(28px,6vw,56px) auto; aspect-ratio:16/9; border-radius:20px; overflow:hidden; background:#0a0a0a; cursor:pointer; }
+.decode-video__poster { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+.decode-video::after { content:""; position:absolute; inset:0; background:rgba(0,0,0,.18); pointer-events:none; transition:opacity .25s; }
+.decode-video.is-playing::after { opacity:0; }
+.decode-video__play { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:84px; height:84px; border:none; border-radius:50%; background:rgba(0,0,0,.45); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); display:grid; place-items:center; cursor:pointer; z-index:2; transition:background .2s, transform .2s, opacity .25s; }
+.decode-video__play:hover { background:rgba(0,0,0,.62); transform:translate(-50%,-50%) scale(1.06); }
+.decode-video__play svg { width:30px; height:30px; margin-left:4px; }
+.decode-video.is-playing .decode-video__play, .decode-video.is-playing .decode-video__poster { opacity:0; pointer-events:none; }
+.decode-video iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
 `
+
+function DecodeVideo() {
+  const [isPlaying, setIsPlaying] = useState(false)
+  const figRef = useRef<HTMLElement | null>(null)
+  const videoId = '_SLVqxyRoCw'
+
+  const handleClick = useCallback(() => {
+    if (isPlaying) return
+    setIsPlaying(true)
+    const fig = figRef.current as
+      | (HTMLElement & { webkitRequestFullscreen?: () => void })
+      | null
+    if (!fig) return
+    if (fig.requestFullscreen) {
+      fig.requestFullscreen().catch(() => {})
+    } else if (fig.webkitRequestFullscreen) {
+      fig.webkitRequestFullscreen()
+    }
+  }, [isPlaying])
+
+  return (
+    <figure
+      ref={figRef}
+      className={`decode-video${isPlaying ? ' is-playing' : ''}`}
+      data-yt={videoId}
+      onClick={handleClick}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        className="decode-video__poster"
+        src={`https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`}
+        onError={(e) => {
+          const t = e.currentTarget
+          t.onerror = null
+          t.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+        }}
+        alt=""
+      />
+      <button className="decode-video__play" aria-label="Play video" type="button">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z" /></svg>
+      </button>
+      {isPlaying && (
+        <iframe
+          title="DECODE explainer video"
+          src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&playsinline=1&modestbranding=1`}
+          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+          allowFullScreen
+        />
+      )}
+    </figure>
+  )
+}
 
 export default function ProfessionalLandingPage() {
   const [storyOpen, setStoryOpen] = useState(false)
@@ -430,6 +492,7 @@ export default function ProfessionalLandingPage() {
           <h1 className="pro-landing-hero">
             Get recommended<br />by women who<br />love your work.
           </h1>
+          <DecodeVideo />
           <p className="pro-landing-sub">
             Turn your clients into Ambassadors.<br />
             Real clients replace ads.<br />
