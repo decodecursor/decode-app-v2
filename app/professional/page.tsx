@@ -374,6 +374,7 @@ function DecodeVideo() {
           title="DECODE explainer video"
           src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&playsinline=1&modestbranding=1`}
           allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+          referrerPolicy="strict-origin-when-cross-origin"
           allowFullScreen
         />
       )}
