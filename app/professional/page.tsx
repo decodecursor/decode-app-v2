@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 const STYLES = `
 .pro-landing-root, .pro-landing-root * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -330,63 +330,10 @@ a:hover .pro-cta-arrow-nudge { animation-play-state: paused; }
 `
 
 function DecodeVideo() {
-  const [isPlaying, setIsPlaying] = useState(false)
-  const videoRef = useRef<HTMLVideoElement | null>(null)
-
-  const handleClick = useCallback(() => {
-    const video = videoRef.current as
-      | (HTMLVideoElement & {
-          webkitRequestFullscreen?: () => void
-          webkitEnterFullscreen?: () => void
-        })
-      | null
-    if (!video) return
-    video.currentTime = 0
-    if (video.requestFullscreen) {
-      video.requestFullscreen().catch(() => {})
-    } else if (video.webkitRequestFullscreen) {
-      video.webkitRequestFullscreen()
-    } else if (video.webkitEnterFullscreen) {
-      video.webkitEnterFullscreen()
-    }
-    video.play().catch(() => {})
-    setIsPlaying(true)
-  }, [])
-
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-
-    const reset = () => {
-      try { video.pause() } catch {}
-      setIsPlaying(false)
-    }
-
-    const onFsChange = () => {
-      const doc = document as Document & { webkitFullscreenElement?: Element | null }
-      const fsEl = document.fullscreenElement || doc.webkitFullscreenElement
-      if (!fsEl) reset()
-    }
-
-    document.addEventListener('fullscreenchange', onFsChange)
-    document.addEventListener('webkitfullscreenchange', onFsChange as EventListener)
-    video.addEventListener('webkitendfullscreen', reset as EventListener)
-
-    return () => {
-      document.removeEventListener('fullscreenchange', onFsChange)
-      document.removeEventListener('webkitfullscreenchange', onFsChange as EventListener)
-      video.removeEventListener('webkitendfullscreen', reset as EventListener)
-    }
-  }, [])
-
   return (
-    <figure
-      className={`decode-video${isPlaying ? ' is-playing' : ''}`}
-      onClick={handleClick}
-    >
+    <figure className="decode-video">
       <video
-        ref={videoRef}
-        playsInline
+        controls
         preload="metadata"
         poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/Ambassador%20website%20video%2048mb.png"
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
@@ -396,9 +343,6 @@ function DecodeVideo() {
           type="video/mp4"
         />
       </video>
-      <button className="decode-video__play" aria-label="Play video" type="button">
-        <svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z" /></svg>
-      </button>
     </figure>
   )
 }
@@ -517,8 +461,7 @@ export default function ProfessionalLandingPage() {
           <DecodeVideo />
           <p className="pro-landing-sub">
             Turn your clients into Ambassadors.<br />
-            Real clients replace ads.<br />
-            Real recommendations replace influencers.
+            Real clients replace ads.
           </p>
         </section>
 
