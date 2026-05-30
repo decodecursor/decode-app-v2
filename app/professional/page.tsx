@@ -331,53 +331,74 @@ a:hover .pro-cta-arrow-nudge { animation-play-state: paused; }
 
 function DecodeVideo() {
   const [isPlaying, setIsPlaying] = useState(false)
-  const figRef = useRef<HTMLElement | null>(null)
-  const videoId = '_SLVqxyRoCw'
+  const videoRef = useRef<HTMLVideoElement | null>(null)
 
   const handleClick = useCallback(() => {
-    if (isPlaying) return
-    setIsPlaying(true)
-    const fig = figRef.current as
-      | (HTMLElement & { webkitRequestFullscreen?: () => void })
+    const video = videoRef.current as
+      | (HTMLVideoElement & {
+          webkitRequestFullscreen?: () => void
+          webkitEnterFullscreen?: () => void
+        })
       | null
-    if (!fig) return
-    if (fig.requestFullscreen) {
-      fig.requestFullscreen().catch(() => {})
-    } else if (fig.webkitRequestFullscreen) {
-      fig.webkitRequestFullscreen()
+    if (!video) return
+    video.currentTime = 0
+    if (video.requestFullscreen) {
+      video.requestFullscreen().catch(() => {})
+    } else if (video.webkitRequestFullscreen) {
+      video.webkitRequestFullscreen()
+    } else if (video.webkitEnterFullscreen) {
+      video.webkitEnterFullscreen()
     }
-  }, [isPlaying])
+    video.play().catch(() => {})
+    setIsPlaying(true)
+  }, [])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    const reset = () => {
+      try { video.pause() } catch {}
+      setIsPlaying(false)
+    }
+
+    const onFsChange = () => {
+      const doc = document as Document & { webkitFullscreenElement?: Element | null }
+      const fsEl = document.fullscreenElement || doc.webkitFullscreenElement
+      if (!fsEl) reset()
+    }
+
+    document.addEventListener('fullscreenchange', onFsChange)
+    document.addEventListener('webkitfullscreenchange', onFsChange as EventListener)
+    video.addEventListener('webkitendfullscreen', reset as EventListener)
+
+    return () => {
+      document.removeEventListener('fullscreenchange', onFsChange)
+      document.removeEventListener('webkitfullscreenchange', onFsChange as EventListener)
+      video.removeEventListener('webkitendfullscreen', reset as EventListener)
+    }
+  }, [])
 
   return (
     <figure
-      ref={figRef}
       className={`decode-video${isPlaying ? ' is-playing' : ''}`}
-      data-yt={videoId}
       onClick={handleClick}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        className="decode-video__poster"
-        src={`https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`}
-        onError={(e) => {
-          const t = e.currentTarget
-          t.onerror = null
-          t.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
-        }}
-        alt=""
-      />
+      <video
+        ref={videoRef}
+        playsInline
+        preload="metadata"
+        poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/Ambassador%20website%20video%2048mb.png"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+      >
+        <source
+          src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/Ambassador%20website%20video%2048mb.mp4"
+          type="video/mp4"
+        />
+      </video>
       <button className="decode-video__play" aria-label="Play video" type="button">
         <svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z" /></svg>
       </button>
-      {isPlaying && (
-        <iframe
-          title="DECODE explainer video"
-          src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&playsinline=1&modestbranding=1`}
-          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allowFullScreen
-        />
-      )}
     </figure>
   )
 }
