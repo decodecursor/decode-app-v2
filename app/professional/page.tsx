@@ -461,7 +461,8 @@ export default function ProfessionalLandingPage() {
           <DecodeVideo />
           <p className="pro-landing-sub">
             Turn your clients into Ambassadors.<br />
-            Real clients replace ads.
+            Ambassadors replace ads.<br />
+            Renew partnerships in 3 clicks.
           </p>
         </section>
 
