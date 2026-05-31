@@ -204,6 +204,10 @@ const nextConfig: NextConfig = {
         source: '/discovery-package',
         destination: '/discovery-package.html',
       },
+      {
+        source: '/case/:slug',
+        destination: '/case/:slug.html',
+      },
     ];
   },
 
