@@ -183,9 +183,36 @@
     .cta-title{font-size:40px;}
     .banner .b1{font-size:24px;}
   }
+  .rotehint{ display:none; }
+  @media (max-width:560px) and (orientation:portrait){
+    .rotehint{
+      display:flex; align-items:center; gap:5px;
+      position:fixed; left:50%; top:90px; transform:translateX(-50%);
+      background:#fff; color:#000; padding:6px 11px; border-radius:999px;
+      font-size:9px; font-weight:600; letter-spacing:0.2px; white-space:nowrap;
+      z-index:200; pointer-events:none;
+      opacity:0; animation:rotepulse 7s ease-in-out infinite;
+    }
+    .rotehint svg{ width:11px; height:11px; }
+    .rotehint.gone{ animation:none; opacity:0; }
+  }
+  @keyframes rotepulse{ 0%{opacity:0} 14%{opacity:1} 28%{opacity:1} 42%{opacity:0} 100%{opacity:0} }
 </style>
 </head>
 <body>
+<div class="rotehint" id="rotehint">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/></svg>
+  <span>Rotate for best view</span>
+</div>
+<script>
+(function(){
+  var h=document.getElementById('rotehint');
+  function kill(){ if(h){ h.classList.add('gone'); window.removeEventListener('scroll',onScroll); } }
+  function onScroll(){ if(window.scrollY>40) kill(); }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  setTimeout(kill,30000);
+})();
+</script>
 
   <!-- ============ NAV ============ -->
   <div class="nav">
