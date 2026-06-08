@@ -184,7 +184,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   margin-bottom: 36px;
   font-weight: 500;
 }
-.pro-landing-trust-stack-closer-strong { font-weight: 700; }
+.pro-landing-trust-stack-closer-strong { font-weight: 700; font-size: 19px; }
 
 .pro-landing-example-link-wrap {
   text-align: center;
@@ -231,7 +231,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   display: flex;
   justify-content: center;
   gap: 14px;
-  margin-top: 2.5rem;
+  margin-top: 30px;
   padding-bottom: 60px;
 }
 .pro-social-icons a {
@@ -264,7 +264,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 }
 /* Overlay-only spacing overrides (shared classes stay untouched on the main page) */
 .pro-landing-story-overlay .pro-landing-top-space { height: 16px; }
-.pro-landing-story-overlay .pro-landing-nav { padding-bottom: 24px; }
+.pro-landing-story-overlay .pro-landing-nav { padding-bottom: 48px; }
 .pro-landing-story-beat {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
@@ -294,7 +294,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   color: #FFF;
   margin-top: 16px;
   margin-bottom: 16px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.4px;
 }
 .pro-landing-story-divider {
