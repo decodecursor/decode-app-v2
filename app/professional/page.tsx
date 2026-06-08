@@ -222,7 +222,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   line-height: 1.5;
   color: #888;
   text-align: center;
-  padding: 0 28px 10px;
+  padding: 0 28px 0;
   font-weight: 400;
 }
 .pro-landing-footer-strong { font-weight: 600; }
@@ -264,7 +264,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 }
 /* Overlay-only spacing overrides (shared classes stay untouched on the main page) */
 .pro-landing-story-overlay .pro-landing-top-space { height: 16px; }
-.pro-landing-story-overlay .pro-landing-nav { padding-bottom: 48px; }
+.pro-landing-story-overlay .pro-landing-nav { padding-bottom: 56px; }
 .pro-landing-story-beat {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
@@ -301,7 +301,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   width: 32px;
   height: 0.5px;
   background: #444;
-  margin: 0 auto 24px;
+  margin: 24px auto;
 }
 
 @keyframes pro-cta-arrow-nudge {
