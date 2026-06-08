@@ -168,7 +168,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 .pro-landing-trust-stack-pillars {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
-  font-size: 30px;
+  font-size: 32px;
   line-height: 1.5;
   color: #FFF;
   margin-bottom: 28px;
@@ -178,7 +178,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 .pro-landing-trust-stack-closer {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1.5;
   color: #888;
   margin-bottom: 36px;
@@ -259,16 +259,19 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 .pro-landing-story-overlay.pro-landing-active { transform: translateY(0); }
 .pro-landing-story-inner { max-width: 440px; margin: 0 auto; }
 .pro-landing-story-content {
-  padding: 0 28px 80px;
+  padding: 0 28px 24px;
   text-align: center;
 }
+/* Overlay-only spacing overrides (shared classes stay untouched on the main page) */
+.pro-landing-story-overlay .pro-landing-top-space { height: 16px; }
+.pro-landing-story-overlay .pro-landing-nav { padding-bottom: 24px; }
 .pro-landing-story-beat {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
   font-size: 21px;
   line-height: 1.4;
   color: #FFF;
-  margin-bottom: 24px;
+  margin-bottom: 14px;
   font-weight: 400;
   letter-spacing: -0.2px;
 }
@@ -279,7 +282,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   font-size: 21px;
   line-height: 1.4;
   color: #FFF;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   font-weight: 400;
   letter-spacing: -0.2px;
 }
@@ -298,7 +301,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   width: 32px;
   height: 0.5px;
   background: #444;
-  margin: 0 auto 56px;
+  margin: 0 auto 24px;
 }
 
 @keyframes pro-cta-arrow-nudge {
@@ -464,6 +467,26 @@ export default function ProfessionalLandingPage() {
             Renew partnerships in 3 clicks.<br />
             Ambassadors replace ads.
           </p>
+          <div className="pro-social-icons">
+            <a href="https://www.instagram.com/welovedecode" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 8a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4l0 -8" />
+                <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+                <path d="M16.5 7.5v.01" />
+              </svg>
+            </a>
+            <a href="https://www.tiktok.com/@welovedecode" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 7.917v4.034a9.948 9.948 0 0 1 -5 -1.951v4.5a6.5 6.5 0 1 1 -8 -6.326v4.326a2.5 2.5 0 1 0 4 2v-11.5h4.083a6.005 6.005 0 0 0 4.917 4.917" />
+              </svg>
+            </a>
+            <a href="https://www.youtube.com/@welovedecode" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 8a4 4 0 0 1 4 -4h12a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-12a4 4 0 0 1 -4 -4v-8" />
+                <path d="M10 9l5 3l-5 3l0 -6" />
+              </svg>
+            </a>
+          </div>
         </section>
 
         <section className="pro-landing-section">
@@ -519,7 +542,7 @@ export default function ProfessionalLandingPage() {
         </section>
 
         <div className="pro-landing-example-link-wrap">
-          <a className="pro-landing-example-link" href="https://app.welovedecode.com/yannijohnson">See her page <span className="pro-cta-arrow-nudge">→</span></a>
+          <a className="pro-landing-example-link" href="https://app.welovedecode.com/yannijohnson">See Ambassador page <span className="pro-cta-arrow-nudge">→</span></a>
         </div>
 
         <div className="pro-landing-cta-wrap">
@@ -527,7 +550,7 @@ export default function ProfessionalLandingPage() {
         </div>
 
         <div className="pro-landing-footer">
-          META interrupts. <span className="pro-landing-footer-strong">DECODE meets.</span><br />Craft beats marketing. Finally.
+          Craft beats marketing.
         </div>
 
         <div className="pro-social-icons">
