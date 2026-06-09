@@ -255,6 +255,69 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 }
 .pro-amb-wild-h .pro-amb-wild-ig { width: 10px; height: 10px; flex-shrink: 0; }
 .pro-amb-wild-handle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+
+.pro-money { padding: 0 20px 64px; text-align: center; }
+.pro-money-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 26px;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  color: #FFF;
+  margin-bottom: 30px;
+  font-weight: 500;
+}
+.pro-money-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  max-width: 440px;
+  margin: 0 auto;
+}
+.pro-money-col {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+.pro-money-av {
+  width: 100%;
+  max-width: 88px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-image: linear-gradient(#000000, #000000), linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  padding: 3px;
+  margin-bottom: 14px;
+}
+.pro-money-av img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+.pro-money-nm { font-size: 16px; color: #FFF; font-weight: 500; margin-bottom: 3px; }
+.pro-money-type {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.2;
+  color: #a8a8a8;
+  margin-bottom: 7px;
+  font-weight: 500;
+}
+.pro-money-h {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  max-width: 100%;
+  min-width: 0;
+  font-size: 9px;
+  color: #777;
+}
+.pro-money-h .pro-money-ig { width: 10px; height: 10px; flex-shrink: 0; }
+.pro-money-handle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .pro-landing-cta-wrap { padding: 36px 28px 100px; text-align: center; }
 .pro-landing-cta {
   display: block;
@@ -542,6 +605,30 @@ export default function ProfessionalLandingPage() {
                 <path d="M10 9l5 3l-5 3l0 -6" />
               </svg>
             </a>
+          </div>
+        </section>
+
+        <section className="pro-money">
+          <h2 className="pro-money-title">They made money with us</h2>
+          <div className="pro-money-row">
+            {[
+              { name: 'Boujie', type: 'Beauty Salon', handle: 'boujie.ae', link: 'https://www.instagram.com/boujie.ae/', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-06-09%20093727.png' },
+              { name: 'RH Boutique', type: 'Hair Extensions Studio', handle: 'rhboutique_dubai', link: 'https://www.instagram.com/rhboutique_dubai/', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-06-09%20093642.png' },
+              { name: 'Al Batool', type: 'Aesthetic Clinic', handle: 'albatoolmedicalcomplex', link: 'https://www.instagram.com/albatoolmedicalcomplex/', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-06-09%20093656.png' },
+            ].map((b) => (
+              <a key={b.handle} className="pro-money-col" href={b.link} target="_blank" rel="noopener noreferrer">
+                <div className="pro-money-av">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={b.img} alt={b.name} loading="lazy" />
+                </div>
+                <div className="pro-money-nm">{b.name}</div>
+                <div className="pro-money-type">{b.type}</div>
+                <span className="pro-money-h">
+                  <svg className="pro-money-ig" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"/></svg>
+                  <span className="pro-money-handle">{b.handle}</span>
+                </span>
+              </a>
+            ))}
           </div>
         </section>
 
