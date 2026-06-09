@@ -191,14 +191,20 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   padding: 100px 28px 100px;
 }
 .pro-landing-example-link {
-  font-size: 12px;
+  display: block;
+  background: transparent;
   color: #FFF;
-  letter-spacing: 0.6px;
+  border: 1px solid #FFF;
+  padding: 21px 22px;
+  text-align: center;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
   text-decoration: none;
   font-family: inherit;
-  padding: 12px 16px;
-  display: inline-block;
 }
+.pro-landing-example-link:hover { background: rgba(255, 255, 255, 0.08); }
 .pro-amb-wild { padding: 0 20px 64px; text-align: center; }
 .pro-amb-wild-title {
   font-family: 'Cormorant Garamond', Georgia, serif;
