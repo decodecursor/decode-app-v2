@@ -69,7 +69,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 
 .pro-landing-eyebrow {
   font-size: 11px;
-  letter-spacing: 3.6px;
+  letter-spacing: 3.0px;
   text-transform: uppercase;
   color: #888;
   margin-bottom: 34px;
@@ -188,7 +188,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 
 .pro-landing-example-link-wrap {
   text-align: center;
-  padding: 0 28px 64px;
+  padding: 0 28px 88px;
 }
 .pro-landing-example-link {
   font-size: 12px;
@@ -203,11 +203,12 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 .pro-amb-wild-title {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
-  font-size: 30px;
+  font-size: 26px;
   line-height: 1.1;
   letter-spacing: -0.5px;
   color: #FFF;
   margin-bottom: 30px;
+  font-weight: 500;
 }
 .pro-amb-wild-row {
   display: flex;
@@ -231,7 +232,6 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   aspect-ratio: 1 / 1;
   border-radius: 50%;
   background: #0a1218 center/cover;
-  border: 1px solid #2a3a4a;
   margin-bottom: 14px;
 }
 .pro-amb-wild-nm { font-size: 16px; color: #FFF; font-weight: 500; margin-bottom: 3px; }
@@ -241,6 +241,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   font-size: 14px;
   color: #a8a8a8;
   margin-bottom: 7px;
+  font-weight: 500;
 }
 .pro-amb-wild-h {
   display: flex;
@@ -256,7 +257,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 .pro-amb-wild-handle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .pro-landing-cta-wrap { padding: 24px 28px 80px; text-align: center; }
 .pro-landing-cta {
-  display: inline-block;
+  display: block;
   background: #FFF;
   color: #000;
   padding: 22px;
@@ -566,14 +567,14 @@ export default function ProfessionalLandingPage() {
           </div>
           <h2 className="pro-landing-block-title">1 day vs 90 days.</h2>
           <p className="pro-landing-block-body">
-            An influencer story is gone tomorrow. An Ambassador listing stays live for up to 90 days. Same audience. Different math. Renewable in two clicks.
+            An influencer story is gone tomorrow. An Ambassador listing stays live for up to 90 days. Same audience. Different math. Renewable in three clicks.
           </p>
         </section>
 
         <section className="pro-landing-section">
           <div className="pro-landing-media">
-            <video playsInline preload="none" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_3_Golden_hands_no_budget_RAW_480_FINAL.png">
-              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_3_Golden_hands_no_budget_RAW_480_FINAL.mp4" type="video/mp4" />
+            <video playsInline preload="none" controls poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_12_The_right_people_come_RAW_720_FINAL.png">
+              <source src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/video_12_The_right_people_come_RAW_720_FINAL.mp4" type="video/mp4" />
             </video>
           </div>
           <h2 className="pro-landing-block-title">
