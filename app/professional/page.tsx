@@ -159,7 +159,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 }
 .pro-landing-trust-stack-eyebrow {
   font-size: 11px;
-  letter-spacing: 3.6px;
+  letter-spacing: 2.5px;
   text-transform: uppercase;
   color: #888;
   margin: 36px 0 32px;
@@ -352,9 +352,12 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 
 .pro-landing-video-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
   background: #000;
-  z-index: 110;
+  z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: center;
