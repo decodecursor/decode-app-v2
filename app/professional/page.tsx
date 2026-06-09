@@ -334,6 +334,56 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   font-family: inherit;
 }
 .pro-landing-cta:hover { background: #F0F0F0; }
+.pro-landing-how-link {
+  display: block;
+  margin: 16px auto 0;
+  background: none;
+  border: 0;
+  padding: 4px;
+  color: #999;
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.pro-landing-how-link:hover { color: #FFF; }
+
+.pro-landing-video-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #000;
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+.pro-landing-video-overlay.pro-landing-active { opacity: 1; pointer-events: auto; }
+.pro-landing-video-frame {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pro-landing-video-frame video { max-width: 100%; max-height: 100%; }
+.pro-landing-video-close {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 12px);
+  right: 16px;
+  z-index: 2;
+  background: none;
+  border: 0;
+  color: #FFF;
+  font-size: 32px;
+  line-height: 1;
+  cursor: pointer;
+}
 
 .pro-landing-footer {
   font-family: 'Cormorant Garamond', Georgia, serif;
@@ -472,9 +522,12 @@ function DecodeVideo() {
 
 export default function ProfessionalLandingPage() {
   const [storyOpen, setStoryOpen] = useState(false)
+  const [videoOpen, setVideoOpen] = useState(false)
 
   const openStory = useCallback(() => setStoryOpen(true), [])
   const closeStory = useCallback(() => setStoryOpen(false), [])
+  const openVideo = useCallback(() => setVideoOpen(true), [])
+  const closeVideo = useCallback(() => setVideoOpen(false), [])
 
   useEffect(() => {
     document.documentElement.classList.add('pro-landing-html')
@@ -487,21 +540,21 @@ export default function ProfessionalLandingPage() {
   }, [])
 
   useEffect(() => {
-    if (storyOpen) {
+    if (storyOpen || videoOpen) {
       document.body.classList.add('pro-landing-overlay-open')
     } else {
       document.body.classList.remove('pro-landing-overlay-open')
     }
-  }, [storyOpen])
+  }, [storyOpen, videoOpen])
 
   useEffect(() => {
-    if (!storyOpen) return
+    if (!storyOpen && !videoOpen) return
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeStory()
+      if (e.key === 'Escape') { closeStory(); closeVideo() }
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [storyOpen, closeStory])
+  }, [storyOpen, videoOpen, closeStory, closeVideo])
 
   // Auto-hide native video controls. 500ms after play (quick hide once
   // started). 3000ms after a user interaction (tap / drag the seek bar)
@@ -710,6 +763,7 @@ export default function ProfessionalLandingPage() {
 
         <div className="pro-landing-cta-wrap">
           <a className="pro-landing-cta" href="https://wa.me/971554275547">Let&rsquo;s Chat on WhatsApp</a>
+          <button type="button" className="pro-landing-how-link" onClick={openVideo}>How it works</button>
         </div>
 
         <div className="pro-landing-footer">
@@ -785,6 +839,37 @@ export default function ProfessionalLandingPage() {
               DECODE Ambassador reveals what was never meant to be public.
             </p>
           </div>
+        </div>
+      </div>
+
+      <div
+        className={`pro-landing-video-overlay${videoOpen ? ' pro-landing-active' : ''}`}
+        aria-hidden={!videoOpen}
+        role="dialog"
+        aria-label="How DECODE works"
+      >
+        <button
+          className="pro-landing-video-close"
+          type="button"
+          onClick={closeVideo}
+          aria-label="Close"
+        >
+          ×
+        </button>
+        <div className="pro-landing-video-frame">
+          {videoOpen && (
+            <video
+              controls
+              autoPlay
+              playsInline
+              poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/Ambassador%20website%20video%2048mb.png"
+            >
+              <source
+                src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/Ambassador%20website%20video%2048mb.mp4"
+                type="video/mp4"
+              />
+            </video>
+          )}
         </div>
       </div>
 
