@@ -288,11 +288,6 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   max-width: 88px;
   aspect-ratio: 1 / 1;
   border-radius: 50%;
-  border: 3px solid transparent;
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
-  background-image: linear-gradient(#000000, #000000), linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-  padding: 3px;
   margin-bottom: 14px;
 }
 .pro-money-av img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
@@ -613,7 +608,7 @@ export default function ProfessionalLandingPage() {
           <div className="pro-money-row">
             {[
               { name: 'Boujie', type: 'Beauty Salon', handle: 'boujie.ae', link: 'https://www.instagram.com/boujie.ae/', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-06-09%20093727.png' },
-              { name: 'RH Boutique', type: 'Hair Extensions Studio', handle: 'rhboutique_dubai', link: 'https://www.instagram.com/rhboutique_dubai/', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-06-09%20093642.png' },
+              { name: 'RH Boutique', type: 'Extensions Studio', handle: 'rhboutique_dubai', link: 'https://www.instagram.com/rhboutique_dubai/', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-06-09%20093642.png' },
               { name: 'Al Batool', type: 'Aesthetic Clinic', handle: 'albatoolmedicalcomplex', link: 'https://www.instagram.com/albatoolmedicalcomplex/', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-06-09%20093656.png' },
             ].map((b) => (
               <a key={b.handle} className="pro-money-col" href={b.link} target="_blank" rel="noopener noreferrer">
@@ -774,6 +769,7 @@ export default function ProfessionalLandingPage() {
             >
               Never ads. Always people. Always trust.
             </p>
+            <div className="pro-landing-story-divider" />
             <p className="pro-landing-story-beat">
               Whispers.<br />
               Soft, but powerful &mdash; shaping choices from personal rituals to global runways.
