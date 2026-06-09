@@ -336,16 +336,16 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 .pro-landing-cta:hover { background: #F0F0F0; }
 .pro-landing-how-link {
   display: block;
-  margin: 16px auto 0;
+  margin: 8px auto 0;
   background: none;
   border: 0;
   padding: 4px;
   color: #999;
   font-family: inherit;
   font-size: 13px;
+  font-weight: 300;
+  font-style: italic;
   letter-spacing: 0.5px;
-  text-decoration: underline;
-  text-underline-offset: 3px;
   cursor: pointer;
 }
 .pro-landing-how-link:hover { color: #FFF; }
