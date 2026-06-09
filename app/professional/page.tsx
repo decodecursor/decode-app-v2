@@ -199,6 +199,61 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   padding: 12px 16px;
   display: inline-block;
 }
+.pro-amb-wild { padding: 0 20px 64px; text-align: center; }
+.pro-amb-wild-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 30px;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  color: #FFF;
+  margin-bottom: 30px;
+}
+.pro-amb-wild-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  max-width: 440px;
+  margin: 0 auto;
+}
+.pro-amb-wild-col {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+.pro-amb-wild-av {
+  width: 100%;
+  max-width: 88px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background: #0a1218 center/cover;
+  border: 1px solid #2a3a4a;
+  margin-bottom: 14px;
+}
+.pro-amb-wild-nm { font-size: 16px; color: #FFF; font-weight: 500; margin-bottom: 3px; }
+.pro-amb-wild-role {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 14px;
+  color: #a8a8a8;
+  margin-bottom: 7px;
+}
+.pro-amb-wild-h {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  max-width: 100%;
+  min-width: 0;
+  font-size: 9px;
+  color: #777;
+}
+.pro-amb-wild-h .pro-amb-wild-ig { width: 10px; height: 10px; flex-shrink: 0; }
+.pro-amb-wild-handle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .pro-landing-cta-wrap { padding: 24px 28px 80px; }
 .pro-landing-cta {
   display: block;
@@ -544,6 +599,27 @@ export default function ProfessionalLandingPage() {
         <div className="pro-landing-example-link-wrap">
           <a className="pro-landing-example-link" href="https://app.welovedecode.com/yannijohnson">See Ambassador page <span className="pro-cta-arrow-nudge">→</span></a>
         </div>
+
+        <section className="pro-amb-wild">
+          <h2 className="pro-amb-wild-title">Ambassadors in the Wild</h2>
+          <div className="pro-amb-wild-row">
+            {[
+              { name: 'Alesia', role: 'Ballet dancer', handle: 'divin_alesia', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-05-31%20130445.png' },
+              { name: 'Valeryia', role: 'Dancing teacher', handle: 'nonstop_dancer_valeryia', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-05-31%20130622.png' },
+              { name: 'Sarah', role: 'Piano teacher', handle: 'snh_pianist', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-05-31%20153810.png' },
+            ].map((a) => (
+              <a key={a.handle} className="pro-amb-wild-col" href={`https://instagram.com/${a.handle}`} target="_blank" rel="noopener noreferrer">
+                <div className="pro-amb-wild-av" style={{ backgroundImage: `url('${a.img}')` }} />
+                <div className="pro-amb-wild-nm">{a.name}</div>
+                <div className="pro-amb-wild-role">{a.role}</div>
+                <span className="pro-amb-wild-h">
+                  <svg className="pro-amb-wild-ig" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"/></svg>
+                  <span className="pro-amb-wild-handle">{a.handle}</span>
+                </span>
+              </a>
+            ))}
+          </div>
+        </section>
 
         <div className="pro-landing-cta-wrap">
           <a className="pro-landing-cta" href="https://wa.me/971554275547">Let&rsquo;s Chat on WhatsApp</a>
