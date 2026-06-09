@@ -188,7 +188,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 
 .pro-landing-example-link-wrap {
   text-align: center;
-  padding: 0 28px 88px;
+  padding: 20px 28px 100px;
 }
 .pro-landing-example-link {
   font-size: 12px;
@@ -598,14 +598,14 @@ export default function ProfessionalLandingPage() {
         </section>
 
         <div className="pro-landing-example-link-wrap">
-          <a className="pro-landing-example-link" href="https://app.welovedecode.com/yannijohnson">See Ambassador page <span className="pro-cta-arrow-nudge">→</span></a>
+          <a className="pro-landing-example-link" href="https://app.welovedecode.com/yannijohnson">See a live ambassador page <span className="pro-cta-arrow-nudge">→</span></a>
         </div>
 
         <section className="pro-amb-wild">
           <h2 className="pro-amb-wild-title">Ambassadors in the Wild</h2>
           <div className="pro-amb-wild-row">
             {[
-              { name: 'Alesia', role: 'Ballet dancer', handle: 'divin_alesia', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-05-31%20130445.png' },
+              { name: 'Alesia', role: 'Ballet teacher', handle: 'divin_alesia', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-05-31%20130445.png' },
               { name: 'Valeryia', role: 'Dancing teacher', handle: 'nonstop_dancer_valeryia', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-05-31%20130622.png' },
               { name: 'Sarah', role: 'Piano teacher', handle: 'snh_pianist', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-05-31%20153810.png' },
             ].map((a) => (
