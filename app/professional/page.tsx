@@ -260,9 +260,9 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   color: #777;
 }
 .pro-amb-wild-h .pro-amb-wild-ig { width: 10px; height: 10px; flex-shrink: 0; }
-.pro-amb-wild-handle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.pro-amb-wild-handle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; max-width: 10ch; }
 
-.pro-money { padding: 0 20px 64px; text-align: center; }
+.pro-money { padding: 0 20px 120px; text-align: center; }
 .pro-money-title {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
@@ -318,7 +318,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   color: #777;
 }
 .pro-money-h .pro-money-ig { width: 10px; height: 10px; flex-shrink: 0; }
-.pro-money-handle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.pro-money-handle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; max-width: 10ch; }
 .pro-landing-cta-wrap { padding: 36px 28px 100px; text-align: center; }
 .pro-landing-cta {
   display: block;
