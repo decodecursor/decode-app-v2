@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 const STYLES = `
 .pro-landing-root, .pro-landing-root * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -526,6 +527,9 @@ function DecodeVideo() {
 export default function ProfessionalLandingPage() {
   const [storyOpen, setStoryOpen] = useState(false)
   const [videoOpen, setVideoOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => setMounted(true), [])
 
   const openStory = useCallback(() => setStoryOpen(true), [])
   const closeStory = useCallback(() => setStoryOpen(false), [])
@@ -845,36 +849,39 @@ export default function ProfessionalLandingPage() {
         </div>
       </div>
 
-      <div
-        className={`pro-landing-video-overlay${videoOpen ? ' pro-landing-active' : ''}`}
-        aria-hidden={!videoOpen}
-        role="dialog"
-        aria-label="How DECODE works"
-      >
-        <button
-          className="pro-landing-video-close"
-          type="button"
-          onClick={closeVideo}
-          aria-label="Close"
+      {mounted && createPortal(
+        <div
+          className={`pro-landing-video-overlay${videoOpen ? ' pro-landing-active' : ''}`}
+          aria-hidden={!videoOpen}
+          role="dialog"
+          aria-label="How DECODE works"
         >
-          ×
-        </button>
-        <div className="pro-landing-video-frame">
-          {videoOpen && (
-            <video
-              controls
-              autoPlay
-              playsInline
-              poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/Ambassador%20website%20video%2048mb.png"
-            >
-              <source
-                src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/Ambassador%20website%20video%2048mb.mp4"
-                type="video/mp4"
-              />
-            </video>
-          )}
-        </div>
-      </div>
+          <button
+            className="pro-landing-video-close"
+            type="button"
+            onClick={closeVideo}
+            aria-label="Close"
+          >
+            ×
+          </button>
+          <div className="pro-landing-video-frame">
+            {videoOpen && (
+              <video
+                controls
+                autoPlay
+                playsInline
+                poster="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/Ambassador%20website%20video%2048mb.png"
+              >
+                <source
+                  src="https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/marketing/ambassador/videos/Ambassador%20website%20video%2048mb.mp4"
+                  type="video/mp4"
+                />
+              </video>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
 
     </div>
   )
