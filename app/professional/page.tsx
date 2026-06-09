@@ -158,7 +158,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   margin: 0 auto;
 }
 .pro-landing-trust-stack-eyebrow {
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 3.6px;
   text-transform: uppercase;
   color: #888;
@@ -254,9 +254,9 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 }
 .pro-amb-wild-h .pro-amb-wild-ig { width: 10px; height: 10px; flex-shrink: 0; }
 .pro-amb-wild-handle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.pro-landing-cta-wrap { padding: 24px 28px 80px; }
+.pro-landing-cta-wrap { padding: 24px 28px 80px; text-align: center; }
 .pro-landing-cta {
-  display: block;
+  display: inline-block;
   background: #FFF;
   color: #000;
   padding: 22px;
@@ -286,7 +286,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   display: flex;
   justify-content: center;
   gap: 14px;
-  margin-top: 30px;
+  margin-top: 25px;
   padding-bottom: 60px;
 }
 .pro-social-icons a {
@@ -512,7 +512,7 @@ export default function ProfessionalLandingPage() {
         </nav>
 
         <section className="pro-landing-section">
-          <div className="pro-landing-eyebrow">Ambassador<br />For Beauty Professionals</div>
+          <div className="pro-landing-eyebrow">Ambassador<br /><em>For Beauty Professionals</em></div>
           <h1 className="pro-landing-hero">
             Get recommended<br />by women who<br />love your work.
           </h1>
