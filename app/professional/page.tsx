@@ -69,7 +69,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 
 .pro-landing-eyebrow {
   font-size: 11px;
-  letter-spacing: 3.0px;
+  letter-spacing: 2.5px;
   text-transform: uppercase;
   color: #888;
   margin-bottom: 34px;
@@ -148,7 +148,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 }
 
 .pro-landing-trust-stack {
-  padding: 24px 28px 80px;
+  padding: 24px 28px 0;
   text-align: center;
 }
 .pro-landing-trust-stack-divider {
@@ -181,14 +181,14 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
   font-size: 18px;
   line-height: 1.5;
   color: #888;
-  margin-bottom: 36px;
+  margin-bottom: 0;
   font-weight: 500;
 }
 .pro-landing-trust-stack-closer-strong { font-weight: 700; font-size: 19px; }
 
 .pro-landing-example-link-wrap {
   text-align: center;
-  padding: 45px 28px 125px;
+  padding: 100px 28px 100px;
 }
 .pro-landing-example-link {
   font-size: 12px;
