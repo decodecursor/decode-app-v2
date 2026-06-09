@@ -188,7 +188,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 
 .pro-landing-example-link-wrap {
   text-align: center;
-  padding: 20px 28px 100px;
+  padding: 45px 28px 125px;
 }
 .pro-landing-example-link {
   font-size: 12px;
@@ -255,7 +255,7 @@ body.pro-landing-overlay-open { overflow: hidden; height: 100vh; }
 }
 .pro-amb-wild-h .pro-amb-wild-ig { width: 10px; height: 10px; flex-shrink: 0; }
 .pro-amb-wild-handle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.pro-landing-cta-wrap { padding: 24px 28px 80px; text-align: center; }
+.pro-landing-cta-wrap { padding: 36px 28px 100px; text-align: center; }
 .pro-landing-cta {
   display: block;
   background: #FFF;
@@ -586,7 +586,6 @@ export default function ProfessionalLandingPage() {
         </section>
 
         <section className="pro-landing-trust-stack">
-          <div className="pro-landing-trust-stack-divider" />
           <div className="pro-landing-trust-stack-eyebrow">The Trust Stack</div>
           <div className="pro-landing-trust-stack-pillars">
             Personal endorsement.<br />Crowd reviews.<br />Live demand.
@@ -594,7 +593,6 @@ export default function ProfessionalLandingPage() {
           <div className="pro-landing-trust-stack-closer">
             Together, they drive human decisions.<br /><span className="pro-landing-trust-stack-closer-strong">Not on Meta. Not on Google. Not on TikTok.</span><br />Only here.
           </div>
-          <div className="pro-landing-trust-stack-divider" />
         </section>
 
         <div className="pro-landing-example-link-wrap">
