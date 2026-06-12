@@ -670,7 +670,7 @@ export default function ProfessionalLandingPage() {
         </section>
 
         <section className="pro-money">
-          <h2 className="pro-money-title">They made money with us</h2>
+          <h2 className="pro-money-title">Made money with us</h2>
           <div className="pro-money-row">
             {[
               { name: 'Boujie', type: 'Beauty Salon', handle: 'boujie.ae', link: 'https://www.instagram.com/boujie.ae/', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-06-09%20093727.png' },
@@ -748,11 +748,11 @@ export default function ProfessionalLandingPage() {
         </div>
 
         <section className="pro-amb-wild">
-          <h2 className="pro-amb-wild-title">Ambassadors in the Wild</h2>
+          <h2 className="pro-amb-wild-title">Ambassadors</h2>
           <div className="pro-amb-wild-row">
             {[
               { name: 'Alesia', role: 'Ballet teacher', handle: 'divin_alesia', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-05-31%20130445.png' },
-              { name: 'Valeryia', role: 'Dancing teacher', handle: 'nonstop_dancer_valeryia', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-05-31%20130622.png' },
+              { name: 'Alla', role: 'Dancing teacher', handle: 'allochka_n96', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-06-12%20131728.png' },
               { name: 'Sarah', role: 'Piano teacher', handle: 'snh_pianist', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-05-31%20153810.png' },
             ].map((a) => (
               <a key={a.handle} className="pro-amb-wild-col" href={`https://instagram.com/${a.handle}`} target="_blank" rel="noopener noreferrer">
