@@ -753,7 +753,7 @@ export default function ProfessionalLandingPage() {
             {[
               { name: 'Alesia', role: 'Ballet teacher', handle: 'divin_alesia', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-05-31%20130445.png' },
               { name: 'Alla', role: 'Dancing teacher', handle: 'allochka_n96', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-06-12%20131728.png' },
-              { name: 'Sarah', role: 'Piano teacher', handle: 'snh_pianist', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-05-31%20153810.png' },
+              { name: 'Sarah', role: 'Piano teacher', handle: 'snh_pianist', img: 'https://vdgjzaaxvstbouklgsft.supabase.co/storage/v1/object/public/case-studies/Screenshot%202026-06-12%20083321.png' },
             ].map((a) => (
               <a key={a.handle} className="pro-amb-wild-col" href={`https://instagram.com/${a.handle}`} target="_blank" rel="noopener noreferrer">
                 <div className="pro-amb-wild-av" style={{ backgroundImage: `url('${a.img}')` }} />
