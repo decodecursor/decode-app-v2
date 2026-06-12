@@ -51,6 +51,19 @@ class OrbMediaPool {
       el.style.height = '100%'
       el.style.objectFit = 'cover'
       el.style.display = 'block'
+      // Start hidden so the orb's thumbnail <img> beneath shows through
+      // until the video genuinely paints a frame. Without this the bare
+      // <video> renders black while loading — and stays black forever for
+      // sources the browser can't decode (e.g. .mov/quicktime in
+      // Chrome/Firefox), covering an otherwise-valid thumbnail.
+      el.style.opacity = '0'
+      el.style.transition = 'opacity 120ms ease'
+      // 'playing' fires only once frames are actually being presented;
+      // 'error' / stalled sources never reach it, so the orb stays on its
+      // thumbnail. We reset opacity to 0 on each new src in activate().
+      el.addEventListener('playing', () => {
+        el.style.opacity = '1'
+      })
       this.element = el
     }
     return this.element
@@ -72,6 +85,10 @@ class OrbMediaPool {
           parent.appendChild(el)
         }
         if (el.getAttribute('src') !== src) {
+          // New source: hide until the 'playing' listener reveals it, so
+          // the new orb's thumbnail shows through during load instead of
+          // the prior orb's last frame or a black box.
+          el.style.opacity = '0'
           el.src = src
           el.load()
         }
@@ -100,6 +117,7 @@ class OrbMediaPool {
         const el = this.element
         if (!el) return
         el.pause()
+        el.style.opacity = '0'
         if (el.parentElement) el.parentElement.removeChild(el)
       })
       .catch(() => {})
