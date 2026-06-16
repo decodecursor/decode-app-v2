@@ -225,6 +225,7 @@ export default function PublicPageClient({
               key={l.id}
               listing={l}
               slug={data.profile.slug}
+              ambassadorFirstName={data.profile.first_name}
               isLast={i === data.listings.length - 1}
               onOpenMedia={onOpenMedia}
               onOpenInfo={onOpenInfo}
@@ -279,6 +280,7 @@ export default function PublicPageClient({
           <ProInfoModal
             listing={target}
             slug={data.profile.slug}
+            ambassadorFirstName={data.profile.first_name}
             onClose={() => setProInfoModalListingId(null)}
           />
         )

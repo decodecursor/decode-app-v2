@@ -63,6 +63,7 @@ const MESSAGED_THRESHOLD = 10
 export function SquadRow({
   listing,
   slug,
+  ambassadorFirstName,
   isLast,
   onOpenMedia,
   onOpenInfo,
@@ -73,6 +74,7 @@ export function SquadRow({
 }: {
   listing: PublicListingRow
   slug: string
+  ambassadorFirstName: string
   isLast: boolean
   onOpenMedia: (listingId: string) => void
   onOpenInfo: (listingId: string) => void
@@ -105,6 +107,11 @@ export function SquadRow({
   // tripped the iOS 26.0.1 post-_blank interactivity-loss bug — same
   // root cause as the modal Maps/Phone fix in 3e8a3e7).
   const waDigits = listing.whatsapp_number?.replace(/[^0-9]/g, '') ?? ''
+  // Prefill the WhatsApp box with a warm-lead attribution line naming the
+  // page's ambassador (page owner — NOT the professional being messaged).
+  // URL-encoded so the comma, spaces, and 💕 arrive intact. WhatsApp can't
+  // auto-send by design — the visitor still taps send.
+  const waMessage = `Hi, ${ambassadorFirstName} sent me 💕`
   const onWhatsappClick = (e: MouseEvent<HTMLAnchorElement>) => {
     e.stopPropagation()
     fireClick(slug, 'listing_whatsapp_badge_click', listing.id)
@@ -197,7 +204,7 @@ export function SquadRow({
             can scale past the badge bounds. */}
         {listing.whatsapp_number && (
           <a
-            href={waDigits ? `https://wa.me/${waDigits}` : undefined}
+            href={waDigits ? `https://wa.me/${waDigits}?text=${encodeURIComponent(waMessage)}` : undefined}
             onClick={onWhatsappClick}
             aria-label={`Message ${listing.professional_name} on WhatsApp`}
             style={{

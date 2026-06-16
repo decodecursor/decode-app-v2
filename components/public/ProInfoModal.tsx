@@ -56,10 +56,12 @@ function prefersReducedMotion(): boolean {
 export function ProInfoModal({
   listing,
   slug,
+  ambassadorFirstName,
   onClose,
 }: {
   listing: PublicListingRow
   slug: string
+  ambassadorFirstName: string
   onClose: () => void
 }) {
   const modalRef = useRef<HTMLDivElement>(null)
@@ -210,6 +212,11 @@ export function ProInfoModal({
   const showSendWhatsapp = !!listing.whatsapp_number
 
   const waDigits = listing.whatsapp_number?.replace(/[^0-9]/g, '') ?? ''
+  // Prefill the WhatsApp box with a warm-lead attribution line naming the
+  // page's ambassador (page owner — NOT the professional being messaged).
+  // URL-encoded so the comma, spaces, and 💕 arrive intact. WhatsApp can't
+  // auto-send by design — the visitor still taps send.
+  const waMessage = `Hi, ${ambassadorFirstName} sent me 💕`
 
   // ---- Style tokens (mirror :root in decode_pro_info_modal.html) ----
   const PINK = '#e91e8c'
@@ -504,7 +511,7 @@ export function ProInfoModal({
         {showSendWhatsapp && (
           <div style={{ padding: '0 20px 8px' }}>
             <a
-              href={waDigits ? `https://wa.me/${waDigits}` : undefined}
+              href={waDigits ? `https://wa.me/${waDigits}?text=${encodeURIComponent(waMessage)}` : undefined}
               onClick={() =>
                 fireModalEvent(slug, 'listing_whatsapp_modal_click', listing.id)
               }
