@@ -67,12 +67,13 @@ export interface PublicListingRow {
   google_places_cache: PublicPlacesCache | null
   review_summary_gemini: string | null
   review_summary_custom: string | null
-  // "Other ambassadors" feature — the OTHER live ambassadors who feature
-  // this same professional (excludes the current page's ambassador).
-  // Loaded by the server page in one grouped query (lib/public/other-
-  // ambassadors.ts) and attached after toPublicListing(); the modal reads
-  // otherAmbassadors directly (no fetch-on-open), the card badge gates on
-  // otherAmbassadorsCount > 0.
+  // "Other ambassadors" feature — ALL live ambassadors who feature this
+  // same professional, INCLUDING the current page's ambassador. Loaded by
+  // the server page in one grouped query (lib/public/other-ambassadors.ts)
+  // and attached after toPublicListing(); the modal reads otherAmbassadors
+  // directly (no fetch-on-open). The card badge gates on the list length
+  // (> 1) — hidden when the current ambassador is the only one — so
+  // otherAmbassadorsCount carries the OTHERS count (total minus current).
   otherAmbassadors: OtherAmbassador[]
   otherAmbassadorsCount: number
 }

@@ -218,10 +218,11 @@ export default async function PublicSlugPage({
   }
 
   // "Other ambassadors" — ONE grouped query across the page's professional
-  // ids for the OTHER live ambassadors featuring each pro (excludes this
-  // ambassador). Service-role fetch bypasses RLS, so the helper applies the
-  // published/non-suspended filter in code. Attach per-listing so the badge
-  // gates on the count and the modal reads the list with no fetch-on-open.
+  // ids for ALL live ambassadors featuring each pro (current ambassador
+  // included). Service-role fetch bypasses RLS, so the helper applies the
+  // published/non-suspended filter in code. Attach per-listing so the modal
+  // reads the full list with no fetch-on-open; the badge gates on the list
+  // length (> 1). otherAmbassadorsCount holds the OTHERS count.
   const professionalIds = Array.from(new Set(listings.map((l) => l.professional_id)))
   const otherAmbassadorsByPro = await fetchOtherAmbassadorsByPro(
     admin,
@@ -229,9 +230,9 @@ export default async function PublicSlugPage({
     profile.id,
   )
   for (const l of listings) {
-    const others = otherAmbassadorsByPro.get(l.professional_id) ?? []
-    l.otherAmbassadors = others
-    l.otherAmbassadorsCount = others.length
+    const all = otherAmbassadorsByPro.get(l.professional_id) ?? []
+    l.otherAmbassadors = all
+    l.otherAmbassadorsCount = all.filter((a) => a.id !== profile.id).length
   }
 
   // Canonical share URL. Apex still on Carrd per PROJECT_STATE decision

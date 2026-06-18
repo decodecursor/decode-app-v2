@@ -1,7 +1,9 @@
 /**
  * "Other ambassadors" query — given the professionals featured on a public
- * page, return the OTHER live ambassadors who also feature each of them,
- * grouped by professional_id. Excludes the current page's ambassador.
+ * page, return ALL live ambassadors who feature each of them (including the
+ * current page's ambassador), grouped by professional_id. The badge gate
+ * (list length > 1) lives in SquadRow, so the current ambassador stays in
+ * the list and the modal shows the full squad.
  *
  * ONE grouped query for the whole page (no N+1, no fetch-on-open). The
  * server page collects its professional_ids and calls this once; the result
@@ -35,15 +37,19 @@ interface OtherAmbassadorJoinRow {
 }
 
 /**
- * Returns a Map keyed by professional_id → the other ambassadors for that
- * pro (sorted by first_name). Pros with no other ambassadors are simply
- * absent from the map (callers default to an empty list).
+ * Returns a Map keyed by professional_id → all ambassadors for that pro
+ * (sorted by first_name, current ambassador included). Pros with no
+ * ambassadors are simply absent from the map (callers default to an empty
+ * list). currentModelProfileId is retained on the signature for the gating
+ * logic at the call site (badge hides when the current ambassador is the
+ * only one).
  */
 export async function fetchOtherAmbassadorsByPro(
   admin: ServiceRoleClient,
   professionalIds: string[],
   currentModelProfileId: string,
 ): Promise<Map<string, OtherAmbassador[]>> {
+  void currentModelProfileId
   const byPro = new Map<string, OtherAmbassador[]>()
   if (professionalIds.length === 0) return byPro
 
@@ -59,7 +65,6 @@ export async function fetchOtherAmbassadorsByPro(
     )
     .in('professional_id', professionalIds)
     .in('effective_status', ['active', 'free_trial'])
-    .neq('model_id', currentModelProfileId)
     .returns<OtherAmbassadorJoinRow[]>()
 
   // Group by professional_id, applying the visibility filter in code (the

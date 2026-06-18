@@ -390,11 +390,12 @@ export function SquadRow({
         />
 
         {/* Other-ambassadors badge — mirrors the WhatsApp badge's size and
-            corner treatment but sits bottom-LEFT of the video circle. Only
-            renders when other ambassadors feature this same pro. A sibling
-            of MediaOrb (absolutely positioned over it) — MediaOrb itself is
-            untouched. */}
-        {listing.otherAmbassadorsCount > 0 && (
+            corner treatment but sits bottom-LEFT of the video circle. The
+            list now includes the current ambassador, so the badge only
+            renders when there's at least one OTHER (length > 1) — never on a
+            solo card. A sibling of MediaOrb (absolutely positioned over it) —
+            MediaOrb itself is untouched. */}
+        {listing.otherAmbassadors.length > 1 && (
           <button
             type="button"
             onClick={onAmbassadorsClick}

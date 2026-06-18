@@ -12,8 +12,9 @@ import { categoryText } from '@/lib/public/slug-page-shape'
 import { formatLocation } from '@/lib/format-location'
 
 /**
- * "Other ambassadors" modal — lists the OTHER ambassadors who feature the
- * same professional as the tapped listing. Mechanics copied EXACTLY from
+ * "Other ambassadors" modal — lists ALL ambassadors who feature the same
+ * professional as the tapped listing (the current page's ambassador
+ * included). Mechanics copied EXACTLY from
  * ProInfoModal: vanilla fixed overlay (no portal lib), parent-driven
  * useState open/close, internal `closing` flag + 200ms close animation,
  * focus-trap, Escape-to-close, iOS-safe body-scroll-lock, reduced-motion.
