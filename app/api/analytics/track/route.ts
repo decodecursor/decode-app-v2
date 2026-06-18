@@ -58,6 +58,7 @@ const ALLOWED_EVENT_TYPES = new Set([
   'listing_whatsapp_modal_click',
   'ambassador_instagram_click',
   'listing_ambassadors_badge_click',
+  'listing_offer_badge_click',
 ])
 
 const DEDUP_WINDOW_MS = 24 * 60 * 60 * 1000

@@ -76,6 +76,23 @@ export interface PublicListingRow {
   // otherAmbassadorsCount carries the OTHERS count (total minus current).
   otherAmbassadors: OtherAmbassador[]
   otherAmbassadorsCount: number
+  // Offer feature — this pro's single active offer (coupon shown in the
+  // OfferModal, opened by the gift icon), or null when the pro has none.
+  // professional_id is UNIQUE in model_professional_offers, so there's at
+  // most one. Loaded by the server page in one grouped query
+  // (lib/public/offers.ts) and attached after toPublicListing().
+  offer: ProfessionalOffer | null
+}
+
+// One active offer from model_professional_offers, rendered as a coupon in
+// the OfferModal. DISPLAY-ONLY — no redemption logic yet.
+export interface ProfessionalOffer {
+  id: string
+  professional_id: string
+  discount_label: string
+  subtitle: string | null
+  detail: string | null
+  valid_until: string | null
 }
 
 // One other-ambassador row rendered in the OtherAmbassadorsModal list.
@@ -214,6 +231,8 @@ export function toPublicListing(row: LiveListingJoinRow): PublicListingRow | nul
     // other-ambassadors query by professional_id.
     otherAmbassadors: [],
     otherAmbassadorsCount: 0,
+    // Default — the server page overwrites this after the offers query.
+    offer: null,
   }
 }
 

@@ -11,6 +11,7 @@ import { WallOfLoveSection } from './WallOfLoveSection'
 import { MediaLightbox } from './MediaLightbox'
 import { ProInfoModal } from './ProInfoModal'
 import { OtherAmbassadorsModal } from './OtherAmbassadorsModal'
+import { OfferModal } from './OfferModal'
 import { PublicFooter } from './PublicFooter'
 
 /**
@@ -56,6 +57,10 @@ export default function PublicPageClient({
   // non-null and reads the listing's already-hydrated otherAmbassadors.
   const [otherAmbassadorsListingId, setOtherAmbassadorsListingId] =
     useState<string | null>(null)
+  // Offer modal trigger — mirrors the modals above. Set by SquadRow's gift
+  // icon tap; <OfferModal /> mounts when non-null and reads listing.offer.
+  const [offerModalListingId, setOfferModalListingId] =
+    useState<string | null>(null)
   const orbRefs = useRef<Map<string, HTMLElement>>(new Map())
 
   // Lightbox open handler. Crucial: bless the media pool synchronously
@@ -89,6 +94,12 @@ export default function PublicPageClient({
   // onOpenInfo — analytics fire from the SquadRow badge tap itself.
   const onOpenOtherAmbassadors = useCallback((listingId: string) => {
     setOtherAmbassadorsListingId(listingId)
+  }, [])
+
+  // Offer modal trigger. Synchronous setState only, mirroring onOpenInfo —
+  // analytics fire from the SquadRow gift-icon tap itself.
+  const onOpenOffer = useCallback((listingId: string) => {
+    setOfferModalListingId(listingId)
   }, [])
 
   // Detach the orb pool's <video> when no orb is active (e.g. user
@@ -242,6 +253,7 @@ export default function PublicPageClient({
               onOpenMedia={onOpenMedia}
               onOpenInfo={onOpenInfo}
               onOpenOtherAmbassadors={onOpenOtherAmbassadors}
+              onOpenOffer={onOpenOffer}
               isOrbActive={activeOrbId === l.id}
               onOrbActivate={() => onOrbActivate(l.id)}
               onOrbDeactivate={onOrbDeactivate}
@@ -309,6 +321,20 @@ export default function PublicPageClient({
           <OtherAmbassadorsModal
             listing={target}
             onClose={() => setOtherAmbassadorsListingId(null)}
+          />
+        )
+      })()}
+
+      {/* Offer modal. Mounts on SquadRow gift-icon tap; reads the listing's
+          pre-hydrated offer (no fetch-on-open). Same internal close-animation
+          lifecycle as the modals above. */}
+      {offerModalListingId && (() => {
+        const target = data.listings.find((l) => l.id === offerModalListingId)
+        if (!target) return null
+        return (
+          <OfferModal
+            listing={target}
+            onClose={() => setOfferModalListingId(null)}
           />
         )
       })()}

@@ -11,6 +11,7 @@ import {
 import { getPlaceDataForProfessional } from '@/lib/public/google-places'
 import { getSummaryForProfessional } from '@/lib/public/gemini-summary'
 import { fetchOtherAmbassadorsByPro } from '@/lib/public/other-ambassadors'
+import { fetchOffersByPro } from '@/lib/public/offers'
 
 // Cache freshness thresholds. Mirrored from the helpers in lib/public — we
 // peek at the *_at timestamps here to decide whether to call the helper at
@@ -233,6 +234,16 @@ export default async function PublicSlugPage({
     const all = otherAmbassadorsByPro.get(l.professional_id) ?? []
     l.otherAmbassadors = all
     l.otherAmbassadorsCount = all.filter((a) => a.id !== profile.id).length
+  }
+
+  // Offers — ONE grouped query across the page's professional ids for each
+  // pro's single ACTIVE offer (professional_id is UNIQUE, so at most one).
+  // Service-role bypasses RLS, so the helper keeps the is_active filter
+  // explicit in code. Attach per-listing (null when the pro has none); the
+  // gift icon + OfferModal read listing.offer directly (no fetch-on-open).
+  const offersByPro = await fetchOffersByPro(admin, professionalIds)
+  for (const l of listings) {
+    l.offer = offersByPro.get(l.professional_id) ?? null
   }
 
   // Canonical share URL. Apex still on Carrd per PROJECT_STATE decision

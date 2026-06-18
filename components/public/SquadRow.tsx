@@ -27,6 +27,7 @@ type ClickEvent =
   | 'listing_media_click'
   | 'listing_whatsapp_badge_click'
   | 'listing_ambassadors_badge_click'
+  | 'listing_offer_badge_click'
   | 'listing_modal_open'
 
 function fireClick(slug: string, event_type: ClickEvent, target_id: string) {
@@ -69,6 +70,7 @@ export function SquadRow({
   onOpenMedia,
   onOpenInfo,
   onOpenOtherAmbassadors,
+  onOpenOffer,
   isOrbActive,
   onOrbActivate,
   onOrbDeactivate,
@@ -81,6 +83,7 @@ export function SquadRow({
   onOpenMedia: (listingId: string) => void
   onOpenInfo: (listingId: string) => void
   onOpenOtherAmbassadors: (listingId: string) => void
+  onOpenOffer: (listingId: string) => void
   isOrbActive: boolean
   onOrbActivate: () => void
   onOrbDeactivate: () => void
@@ -128,6 +131,15 @@ export function SquadRow({
     e.stopPropagation()
     fireClick(slug, 'listing_ambassadors_badge_click', listing.id)
     onOpenOtherAmbassadors(listing.id)
+  }
+
+  // Offer gift-icon tap. stopPropagation so the tap doesn't bubble to any
+  // card/row handler; fire analytics, then open the OfferModal. The icon
+  // sits detached to the left of the orb, so it can't start the orb video.
+  const onOfferClick = (e: MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation()
+    fireClick(slug, 'listing_offer_badge_click', listing.id)
+    onOpenOffer(listing.id)
   }
 
   // Trust row segment selection — graceful degradation per spec §10.
@@ -370,6 +382,52 @@ export function SquadRow({
         data-orb-id={listing.id}
         style={{ flexShrink: 0, position: 'relative' }}
       >
+        {/* Offer gift icon — bare pink glyph (NO circle/background), detached
+            just to the LEFT of the orb and aligned to its TOP edge (distinct
+            from the ambassadors badge which sits ON the orb bottom-left).
+            Renders only when this pro has an active offer. Opens OfferModal. */}
+        {listing.offer && (
+          <button
+            type="button"
+            onClick={onOfferClick}
+            aria-label="Offer"
+            style={{
+              position: 'absolute',
+              right: 'calc(100% + 8px)',
+              top: 0,
+              width: 22,
+              height: 22,
+              background: 'transparent',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              style={{
+                width: 22,
+                height: 22,
+                stroke: '#e91e8c',
+                strokeWidth: 2,
+                fill: 'none',
+                strokeLinecap: 'round',
+                strokeLinejoin: 'round',
+              }}
+            >
+              <polyline points="20 12 20 22 4 22 4 12" />
+              <rect x="2" y="7" width="20" height="5" />
+              <line x1="12" y1="22" x2="12" y2="7" />
+              <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+              <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+            </svg>
+          </button>
+        )}
+
         <MediaOrb
           videoUrl={listing.media_type === 'video' ? listing.video_url : null}
           videoThumbnailUrl={
