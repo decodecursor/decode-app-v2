@@ -10,6 +10,7 @@ import { WishesSection } from './WishesSection'
 import { WallOfLoveSection } from './WallOfLoveSection'
 import { MediaLightbox } from './MediaLightbox'
 import { ProInfoModal } from './ProInfoModal'
+import { OtherAmbassadorsModal } from './OtherAmbassadorsModal'
 import { PublicFooter } from './PublicFooter'
 
 /**
@@ -50,6 +51,11 @@ export default function PublicPageClient({
   // it's a valid restore target.
   const [proInfoModalListingId, setProInfoModalListingId] =
     useState<string | null>(null)
+  // "Other ambassadors" modal trigger — mirrors proInfoModalListingId.
+  // Set by SquadRow's badge tap; <OtherAmbassadorsModal /> mounts when
+  // non-null and reads the listing's already-hydrated otherAmbassadors.
+  const [otherAmbassadorsListingId, setOtherAmbassadorsListingId] =
+    useState<string | null>(null)
   const orbRefs = useRef<Map<string, HTMLElement>>(new Map())
 
   // Lightbox open handler. Crucial: bless the media pool synchronously
@@ -77,6 +83,12 @@ export default function PublicPageClient({
   // fires inside <ProInfoModal /> on mount, guarded against double-fire.
   const onOpenInfo = useCallback((listingId: string) => {
     setProInfoModalListingId(listingId)
+  }, [])
+
+  // Other-ambassadors modal trigger. Synchronous setState only, mirroring
+  // onOpenInfo — analytics fire from the SquadRow badge tap itself.
+  const onOpenOtherAmbassadors = useCallback((listingId: string) => {
+    setOtherAmbassadorsListingId(listingId)
   }, [])
 
   // Detach the orb pool's <video> when no orb is active (e.g. user
@@ -229,6 +241,7 @@ export default function PublicPageClient({
               isLast={i === data.listings.length - 1}
               onOpenMedia={onOpenMedia}
               onOpenInfo={onOpenInfo}
+              onOpenOtherAmbassadors={onOpenOtherAmbassadors}
               isOrbActive={activeOrbId === l.id}
               onOrbActivate={() => onOrbActivate(l.id)}
               onOrbDeactivate={onOrbDeactivate}
@@ -282,6 +295,20 @@ export default function PublicPageClient({
             slug={data.profile.slug}
             ambassadorFirstName={data.profile.first_name}
             onClose={() => setProInfoModalListingId(null)}
+          />
+        )
+      })()}
+
+      {/* Other-ambassadors modal. Mounts on SquadRow badge tap; reads the
+          listing's pre-hydrated otherAmbassadors (no fetch-on-open). Same
+          internal close-animation lifecycle as ProInfoModal. */}
+      {otherAmbassadorsListingId && (() => {
+        const target = data.listings.find((l) => l.id === otherAmbassadorsListingId)
+        if (!target) return null
+        return (
+          <OtherAmbassadorsModal
+            listing={target}
+            onClose={() => setOtherAmbassadorsListingId(null)}
           />
         )
       })()}

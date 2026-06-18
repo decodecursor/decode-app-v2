@@ -10,6 +10,7 @@ import {
 } from '@/lib/public/slug-page-shape'
 import { getPlaceDataForProfessional } from '@/lib/public/google-places'
 import { getSummaryForProfessional } from '@/lib/public/gemini-summary'
+import { fetchOtherAmbassadorsByPro } from '@/lib/public/other-ambassadors'
 
 // Cache freshness thresholds. Mirrored from the helpers in lib/public — we
 // peek at the *_at timestamps here to decide whether to call the helper at
@@ -21,11 +22,10 @@ const GEMINI_TTL_MS = 7 * 24 * 60 * 60 * 1000
 // Trust Stack messaged_30d window — single source of truth here.
 const MESSAGED_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
 
-// Incremental Static Regeneration — public pages are high-traffic, data
-// changes slowly (new listings, edits). 60s revalidate balances freshness
-// vs edge-cache hit rate. Slice 3C listing edits + 4B payment webhooks
-// will on-demand revalidate in later slices if staler windows emerge.
-export const revalidate = 60
+// Request-time dynamic (not ISR-cached) so the "other ambassadors" count on
+// each card stays live — a newly-published ambassador for a shared pro must
+// surface its badge immediately, which a 60s edge cache would stale out.
+export const dynamic = 'force-dynamic'
 export const dynamicParams = true
 
 type ProfileRow = PublicProfile & {
@@ -215,6 +215,23 @@ export default async function PublicSlugPage({
         l.last_msg_at = agg.lastAt
       }
     }
+  }
+
+  // "Other ambassadors" — ONE grouped query across the page's professional
+  // ids for the OTHER live ambassadors featuring each pro (excludes this
+  // ambassador). Service-role fetch bypasses RLS, so the helper applies the
+  // published/non-suspended filter in code. Attach per-listing so the badge
+  // gates on the count and the modal reads the list with no fetch-on-open.
+  const professionalIds = Array.from(new Set(listings.map((l) => l.professional_id)))
+  const otherAmbassadorsByPro = await fetchOtherAmbassadorsByPro(
+    admin,
+    professionalIds,
+    profile.id,
+  )
+  for (const l of listings) {
+    const others = otherAmbassadorsByPro.get(l.professional_id) ?? []
+    l.otherAmbassadors = others
+    l.otherAmbassadorsCount = others.length
   }
 
   // Canonical share URL. Apex still on Carrd per PROJECT_STATE decision

@@ -26,6 +26,7 @@ type ClickEvent =
   | 'listing_instagram_click'
   | 'listing_media_click'
   | 'listing_whatsapp_badge_click'
+  | 'listing_ambassadors_badge_click'
   | 'listing_modal_open'
 
 function fireClick(slug: string, event_type: ClickEvent, target_id: string) {
@@ -67,6 +68,7 @@ export function SquadRow({
   isLast,
   onOpenMedia,
   onOpenInfo,
+  onOpenOtherAmbassadors,
   isOrbActive,
   onOrbActivate,
   onOrbDeactivate,
@@ -78,6 +80,7 @@ export function SquadRow({
   isLast: boolean
   onOpenMedia: (listingId: string) => void
   onOpenInfo: (listingId: string) => void
+  onOpenOtherAmbassadors: (listingId: string) => void
   isOrbActive: boolean
   onOrbActivate: () => void
   onOrbDeactivate: () => void
@@ -115,6 +118,16 @@ export function SquadRow({
   const onWhatsappClick = (e: MouseEvent<HTMLAnchorElement>) => {
     e.stopPropagation()
     fireClick(slug, 'listing_whatsapp_badge_click', listing.id)
+  }
+
+  // Other-ambassadors badge tap. stopPropagation so the tap doesn't start
+  // the orb video (the badge sits over the orb circle) or trigger any
+  // card/row tap. Mirrors the Pro Info wiring: fire analytics, then open
+  // the modal via the PublicPageClient handler.
+  const onAmbassadorsClick = (e: MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation()
+    fireClick(slug, 'listing_ambassadors_badge_click', listing.id)
+    onOpenOtherAmbassadors(listing.id)
   }
 
   // Trust row segment selection — graceful degradation per spec §10.
@@ -352,7 +365,11 @@ export function SquadRow({
       {/* Media orb — inline video playback for video listings, lightbox
           carousel for photo listings. data-orb-id keeps the page-level
           IntersectionObserver tied back to the listing row. */}
-      <div ref={registerOrbRef} data-orb-id={listing.id} style={{ flexShrink: 0 }}>
+      <div
+        ref={registerOrbRef}
+        data-orb-id={listing.id}
+        style={{ flexShrink: 0, position: 'relative' }}
+      >
         <MediaOrb
           videoUrl={listing.media_type === 'video' ? listing.video_url : null}
           videoThumbnailUrl={
@@ -371,6 +388,54 @@ export function SquadRow({
           onScrollPause={onOrbDeactivate}
           ariaLabel={`Play preview of ${listing.professional_name}`}
         />
+
+        {/* Other-ambassadors badge — mirrors the WhatsApp badge's size and
+            corner treatment but sits bottom-LEFT of the video circle. Only
+            renders when other ambassadors feature this same pro. A sibling
+            of MediaOrb (absolutely positioned over it) — MediaOrb itself is
+            untouched. */}
+        {listing.otherAmbassadorsCount > 0 && (
+          <button
+            type="button"
+            onClick={onAmbassadorsClick}
+            aria-label="Other ambassadors"
+            style={{
+              position: 'absolute',
+              left: -2,
+              bottom: -2,
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: '#0c0c0c',
+              border: '2px solid #e91e8c',
+              padding: 0,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxSizing: 'border-box',
+            }}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              style={{
+                width: 13,
+                height: 13,
+                stroke: '#e91e8c',
+                strokeWidth: 2,
+                fill: 'none',
+                strokeLinecap: 'round',
+                strokeLinejoin: 'round',
+              }}
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </button>
+        )}
       </div>
     </div>
   )

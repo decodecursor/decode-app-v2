@@ -67,6 +67,27 @@ export interface PublicListingRow {
   google_places_cache: PublicPlacesCache | null
   review_summary_gemini: string | null
   review_summary_custom: string | null
+  // "Other ambassadors" feature — the OTHER live ambassadors who feature
+  // this same professional (excludes the current page's ambassador).
+  // Loaded by the server page in one grouped query (lib/public/other-
+  // ambassadors.ts) and attached after toPublicListing(); the modal reads
+  // otherAmbassadors directly (no fetch-on-open), the card badge gates on
+  // otherAmbassadorsCount > 0.
+  otherAmbassadors: OtherAmbassador[]
+  otherAmbassadorsCount: number
+}
+
+// One other-ambassador row rendered in the OtherAmbassadorsModal list.
+// instagram_handle lives on public.users (joined via model_profiles.user_id),
+// NOT on model_profiles. cover_photo_url is the only usable avatar.
+export interface OtherAmbassador {
+  id: string
+  slug: string
+  first_name: string
+  last_name: string
+  cover_photo_url: string | null
+  cover_photo_position_y: number | null
+  instagram_handle: string | null
 }
 
 export interface PublicProfile {
@@ -188,6 +209,10 @@ export function toPublicListing(row: LiveListingJoinRow): PublicListingRow | nul
     google_places_cache: prof.google_places_cache,
     review_summary_gemini: prof.review_summary_gemini,
     review_summary_custom: prof.review_summary_custom,
+    // Defaults — the server page overwrites these after grouping the
+    // other-ambassadors query by professional_id.
+    otherAmbassadors: [],
+    otherAmbassadorsCount: 0,
   }
 }
 
