@@ -7,10 +7,6 @@ import { maskEmail } from '@/lib/ambassador/log-utils'
 import { renderButtonEmail } from '@/lib/ambassador/email-templates'
 import { Resend } from 'resend'
 
-// TODO: move `new Resend(...)` inside POST(). Top-level construction breaks
-// `next build` whenever RESEND_API_KEY is unset (e.g. local shells).
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 const TOKEN_TTL_MINUTES = 10
 
 /**
@@ -104,6 +100,9 @@ export async function POST(request: NextRequest) {
 
     const html = renderButtonEmail({ heading: 'WeLoveDecode', buttonLabel: 'Confirm your email', callbackUrl })
 
+    // Lazy init — top-level construction throws at `next build` page-data
+    // collection when RESEND_API_KEY is unset, failing the whole build.
+    const resend = new Resend(process.env.RESEND_API_KEY)
     const { error: sendError } = await resend.emails.send({
       from: 'WeLoveDecode <noreply@welovedecode.com>',
       to: normalizedEmail,

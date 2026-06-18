@@ -6,8 +6,6 @@ import { maskEmail } from '@/lib/ambassador/log-utils'
 import { renderButtonEmail } from '@/lib/ambassador/email-templates'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 /**
  * POST /api/ambassador/auth/send-magic-link
  *
@@ -101,6 +99,9 @@ export async function POST(request: NextRequest) {
 
     const html = renderButtonEmail({ heading: 'WeLoveDecode', buttonLabel: 'Login to WeLoveDecode', callbackUrl })
 
+    // Lazy init — top-level construction throws at `next build` page-data
+    // collection when RESEND_API_KEY is unset, failing the whole build.
+    const resend = new Resend(process.env.RESEND_API_KEY)
     const { error: sendError } = await resend.emails.send({
       from: 'WeLoveDecode <noreply@welovedecode.com>',
       to: normalizedEmail,
