@@ -209,10 +209,11 @@ export function OtherAmbassadorsModal({
         {/* "endorsed by" label */}
         <p
           style={{
-            fontSize: 13,
+            fontSize: 16,
+            fontWeight: 600,
             color: PINK,
             textAlign: 'center',
-            margin: '14px 0 8px 0',
+            margin: '32px 0 28px 0',
             flexShrink: 0,
           }}
         >
@@ -306,8 +307,8 @@ function AmbassadorRow({
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 12,
-        padding: '10px 8px',
+        gap: 14,
+        padding: '11px 8px',
         borderRadius: 12,
         textDecoration: 'none',
         color: 'inherit',
@@ -319,7 +320,7 @@ function AmbassadorRow({
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
-            fontSize: 15,
+            fontSize: 17,
             fontWeight: 600,
             color: '#fff',
             lineHeight: 1.2,
@@ -343,8 +344,8 @@ function AmbassadorRow({
               viewBox="0 0 24 24"
               aria-hidden="true"
               style={{
-                width: 11,
-                height: 11,
+                width: 13,
+                height: 13,
                 stroke: '#777',
                 strokeWidth: 2,
                 fill: 'none',
@@ -359,7 +360,7 @@ function AmbassadorRow({
             </svg>
             <span
               style={{
-                fontSize: 12,
+                fontSize: 13,
                 color: '#777',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
@@ -393,7 +394,7 @@ function AmbassadorRow({
   )
 }
 
-// 46px circle showing the FULL cover photo (object-fit:contain, never
+// 58px circle showing the FULL cover photo (object-fit:contain, never
 // cropped), backed by a blurred cover-fit copy of the same image so the
 // circle reads as full rather than bare. Falls back to a neutral person
 // glyph when the cover photo is null.
@@ -402,12 +403,13 @@ function AmbassadorAvatar({ coverPhotoUrl }: { coverPhotoUrl: string | null }) {
     <div
       style={{
         position: 'relative',
-        width: 46,
-        height: 46,
+        width: 58,
+        height: 58,
         borderRadius: '50%',
         overflow: 'hidden',
         flexShrink: 0,
         background: '#1a1a1a',
+        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.14)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
