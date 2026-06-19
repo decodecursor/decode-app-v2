@@ -344,7 +344,7 @@ export function OfferModal({
               boxSizing: 'border-box',
             }}
           >
-            {showCode ? 'Coming soon' : 'Show Redemption Code'}
+            {showCode ? 'Coming Soon' : 'Show Redemption Code'}
           </button>
         </div>
 

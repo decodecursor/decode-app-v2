@@ -206,7 +206,7 @@ export function OtherAmbassadorsModal({
           )}
         </header>
 
-        {/* "endorsed by" label */}
+        {/* "trusted by" label */}
         <p
           style={{
             fontSize: 16,
@@ -217,7 +217,7 @@ export function OtherAmbassadorsModal({
             flexShrink: 0,
           }}
         >
-          endorsed by
+          trusted by
         </p>
 
         {/* LIST — each row is one full-width link to /{slug} */}
