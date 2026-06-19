@@ -318,7 +318,7 @@ export function SquadRow({
         <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.2, marginBottom: 1.5 }}>
           <span style={{ color: '#fff' }}>{listing.professional_name}</span>
         </div>
-        <div style={{ fontSize: 12, color: '#777', lineHeight: 1.2 }}>{formatLocation(listing.professional_city, listing.professional_country)}</div>
+        <div style={{ fontSize: 11, color: '#777', lineHeight: 1.2 }}>{formatLocation(listing.professional_city, listing.professional_country)}</div>
 
         {showTrustRow && (
           <div
@@ -366,7 +366,7 @@ export function SquadRow({
                 {showMessagedCount
                   ? `${listing.messaged_30d} in 30d`
                   : showLastMsg
-                    ? `Last msg ${lastMsgLabel}`
+                    ? lastMsgLabel
                     : 'New'}
               </span>
             )}
@@ -413,7 +413,7 @@ export function SquadRow({
                 width: 22,
                 height: 22,
                 stroke: '#e91e8c',
-                strokeWidth: 2,
+                strokeWidth: 1.5,
                 fill: 'none',
                 strokeLinecap: 'round',
                 strokeLinejoin: 'round',

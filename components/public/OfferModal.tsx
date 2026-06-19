@@ -57,6 +57,18 @@ export function OfferModal({
   const modalRef = useRef<HTMLDivElement>(null)
   const [closing, setClosing] = useState(false)
   const [showCode, setShowCode] = useState(false)
+  const codeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // "Show Redemption Code" → flip the label to "Coming soon" for 3s, then back.
+  const revealCode = useCallback(() => {
+    if (codeTimerRef.current) clearTimeout(codeTimerRef.current)
+    setShowCode(true)
+    codeTimerRef.current = setTimeout(() => setShowCode(false), 3000)
+  }, [])
+
+  useEffect(() => () => {
+    if (codeTimerRef.current) clearTimeout(codeTimerRef.current)
+  }, [])
 
   const requestClose = useCallback(() => {
     setClosing((c) => {
@@ -311,7 +323,8 @@ export function OfferModal({
         <div style={{ padding: '8px 20px 4px' }}>
           <button
             type="button"
-            onClick={() => setShowCode(true)}
+            onClick={revealCode}
+            aria-live="polite"
             className="decode-modal__btn-primary"
             style={{
               display: 'flex',
@@ -331,21 +344,8 @@ export function OfferModal({
               boxSizing: 'border-box',
             }}
           >
-            Show redemption code
+            {showCode ? 'Coming soon' : 'Show Redemption Code'}
           </button>
-          {showCode && (
-            <p
-              role="status"
-              style={{
-                textAlign: 'center',
-                fontSize: 12,
-                color: TXT_SECONDARY,
-                margin: '10px 0 0 0',
-              }}
-            >
-              Coming soon
-            </p>
-          )}
         </div>
 
         {/* CANCEL */}
