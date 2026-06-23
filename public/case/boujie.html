@@ -129,6 +129,36 @@
   .agency-note .t{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:#CCC;line-height:1.6;margin-bottom:16px;}
   .agency-note img{width:100%;border-radius:6px;border:0.5px solid #1f1f1f;display:block;}
 
+  /* ---------- RETURN ON MARKETING SPEND (bar chart) ---------- */
+  .rms-sub{font-size:15px;color:#a0a0a0;line-height:1.6;max-width:440px;margin:0 auto 56px;text-align:center;}
+  .rms-chart{width:100%;max-width:640px;margin:0 auto;}
+  /* heights are proportional to the values: max (7.2×) = 240px → 1×≈13.9%, 4×≈55.6% */
+  .rms-bars{display:flex;align-items:flex-end;justify-content:center;gap:56px;border-bottom:1px solid rgba(255,255,255,0.1);}
+  .rms-bar-item{display:flex;flex-direction:column;align-items:center;width:130px;}
+  .rms-val{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:38px;font-weight:500;letter-spacing:-1px;line-height:1;margin-bottom:14px;}
+  .rms-bar{width:100%;border-radius:4px 4px 0 0;transform:scaleY(0);transform-origin:bottom center;}
+  .rms-caps{display:flex;justify-content:center;gap:56px;margin-top:18px;}
+  .rms-cap-item{width:130px;text-align:center;}
+  .rms-company{font-size:14px;font-weight:600;color:#f0f0f0;margin-bottom:4px;}
+  .rms-company.acc{color:#e91e8c;}
+  .rms-method{font-size:12px;color:#8a8a8a;margin-bottom:3px;}
+  .rms-biz{font-size:11.5px;color:#f0f0f0;}
+  .rms-note{font-size:10px;color:#666;letter-spacing:0.4px;line-height:1.6;max-width:560px;margin:40px auto 0;text-align:center;}
+  .rms-chart.in .rms-bar{transition:transform .9s cubic-bezier(.22,1,.36,1);transform:scaleY(1);}
+  .rms-chart.in .rms-bar.b2{transition-delay:.1s;}
+  .rms-chart.in .rms-bar.b3{transition-delay:.2s;}
+  @media (prefers-reduced-motion:reduce){
+    .rms-bar{transform:scaleY(1)!important;transition:none!important;}
+  }
+  @media (max-width:600px){
+    .rms-bars{gap:16px;}
+    .rms-caps{gap:16px;}
+    .rms-bar-item{width:90px;}
+    .rms-cap-item{width:90px;}
+    .rms-val{font-size:30px;}
+    .rms-company{font-size:13px;}
+  }
+
   /* ---------- WHY (sourced) ---------- */
   .why-wrap{width:100%;max-width:960px;margin:0 auto;}
   .why-row{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
@@ -260,7 +290,7 @@
       <div class="eyebrow">The headline number</div>
       <div class="mega-num">11</div>
       <div class="mega-label">New clients</div>
-      <div class="mega-desc">In just 30 days, three ambassadors attracted eleven new clients.</div>
+      <div class="mega-desc">In just 30 days, three ambassadors attracted eleven new paying clients.</div>
     </div>
   </div>
 
@@ -342,6 +372,47 @@
     </div>
   </div>
 
+  <!-- ============ RETURN ON MARKETING SPEND STAGE ============ -->
+  <div class="stage short">
+    <div class="eyebrow" style="color:#e91e8c;">Return on marketing spend</div>
+    <div class="rms-sub">Same money in. What comes back, per dirham spent.</div>
+    <!-- 7.2× ties to the "7.2× Return on investment" figure in the supporting strip above -->
+    <div class="rms-chart" id="rmsChart">
+      <div class="rms-bars">
+        <div class="rms-bar-item">
+          <div class="rms-val" style="color:#6e6e6e;">1×</div>
+          <div class="rms-bar b1" style="height:33px;background:#2a2a2a;"></div>
+        </div>
+        <div class="rms-bar-item">
+          <div class="rms-val" style="color:#b0b0b0;">4×</div>
+          <div class="rms-bar b2" style="height:133px;background:#4a4a4a;"></div>
+        </div>
+        <div class="rms-bar-item">
+          <div class="rms-val" style="color:#e91e8c;">7.2×</div>
+          <div class="rms-bar b3" style="height:240px;background:#e91e8c;box-shadow:0 0 50px rgba(233,30,140,.45);"></div>
+        </div>
+      </div>
+      <div class="rms-caps">
+        <div class="rms-cap-item">
+          <div class="rms-company">Instagram</div>
+          <div class="rms-method">Paid ads</div>
+          <div class="rms-biz">Beauty salon</div>
+        </div>
+        <div class="rms-cap-item">
+          <div class="rms-company">Instagram</div>
+          <div class="rms-method">Paid ads</div>
+          <div class="rms-biz">Aesthetic clinic</div>
+        </div>
+        <div class="rms-cap-item">
+          <div class="rms-company acc">DECODE</div>
+          <div class="rms-method">Ambassadors</div>
+          <div class="rms-biz">Beauty salon</div>
+        </div>
+      </div>
+    </div>
+    <div class="rms-note">Salon and clinic figures: typical return on Instagram ad spend, first visit (industry benchmarks). DECODE figure: Boujie Ladies Salon — measured, first 30 days, before any repeat visit.</div>
+  </div>
+
   <!-- ============ COMPARISON STAGE ============ -->
   <div class="stage short">
     <div class="eyebrow">Influencer comparison</div>
@@ -406,6 +477,20 @@
       </a>
     </div>
   </div>
+
+<script>
+(function(){
+  var c=document.getElementById('rmsChart');
+  if(!c) return;
+  if(!('IntersectionObserver' in window)){ c.classList.add('in'); return; }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ c.classList.add('in'); io.disconnect(); }
+    });
+  },{threshold:0.3});
+  io.observe(c);
+})();
+</script>
 
 </body>
 </html>
