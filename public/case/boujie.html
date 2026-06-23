@@ -137,6 +137,10 @@
   .rms-bar-item{display:flex;flex-direction:column;align-items:center;width:130px;}
   .rms-val{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:38px;font-weight:500;letter-spacing:-1px;line-height:1;margin-bottom:14px;}
   .rms-bar{width:100%;border-radius:4px 4px 0 0;transform:scaleY(0);transform-origin:bottom center;}
+  /* heights proportional to value: 7.2× = full, 1×≈13.9%, 4×≈55.6% */
+  .rms-bar.b1{height:29px;background:#2a2a2a;}
+  .rms-bar.b2{height:116px;background:#4a4a4a;}
+  .rms-bar.b3{height:208px;background:#e91e8c;box-shadow:0 0 50px rgba(233,30,140,.45);}
   .rms-caps{display:flex;justify-content:center;gap:56px;margin-top:18px;}
   .rms-cap-item{width:130px;text-align:center;}
   .rms-company{font-size:14px;font-weight:600;color:#f0f0f0;margin-bottom:4px;}
@@ -155,8 +159,18 @@
     .rms-caps{gap:16px;}
     .rms-bar-item{width:90px;}
     .rms-cap-item{width:90px;}
-    .rms-val{font-size:30px;}
+    .rms-val{font-size:28px;margin-bottom:10px;}
     .rms-company{font-size:13px;}
+    .rms-sub{margin-bottom:40px;}
+  }
+  @media (orientation:landscape) and (max-height:560px){
+    .rms-sub{margin-bottom:28px;}
+    .rms-val{font-size:26px;margin-bottom:8px;}
+    .rms-bar.b1{height:22px;}
+    .rms-bar.b2{height:88px;}
+    .rms-bar.b3{height:158px;}
+    .rms-caps{margin-top:12px;}
+    .rms-note{margin-top:26px;}
   }
 
   /* ---------- WHY (sourced) ---------- */
@@ -374,22 +388,22 @@
 
   <!-- ============ RETURN ON MARKETING SPEND STAGE ============ -->
   <div class="stage short">
-    <div class="eyebrow" style="color:#e91e8c;">Return on marketing spend</div>
+    <div class="eyebrow">Return on marketing spend</div>
     <div class="rms-sub">Same money in. What comes back, per dirham spent.</div>
     <!-- 7.2× ties to the "7.2× Return on investment" figure in the supporting strip above -->
     <div class="rms-chart" id="rmsChart">
       <div class="rms-bars">
         <div class="rms-bar-item">
           <div class="rms-val" style="color:#6e6e6e;">1×</div>
-          <div class="rms-bar b1" style="height:33px;background:#2a2a2a;"></div>
+          <div class="rms-bar b1"></div>
         </div>
         <div class="rms-bar-item">
           <div class="rms-val" style="color:#b0b0b0;">4×</div>
-          <div class="rms-bar b2" style="height:133px;background:#4a4a4a;"></div>
+          <div class="rms-bar b2"></div>
         </div>
         <div class="rms-bar-item">
           <div class="rms-val" style="color:#e91e8c;">7.2×</div>
-          <div class="rms-bar b3" style="height:240px;background:#e91e8c;box-shadow:0 0 50px rgba(233,30,140,.45);"></div>
+          <div class="rms-bar b3"></div>
         </div>
       </div>
       <div class="rms-caps">
@@ -410,13 +424,12 @@
         </div>
       </div>
     </div>
-    <div class="rms-note">Salon and clinic figures: typical return on Instagram ad spend, first visit (industry benchmarks). DECODE figure: Boujie Ladies Salon — measured, first 30 days, before any repeat visit.</div>
   </div>
 
   <!-- ============ COMPARISON STAGE ============ -->
   <div class="stage short">
     <div class="eyebrow">Influencer comparison</div>
-    <div class="sectitle-c">Salon spent AED 1,200.</div>
+    <div class="cmp-punch" style="margin:0 0 48px;">21× cheaper.</div>
     <div class="cmp">
       <div class="cmp-row">
         <div class="cmp-top"><div class="cmp-name acc" style="color:#fff;">DECODE (Ambassadors)</div><div class="cmp-val acc" style="color:#fff;">AED 1,200</div></div>
@@ -426,7 +439,6 @@
         <div class="cmp-top"><div class="cmp-name red">Agency Premium (Influencer)</div><div class="cmp-val red">AED 25,440</div></div>
         <div class="cmp-track"><div class="cmp-fill red" style="width:100%;"></div></div>
       </div>
-      <div class="cmp-punch">21× cheaper.</div>
 
       <div class="agency-note">
         <div class="l">Agency numbers based on a real quotation</div>
