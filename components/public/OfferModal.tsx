@@ -325,15 +325,27 @@ export function OfferModal({
               {offer.original_price != null && (
                 <span
                   style={{
-                    display: 'block',
-                    textDecoration: 'line-through',
-                    textDecorationColor: 'rgba(255,255,255,0.38)',
+                    display: 'inline-block',
+                    position: 'relative',
                     color: '#aaa',
                     fontSize: 16,
                     marginBottom: 1,
                   }}
                 >
                   AED {offer.original_price}
+                  {/* Hand-drawn strike so it can overhang the text (4px each
+                      side) — native line-through can't exceed the text width. */}
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      left: -4,
+                      right: -4,
+                      top: '50%',
+                      height: 1,
+                      background: 'rgba(255,255,255,0.38)',
+                    }}
+                  />
                 </span>
               )}
               {offer.special_price != null && (
