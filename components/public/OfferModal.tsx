@@ -166,7 +166,7 @@ export function OfferModal({
   // ---- Style tokens (mirror ProInfoModal + offer_modal_FINAL_B.html) ----
   const PINK = '#e91e8c'
   const BG = '#0a0a0a'
-  const TICKET_BG = '#222222'
+  const TICKET_BG = '#000000'
   const TXT_PRIMARY = '#ffffff'
   const TXT_SECONDARY = '#888888'
 
@@ -244,18 +244,14 @@ export function OfferModal({
             style={{
               position: 'relative',
               background: TICKET_BG,
-              border: '1px dashed rgba(233, 30, 140, 0.5)',
               borderRadius: 14,
               overflow: 'hidden',
             }}
           >
-            {/* PROMOTION banner — overlaps the ticket's top edge so the solid
-                pink covers the dashed top border line and the top corners. */}
+            {/* PROMOTION banner — pure solid pink, full width, rounded top
+                corners. No border line through or around it. */}
             <div
               style={{
-                position: 'relative',
-                zIndex: 1,
-                margin: '-1px -1px 0 -1px',
                 background: PINK,
                 color: '#ffffff',
                 fontSize: 11,
@@ -270,6 +266,15 @@ export function OfferModal({
               Promotion
             </div>
 
+            {/* BODY — the dashed pink border lives ONLY here (sides + bottom,
+                no top) so it never runs through the banner. */}
+            <div
+              style={{
+                border: '1px dashed rgba(233, 30, 140, 0.5)',
+                borderTop: 'none',
+                borderRadius: '0 0 14px 14px',
+              }}
+            >
             {/* TOP — service, original/special price, % OFF chip */}
             <div
               style={{
@@ -365,7 +370,7 @@ export function OfferModal({
               )}
               {validUntil && (
                 <div style={{ fontSize: 11, color: '#777', textAlign: 'center', marginTop: 9 }}>
-                  Valid until {validUntil}
+                  Valid until 15 July 2026
                 </div>
               )}
             </div>
@@ -419,6 +424,7 @@ export function OfferModal({
                   </div>
                 </div>
               )}
+            </div>
             </div>
           </div>
         </div>
