@@ -166,7 +166,7 @@ export function OfferModal({
   // ---- Style tokens (mirror ProInfoModal + offer_modal_FINAL_B.html) ----
   const PINK = '#e91e8c'
   const BG = '#0a0a0a'
-  const TICKET_BG = '#111111'
+  const TICKET_BG = '#222222'
   const TXT_PRIMARY = '#ffffff'
   const TXT_SECONDARY = '#888888'
 
@@ -249,9 +249,13 @@ export function OfferModal({
               overflow: 'hidden',
             }}
           >
-            {/* PROMOTION banner */}
+            {/* PROMOTION banner — overlaps the ticket's top edge so the solid
+                pink covers the dashed top border line and the top corners. */}
             <div
               style={{
+                position: 'relative',
+                zIndex: 1,
+                margin: '-1px -1px 0 -1px',
                 background: PINK,
                 color: '#ffffff',
                 fontSize: 11,
@@ -260,6 +264,7 @@ export function OfferModal({
                 textTransform: 'uppercase',
                 textAlign: 'center',
                 padding: 7,
+                borderRadius: '14px 14px 0 0',
               }}
             >
               Promotion
@@ -358,9 +363,14 @@ export function OfferModal({
                   </span>
                 </div>
               )}
+              {validUntil && (
+                <div style={{ fontSize: 11, color: '#777', textAlign: 'center', marginTop: 9 }}>
+                  Valid until {validUntil}
+                </div>
+              )}
             </div>
 
-            {/* BOTTOM — perk row + expiry */}
+            {/* BOTTOM — perk row */}
             <div style={{ padding: '14px 14px 16px' }}>
               {offer.perk && (
                 <div
@@ -407,11 +417,6 @@ export function OfferModal({
                       {offer.perk}
                     </span>
                   </div>
-                </div>
-              )}
-              {validUntil && (
-                <div style={{ fontSize: 11, color: '#777', textAlign: 'center' }}>
-                  Valid until {validUntil}
                 </div>
               )}
             </div>
