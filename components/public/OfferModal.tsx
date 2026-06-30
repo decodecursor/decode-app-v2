@@ -410,14 +410,14 @@ export function OfferModal({
                     <b
                       style={{
                         display: 'block',
-                        fontSize: 12.5,
+                        fontSize: 13.5,
                         color: TXT_PRIMARY,
                         fontWeight: 600,
                       }}
                     >
                       Including free
                     </b>
-                    <span style={{ display: 'block', fontSize: 12, color: '#cfcfcf' }}>
+                    <span style={{ display: 'block', fontSize: 13, color: '#cfcfcf' }}>
                       {offer.perk}
                     </span>
                   </div>
