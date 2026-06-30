@@ -317,8 +317,9 @@ export function OfferModal({
                   style={{
                     display: 'block',
                     textDecoration: 'line-through',
-                    color: '#777',
-                    fontSize: 14,
+                    textDecorationColor: 'rgba(255,255,255,0.38)',
+                    color: '#aaa',
+                    fontSize: 16,
                     marginBottom: 1,
                   }}
                 >
