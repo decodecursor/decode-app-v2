@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offer modal — final (banner · black chip)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0a0a; color: #fff;
+    font-family: 'Inter','Segoe UI',-apple-system,sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding: 48px 20px;
+  }
+  .stage-label { font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#e91e8c; margin-bottom:18px; }
+
+  .modal-host { width: 360px; background: #000; border-radius: 24px; overflow: hidden; }
+  .m-hero { padding: 24px 16px 14px; text-align: center; }
+  .m-cat { font-size: 11px; font-weight: 700; color: #e91e8c; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 4px; }
+  .m-name { font-size: 20px; font-weight: 500; color: #fff; line-height: 1.2; margin-bottom: 3px; }
+  .m-city { font-size: 12px; color: #888; }
+
+  .m-actions { padding: 8px 20px 4px; }
+  .m-btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:15px 0; background:#e91e8c; color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; letter-spacing:.2px; cursor:pointer; font-family:inherit; }
+  .m-btn svg { width:18px; height:18px; }
+  .m-cancel-area { padding: 10px 20px 20px; text-align:center; }
+  .m-cancel { background:none; border:none; color:#888; font-size:13px; cursor:pointer; font-family:inherit; }
+
+  .ticket { margin: 18px 16px 14px; position: relative; background: #111; border: 1px dashed rgba(233,30,140,.5); border-radius: 14px; overflow: hidden; }
+  .notch-l, .notch-r { position:absolute; width:18px; height:18px; border-radius:50%; background:#000; }
+  .notch-l { left:-9px; } .notch-r { right:-9px; }
+
+  .promo-banner { background:#e91e8c; color:#fff; font-size:11px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; text-align:center; padding:7px; }
+
+  .top { padding: 20px 18px 18px; text-align:center; border-bottom:1px dashed #2e2e2e; position:relative; }
+  .svc { font-size:13px; color:#cfcfcf; font-weight:500; margin-bottom:8px; }
+  .orig { display:block; text-decoration: line-through; color:#777; font-size:14px; margin-bottom:1px; }
+  .now { display:block; color:#fff; font-weight:800; font-size:30px; letter-spacing:-.5px; }
+  .chip { display:inline-block; background:#e91e8c; color:#000; font-size:11px; font-weight:800; letter-spacing:.3px; padding:3px 10px; border-radius:999px; margin-top:10px; }
+
+  .bot { padding: 14px 14px 16px; }
+  .perk { display:flex; align-items:center; justify-content:center; gap:9px; margin-bottom:10px; }
+  .perk svg { width:18px; height:18px; flex:none; }
+  .perk .ptxt { text-align:left; line-height:1.25; }
+  .perk .ptxt b { display:block; font-size:12.5px; color:#fff; font-weight:600; }
+  .perk .ptxt span { display:block; font-size:12px; color:#cfcfcf; }
+  .expiry { font-size:11px; color:#777; text-align:center; }
+</style>
+</head>
+<body>
+  <p class="stage-label">Offer modal · final</p>
+
+  <div class="modal-host">
+    <div class="m-hero">
+      <div class="m-cat">Hair</div>
+      <div class="m-name">Glow Studio</div>
+      <div class="m-city">Dubai, UAE</div>
+    </div>
+
+    <div class="ticket">
+      <div class="promo-banner">Promotion</div>
+      <div class="top">
+        <div class="svc">Haircut</div>
+        <span class="orig">AED 290</span>
+        <span class="now">AED 174</span>
+        <div><span class="chip">40% OFF</span></div>
+        <div class="notch-l"></div><div class="notch-r"></div>
+      </div>
+      <div class="bot">
+        <div class="perk">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#e91e8c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+          <div class="ptxt"><b>Including free</b><span>Hair wash &amp; blow-dry</span></div>
+        </div>
+        <div class="expiry">Valid until 31 July 2026</div>
+      </div>
+    </div>
+
+    <div class="m-actions">
+      <button class="m-btn">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.15h-.01c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.23 8.23 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.83 2.42a8.2 8.2 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.1-.22-.16-.47-.28z"/></svg>
+        Book Now
+      </button>
+    </div>
+    <div class="m-cancel-area"><button class="m-cancel">Cancel</button></div>
+  </div>
+</body>
+</html>

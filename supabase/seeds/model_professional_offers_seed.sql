@@ -1,25 +1,66 @@
--- Sample offer seed — ONE active offer on the Santorini spa pro so the gift
--- icon + OfferModal are immediately testable. Resolve the professional by
--- name (ILIKE '%santorini%'). Separate file, NOT a migration — run manually
--- against the DB when you want sample data.
+-- Sample offer seed — ONE active, price-based offer, EXCLUSIVE to Yanni's
+-- page for now. The offer is built from prices (service / original / special
+-- + perk); the % is derived in the UI, never stored.
+--
+-- The pro is resolved through Yanni's OWN live listing so the gift icon is
+-- guaranteed to surface on /yannijohnson: pick the professional Yanni lists
+-- whose name matches '%santorini%' (the salon used in earlier tests). If Yanni
+-- ever stops listing Santorini, swap the name filter for any pro Yanni lists.
 --
 -- professional_id is UNIQUE, so ON CONFLICT keeps this idempotent.
+--
+-- FILE ONLY — do NOT apply automatically. Run manually when you want the data.
+-- Requires 20260630_model_professional_offers_pricing_columns.sql first.
 
+-- 1) Keep it exclusive to Yanni: deactivate EVERY other offer so no other page
+--    can surface one. (Glow Studio currently has the only active offer and is
+--    also listed by Yanni — this turns it off too.) After this seed there is
+--    exactly ONE active offer total: the Santorini one inserted below.
+UPDATE public.model_professional_offers
+SET is_active = false, updated_at = now()
+WHERE professional_id <> (
+  SELECT ll.professional_id
+  FROM public.model_listings_live ll
+  JOIN public.model_professionals p ON p.id = ll.professional_id
+  WHERE ll.model_id = (SELECT id FROM public.model_profiles WHERE slug = 'yannijohnson')
+    AND p.name ILIKE '%santorini%'
+  LIMIT 1
+);
+
+-- 2) UPSERT the one active offer on Yanni's Santorini pro.
 INSERT INTO public.model_professional_offers
-  (professional_id, discount_label, subtitle, detail, valid_until, is_active)
+  (professional_id, service, original_price, special_price, perk, valid_until, is_active)
 SELECT
-  p.id,
-  '20% OFF',
-  'For your first visit',
-  'New DECODE clients only',
+  ll.professional_id,
+  'Haircut',
+  290,
+  174,
+  'Hair wash & blow-dry',
   DATE '2026-07-31',
   true
-FROM public.model_professionals p
-WHERE p.name ILIKE '%santorini%'
+FROM public.model_listings_live ll
+JOIN public.model_professionals p ON p.id = ll.professional_id
+WHERE ll.model_id = (SELECT id FROM public.model_profiles WHERE slug = 'yannijohnson')
+  AND p.name ILIKE '%santorini%'
+LIMIT 1
 ON CONFLICT (professional_id) DO UPDATE SET
-  discount_label = EXCLUDED.discount_label,
-  subtitle       = EXCLUDED.subtitle,
-  detail         = EXCLUDED.detail,
+  service        = EXCLUDED.service,
+  original_price = EXCLUDED.original_price,
+  special_price  = EXCLUDED.special_price,
+  perk           = EXCLUDED.perk,
   valid_until    = EXCLUDED.valid_until,
   is_active      = EXCLUDED.is_active,
   updated_at     = now();
+
+-- UNDO (revert this seed):
+--   -- Deactivate the Santorini offer this seed created/activated:
+--   UPDATE public.model_professional_offers o
+--   SET is_active = false, updated_at = now()
+--   FROM public.model_listings_live ll
+--   JOIN public.model_professionals p ON p.id = ll.professional_id
+--   WHERE o.professional_id = ll.professional_id
+--     AND ll.model_id = (SELECT id FROM public.model_profiles WHERE slug = 'yannijohnson')
+--     AND p.name ILIKE '%santorini%';
+--   -- Then re-activate whichever offer(s) you want back, e.g. Glow Studio:
+--   -- UPDATE public.model_professional_offers SET is_active = true, updated_at = now()
+--   -- WHERE professional_id = '449ec683-78b1-48c8-95c2-ac20f0a88def';
