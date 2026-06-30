@@ -313,7 +313,7 @@ export function OfferModal({
               {offer.service && (
                 <div
                   style={{
-                    fontSize: 13,
+                    fontSize: 15,
                     color: '#cfcfcf',
                     fontWeight: 500,
                     marginBottom: 8,
