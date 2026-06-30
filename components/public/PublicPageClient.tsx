@@ -334,6 +334,7 @@ export default function PublicPageClient({
         return (
           <OfferModal
             listing={target}
+            ambassadorFirstName={data.profile.first_name}
             onClose={() => setOfferModalListingId(null)}
           />
         )

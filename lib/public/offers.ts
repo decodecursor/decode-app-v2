@@ -29,7 +29,7 @@ export async function fetchOffersByPro(
 
   const { data } = await admin
     .from('model_professional_offers')
-    .select('id, professional_id, discount_label, subtitle, detail, valid_until')
+    .select('id, professional_id, service, original_price, special_price, perk, valid_until')
     .in('professional_id', professionalIds)
     .eq('is_active', true)
     .returns<ProfessionalOffer[]>()

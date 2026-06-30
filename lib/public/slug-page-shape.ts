@@ -85,13 +85,17 @@ export interface PublicListingRow {
 }
 
 // One active offer from model_professional_offers, rendered as a coupon in
-// the OfferModal. DISPLAY-ONLY — no redemption logic yet.
+// the OfferModal. DISPLAY-ONLY — no redemption logic yet. Price-based: the
+// modal shows service + original/special price and DERIVES the "% OFF" chip
+// (never stored). Legacy discount_label/subtitle/detail columns still exist
+// in the table but are no longer read.
 export interface ProfessionalOffer {
   id: string
   professional_id: string
-  discount_label: string
-  subtitle: string | null
-  detail: string | null
+  service: string | null
+  original_price: number | null
+  special_price: number | null
+  perk: string | null
   valid_until: string | null
 }
 
