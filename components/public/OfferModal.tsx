@@ -375,8 +375,8 @@ export function OfferModal({
               )}
             </div>
 
-            {/* BOTTOM — perk row */}
-            <div style={{ padding: '14px 14px 16px' }}>
+            {/* BOTTOM — perk row, equal vertical padding above and below */}
+            <div style={{ padding: '14px' }}>
               {offer.perk && (
                 <div
                   style={{
@@ -384,7 +384,6 @@ export function OfferModal({
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 9,
-                    marginBottom: 10,
                   }}
                 >
                   <svg
