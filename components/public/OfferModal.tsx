@@ -406,7 +406,7 @@ export function OfferModal({
                       height: 23,
                       flex: 'none',
                       stroke: PINK,
-                      strokeWidth: 2,
+                      strokeWidth: 1.5,
                       fill: 'none',
                       strokeLinecap: 'round',
                       strokeLinejoin: 'round',
