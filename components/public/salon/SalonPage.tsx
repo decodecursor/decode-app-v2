@@ -1,0 +1,293 @@
+import Image from 'next/image'
+import type { OtherAmbassador } from '@/lib/public/slug-page-shape'
+import { PublicFooter } from '@/components/public/PublicFooter'
+import { SalonShareButton } from './SalonShareButton'
+
+/**
+ * Public SALON page — served at /{slug} when the slug resolves to a
+ * model_professionals row (ambassador resolution wins first; see the
+ * route resolver in app/(public)/[slug]/page.tsx).
+ *
+ * Mirrors the ambassador page shell (dark theme, Inter, 420px mobile-first
+ * column) but lists every ambassador who trusts this salon. ADDITIVE — it
+ * shares no components with the ambassador page except PublicFooter.
+ *
+ * Ambassador rows reuse the exact shape returned by the existing trusted-by
+ * query (fetchOtherAmbassadorsByPro). Row styling mirrors the
+ * OtherAmbassadorsModal's AmbassadorRow.
+ */
+
+export interface SalonData {
+  id: string
+  slug: string
+  name: string
+  city: string | null
+  country: string | null
+  instagram_handle: string | null
+  cover_photo_url: string | null
+}
+
+export function SalonPage({
+  salon,
+  ambassadors,
+  shareUrl,
+}: {
+  salon: SalonData
+  ambassadors: OtherAmbassador[]
+  shareUrl: string
+}) {
+  const location = [salon.city, salon.country].filter(Boolean).join(', ')
+  const igHandle = salon.instagram_handle?.replace(/^@/, '') || null
+
+  return (
+    <div
+      style={{
+        maxWidth: 420,
+        margin: '0 auto',
+        background: '#000',
+        color: '#fff',
+        minHeight: '100vh',
+        fontFamily: 'Inter, sans-serif',
+      }}
+    >
+      {/* COVER */}
+      <div style={{ position: 'relative', height: 360, background: '#222', overflow: 'hidden' }}>
+        {/* IG button, top-left */}
+        {igHandle && (
+          <a
+            href={`https://instagram.com/${igHandle}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Open ${salon.name}'s Instagram`}
+            style={{
+              position: 'absolute',
+              top: 14,
+              left: 16,
+              zIndex: 2,
+              width: 40,
+              height: 40,
+              borderRadius: 11,
+              background: 'rgba(0,0,0,0.38)',
+              border: '1px solid rgba(255,255,255,0.14)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5" />
+              <circle cx="12" cy="12" r="4" />
+              <circle cx="17.5" cy="6.5" r="0.5" fill="#fff" />
+            </svg>
+          </a>
+        )}
+
+        {/* Share button, top-right */}
+        <div style={{ position: 'absolute', top: 14, right: 16, zIndex: 2 }}>
+          <SalonShareButton url={shareUrl} title={salon.name} />
+        </div>
+
+        {/* Cover image — gradient fallback when null (never a broken image) */}
+        {salon.cover_photo_url ? (
+          <Image
+            src={salon.cover_photo_url}
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 420px) 100vw, 420px"
+            style={{ objectFit: 'cover', objectPosition: 'center' }}
+          />
+        ) : (
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              background: 'linear-gradient(180deg, #777 0%, #333 40%, #222 70%, #000 100%)',
+            }}
+          />
+        )}
+
+        {/* Bottom scrim for legibility */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 160,
+            background: 'linear-gradient(transparent, rgba(0,0,0,0.85))',
+          }}
+        />
+
+        {/* Name + location, centered */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 24,
+            left: 0,
+            right: 0,
+            textAlign: 'center',
+            zIndex: 2,
+            padding: '0 20px',
+          }}
+        >
+          <div style={{ fontSize: 31, fontWeight: 700, color: '#fff', letterSpacing: '-0.3px', lineHeight: 1.15 }}>
+            {salon.name}
+          </div>
+          {location && (
+            <div style={{ fontSize: 14, color: '#c9bfc2', marginTop: 4 }}>{location}</div>
+          )}
+        </div>
+      </div>
+
+      {/* TRUSTED BY */}
+      <div style={{ padding: '24px 20px 8px' }}>
+        <div style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 14 }}>
+          Trusted by
+        </div>
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.08)' }} />
+      </div>
+
+      {/* AMBASSADOR LIST */}
+      <div style={{ padding: '4px 12px 8px' }}>
+        {ambassadors.map((amb) => (
+          <AmbassadorRow
+            key={amb.id}
+            slug={amb.slug}
+            name={`${amb.first_name} ${amb.last_name}`.trim()}
+            coverPhotoUrl={amb.cover_photo_url}
+            instagramHandle={amb.instagram_handle}
+          />
+        ))}
+      </div>
+
+      <PublicFooter />
+    </div>
+  )
+}
+
+// One ambassador row — mirrors OtherAmbassadorsModal's AmbassadorRow.
+// Whole row links to /{slug}.
+function AmbassadorRow({
+  slug,
+  name,
+  coverPhotoUrl,
+  instagramHandle,
+}: {
+  slug: string
+  name: string
+  coverPhotoUrl: string | null
+  instagramHandle: string | null
+}) {
+  const handle = instagramHandle?.replace(/^@/, '') || null
+  return (
+    <a
+      href={`/${slug}`}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 14,
+        padding: '11px 8px',
+        borderRadius: 12,
+        textDecoration: 'none',
+        color: 'inherit',
+      }}
+    >
+      <AmbassadorAvatar coverPhotoUrl={coverPhotoUrl} />
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 16,
+            fontWeight: 600,
+            color: '#fff',
+            lineHeight: 1.2,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {name}
+        </div>
+        {handle && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              style={{ width: 13, height: 13, stroke: '#777', strokeWidth: 2, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round', flexShrink: 0 }}
+            >
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+            </svg>
+            <span
+              style={{ fontSize: 13, color: '#777', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            >
+              {handle}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Chevron */}
+      <svg
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        style={{ width: 18, height: 18, stroke: '#555', strokeWidth: 2, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round', flexShrink: 0 }}
+      >
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    </a>
+  )
+}
+
+// 56px circle showing the FULL cover photo (contain, never cropped) over a
+// blurred cover-fit copy. Person-glyph fallback when null.
+function AmbassadorAvatar({ coverPhotoUrl }: { coverPhotoUrl: string | null }) {
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: 56,
+        height: 56,
+        borderRadius: '50%',
+        overflow: 'hidden',
+        flexShrink: 0,
+        background: '#1a1a1a',
+        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.14)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {coverPhotoUrl ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={coverPhotoUrl}
+            alt=""
+            aria-hidden="true"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'blur(8px)', transform: 'scale(1.2)', opacity: 0.55 }}
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={coverPhotoUrl}
+            alt=""
+            style={{ position: 'relative', width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+          />
+        </>
+      ) : (
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          style={{ width: 22, height: 22, stroke: '#666', strokeWidth: 1.8, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }}
+        >
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      )}
+    </div>
+  )
+}

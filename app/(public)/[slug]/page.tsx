@@ -12,6 +12,7 @@ import { getPlaceDataForProfessional } from '@/lib/public/google-places'
 import { getSummaryForProfessional } from '@/lib/public/gemini-summary'
 import { fetchOtherAmbassadorsByPro } from '@/lib/public/other-ambassadors'
 import { fetchOffersByPro } from '@/lib/public/offers'
+import { SalonPage, type SalonData } from '@/components/public/salon/SalonPage'
 
 // Cache freshness thresholds. Mirrored from the helpers in lib/public — we
 // peek at the *_at timestamps here to decide whether to call the helper at
@@ -55,6 +56,20 @@ async function fetchProfile(slug: string): Promise<ProfileRow | null> {
   return { ...rest, instagram_handle: users?.instagram_handle ?? null }
 }
 
+// Salon (professional) resolution — only consulted when no ambassador
+// (model_profiles) row matches the slug. Reads the columns the salon page
+// needs; no visibility gate exists on professionals (a salon page is public
+// once it has a slug).
+async function fetchSalon(slug: string): Promise<SalonData | null> {
+  const admin = createServiceRoleClient()
+  const { data } = await admin
+    .from('model_professionals')
+    .select('id, slug, name, city, country, instagram_handle, cover_photo_url')
+    .eq('slug', slug)
+    .maybeSingle<SalonData>()
+  return data ?? null
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -62,7 +77,24 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params
   const profile = await fetchProfile(slug)
-  if (!profile || !profile.is_published || profile.is_suspended) {
+  // Ambassador-first: an existing profile row keeps today's metadata exactly
+  // (including the default title for unpublished/suspended). Only when no
+  // ambassador row matches do we fall through to the salon.
+  if (!profile) {
+    const salon = await fetchSalon(slug)
+    if (!salon) return { title: 'WeLoveDecode' }
+    const salonImages = salon.cover_photo_url ? [{ url: salon.cover_photo_url }] : undefined
+    return {
+      title: salon.name,
+      openGraph: { title: salon.name, images: salonImages },
+      twitter: {
+        card: 'summary_large_image',
+        title: salon.name,
+        images: salon.cover_photo_url ? [salon.cover_photo_url] : undefined,
+      },
+    }
+  }
+  if (!profile.is_published || profile.is_suspended) {
     return { title: 'WeLoveDecode' }
   }
   const displayName = `${profile.first_name} ${profile.last_name}`.trim()
@@ -95,7 +127,25 @@ export default async function PublicSlugPage({
   const { slug } = await params
 
   const profile = await fetchProfile(slug)
-  if (!profile || !profile.is_published || profile.is_suspended) notFound()
+
+  // Ambassador-first resolution: no ambassador row → try the salon page.
+  // Every existing ambassador URL stays byte-for-byte unchanged because the
+  // ambassador branch below is untouched.
+  if (!profile) {
+    const salon = await fetchSalon(slug)
+    if (!salon) notFound()
+    const salonAdmin = createServiceRoleClient()
+    // REUSE the existing trusted-by query (no exclude-current filter) to list
+    // ALL ambassadors with a live listing for this salon.
+    const ambassadors =
+      (await fetchOtherAmbassadorsByPro(salonAdmin, [salon.id], salon.id)).get(salon.id) ?? []
+    const salonOrigin =
+      process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'https://app.welovedecode.com'
+    const salonShareUrl = `${salonOrigin}/${salon.slug}`
+    return <SalonPage salon={salon} ambassadors={ambassadors} shareUrl={salonShareUrl} />
+  }
+
+  if (!profile.is_published || profile.is_suspended) notFound()
 
   const admin = createServiceRoleClient()
   // Listings projection — effective_status filters out date-expired rows
