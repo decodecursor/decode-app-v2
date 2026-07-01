@@ -402,8 +402,8 @@ export function OfferModal({
                     viewBox="0 0 24 24"
                     aria-hidden="true"
                     style={{
-                      width: 21,
-                      height: 21,
+                      width: 23,
+                      height: 23,
                       flex: 'none',
                       stroke: PINK,
                       strokeWidth: 2,
