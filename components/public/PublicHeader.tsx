@@ -136,7 +136,7 @@ export function PublicHeader({
           {displayName}
         </div>
         {profile.tagline && (
-          <div style={{ fontSize: 13, color: '#bbb' }}>{profile.tagline}</div>
+          <div style={{ fontSize: 14, color: '#bbb' }}>{profile.tagline}</div>
         )}
       </div>
     </div>

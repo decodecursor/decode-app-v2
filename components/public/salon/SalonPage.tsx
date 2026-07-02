@@ -114,7 +114,7 @@ export function SalonPage({
             {salon.name}
           </div>
           {location && (
-            <div style={{ fontSize: 13, color: '#c9bfc2', marginTop: 4 }}>{location}</div>
+            <div style={{ fontSize: 14, color: '#c9bfc2', marginTop: 4 }}>{location}</div>
           )}
         </div>
       </div>
