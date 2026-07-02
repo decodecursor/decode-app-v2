@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import type { OtherAmbassador } from '@/lib/public/slug-page-shape'
+import { formatLocation } from '@/lib/format-location'
 import { PublicFooter } from '@/components/public/PublicFooter'
 import { ShareButton } from '@/components/public/ShareButton'
 import { AmbassadorInstagramButton } from '@/components/public/AmbassadorInstagramButton'
@@ -37,7 +38,7 @@ export function SalonPage({
   ambassadors: OtherAmbassador[]
   shareUrl: string
 }) {
-  const location = [salon.city, salon.country].filter(Boolean).join(', ')
+  const location = formatLocation(salon.city, salon.country)
 
   return (
     <div
