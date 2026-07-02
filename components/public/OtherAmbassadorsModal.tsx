@@ -237,6 +237,8 @@ export function OtherAmbassadorsModal({
               coverPhotoUrl={amb.cover_photo_url}
               coverPhotoPositionY={amb.cover_photo_position_y}
               instagramHandle={amb.instagram_handle}
+              city={amb.city}
+              country={amb.country}
             />
           ))}
         </div>
@@ -296,13 +298,19 @@ function AmbassadorRow({
   coverPhotoUrl,
   coverPhotoPositionY,
   instagramHandle,
+  city,
+  country,
 }: {
   slug: string
   name: string
   coverPhotoUrl: string | null
   coverPhotoPositionY: number | null
   instagramHandle: string | null
+  city: string | null
+  country: string | null
 }) {
+  // Hide the whole location line when there's no city — never a lone pin.
+  const locationText = city && city.trim() ? formatLocation(city, country) : null
   return (
     <a
       href={`/${slug}`}
@@ -371,6 +379,46 @@ function AmbassadorRow({
               }}
             >
               {instagramHandle}
+            </span>
+          </div>
+        )}
+        {locationText && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              marginTop: 2,
+            }}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              style={{
+                width: 12,
+                height: 12,
+                stroke: '#e91e8c',
+                strokeWidth: 2,
+                fill: 'none',
+                strokeLinecap: 'round',
+                strokeLinejoin: 'round',
+                flexShrink: 0,
+              }}
+            >
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            <span
+              style={{
+                fontSize: 12.5,
+                fontWeight: 500,
+                color: '#e91e8c',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {locationText}
             </span>
           </div>
         )}

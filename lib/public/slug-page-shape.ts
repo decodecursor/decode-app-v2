@@ -110,6 +110,8 @@ export interface OtherAmbassador {
   cover_photo_url: string | null
   cover_photo_position_y: number | null
   instagram_handle: string | null
+  city: string | null
+  country: string | null
 }
 
 export interface PublicProfile {

@@ -30,6 +30,8 @@ interface OtherAmbassadorJoinRow {
     last_name: string
     cover_photo_url: string | null
     cover_photo_position_y: number | null
+    city: string | null
+    country: string | null
     is_published: boolean
     is_suspended: boolean
     users: { instagram_handle: string | null } | null
@@ -59,6 +61,7 @@ export async function fetchOtherAmbassadorsByPro(
       `professional_id,
        model_profiles!model_listings_model_id_fkey (
          id, slug, first_name, last_name, cover_photo_url, cover_photo_position_y,
+         city, country,
          is_published, is_suspended,
          users!model_profiles_user_id_fkey ( instagram_handle )
        )`,
@@ -97,6 +100,8 @@ export async function fetchOtherAmbassadorsByPro(
       cover_photo_url: mp.cover_photo_url,
       cover_photo_position_y: mp.cover_photo_position_y,
       instagram_handle: mp.users?.instagram_handle ?? null,
+      city: mp.city,
+      country: mp.country,
     })
   }
 
