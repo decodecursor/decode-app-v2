@@ -237,7 +237,7 @@ function AmbassadorRow({
               <circle cx="12" cy="10" r="3" />
             </svg>
             <span
-              style={{ fontSize: 12.5, fontWeight: 400, color: '#e91e8c', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+              style={{ fontSize: 12, fontWeight: 400, color: '#e91e8c', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
             >
               {locationText}
             </span>
