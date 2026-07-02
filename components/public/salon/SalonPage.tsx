@@ -128,7 +128,10 @@ export function SalonPage({
       </div>
 
       {/* AMBASSADOR LIST */}
-      <div style={{ padding: '4px 12px 8px' }}>
+      {/* paddingBottom: '50vh' mirrors the ambassador page (PublicPageClient)
+          so a short salon pushes the footer below the fold instead of
+          floating it up under the last row. */}
+      <div style={{ padding: '4px 12px 8px', paddingBottom: '50vh' }}>
         {ambassadors.map((amb, i) => (
           <AmbassadorRow
             key={amb.id}
