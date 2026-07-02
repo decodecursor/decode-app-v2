@@ -229,7 +229,7 @@ export default function PublicPageClient({
       <PublicHeader profile={data.profile} shareUrl={shareUrl} />
 
       <div style={{ padding: '20px 20px 8px', paddingBottom: '50vh' }}>
-        <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 14 }}>My Beauty Squad</div>
+        <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 0 }}>My Beauty Squad</div>
 
         {data.listings.length === 0 ? (
           <div
