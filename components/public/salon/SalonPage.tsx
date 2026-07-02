@@ -103,7 +103,7 @@ export function SalonPage({
         <div
           style={{
             position: 'absolute',
-            bottom: 24,
+            bottom: 30,
             left: 0,
             right: 0,
             textAlign: 'center',
