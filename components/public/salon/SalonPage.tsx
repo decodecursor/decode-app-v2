@@ -271,8 +271,8 @@ function AmbassadorAvatar({
     <div
       style={{
         position: 'relative',
-        width: 56,
-        height: 56,
+        width: 62,
+        height: 62,
         borderRadius: '50%',
         overflow: 'hidden',
         flexShrink: 0,
