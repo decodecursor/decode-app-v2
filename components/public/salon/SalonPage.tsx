@@ -93,8 +93,8 @@ export function SalonPage({
             bottom: 0,
             left: 0,
             right: 0,
-            height: 160,
-            background: 'linear-gradient(transparent, rgba(0,0,0,0.85))',
+            height: 120,
+            background: 'linear-gradient(transparent, #000)',
           }}
         />
 
