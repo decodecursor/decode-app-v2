@@ -235,6 +235,7 @@ export function OtherAmbassadorsModal({
               slug={amb.slug}
               name={`${amb.first_name} ${amb.last_name}`}
               coverPhotoUrl={amb.cover_photo_url}
+              coverPhotoPositionY={amb.cover_photo_position_y}
               instagramHandle={amb.instagram_handle}
             />
           ))}
@@ -293,11 +294,13 @@ function AmbassadorRow({
   slug,
   name,
   coverPhotoUrl,
+  coverPhotoPositionY,
   instagramHandle,
 }: {
   slug: string
   name: string
   coverPhotoUrl: string | null
+  coverPhotoPositionY: number | null
   instagramHandle: string | null
 }) {
   return (
@@ -315,7 +318,7 @@ function AmbassadorRow({
         fontFamily: 'inherit',
       }}
     >
-      <AmbassadorAvatar coverPhotoUrl={coverPhotoUrl} />
+      <AmbassadorAvatar coverPhotoUrl={coverPhotoUrl} coverPhotoPositionY={coverPhotoPositionY} />
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
@@ -394,11 +397,16 @@ function AmbassadorRow({
   )
 }
 
-// 58px circle showing the FULL cover photo (object-fit:contain, never
-// cropped), backed by a blurred cover-fit copy of the same image so the
-// circle reads as full rather than bare. Falls back to a neutral person
-// glyph when the cover photo is null.
-function AmbassadorAvatar({ coverPhotoUrl }: { coverPhotoUrl: string | null }) {
+// 58px circle: the cover photo FILLS the circle (object-fit:cover, cropped
+// like Instagram), respecting the ambassador's saved vertical framing.
+// Falls back to a neutral person glyph when the cover photo is null.
+function AmbassadorAvatar({
+  coverPhotoUrl,
+  coverPhotoPositionY,
+}: {
+  coverPhotoUrl: string | null
+  coverPhotoPositionY: number | null
+}) {
   return (
     <div
       style={{
@@ -416,38 +424,19 @@ function AmbassadorAvatar({ coverPhotoUrl }: { coverPhotoUrl: string | null }) {
       }}
     >
       {coverPhotoUrl ? (
-        <>
-          {/* Blurred cover-fit fill */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={coverPhotoUrl}
-            alt=""
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              filter: 'blur(8px)',
-              transform: 'scale(1.2)',
-              opacity: 0.55,
-            }}
-          />
-          {/* Full uncropped image on top */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={coverPhotoUrl}
-            alt=""
-            style={{
-              position: 'relative',
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              display: 'block',
-            }}
-          />
-        </>
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={coverPhotoUrl}
+          alt=""
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition:
+              coverPhotoPositionY != null ? `50% ${coverPhotoPositionY}%` : 'center',
+            display: 'block',
+          }}
+        />
       ) : (
         <svg
           viewBox="0 0 24 24"
