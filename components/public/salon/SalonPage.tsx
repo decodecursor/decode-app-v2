@@ -1,7 +1,8 @@
 import Image from 'next/image'
 import type { OtherAmbassador } from '@/lib/public/slug-page-shape'
 import { PublicFooter } from '@/components/public/PublicFooter'
-import { SalonShareButton } from './SalonShareButton'
+import { ShareButton } from '@/components/public/ShareButton'
+import { AmbassadorInstagramButton } from '@/components/public/AmbassadorInstagramButton'
 
 /**
  * Public SALON page — served at /{slug} when the slug resolves to a
@@ -37,7 +38,6 @@ export function SalonPage({
   shareUrl: string
 }) {
   const location = [salon.city, salon.country].filter(Boolean).join(', ')
-  const igHandle = salon.instagram_handle?.replace(/^@/, '') || null
 
   return (
     <div
@@ -51,42 +51,19 @@ export function SalonPage({
       }}
     >
       {/* COVER */}
-      <div style={{ position: 'relative', height: 360, background: '#222', overflow: 'hidden' }}>
-        {/* IG button, top-left */}
-        {igHandle && (
-          <a
-            href={`https://instagram.com/${igHandle}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`Open ${salon.name}'s Instagram`}
-            style={{
-              position: 'absolute',
-              top: 14,
-              left: 16,
-              zIndex: 2,
-              width: 40,
-              height: 40,
-              borderRadius: 11,
-              background: 'rgba(0,0,0,0.38)',
-              border: '1px solid rgba(255,255,255,0.14)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="2" width="20" height="20" rx="5" />
-              <circle cx="12" cy="12" r="4" />
-              <circle cx="17.5" cy="6.5" r="0.5" fill="#fff" />
-            </svg>
-          </a>
-        )}
+      <div style={{ position: 'relative', height: 300, background: '#222', overflow: 'hidden' }}>
+        {/* IG button, top-left — reuses the ambassador page's exact button */}
+        <div style={{ position: 'absolute', top: 12, left: 20, zIndex: 2 }}>
+          <AmbassadorInstagramButton
+            instagramHandle={salon.instagram_handle}
+            slug={salon.slug}
+            ambassadorName={salon.name}
+          />
+        </div>
 
-        {/* Share button, top-right */}
-        <div style={{ position: 'absolute', top: 14, right: 16, zIndex: 2 }}>
-          <SalonShareButton url={shareUrl} title={salon.name} />
+        {/* Share button, top-right — reuses the ambassador page's exact button */}
+        <div style={{ position: 'absolute', top: 12, right: 20, zIndex: 2 }}>
+          <ShareButton url={shareUrl} title={salon.name} slug={salon.slug} />
         </div>
 
         {/* Cover image — gradient fallback when null (never a broken image) */}
@@ -137,7 +114,7 @@ export function SalonPage({
             {salon.name}
           </div>
           {location && (
-            <div style={{ fontSize: 14, color: '#c9bfc2', marginTop: 4 }}>{location}</div>
+            <div style={{ fontSize: 13, color: '#c9bfc2', marginTop: 4 }}>{location}</div>
           )}
         </div>
       </div>
