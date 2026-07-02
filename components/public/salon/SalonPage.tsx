@@ -130,10 +130,10 @@ export function SalonPage({
       {/* AMBASSADOR LIST */}
       {/* paddingBottom: '50vh' mirrors the ambassador page (PublicPageClient)
           so a short salon pushes the footer below the fold instead of
-          floating it up under the last row. paddingTop 3 + first-row's 11px
-          top padding = a 14px heading-to-first-item gap, matching the
-          ambassador page (its heading has no bottom margin + 14px row top). */}
-      <div style={{ padding: '3px 12px 8px', paddingBottom: '50vh' }}>
+          floating it up under the last row. paddingTop 11 + first-row's 11px
+          top padding = a 22px heading-to-first-item gap, matching the
+          ambassador page (heading marginBottom 8 + 14px row top = 22px). */}
+      <div style={{ padding: '11px 12px 8px', paddingBottom: '50vh' }}>
         {ambassadors.map((amb, i) => (
           <AmbassadorRow
             key={amb.id}
