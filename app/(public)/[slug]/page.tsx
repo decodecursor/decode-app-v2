@@ -84,12 +84,15 @@ export async function generateMetadata({
     const salon = await fetchSalon(slug)
     if (!salon) return { title: 'WeLoveDecode' }
     const salonImages = salon.cover_photo_url ? [{ url: salon.cover_photo_url }] : undefined
+    const salonDescription = 'Trusted by...'
     return {
       title: salon.name,
-      openGraph: { title: salon.name, images: salonImages },
+      description: salonDescription,
+      openGraph: { title: salon.name, description: salonDescription, images: salonImages },
       twitter: {
         card: 'summary_large_image',
         title: salon.name,
+        description: salonDescription,
         images: salon.cover_photo_url ? [salon.cover_photo_url] : undefined,
       },
     }
