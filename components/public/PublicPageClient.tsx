@@ -243,23 +243,32 @@ export default function PublicPageClient({
             No listings yet
           </div>
         ) : (
-          data.listings.map((l, i) => (
-            <SquadRow
-              key={l.id}
-              listing={l}
-              slug={data.profile.slug}
-              ambassadorFirstName={data.profile.first_name}
-              isLast={i === data.listings.length - 1}
-              onOpenMedia={onOpenMedia}
-              onOpenInfo={onOpenInfo}
-              onOpenOtherAmbassadors={onOpenOtherAmbassadors}
-              onOpenOffer={onOpenOffer}
-              isOrbActive={activeOrbId === l.id}
-              onOrbActivate={() => onOrbActivate(l.id)}
-              onOrbDeactivate={onOrbDeactivate}
-              registerOrbRef={(el) => registerOrbRef(l.id, el)}
-            />
-          ))
+          <>
+            {/* Drop the first row's top border — that hairline reads as a
+                divider directly under the "My Beauty Squad" heading. The
+                between-row dividers (rows 2..n borderTop) stay. Scoped
+                override because the border is inline-styled inside SquadRow. */}
+            <style>{`.decode-squad-rows > :first-child { border-top: none !important; }`}</style>
+            <div className="decode-squad-rows">
+              {data.listings.map((l, i) => (
+                <SquadRow
+                  key={l.id}
+                  listing={l}
+                  slug={data.profile.slug}
+                  ambassadorFirstName={data.profile.first_name}
+                  isLast={i === data.listings.length - 1}
+                  onOpenMedia={onOpenMedia}
+                  onOpenInfo={onOpenInfo}
+                  onOpenOtherAmbassadors={onOpenOtherAmbassadors}
+                  onOpenOffer={onOpenOffer}
+                  isOrbActive={activeOrbId === l.id}
+                  onOrbActivate={() => onOrbActivate(l.id)}
+                  onOrbDeactivate={onOrbDeactivate}
+                  registerOrbRef={(el) => registerOrbRef(l.id, el)}
+                />
+              ))}
+            </div>
+          </>
         )}
       </div>
 

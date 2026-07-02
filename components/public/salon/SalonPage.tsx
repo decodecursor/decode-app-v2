@@ -125,18 +125,18 @@ export function SalonPage({
         <div style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 14 }}>
           Trusted by
         </div>
-        <div style={{ height: 1, background: 'rgba(255,255,255,0.08)' }} />
       </div>
 
       {/* AMBASSADOR LIST */}
       <div style={{ padding: '4px 12px 8px' }}>
-        {ambassadors.map((amb) => (
+        {ambassadors.map((amb, i) => (
           <AmbassadorRow
             key={amb.id}
             slug={amb.slug}
             name={`${amb.first_name} ${amb.last_name}`.trim()}
             coverPhotoUrl={amb.cover_photo_url}
             instagramHandle={amb.instagram_handle}
+            isFirst={i === 0}
           />
         ))}
       </div>
@@ -153,11 +153,13 @@ function AmbassadorRow({
   name,
   coverPhotoUrl,
   instagramHandle,
+  isFirst,
 }: {
   slug: string
   name: string
   coverPhotoUrl: string | null
   instagramHandle: string | null
+  isFirst: boolean
 }) {
   const handle = instagramHandle?.replace(/^@/, '') || null
   return (
@@ -169,6 +171,7 @@ function AmbassadorRow({
         gap: 14,
         padding: '11px 8px',
         borderRadius: 12,
+        borderTop: isFirst ? undefined : '1px solid #1a1a1a',
         textDecoration: 'none',
         color: 'inherit',
       }}
